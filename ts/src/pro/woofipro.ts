@@ -6,7 +6,7 @@ import { ArgumentsRequired, AuthenticationError, NotSupported } from '../base/er
 import { ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCache, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { eddsa } from '../base/functions/crypto.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Dict, FeeString, Bool, Market } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Dict, FeeString, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
@@ -354,8 +354,9 @@ export default class woofipro extends woofiproRest {
         const result: Ticker[] = [];
         for (let i = 0; i < data.length; i++) {
             const ticker = this.parseWsBidAsk (this.extend (data[i], { 'ts': timestamp }));
-            if (ticker['symbol'] !== undefined) {
-                this.tickers[ticker['symbol']] = ticker;
+            const tickerSymbol = this.safeString (ticker, 'symbol');
+            if (tickerSymbol !== undefined) {
+                this.tickers[tickerSymbol] = ticker;
             }
             result.push (ticker);
         }
@@ -695,7 +696,7 @@ export default class woofipro extends woofiproRest {
         }
         const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
         let topic: Str = 'executionreport';
-        if (trigger === true) {
+        if (trigger) {
             topic = 'algoexecutionreport';
         }
         const paramsOmitted: Dict = this.omit (params, [ 'stop', 'trigger' ]);
@@ -740,7 +741,7 @@ export default class woofipro extends woofiproRest {
         }
         const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
         let topic: Str = 'executionreport';
-        if (trigger === true) {
+        if (trigger) {
             topic = 'algoexecutionreport';
         }
         const paramsOmitted: Dict = this.omit (params, 'stop');
@@ -1303,7 +1304,7 @@ export default class woofipro extends woofiproRest {
         client.resolve (this.balance, 'balance');
     }
 
-    handleErrorMessage (client: Client, message: Dict): Bool {
+    handleErrorMessage (client: Client, message: Dict): boolean {
         //
         // {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
         //

@@ -50,7 +50,7 @@ abstract class toobit extends \ccxt\Exchange {
         return $this->request('quote/v1/klines', array('common'), 'GET', $params, array("cost" => 1));
     }
     /**
-     * @return list<mixed>
+     * @return array<string, mixed>
      */
     public function common_get_quote_v1_index_klines($params = array()) {
         return $this->request('quote/v1/index/klines', array('common'), 'GET', $params, array("cost" => 1));
@@ -62,7 +62,7 @@ abstract class toobit extends \ccxt\Exchange {
         return $this->request('quote/v1/indexPriceComponents', array('common'), 'GET', $params, array("cost" => 1));
     }
     /**
-     * @return list<mixed>
+     * @return array<string, mixed>
      */
     public function common_get_quote_v1_markprice_klines($params = array()) {
         return $this->request('quote/v1/markPrice/klines', array('common'), 'GET', $params, array("cost" => 1));
@@ -626,7 +626,7 @@ abstract class toobit extends \ccxt\Exchange {
         return $this->request('quote/v1/klines', array('common'), 'GET', $params, array("cost" => 1));
     }
     /**
-     * @return list<mixed>
+     * @return array<string, mixed>
      */
     public function commonGetQuoteV1IndexKlines($params = array()) {
         return $this->request('quote/v1/index/klines', array('common'), 'GET', $params, array("cost" => 1));
@@ -638,7 +638,7 @@ abstract class toobit extends \ccxt\Exchange {
         return $this->request('quote/v1/indexPriceComponents', array('common'), 'GET', $params, array("cost" => 1));
     }
     /**
-     * @return list<mixed>
+     * @return array<string, mixed>
      */
     public function commonGetQuoteV1MarkPriceKlines($params = array()) {
         return $this->request('quote/v1/markPrice/klines', array('common'), 'GET', $params, array("cost" => 1));

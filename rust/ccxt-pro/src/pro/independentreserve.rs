@@ -161,6 +161,9 @@ impl crate::exchange::DerivedExchange for IndependentreserveCore {
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::create_expired_option_market(&self.parent, symbol)
     }
+    fn market(&self, symbol: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::market(&self.parent, symbol)
+    }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::sign(&self.parent, path, api, method, params, headers, body)
     }
@@ -341,7 +344,7 @@ impl IndependentreserveCore {
         let mut trade: Value = self.parse_ws_trade(data, &[]);
         stored.append(trade);
         if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored); }
-        client.resolve(&[get_value(&self.trades, &symbol), messageHash]);
+        client.resolve(&[self.trades.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), messageHash]);
 }
 
     pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
@@ -450,7 +453,7 @@ impl IndependentreserveCore {
         if (channel == Value::Null) {
             return;
         }
-        let mut parts: Value = split(&channel, &Value::Str("/".into()));
+        let mut parts: Value = Value::Array(channel.as_str().map(|__s| __s.split("/").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
         let mut depth: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
         let mut baseId: Value = self.safe_string(parts.clone(), Value::Int(2), &[]);
         let mut quoteId: Value = self.safe_string(parts, Value::Int(3), &[]);
@@ -472,13 +475,13 @@ impl IndependentreserveCore {
         let mut receivedSnapshot: Value = self.safe_bool_k(subscription.clone(), "receivedSnapshot", &[Value::Bool(false)]);
         let mut timestamp: Value = (match message.get("Time") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
         // let orderbook = this.safeValue (this.orderbooks, symbol);
-        if !(in_op(&self.orderbooks, &symbol)) {
+        if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
-        let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
+        let mut orderbook: Value = self.orderbooks.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         if (event.as_deref() == Some("OrderBookSnapshot")) {
             let mut snapshot: Value = self.parse_order_book(orderBook.clone(), symbol.clone(), &[timestamp.clone(), Value::Str("Bids".into()), Value::Str("Offers".into()), Value::Str("Price".into()), Value::Str("Volume".into())]);
             orderbook.reset(snapshot);
@@ -498,7 +501,7 @@ impl IndependentreserveCore {
             add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp));
         }
         let mut checksum: Value = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("checksum".into()), &[Value::Bool(true)]);
-        if (checksum.as_bool() == Some(true)) && (receivedSnapshot.as_bool() == Some(true)) {
+        if is_true(&(checksum)) && receivedSnapshot.as_bool() == Some(true) {
             let mut storedAsks: Value = get_value(&orderbook, &Value::Str("asks".into()));
             let mut storedBids: Value = get_value(&orderbook, &Value::Str("bids".into()));
             let mut asksLength: Value = get_array_length(&storedAsks);
@@ -506,8 +509,8 @@ impl IndependentreserveCore {
             let mut payload: Value = Value::Str("".into());
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_404: bool = true;
-                while { if !__for_first_404 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_404 = false; i.as_f64().unwrap_or(f64::NAN) < ((10i64) as f64) } {
+                let mut __for_first_422: bool = true;
+                while { if !__for_first_422 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_422 = false; i.as_f64().unwrap_or(f64::NAN) < ((10i64) as f64) } {
                 if i.as_f64().unwrap_or(f64::NAN) < bidsLength.as_f64().unwrap_or(f64::NAN) {
                     payload = Value::Str(format!("{}{}", Value::Str(format!("{}{}", payload, self.value_to_checksum(get_value(&get_value(&storedBids, &i), &Value::Int(0)))).into()), self.value_to_checksum(get_value(&get_value(&storedBids, &i), &Value::Int(1)))).into());
                 }
@@ -515,8 +518,8 @@ impl IndependentreserveCore {
             }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_405: bool = true;
-                while { if !__for_first_405 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_405 = false; i.as_f64().unwrap_or(f64::NAN) < ((10i64) as f64) } {
+                let mut __for_first_423: bool = true;
+                while { if !__for_first_423 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_423 = false; i.as_f64().unwrap_or(f64::NAN) < ((10i64) as f64) } {
                 if i.as_f64().unwrap_or(f64::NAN) < asksLength.as_f64().unwrap_or(f64::NAN) {
                     payload = Value::Str(format!("{}{}", Value::Str(format!("{}{}", payload, self.value_to_checksum(get_value(&get_value(&storedAsks, &i), &Value::Int(0)))).into()), self.value_to_checksum(get_value(&get_value(&storedAsks, &i), &Value::Int(1)))).into());
                 }
@@ -527,12 +530,12 @@ impl IndependentreserveCore {
             if (calculatedChecksum.as_f64() != responseChecksum.as_f64()) {
                 let mut error = Value::from(crate::exchange_errors::checksum_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), self.orderbook_checksum_message(symbol.clone()))));
                 remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
-                remove(&mut self.orderbooks, &symbol);
+                if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.orderbooks, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
                 client.reject(&[Value::from(error), messageHash.clone()]);
                 return;
             }
         }
-        if (receivedSnapshot.as_bool() == Some(true)) {
+        if receivedSnapshot.as_bool() == Some(true) {
             client.resolve(&[orderbook, messageHash]);
         }
 }
@@ -559,9 +562,9 @@ impl IndependentreserveCore {
     pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_406: bool = true;
-            while { if !__for_first_406 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_406 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&deltas).as_f64().unwrap_or(f64::NAN) } {
-            self.handle_delta(bookside.clone(), get_value(&deltas, &i));
+            let mut __for_first_424: bool = true;
+            while { if !__for_first_424 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_424 = false; i.as_f64().unwrap_or(f64::NAN) < ((deltas.len() as i64) as f64) } {
+            self.handle_delta(bookside.clone(), deltas.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
         }
         }
 }

@@ -494,7 +494,7 @@ class mexc(ccxt.async_support.mexc):
         paramsOmitted = self.omit(params, ['unsubscribed'])
         url = self.urls['api']['ws']['spot']
         method = 'SUBSCRIPTION'
-        if unsubscribed is True:
+        if unsubscribed:
             method = 'UNSUBSCRIPTION'
         request = {
             'method': method,
@@ -787,7 +787,7 @@ class mexc(ccxt.async_support.mexc):
         firstDeltaNonce = self.safe_integer_n(firstDelta, ['r', 'version', 'fromVersion'])
         if (nonce is None) or (firstDeltaNonce is None):
             return -1
-        if nonce < firstDeltaNonce - 1:
+        if (nonce is not None) and (firstDeltaNonce is not None) and (nonce < firstDeltaNonce - 1):
             return -1
         for i in range(0, len(cache)):
             delta = self.safe_dict(cache, i)
@@ -1900,7 +1900,7 @@ class mexc(ccxt.async_support.mexc):
         client = self.client(self.urls['api']['ws']['spot'])
         messageHash = 'authenticate:listenKey'
         isFetching = self.safe_bool(self.options, 'listenKeyFetching', False)
-        if isFetching is True:
+        if isFetching:
             await client.future(messageHash)
             return self.safe_string(self.options, 'listenKey')
         self.options['listenKeyFetching'] = True

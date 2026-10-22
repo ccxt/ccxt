@@ -921,7 +921,7 @@ class bitvavo extends Exchange {
         $taker = $this->safe_bool($trade, 'taker');
         $takerOrMaker = null;
         if ($taker !== null) {
-            $takerOrMaker = ($taker === true) ? 'taker' : 'maker';
+            $takerOrMaker = ($taker) ? 'taker' : 'maker';
         }
         $feeCostString = $this->safe_string($trade, 'fee');
         $fee = null;
@@ -1125,12 +1125,10 @@ class bitvavo extends Exchange {
             $request['end'] = $this->sum($since, $sinceLimit * $duration * 1000);
         }
         list($requestUntil, $paramsUntil) = $this->handle_until_option('end', $request, $params);
-        $limitResolved = $limit;
-        if (($since !== null) && ($limit === null)) {
-            $limitResolved = 1440;
-        }
-        if ($limitResolved !== null) {
-            $requestUntil['limit'] = min($limitResolved, 1440); // default 1440, max 1440
+        if ($limit !== null) {
+            $requestUntil['limit'] = min($limit, 1440); // default 1440, max 1440
+        } elseif ($since !== null) {
+            $requestUntil['limit'] = 1440;
         }
         return $this->extend($requestUntil, $paramsUntil);
     }
@@ -2038,7 +2036,7 @@ class bitvavo extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'new' => 'open',
             'canceled' => 'canceled',
@@ -2284,7 +2282,7 @@ class bitvavo extends Exchange {
         return $this->parse_ledger($items, $currency, $since, $limit);
     }
 
-    public function parse_ledger_entry_type(?string $type) {
+    public function parse_ledger_entry_type(?string $type): ?string {
         $types = array(
             'buy' => 'trade',
             'sell' => 'trade',
@@ -2502,7 +2500,7 @@ class bitvavo extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit, array( 'type' => 'deposit' ));
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'awaiting_processing' => 'pending',
             'awaiting_email_confirmation' => 'pending',

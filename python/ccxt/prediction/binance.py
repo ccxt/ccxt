@@ -204,18 +204,16 @@ class binance(PredictionExchange, ImplicitAPI):
         :param dict [rest]: extra params forwarded verbatim to the listing endpoint(l1Category, l2Category, sortBy, orderBy)
         :returns dict[]: raw market topic objects
         """
-        maxTopicsResolved = self.safe_integer(self.options, 'maxFetchMarketsLimit', 200) if (maxTopics is None) else maxTopics
-        pageLimit = self.safe_integer(self.options, 'marketsPageLimit', 100)
-        if pageLimit > 100:
-            pageLimit = 100
+        maxTopicsOption = self.safe_integer(self.options, 'maxFetchMarketsLimit', 200)
+        maxTopicsResolved = maxTopics if (maxTopics is not None) else maxTopicsOption
+        pageLimitOption = self.safe_integer(self.options, 'marketsPageLimit', 100)
+        pageLimit = 100 if (pageLimitOption > 100) else pageLimitOption
         collected = []
         offset = 0
         while(True):
-            reqLimit = pageLimit
             collectedLength = len(collected)
             remaining = maxTopicsResolved - collectedLength
-            if remaining < reqLimit:
-                reqLimit = remaining
+            reqLimit = remaining if (remaining < pageLimit) else pageLimit
             if reqLimit <= 0:
                 break
             request = {
@@ -260,7 +258,7 @@ class binance(PredictionExchange, ImplicitAPI):
             for i in range(0, pageTopicsLength):
                 collected.append(pageTopics[i])
             hasMore = self.safe_bool(response, 'hasMore', False)
-            if (hasMore is not True) or (pageTopicsLength < reqLimit):
+            if (not hasMore) or (pageTopicsLength < reqLimit):
                 break
             offset = self.sum(offset, pageTopicsLength)
         return collected
@@ -327,7 +325,7 @@ class binance(PredictionExchange, ImplicitAPI):
         :returns dict[]: a list of [prediction event structures](https://docs.ccxt.com/#/?id=prediction-event-structure)
         """
         allowUnscopedFetchEvents = self.safe_bool(self.options, 'allowUnscopedFetchEvents', False)
-        if allowUnscopedFetchEvents is not True:
+        if not allowUnscopedFetchEvents:
             self.require_event_query(params)
         queries = self.parse_search_queries(params)
         # binance has no tag taxonomy — resolve requested tags through the semantic search too
@@ -415,11 +413,8 @@ class binance(PredictionExchange, ImplicitAPI):
         seen = {}
         collected = []
         queriesLength = len(queries)
-        limitResolved = limit
-        if limit is None:
-            limitResolved = 20
-        elif limit > 50:
-            limitResolved = 50
+        limitValue = 20 if (limit is None) else limit
+        limitResolved = 50 if (limitValue > 50) else limitValue
         for qi in range(0, queriesLength):
             request = {
                 'query': queries[qi],
@@ -449,7 +444,7 @@ class binance(PredictionExchange, ImplicitAPI):
                         collected.append(rawTopic)
         capped = collected
         collectedLength = len(collected)
-        if (limitResolved is not None) and (collectedLength > limitResolved):
+        if collectedLength > limitResolved:
             capped = self.array_slice(collected, 0, limitResolved)
         return await self.complete_raw_topics(capped)
 
@@ -466,7 +461,7 @@ class binance(PredictionExchange, ImplicitAPI):
         events = await self.fetch_events(self.extend({'eventId': id}, params))
         return self.safe_dict(events, 0)
 
-    def parse_event(self, rawTopic: dict) -> object:
+    def parse_event(self, rawTopic: dict) -> dict:
         """
  @ignore
         parses a raw binance market topic(with nested markets) into the unified event shape
@@ -1203,9 +1198,9 @@ class binance(PredictionExchange, ImplicitAPI):
         # }
         #
         data = self.safe_list(response, 'positions', [])
-        positions = self.parse_prediction_positions(data)
         if outcomes is None:
-            return positions
+            return self.parse_prediction_positions(data)
+        positions = self.parse_prediction_positions(data)
         filtered = []
         positionsLength = len(positions)
         for i in range(0, positionsLength):
@@ -1465,9 +1460,8 @@ class binance(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a wallet
         """
-        cachedWallet = self.safe_dict(self.options, 'wallet')
-        if cachedWallet is not None:
-            return cachedWallet
+        if self.safe_dict(self.options, 'wallet') is not None:
+            return self.safe_dict(self.options, 'wallet')
         walletAddress = self.handle_option_string_and_params(params, methodName, 'walletAddress', self.walletAddress)[0]
         response = await self.sapiPrivateGetWalletList()
         #
@@ -1483,19 +1477,15 @@ class binance(PredictionExchange, ImplicitAPI):
         #
         wallets = self.safe_list(response, 'wallets', [])
         if walletAddress is None:
-            cachedWallet = self.safe_dict(wallets, 0)
-            self.options['wallet'] = cachedWallet
-            return cachedWallet
+            self.options['wallet'] = self.safe_dict(wallets, 0)
+            return self.safe_dict(self.options, 'wallet')
         walletLength = len(wallets)
         for i in range(0, walletLength):
             w = self.safe_string(wallets[i], 'walletAddress', '')
             if w == walletAddress:
-                cachedWallet = wallets[i]
-                break
-        if cachedWallet is None:
-            raise NotSupported(self.id + 'fetchWallet could\'n find wallet ' + walletAddress)
-        self.options['wallet'] = cachedWallet
-        return cachedWallet
+                self.options['wallet'] = wallets[i]
+                return self.safe_dict(self.options, 'wallet')
+        raise NotSupported(self.id + 'fetchWallet could\'n find wallet ' + walletAddress)
 
     async def fetch_quote(self, request: dict, params: dict = {}) -> object:
         """
@@ -1778,7 +1768,7 @@ class binance(PredictionExchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def sign(self, path: str, api: list[str] = ['sapi'], method='GET', params: dict = {}):
+    def sign(self, path: str, api: list[str] = ['sapi'], method: str = 'GET', params: dict = {}):
         """
  @ignore
         builds the request URL and attaches the standard binance SAPI HMAC-SHA256 signature — every prediction endpoint is signed

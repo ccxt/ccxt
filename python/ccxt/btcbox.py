@@ -613,7 +613,7 @@ class btcbox(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             # TODO: complete list
             'part': 'open',  # partially or not at all executed
@@ -738,13 +738,12 @@ class btcbox(Exchange, ImplicitAPI):
         #      },
         # ]
         #
-        orders = self.parse_orders(response, market, since, limit)
         # status (open/closed/canceled) is undefined
         # btcbox does not return status, but we know it's 'open' as we queried for open orders
+        extra = {}
         if type == 'open':
-            for i in range(0, len(orders)):
-                orders[i]['status'] = 'open'
-        return orders
+            extra['status'] = 'open'
+        return self.parse_orders(response, market, since, limit, extra)
 
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -777,7 +776,7 @@ class btcbox(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
         apiUrl = self.safe_string(self.urls['api'], 'rest')
         if apiUrl is None:
@@ -812,7 +811,7 @@ class btcbox(Exchange, ImplicitAPI):
         if httpCode >= 400:
             return None  # resort to defaultErrorHandler
         result = self.safe_bool(response, 'result')
-        if result is None or result is True:
+        if result is None or result:
             return None  # either public API (no error codes expected) or success
         code = self.safe_string(response, 'code')
         feedback = self.id + ' ' + body

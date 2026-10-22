@@ -286,7 +286,7 @@ class alpaca extends \ccxt\async\alpaca {
             $this->orderbooks[$symbol] = $this->order_book();
         }
         $orderbook = $this->orderbooks[$symbol];
-        if ($isSnapshot === true) {
+        if ($isSnapshot) {
             $snapshot = $this->parse_order_book($message, $symbol, $timestamp, 'b', 'a', 'p', 's');
             $orderbook->reset($snapshot);
         } else {

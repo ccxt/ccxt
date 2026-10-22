@@ -54,9 +54,9 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
 
     public Long requestId()
     {
-        Object requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
+        Long requestId = (Long) this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         Helpers.addElementToObject(this.options, "requestId", requestId);
-        return Helpers.toLongOrNull(requestId);
+        return requestId;
     }
 
     /**
@@ -273,7 +273,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             Map<String, Object> payload = new HashMap<String, Object>() {{
                 put( "OMSId", omsId );
                 put( "InstrumentId", Ndax.this.safeInteger(market, "id") );
-                put( "Interval", Helpers.parseInt(Ndax.this.safeString(Ndax.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"))) );
+                put( "Interval", Ndax.this.parseToInt(Ndax.this.safeString(Ndax.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"))) );
                 put( "IncludeLastCount", 100 );
             }};
             Map<String, Object> request = new HashMap<String, Object>();
@@ -332,38 +332,45 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                 updates.put(marketId, new HashMap<String, Object>() {{}});
             }
             Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
-            List<Object> keys = Helpers.objectKeys(this.timeframes);
+            List<Object> keys = ((List<Object>) switch ((Object)(this.timeframes)) { case Map<?, ?> j39v5 -> { synchronized (j39v5) { yield new ArrayList<Object>(j39v5.keySet()); } } case null, default -> new ArrayList<Object>(); });
             for (var j = 0; j < ((List<?>)keys).size(); j++)
             {
                 Object timeframe = (keys == null || j < 0 || j >= keys.size() ? null : keys.get(j));
                 String interval = this.safeString(this.timeframes, timeframe, timeframe);
-                Object duration = Helpers.multiply(Helpers.parseInt(interval), 1000);
+                Long duration = (Long) Helpers.multiply(this.parseToInt(interval), 1000);
                 Long timestamp = this.safeInteger(ohlcv, 0);
                 if (java.util.Objects.equals(timestamp, null))
                 {
                     continue;
                 }
-                List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.parseToInt(Helpers.multiply((Helpers.divide(timestamp, duration)), duration)), this.safeFloat(ohlcv, 3), this.safeFloat(ohlcv, 1), this.safeFloat(ohlcv, 2), this.safeFloat(ohlcv, 4), this.safeFloat(ohlcv, 5)));
+                Long candleTimestamp = this.parseToInt(Helpers.multiply(((((double) timestamp) / ((double) duration))), duration));
+                List<Object> parsed = new ArrayList<Object>(Arrays.asList(candleTimestamp, this.safeFloat(ohlcv, 3), this.safeFloat(ohlcv, 1), this.safeFloat(ohlcv, 2), this.safeFloat(ohlcv, 4), this.safeFloat(ohlcv, 5)));
                 Object stored = this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, new ArrayList<Object>(Arrays.asList()));
-                Integer length = Helpers.getArrayLength(stored);
-                if (((length != null && length > 0)) && (Helpers.isEqual((parsed == null || 0 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(0)), Helpers.GetValue(Helpers.GetValue(stored, (((long) length) - 1L)), 0))))
+                Integer length = (switch ((Object)(stored)) { case null -> 0; case List<?> j39v2 -> j39v2.size(); case String j39v3 -> j39v3.length(); case Object j39v4 -> j39v4.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v4) : 0; });
+                if (((length != null && length > 0)) && (java.util.Objects.equals(candleTimestamp, this.safeInteger(Helpers.GetValue(stored, (((long) length) - 1L)), 0))))
                 {
                     Object previous = Helpers.GetValue(stored, (((long) length) - 1L));
-                    Object high = (parsed == null || 1 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(1));
-                    if (java.util.Objects.equals((parsed == null || 1 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(1)), null))
+                    Double parsedHigh = this.safeFloat(ohlcv, 1);
+                    Double previousHigh = this.safeFloat(previous, 1);
+                    Double high = previousHigh;
+                    if (!java.util.Objects.equals(parsedHigh, null))
                     {
-                        high = Helpers.GetValue(previous, 1);
-                    } else if (!java.util.Objects.equals(Helpers.GetValue(previous, 1), null))
-                    {
-                        high = Helpers.mathMax((parsed == null || 1 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(1)), Helpers.GetValue(previous, 1));
+                        high = parsedHigh;
+                        if ((!java.util.Objects.equals(previousHigh, null)) && ((previousHigh != null && (parsedHigh == null || previousHigh > parsedHigh))))
+                        {
+                            high = previousHigh;
+                        }
                     }
-                    Object low = (parsed == null || 2 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(2));
-                    if (java.util.Objects.equals((parsed == null || 2 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(2)), null))
+                    Double parsedLow = this.safeFloat(ohlcv, 2);
+                    Double previousLow = this.safeFloat(previous, 2);
+                    Double low = previousLow;
+                    if (!java.util.Objects.equals(parsedLow, null))
                     {
-                        low = Helpers.GetValue(previous, 2);
-                    } else if (!java.util.Objects.equals(Helpers.GetValue(previous, 2), null))
-                    {
-                        low = Helpers.mathMin((parsed == null || 2 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(2)), Helpers.GetValue(previous, 2));
+                        low = parsedLow;
+                        if ((!java.util.Objects.equals(previousLow, null)) && ((parsedLow != null && (previousLow == null || parsedLow > previousLow))))
+                        {
+                            low = previousLow;
+                        }
                     }
                     Helpers.addElementToObject(stored, (((long) length) - 1L), new ArrayList<Object>(Arrays.asList((parsed == null || 0 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(0)), Helpers.GetValue(previous, 1), high, low, (parsed == null || 4 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(4)), this.sum((parsed == null || 5 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(5)), Helpers.GetValue(previous, 5)))));
                     if (!java.util.Objects.equals(marketId, null))
@@ -372,21 +379,23 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                     }
                 } else
                 {
-                    if (((length != null && length > 0)) && (Helpers.isLessThan(this.parseToInt((parsed == null || 0 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(0))), this.parseToInt(Helpers.GetValue(Helpers.GetValue(stored, (((long) length) - 1L)), 0)))))
+                    if ((length != null && length > 0))
                     {
-                        continue;
-                    } else
+                        Long lastTimestamp = this.safeInteger(Helpers.GetValue(stored, (((long) length) - 1L)), 0);
+                        if ((!java.util.Objects.equals(lastTimestamp, null)) && ((lastTimestamp != null && (candleTimestamp == null || lastTimestamp > candleTimestamp))))
+                        {
+                            continue;
+                        }
+                    }
+                    ((List<Object>)stored).add(parsed);
+                    Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+                    if ((limit == null || (length != null && length >= limit)))
                     {
-                        ((List<Object>)stored).add(parsed);
-                        Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-                        if ((limit == null || (length != null && length >= limit)))
-                        {
-                            ((List<Object>)stored).get(0);
-                        }
-                        if (!java.util.Objects.equals(marketId, null))
-                        {
-                            Helpers.addElementToObject((updates == null || marketId == null ? null : updates.get(marketId)), timeframe, true);
-                        }
+                        ((List<Object>)stored).get(0);
+                    }
+                    if (!java.util.Objects.equals(marketId, null))
+                    {
+                        Helpers.addElementToObject((updates == null || marketId == null ? null : updates.get(marketId)), timeframe, true);
                     }
                 }
                 Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
@@ -397,7 +406,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
         {
             String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
-            List<Object> timeframes = Helpers.objectKeys((updates == null || marketId == null ? null : updates.get(marketId)));
+            List<Object> timeframes = ((List<Object>) switch ((Object)((updates == null || marketId == null ? null : updates.get(marketId)))) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
             for (var j = 0; j < ((List<?>)timeframes).size(); j++)
             {
                 Object timeframe = (timeframes == null || j < 0 || j >= timeframes.size() ? null : timeframes.get(j));
@@ -501,8 +510,9 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         {
             return;
         }
-        Object timestamp = null;
-        Object nonce = null;
+        // seeded from the first entry so the locals keep a typed initializer (the loop re-reads it as a no-op)
+        Long timestamp = this.safeInteger(firstBidAsk, 2);
+        Long nonce = this.safeInteger(firstBidAsk, 0);
         for (var i = 0; i < ((List<?>)payload).size(); i++)
         {
             List<Object> bidask = (List<Object>) this.safeList(payload, i, (Object) null);
@@ -512,9 +522,10 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             } else
             {
                 Long newTimestamp = this.safeInteger(bidask, 2);
-                Object currentTimestampValue = (((java.util.Objects.equals(timestamp, null)))) ? 0 : timestamp;
-                Object newTimestampValue = (((java.util.Objects.equals(newTimestamp, null)))) ? 0 : newTimestamp;
-                timestamp = Helpers.mathMax(currentTimestampValue, newTimestampValue);
+                if ((!java.util.Objects.equals(newTimestamp, null)) && ((newTimestamp != null && (timestamp == null || newTimestamp > timestamp))))
+                {
+                    timestamp = newTimestamp;
+                }
             }
             if (java.util.Objects.equals(nonce, null))
             {
@@ -522,9 +533,10 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             } else
             {
                 Long newNonce = this.safeInteger(bidask, 0);
-                Object currentNonceValue = (((java.util.Objects.equals(nonce, null)))) ? 0 : nonce;
-                Object newNonceValue = (((java.util.Objects.equals(newNonce, null)))) ? 0 : newNonce;
-                nonce = Helpers.mathMax(currentNonceValue, newNonceValue);
+                if ((!java.util.Objects.equals(newNonce, null)) && ((newNonce != null && (nonce == null || newNonce > nonce))))
+                {
+                    nonce = newNonce;
+                }
             }
             // 0 new, 1 update, 2 remove
             Long type = this.safeInteger(bidask, 3);

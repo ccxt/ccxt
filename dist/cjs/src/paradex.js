@@ -847,7 +847,6 @@ class paradex extends paradex$1["default"] {
             'resolution': this.safeString(this.timeframes, timeframe, timeframe),
             'symbol': market['id'],
         };
-        const maxLimit = 1000; // exchange has undocumented limit slightly above, but this is reliable limit
         const duration = this.parseTimeframe(timeframe);
         const price = this.safeString(params, 'price');
         if (price !== undefined) {
@@ -856,18 +855,21 @@ class paradex extends paradex$1["default"] {
         const [requestUntil, paramsUntil] = this.handleUntilOption('end_at', request, params);
         const hasEnd = ('end_at' in request);
         const paramsOmitted = this.omit(paramsUntil, ['price']);
-        const limitResolved = (limit === undefined) ? maxLimit : Math.min(limit, maxLimit);
+        // exchange has undocumented limit slightly above, but 1000 is reliable limit
+        const limitResolved = ((limit === undefined) || (limit > 1000)) ? 1000 : limit;
+        const windowLength = this.parseToInt(duration * (this.parseToInt(limitResolved) + 1) * 1000);
         if (since !== undefined) {
             requestUntil['start_at'] = since;
             if (!hasEnd) {
-                requestUntil['end_at'] = since + duration * (limitResolved + 1) * 1000 - 1;
+                const sinceInt = this.parseToInt(since);
+                requestUntil['end_at'] = sinceInt + windowLength - 1;
             }
         }
         else {
-            if (!hasEnd) {
-                requestUntil['end_at'] = this.milliseconds();
-            }
-            requestUntil['start_at'] = requestUntil['end_at'] - duration * (limitResolved + 1) * 1000 + 1;
+            const endAtRaw = hasEnd ? this.safeInteger(requestUntil, 'end_at', 0) : this.milliseconds();
+            const endAt = this.parseToInt(endAtRaw);
+            requestUntil['end_at'] = endAt;
+            requestUntil['start_at'] = endAt - windowLength + 1;
         }
         const response = await this.publicGetMarketsKlines(this.extend(requestUntil, paramsOmitted));
         //
@@ -1410,45 +1412,15 @@ class paradex extends paradex$1["default"] {
         return this.signHash(this.hashMessage(message), privateKey.slice(-64));
     }
     async getSystemConfig() {
-        const cachedConfig = this.safeDict(this.options, 'systemConfig');
-        if (cachedConfig !== undefined) {
-            return cachedConfig;
+        if (this.safeDict(this.options, 'systemConfig') === undefined) {
+            const response = await this.publicGetSystemConfig();
+            this.options['systemConfig'] = response;
         }
-        const response = await this.publicGetSystemConfig();
-        //
-        // {
-        //     "starknet_gateway_url": "https://potc-testnet-sepolia.starknet.io",
-        //     "starknet_fullnode_rpc_url": "https://pathfinder.api.testnet.paradex.trade/rpc/v0_7",
-        //     "starknet_chain_id": "PRIVATE_SN_POTC_SEPOLIA",
-        //     "block_explorer_url": "https://voyager.testnet.paradex.trade/",
-        //     "paraclear_address": "0x286003f7c7bfc3f94e8f0af48b48302e7aee2fb13c23b141479ba00832ef2c6",
-        //     "paraclear_decimals": 8,
-        //     "paraclear_account_proxy_hash": "0x3530cc4759d78042f1b543bf797f5f3d647cde0388c33734cf91b7f7b9314a9",
-        //     "paraclear_account_hash": "0x41cb0280ebadaa75f996d8d92c6f265f6d040bb3ba442e5f86a554f1765244e",
-        //     "oracle_address": "0x2c6a867917ef858d6b193a0ff9e62b46d0dc760366920d631715d58baeaca1f",
-        //     "bridged_tokens": [
-        //         {
-        //             "name": "TEST USDC",
-        //             "symbol": "USDC",
-        //             "decimals": 6,
-        //             "l1_token_address": "0x29A873159D5e14AcBd63913D4A7E2df04570c666",
-        //             "l1_bridge_address": "0x8586e05adc0C35aa11609023d4Ae6075Cb813b4C",
-        //             "l2_token_address": "0x6f373b346561036d98ea10fb3e60d2f459c872b1933b50b21fe6ef4fda3b75e",
-        //             "l2_bridge_address": "0x46e9237f5408b5f899e72125dd69bd55485a287aaf24663d3ebe00d237fc7ef"
-        //         }
-        //     ],
-        //     "l1_core_contract_address": "0x582CC5d9b509391232cd544cDF9da036e55833Af",
-        //     "l1_operator_address": "0x11bACdFbBcd3Febe5e8CEAa75E0Ef6444d9B45FB",
-        //     "l1_chain_id": "11155111",
-        //     "liquidation_fee": "0.2"
-        // }
-        //
-        this.options['systemConfig'] = response;
         return this.safeDict(this.options, 'systemConfig', {});
     }
     async prepareParadexDomain(l1 = false) {
         const systemConfig = await this.getSystemConfig();
-        if (l1 === true) {
+        if (l1) {
             const l1D = {
                 'name': 'Paradex',
                 'chainId': systemConfig['l1_chain_id'],
@@ -1464,26 +1436,24 @@ class paradex extends paradex$1["default"] {
         return domain;
     }
     async retrieveAccount() {
-        const cachedAccount = this.safeDict(this.options, 'paradexAccount');
-        if (cachedAccount !== undefined) {
-            return cachedAccount;
+        if (this.safeDict(this.options, 'paradexAccount') === undefined) {
+            this.checkRequiredCredentials();
+            const systemConfig = await this.getSystemConfig();
+            const domain = await this.prepareParadexDomain(true);
+            const messageTypes = {
+                'Constant': [
+                    { 'name': 'action', 'type': 'string' },
+                ],
+            };
+            const message = {
+                'action': 'STARK Key',
+            };
+            const msg = this.ethEncodeStructuredData(domain, messageTypes, message);
+            const signature = this.signMessage(msg, this.privateKey);
+            const account = this.retrieveStarkAccount(signature, systemConfig['paraclear_account_hash'], systemConfig['paraclear_account_proxy_hash']);
+            this.options['paradexAccount'] = account;
         }
-        this.checkRequiredCredentials();
-        const systemConfig = await this.getSystemConfig();
-        const domain = await this.prepareParadexDomain(true);
-        const messageTypes = {
-            'Constant': [
-                { 'name': 'action', 'type': 'string' },
-            ],
-        };
-        const message = {
-            'action': 'STARK Key',
-        };
-        const msg = this.ethEncodeStructuredData(domain, messageTypes, message);
-        const signature = this.signMessage(msg, this.privateKey);
-        const account = this.retrieveStarkAccount(signature, systemConfig['paraclear_account_hash'], systemConfig['paraclear_account_proxy_hash']);
-        this.options['paradexAccount'] = account;
-        return account;
+        return this.safeDict(this.options, 'paradexAccount', {});
     }
     async onboarding(params = {}) {
         const account = await this.retrieveAccount();
@@ -1506,7 +1476,7 @@ class paradex extends paradex$1["default"] {
     }
     async authenticateRest(params = {}) {
         const cachedToken = this.safeString(this.options, 'authToken');
-        const now = this.nonce();
+        const now = this.parseToInt(this.nonce());
         if (cachedToken !== undefined) {
             const cachedExpires = this.safeInteger(this.options, 'expires');
             if (cachedExpires === undefined) {
@@ -1775,7 +1745,7 @@ class paradex extends paradex$1["default"] {
     }
     async signOrderRequest(request, modify = false) {
         const account = await this.retrieveAccount();
-        const now = this.nonce();
+        const now = this.parseToInt(this.nonce());
         const orderType = this.safeString(request, 'type');
         if (orderType === undefined) {
             throw new errors.ExchangeError(this.id + ' signOrderRequest() missing orderType');
@@ -1813,9 +1783,11 @@ class paradex extends paradex$1["default"] {
         const domain = await this.prepareParadexDomain();
         const msg = this.starknetEncodeStructuredData(domain, messageTypes, orderReq, account['address']);
         const signature = this.starknetSign(msg, account['privateKey']);
-        request['signature'] = signature;
-        request['signature_timestamp'] = orderReq['timestamp'];
-        return request;
+        const signedRequest = this.extend(request, {
+            'signature': signature,
+            'signature_timestamp': orderReq['timestamp'],
+        });
+        return signedRequest;
     }
     /**
      * @method
@@ -2001,14 +1973,15 @@ class paradex extends paradex$1["default"] {
         const responseOrders = this.safeList(response, 'orders', []);
         const parsedOrders = this.parseOrders(responseOrders);
         const errors = this.safeList(response, 'errors', []);
+        const rejected = [];
         for (let i = 0; i < errors.length; i++) {
             const error = errors[i];
-            parsedOrders.push(this.safeOrder({
+            rejected.push(this.safeOrder({
                 'info': error,
                 'status': 'rejected',
             }));
         }
-        return parsedOrders;
+        return this.arrayConcat(parsedOrders, rejected);
     }
     /**
      * @method

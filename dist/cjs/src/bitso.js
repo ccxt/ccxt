@@ -855,10 +855,12 @@ class bitso extends bitso$1["default"] {
                 request['end'] = this.sum(since, duration * limit * 1000);
             }
         }
-        else if (limit !== undefined) {
-            const now = this.milliseconds();
-            request['end'] = now;
-            request['start'] = now - this.parseTimeframe(timeframe) * 1000 * limit;
+        else {
+            if (limit !== undefined) {
+                const now = this.milliseconds();
+                request['end'] = now;
+                request['start'] = now - this.parseTimeframe(timeframe) * 1000 * limit;
+            }
         }
         const response = await this.publicGetOhlc(this.extend(request, params));
         //
@@ -1377,8 +1379,7 @@ class bitso extends bitso$1["default"] {
         };
         const response = await this.privateGetOpenOrders(this.extend(request, paramsMarker));
         const payload = this.safeList(response, 'payload', []);
-        const orders = this.parseOrders(payload, market, since, limit);
-        return orders;
+        return this.parseOrders(payload, market, since, limit);
     }
     /**
      * @method
@@ -1644,7 +1645,7 @@ class bitso extends bitso$1["default"] {
             }
             if (code !== undefined) {
                 result[code] = {
-                    'deposit': this.safeValue(this.safeDict(result, code), 'deposit'),
+                    'deposit': this.safeNumber(this.safeDict(result, code), 'deposit'),
                     'withdraw': this.safeNumber(withdrawalFees, currencyId),
                     'info': {
                         'deposit': this.safeValue(this.safeDict(this.safeDict(result, code), 'info'), 'deposit'),
@@ -1962,8 +1963,9 @@ class bitso extends bitso$1["default"] {
             let request = content.join('');
             if (method !== 'GET' && method !== 'DELETE') {
                 if (Object.keys(query).length > 0) {
-                    requestBody = this.json(query);
-                    request += requestBody;
+                    const jsonBody = this.json(query);
+                    requestBody = jsonBody;
+                    request += jsonBody;
                 }
             }
             const signature = this.hmac(this.encode(request), this.encode(this.secret), sha2_js.sha256);
@@ -1992,7 +1994,7 @@ class bitso extends bitso$1["default"] {
                     success = false;
                 }
             }
-            if (success !== true) {
+            if (!success) {
                 const feedback = this.id + ' ' + this.json(response);
                 const error = this.safeDict(response, 'error');
                 if (error === undefined) {

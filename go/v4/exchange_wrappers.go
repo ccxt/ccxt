@@ -57,7 +57,7 @@ func (this *ExchangeTyped) FetchMarkets(params ...any) ([]MarketInterface, error
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []MarketInterface = NewMarketInterfaceArray(r.Value)
+	var res []MarketInterface = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchAccounts(params ...any) ([]Account, error) {
@@ -65,7 +65,7 @@ func (this *ExchangeTyped) FetchAccounts(params ...any) ([]Account, error) {
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Account = NewAccountArray(r.Value)
+	var res []Account = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) WatchLiquidations(symbol string, options ...WatchLiquidationsOptions) ([]Liquidation, error) {
@@ -79,7 +79,7 @@ func (this *ExchangeTyped) WatchLiquidations(symbol string, options ...WatchLiqu
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Liquidation = NewLiquidationArray(r.Value)
+	var res []Liquidation = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) WatchLiquidationsForSymbols(symbols []string, options ...WatchLiquidationsForSymbolsOptions) ([]Liquidation, error) {
@@ -93,7 +93,7 @@ func (this *ExchangeTyped) WatchLiquidationsForSymbols(symbols []string, options
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Liquidation = NewLiquidationArray(r.Value)
+	var res []Liquidation = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) WatchMyLiquidations(symbol string, options ...WatchMyLiquidationsOptions) ([]Liquidation, error) {
@@ -107,7 +107,7 @@ func (this *ExchangeTyped) WatchMyLiquidations(symbol string, options ...WatchMy
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Liquidation = NewLiquidationArray(r.Value)
+	var res []Liquidation = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) WatchMyLiquidationsForSymbols(symbols []string, options ...WatchMyLiquidationsForSymbolsOptions) ([]Liquidation, error) {
@@ -121,7 +121,7 @@ func (this *ExchangeTyped) WatchMyLiquidationsForSymbols(symbols []string, optio
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Liquidation = NewLiquidationArray(r.Value)
+	var res []Liquidation = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) UnWatchOrders(options ...UnWatchOrdersOptions) (any, error) {
@@ -174,7 +174,7 @@ func (this *ExchangeTyped) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string,
 	if r.Err != nil {
 		return map[string]map[string][]OHLCV{}, r.Err
 	}
-	var res map[string]map[string][]OHLCV = r.Value.(map[string]map[string][]OHLCV)
+	var res map[string]map[string][]OHLCV = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (any, error) {
@@ -266,7 +266,7 @@ func (this *ExchangeTyped) FetchDepositAddresses(options ...FetchDepositAddresse
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []DepositAddress = NewDepositAddressArray(r.Value)
+	var res []DepositAddress = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchMarginMode(symbol string, options ...FetchMarginModeOptions) (MarginMode, error) {
@@ -280,7 +280,7 @@ func (this *ExchangeTyped) FetchMarginMode(symbol string, options ...FetchMargin
 	if r.Err != nil {
 		return MarginMode{}, r.Err
 	}
-	var res MarginMode = NewMarginMode(r.Value)
+	var res MarginMode = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchMarginModes(options ...FetchMarginModesOptions) (MarginModes, error) {
@@ -294,7 +294,7 @@ func (this *ExchangeTyped) FetchMarginModes(options ...FetchMarginModesOptions) 
 	if r.Err != nil {
 		return MarginModes{}, r.Err
 	}
-	var res MarginModes = NewMarginModes(r.Value)
+	var res MarginModes = MarginModes{MarginModes: r.Value}
 	return res, nil
 }
 func (this *ExchangeTyped) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (any, error) {
@@ -337,7 +337,7 @@ func (this *ExchangeTyped) FetchCrossBorrowRates(params ...any) (CrossBorrowRate
 	if r.Err != nil {
 		return CrossBorrowRates{}, r.Err
 	}
-	var res CrossBorrowRates = NewCrossBorrowRates(r.Raw)
+	var res CrossBorrowRates = CrossBorrowRates{CrossBorrowRates: r.Value}
 	return res, nil
 }
 func (this *ExchangeTyped) FetchIsolatedBorrowRates(params ...any) (IsolatedBorrowRates, error) {
@@ -345,7 +345,7 @@ func (this *ExchangeTyped) FetchIsolatedBorrowRates(params ...any) (IsolatedBorr
 	if r.Err != nil {
 		return IsolatedBorrowRates{}, r.Err
 	}
-	var res IsolatedBorrowRates = NewIsolatedBorrowRates(r.Value)
+	var res IsolatedBorrowRates = IsolatedBorrowRates{IsolatedBorrowRates: r.Value}
 	return res, nil
 }
 func (this *ExchangeTyped) FetchLeverageTiers(options ...FetchLeverageTiersOptions) (LeverageTiers, error) {
@@ -359,7 +359,7 @@ func (this *ExchangeTyped) FetchLeverageTiers(options ...FetchLeverageTiersOptio
 	if r.Err != nil {
 		return LeverageTiers{}, r.Err
 	}
-	var res LeverageTiers = NewLeverageTiers(r.Value)
+	var res LeverageTiers = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchFundingRates(options ...FetchFundingRatesOptions) (FundingRates, error) {
@@ -373,7 +373,7 @@ func (this *ExchangeTyped) FetchFundingRates(options ...FetchFundingRatesOptions
 	if r.Err != nil {
 		return FundingRates{}, r.Err
 	}
-	var res FundingRates = NewFundingRates(r.Value)
+	var res FundingRates = FundingRates{FundingRates: r.Value}
 	return res, nil
 }
 func (this *ExchangeTyped) FetchFundingIntervals(options ...FetchFundingIntervalsOptions) (FundingRates, error) {
@@ -387,7 +387,7 @@ func (this *ExchangeTyped) FetchFundingIntervals(options ...FetchFundingInterval
 	if r.Err != nil {
 		return FundingRates{}, r.Err
 	}
-	var res FundingRates = NewFundingRates(r.Value)
+	var res FundingRates = FundingRates{FundingRates: r.Value}
 	return res, nil
 }
 func (this *ExchangeTyped) WatchFundingRate(symbol string, options ...WatchFundingRateOptions) (FundingRate, error) {
@@ -401,7 +401,7 @@ func (this *ExchangeTyped) WatchFundingRate(symbol string, options ...WatchFundi
 	if r.Err != nil {
 		return FundingRate{}, r.Err
 	}
-	var res FundingRate = NewFundingRate(r.Value)
+	var res FundingRate = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) WatchFundingRates(options ...WatchFundingRatesOptions) (FundingRates, error) {
@@ -415,7 +415,7 @@ func (this *ExchangeTyped) WatchFundingRates(options ...WatchFundingRatesOptions
 	if r.Err != nil {
 		return FundingRates{}, r.Err
 	}
-	var res FundingRates = NewFundingRates(r.Value)
+	var res FundingRates = FundingRates{FundingRates: r.Value}
 	return res, nil
 }
 func (this *ExchangeTyped) UnWatchFundingRates(options ...UnWatchFundingRatesOptions) (any, error) {
@@ -442,7 +442,7 @@ func (this *ExchangeTyped) WatchFundingRatesForSymbols(symbols []string, options
 	if r.Err != nil {
 		return FundingRates{}, r.Err
 	}
-	var res FundingRates = NewFundingRates(r.Value)
+	var res FundingRates = FundingRates{FundingRates: r.Value}
 	return res, nil
 }
 func (this *ExchangeTyped) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
@@ -456,7 +456,7 @@ func (this *ExchangeTyped) Transfer(code string, amount float64, fromAccount str
 	if r.Err != nil {
 		return TransferEntry{}, r.Err
 	}
-	var res TransferEntry = NewTransferEntry(r.Value)
+	var res TransferEntry = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
@@ -470,7 +470,7 @@ func (this *ExchangeTyped) Withdraw(code string, amount float64, address string,
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
-	var res Transaction = NewTransaction(r.Raw)
+	var res Transaction = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CreateDepositAddress(code string, options ...CreateDepositAddressOptions) (DepositAddress, error) {
@@ -484,7 +484,7 @@ func (this *ExchangeTyped) CreateDepositAddress(code string, options ...CreateDe
 	if r.Err != nil {
 		return DepositAddress{}, r.Err
 	}
-	var res DepositAddress = NewDepositAddress(r.Value)
+	var res DepositAddress = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) SetLeverage(leverage int64, options ...SetLeverageOptions) (map[string]any, error) {
@@ -498,7 +498,7 @@ func (this *ExchangeTyped) SetLeverage(leverage int64, options ...SetLeverageOpt
 	if r.Err != nil {
 		return map[string]any{}, r.Err
 	}
-	var res map[string]any = r.Value.(map[string]any)
+	var res map[string]any = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchLeverage(symbol string, options ...FetchLeverageOptions) (Leverage, error) {
@@ -512,7 +512,7 @@ func (this *ExchangeTyped) FetchLeverage(symbol string, options ...FetchLeverage
 	if r.Err != nil {
 		return Leverage{}, r.Err
 	}
-	var res Leverage = NewLeverage(r.Value)
+	var res Leverage = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchLeverages(options ...FetchLeveragesOptions) (Leverages, error) {
@@ -526,7 +526,7 @@ func (this *ExchangeTyped) FetchLeverages(options ...FetchLeveragesOptions) (Lev
 	if r.Err != nil {
 		return Leverages{}, r.Err
 	}
-	var res Leverages = NewLeverages(r.Value)
+	var res Leverages = Leverages{Leverages: r.Value}
 	return res, nil
 }
 func (this *ExchangeTyped) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]any, error) {
@@ -540,7 +540,7 @@ func (this *ExchangeTyped) SetPositionMode(hedged bool, options ...SetPositionMo
 	if r.Err != nil {
 		return map[string]any{}, r.Err
 	}
-	var res map[string]any = r.Value.(map[string]any)
+	var res map[string]any = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
@@ -554,7 +554,7 @@ func (this *ExchangeTyped) SetMargin(symbol string, amount float64, options ...S
 	if r.Err != nil {
 		return MarginModification{}, r.Err
 	}
-	var res MarginModification = NewMarginModification(r.Value)
+	var res MarginModification = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchLongShortRatio(symbol string, options ...FetchLongShortRatioOptions) (LongShortRatio, error) {
@@ -568,7 +568,7 @@ func (this *ExchangeTyped) FetchLongShortRatio(symbol string, options ...FetchLo
 	if r.Err != nil {
 		return LongShortRatio{}, r.Err
 	}
-	var res LongShortRatio = NewLongShortRatio(r.Value)
+	var res LongShortRatio = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchLongShortRatioHistory(options ...FetchLongShortRatioHistoryOptions) ([]LongShortRatio, error) {
@@ -582,7 +582,7 @@ func (this *ExchangeTyped) FetchLongShortRatioHistory(options ...FetchLongShortR
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []LongShortRatio = NewLongShortRatioArray(r.Value)
+	var res []LongShortRatio = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchMarginAdjustmentHistory(options ...FetchMarginAdjustmentHistoryOptions) ([]MarginModification, error) {
@@ -596,7 +596,7 @@ func (this *ExchangeTyped) FetchMarginAdjustmentHistory(options ...FetchMarginAd
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []MarginModification = NewMarginModificationArray(r.Value)
+	var res []MarginModification = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]any, error) {
@@ -610,7 +610,7 @@ func (this *ExchangeTyped) SetMarginMode(marginMode string, options ...SetMargin
 	if r.Err != nil {
 		return map[string]any{}, r.Err
 	}
-	var res map[string]any = r.Value.(map[string]any)
+	var res map[string]any = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
@@ -624,7 +624,7 @@ func (this *ExchangeTyped) FetchDepositAddressesByNetwork(code string, options .
 	if r.Err != nil {
 		return DepositAddresses{}, r.Err
 	}
-	var res DepositAddresses = NewDepositAddresses(r.Raw)
+	var res DepositAddresses = DepositAddresses{DepositAddresses: r.Value}
 	return res, nil
 }
 func (this *ExchangeTyped) FetchOpenInterestHistory(symbol string, options ...FetchOpenInterestHistoryOptions) ([]OpenInterest, error) {
@@ -638,7 +638,7 @@ func (this *ExchangeTyped) FetchOpenInterestHistory(symbol string, options ...Fe
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []OpenInterest = NewOpenInterestArray(r.Value)
+	var res []OpenInterest = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchOpenInterests(options ...FetchOpenInterestsOptions) (OpenInterests, error) {
@@ -652,7 +652,7 @@ func (this *ExchangeTyped) FetchOpenInterests(options ...FetchOpenInterestsOptio
 	if r.Err != nil {
 		return OpenInterests{}, r.Err
 	}
-	var res OpenInterests = NewOpenInterests(r.Value)
+	var res OpenInterests = OpenInterests{OpenInterests: r.Value}
 	return res, nil
 }
 func (this *ExchangeTyped) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
@@ -660,7 +660,7 @@ func (this *ExchangeTyped) FetchPaymentMethods(params ...any) ([]map[string]any,
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []map[string]any = NewMapArray(r.Value)
+	var res []map[string]any = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]any, error) {
@@ -674,7 +674,7 @@ func (this *ExchangeTyped) FetchBorrowRate(code string, amount float64, options 
 	if r.Err != nil {
 		return map[string]any{}, r.Err
 	}
-	var res map[string]any = r.Value.(map[string]any)
+	var res map[string]any = StructResultMap(r.Value, CrossBorrowRateToMap)
 	return res, nil
 }
 func (this *ExchangeTyped) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHLCV, error) {
@@ -688,7 +688,7 @@ func (this *ExchangeTyped) FetchOHLCV(symbol string, options ...FetchOHLCVOption
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []OHLCV = NewOHLCVArray(r.Value)
+	var res []OHLCV = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchSpotOHLCV(symbol string, options ...FetchSpotOHLCVOptions) ([]OHLCV, error) {
@@ -702,7 +702,7 @@ func (this *ExchangeTyped) FetchSpotOHLCV(symbol string, options ...FetchSpotOHL
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []OHLCV = NewOHLCVArray(r.Value)
+	var res []OHLCV = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchContractOHLCV(symbol string, options ...FetchContractOHLCVOptions) ([]OHLCV, error) {
@@ -716,7 +716,7 @@ func (this *ExchangeTyped) FetchContractOHLCV(symbol string, options ...FetchCon
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []OHLCV = NewOHLCVArray(r.Value)
+	var res []OHLCV = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchOHLCVWs(symbol string, options ...FetchOHLCVWsOptions) ([]OHLCV, error) {
@@ -730,7 +730,7 @@ func (this *ExchangeTyped) FetchOHLCVWs(symbol string, options ...FetchOHLCVWsOp
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []OHLCV = NewOHLCVArray(r.Value)
+	var res []OHLCV = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) WatchOHLCV(symbol string, options ...WatchOHLCVOptions) ([]OHLCV, error) {
@@ -744,7 +744,7 @@ func (this *ExchangeTyped) WatchOHLCV(symbol string, options ...WatchOHLCVOption
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []OHLCV = NewOHLCVArray(r.Value)
+	var res []OHLCV = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchWebEndpoint(method string, endpointMethod any, returnAsJson any, options ...FetchWebEndpointOptions) (map[string]any, error) {
@@ -786,7 +786,7 @@ func (this *ExchangeTyped) FetchBorrowInterest(options ...FetchBorrowInterestOpt
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []BorrowInterest = NewBorrowInterestArray(r.Value)
+	var res []BorrowInterest = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, error) {
@@ -800,7 +800,7 @@ func (this *ExchangeTyped) FetchLedger(options ...FetchLedgerOptions) ([]LedgerE
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []LedgerEntry = NewLedgerEntryArray(r.Value)
+	var res []LedgerEntry = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchLedgerEntry(id string, options ...FetchLedgerEntryOptions) (LedgerEntry, error) {
@@ -814,7 +814,7 @@ func (this *ExchangeTyped) FetchLedgerEntry(id string, options ...FetchLedgerEnt
 	if r.Err != nil {
 		return LedgerEntry{}, r.Err
 	}
-	var res LedgerEntry = NewLedgerEntry(r.Value)
+	var res LedgerEntry = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchBalance(params ...any) (Balances, error) {
@@ -822,7 +822,7 @@ func (this *ExchangeTyped) FetchBalance(params ...any) (Balances, error) {
 	if r.Err != nil {
 		return Balances{}, r.Err
 	}
-	var res Balances = NewBalances(r.Value)
+	var res Balances = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchBalanceWs(params ...any) (Balances, error) {
@@ -830,7 +830,7 @@ func (this *ExchangeTyped) FetchBalanceWs(params ...any) (Balances, error) {
 	if r.Err != nil {
 		return Balances{}, r.Err
 	}
-	var res Balances = NewBalances(r.Value)
+	var res Balances = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) WatchBalance(params ...any) (Balances, error) {
@@ -838,7 +838,7 @@ func (this *ExchangeTyped) WatchBalance(params ...any) (Balances, error) {
 	if r.Err != nil {
 		return Balances{}, r.Err
 	}
-	var res Balances = NewBalances(r.Value)
+	var res Balances = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchPartialBalance(part any, options ...FetchPartialBalanceOptions) (Balance, error) {
@@ -852,7 +852,7 @@ func (this *ExchangeTyped) FetchPartialBalance(part any, options ...FetchPartial
 	if r.Err != nil {
 		return Balance{}, r.Err
 	}
-	var res Balance = NewBalance(r.Value)
+	var res Balance = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchFreeBalance(params ...any) (Balance, error) {
@@ -860,7 +860,7 @@ func (this *ExchangeTyped) FetchFreeBalance(params ...any) (Balance, error) {
 	if r.Err != nil {
 		return Balance{}, r.Err
 	}
-	var res Balance = NewBalance(r.Value)
+	var res Balance = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchUsedBalance(params ...any) (Balance, error) {
@@ -868,7 +868,7 @@ func (this *ExchangeTyped) FetchUsedBalance(params ...any) (Balance, error) {
 	if r.Err != nil {
 		return Balance{}, r.Err
 	}
-	var res Balance = NewBalance(r.Value)
+	var res Balance = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchTotalBalance(params ...any) (Balance, error) {
@@ -876,7 +876,7 @@ func (this *ExchangeTyped) FetchTotalBalance(params ...any) (Balance, error) {
 	if r.Err != nil {
 		return Balance{}, r.Err
 	}
-	var res Balance = NewBalance(r.Value)
+	var res Balance = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchStatus(params ...any) (Status, error) {
@@ -884,7 +884,7 @@ func (this *ExchangeTyped) FetchStatus(params ...any) (Status, error) {
 	if r.Err != nil {
 		return Status{}, r.Err
 	}
-	var res Status = NewStatus(r.Raw)
+	var res Status = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]any, error) {
@@ -898,7 +898,7 @@ func (this *ExchangeTyped) FetchTransactionFee(code string, options ...FetchTran
 	if r.Err != nil {
 		return map[string]any{}, r.Err
 	}
-	var res map[string]any = r.Raw.(map[string]any)
+	var res map[string]any = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]any, error) {
@@ -912,7 +912,7 @@ func (this *ExchangeTyped) FetchTransactionFees(options ...FetchTransactionFeesO
 	if r.Err != nil {
 		return map[string]any{}, r.Err
 	}
-	var res map[string]any = r.Value.(map[string]any)
+	var res map[string]any = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
@@ -926,7 +926,7 @@ func (this *ExchangeTyped) FetchDepositWithdrawFees(options ...FetchDepositWithd
 	if r.Err != nil {
 		return DepositWithdrawFees{}, r.Err
 	}
-	var res DepositWithdrawFees = NewDepositWithdrawFees(r.Value)
+	var res DepositWithdrawFees = DepositWithdrawFees{DepositWithdrawFees: r.Value}
 	return res, nil
 }
 func (this *ExchangeTyped) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
@@ -940,7 +940,7 @@ func (this *ExchangeTyped) FetchDepositWithdrawFee(code string, options ...Fetch
 	if r.Err != nil {
 		return DepositWithdrawFee{}, r.Err
 	}
-	var res DepositWithdrawFee = NewDepositWithdrawFee(r.Value)
+	var res DepositWithdrawFee = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {
@@ -954,7 +954,7 @@ func (this *ExchangeTyped) FetchCrossBorrowRate(code string, options ...FetchCro
 	if r.Err != nil {
 		return CrossBorrowRate{}, r.Err
 	}
-	var res CrossBorrowRate = NewCrossBorrowRate(r.Value)
+	var res CrossBorrowRate = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchIsolatedBorrowRate(symbol string, options ...FetchIsolatedBorrowRateOptions) (IsolatedBorrowRate, error) {
@@ -968,7 +968,7 @@ func (this *ExchangeTyped) FetchIsolatedBorrowRate(symbol string, options ...Fet
 	if r.Err != nil {
 		return IsolatedBorrowRate{}, r.Err
 	}
-	var res IsolatedBorrowRate = NewIsolatedBorrowRate(r.Value)
+	var res IsolatedBorrowRate = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchSpotTickers(options ...FetchSpotTickersOptions) (Tickers, error) {
@@ -982,7 +982,7 @@ func (this *ExchangeTyped) FetchSpotTickers(options ...FetchSpotTickersOptions) 
 	if r.Err != nil {
 		return Tickers{}, r.Err
 	}
-	var res Tickers = NewTickers(r.Value)
+	var res Tickers = Tickers{Tickers: r.Value}
 	return res, nil
 }
 func (this *ExchangeTyped) FetchContractTickers(options ...FetchContractTickersOptions) (Tickers, error) {
@@ -996,7 +996,7 @@ func (this *ExchangeTyped) FetchContractTickers(options ...FetchContractTickersO
 	if r.Err != nil {
 		return Tickers{}, r.Err
 	}
-	var res Tickers = NewTickers(r.Value)
+	var res Tickers = Tickers{Tickers: r.Value}
 	return res, nil
 }
 func (this *ExchangeTyped) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
@@ -1010,7 +1010,7 @@ func (this *ExchangeTyped) FetchOrderBooks(options ...FetchOrderBooksOptions) (O
 	if r.Err != nil {
 		return OrderBooks{}, r.Err
 	}
-	var res OrderBooks = NewOrderBooks(r.Raw)
+	var res OrderBooks = OrderBooks{OrderBooks: r.Value}
 	return res, nil
 }
 func (this *ExchangeTyped) UnWatchTickers(options ...UnWatchTickersOptions) (any, error) {
@@ -1050,7 +1050,7 @@ func (this *ExchangeTyped) CreateTwapOrder(symbol string, side string, amount fl
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Raw)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CreateConvertTrade(id string, fromCode string, toCode string, options ...CreateConvertTradeOptions) (Conversion, error) {
@@ -1064,7 +1064,7 @@ func (this *ExchangeTyped) CreateConvertTrade(id string, fromCode string, toCode
 	if r.Err != nil {
 		return Conversion{}, r.Err
 	}
-	var res Conversion = NewConversion(r.Value)
+	var res Conversion = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchConvertTrade(id string, options ...FetchConvertTradeOptions) (Conversion, error) {
@@ -1078,7 +1078,7 @@ func (this *ExchangeTyped) FetchConvertTrade(id string, options ...FetchConvertT
 	if r.Err != nil {
 		return Conversion{}, r.Err
 	}
-	var res Conversion = NewConversion(r.Value)
+	var res Conversion = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchConvertTradeHistory(options ...FetchConvertTradeHistoryOptions) ([]Conversion, error) {
@@ -1092,7 +1092,7 @@ func (this *ExchangeTyped) FetchConvertTradeHistory(options ...FetchConvertTrade
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Conversion = NewConversionArray(r.Value)
+	var res []Conversion = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
@@ -1106,7 +1106,7 @@ func (this *ExchangeTyped) FetchPositionMode(options ...FetchPositionModeOptions
 	if r.Err != nil {
 		return PositionModeInfo{}, r.Err
 	}
-	var res PositionModeInfo = NewPositionModeInfo(r.Raw)
+	var res PositionModeInfo = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchADLRank(symbol string, options ...FetchADLRankOptions) (ADL, error) {
@@ -1120,7 +1120,7 @@ func (this *ExchangeTyped) FetchADLRank(symbol string, options ...FetchADLRankOp
 	if r.Err != nil {
 		return ADL{}, r.Err
 	}
-	var res ADL = NewADL(r.Value)
+	var res ADL = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchPositionsADLRank(options ...FetchPositionsADLRankOptions) ([]ADL, error) {
@@ -1134,7 +1134,7 @@ func (this *ExchangeTyped) FetchPositionsADLRank(options ...FetchPositionsADLRan
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ADL = NewADLArray(r.Value)
+	var res []ADL = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchPositionADLRank(symbol string, options ...FetchPositionADLRankOptions) (ADL, error) {
@@ -1148,7 +1148,7 @@ func (this *ExchangeTyped) FetchPositionADLRank(symbol string, options ...FetchP
 	if r.Err != nil {
 		return ADL{}, r.Err
 	}
-	var res ADL = NewADL(r.Value)
+	var res ADL = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CreateSpotOrders(orders []OrderRequest, options ...CreateSpotOrdersOptions) ([]Order, error) {
@@ -1162,7 +1162,7 @@ func (this *ExchangeTyped) CreateSpotOrders(orders []OrderRequest, options ...Cr
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CreateContractOrders(orders []OrderRequest, options ...CreateContractOrdersOptions) ([]Order, error) {
@@ -1176,7 +1176,7 @@ func (this *ExchangeTyped) CreateContractOrders(orders []OrderRequest, options .
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CancelSpotOrder(id string, options ...CancelSpotOrderOptions) (Order, error) {
@@ -1190,7 +1190,7 @@ func (this *ExchangeTyped) CancelSpotOrder(id string, options ...CancelSpotOrder
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Raw)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CancelContractOrder(id string, options ...CancelContractOrderOptions) (Order, error) {
@@ -1204,7 +1204,7 @@ func (this *ExchangeTyped) CancelContractOrder(id string, options ...CancelContr
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Raw)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CancelAllSpotOrders(options ...CancelAllSpotOrdersOptions) ([]Order, error) {
@@ -1218,7 +1218,7 @@ func (this *ExchangeTyped) CancelAllSpotOrders(options ...CancelAllSpotOrdersOpt
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Raw)
+	var res []Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CancelAllContractOrders(options ...CancelAllContractOrdersOptions) ([]Order, error) {
@@ -1232,7 +1232,7 @@ func (this *ExchangeTyped) CancelAllContractOrders(options ...CancelAllContractO
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Raw)
+	var res []Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]any, error) {
@@ -1246,7 +1246,7 @@ func (this *ExchangeTyped) CancelAllOrdersAfter(timeout int64, options ...Cancel
 	if r.Err != nil {
 		return map[string]any{}, r.Err
 	}
-	var res map[string]any = r.Value.(map[string]any)
+	var res map[string]any = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
@@ -1260,7 +1260,7 @@ func (this *ExchangeTyped) CancelOrdersForSymbols(orders []CancellationRequest, 
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) ([]Liquidation, error) {
@@ -1274,7 +1274,7 @@ func (this *ExchangeTyped) FetchMyLiquidations(options ...FetchMyLiquidationsOpt
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Liquidation = NewLiquidationArray(r.Value)
+	var res []Liquidation = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchLiquidations(symbol string, options ...FetchLiquidationsOptions) ([]Liquidation, error) {
@@ -1288,7 +1288,7 @@ func (this *ExchangeTyped) FetchLiquidations(symbol string, options ...FetchLiqu
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Liquidation = NewLiquidationArray(r.Value)
+	var res []Liquidation = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchGreeks(symbol string, options ...FetchGreeksOptions) (Greeks, error) {
@@ -1302,7 +1302,7 @@ func (this *ExchangeTyped) FetchGreeks(symbol string, options ...FetchGreeksOpti
 	if r.Err != nil {
 		return Greeks{}, r.Err
 	}
-	var res Greeks = NewGreeks(r.Value)
+	var res Greeks = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
@@ -1316,7 +1316,7 @@ func (this *ExchangeTyped) FetchAllGreeks(options ...FetchAllGreeksOptions) (All
 	if r.Err != nil {
 		return AllGreeks{}, r.Err
 	}
-	var res AllGreeks = NewAllGreeks(r.Value)
+	var res AllGreeks = AllGreeks{Greeks: r.Value}
 	return res, nil
 }
 func (this *ExchangeTyped) FetchOptionChain(code string, options ...FetchOptionChainOptions) (OptionChain, error) {
@@ -1330,7 +1330,7 @@ func (this *ExchangeTyped) FetchOptionChain(code string, options ...FetchOptionC
 	if r.Err != nil {
 		return OptionChain{}, r.Err
 	}
-	var res OptionChain = NewOptionChain(r.Value)
+	var res OptionChain = OptionChain{Chains: r.Value}
 	return res, nil
 }
 func (this *ExchangeTyped) FetchOption(symbol string, options ...FetchOptionOptions) (Option, error) {
@@ -1344,7 +1344,7 @@ func (this *ExchangeTyped) FetchOption(symbol string, options ...FetchOptionOpti
 	if r.Err != nil {
 		return Option{}, r.Err
 	}
-	var res Option = NewOption(r.Value)
+	var res Option = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchConvertQuote(fromCode string, toCode string, options ...FetchConvertQuoteOptions) (Conversion, error) {
@@ -1358,7 +1358,7 @@ func (this *ExchangeTyped) FetchConvertQuote(fromCode string, toCode string, opt
 	if r.Err != nil {
 		return Conversion{}, r.Err
 	}
-	var res Conversion = NewConversion(r.Value)
+	var res Conversion = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
@@ -1372,7 +1372,7 @@ func (this *ExchangeTyped) FetchDepositsWithdrawals(options ...FetchDepositsWith
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Transaction = NewTransactionArray(r.Value)
+	var res []Transaction = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
@@ -1386,7 +1386,7 @@ func (this *ExchangeTyped) FetchDeposits(options ...FetchDepositsOptions) ([]Tra
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Transaction = NewTransactionArray(r.Value)
+	var res []Transaction = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transaction, error) {
@@ -1400,7 +1400,7 @@ func (this *ExchangeTyped) FetchWithdrawals(options ...FetchWithdrawalsOptions) 
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Transaction = NewTransactionArray(r.Value)
+	var res []Transaction = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
@@ -1414,7 +1414,7 @@ func (this *ExchangeTyped) FetchDepositsWs(options ...FetchDepositsWsOptions) ([
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Transaction = NewTransactionArray(r.Value)
+	var res []Transaction = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
@@ -1428,7 +1428,7 @@ func (this *ExchangeTyped) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptio
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Transaction = NewTransactionArray(r.Value)
+	var res []Transaction = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchFundingRateHistory(options ...FetchFundingRateHistoryOptions) ([]FundingRateHistory, error) {
@@ -1442,7 +1442,7 @@ func (this *ExchangeTyped) FetchFundingRateHistory(options ...FetchFundingRateHi
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []FundingRateHistory = NewFundingRateHistoryArray(r.Value)
+	var res []FundingRateHistory = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
@@ -1456,7 +1456,7 @@ func (this *ExchangeTyped) FetchFundingHistory(options ...FetchFundingHistoryOpt
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []FundingHistory = NewFundingHistoryArray(r.Value)
+	var res []FundingHistory = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
@@ -1470,7 +1470,7 @@ func (this *ExchangeTyped) FetchDepositAddress(code string, options ...FetchDepo
 	if r.Err != nil {
 		return DepositAddress{}, r.Err
 	}
-	var res DepositAddress = NewDepositAddress(r.Value)
+	var res DepositAddress = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchContractDepositAddress(code string, options ...FetchContractDepositAddressOptions) (DepositAddress, error) {
@@ -1484,7 +1484,7 @@ func (this *ExchangeTyped) FetchContractDepositAddress(code string, options ...F
 	if r.Err != nil {
 		return DepositAddress{}, r.Err
 	}
-	var res DepositAddress = NewDepositAddress(r.Raw)
+	var res DepositAddress = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
@@ -1498,7 +1498,7 @@ func (this *ExchangeTyped) FetchMarketLeverageTiers(symbol string, options ...Fe
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []LeverageTier = NewLeverageTierArray(r.Value)
+	var res []LeverageTier = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CreateSubAccount(name string, options ...CreateSubAccountOptions) (map[string]any, error) {
@@ -1512,7 +1512,7 @@ func (this *ExchangeTyped) CreateSubAccount(name string, options ...CreateSubAcc
 	if r.Err != nil {
 		return map[string]any{}, r.Err
 	}
-	var res map[string]any = r.Value.(map[string]any)
+	var res map[string]any = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchLastPrices(options ...FetchLastPricesOptions) (LastPrices, error) {
@@ -1526,7 +1526,7 @@ func (this *ExchangeTyped) FetchLastPrices(options ...FetchLastPricesOptions) (L
 	if r.Err != nil {
 		return LastPrices{}, r.Err
 	}
-	var res LastPrices = NewLastPrices(r.Value)
+	var res LastPrices = LastPrices{LastPrices: r.Value}
 	return res, nil
 }
 func (this *ExchangeTyped) FetchTradingFees(params ...any) (TradingFees, error) {
@@ -1534,7 +1534,7 @@ func (this *ExchangeTyped) FetchTradingFees(params ...any) (TradingFees, error) 
 	if r.Err != nil {
 		return TradingFees{}, r.Err
 	}
-	var res TradingFees = NewTradingFees(r.Value)
+	var res TradingFees = TradingFees{TradingFees: r.Value}
 	return res, nil
 }
 func (this *ExchangeTyped) FetchTradingFeesWs(params ...any) (TradingFees, error) {
@@ -1542,7 +1542,7 @@ func (this *ExchangeTyped) FetchTradingFeesWs(params ...any) (TradingFees, error
 	if r.Err != nil {
 		return TradingFees{}, r.Err
 	}
-	var res TradingFees = NewTradingFees(r.Value)
+	var res TradingFees = TradingFees{TradingFees: r.Value}
 	return res, nil
 }
 func (this *ExchangeTyped) FetchConvertCurrencies(params ...any) (Currencies, error) {
@@ -1550,7 +1550,7 @@ func (this *ExchangeTyped) FetchConvertCurrencies(params ...any) (Currencies, er
 	if r.Err != nil {
 		return Currencies{}, r.Err
 	}
-	var res Currencies = NewCurrencies(r.Raw)
+	var res Currencies = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
@@ -1564,7 +1564,7 @@ func (this *ExchangeTyped) FetchFundingRate(symbol string, options ...FetchFundi
 	if r.Err != nil {
 		return FundingRate{}, r.Err
 	}
-	var res FundingRate = NewFundingRate(r.Value)
+	var res FundingRate = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchFundingInterval(symbol string, options ...FetchFundingIntervalOptions) (FundingRate, error) {
@@ -1578,7 +1578,7 @@ func (this *ExchangeTyped) FetchFundingInterval(symbol string, options ...FetchF
 	if r.Err != nil {
 		return FundingRate{}, r.Err
 	}
-	var res FundingRate = NewFundingRate(r.Value)
+	var res FundingRate = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
@@ -1592,7 +1592,7 @@ func (this *ExchangeTyped) FetchMarkOHLCV(symbol string, options ...FetchMarkOHL
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []OHLCV = NewOHLCVArray(r.Value)
+	var res []OHLCV = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchIndexOHLCV(symbol string, options ...FetchIndexOHLCVOptions) ([]OHLCV, error) {
@@ -1606,7 +1606,7 @@ func (this *ExchangeTyped) FetchIndexOHLCV(symbol string, options ...FetchIndexO
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []OHLCV = NewOHLCVArray(r.Value)
+	var res []OHLCV = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
@@ -1620,7 +1620,7 @@ func (this *ExchangeTyped) FetchPremiumIndexOHLCV(symbol string, options ...Fetc
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []OHLCV = NewOHLCVArray(r.Value)
+	var res []OHLCV = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchTransactions(options ...FetchTransactionsOptions) ([]Transaction, error) {
@@ -1634,10 +1634,10 @@ func (this *ExchangeTyped) FetchTransactions(options ...FetchTransactionsOptions
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Transaction = NewTransactionArray(r.Value)
+	var res []Transaction = r.Value
 	return res, nil
 }
-func (this *ExchangeTyped) FetchPaginatedCallDynamic(method string, options ...FetchPaginatedCallDynamicOptions) (map[string]any, error) {
+func (this *ExchangeTyped) FetchPaginatedCallDynamic(method string, options ...FetchPaginatedCallDynamicOptions) ([]map[string]any, error) {
 
 	opts := FetchPaginatedCallDynamicOptionsStruct{}
 
@@ -1646,12 +1646,12 @@ func (this *ExchangeTyped) FetchPaginatedCallDynamic(method string, options ...F
 	}
 	r := <-this.Exchange.FetchPaginatedCallDynamicAsync(method, opts.Symbol, opts.Since, opts.Limit, opts.Params, opts.MaxEntriesPerRequest, opts.RemoveRepeated)
 	if r.Err != nil {
-		return map[string]any{}, r.Err
+		return nil, r.Err
 	}
-	var res map[string]any = r.Value.(map[string]any)
+	var res []map[string]any = NewMapArray(r.Value)
 	return res, nil
 }
-func (this *ExchangeTyped) FetchPaginatedCallDeterministic(method string, options ...FetchPaginatedCallDeterministicOptions) (map[string]any, error) {
+func (this *ExchangeTyped) FetchPaginatedCallDeterministic(method string, options ...FetchPaginatedCallDeterministicOptions) ([]map[string]any, error) {
 
 	opts := FetchPaginatedCallDeterministicOptionsStruct{}
 
@@ -1660,12 +1660,12 @@ func (this *ExchangeTyped) FetchPaginatedCallDeterministic(method string, option
 	}
 	r := <-this.Exchange.FetchPaginatedCallDeterministicAsync(method, opts.Symbol, opts.Since, opts.Limit, opts.Timeframe, opts.Params, opts.MaxEntriesPerRequest)
 	if r.Err != nil {
-		return map[string]any{}, r.Err
+		return nil, r.Err
 	}
-	var res map[string]any = r.Value.(map[string]any)
+	var res []map[string]any = NewMapArray(r.Value)
 	return res, nil
 }
-func (this *ExchangeTyped) FetchPaginatedCallCursor(method string, options ...FetchPaginatedCallCursorOptions) (map[string]any, error) {
+func (this *ExchangeTyped) FetchPaginatedCallCursor(method string, options ...FetchPaginatedCallCursorOptions) ([]map[string]any, error) {
 
 	opts := FetchPaginatedCallCursorOptionsStruct{}
 
@@ -1674,12 +1674,12 @@ func (this *ExchangeTyped) FetchPaginatedCallCursor(method string, options ...Fe
 	}
 	r := <-this.Exchange.FetchPaginatedCallCursorAsync(method, opts.Symbol, opts.Since, opts.Limit, opts.Params, opts.CursorReceived, opts.CursorSent, opts.CursorIncrement, opts.MaxEntriesPerRequest)
 	if r.Err != nil {
-		return map[string]any{}, r.Err
+		return nil, r.Err
 	}
-	var res map[string]any = r.Value.(map[string]any)
+	var res []map[string]any = NewMapArray(r.Value)
 	return res, nil
 }
-func (this *ExchangeTyped) FetchPaginatedCallIncremental(method string, options ...FetchPaginatedCallIncrementalOptions) (map[string]any, error) {
+func (this *ExchangeTyped) FetchPaginatedCallIncremental(method string, options ...FetchPaginatedCallIncrementalOptions) ([]map[string]any, error) {
 
 	opts := FetchPaginatedCallIncrementalOptionsStruct{}
 
@@ -1688,9 +1688,9 @@ func (this *ExchangeTyped) FetchPaginatedCallIncremental(method string, options 
 	}
 	r := <-this.Exchange.FetchPaginatedCallIncrementalAsync(method, opts.Symbol, opts.Since, opts.Limit, opts.Params, opts.PageKey, opts.MaxEntriesPerRequest)
 	if r.Err != nil {
-		return map[string]any{}, r.Err
+		return nil, r.Err
 	}
-	var res map[string]any = r.Value.(map[string]any)
+	var res []map[string]any = NewMapArray(r.Value)
 	return res, nil
 }
 func (this *ExchangeTyped) FetchTransfer(id string, options ...FetchTransferOptions) (TransferEntry, error) {
@@ -1704,7 +1704,7 @@ func (this *ExchangeTyped) FetchTransfer(id string, options ...FetchTransferOpti
 	if r.Err != nil {
 		return TransferEntry{}, r.Err
 	}
-	var res TransferEntry = NewTransferEntry(r.Raw)
+	var res TransferEntry = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEntry, error) {
@@ -1718,7 +1718,7 @@ func (this *ExchangeTyped) FetchTransfers(options ...FetchTransfersOptions) ([]T
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []TransferEntry = NewTransferEntryArray(r.Value)
+	var res []TransferEntry = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (any, error) {
@@ -1745,7 +1745,7 @@ func (this *ExchangeTyped) WithdrawWs(code string, amount float64, address strin
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
-	var res Transaction = NewTransaction(r.Value)
+	var res Transaction = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (any, error) {
@@ -1772,7 +1772,7 @@ func (this *ExchangeTyped) FetchOrdersByStatusWs(status string, options ...Fetch
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {
@@ -1788,6 +1788,20 @@ func (this *ExchangeTyped) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (a
 	}
 	return r.Value, nil
 }
+func (this *ExchangeTyped) ClosePosition(symbol string, options ...ClosePositionOptions) (Order, error) {
+
+	opts := ClosePositionOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.Exchange.ClosePositionAsync(symbol, opts.Side, opts.Params)
+	if r.Err != nil {
+		return Order{}, r.Err
+	}
+	var res Order = r.Value
+	return res, nil
+}
 func (this *ExchangeTyped) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
 
 	opts := EditOrdersOptionsStruct{}
@@ -1799,7 +1813,7 @@ func (this *ExchangeTyped) EditOrders(orders []OrderRequest, options ...EditOrde
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {
@@ -1813,7 +1827,7 @@ func (this *ExchangeTyped) FetchCanceledAndClosedOrders(options ...FetchCanceled
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
@@ -1827,7 +1841,7 @@ func (this *ExchangeTyped) FetchPositionHistory(symbol string, options ...FetchP
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Position = NewPositionArray(r.Value)
+	var res []Position = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchPositionsHistory(options ...FetchPositionsHistoryOptions) ([]Position, error) {
@@ -1841,7 +1855,7 @@ func (this *ExchangeTyped) FetchPositionsHistory(options ...FetchPositionsHistor
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Position = NewPositionArray(r.Value)
+	var res []Position = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]Position, error) {
@@ -1855,7 +1869,7 @@ func (this *ExchangeTyped) FetchPositionsRisk(options ...FetchPositionsRiskOptio
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Position = NewPositionArray(r.Value)
+	var res []Position = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
@@ -1869,7 +1883,7 @@ func (this *ExchangeTyped) FetchPositionsForSymbol(symbol string, options ...Fet
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Position = NewPositionArray(r.Value)
+	var res []Position = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchPositionsForSymbolWs(symbol string, options ...FetchPositionsForSymbolWsOptions) ([]Position, error) {
@@ -1883,7 +1897,7 @@ func (this *ExchangeTyped) FetchPositionsForSymbolWs(symbol string, options ...F
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Position = NewPositionArray(r.Value)
+	var res []Position = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) WatchPosition(options ...WatchPositionOptions) (Position, error) {
@@ -1897,7 +1911,7 @@ func (this *ExchangeTyped) WatchPosition(options ...WatchPositionOptions) (Posit
 	if r.Err != nil {
 		return Position{}, r.Err
 	}
-	var res Position = NewPosition(r.Value)
+	var res Position = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) WatchMyTradesForSymbols(symbols []string, options ...WatchMyTradesForSymbolsOptions) ([]Trade, error) {
@@ -1911,7 +1925,7 @@ func (this *ExchangeTyped) WatchMyTradesForSymbols(symbols []string, options ...
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(r.Value)
+	var res []Trade = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) WatchTradesForSymbols(symbols []string, options ...WatchTradesForSymbolsOptions) ([]Trade, error) {
@@ -1925,7 +1939,7 @@ func (this *ExchangeTyped) WatchTradesForSymbols(symbols []string, options ...Wa
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(r.Value)
+	var res []Trade = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -1939,7 +1953,7 @@ func (this *ExchangeTyped) FetchBidsAsks(options ...FetchBidsAsksOptions) (Ticke
 	if r.Err != nil {
 		return Tickers{}, r.Err
 	}
-	var res Tickers = NewTickers(r.Value)
+	var res Tickers = Tickers{Tickers: r.Value}
 	return res, nil
 }
 func (this *ExchangeTyped) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {
@@ -1953,7 +1967,7 @@ func (this *ExchangeTyped) FetchMarkPrice(symbol string, options ...FetchMarkPri
 	if r.Err != nil {
 		return Ticker{}, r.Err
 	}
-	var res Ticker = NewTicker(r.Value)
+	var res Ticker = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchMarkPrices(options ...FetchMarkPricesOptions) (Tickers, error) {
@@ -1967,7 +1981,7 @@ func (this *ExchangeTyped) FetchMarkPrices(options ...FetchMarkPricesOptions) (T
 	if r.Err != nil {
 		return Tickers{}, r.Err
 	}
-	var res Tickers = NewTickers(r.Value)
+	var res Tickers = Tickers{Tickers: r.Value}
 	return res, nil
 }
 func (this *ExchangeTyped) WatchBidsAsks(options ...WatchBidsAsksOptions) (Tickers, error) {
@@ -1981,7 +1995,7 @@ func (this *ExchangeTyped) WatchBidsAsks(options ...WatchBidsAsksOptions) (Ticke
 	if r.Err != nil {
 		return Tickers{}, r.Err
 	}
-	var res Tickers = NewTickers(r.Value)
+	var res Tickers = Tickers{Tickers: r.Value}
 	return res, nil
 }
 func (this *ExchangeTyped) WatchMarkPrice(symbol string, options ...WatchMarkPriceOptions) (Ticker, error) {
@@ -1995,7 +2009,7 @@ func (this *ExchangeTyped) WatchMarkPrice(symbol string, options ...WatchMarkPri
 	if r.Err != nil {
 		return Ticker{}, r.Err
 	}
-	var res Ticker = NewTicker(r.Value)
+	var res Ticker = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) WatchMarkPrices(options ...WatchMarkPricesOptions) (Tickers, error) {
@@ -2009,10 +2023,10 @@ func (this *ExchangeTyped) WatchMarkPrices(options ...WatchMarkPricesOptions) (T
 	if r.Err != nil {
 		return Tickers{}, r.Err
 	}
-	var res Tickers = NewTickers(r.Value)
+	var res Tickers = Tickers{Tickers: r.Value}
 	return res, nil
 }
-func (this *ExchangeTyped) FetchL3OrderBook(symbol string, options ...FetchL3OrderBookOptions) (OrderBook, error) {
+func (this *ExchangeTyped) FetchL3OrderBook(symbol string, options ...FetchL3OrderBookOptions) (OrderBookL3, error) {
 
 	opts := FetchL3OrderBookOptionsStruct{}
 
@@ -2021,9 +2035,9 @@ func (this *ExchangeTyped) FetchL3OrderBook(symbol string, options ...FetchL3Ord
 	}
 	r := <-this.Exchange.FetchL3OrderBookAsync(symbol, opts.Limit, opts.Params)
 	if r.Err != nil {
-		return OrderBook{}, r.Err
+		return OrderBookL3{}, r.Err
 	}
-	var res OrderBook = NewOrderBook(r.Raw)
+	var res OrderBookL3 = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) WatchOrderBookForSymbols(symbols []string, options ...WatchOrderBookForSymbolsOptions) (OrderBook, error) {
@@ -2051,7 +2065,7 @@ func (this *ExchangeTyped) WatchOrdersForSymbols(symbols []string, options ...Wa
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CancelAllOrdersWs(options ...CancelAllOrdersWsOptions) ([]Order, error) {
@@ -2065,7 +2079,7 @@ func (this *ExchangeTyped) CancelAllOrdersWs(options ...CancelAllOrdersWsOptions
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CancelOrderWs(id string, options ...CancelOrderWsOptions) (Order, error) {
@@ -2079,7 +2093,7 @@ func (this *ExchangeTyped) CancelOrderWs(id string, options ...CancelOrderWsOpti
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CancelOrdersWs(ids []string, options ...CancelOrdersWsOptions) ([]Order, error) {
@@ -2093,7 +2107,7 @@ func (this *ExchangeTyped) CancelOrdersWs(ids []string, options ...CancelOrdersW
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CreateLimitBuyOrderWs(symbol string, amount float64, price float64, options ...CreateLimitBuyOrderWsOptions) (Order, error) {
@@ -2107,7 +2121,7 @@ func (this *ExchangeTyped) CreateLimitBuyOrderWs(symbol string, amount float64, 
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CreateLimitOrderWs(symbol string, side string, amount float64, price float64, options ...CreateLimitOrderWsOptions) (Order, error) {
@@ -2121,7 +2135,7 @@ func (this *ExchangeTyped) CreateLimitOrderWs(symbol string, side string, amount
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CreateLimitSellOrderWs(symbol string, amount float64, price float64, options ...CreateLimitSellOrderWsOptions) (Order, error) {
@@ -2135,7 +2149,7 @@ func (this *ExchangeTyped) CreateLimitSellOrderWs(symbol string, amount float64,
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CreateMarketBuyOrderWs(symbol string, amount float64, options ...CreateMarketBuyOrderWsOptions) (Order, error) {
@@ -2149,7 +2163,7 @@ func (this *ExchangeTyped) CreateMarketBuyOrderWs(symbol string, amount float64,
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CreateMarketOrderWithCostWs(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostWsOptions) (Order, error) {
@@ -2163,7 +2177,7 @@ func (this *ExchangeTyped) CreateMarketOrderWithCostWs(symbol string, side strin
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CreateMarketOrderWs(symbol string, side string, amount float64, options ...CreateMarketOrderWsOptions) (Order, error) {
@@ -2177,7 +2191,7 @@ func (this *ExchangeTyped) CreateMarketOrderWs(symbol string, side string, amoun
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CreateMarketSellOrderWs(symbol string, amount float64, options ...CreateMarketSellOrderWsOptions) (Order, error) {
@@ -2191,7 +2205,7 @@ func (this *ExchangeTyped) CreateMarketSellOrderWs(symbol string, amount float64
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CreateOrderWithTakeProfitAndStopLossWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossWsOptions) (Order, error) {
@@ -2205,7 +2219,7 @@ func (this *ExchangeTyped) CreateOrderWithTakeProfitAndStopLossWs(symbol string,
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CreateOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWsOptions) (Order, error) {
@@ -2219,7 +2233,7 @@ func (this *ExchangeTyped) CreateOrderWs(symbol string, typeVar string, side str
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CreateOrdersWs(orders []OrderRequest, options ...CreateOrdersWsOptions) ([]Order, error) {
@@ -2233,7 +2247,7 @@ func (this *ExchangeTyped) CreateOrdersWs(orders []OrderRequest, options ...Crea
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CreatePostOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreatePostOnlyOrderWsOptions) (Order, error) {
@@ -2247,7 +2261,7 @@ func (this *ExchangeTyped) CreatePostOnlyOrderWs(symbol string, typeVar string, 
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CreateReduceOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateReduceOnlyOrderWsOptions) (Order, error) {
@@ -2261,7 +2275,7 @@ func (this *ExchangeTyped) CreateReduceOnlyOrderWs(symbol string, typeVar string
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CreateStopLimitOrderWs(symbol string, side string, amount float64, price float64, triggerPrice float64, options ...CreateStopLimitOrderWsOptions) (Order, error) {
@@ -2275,7 +2289,7 @@ func (this *ExchangeTyped) CreateStopLimitOrderWs(symbol string, side string, am
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CreateStopLossOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopLossOrderWsOptions) (Order, error) {
@@ -2289,7 +2303,7 @@ func (this *ExchangeTyped) CreateStopLossOrderWs(symbol string, typeVar string, 
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CreateStopMarketOrderWs(symbol string, side string, amount float64, triggerPrice float64, options ...CreateStopMarketOrderWsOptions) (Order, error) {
@@ -2303,7 +2317,7 @@ func (this *ExchangeTyped) CreateStopMarketOrderWs(symbol string, side string, a
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CreateStopOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopOrderWsOptions) (Order, error) {
@@ -2317,7 +2331,7 @@ func (this *ExchangeTyped) CreateStopOrderWs(symbol string, typeVar string, side
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CreateTakeProfitOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTakeProfitOrderWsOptions) (Order, error) {
@@ -2331,7 +2345,7 @@ func (this *ExchangeTyped) CreateTakeProfitOrderWs(symbol string, typeVar string
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CreateTrailingAmountOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderWsOptions) (Order, error) {
@@ -2345,7 +2359,7 @@ func (this *ExchangeTyped) CreateTrailingAmountOrderWs(symbol string, typeVar st
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CreateTrailingPercentOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingPercentOrderWsOptions) (Order, error) {
@@ -2359,7 +2373,7 @@ func (this *ExchangeTyped) CreateTrailingPercentOrderWs(symbol string, typeVar s
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CreateTriggerOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTriggerOrderWsOptions) (Order, error) {
@@ -2373,7 +2387,7 @@ func (this *ExchangeTyped) CreateTriggerOrderWs(symbol string, typeVar string, s
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) EditOrderWs(id string, symbol string, typeVar string, side string, options ...EditOrderWsOptions) (Order, error) {
@@ -2387,7 +2401,7 @@ func (this *ExchangeTyped) EditOrderWs(id string, symbol string, typeVar string,
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
@@ -2401,7 +2415,7 @@ func (this *ExchangeTyped) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOpt
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Raw)
+	var res []Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -2415,7 +2429,7 @@ func (this *ExchangeTyped) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(r.Value)
+	var res []Trade = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchOpenOrdersWs(options ...FetchOpenOrdersWsOptions) ([]Order, error) {
@@ -2429,7 +2443,7 @@ func (this *ExchangeTyped) FetchOpenOrdersWs(options ...FetchOpenOrdersWsOptions
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchOrderBookWs(symbol string, options ...FetchOrderBookWsOptions) (OrderBook, error) {
@@ -2457,7 +2471,7 @@ func (this *ExchangeTyped) FetchOrderWs(id string, options ...FetchOrderWsOption
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchOrdersWs(options ...FetchOrdersWsOptions) ([]Order, error) {
@@ -2471,7 +2485,7 @@ func (this *ExchangeTyped) FetchOrdersWs(options ...FetchOrdersWsOptions) ([]Ord
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchPositionWs(symbol string, options ...FetchPositionWsOptions) ([]Position, error) {
@@ -2485,7 +2499,7 @@ func (this *ExchangeTyped) FetchPositionWs(symbol string, options ...FetchPositi
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Position = NewPositionArray(r.Raw)
+	var res []Position = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchPositionsWs(options ...FetchPositionsWsOptions) ([]Position, error) {
@@ -2499,7 +2513,7 @@ func (this *ExchangeTyped) FetchPositionsWs(options ...FetchPositionsWsOptions) 
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Position = NewPositionArray(r.Value)
+	var res []Position = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchTickerWs(symbol string, options ...FetchTickerWsOptions) (Ticker, error) {
@@ -2513,7 +2527,7 @@ func (this *ExchangeTyped) FetchTickerWs(symbol string, options ...FetchTickerWs
 	if r.Err != nil {
 		return Ticker{}, r.Err
 	}
-	var res Ticker = NewTicker(r.Value)
+	var res Ticker = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchTickersWs(options ...FetchTickersWsOptions) (Tickers, error) {
@@ -2527,7 +2541,7 @@ func (this *ExchangeTyped) FetchTickersWs(options ...FetchTickersWsOptions) (Tic
 	if r.Err != nil {
 		return Tickers{}, r.Err
 	}
-	var res Tickers = NewTickers(r.Value)
+	var res Tickers = Tickers{Tickers: r.Value}
 	return res, nil
 }
 func (this *ExchangeTyped) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) ([]Trade, error) {
@@ -2541,7 +2555,7 @@ func (this *ExchangeTyped) FetchTradesWs(symbol string, options ...FetchTradesWs
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(r.Value)
+	var res []Trade = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
@@ -2555,7 +2569,7 @@ func (this *ExchangeTyped) FetchTrades(symbol string, options ...FetchTradesOpti
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(r.Value)
+	var res []Trade = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) WatchTrades(symbol string, options ...WatchTradesOptions) ([]Trade, error) {
@@ -2569,7 +2583,7 @@ func (this *ExchangeTyped) WatchTrades(symbol string, options ...WatchTradesOpti
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(r.Value)
+	var res []Trade = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
@@ -2583,7 +2597,7 @@ func (this *ExchangeTyped) FetchOrderBook(symbol string, options ...FetchOrderBo
 	if r.Err != nil {
 		return OrderBook{}, r.Err
 	}
-	var res OrderBook = NewOrderBook(r.Value)
+	var res OrderBook = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchRestOrderBookSafe(symbol any, options ...FetchRestOrderBookSafeOptions) (OrderBook, error) {
@@ -2597,7 +2611,7 @@ func (this *ExchangeTyped) FetchRestOrderBookSafe(symbol any, options ...FetchRe
 	if r.Err != nil {
 		return OrderBook{}, r.Err
 	}
-	var res OrderBook = NewOrderBook(r.Value)
+	var res OrderBook = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) WatchOrderBook(symbol string, options ...WatchOrderBookOptions) (OrderBook, error) {
@@ -2625,7 +2639,7 @@ func (this *ExchangeTyped) FetchOpenInterest(symbol string, options ...FetchOpen
 	if r.Err != nil {
 		return OpenInterest{}, r.Err
 	}
-	var res OpenInterest = NewOpenInterest(r.Value)
+	var res OpenInterest = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchL2OrderBook(symbol string, options ...FetchL2OrderBookOptions) (map[string]any, error) {
@@ -2639,7 +2653,7 @@ func (this *ExchangeTyped) FetchL2OrderBook(symbol string, options ...FetchL2Ord
 	if r.Err != nil {
 		return map[string]any{}, r.Err
 	}
-	var res map[string]any = r.Value
+	var res map[string]any = StructResultMap(r.Value, OrderBookToMap)
 	return res, nil
 }
 func (this *ExchangeTyped) EditLimitBuyOrder(id string, symbol string, amount float64, options ...EditLimitBuyOrderOptions) (Order, error) {
@@ -2653,7 +2667,7 @@ func (this *ExchangeTyped) EditLimitBuyOrder(id string, symbol string, amount fl
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) EditLimitSellOrder(id string, symbol string, amount float64, options ...EditLimitSellOrderOptions) (Order, error) {
@@ -2667,7 +2681,7 @@ func (this *ExchangeTyped) EditLimitSellOrder(id string, symbol string, amount f
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) EditLimitOrder(id string, symbol string, side string, amount float64, options ...EditLimitOrderOptions) (Order, error) {
@@ -2681,7 +2695,7 @@ func (this *ExchangeTyped) EditLimitOrder(id string, symbol string, side string,
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
@@ -2695,7 +2709,7 @@ func (this *ExchangeTyped) EditOrder(id string, symbol string, typeVar string, s
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...EditOrderWithClientOrderIdOptions) (Order, error) {
@@ -2709,7 +2723,7 @@ func (this *ExchangeTyped) EditOrderWithClientOrderId(clientOrderId string, symb
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
@@ -2723,7 +2737,7 @@ func (this *ExchangeTyped) FetchPosition(symbol string, options ...FetchPosition
 	if r.Err != nil {
 		return Position{}, r.Err
 	}
-	var res Position = NewPosition(r.Value)
+	var res Position = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) WatchPositions(options ...WatchPositionsOptions) ([]Position, error) {
@@ -2737,7 +2751,7 @@ func (this *ExchangeTyped) WatchPositions(options ...WatchPositionsOptions) ([]P
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Position = NewPositionArray(r.Value)
+	var res []Position = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) WatchPositionForSymbols(options ...WatchPositionForSymbolsOptions) ([]Position, error) {
@@ -2751,7 +2765,7 @@ func (this *ExchangeTyped) WatchPositionForSymbols(options ...WatchPositionForSy
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Position = NewPositionArray(r.Value)
+	var res []Position = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -2765,7 +2779,7 @@ func (this *ExchangeTyped) FetchPositions(options ...FetchPositionsOptions) ([]P
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Position = NewPositionArray(r.Value)
+	var res []Position = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
@@ -2779,7 +2793,7 @@ func (this *ExchangeTyped) FetchTicker(symbol string, options ...FetchTickerOpti
 	if r.Err != nil {
 		return Ticker{}, r.Err
 	}
-	var res Ticker = NewTicker(r.Value)
+	var res Ticker = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) WatchTicker(symbol string, options ...WatchTickerOptions) (Ticker, error) {
@@ -2793,7 +2807,7 @@ func (this *ExchangeTyped) WatchTicker(symbol string, options ...WatchTickerOpti
 	if r.Err != nil {
 		return Ticker{}, r.Err
 	}
-	var res Ticker = NewTicker(r.Value)
+	var res Ticker = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
@@ -2807,7 +2821,7 @@ func (this *ExchangeTyped) FetchTickers(options ...FetchTickersOptions) (Tickers
 	if r.Err != nil {
 		return Tickers{}, r.Err
 	}
-	var res Tickers = NewTickers(r.Value)
+	var res Tickers = Tickers{Tickers: r.Value}
 	return res, nil
 }
 func (this *ExchangeTyped) WatchTickers(options ...WatchTickersOptions) (Tickers, error) {
@@ -2821,7 +2835,7 @@ func (this *ExchangeTyped) WatchTickers(options ...WatchTickersOptions) (Tickers
 	if r.Err != nil {
 		return Tickers{}, r.Err
 	}
-	var res Tickers = NewTickers(r.Value)
+	var res Tickers = Tickers{Tickers: r.Value}
 	return res, nil
 }
 func (this *ExchangeTyped) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
@@ -2835,7 +2849,7 @@ func (this *ExchangeTyped) FetchOrder(id string, options ...FetchOrderOptions) (
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchOrderWithClientOrderId(clientOrderId string, options ...FetchOrderWithClientOrderIdOptions) (Order, error) {
@@ -2849,7 +2863,7 @@ func (this *ExchangeTyped) FetchOrderWithClientOrderId(clientOrderId string, opt
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
@@ -2863,7 +2877,7 @@ func (this *ExchangeTyped) FetchOrderStatus(id string, options ...FetchOrderStat
 	if r.Err != nil {
 		return "", r.Err
 	}
-	var res string = r.Value.(string)
+	var res string = ToString(r.Value)
 	return res, nil
 }
 func (this *ExchangeTyped) FetchUnifiedOrder(order any, options ...FetchUnifiedOrderOptions) (Order, error) {
@@ -2877,7 +2891,7 @@ func (this *ExchangeTyped) FetchUnifiedOrder(order any, options ...FetchUnifiedO
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
@@ -2891,7 +2905,7 @@ func (this *ExchangeTyped) CreateOrder(symbol string, typeVar string, side strin
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CreateTrailingAmountOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderOptions) (Order, error) {
@@ -2905,7 +2919,7 @@ func (this *ExchangeTyped) CreateTrailingAmountOrder(symbol string, typeVar stri
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CreateTrailingPercentOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingPercentOrderOptions) (Order, error) {
@@ -2919,7 +2933,7 @@ func (this *ExchangeTyped) CreateTrailingPercentOrder(symbol string, typeVar str
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CreateMarketOrderWithCost(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostOptions) (Order, error) {
@@ -2933,7 +2947,7 @@ func (this *ExchangeTyped) CreateMarketOrderWithCost(symbol string, side string,
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CreateMarketBuyOrderWithCost(symbol string, cost float64, options ...CreateMarketBuyOrderWithCostOptions) (Order, error) {
@@ -2947,7 +2961,7 @@ func (this *ExchangeTyped) CreateMarketBuyOrderWithCost(symbol string, cost floa
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CreateMarketSellOrderWithCost(symbol string, cost float64, options ...CreateMarketSellOrderWithCostOptions) (Order, error) {
@@ -2961,7 +2975,7 @@ func (this *ExchangeTyped) CreateMarketSellOrderWithCost(symbol string, cost flo
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CreateTriggerOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTriggerOrderOptions) (Order, error) {
@@ -2975,7 +2989,7 @@ func (this *ExchangeTyped) CreateTriggerOrder(symbol string, typeVar string, sid
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CreateStopLossOrder(symbol string, typeVar string, side string, amount float64, options ...CreateStopLossOrderOptions) (Order, error) {
@@ -2989,7 +3003,7 @@ func (this *ExchangeTyped) CreateStopLossOrder(symbol string, typeVar string, si
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CreateTakeProfitOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTakeProfitOrderOptions) (Order, error) {
@@ -3003,7 +3017,7 @@ func (this *ExchangeTyped) CreateTakeProfitOrder(symbol string, typeVar string, 
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CreateOrderWithTakeProfitAndStopLoss(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossOptions) (Order, error) {
@@ -3017,7 +3031,7 @@ func (this *ExchangeTyped) CreateOrderWithTakeProfitAndStopLoss(symbol string, t
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CreateOrders(orders []OrderRequest, options ...CreateOrdersOptions) ([]Order, error) {
@@ -3031,7 +3045,7 @@ func (this *ExchangeTyped) CreateOrders(orders []OrderRequest, options ...Create
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
@@ -3045,7 +3059,7 @@ func (this *ExchangeTyped) CancelOrder(id string, options ...CancelOrderOptions)
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
@@ -3059,7 +3073,7 @@ func (this *ExchangeTyped) CancelOrderWithClientOrderId(clientOrderId string, op
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
@@ -3073,7 +3087,7 @@ func (this *ExchangeTyped) CancelOrders(ids []string, options ...CancelOrdersOpt
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
@@ -3087,7 +3101,7 @@ func (this *ExchangeTyped) CancelOrdersWithClientOrderIds(clientOrderIds []strin
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Raw)
+	var res []Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
@@ -3101,7 +3115,7 @@ func (this *ExchangeTyped) CancelAllOrders(options ...CancelAllOrdersOptions) ([
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CancelUnifiedOrder(order Order, options ...CancelUnifiedOrderOptions) (Order, error) {
@@ -3115,7 +3129,7 @@ func (this *ExchangeTyped) CancelUnifiedOrder(order Order, options ...CancelUnif
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
@@ -3129,7 +3143,7 @@ func (this *ExchangeTyped) FetchOrders(options ...FetchOrdersOptions) ([]Order, 
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
@@ -3143,7 +3157,7 @@ func (this *ExchangeTyped) FetchOrderTrades(id string, options ...FetchOrderTrad
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(r.Value)
+	var res []Trade = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) WatchOrders(options ...WatchOrdersOptions) ([]Order, error) {
@@ -3157,7 +3171,7 @@ func (this *ExchangeTyped) WatchOrders(options ...WatchOrdersOptions) ([]Order, 
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
@@ -3171,7 +3185,7 @@ func (this *ExchangeTyped) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
@@ -3185,7 +3199,7 @@ func (this *ExchangeTyped) FetchClosedOrders(options ...FetchClosedOrdersOptions
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) ([]Order, error) {
@@ -3199,7 +3213,7 @@ func (this *ExchangeTyped) FetchCanceledOrders(options ...FetchCanceledOrdersOpt
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error) {
@@ -3213,7 +3227,7 @@ func (this *ExchangeTyped) FetchMyTrades(options ...FetchMyTradesOptions) ([]Tra
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(r.Value)
+	var res []Trade = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) WatchMyTrades(options ...WatchMyTradesOptions) ([]Trade, error) {
@@ -3227,7 +3241,7 @@ func (this *ExchangeTyped) WatchMyTrades(options ...WatchMyTradesOptions) ([]Tra
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(r.Value)
+	var res []Trade = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CreateLimitOrder(symbol string, side string, amount float64, price float64, options ...CreateLimitOrderOptions) (Order, error) {
@@ -3241,7 +3255,7 @@ func (this *ExchangeTyped) CreateLimitOrder(symbol string, side string, amount f
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CreateMarketOrder(symbol string, side string, amount float64, options ...CreateMarketOrderOptions) (Order, error) {
@@ -3255,7 +3269,7 @@ func (this *ExchangeTyped) CreateMarketOrder(symbol string, side string, amount 
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CreateLimitBuyOrder(symbol string, amount float64, price float64, options ...CreateLimitBuyOrderOptions) (Order, error) {
@@ -3269,7 +3283,7 @@ func (this *ExchangeTyped) CreateLimitBuyOrder(symbol string, amount float64, pr
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CreateLimitSellOrder(symbol string, amount float64, price float64, options ...CreateLimitSellOrderOptions) (Order, error) {
@@ -3283,7 +3297,7 @@ func (this *ExchangeTyped) CreateLimitSellOrder(symbol string, amount float64, p
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CreateMarketBuyOrder(symbol string, amount float64, options ...CreateMarketBuyOrderOptions) (Order, error) {
@@ -3297,7 +3311,7 @@ func (this *ExchangeTyped) CreateMarketBuyOrder(symbol string, amount float64, o
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CreateMarketSellOrder(symbol string, amount float64, options ...CreateMarketSellOrderOptions) (Order, error) {
@@ -3311,7 +3325,7 @@ func (this *ExchangeTyped) CreateMarketSellOrder(symbol string, amount float64, 
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CreatePostOnlyOrder(symbol string, typeVar string, side string, amount float64, options ...CreatePostOnlyOrderOptions) (Order, error) {
@@ -3325,7 +3339,7 @@ func (this *ExchangeTyped) CreatePostOnlyOrder(symbol string, typeVar string, si
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CreateReduceOnlyOrder(symbol string, typeVar string, side string, amount float64, options ...CreateReduceOnlyOrderOptions) (Order, error) {
@@ -3339,7 +3353,7 @@ func (this *ExchangeTyped) CreateReduceOnlyOrder(symbol string, typeVar string, 
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CreateStopOrder(symbol string, typeVar string, side string, amount float64, options ...CreateStopOrderOptions) (Order, error) {
@@ -3353,7 +3367,7 @@ func (this *ExchangeTyped) CreateStopOrder(symbol string, typeVar string, side s
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CreateStopLimitOrder(symbol string, side string, amount float64, price float64, triggerPrice float64, options ...CreateStopLimitOrderOptions) (Order, error) {
@@ -3367,7 +3381,7 @@ func (this *ExchangeTyped) CreateStopLimitOrder(symbol string, side string, amou
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) CreateStopMarketOrder(symbol string, side string, amount float64, triggerPrice float64, options ...CreateStopMarketOrderOptions) (Order, error) {
@@ -3381,7 +3395,7 @@ func (this *ExchangeTyped) CreateStopMarketOrder(symbol string, side string, amo
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *ExchangeTyped) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
@@ -3395,7 +3409,7 @@ func (this *ExchangeTyped) FetchTradingFee(symbol string, options ...FetchTradin
 	if r.Err != nil {
 		return TradingFeeInterface{}, r.Err
 	}
-	var res TradingFeeInterface = NewTradingFeeInterface(r.Value)
+	var res TradingFeeInterface = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchCurrencies(params ...any) (Currencies, error) {
@@ -3411,7 +3425,7 @@ func (this *BaseExchangeTyped) FetchMarkets(params ...any) ([]MarketInterface, e
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []MarketInterface = NewMarketInterfaceArray(r.Value)
+	var res []MarketInterface = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchAccounts(params ...any) ([]Account, error) {
@@ -3419,7 +3433,7 @@ func (this *BaseExchangeTyped) FetchAccounts(params ...any) ([]Account, error) {
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Account = NewAccountArray(r.Value)
+	var res []Account = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) WatchLiquidations(symbol string, options ...WatchLiquidationsOptions) ([]Liquidation, error) {
@@ -3433,7 +3447,7 @@ func (this *BaseExchangeTyped) WatchLiquidations(symbol string, options ...Watch
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Liquidation = NewLiquidationArray(r.Value)
+	var res []Liquidation = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) WatchLiquidationsForSymbols(symbols []string, options ...WatchLiquidationsForSymbolsOptions) ([]Liquidation, error) {
@@ -3447,7 +3461,7 @@ func (this *BaseExchangeTyped) WatchLiquidationsForSymbols(symbols []string, opt
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Liquidation = NewLiquidationArray(r.Value)
+	var res []Liquidation = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) WatchMyLiquidations(symbol string, options ...WatchMyLiquidationsOptions) ([]Liquidation, error) {
@@ -3461,7 +3475,7 @@ func (this *BaseExchangeTyped) WatchMyLiquidations(symbol string, options ...Wat
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Liquidation = NewLiquidationArray(r.Value)
+	var res []Liquidation = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) WatchMyLiquidationsForSymbols(symbols []string, options ...WatchMyLiquidationsForSymbolsOptions) ([]Liquidation, error) {
@@ -3475,7 +3489,7 @@ func (this *BaseExchangeTyped) WatchMyLiquidationsForSymbols(symbols []string, o
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Liquidation = NewLiquidationArray(r.Value)
+	var res []Liquidation = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) UnWatchOrders(options ...UnWatchOrdersOptions) (any, error) {
@@ -3528,7 +3542,7 @@ func (this *BaseExchangeTyped) WatchOHLCVForSymbols(symbolsAndTimeframes [][]str
 	if r.Err != nil {
 		return map[string]map[string][]OHLCV{}, r.Err
 	}
-	var res map[string]map[string][]OHLCV = r.Value.(map[string]map[string][]OHLCV)
+	var res map[string]map[string][]OHLCV = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (any, error) {
@@ -3620,7 +3634,7 @@ func (this *BaseExchangeTyped) FetchDepositAddresses(options ...FetchDepositAddr
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []DepositAddress = NewDepositAddressArray(r.Value)
+	var res []DepositAddress = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchMarginMode(symbol string, options ...FetchMarginModeOptions) (MarginMode, error) {
@@ -3634,7 +3648,7 @@ func (this *BaseExchangeTyped) FetchMarginMode(symbol string, options ...FetchMa
 	if r.Err != nil {
 		return MarginMode{}, r.Err
 	}
-	var res MarginMode = NewMarginMode(r.Value)
+	var res MarginMode = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchMarginModes(options ...FetchMarginModesOptions) (MarginModes, error) {
@@ -3648,7 +3662,7 @@ func (this *BaseExchangeTyped) FetchMarginModes(options ...FetchMarginModesOptio
 	if r.Err != nil {
 		return MarginModes{}, r.Err
 	}
-	var res MarginModes = NewMarginModes(r.Value)
+	var res MarginModes = MarginModes{MarginModes: r.Value}
 	return res, nil
 }
 func (this *BaseExchangeTyped) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (any, error) {
@@ -3691,7 +3705,7 @@ func (this *BaseExchangeTyped) FetchCrossBorrowRates(params ...any) (CrossBorrow
 	if r.Err != nil {
 		return CrossBorrowRates{}, r.Err
 	}
-	var res CrossBorrowRates = NewCrossBorrowRates(r.Raw)
+	var res CrossBorrowRates = CrossBorrowRates{CrossBorrowRates: r.Value}
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchIsolatedBorrowRates(params ...any) (IsolatedBorrowRates, error) {
@@ -3699,7 +3713,7 @@ func (this *BaseExchangeTyped) FetchIsolatedBorrowRates(params ...any) (Isolated
 	if r.Err != nil {
 		return IsolatedBorrowRates{}, r.Err
 	}
-	var res IsolatedBorrowRates = NewIsolatedBorrowRates(r.Value)
+	var res IsolatedBorrowRates = IsolatedBorrowRates{IsolatedBorrowRates: r.Value}
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchLeverageTiers(options ...FetchLeverageTiersOptions) (LeverageTiers, error) {
@@ -3713,7 +3727,7 @@ func (this *BaseExchangeTyped) FetchLeverageTiers(options ...FetchLeverageTiersO
 	if r.Err != nil {
 		return LeverageTiers{}, r.Err
 	}
-	var res LeverageTiers = NewLeverageTiers(r.Value)
+	var res LeverageTiers = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchFundingRates(options ...FetchFundingRatesOptions) (FundingRates, error) {
@@ -3727,7 +3741,7 @@ func (this *BaseExchangeTyped) FetchFundingRates(options ...FetchFundingRatesOpt
 	if r.Err != nil {
 		return FundingRates{}, r.Err
 	}
-	var res FundingRates = NewFundingRates(r.Value)
+	var res FundingRates = FundingRates{FundingRates: r.Value}
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchFundingIntervals(options ...FetchFundingIntervalsOptions) (FundingRates, error) {
@@ -3741,7 +3755,7 @@ func (this *BaseExchangeTyped) FetchFundingIntervals(options ...FetchFundingInte
 	if r.Err != nil {
 		return FundingRates{}, r.Err
 	}
-	var res FundingRates = NewFundingRates(r.Value)
+	var res FundingRates = FundingRates{FundingRates: r.Value}
 	return res, nil
 }
 func (this *BaseExchangeTyped) WatchFundingRate(symbol string, options ...WatchFundingRateOptions) (FundingRate, error) {
@@ -3755,7 +3769,7 @@ func (this *BaseExchangeTyped) WatchFundingRate(symbol string, options ...WatchF
 	if r.Err != nil {
 		return FundingRate{}, r.Err
 	}
-	var res FundingRate = NewFundingRate(r.Value)
+	var res FundingRate = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) WatchFundingRates(options ...WatchFundingRatesOptions) (FundingRates, error) {
@@ -3769,7 +3783,7 @@ func (this *BaseExchangeTyped) WatchFundingRates(options ...WatchFundingRatesOpt
 	if r.Err != nil {
 		return FundingRates{}, r.Err
 	}
-	var res FundingRates = NewFundingRates(r.Value)
+	var res FundingRates = FundingRates{FundingRates: r.Value}
 	return res, nil
 }
 func (this *BaseExchangeTyped) UnWatchFundingRates(options ...UnWatchFundingRatesOptions) (any, error) {
@@ -3796,7 +3810,7 @@ func (this *BaseExchangeTyped) WatchFundingRatesForSymbols(symbols []string, opt
 	if r.Err != nil {
 		return FundingRates{}, r.Err
 	}
-	var res FundingRates = NewFundingRates(r.Value)
+	var res FundingRates = FundingRates{FundingRates: r.Value}
 	return res, nil
 }
 func (this *BaseExchangeTyped) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
@@ -3810,7 +3824,7 @@ func (this *BaseExchangeTyped) Transfer(code string, amount float64, fromAccount
 	if r.Err != nil {
 		return TransferEntry{}, r.Err
 	}
-	var res TransferEntry = NewTransferEntry(r.Value)
+	var res TransferEntry = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
@@ -3824,7 +3838,7 @@ func (this *BaseExchangeTyped) Withdraw(code string, amount float64, address str
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
-	var res Transaction = NewTransaction(r.Raw)
+	var res Transaction = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) CreateDepositAddress(code string, options ...CreateDepositAddressOptions) (DepositAddress, error) {
@@ -3838,7 +3852,7 @@ func (this *BaseExchangeTyped) CreateDepositAddress(code string, options ...Crea
 	if r.Err != nil {
 		return DepositAddress{}, r.Err
 	}
-	var res DepositAddress = NewDepositAddress(r.Value)
+	var res DepositAddress = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) SetLeverage(leverage int64, options ...SetLeverageOptions) (map[string]any, error) {
@@ -3852,7 +3866,7 @@ func (this *BaseExchangeTyped) SetLeverage(leverage int64, options ...SetLeverag
 	if r.Err != nil {
 		return map[string]any{}, r.Err
 	}
-	var res map[string]any = r.Value.(map[string]any)
+	var res map[string]any = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchLeverage(symbol string, options ...FetchLeverageOptions) (Leverage, error) {
@@ -3866,7 +3880,7 @@ func (this *BaseExchangeTyped) FetchLeverage(symbol string, options ...FetchLeve
 	if r.Err != nil {
 		return Leverage{}, r.Err
 	}
-	var res Leverage = NewLeverage(r.Value)
+	var res Leverage = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchLeverages(options ...FetchLeveragesOptions) (Leverages, error) {
@@ -3880,7 +3894,7 @@ func (this *BaseExchangeTyped) FetchLeverages(options ...FetchLeveragesOptions) 
 	if r.Err != nil {
 		return Leverages{}, r.Err
 	}
-	var res Leverages = NewLeverages(r.Value)
+	var res Leverages = Leverages{Leverages: r.Value}
 	return res, nil
 }
 func (this *BaseExchangeTyped) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]any, error) {
@@ -3894,7 +3908,7 @@ func (this *BaseExchangeTyped) SetPositionMode(hedged bool, options ...SetPositi
 	if r.Err != nil {
 		return map[string]any{}, r.Err
 	}
-	var res map[string]any = r.Value.(map[string]any)
+	var res map[string]any = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
@@ -3908,7 +3922,7 @@ func (this *BaseExchangeTyped) SetMargin(symbol string, amount float64, options 
 	if r.Err != nil {
 		return MarginModification{}, r.Err
 	}
-	var res MarginModification = NewMarginModification(r.Value)
+	var res MarginModification = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchLongShortRatio(symbol string, options ...FetchLongShortRatioOptions) (LongShortRatio, error) {
@@ -3922,7 +3936,7 @@ func (this *BaseExchangeTyped) FetchLongShortRatio(symbol string, options ...Fet
 	if r.Err != nil {
 		return LongShortRatio{}, r.Err
 	}
-	var res LongShortRatio = NewLongShortRatio(r.Value)
+	var res LongShortRatio = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchLongShortRatioHistory(options ...FetchLongShortRatioHistoryOptions) ([]LongShortRatio, error) {
@@ -3936,7 +3950,7 @@ func (this *BaseExchangeTyped) FetchLongShortRatioHistory(options ...FetchLongSh
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []LongShortRatio = NewLongShortRatioArray(r.Value)
+	var res []LongShortRatio = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchMarginAdjustmentHistory(options ...FetchMarginAdjustmentHistoryOptions) ([]MarginModification, error) {
@@ -3950,7 +3964,7 @@ func (this *BaseExchangeTyped) FetchMarginAdjustmentHistory(options ...FetchMarg
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []MarginModification = NewMarginModificationArray(r.Value)
+	var res []MarginModification = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]any, error) {
@@ -3964,7 +3978,7 @@ func (this *BaseExchangeTyped) SetMarginMode(marginMode string, options ...SetMa
 	if r.Err != nil {
 		return map[string]any{}, r.Err
 	}
-	var res map[string]any = r.Value.(map[string]any)
+	var res map[string]any = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
@@ -3978,7 +3992,7 @@ func (this *BaseExchangeTyped) FetchDepositAddressesByNetwork(code string, optio
 	if r.Err != nil {
 		return DepositAddresses{}, r.Err
 	}
-	var res DepositAddresses = NewDepositAddresses(r.Raw)
+	var res DepositAddresses = DepositAddresses{DepositAddresses: r.Value}
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchOpenInterestHistory(symbol string, options ...FetchOpenInterestHistoryOptions) ([]OpenInterest, error) {
@@ -3992,7 +4006,7 @@ func (this *BaseExchangeTyped) FetchOpenInterestHistory(symbol string, options .
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []OpenInterest = NewOpenInterestArray(r.Value)
+	var res []OpenInterest = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchOpenInterests(options ...FetchOpenInterestsOptions) (OpenInterests, error) {
@@ -4006,7 +4020,7 @@ func (this *BaseExchangeTyped) FetchOpenInterests(options ...FetchOpenInterestsO
 	if r.Err != nil {
 		return OpenInterests{}, r.Err
 	}
-	var res OpenInterests = NewOpenInterests(r.Value)
+	var res OpenInterests = OpenInterests{OpenInterests: r.Value}
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
@@ -4014,7 +4028,7 @@ func (this *BaseExchangeTyped) FetchPaymentMethods(params ...any) ([]map[string]
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []map[string]any = NewMapArray(r.Value)
+	var res []map[string]any = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]any, error) {
@@ -4028,7 +4042,7 @@ func (this *BaseExchangeTyped) FetchBorrowRate(code string, amount float64, opti
 	if r.Err != nil {
 		return map[string]any{}, r.Err
 	}
-	var res map[string]any = r.Value.(map[string]any)
+	var res map[string]any = StructResultMap(r.Value, CrossBorrowRateToMap)
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHLCV, error) {
@@ -4042,7 +4056,7 @@ func (this *BaseExchangeTyped) FetchOHLCV(symbol string, options ...FetchOHLCVOp
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []OHLCV = NewOHLCVArray(r.Value)
+	var res []OHLCV = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchSpotOHLCV(symbol string, options ...FetchSpotOHLCVOptions) ([]OHLCV, error) {
@@ -4056,7 +4070,7 @@ func (this *BaseExchangeTyped) FetchSpotOHLCV(symbol string, options ...FetchSpo
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []OHLCV = NewOHLCVArray(r.Value)
+	var res []OHLCV = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchContractOHLCV(symbol string, options ...FetchContractOHLCVOptions) ([]OHLCV, error) {
@@ -4070,7 +4084,7 @@ func (this *BaseExchangeTyped) FetchContractOHLCV(symbol string, options ...Fetc
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []OHLCV = NewOHLCVArray(r.Value)
+	var res []OHLCV = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchOHLCVWs(symbol string, options ...FetchOHLCVWsOptions) ([]OHLCV, error) {
@@ -4084,7 +4098,7 @@ func (this *BaseExchangeTyped) FetchOHLCVWs(symbol string, options ...FetchOHLCV
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []OHLCV = NewOHLCVArray(r.Value)
+	var res []OHLCV = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) WatchOHLCV(symbol string, options ...WatchOHLCVOptions) ([]OHLCV, error) {
@@ -4098,7 +4112,7 @@ func (this *BaseExchangeTyped) WatchOHLCV(symbol string, options ...WatchOHLCVOp
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []OHLCV = NewOHLCVArray(r.Value)
+	var res []OHLCV = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchWebEndpoint(method string, endpointMethod any, returnAsJson any, options ...FetchWebEndpointOptions) (map[string]any, error) {
@@ -4140,7 +4154,7 @@ func (this *BaseExchangeTyped) FetchBorrowInterest(options ...FetchBorrowInteres
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []BorrowInterest = NewBorrowInterestArray(r.Value)
+	var res []BorrowInterest = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, error) {
@@ -4154,7 +4168,7 @@ func (this *BaseExchangeTyped) FetchLedger(options ...FetchLedgerOptions) ([]Led
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []LedgerEntry = NewLedgerEntryArray(r.Value)
+	var res []LedgerEntry = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchLedgerEntry(id string, options ...FetchLedgerEntryOptions) (LedgerEntry, error) {
@@ -4168,7 +4182,7 @@ func (this *BaseExchangeTyped) FetchLedgerEntry(id string, options ...FetchLedge
 	if r.Err != nil {
 		return LedgerEntry{}, r.Err
 	}
-	var res LedgerEntry = NewLedgerEntry(r.Value)
+	var res LedgerEntry = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchBalance(params ...any) (Balances, error) {
@@ -4176,7 +4190,7 @@ func (this *BaseExchangeTyped) FetchBalance(params ...any) (Balances, error) {
 	if r.Err != nil {
 		return Balances{}, r.Err
 	}
-	var res Balances = NewBalances(r.Value)
+	var res Balances = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchBalanceWs(params ...any) (Balances, error) {
@@ -4184,7 +4198,7 @@ func (this *BaseExchangeTyped) FetchBalanceWs(params ...any) (Balances, error) {
 	if r.Err != nil {
 		return Balances{}, r.Err
 	}
-	var res Balances = NewBalances(r.Value)
+	var res Balances = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) WatchBalance(params ...any) (Balances, error) {
@@ -4192,7 +4206,7 @@ func (this *BaseExchangeTyped) WatchBalance(params ...any) (Balances, error) {
 	if r.Err != nil {
 		return Balances{}, r.Err
 	}
-	var res Balances = NewBalances(r.Value)
+	var res Balances = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchPartialBalance(part any, options ...FetchPartialBalanceOptions) (Balance, error) {
@@ -4206,7 +4220,7 @@ func (this *BaseExchangeTyped) FetchPartialBalance(part any, options ...FetchPar
 	if r.Err != nil {
 		return Balance{}, r.Err
 	}
-	var res Balance = NewBalance(r.Value)
+	var res Balance = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchFreeBalance(params ...any) (Balance, error) {
@@ -4214,7 +4228,7 @@ func (this *BaseExchangeTyped) FetchFreeBalance(params ...any) (Balance, error) 
 	if r.Err != nil {
 		return Balance{}, r.Err
 	}
-	var res Balance = NewBalance(r.Value)
+	var res Balance = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchUsedBalance(params ...any) (Balance, error) {
@@ -4222,7 +4236,7 @@ func (this *BaseExchangeTyped) FetchUsedBalance(params ...any) (Balance, error) 
 	if r.Err != nil {
 		return Balance{}, r.Err
 	}
-	var res Balance = NewBalance(r.Value)
+	var res Balance = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchTotalBalance(params ...any) (Balance, error) {
@@ -4230,7 +4244,7 @@ func (this *BaseExchangeTyped) FetchTotalBalance(params ...any) (Balance, error)
 	if r.Err != nil {
 		return Balance{}, r.Err
 	}
-	var res Balance = NewBalance(r.Value)
+	var res Balance = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchStatus(params ...any) (Status, error) {
@@ -4238,7 +4252,7 @@ func (this *BaseExchangeTyped) FetchStatus(params ...any) (Status, error) {
 	if r.Err != nil {
 		return Status{}, r.Err
 	}
-	var res Status = NewStatus(r.Raw)
+	var res Status = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]any, error) {
@@ -4252,7 +4266,7 @@ func (this *BaseExchangeTyped) FetchTransactionFee(code string, options ...Fetch
 	if r.Err != nil {
 		return map[string]any{}, r.Err
 	}
-	var res map[string]any = r.Raw.(map[string]any)
+	var res map[string]any = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]any, error) {
@@ -4266,7 +4280,7 @@ func (this *BaseExchangeTyped) FetchTransactionFees(options ...FetchTransactionF
 	if r.Err != nil {
 		return map[string]any{}, r.Err
 	}
-	var res map[string]any = r.Value.(map[string]any)
+	var res map[string]any = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
@@ -4280,7 +4294,7 @@ func (this *BaseExchangeTyped) FetchDepositWithdrawFees(options ...FetchDepositW
 	if r.Err != nil {
 		return DepositWithdrawFees{}, r.Err
 	}
-	var res DepositWithdrawFees = NewDepositWithdrawFees(r.Value)
+	var res DepositWithdrawFees = DepositWithdrawFees{DepositWithdrawFees: r.Value}
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
@@ -4294,7 +4308,7 @@ func (this *BaseExchangeTyped) FetchDepositWithdrawFee(code string, options ...F
 	if r.Err != nil {
 		return DepositWithdrawFee{}, r.Err
 	}
-	var res DepositWithdrawFee = NewDepositWithdrawFee(r.Value)
+	var res DepositWithdrawFee = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {
@@ -4308,7 +4322,7 @@ func (this *BaseExchangeTyped) FetchCrossBorrowRate(code string, options ...Fetc
 	if r.Err != nil {
 		return CrossBorrowRate{}, r.Err
 	}
-	var res CrossBorrowRate = NewCrossBorrowRate(r.Value)
+	var res CrossBorrowRate = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchIsolatedBorrowRate(symbol string, options ...FetchIsolatedBorrowRateOptions) (IsolatedBorrowRate, error) {
@@ -4322,7 +4336,7 @@ func (this *BaseExchangeTyped) FetchIsolatedBorrowRate(symbol string, options ..
 	if r.Err != nil {
 		return IsolatedBorrowRate{}, r.Err
 	}
-	var res IsolatedBorrowRate = NewIsolatedBorrowRate(r.Value)
+	var res IsolatedBorrowRate = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchSpotTickers(options ...FetchSpotTickersOptions) (Tickers, error) {
@@ -4336,7 +4350,7 @@ func (this *BaseExchangeTyped) FetchSpotTickers(options ...FetchSpotTickersOptio
 	if r.Err != nil {
 		return Tickers{}, r.Err
 	}
-	var res Tickers = NewTickers(r.Value)
+	var res Tickers = Tickers{Tickers: r.Value}
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchContractTickers(options ...FetchContractTickersOptions) (Tickers, error) {
@@ -4350,7 +4364,7 @@ func (this *BaseExchangeTyped) FetchContractTickers(options ...FetchContractTick
 	if r.Err != nil {
 		return Tickers{}, r.Err
 	}
-	var res Tickers = NewTickers(r.Value)
+	var res Tickers = Tickers{Tickers: r.Value}
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
@@ -4364,7 +4378,7 @@ func (this *BaseExchangeTyped) FetchOrderBooks(options ...FetchOrderBooksOptions
 	if r.Err != nil {
 		return OrderBooks{}, r.Err
 	}
-	var res OrderBooks = NewOrderBooks(r.Raw)
+	var res OrderBooks = OrderBooks{OrderBooks: r.Value}
 	return res, nil
 }
 func (this *BaseExchangeTyped) UnWatchTickers(options ...UnWatchTickersOptions) (any, error) {
@@ -4404,7 +4418,7 @@ func (this *BaseExchangeTyped) CreateTwapOrder(symbol string, side string, amoun
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Raw)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) CreateConvertTrade(id string, fromCode string, toCode string, options ...CreateConvertTradeOptions) (Conversion, error) {
@@ -4418,7 +4432,7 @@ func (this *BaseExchangeTyped) CreateConvertTrade(id string, fromCode string, to
 	if r.Err != nil {
 		return Conversion{}, r.Err
 	}
-	var res Conversion = NewConversion(r.Value)
+	var res Conversion = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchConvertTrade(id string, options ...FetchConvertTradeOptions) (Conversion, error) {
@@ -4432,7 +4446,7 @@ func (this *BaseExchangeTyped) FetchConvertTrade(id string, options ...FetchConv
 	if r.Err != nil {
 		return Conversion{}, r.Err
 	}
-	var res Conversion = NewConversion(r.Value)
+	var res Conversion = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchConvertTradeHistory(options ...FetchConvertTradeHistoryOptions) ([]Conversion, error) {
@@ -4446,7 +4460,7 @@ func (this *BaseExchangeTyped) FetchConvertTradeHistory(options ...FetchConvertT
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Conversion = NewConversionArray(r.Value)
+	var res []Conversion = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
@@ -4460,7 +4474,7 @@ func (this *BaseExchangeTyped) FetchPositionMode(options ...FetchPositionModeOpt
 	if r.Err != nil {
 		return PositionModeInfo{}, r.Err
 	}
-	var res PositionModeInfo = NewPositionModeInfo(r.Raw)
+	var res PositionModeInfo = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchADLRank(symbol string, options ...FetchADLRankOptions) (ADL, error) {
@@ -4474,7 +4488,7 @@ func (this *BaseExchangeTyped) FetchADLRank(symbol string, options ...FetchADLRa
 	if r.Err != nil {
 		return ADL{}, r.Err
 	}
-	var res ADL = NewADL(r.Value)
+	var res ADL = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchPositionsADLRank(options ...FetchPositionsADLRankOptions) ([]ADL, error) {
@@ -4488,7 +4502,7 @@ func (this *BaseExchangeTyped) FetchPositionsADLRank(options ...FetchPositionsAD
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ADL = NewADLArray(r.Value)
+	var res []ADL = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchPositionADLRank(symbol string, options ...FetchPositionADLRankOptions) (ADL, error) {
@@ -4502,7 +4516,7 @@ func (this *BaseExchangeTyped) FetchPositionADLRank(symbol string, options ...Fe
 	if r.Err != nil {
 		return ADL{}, r.Err
 	}
-	var res ADL = NewADL(r.Value)
+	var res ADL = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) CreateSpotOrders(orders []OrderRequest, options ...CreateSpotOrdersOptions) ([]Order, error) {
@@ -4516,7 +4530,7 @@ func (this *BaseExchangeTyped) CreateSpotOrders(orders []OrderRequest, options .
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) CreateContractOrders(orders []OrderRequest, options ...CreateContractOrdersOptions) ([]Order, error) {
@@ -4530,7 +4544,7 @@ func (this *BaseExchangeTyped) CreateContractOrders(orders []OrderRequest, optio
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) CancelSpotOrder(id string, options ...CancelSpotOrderOptions) (Order, error) {
@@ -4544,7 +4558,7 @@ func (this *BaseExchangeTyped) CancelSpotOrder(id string, options ...CancelSpotO
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Raw)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) CancelContractOrder(id string, options ...CancelContractOrderOptions) (Order, error) {
@@ -4558,7 +4572,7 @@ func (this *BaseExchangeTyped) CancelContractOrder(id string, options ...CancelC
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Raw)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) CancelAllSpotOrders(options ...CancelAllSpotOrdersOptions) ([]Order, error) {
@@ -4572,7 +4586,7 @@ func (this *BaseExchangeTyped) CancelAllSpotOrders(options ...CancelAllSpotOrder
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Raw)
+	var res []Order = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) CancelAllContractOrders(options ...CancelAllContractOrdersOptions) ([]Order, error) {
@@ -4586,7 +4600,7 @@ func (this *BaseExchangeTyped) CancelAllContractOrders(options ...CancelAllContr
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Raw)
+	var res []Order = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]any, error) {
@@ -4600,7 +4614,7 @@ func (this *BaseExchangeTyped) CancelAllOrdersAfter(timeout int64, options ...Ca
 	if r.Err != nil {
 		return map[string]any{}, r.Err
 	}
-	var res map[string]any = r.Value.(map[string]any)
+	var res map[string]any = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
@@ -4614,7 +4628,7 @@ func (this *BaseExchangeTyped) CancelOrdersForSymbols(orders []CancellationReque
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) ([]Liquidation, error) {
@@ -4628,7 +4642,7 @@ func (this *BaseExchangeTyped) FetchMyLiquidations(options ...FetchMyLiquidation
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Liquidation = NewLiquidationArray(r.Value)
+	var res []Liquidation = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchLiquidations(symbol string, options ...FetchLiquidationsOptions) ([]Liquidation, error) {
@@ -4642,7 +4656,7 @@ func (this *BaseExchangeTyped) FetchLiquidations(symbol string, options ...Fetch
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Liquidation = NewLiquidationArray(r.Value)
+	var res []Liquidation = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchGreeks(symbol string, options ...FetchGreeksOptions) (Greeks, error) {
@@ -4656,7 +4670,7 @@ func (this *BaseExchangeTyped) FetchGreeks(symbol string, options ...FetchGreeks
 	if r.Err != nil {
 		return Greeks{}, r.Err
 	}
-	var res Greeks = NewGreeks(r.Value)
+	var res Greeks = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
@@ -4670,7 +4684,7 @@ func (this *BaseExchangeTyped) FetchAllGreeks(options ...FetchAllGreeksOptions) 
 	if r.Err != nil {
 		return AllGreeks{}, r.Err
 	}
-	var res AllGreeks = NewAllGreeks(r.Value)
+	var res AllGreeks = AllGreeks{Greeks: r.Value}
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchOptionChain(code string, options ...FetchOptionChainOptions) (OptionChain, error) {
@@ -4684,7 +4698,7 @@ func (this *BaseExchangeTyped) FetchOptionChain(code string, options ...FetchOpt
 	if r.Err != nil {
 		return OptionChain{}, r.Err
 	}
-	var res OptionChain = NewOptionChain(r.Value)
+	var res OptionChain = OptionChain{Chains: r.Value}
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchOption(symbol string, options ...FetchOptionOptions) (Option, error) {
@@ -4698,7 +4712,7 @@ func (this *BaseExchangeTyped) FetchOption(symbol string, options ...FetchOption
 	if r.Err != nil {
 		return Option{}, r.Err
 	}
-	var res Option = NewOption(r.Value)
+	var res Option = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchConvertQuote(fromCode string, toCode string, options ...FetchConvertQuoteOptions) (Conversion, error) {
@@ -4712,7 +4726,7 @@ func (this *BaseExchangeTyped) FetchConvertQuote(fromCode string, toCode string,
 	if r.Err != nil {
 		return Conversion{}, r.Err
 	}
-	var res Conversion = NewConversion(r.Value)
+	var res Conversion = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
@@ -4726,7 +4740,7 @@ func (this *BaseExchangeTyped) FetchDepositsWithdrawals(options ...FetchDeposits
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Transaction = NewTransactionArray(r.Value)
+	var res []Transaction = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
@@ -4740,7 +4754,7 @@ func (this *BaseExchangeTyped) FetchDeposits(options ...FetchDepositsOptions) ([
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Transaction = NewTransactionArray(r.Value)
+	var res []Transaction = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transaction, error) {
@@ -4754,7 +4768,7 @@ func (this *BaseExchangeTyped) FetchWithdrawals(options ...FetchWithdrawalsOptio
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Transaction = NewTransactionArray(r.Value)
+	var res []Transaction = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
@@ -4768,7 +4782,7 @@ func (this *BaseExchangeTyped) FetchDepositsWs(options ...FetchDepositsWsOptions
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Transaction = NewTransactionArray(r.Value)
+	var res []Transaction = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
@@ -4782,7 +4796,7 @@ func (this *BaseExchangeTyped) FetchWithdrawalsWs(options ...FetchWithdrawalsWsO
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Transaction = NewTransactionArray(r.Value)
+	var res []Transaction = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchFundingRateHistory(options ...FetchFundingRateHistoryOptions) ([]FundingRateHistory, error) {
@@ -4796,7 +4810,7 @@ func (this *BaseExchangeTyped) FetchFundingRateHistory(options ...FetchFundingRa
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []FundingRateHistory = NewFundingRateHistoryArray(r.Value)
+	var res []FundingRateHistory = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
@@ -4810,7 +4824,7 @@ func (this *BaseExchangeTyped) FetchFundingHistory(options ...FetchFundingHistor
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []FundingHistory = NewFundingHistoryArray(r.Value)
+	var res []FundingHistory = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
@@ -4824,7 +4838,7 @@ func (this *BaseExchangeTyped) FetchDepositAddress(code string, options ...Fetch
 	if r.Err != nil {
 		return DepositAddress{}, r.Err
 	}
-	var res DepositAddress = NewDepositAddress(r.Value)
+	var res DepositAddress = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchContractDepositAddress(code string, options ...FetchContractDepositAddressOptions) (DepositAddress, error) {
@@ -4838,7 +4852,7 @@ func (this *BaseExchangeTyped) FetchContractDepositAddress(code string, options 
 	if r.Err != nil {
 		return DepositAddress{}, r.Err
 	}
-	var res DepositAddress = NewDepositAddress(r.Raw)
+	var res DepositAddress = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
@@ -4852,7 +4866,7 @@ func (this *BaseExchangeTyped) FetchMarketLeverageTiers(symbol string, options .
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []LeverageTier = NewLeverageTierArray(r.Value)
+	var res []LeverageTier = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) CreateSubAccount(name string, options ...CreateSubAccountOptions) (map[string]any, error) {
@@ -4866,7 +4880,7 @@ func (this *BaseExchangeTyped) CreateSubAccount(name string, options ...CreateSu
 	if r.Err != nil {
 		return map[string]any{}, r.Err
 	}
-	var res map[string]any = r.Value.(map[string]any)
+	var res map[string]any = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchLastPrices(options ...FetchLastPricesOptions) (LastPrices, error) {
@@ -4880,7 +4894,7 @@ func (this *BaseExchangeTyped) FetchLastPrices(options ...FetchLastPricesOptions
 	if r.Err != nil {
 		return LastPrices{}, r.Err
 	}
-	var res LastPrices = NewLastPrices(r.Value)
+	var res LastPrices = LastPrices{LastPrices: r.Value}
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchTradingFees(params ...any) (TradingFees, error) {
@@ -4888,7 +4902,7 @@ func (this *BaseExchangeTyped) FetchTradingFees(params ...any) (TradingFees, err
 	if r.Err != nil {
 		return TradingFees{}, r.Err
 	}
-	var res TradingFees = NewTradingFees(r.Value)
+	var res TradingFees = TradingFees{TradingFees: r.Value}
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchTradingFeesWs(params ...any) (TradingFees, error) {
@@ -4896,7 +4910,7 @@ func (this *BaseExchangeTyped) FetchTradingFeesWs(params ...any) (TradingFees, e
 	if r.Err != nil {
 		return TradingFees{}, r.Err
 	}
-	var res TradingFees = NewTradingFees(r.Value)
+	var res TradingFees = TradingFees{TradingFees: r.Value}
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchConvertCurrencies(params ...any) (Currencies, error) {
@@ -4904,7 +4918,7 @@ func (this *BaseExchangeTyped) FetchConvertCurrencies(params ...any) (Currencies
 	if r.Err != nil {
 		return Currencies{}, r.Err
 	}
-	var res Currencies = NewCurrencies(r.Raw)
+	var res Currencies = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
@@ -4918,7 +4932,7 @@ func (this *BaseExchangeTyped) FetchFundingRate(symbol string, options ...FetchF
 	if r.Err != nil {
 		return FundingRate{}, r.Err
 	}
-	var res FundingRate = NewFundingRate(r.Value)
+	var res FundingRate = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchFundingInterval(symbol string, options ...FetchFundingIntervalOptions) (FundingRate, error) {
@@ -4932,7 +4946,7 @@ func (this *BaseExchangeTyped) FetchFundingInterval(symbol string, options ...Fe
 	if r.Err != nil {
 		return FundingRate{}, r.Err
 	}
-	var res FundingRate = NewFundingRate(r.Value)
+	var res FundingRate = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
@@ -4946,7 +4960,7 @@ func (this *BaseExchangeTyped) FetchMarkOHLCV(symbol string, options ...FetchMar
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []OHLCV = NewOHLCVArray(r.Value)
+	var res []OHLCV = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchIndexOHLCV(symbol string, options ...FetchIndexOHLCVOptions) ([]OHLCV, error) {
@@ -4960,7 +4974,7 @@ func (this *BaseExchangeTyped) FetchIndexOHLCV(symbol string, options ...FetchIn
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []OHLCV = NewOHLCVArray(r.Value)
+	var res []OHLCV = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
@@ -4974,7 +4988,7 @@ func (this *BaseExchangeTyped) FetchPremiumIndexOHLCV(symbol string, options ...
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []OHLCV = NewOHLCVArray(r.Value)
+	var res []OHLCV = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchTransactions(options ...FetchTransactionsOptions) ([]Transaction, error) {
@@ -4988,10 +5002,10 @@ func (this *BaseExchangeTyped) FetchTransactions(options ...FetchTransactionsOpt
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Transaction = NewTransactionArray(r.Value)
+	var res []Transaction = r.Value
 	return res, nil
 }
-func (this *BaseExchangeTyped) FetchPaginatedCallDynamic(method string, options ...FetchPaginatedCallDynamicOptions) (map[string]any, error) {
+func (this *BaseExchangeTyped) FetchPaginatedCallDynamic(method string, options ...FetchPaginatedCallDynamicOptions) ([]map[string]any, error) {
 
 	opts := FetchPaginatedCallDynamicOptionsStruct{}
 
@@ -5000,12 +5014,12 @@ func (this *BaseExchangeTyped) FetchPaginatedCallDynamic(method string, options 
 	}
 	r := <-this.BaseExchange.FetchPaginatedCallDynamicAsync(method, opts.Symbol, opts.Since, opts.Limit, opts.Params, opts.MaxEntriesPerRequest, opts.RemoveRepeated)
 	if r.Err != nil {
-		return map[string]any{}, r.Err
+		return nil, r.Err
 	}
-	var res map[string]any = r.Value.(map[string]any)
+	var res []map[string]any = NewMapArray(r.Value)
 	return res, nil
 }
-func (this *BaseExchangeTyped) FetchPaginatedCallDeterministic(method string, options ...FetchPaginatedCallDeterministicOptions) (map[string]any, error) {
+func (this *BaseExchangeTyped) FetchPaginatedCallDeterministic(method string, options ...FetchPaginatedCallDeterministicOptions) ([]map[string]any, error) {
 
 	opts := FetchPaginatedCallDeterministicOptionsStruct{}
 
@@ -5014,12 +5028,12 @@ func (this *BaseExchangeTyped) FetchPaginatedCallDeterministic(method string, op
 	}
 	r := <-this.BaseExchange.FetchPaginatedCallDeterministicAsync(method, opts.Symbol, opts.Since, opts.Limit, opts.Timeframe, opts.Params, opts.MaxEntriesPerRequest)
 	if r.Err != nil {
-		return map[string]any{}, r.Err
+		return nil, r.Err
 	}
-	var res map[string]any = r.Value.(map[string]any)
+	var res []map[string]any = NewMapArray(r.Value)
 	return res, nil
 }
-func (this *BaseExchangeTyped) FetchPaginatedCallCursor(method string, options ...FetchPaginatedCallCursorOptions) (map[string]any, error) {
+func (this *BaseExchangeTyped) FetchPaginatedCallCursor(method string, options ...FetchPaginatedCallCursorOptions) ([]map[string]any, error) {
 
 	opts := FetchPaginatedCallCursorOptionsStruct{}
 
@@ -5028,12 +5042,12 @@ func (this *BaseExchangeTyped) FetchPaginatedCallCursor(method string, options .
 	}
 	r := <-this.BaseExchange.FetchPaginatedCallCursorAsync(method, opts.Symbol, opts.Since, opts.Limit, opts.Params, opts.CursorReceived, opts.CursorSent, opts.CursorIncrement, opts.MaxEntriesPerRequest)
 	if r.Err != nil {
-		return map[string]any{}, r.Err
+		return nil, r.Err
 	}
-	var res map[string]any = r.Value.(map[string]any)
+	var res []map[string]any = NewMapArray(r.Value)
 	return res, nil
 }
-func (this *BaseExchangeTyped) FetchPaginatedCallIncremental(method string, options ...FetchPaginatedCallIncrementalOptions) (map[string]any, error) {
+func (this *BaseExchangeTyped) FetchPaginatedCallIncremental(method string, options ...FetchPaginatedCallIncrementalOptions) ([]map[string]any, error) {
 
 	opts := FetchPaginatedCallIncrementalOptionsStruct{}
 
@@ -5042,9 +5056,9 @@ func (this *BaseExchangeTyped) FetchPaginatedCallIncremental(method string, opti
 	}
 	r := <-this.BaseExchange.FetchPaginatedCallIncrementalAsync(method, opts.Symbol, opts.Since, opts.Limit, opts.Params, opts.PageKey, opts.MaxEntriesPerRequest)
 	if r.Err != nil {
-		return map[string]any{}, r.Err
+		return nil, r.Err
 	}
-	var res map[string]any = r.Value.(map[string]any)
+	var res []map[string]any = NewMapArray(r.Value)
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchTransfer(id string, options ...FetchTransferOptions) (TransferEntry, error) {
@@ -5058,7 +5072,7 @@ func (this *BaseExchangeTyped) FetchTransfer(id string, options ...FetchTransfer
 	if r.Err != nil {
 		return TransferEntry{}, r.Err
 	}
-	var res TransferEntry = NewTransferEntry(r.Raw)
+	var res TransferEntry = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEntry, error) {
@@ -5072,7 +5086,7 @@ func (this *BaseExchangeTyped) FetchTransfers(options ...FetchTransfersOptions) 
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []TransferEntry = NewTransferEntryArray(r.Value)
+	var res []TransferEntry = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (any, error) {
@@ -5099,7 +5113,7 @@ func (this *BaseExchangeTyped) WithdrawWs(code string, amount float64, address s
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
-	var res Transaction = NewTransaction(r.Value)
+	var res Transaction = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (any, error) {
@@ -5126,7 +5140,7 @@ func (this *BaseExchangeTyped) FetchOrdersByStatusWs(status string, options ...F
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 func (this *BaseExchangeTyped) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

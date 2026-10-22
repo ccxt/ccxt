@@ -701,16 +701,18 @@ class coinsph extends Exchange {
             $byNumberOfSymbols = $this->safe_list($config, 'byNumberOfSymbols', array());
             for ($i = 0; $i < count($byNumberOfSymbols); $i++) {
                 $entry = $byNumberOfSymbols[$i];
-                if ($symbolsAmount >= $entry[0]) {
+                $threshold = $this->safe_integer($entry, 0);
+                if ($threshold !== null && $symbolsAmount >= $threshold) {
                     return $entry[1];
                 }
             }
         } elseif ((is_array($config) && array_key_exists('byLimit' ?? '', $config)) && (is_array($params) && array_key_exists('limit' ?? '', $params))) {
-            $limit = $params['limit'];
+            $limit = $this->safe_integer($params, 'limit');
             $byLimit = $this->safe_list($config, 'byLimit', array());
             for ($i = 0; $i < count($byLimit); $i++) {
                 $entry = $byLimit[$i];
-                if ($limit >= $entry[0]) {
+                $threshold = $this->safe_integer($entry, 0);
+                if ($limit !== null && $threshold !== null && $limit >= $threshold) {
                     return $entry[1];
                 }
             }
@@ -1144,16 +1146,14 @@ class coinsph extends Exchange {
             if ($until !== null) {
                 $request['endTime'] = $until;
             } else {
-                $duration = $this->parse_timeframe($timeframe) * 1000;
-                $endTimeByLimit = $this->sum($since, $duration * ($limitResolved - 1));
+                $endTimeByLimit = $this->sum($since, $this->parse_timeframe($timeframe) * 1000 * ($limitResolved - 1));
                 $now = $this->milliseconds();
                 $request['endTime'] = min($endTimeByLimit, $now);
             }
         } elseif ($until !== null) {
             $request['endTime'] = $until;
             // since work properly only when it is "younger" than last "limit" candle
-            $duration = $this->parse_timeframe($timeframe) * 1000;
-            $request['startTime'] = $until - ($duration * ($limitResolved - 1));
+            $request['startTime'] = $until - ($this->parse_timeframe($timeframe) * 1000 * ($limitResolved - 1));
         }
         $request['limit'] = $limitResolved;
         $paramsOmitted = $this->omit($params, 'until');
@@ -1360,7 +1360,7 @@ class coinsph extends Exchange {
         $isBuyer = $this->safe_bool_2($trade, 'isBuyer', 'isBuyerMaker');
         $side = null;
         if ($isBuyer !== null) {
-            $side = ($isBuyer === true) ? 'buy' : 'sell';
+            $side = ($isBuyer) ? 'buy' : 'sell';
         }
         $isMaker = $this->safe_string($trade, 'isMaker');
         $takerOrMaker = null;
@@ -1538,7 +1538,7 @@ class coinsph extends Exchange {
         $paramsBase = ($paramsQuote !== null) ? $paramsQuote : $paramsType;
         $paramsRequest = $this->omit($paramsBase, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
         $response = array();
-        if ($testOrder === true) {
+        if ($testOrder) {
             $response = Async\await($this->privatePostOpenapiV1OrderTest($this->extend($request, $paramsRequest)));
         } else {
             $response = Async\await($this->privatePostOpenapiV1Order($this->extend($request, $paramsRequest)));
@@ -1832,7 +1832,7 @@ class coinsph extends Exchange {
         ), $marketResolved);
     }
 
-    public function parse_order_side(?string $status) {
+    public function parse_order_side(?string $status): ?string {
         $statuses = array(
             'BUY' => 'buy',
             'SELL' => 'sell',
@@ -1843,7 +1843,7 @@ class coinsph extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function encode_order_side(?string $status) {
+    public function encode_order_side(?string $status): ?string {
         $statuses = array(
             'buy' => 'BUY',
             'sell' => 'SELL',
@@ -1854,7 +1854,7 @@ class coinsph extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_type(?string $status) {
+    public function parse_order_type(?string $status): ?string {
         $statuses = array(
             'MARKET' => 'market',
             'LIMIT' => 'limit',
@@ -1870,7 +1870,7 @@ class coinsph extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function encode_order_type(?string $status) {
+    public function encode_order_type(?string $status): ?string {
         $statuses = array(
             'market' => 'MARKET',
             'limit' => 'LIMIT',
@@ -1886,7 +1886,7 @@ class coinsph extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'NEW' => 'open',
             'FILLED' => 'closed',
@@ -1901,7 +1901,7 @@ class coinsph extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_time_in_force(?string $status) {
+    public function parse_order_time_in_force(?string $status): ?string {
         $statuses = array(
             'GTC' => 'GTC',
             'FOK' => 'FOK',
@@ -2032,7 +2032,7 @@ class coinsph extends Exchange {
         list($tag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
         $options = $this->safe_dict($this->options, 'withdraw');
         $warning = $this->safe_bool($options, 'warning', true);
-        if ($warning === true) {
+        if ($warning) {
             throw new InvalidAddress($this->id . " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account");
         }
         $networkCode = $this->safe_string($paramsWithdrawTag, 'network');
@@ -2284,7 +2284,7 @@ class coinsph extends Exchange {
         );
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             '0' => 'pending',
             '1' => 'ok',
@@ -2356,7 +2356,7 @@ class coinsph extends Exchange {
         );
     }
 
-    public function url_encode_query(array $query = array()) {
+    public function url_encode_query(array $query = array()): string {
         $encodedArrayParams = '';
         $remainingQuery = $query;
         $keys = is_array($query) ? array_keys($query) : array();

@@ -910,10 +910,7 @@ public partial class blofin : Exchange
             { "instId", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Int64? limitValue = ((limit == null)) ? 50 : limit;
-        if ((limitValue != null))
-        {
-            request["size"] = limitValue; // max 100
-        }
+        request["size"] = limitValue; // max 100
         Dictionary<string, object> response = await this.publicGetMarketBooks(this.extend(request, parameters));
         //
         //     {
@@ -970,7 +967,7 @@ public partial class blofin : Exchange
         string? last = this.safeString(ticker, "last");
         string? open = this.safeString(ticker, "open24h");
         bool? spot = this.safeBool(marketResolved, "spot", false);
-        string? quoteVolume = ((spot == true)) ? this.safeString(ticker, "volCurrency24h") : null;
+        string? quoteVolume = spot == true ? this.safeString(ticker, "volCurrency24h") : null;
         string? baseVolume = this.safeString(ticker, "vol24h");
         string? high = this.safeString(ticker, "high24h");
         string? low = this.safeString(ticker, "low24h");
@@ -1045,7 +1042,7 @@ public partial class blofin : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
+            { "instId", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetMarketMarkPrice(this.extend(request, parameters));
         List<object> data = this.safeList(response, "data", new List<object>() {});
@@ -1345,7 +1342,7 @@ public partial class blofin : Exchange
         };
         if ((since != null))
         {
-            request["before"] = mathMax((since - 1), 0);
+            request["before"] = Math.Max((since.Value - 1), 0);
         }
         if ((limit != null))
         {
@@ -1457,7 +1454,7 @@ public partial class blofin : Exchange
     public virtual object parseBalanceByType(IDictionary<string, object> response)
     {
         List<object> data = this.safeList(response, "data");
-        if (((data != null)) && ((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if ((data != null))
         {
             return this.parseFundingBalance(response);
         } else
@@ -2035,7 +2032,7 @@ public partial class blofin : Exchange
             request["clientOrderId"] = clientOrderId;
         } else
         {
-            if (((isTrigger != true)) && ((isTpsl != true)))
+            if ((isTrigger != true) && (isTpsl != true))
             {
                 request["orderId"] = id.ToString();
             } else if ((isTpsl == true))
@@ -2046,7 +2043,7 @@ public partial class blofin : Exchange
                 request["algoId"] = id.ToString();
             }
         }
-        object query = this.omit(parameters, new List<object>() {"orderId", "clientOrderId", "stop", "trigger", "tpsl"});
+        IDictionary<string, object> query = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"orderId", "clientOrderId", "stop", "trigger", "tpsl"}));
         if ((isTpsl == true))
         {
             List<object> tpslResponse = ccxt.BaseExchange.FromOrderList(await this.CancelOrders(new List<object>() {id}, symbol, parameters));
@@ -2087,8 +2084,8 @@ public partial class blofin : Exchange
             string? marketId = this.safeString(rawOrder, "symbol");
             string? type = this.safeString(rawOrder, "type");
             string? side = this.safeString(rawOrder, "side");
-            object amount = this.safeValue(rawOrder, "amount");
-            object price = this.safeValue(rawOrder, "price");
+            double? amount = this.safeNumber(rawOrder, "amount");
+            double? price = this.safeNumber(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             Dictionary<string, object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             Dictionary<string, object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
@@ -2146,10 +2143,10 @@ public partial class blofin : Exchange
         IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable.Item2);
         Dictionary<string, object> query = this.omit(paramsMethod, new List<object>() {"method", "stop", "trigger", "tpsl", "TPSL"});
         Dictionary<string, object> response = null;
-        if (((isTpSl == true)) || ((method == "privateGetTradeOrdersTpslPending")))
+        if ((isTpSl == true) || ((method == "privateGetTradeOrdersTpslPending")))
         {
             response = await this.privateGetTradeOrdersTpslPending(this.extend(request, query));
-        } else if (((isTrigger == true)) || ((method == "privateGetTradeOrdersAlgoPending")))
+        } else if ((isTrigger == true) || ((method == "privateGetTradeOrdersAlgoPending")))
         {
             request["orderType"] = "trigger";
             response = await this.privateGetTradeOrdersAlgoPending(this.extend(request, query));
@@ -2278,7 +2275,7 @@ public partial class blofin : Exchange
         }
         if ((since != null))
         {
-            request["before"] = mathMax((since - 1), 0);
+            request["before"] = Math.Max((since.Value - 1), 0);
         }
         if ((limit != null))
         {
@@ -2328,7 +2325,7 @@ public partial class blofin : Exchange
         }
         if ((since != null))
         {
-            request["before"] = mathMax((since - 1), 0);
+            request["before"] = Math.Max((since.Value - 1), 0);
         }
         if ((limit != null))
         {
@@ -2548,11 +2545,9 @@ public partial class blofin : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
-        string? networkCode = null;
-        object query = null;
-        (string?, object) networkCodequeryVariable = this.handleNetworkCodeAndParams(parameters);
-        networkCode = networkCodequeryVariable.Item1;
-        query = networkCodequeryVariable.Item2;
+        // same reads as handleNetworkCodeAndParams, kept as typed locals
+        string? networkCode = this.safeString2(parameters, "networkCode", "network");
+        IDictionary<string, object> query = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"networkCode", "network"}));
         string? chain = this.safeString(query, "chain");
         if ((chain == null))
         {
@@ -3449,6 +3444,9 @@ public partial class blofin : Exchange
         if ((((marketResolved != null && marketResolved.ContainsKey("inverse") ? marketResolved["inverse"] : null) as bool?) == true))
         {
             notionalString = Precise.stringDiv(Precise.stringMul(contractsAbs, contractSizeString), markPriceString);
+        } else if ((notionalString == null))
+        {
+            notionalString = Precise.stringMul(Precise.stringMul(contractsAbs, contractSizeString), markPriceString);
         }
         double? notional = this.parseNumber(notionalString);
         string? marginMode = this.safeString(position, "marginMode");
@@ -3458,14 +3456,21 @@ public partial class blofin : Exchange
         string? leverageString = this.safeString(position, "leverage");
         object initialMarginPercentage = null;
         string? collateralString = null;
+        string? marginString = null;
         if (marginMode == "cross")
         {
             initialMarginString = this.safeString(position, "initialMargin");
-            collateralString = Precise.stringAdd(initialMarginString, unrealizedPnlString);
+            collateralString = ((unrealizedPnlString != null)) ? Precise.stringAdd(initialMarginString, unrealizedPnlString) : initialMarginString;
         } else if (marginMode == "isolated")
         {
             initialMarginPercentage = Precise.stringDiv("1", leverageString);
-            collateralString = this.safeString(position, "margin");
+            string? isolatedMarginString = ((string)this.omitZero(this.safeString2(position, "margin", "initialMargin")));
+            if ((isolatedMarginString != null))
+            {
+                initialMarginString = isolatedMarginString;
+                marginString = isolatedMarginString;
+                collateralString = ((unrealizedPnlString != null)) ? Precise.stringAdd(isolatedMarginString, unrealizedPnlString) : isolatedMarginString;
+            }
         }
         string? maintenanceMarginString = this.safeString(position, "maintenanceMargin");
         double? maintenanceMargin = this.parseNumber(maintenanceMarginString);
@@ -3479,8 +3484,22 @@ public partial class blofin : Exchange
             initialMarginString = Precise.stringMul(initialMarginPercentageString, notionalString);
         }
         string rounder = "0.00005"; // round to closest 0.01%
-        double? maintenanceMarginPercentage = this.parseNumber(Precise.stringDiv(Precise.stringAdd(maintenanceMarginPercentageString, rounder), "1", 4));
-        double? liquidationPrice = this.safeNumber(position, "liquidationPrice");
+        double? maintenanceMarginPercentage = ((maintenanceMarginPercentageString != null)) ? this.parseNumber(Precise.stringDiv(Precise.stringAdd(maintenanceMarginPercentageString, rounder), "1", 4)) : null;
+        string? liquidationPriceString = ((string)this.omitZero(this.safeString(position, "liquidationPrice")));
+        if (((liquidationPriceString == null)) && (marginMode == "isolated") && ((initialMarginString != null)) && ((entryPriceString != null)) && ((contractsAbs != null)) && Precise.stringGt(contractsAbs, "0") && ((contractSizeString != null)) && ((maintenanceMarginPercentage != null)))
+        {
+            string? takerFeeRate = this.safeString(marketResolved, "taker", "0.0006");
+            string? mmpWithFee = Precise.stringAdd(this.numberToString(maintenanceMarginPercentage), takerFeeRate);
+            string? totalSize = Precise.stringMul(contractsAbs, contractSizeString);
+            string? marginPerUnit = Precise.stringDiv(initialMarginString, totalSize);
+            string? num = (side == "long") ? Precise.stringSub(entryPriceString, marginPerUnit) : Precise.stringAdd(entryPriceString, marginPerUnit);
+            string? denom = (side == "long") ? Precise.stringSub("1", mmpWithFee) : Precise.stringAdd("1", mmpWithFee);
+            if (((denom != null)) && Precise.stringGt(denom, "0"))
+            {
+                liquidationPriceString = Precise.stringDiv(num, denom);
+            }
+        }
+        double? liquidationPrice = (((liquidationPriceString != null)) && Precise.stringGt(liquidationPriceString, "0")) ? this.parseNumber(liquidationPriceString) : null;
         string? percentageString = this.safeString(position, "unrealizedPnlRatio");
         double? percentage = this.parseNumber(Precise.stringMul(percentageString, "100"));
         Int64? timestamp = this.safeInteger(position, "updateTime");
@@ -3508,6 +3527,7 @@ public partial class blofin : Exchange
             { "lastUpdateTimestamp", null },
             { "maintenanceMargin", maintenanceMargin },
             { "maintenanceMarginPercentage", maintenanceMarginPercentage },
+            { "positionMargin", this.parseNumber(marginString) },
             { "collateral", this.parseNumber(collateralString) },
             { "initialMargin", this.parseNumber(initialMarginString) },
             { "initialMarginPercentage", this.parseNumber(initialMarginPercentage) },
@@ -3716,7 +3736,7 @@ public partial class blofin : Exchange
      * @param {string} [params.tag] order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
      * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<IDictionary<string, object>> closePosition(string symbol, string side = null, object parameters = null)
+    public async override Task<ccxt.Order> ClosePosition(string symbol, string side = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3737,7 +3757,8 @@ public partial class blofin : Exchange
             request["clientOrderId"] = clientOrderId;
         }
         Dictionary<string, object> response = await this.privatePostTradeClosePosition(this.extend(request, paramsMarginMode));
-        return ((IDictionary<string, object>)((object)(this.safeDict(response, "data"))));
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.parseOrder(data, market);
     }
 
     /**
@@ -3789,7 +3810,7 @@ public partial class blofin : Exchange
         IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable.Item2);
         Dictionary<string, object> query = this.omit(paramsMethod, new List<object>() {"method", "stop", "trigger", "tpsl", "TPSL"});
         Dictionary<string, object> response = null;
-        if (((isTrigger == true)) || ((method == "privateGetTradeOrdersTpslHistory")))
+        if ((isTrigger == true) || ((method == "privateGetTradeOrdersTpslHistory")))
         {
             response = await this.privateGetTradeOrdersTpslHistory(this.extend(request, query));
         } else
@@ -4079,13 +4100,13 @@ public partial class blofin : Exchange
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        object url = add(apiUrl, request);
+        object url = ((string)apiUrl + (string)request);
         // const type = this.getPathAuthenticationType (path);
         if ((apiName is "public"))
         {
             if (!this.isEmpty(query))
             {
-                url = add(url, ("?" + this.urlencode(query)));
+                url = (url + ("?" + this.urlencode(query)));
             }
         } else if ((apiName is "private"))
         {
@@ -4104,8 +4125,8 @@ public partial class blofin : Exchange
                 if (!this.isEmpty(query))
                 {
                     string urlencodedQuery = ("?" + this.urlencode(query));
-                    url = add(url, urlencodedQuery);
-                    request = add(request, urlencodedQuery);
+                    url = (url + urlencodedQuery);
+                    request = (request + (urlencodedQuery));
                 }
             } else
             {
@@ -4116,7 +4137,7 @@ public partial class blofin : Exchange
                 }
                 signedHeaders["Content-Type"] = "application/json";
             }
-            string? auth = ((string)add(add(add(add(request, method), timestamp), timestamp), sign_body));
+            string? auth = ((string)((((request + method) + timestamp) + timestamp) + sign_body));
             string signature = this.stringToBase64(this.hmac(this.encode(auth), this.encode(this.secret), sha256));
             signedHeaders["ACCESS-SIGN"] = signature;
             string? bodyResolved = signedBody;

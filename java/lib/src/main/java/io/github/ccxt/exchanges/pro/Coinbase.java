@@ -337,7 +337,8 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             String currentToken = this.safeString(this.options, "wsToken");
             Long tokenTimestamp = this.safeInteger(this.options, "wsTokenTimestamp", 0);
             Long seconds = this.seconds();
-            if (java.util.Objects.equals(currentToken, null) || (seconds != null && (tokenTimestamp + 120L) < seconds))
+            Long tokenExpiry = (Long) (tokenTimestamp + 120L);
+            if (java.util.Objects.equals(currentToken, null) || (seconds != null && (tokenExpiry == null || tokenExpiry < seconds)))
             {
                 // we should generate new token
                 String token = this.createAuthToken(seconds, (String) null, (String) null, false);
@@ -426,7 +427,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             {
                 Map<String, Object> tickers = new HashMap<String, Object>() {{}};
                 Object symbol = Helpers.GetValue(ticker, "symbol");
-                Helpers.addElementToObject(tickers, symbol, ticker);
+                ((Map<Object, Object>) (Map<?, ?>) tickers).put(symbol, ticker);
                 return tickers;
             }
             return this.tickers;
@@ -713,7 +714,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String name = "market_trades";
-            List<Object> trades = (List<Object>) (this.subscribeMultiple(name, false, Helpers.toStringListArg(symbols), parameters)).join();
+            List<Object> trades = (List<Object>) (this.subscribeMultiple(name, false, ((List<String>) (switch ((Object) (symbols)) { case null -> (List<String>) null; case List<?> hx4J40v2 -> (List<String>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v2.getClass().getName()); })), parameters)).join();
             Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
             String tradeSymbol = this.safeString(first, "symbol");
             Long limitResolved = limit;
@@ -745,7 +746,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String name = "market_trades";
-            return (this.unSubscribeMultiple("trades", name, false, Helpers.toStringListArg(symbols), parameters)).join();
+            return (this.unSubscribeMultiple("trades", name, false, ((List<String>) (switch ((Object) (symbols)) { case null -> (List<String>) null; case List<?> hx4J40v1 -> (List<String>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v1.getClass().getName()); })), parameters)).join();
         });
 
     }
@@ -879,7 +880,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String name = "level2";
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribeMultiple(name, false, Helpers.toStringListArg(symbols), parameters)).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribeMultiple(name, false, ((List<String>) (switch ((Object) (symbols)) { case null -> (List<String>) null; case List<?> hx4J40v0 -> (List<String>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v0.getClass().getName()); })), parameters)).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
 
@@ -1078,7 +1079,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
 
     public void handleOrderBookHelper(Object orderbook, Object updates)
     {
-        for (var i = 0; i < Helpers.getArrayLength(updates); i++)
+        for (var i = 0; i < ((List<?>)updates).size(); i++)
         {
             Map<String, Object> trade = (Map<String, Object>) this.safeDict(updates, i, (Object) null);
             String sideId = this.safeString(trade, "side");
@@ -1196,7 +1197,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         List<Object> events = (List<Object>) this.safeList(message, "events", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> firstEvent = (Map<String, Object>) this.safeDict(events, 0, new HashMap<String, Object>() {{}});
         Boolean isUnsub = (firstEvent.containsKey("subscriptions"));
-        List<Object> subKeys = Helpers.objectKeys(firstEvent.get("subscriptions"));
+        List<Object> subKeys = ((List<Object>) switch ((Object)(firstEvent.get("subscriptions"))) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
         Integer subKeysLength = ((List<?>)subKeys).size();
         if (Boolean.TRUE.equals(isUnsub) && java.util.Objects.equals(subKeysLength, 0))
         {

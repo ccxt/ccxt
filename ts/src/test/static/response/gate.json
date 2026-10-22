@@ -1,7 +1,104 @@
 {
     "exchange": "gate",
-    "options": {},
+    "options": {
+        "swap": {
+            "fetchMarkets": {
+                "settlementCurrencies": [
+                    "usdt"
+                ]
+            }
+        }
+    },
     "methods": {
+        "fetchSwapMarkets": [
+            {
+                "description": "fetchSwapMarkets parses decimal contract size metadata",
+                "method": "fetchSwapMarkets",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "name": "RAVE_USDT",
+                        "type": "direct",
+                        "quanto_multiplier": "10",
+                        "order_price_deviate": "0.1",
+                        "mark_price": "18",
+                        "order_price_round": "0.0001",
+                        "order_size_min": "0.1",
+                        "order_size_max": "33000",
+                        "leverage_min": "1",
+                        "leverage_max": "50",
+                        "enable_decimal": true,
+                        "create_time": "1773742980"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "RAVE_USDT",
+                        "symbol": "RAVE/USDT:USDT",
+                        "base": "RAVE",
+                        "quote": "USDT",
+                        "settle": "USDT",
+                        "baseId": "RAVE",
+                        "quoteId": "USDT",
+                        "settleId": "usdt",
+                        "type": "swap",
+                        "spot": false,
+                        "margin": false,
+                        "swap": true,
+                        "future": false,
+                        "option": false,
+                        "active": true,
+                        "contract": true,
+                        "linear": true,
+                        "inverse": false,
+                        "taker": 0.0005,
+                        "maker": 0.0002,
+                        "contractSize": 10,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 0.1,
+                            "price": 0.0001
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": 1,
+                                "max": 50
+                            },
+                            "amount": {
+                                "min": 0.1,
+                                "max": 33000
+                            },
+                            "price": {
+                                "min": 16.2,
+                                "max": 19.8
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "created": 1773742980000,
+                        "info": {
+                            "name": "RAVE_USDT",
+                            "type": "direct",
+                            "quanto_multiplier": "10",
+                            "order_price_deviate": "0.1",
+                            "mark_price": "18",
+                            "order_price_round": "0.0001",
+                            "order_size_min": "0.1",
+                            "order_size_max": "33000",
+                            "leverage_min": "1",
+                            "leverage_max": "50",
+                            "enable_decimal": true,
+                            "create_time": "1773742980"
+                        }
+                    }
+                ]
+            }
+        ],
         "createOrder": [
             {
                 "description": "trigger order with custom clientOrderId",
@@ -1685,10 +1782,10 @@
                         "timestamp": 1705052585000,
                         "datetime": "2024-01-12T09:43:05.000Z",
                         "lastUpdateTimestamp": 1705052585000,
-                        "initialMargin": null,
-                        "initialMarginPercentage": null,
-                        "maintenanceMargin": null,
-                        "maintenanceMarginPercentage": null,
+                        "initialMargin": 1.49418225,
+                        "initialMarginPercentage": 0.20075,
+                        "maintenanceMargin": 0.06457625,
+                        "maintenanceMarginPercentage": 0.008676105065161897,
                         "entryPrice": 74.35,
                         "notional": 7.443,
                         "leverage": 5,
@@ -1696,14 +1793,15 @@
                         "realizedPnl": -0.0037175,
                         "contracts": 1,
                         "contractSize": 0.1,
-                        "marginRatio": null,
+                        "marginRatio": 0.043,
                         "liquidationPrice": 60.07,
                         "markPrice": 74.43,
                         "lastPrice": null,
+                        "positionMargin": 1.49257625,
                         "collateral": 1.50057625,
                         "marginMode": "isolated",
                         "side": "long",
-                        "percentage": null,
+                        "percentage": 0.53,
                         "stopLossPrice": null,
                         "takeProfitPrice": null
                     }
@@ -1799,10 +1897,11 @@
                         "realizedPnl": -0.0037175,
                         "contracts": 1,
                         "contractSize": 0.1,
-                        "marginRatio": null,
+                        "marginRatio": 0.0186,
                         "liquidationPrice": 60.07,
                         "markPrice": 74.43,
                         "lastPrice": null,
+                        "positionMargin": 1.49257625,
                         "collateral": 1.50057625,
                         "marginMode": "isolated",
                         "side": "long",
@@ -1906,6 +2005,7 @@
                         "liquidationPrice": 60.07,
                         "markPrice": 74.43,
                         "lastPrice": null,
+                        "positionMargin": -3.9751696616,
                         "collateral": -3.9671696616,
                         "marginMode": "isolated",
                         "side": "long",
@@ -3124,6 +3224,494 @@
                     "previousFundingDatetime": null,
                     "interval": "8h"
                   }
+                }
+            }
+        ],
+        "fetchLeverageTiers": [
+            {
+                "description": "Use actual nonuniform risk tiers for every contract",
+                "method": "fetchLeverageTiers",
+                "input": [
+                    null,
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "maintenance_rate": "0.003",
+                        "tier": 1,
+                        "initial_rate": "0.005",
+                        "leverage_max": "200",
+                        "risk_limit": "500000",
+                        "deduction": "0",
+                        "contract": "BTC_USDT"
+                    },
+                    {
+                        "maintenance_rate": "0.0035",
+                        "tier": 2,
+                        "initial_rate": "0.006666",
+                        "leverage_max": "150.01",
+                        "risk_limit": "1000000",
+                        "deduction": "250",
+                        "contract": "BTC_USDT"
+                    },
+                    {
+                        "maintenance_rate": "0.004",
+                        "tier": 3,
+                        "initial_rate": "0.008",
+                        "leverage_max": "125",
+                        "risk_limit": "1500000",
+                        "deduction": "750",
+                        "contract": "BTC_USDT"
+                    },
+                    {
+                        "tier": 1,
+                        "risk_limit": "100000",
+                        "initial_rate": "0.01",
+                        "maintenance_rate": "0.005",
+                        "leverage_max": "100",
+                        "contract": "ETH_USDT"
+                    },
+                    {
+                        "tier": 2,
+                        "risk_limit": "250000",
+                        "initial_rate": "0.013333333333333334",
+                        "maintenance_rate": "0.0065",
+                        "leverage_max": "75",
+                        "contract": "ETH_USDT"
+                    }
+                ],
+                "parsedResponse": {
+                    "BTC/USDT:USDT": [
+                        {
+                            "tier": 1,
+                            "symbol": "BTC/USDT:USDT",
+                            "currency": "USDT",
+                            "minNotional": 0,
+                            "maxNotional": 500000.0,
+                            "maintenanceMarginRate": 0.003,
+                            "maxLeverage": 200.0,
+                            "info": {
+                                "maintenance_rate": "0.003",
+                                "tier": 1,
+                                "initial_rate": "0.005",
+                                "leverage_max": "200",
+                                "risk_limit": "500000",
+                                "deduction": "0",
+                                "contract": "BTC_USDT"
+                            }
+                        },
+                        {
+                            "tier": 2,
+                            "symbol": "BTC/USDT:USDT",
+                            "currency": "USDT",
+                            "minNotional": 500000.0,
+                            "maxNotional": 1000000.0,
+                            "maintenanceMarginRate": 0.0035,
+                            "maxLeverage": 150.01,
+                            "info": {
+                                "maintenance_rate": "0.0035",
+                                "tier": 2,
+                                "initial_rate": "0.006666",
+                                "leverage_max": "150.01",
+                                "risk_limit": "1000000",
+                                "deduction": "250",
+                                "contract": "BTC_USDT"
+                            }
+                        },
+                        {
+                            "tier": 3,
+                            "symbol": "BTC/USDT:USDT",
+                            "currency": "USDT",
+                            "minNotional": 1000000.0,
+                            "maxNotional": 1500000.0,
+                            "maintenanceMarginRate": 0.004,
+                            "maxLeverage": 125.0,
+                            "info": {
+                                "maintenance_rate": "0.004",
+                                "tier": 3,
+                                "initial_rate": "0.008",
+                                "leverage_max": "125",
+                                "risk_limit": "1500000",
+                                "deduction": "750",
+                                "contract": "BTC_USDT"
+                            }
+                        }
+                    ],
+                    "ETH/USDT:USDT": [
+                        {
+                            "tier": 1,
+                            "symbol": "ETH/USDT:USDT",
+                            "currency": "USDT",
+                            "minNotional": 0,
+                            "maxNotional": 100000.0,
+                            "maintenanceMarginRate": 0.005,
+                            "maxLeverage": 100.0,
+                            "info": {
+                                "tier": 1,
+                                "risk_limit": "100000",
+                                "initial_rate": "0.01",
+                                "maintenance_rate": "0.005",
+                                "leverage_max": "100",
+                                "contract": "ETH_USDT"
+                            }
+                        },
+                        {
+                            "tier": 2,
+                            "symbol": "ETH/USDT:USDT",
+                            "currency": "USDT",
+                            "minNotional": 100000.0,
+                            "maxNotional": 250000.0,
+                            "maintenanceMarginRate": 0.0065,
+                            "maxLeverage": 75.0,
+                            "info": {
+                                "tier": 2,
+                                "risk_limit": "250000",
+                                "initial_rate": "0.013333333333333334",
+                                "maintenance_rate": "0.0065",
+                                "leverage_max": "75",
+                                "contract": "ETH_USDT"
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                "description": "Paginate by contracts and filter symbols after reading later pages",
+                "method": "fetchLeverageTiers",
+                "input": [
+                    [
+                        "BTC/USDT:USDT",
+                        "ETH/USDT:USDT"
+                    ],
+                    {
+                        "type": "swap",
+                        "limit": 2
+                    }
+                ],
+                "httpResponseByUrl": {
+                    "/contracts": [],
+                    "offset=0": [
+                        {
+                            "tier": 1,
+                            "risk_limit": "100000",
+                            "initial_rate": "0.01",
+                            "maintenance_rate": "0.005",
+                            "leverage_max": "100",
+                            "contract": "ETH_USDT"
+                        },
+                        {
+                            "tier": 2,
+                            "risk_limit": "250000",
+                            "initial_rate": "0.013333333333333334",
+                            "maintenance_rate": "0.0065",
+                            "leverage_max": "75",
+                            "contract": "ETH_USDT"
+                        },
+                        {
+                            "tier": 1,
+                            "risk_limit": "50000",
+                            "initial_rate": "0.02",
+                            "maintenance_rate": "0.01",
+                            "leverage_max": "50",
+                            "contract": "LTC_USDT"
+                        }
+                    ],
+                    "offset=2": [
+                        {
+                            "maintenance_rate": "0.003",
+                            "tier": 1,
+                            "initial_rate": "0.005",
+                            "leverage_max": "200",
+                            "risk_limit": "500000",
+                            "deduction": "0",
+                            "contract": "BTC_USDT"
+                        },
+                        {
+                            "maintenance_rate": "0.0035",
+                            "tier": 2,
+                            "initial_rate": "0.006666",
+                            "leverage_max": "150.01",
+                            "risk_limit": "1000000",
+                            "deduction": "250",
+                            "contract": "BTC_USDT"
+                        },
+                        {
+                            "maintenance_rate": "0.004",
+                            "tier": 3,
+                            "initial_rate": "0.008",
+                            "leverage_max": "125",
+                            "risk_limit": "1500000",
+                            "deduction": "750",
+                            "contract": "BTC_USDT"
+                        },
+                        {
+                            "tier": 1,
+                            "risk_limit": "40000",
+                            "initial_rate": "0.04",
+                            "maintenance_rate": "0.02",
+                            "leverage_max": "25",
+                            "contract": "XRP_USDT"
+                        }
+                    ],
+                    "offset=4": []
+                },
+                "parsedResponse": {
+                    "ETH/USDT:USDT": [
+                        {
+                            "tier": 1,
+                            "symbol": "ETH/USDT:USDT",
+                            "currency": "USDT",
+                            "minNotional": 0,
+                            "maxNotional": 100000.0,
+                            "maintenanceMarginRate": 0.005,
+                            "maxLeverage": 100.0,
+                            "info": {
+                                "tier": 1,
+                                "risk_limit": "100000",
+                                "initial_rate": "0.01",
+                                "maintenance_rate": "0.005",
+                                "leverage_max": "100",
+                                "contract": "ETH_USDT"
+                            }
+                        },
+                        {
+                            "tier": 2,
+                            "symbol": "ETH/USDT:USDT",
+                            "currency": "USDT",
+                            "minNotional": 100000.0,
+                            "maxNotional": 250000.0,
+                            "maintenanceMarginRate": 0.0065,
+                            "maxLeverage": 75.0,
+                            "info": {
+                                "tier": 2,
+                                "risk_limit": "250000",
+                                "initial_rate": "0.013333333333333334",
+                                "maintenance_rate": "0.0065",
+                                "leverage_max": "75",
+                                "contract": "ETH_USDT"
+                            }
+                        }
+                    ],
+                    "BTC/USDT:USDT": [
+                        {
+                            "tier": 1,
+                            "symbol": "BTC/USDT:USDT",
+                            "currency": "USDT",
+                            "minNotional": 0,
+                            "maxNotional": 500000.0,
+                            "maintenanceMarginRate": 0.003,
+                            "maxLeverage": 200.0,
+                            "info": {
+                                "maintenance_rate": "0.003",
+                                "tier": 1,
+                                "initial_rate": "0.005",
+                                "leverage_max": "200",
+                                "risk_limit": "500000",
+                                "deduction": "0",
+                                "contract": "BTC_USDT"
+                            }
+                        },
+                        {
+                            "tier": 2,
+                            "symbol": "BTC/USDT:USDT",
+                            "currency": "USDT",
+                            "minNotional": 500000.0,
+                            "maxNotional": 1000000.0,
+                            "maintenanceMarginRate": 0.0035,
+                            "maxLeverage": 150.01,
+                            "info": {
+                                "maintenance_rate": "0.0035",
+                                "tier": 2,
+                                "initial_rate": "0.006666",
+                                "leverage_max": "150.01",
+                                "risk_limit": "1000000",
+                                "deduction": "250",
+                                "contract": "BTC_USDT"
+                            }
+                        },
+                        {
+                            "tier": 3,
+                            "symbol": "BTC/USDT:USDT",
+                            "currency": "USDT",
+                            "minNotional": 1000000.0,
+                            "maxNotional": 1500000.0,
+                            "maintenanceMarginRate": 0.004,
+                            "maxLeverage": 125.0,
+                            "info": {
+                                "maintenance_rate": "0.004",
+                                "tier": 3,
+                                "initial_rate": "0.008",
+                                "leverage_max": "125",
+                                "risk_limit": "1500000",
+                                "deduction": "750",
+                                "contract": "BTC_USDT"
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                "description": "Fetch delivery risk tiers in the requested settlement currency",
+                "method": "fetchLeverageTiers",
+                "input": [
+                    null,
+                    {
+                        "type": "future",
+                        "settle": "usdt"
+                    }
+                ],
+                "httpResponseByUrl": {
+                    "/contracts": [],
+                    "/delivery/usdt/risk_limit_tiers": [
+                        {
+                            "tier": 1,
+                            "risk_limit": "100000",
+                            "initial_rate": "0.02",
+                            "maintenance_rate": "0.01",
+                            "leverage_max": "50",
+                            "contract": "BTC_USDT_20260626"
+                        },
+                        {
+                            "tier": 2,
+                            "risk_limit": "300000",
+                            "initial_rate": "0.04",
+                            "maintenance_rate": "0.02",
+                            "leverage_max": "25",
+                            "contract": "BTC_USDT_20260626"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "BTC/USDT:USDT-260626": [
+                        {
+                            "tier": 1,
+                            "symbol": "BTC/USDT:USDT-260626",
+                            "currency": "USDT",
+                            "minNotional": 0,
+                            "maxNotional": 100000.0,
+                            "maintenanceMarginRate": 0.01,
+                            "maxLeverage": 50.0,
+                            "info": {
+                                "tier": 1,
+                                "risk_limit": "100000",
+                                "initial_rate": "0.02",
+                                "maintenance_rate": "0.01",
+                                "leverage_max": "50",
+                                "contract": "BTC_USDT_20260626"
+                            }
+                        },
+                        {
+                            "tier": 2,
+                            "symbol": "BTC/USDT:USDT-260626",
+                            "currency": "USDT",
+                            "minNotional": 100000.0,
+                            "maxNotional": 300000.0,
+                            "maintenanceMarginRate": 0.02,
+                            "maxLeverage": 25.0,
+                            "info": {
+                                "tier": 2,
+                                "risk_limit": "300000",
+                                "initial_rate": "0.04",
+                                "maintenance_rate": "0.02",
+                                "leverage_max": "25",
+                                "contract": "BTC_USDT_20260626"
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                "description": "A contract parameter returns tiers without a contract field",
+                "method": "fetchLeverageTiers",
+                "input": [
+                    null,
+                    {
+                        "type": "swap",
+                        "contract": "BTC_USDT"
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "maintenance_rate": "0.003",
+                        "tier": 1,
+                        "initial_rate": "0.005",
+                        "leverage_max": "200",
+                        "risk_limit": "500000",
+                        "deduction": "0"
+                    },
+                    {
+                        "maintenance_rate": "0.0035",
+                        "tier": 2,
+                        "initial_rate": "0.006666",
+                        "leverage_max": "150.01",
+                        "risk_limit": "1000000",
+                        "deduction": "250"
+                    },
+                    {
+                        "maintenance_rate": "0.004",
+                        "tier": 3,
+                        "initial_rate": "0.008",
+                        "leverage_max": "125",
+                        "risk_limit": "1500000",
+                        "deduction": "750"
+                    }
+                ],
+                "parsedResponse": {
+                    "BTC/USDT:USDT": [
+                        {
+                            "tier": 1,
+                            "symbol": "BTC/USDT:USDT",
+                            "currency": "USDT",
+                            "minNotional": 0,
+                            "maxNotional": 500000.0,
+                            "maintenanceMarginRate": 0.003,
+                            "maxLeverage": 200.0,
+                            "info": {
+                                "maintenance_rate": "0.003",
+                                "tier": 1,
+                                "initial_rate": "0.005",
+                                "leverage_max": "200",
+                                "risk_limit": "500000",
+                                "deduction": "0"
+                            }
+                        },
+                        {
+                            "tier": 2,
+                            "symbol": "BTC/USDT:USDT",
+                            "currency": "USDT",
+                            "minNotional": 500000.0,
+                            "maxNotional": 1000000.0,
+                            "maintenanceMarginRate": 0.0035,
+                            "maxLeverage": 150.01,
+                            "info": {
+                                "maintenance_rate": "0.0035",
+                                "tier": 2,
+                                "initial_rate": "0.006666",
+                                "leverage_max": "150.01",
+                                "risk_limit": "1000000",
+                                "deduction": "250"
+                            }
+                        },
+                        {
+                            "tier": 3,
+                            "symbol": "BTC/USDT:USDT",
+                            "currency": "USDT",
+                            "minNotional": 1000000.0,
+                            "maxNotional": 1500000.0,
+                            "maintenanceMarginRate": 0.004,
+                            "maxLeverage": 125.0,
+                            "info": {
+                                "maintenance_rate": "0.004",
+                                "tier": 3,
+                                "initial_rate": "0.008",
+                                "leverage_max": "125",
+                                "risk_limit": "1500000",
+                                "deduction": "750"
+                            }
+                        }
+                    ]
                 }
             }
         ]

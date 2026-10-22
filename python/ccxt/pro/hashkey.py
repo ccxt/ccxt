@@ -63,7 +63,7 @@ class hashkey(ccxt.async_support.hashkey):
         url = self.urls['api']['ws']['public']
         return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
 
-    async def watch_private(self, messageHash: object):
+    async def watch_private(self, messageHash: str):
         listenKey = await self.authenticate()
         url = self.get_private_url(listenKey)
         return await self.watch(url, messageHash, None, messageHash)
@@ -712,7 +712,7 @@ class hashkey(ccxt.async_support.hashkey):
             return
         options = self.safe_dict(self.options, 'watchBalance')
         snapshot = self.safe_bool(options, 'fetchBalanceSnapshot', True)
-        if snapshot is True:
+        if snapshot:
             messageHash = type + ':' + 'fetchBalanceSnapshot'
             if not (messageHash in client.futures):
                 client.future(messageHash)

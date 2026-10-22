@@ -582,6 +582,61 @@ func (this *Bitget) PublicUtaGetV3MarketFuturesAccountLongShort(args ...any) <-c
 	return Fetch2Result[map[string]any](this, "v3/market/futures-account-long-short", []string{"public", "uta"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
+// PublicUtaGetV3StockplusMarketStatic returns a channel that yields a JSON object.
+func (this *Bitget) PublicUtaGetV3StockplusMarketStatic(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v3/stockplus/market/static", []string{"public", "uta"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+}
+
+// PublicUtaGetV3StockplusMarketQuote returns a channel that yields a JSON object.
+func (this *Bitget) PublicUtaGetV3StockplusMarketQuote(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v3/stockplus/market/quote", []string{"public", "uta"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+}
+
+// PublicUtaGetV3StockplusMarketIntraday returns a channel that yields a JSON object.
+func (this *Bitget) PublicUtaGetV3StockplusMarketIntraday(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v3/stockplus/market/intraday", []string{"public", "uta"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+}
+
+// PublicUtaGetV3StockplusMarketDepth returns a channel that yields a JSON object.
+func (this *Bitget) PublicUtaGetV3StockplusMarketDepth(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v3/stockplus/market/depth", []string{"public", "uta"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+}
+
+// PublicUtaGetV3StockplusMarketCandlestick returns a channel that yields a JSON object, a JSON array or a JSON scalar.
+func (this *Bitget) PublicUtaGetV3StockplusMarketCandlestick(args ...any) <-chan AsyncResult[any] {
+	return this.Fetch2Async("v3/stockplus/market/candlestick", []string{"public", "uta"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+}
+
+// PublicUtaGetV3StockplusMarketHistoryCandlestick returns a channel that yields a JSON object, a JSON array or a JSON scalar.
+func (this *Bitget) PublicUtaGetV3StockplusMarketHistoryCandlestick(args ...any) <-chan AsyncResult[any] {
+	return this.Fetch2Async("v3/stockplus/market/history-candlestick", []string{"public", "uta"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+}
+
+// PublicUtaGetV3StockplusMarketTrade returns a channel that yields a JSON object.
+func (this *Bitget) PublicUtaGetV3StockplusMarketTrade(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v3/stockplus/market/trade", []string{"public", "uta"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+}
+
+// PublicUtaGetV3StockplusMarketOptionQuote returns a channel that yields a JSON object.
+func (this *Bitget) PublicUtaGetV3StockplusMarketOptionQuote(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v3/stockplus/market/option-quote", []string{"public", "uta"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+}
+
+// PublicUtaGetV3StockplusMarketOptionChainInfo returns a channel that yields a JSON object.
+func (this *Bitget) PublicUtaGetV3StockplusMarketOptionChainInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v3/stockplus/market/option-chain-info", []string{"public", "uta"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+}
+
+// PublicUtaGetV3StockplusMarketOptionExpiryDate returns a channel that yields a JSON object.
+func (this *Bitget) PublicUtaGetV3StockplusMarketOptionExpiryDate(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v3/stockplus/market/option-expiry-date", []string{"public", "uta"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+}
+
+// PublicUtaGetV3StockplusMarketOptionVolume returns a channel that yields a JSON object.
+func (this *Bitget) PublicUtaGetV3StockplusMarketOptionVolume(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v3/stockplus/market/option-volume", []string{"public", "uta"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+}
+
 // PublicUtaGetV3RealityMarketStockInfo returns a channel that yields a JSON object.
 func (this *Bitget) PublicUtaGetV3RealityMarketStockInfo(args ...any) <-chan EndpointResult[map[string]any] {
 	return Fetch2Result[map[string]any](this, "v3/reality/market/stock-info", []string{"public", "uta"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
@@ -3207,6 +3262,61 @@ func (this *Bitget) PrivateUtaGetV3PositionAdlRank(args ...any) <-chan EndpointR
 	return Fetch2Result[map[string]any](this, "v3/position/adlRank", []string{"private", "uta"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
+// PrivateUtaGetV3AccountRealityOrderbook returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3AccountRealityOrderbook(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v3/account/reality-orderbook", []string{"private", "uta"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+}
+
+// PrivateUtaGetV3AccountRealityFills returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3AccountRealityFills(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v3/account/reality-fills", []string{"private", "uta"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+}
+
+// PrivateUtaGetV3StockplusAssetTransferRecords returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3StockplusAssetTransferRecords(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v3/stockplus/asset/transfer-records", []string{"private", "uta"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+}
+
+// PrivateUtaGetV3StockplusAssetAccount returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3StockplusAssetAccount(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v3/stockplus/asset/account", []string{"private", "uta"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+}
+
+// PrivateUtaGetV3StockplusAssetStockPosition returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3StockplusAssetStockPosition(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v3/stockplus/asset/stock-position", []string{"private", "uta"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+}
+
+// PrivateUtaGetV3StockplusAssetCashFlow returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3StockplusAssetCashFlow(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v3/stockplus/asset/cash-flow", []string{"private", "uta"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+}
+
+// PrivateUtaGetV3StockplusTradeTodayOrders returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3StockplusTradeTodayOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v3/stockplus/trade/today-orders", []string{"private", "uta"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
+}
+
+// PrivateUtaGetV3StockplusTradeHistoryOrders returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3StockplusTradeHistoryOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v3/stockplus/trade/history-orders", []string{"private", "uta"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
+}
+
+// PrivateUtaGetV3StockplusTradeOrderDetail returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3StockplusTradeOrderDetail(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v3/stockplus/trade/order-detail", []string{"private", "uta"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
+}
+
+// PrivateUtaGetV3StockplusTradeTodayExecutions returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3StockplusTradeTodayExecutions(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v3/stockplus/trade/today-executions", []string{"private", "uta"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
+}
+
+// PrivateUtaGetV3StockplusTradeHistoryExecutions returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3StockplusTradeHistoryExecutions(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v3/stockplus/trade/history-executions", []string{"private", "uta"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
+}
+
 // PrivateUtaGetV3TaxRecords returns a channel that yields a JSON object.
 func (this *Bitget) PrivateUtaGetV3TaxRecords(args ...any) <-chan EndpointResult[map[string]any] {
 	return Fetch2Result[map[string]any](this, "v3/tax/records", []string{"private", "uta"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
@@ -3315,16 +3425,6 @@ func (this *Bitget) PrivateUtaGetV3AccountEligibleDiscountRate(args ...any) <-ch
 // PrivateUtaGetV3AccountFundingFinancialRecords returns a channel that yields a JSON object.
 func (this *Bitget) PrivateUtaGetV3AccountFundingFinancialRecords(args ...any) <-chan EndpointResult[map[string]any] {
 	return Fetch2Result[map[string]any](this, "v3/account/funding-financial-records", []string{"private", "uta"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
-}
-
-// PrivateUtaGetV3AccountRealityOrderbook returns a channel that yields a JSON object.
-func (this *Bitget) PrivateUtaGetV3AccountRealityOrderbook(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v3/account/reality-orderbook", []string{"private", "uta"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
-}
-
-// PrivateUtaGetV3AccountRealityFills returns a channel that yields a JSON object.
-func (this *Bitget) PrivateUtaGetV3AccountRealityFills(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v3/account/reality-fills", []string{"private", "uta"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // PrivateUtaGetV3CopyFuturesTradingPairs returns a channel that yields a JSON object.
@@ -3495,51 +3595,6 @@ func (this *Bitget) PrivateUtaGetV3StockplusMarketHistoryCandlestick(args ...any
 // PrivateUtaGetV3StockplusMarketCandlestick returns a channel that yields a JSON object.
 func (this *Bitget) PrivateUtaGetV3StockplusMarketCandlestick(args ...any) <-chan EndpointResult[map[string]any] {
 	return Fetch2Result[map[string]any](this, "v3/stockplus/market/candlestick", []string{"private", "uta"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
-}
-
-// PrivateUtaGetV3StockplusTradeTodayOrders returns a channel that yields a JSON object.
-func (this *Bitget) PrivateUtaGetV3StockplusTradeTodayOrders(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v3/stockplus/trade/today-orders", []string{"private", "uta"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
-}
-
-// PrivateUtaGetV3StockplusTradeHistoryOrders returns a channel that yields a JSON object.
-func (this *Bitget) PrivateUtaGetV3StockplusTradeHistoryOrders(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v3/stockplus/trade/history-orders", []string{"private", "uta"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
-}
-
-// PrivateUtaGetV3StockplusTradeOrderDetail returns a channel that yields a JSON object.
-func (this *Bitget) PrivateUtaGetV3StockplusTradeOrderDetail(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v3/stockplus/trade/order-detail", []string{"private", "uta"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
-}
-
-// PrivateUtaGetV3StockplusTradeTodayExecutions returns a channel that yields a JSON object.
-func (this *Bitget) PrivateUtaGetV3StockplusTradeTodayExecutions(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v3/stockplus/trade/today-executions", []string{"private", "uta"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
-}
-
-// PrivateUtaGetV3StockplusTradeHistoryExecutions returns a channel that yields a JSON object.
-func (this *Bitget) PrivateUtaGetV3StockplusTradeHistoryExecutions(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v3/stockplus/trade/history-executions", []string{"private", "uta"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
-}
-
-// PrivateUtaGetV3StockplusAssetAccount returns a channel that yields a JSON object.
-func (this *Bitget) PrivateUtaGetV3StockplusAssetAccount(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v3/stockplus/asset/account", []string{"private", "uta"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
-}
-
-// PrivateUtaGetV3StockplusAssetCashFlow returns a channel that yields a JSON object.
-func (this *Bitget) PrivateUtaGetV3StockplusAssetCashFlow(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v3/stockplus/asset/cash-flow", []string{"private", "uta"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
-}
-
-// PrivateUtaGetV3StockplusAssetStockPosition returns a channel that yields a JSON object.
-func (this *Bitget) PrivateUtaGetV3StockplusAssetStockPosition(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v3/stockplus/asset/stock-position", []string{"private", "uta"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
-}
-
-// PrivateUtaGetV3StockplusAssetTransferRecords returns a channel that yields a JSON object.
-func (this *Bitget) PrivateUtaGetV3StockplusAssetTransferRecords(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v3/stockplus/asset/transfer-records", []string{"private", "uta"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // PrivateUtaGetV3P2pAdList returns a channel that yields a JSON object.
@@ -3715,6 +3770,26 @@ func (this *Bitget) PrivateUtaPostV3LoanRepay(args ...any) <-chan EndpointResult
 // PrivateUtaPostV3LoanRevisePledge returns a channel that yields a JSON object.
 func (this *Bitget) PrivateUtaPostV3LoanRevisePledge(args ...any) <-chan EndpointResult[map[string]any] {
 	return Fetch2Result[map[string]any](this, "v3/loan/revise-pledge", []string{"private", "uta"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+}
+
+// PrivateUtaPostV3StockplusAssetTransfer returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaPostV3StockplusAssetTransfer(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v3/stockplus/asset/transfer", []string{"private", "uta"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
+}
+
+// PrivateUtaPostV3StockplusTradePlaceOrder returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaPostV3StockplusTradePlaceOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v3/stockplus/trade/place-order", []string{"private", "uta"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
+}
+
+// PrivateUtaPostV3StockplusTradeModifyOrder returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaPostV3StockplusTradeModifyOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v3/stockplus/trade/modify-order", []string{"private", "uta"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
+}
+
+// PrivateUtaPostV3StockplusTradeCancelOrder returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaPostV3StockplusTradeCancelOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v3/stockplus/trade/cancel-order", []string{"private", "uta"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
 // PrivateUtaPostV3TradePlaceOrder returns a channel that yields a JSON object.
@@ -3910,26 +3985,6 @@ func (this *Bitget) PrivateUtaPostV3UserSetRateLimitQuota(args ...any) <-chan En
 // PrivateUtaPostV3UserSubAccountAgentCreate returns a channel that yields a JSON object.
 func (this *Bitget) PrivateUtaPostV3UserSubAccountAgentCreate(args ...any) <-chan EndpointResult[map[string]any] {
 	return Fetch2Result[map[string]any](this, "v3/user/sub-account/agent-create", []string{"private", "uta"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
-}
-
-// PrivateUtaPostV3StockplusTradePlaceOrder returns a channel that yields a JSON object.
-func (this *Bitget) PrivateUtaPostV3StockplusTradePlaceOrder(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v3/stockplus/trade/place-order", []string{"private", "uta"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
-}
-
-// PrivateUtaPostV3StockplusTradeCancelOrder returns a channel that yields a JSON object.
-func (this *Bitget) PrivateUtaPostV3StockplusTradeCancelOrder(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v3/stockplus/trade/cancel-order", []string{"private", "uta"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
-}
-
-// PrivateUtaPostV3StockplusTradeModifyOrder returns a channel that yields a JSON object.
-func (this *Bitget) PrivateUtaPostV3StockplusTradeModifyOrder(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v3/stockplus/trade/modify-order", []string{"private", "uta"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
-}
-
-// PrivateUtaPostV3StockplusAssetTransfer returns a channel that yields a JSON object.
-func (this *Bitget) PrivateUtaPostV3StockplusAssetTransfer(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v3/stockplus/asset/transfer", []string{"private", "uta"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
 // PrivateUtaPostV3P2pAdCreate returns a channel that yields a JSON object.

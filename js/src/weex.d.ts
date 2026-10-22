@@ -1,5 +1,5 @@
 import Exchange from './abstract/weex.js';
-import type { Balances, Currencies, Currency, CurrencyInterface, Dict, FundingHistory, FundingRate, FundingRateHistory, FundingRates, LastPrice, LastPrices, LedgerEntry, Int, int, Market, Num, OHLCV, OpenInterest, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry, Position, TradingFeeInterface, MarginMode, MarginModes, Leverage, Leverages, MarginModification, Status, PositionModeInfo } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, Dict, FundingHistory, FundingRate, FundingRateHistory, FundingRates, LastPrice, LastPrices, LedgerEntry, Int, int, Market, NullableDict, Num, OHLCV, OpenInterest, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry, Position, TradingFeeInterface, MarginMode, MarginModes, Leverage, Leverages, MarginModification, Status, PositionModeInfo } from './base/types.js';
 /**
  * @class weex
  * @augments Exchange
@@ -194,7 +194,7 @@ export default class weex extends Exchange {
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     fetchOpenInterest(symbol: string, params?: Dict): Promise<OpenInterest>;
-    parseOpenInterest(interest: any, market?: Market): OpenInterest;
+    parseOpenInterest(interest: NullableDict, market?: Market): OpenInterest;
     /**
      * @method
      * @name weex#fetchFundingRates
@@ -317,7 +317,7 @@ export default class weex extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createContractOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
-    createContractOrderRequest(symbol: Str, type: OrderType, side: OrderSide, amount: Num, price?: Num, params?: Dict): any;
+    createContractOrderRequest(symbol: Str, type: OrderType, side: OrderSide, amount: Num, price?: Num, params?: Dict): Dict;
     encodeTriggerPriceType(triggerPriceType: Str): Str;
     /**
      * @method

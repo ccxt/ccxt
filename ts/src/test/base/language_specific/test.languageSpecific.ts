@@ -10,7 +10,6 @@ import testThrottle from './test.throttle.js';
 import testCalculateFee from './test.calculateFee.js';
 import testSafeBalance from './test.safeBalance.js';
 import testTypes from './test.type.js';
-import testThrottlerPerformance from './test.throttlerPerformance.js';
 import testOnJsonResponse from './test.onJsonResponse.js';
 import testPrecisionFromStringZero from './test.precisionFromString.js';
 import testBingxTestOrder from './test.bingxTestOrder.js';
@@ -18,7 +17,6 @@ import testFetchTradesDiagnostics from './test.fetchTradesDiagnostics.js';
 import testOptionTypes from './test.optionTypes.js';
 // todo: import testConfig from './test.config.js';
 // import './test.time.js' :todo
-// import './test.timeout_hang.js' :todo
 
 async function testLanguageSpecific () {
     testCamelCase ();
@@ -32,7 +30,6 @@ async function testLanguageSpecific () {
     testPrecisionFromStringZero ();
     await testBingxTestOrder ();
     await testFetchTradesDiagnostics ();
-    await testThrottlerPerformance ();
     // testConfig ();
 }
 

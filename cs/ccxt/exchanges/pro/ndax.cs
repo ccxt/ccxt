@@ -244,7 +244,7 @@ public partial class ndax : ccxt.ndax
         Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "OMSId", omsId },
             { "InstrumentId", this.safeInteger(market, "id") },
-            { "Interval", parseInt(this.safeString(this.timeframes, timeframeVar, timeframeVar)) },
+            { "Interval", this.parseToInt(this.safeString(this.timeframes, timeframeVar, timeframeVar)) },
             { "IncludeLastCount", 100 },
         };
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -307,33 +307,40 @@ public partial class ndax : ccxt.ndax
             {
                 string? timeframe = ((string)keys[j]);
                 string? interval = this.safeString(this.timeframes, timeframe, timeframe);
-                Int64? duration = (parseInt(interval) * 1000);
+                Int64? duration = (this.parseToInt(interval) * 1000);
                 Int64? timestamp = this.safeInteger(ohlcv, 0);
                 if ((timestamp == null))
                 {
                     continue;
                 }
-                List<object> parsed = new List<object> {this.parseToInt(multiply((((double?)timestamp / duration)), duration)), this.safeFloat(ohlcv, 3), this.safeFloat(ohlcv, 1), this.safeFloat(ohlcv, 2), this.safeFloat(ohlcv, 4), this.safeFloat(ohlcv, 5)};
+                Int64? candleTimestamp = this.parseToInt(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))((((double?)timestamp / duration)), duration));
+                List<object> parsed = new List<object>() {candleTimestamp, this.safeFloat(ohlcv, 3), this.safeFloat(ohlcv, 1), this.safeFloat(ohlcv, 2), this.safeFloat(ohlcv, 4), this.safeFloat(ohlcv, 5)};
                 object stored = this.safeValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe, new List<object>() {});
                 int length = getArrayLength(stored);
-                if ((length > 0) && (isEqual(((List<object>)parsed)[0], getValue(getValue(stored, (length - 1)), 0))))
+                if ((length > 0) && ((candleTimestamp == this.safeInteger(getValue(stored, (length - 1)), 0))))
                 {
                     object previous = getValue(stored, (length - 1));
-                    object high = ((List<object>)parsed)[1];
-                    if (isEqual(((List<object>)parsed)[1], null))
+                    double? parsedHigh = this.safeFloat(ohlcv, 1);
+                    double? previousHigh = this.safeFloat(previous, 1);
+                    double? high = previousHigh;
+                    if ((parsedHigh != null))
                     {
-                        high = getValue(previous, 1);
-                    } else if (!isEqual(getValue(previous, 1), null))
-                    {
-                        high = mathMax(((List<object>)parsed)[1], getValue(previous, 1));
+                        high = parsedHigh;
+                        if (((previousHigh != null)) && ((previousHigh != null && (parsedHigh == null || previousHigh > parsedHigh))))
+                        {
+                            high = previousHigh;
+                        }
                     }
-                    object low = ((List<object>)parsed)[2];
-                    if (isEqual(((List<object>)parsed)[2], null))
+                    double? parsedLow = this.safeFloat(ohlcv, 2);
+                    double? previousLow = this.safeFloat(previous, 2);
+                    double? low = previousLow;
+                    if ((parsedLow != null))
                     {
-                        low = getValue(previous, 2);
-                    } else if (!isEqual(getValue(previous, 2), null))
-                    {
-                        low = mathMin(((List<object>)parsed)[2], getValue(previous, 2));
+                        low = parsedLow;
+                        if (((previousLow != null)) && ((parsedLow != null && (previousLow == null || parsedLow > previousLow))))
+                        {
+                            low = previousLow;
+                        }
                     }
                     ((List<object>)stored)[Convert.ToInt32((length - 1))] = new List<object>() {((List<object>)parsed)[0], getValue(previous, 1), high, low, ((List<object>)parsed)[4], this.sum(((List<object>)parsed)[5], getValue(previous, 5))};
                     if ((marketId != null))
@@ -342,21 +349,23 @@ public partial class ndax : ccxt.ndax
                     }
                 } else
                 {
-                    if ((length > 0) && (isLessThan(this.parseToInt(((List<object>)parsed)[0]), this.parseToInt(getValue(getValue(stored, (length - 1)), 0)))))
+                    if (length > 0)
                     {
-                        continue;
-                    } else
+                        Int64? lastTimestamp = this.safeInteger(getValue(stored, (length - 1)), 0);
+                        if (((lastTimestamp != null)) && ((lastTimestamp != null && (candleTimestamp == null || lastTimestamp > candleTimestamp))))
+                        {
+                            continue;
+                        }
+                    }
+                    ((IList<object>)stored).Add(parsed);
+                    Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+                    if ((limit == null || length >= limit))
                     {
-                        ((IList<object>)stored).Add(parsed);
-                        Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-                        if ((limit == null || length >= limit))
-                        {
-                            ((IList<object>)stored).First();
-                        }
-                        if ((marketId != null))
-                        {
-                            ((IDictionary<string,object>)(updates.ContainsKey(marketId) ? updates[marketId] : null))[timeframe] = true;
-                        }
+                        ((IList<object>)stored).First();
+                    }
+                    if ((marketId != null))
+                    {
+                        ((IDictionary<string,object>)(updates.ContainsKey(marketId) ? updates[marketId] : null))[timeframe] = true;
                     }
                 }
                 ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
@@ -469,8 +478,9 @@ public partial class ndax : ccxt.ndax
         {
             return;
         }
-        object timestamp = null;
-        object nonce = null;
+        // seeded from the first entry so the locals keep a typed initializer (the loop re-reads it as a no-op)
+        Int64? timestamp = this.safeInteger(firstBidAsk, 2);
+        Int64? nonce = this.safeInteger(firstBidAsk, 0);
         for (int i = 0; i < payload.Count; i++)
         {
             List<object> bidask = this.safeList(payload, i);
@@ -480,9 +490,10 @@ public partial class ndax : ccxt.ndax
             } else
             {
                 Int64? newTimestamp = this.safeInteger(bidask, 2);
-                object currentTimestampValue = ((timestamp == null)) ? 0 : timestamp;
-                Int64? newTimestampValue = ((newTimestamp == null)) ? 0 : newTimestamp;
-                timestamp = mathMax(currentTimestampValue, newTimestampValue);
+                if (((newTimestamp != null)) && ((newTimestamp != null && (timestamp == null || newTimestamp > timestamp))))
+                {
+                    timestamp = newTimestamp;
+                }
             }
             if ((nonce == null))
             {
@@ -490,9 +501,10 @@ public partial class ndax : ccxt.ndax
             } else
             {
                 Int64? newNonce = this.safeInteger(bidask, 0);
-                object currentNonceValue = ((nonce == null)) ? 0 : nonce;
-                Int64? newNonceValue = ((newNonce == null)) ? 0 : newNonce;
-                nonce = mathMax(currentNonceValue, newNonceValue);
+                if (((newNonce != null)) && ((newNonce != null && (nonce == null || newNonce > nonce))))
+                {
+                    nonce = newNonce;
+                }
             }
             // 0 new, 1 update, 2 remove
             Int64? type = this.safeInteger(bidask, 3);
@@ -500,7 +512,7 @@ public partial class ndax : ccxt.ndax
             double? amount = this.safeFloat(bidask, 8);
             Int64? side = this.safeInteger(bidask, 9);
             // 0 buy, 1 sell, 2 short reserved for future use, 3 unknown
-            object orderbookSide = ((side == 0)) ? getValue(orderbook, "bids") : getValue(orderbook, "asks");
+            object orderbookSide = ((side == 0)) ? (orderbook != null && orderbook.ContainsKey("bids") ? orderbook["bids"] : null) : (orderbook != null && orderbook.ContainsKey("asks") ? orderbook["asks"] : null);
             // 0 new, 1 update, 2 remove
             if ((type == 0))
             {

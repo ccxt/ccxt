@@ -396,17 +396,19 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         String feeSymbol = this.safeCurrencyCode(this.safeString(trade, "feeCurrency"), (Map<String, Object>) null);
         if (!java.util.Objects.equals(feeAmount, null))
         {
-            fee = Helpers.newMap(
-                "cost", feeAmount,
-                "currency", feeSymbol,
-                "rate", null
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("cost", feeAmount);
+                hx4NewMap0.put("currency", feeSymbol);
+                hx4NewMap0.put("rate", null);
+                fee = hx4NewMap0;
+            }
         }
         Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker", (Object) null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isMaker, null))
         {
-            if (java.util.Objects.equals(isMaker, true))
+            if (Boolean.TRUE.equals(isMaker))
             {
                 takerOrMaker = "maker";
             } else

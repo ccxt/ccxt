@@ -315,7 +315,7 @@ export default class aster extends asterRest {
             const symbol = symbolsList[i];
             const market = this.market (symbol);
             let suffix: Str = '';
-            if (use1sFreq === true) {
+            if (use1sFreq) {
                 suffix = '@1s';
             }
             subscriptionArgs.push (this.safeStringLower (market, 'id') + '@markPrice' + suffix);
@@ -373,7 +373,7 @@ export default class aster extends asterRest {
             const symbol = symbolsList[i];
             const market = this.market (symbol);
             let suffix: Str = '';
-            if (use1sFreq === true) {
+            if (use1sFreq) {
                 suffix = '@1s';
             }
             subscriptionArgs.push (this.safeStringLower (market, 'id') + '@markPrice' + suffix);
@@ -1447,7 +1447,7 @@ export default class aster extends asterRest {
         const options = this.safeDict (this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool (options, 'fetchBalanceSnapshot', false);
         const awaitBalanceSnapshot = this.safeBool (options, 'awaitBalanceSnapshot', true);
-        if ((fetchBalanceSnapshot === true) && (awaitBalanceSnapshot === true)) {
+        if ((fetchBalanceSnapshot) && (awaitBalanceSnapshot)) {
             await client.future (typeMarketType + ':fetchBalanceSnapshot');
         }
         const messageHash = typeMarketType + ':balance';
@@ -1461,7 +1461,7 @@ export default class aster extends asterRest {
         }
         const options = this.safeDict (this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool (options, 'fetchBalanceSnapshot', false);
-        if (fetchBalanceSnapshot === true) {
+        if (fetchBalanceSnapshot) {
             const messageHash = type + ':fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future (messageHash);
@@ -1557,7 +1557,7 @@ export default class aster extends asterRest {
             account['free'] = this.safeString (entry, 'f');
             account['used'] = this.safeString (entry, 'l');
             account['total'] = this.safeString (entry, wallet);
-            if ((accountType !== undefined) && (code !== undefined)) {
+            if (code !== undefined) {
                 this.balance[accountType][code] = account;
             }
         }

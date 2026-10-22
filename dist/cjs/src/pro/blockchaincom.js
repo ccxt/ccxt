@@ -785,7 +785,7 @@ class blockchaincom extends blockchaincom$1["default"] {
                 'channel': 'auth',
                 'token': this.secret,
             };
-            return this.watch(url, messageHash, this.extend(request, params), messageHash);
+            return await this.watch(url, messageHash, this.extend(request, params), messageHash);
         }
         return await future;
     }

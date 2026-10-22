@@ -161,6 +161,9 @@ impl crate::exchange::DerivedExchange for ParadexCore {
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::create_expired_option_market(&self.parent, symbol)
     }
+    fn market(&self, symbol: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::market(&self.parent, symbol)
+    }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::sign(&self.parent, path, api, method, params, headers, body)
     }
@@ -336,7 +339,7 @@ impl ParadexCore {
             return url;
         }
         let mut schemaVersion: Value = self.safe_string_k(self.options.clone(), "sbeSchemaVersion", &[Value::Str("3".into())]);
-        return Value::Str(format!("{}{}", add(&url, &Value::Str("?sbeSchemaId=1&sbeSchemaVersion=".into())), schemaVersion).into());
+        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", url, Value::Str("?sbeSchemaId=1&sbeSchemaVersion=".into())).into()), schemaVersion).into());
 
     Value::Null
 }
@@ -448,7 +451,7 @@ impl ParadexCore {
         let __ws_arg_1 = self.deep_extend(request, &[params]);
         let mut trades: Value = self.watch(url, messageHash.clone(), &[__ws_arg_1, messageHash.clone()]).await;
         let mut limitResolved: Value = limit.clone();
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbol, limit);
         }
         return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
@@ -498,7 +501,7 @@ impl ParadexCore {
         // an SBE frame names its market but not the subscription it was sent for,
         // so the trades.ALL subscription is resolved from the per-market channel too
         let mut isSbe: Value = (match __pro_message.get("sbe").cloned() { Some(__v) if matches!(__v, Value::Bool(_)) => __v, _ => Value::Bool(false) });
-        if is_true(&isSbe) && (messageHash.as_str() != Some("trades.ALL")) {
+        if isSbe.as_bool() == Some(true) && (messageHash.as_str() != Some("trades.ALL")) {
             client.resolve(&[stored, Value::Str("trades.ALL".into())]);
         }
         return message;
@@ -590,35 +593,35 @@ impl ParadexCore {
         let mut market: Value = self.safe_market(&[marketId]);
         let mut timestamp: Value = self.safe_integer_k(data.clone(), "last_updated_at", &[]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        if !(in_op(&self.orderbooks, &symbol)) {
+        if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             { let __be_tmp = self.order_book(&[]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
         // levels go into local arrays first: pushing into orderbookData['bids'] appends to a copy in go
-        let mut bids: Value = Value::from(vec![]);
-        let mut asks: Value = Value::from(vec![]);
+        let mut bids: Vec<Value> = Vec::new();
+        let mut asks: Vec<Value> = Vec::new();
         let mut inserts: Value = self.safe_list_k(data.clone(), "inserts", &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_569: bool = true;
-            while { if !__for_first_569 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_569 = false; i.as_f64().unwrap_or(f64::NAN) < ((inserts.len() as i64) as f64) } {
+            let mut __for_first_587: bool = true;
+            while { if !__for_first_587 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_587 = false; i.as_f64().unwrap_or(f64::NAN) < ((inserts.len() as i64) as f64) } {
             let mut insert: Value = self.safe_dict(inserts.clone(), i.clone(), &[]);
             let mut side: Option<String> = self.safe_string_k(insert.clone(), "side", &[]).as_str().map(str::to_owned);
             let mut price: Value = self.safe_string_k(insert.clone(), "price", &[]);
             let mut size: Value = self.safe_string_k(insert.clone(), "size", &[]);
             if (side.as_deref() == Some("BUY")) {
-                append_to_array(&mut bids, Value::from(vec![price.clone(), size.clone()]));
+                bids.push(Value::from(vec![price.clone(), size.clone()]));
             }  else {
-                append_to_array(&mut asks, Value::from(vec![price, size]));
+                asks.push(Value::from(vec![price, size]));
             }
         }
         }
         let mut orderbookData: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("bids".to_string(), bids);
-                m.insert("asks".to_string(), asks);
+                m.insert("bids".to_string(), Value::from(bids));
+                m.insert("asks".to_string(), Value::from(asks));
             m
         });
-        let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
+        let mut orderbook: Value = self.orderbooks.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         let mut snapshot: Value = self.parse_order_book(orderbookData, symbol, &[timestamp, Value::Str("bids".into()), Value::Str("asks".into())]);
         add_element_to_object(&mut snapshot, &Value::Str("nonce".into()), self.safe_integer_k(data, "seq_no", &[]));
         orderbook.reset(snapshot);
@@ -702,18 +705,18 @@ impl ParadexCore {
         if (symbolsNormalized != Value::Null) && (matches!(&symbolsNormalized, Value::Arr(_))) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_570: bool = true;
-                while { if !__for_first_570 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_570 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
+                let mut __for_first_588: bool = true;
+                while { if !__for_first_588 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_588 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
                 let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(".".into())).into()), symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).into());
-                append_to_array(&mut messageHashes, messageHash);
+                if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(messageHash); }
             }
             }
         }  else {
-            append_to_array(&mut messageHashes, channel);
+            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(channel); }
         }
         let __ws_arg_4 = self.deep_extend(request, &[params]);
         let mut newTicker: Value = self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_4, messageHashes.clone()]).await;
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             let mut result: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -777,7 +780,7 @@ impl ParadexCore {
         let __ws_arg_5 = self.deep_extend(request, &[params]);
         let mut orders: Value = self.watch(url, messageHash, &[__ws_arg_5, channel]).await;
         let mut limitResolved: Value = limit.clone();
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.clone(), limit);
         }
         return self.filter_by_symbol_since_limit(orders, &[symbolResolved, since, limitResolved, Value::Bool(true)]);
@@ -886,7 +889,7 @@ impl ParadexCore {
         let __ws_arg_6 = self.deep_extend(request, &[params]);
         let mut trades: Value = self.watch(url, messageHash, &[__ws_arg_6, channel]).await;
         let mut limitResolved: Value = limit.clone();
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.clone(), limit);
         }
         return self.filter_by_symbol_since_limit(trades, &[symbolResolved, since, limitResolved, Value::Bool(true)]);
@@ -982,25 +985,25 @@ impl ParadexCore {
 }));
             m
         });
-        let mut messageHashes: Value = Value::from(vec![]);
+        let mut messageHashes: Vec<Value> = Vec::new();
         let mut symbolsLength: Value = Value::Int(0);
         if (symbolsNormalized != Value::Null) {
             symbolsLength = Value::Int(symbolsNormalized.len() as i64);
         }
         if (symbolsLength.as_f64() == Some(0.0)) {
-            append_to_array(&mut messageHashes, channel.clone());
+            messageHashes.push(channel.clone());
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_571: bool = true;
-                while { if !__for_first_571 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_571 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLength.as_f64().unwrap_or(f64::NAN) } {
-                append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).into()));
+                let mut __for_first_589: bool = true;
+                while { if !__for_first_589 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_589 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLength.as_f64().unwrap_or(f64::NAN) } {
+                messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).into()));
             }
             }
         }
         let __ws_arg_7 = self.deep_extend(request, &[params]);
-        let mut newPositions: Value = self.watch_multiple(url, messageHashes, &[__ws_arg_7, Value::from(vec![channel])]).await;
-        if is_true(&self.newUpdates) {
+        let mut newPositions: Value = self.watch_multiple(url, Value::from(messageHashes), &[__ws_arg_7, Value::from(vec![channel])]).await;
+        if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
         return self.filter_by_symbols_since_limit(self.positions.clone(), &[symbolsNormalized, since, limit, Value::Bool(true)]);
@@ -1055,13 +1058,13 @@ impl ParadexCore {
         let mut cached: Value = self.filter_by_symbol_since_limit(cache.clone(), &[symbol.clone(), Value::Null, Value::Null, Value::Bool(true)]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_572: bool = true;
-            while { if !__for_first_572 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_572 = false; i.as_f64().unwrap_or(f64::NAN) < ((cached.len() as i64) as f64) } {
+            let mut __for_first_590: bool = true;
+            while { if !__for_first_590 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_590 = false; i.as_f64().unwrap_or(f64::NAN) < ((cached.len() as i64) as f64) } {
             let mut previous: Value = cached.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut previousSide: Value = self.safe_string_k(previous.clone(), "side", &[]);
             let mut previousContracts: Value = self.safe_string_k(previous.clone(), "contracts", &[]);
-            let mut isOpposite: bool = (side != Value::Null) && (previousSide != Value::Null) && (previousSide.as_str() != side.as_str());
-            if isOpposite && (previousContracts != Value::Null) && !is_true(&crate::precise::Precise::stringEq(&previousContracts, &Value::Str("0".into()))) {
+            let mut isOpposite: bool = (side != Value::Null) && (previousSide != Value::Null) && (previousSide != side);
+            if isOpposite && (previousContracts != Value::Null) && !(crate::precise::Precise::stringEq(&previousContracts, &Value::Str("0".into())).as_bool() == Some(true)) {
                 let __ws_arg_8 = self.parse_number(Value::Str("0".into()), &[]);
                 let __ws_arg_9 = self.safe_integer_k(position.clone(), "lastUpdateTimestamp", &[]);
                 let mut flattened: Value = self.extend(previous, &[Value::Map({
@@ -1071,12 +1074,12 @@ impl ParadexCore {
                     m
                 })]);
                 cache.append(flattened.clone());
-                append_to_array(&mut newPositions, flattened);
+                if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(flattened); }
             }
         }
         }
         cache.append(position.clone());
-        append_to_array(&mut newPositions, position);
+        if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(position); }
         client.resolve(&[newPositions.clone(), Value::Str("positions".into())]);
         client.resolve(&[newPositions, Value::Str(format!("{}{}", Value::Str("positions:".into()), symbol).into())]);
 }
@@ -1306,21 +1309,21 @@ impl ParadexCore {
             if symbolsLength > ((0i64) as f64) {
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_573: bool = true;
-                    while { if !__for_first_573 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_573 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
+                    let mut __for_first_591: bool = true;
+                    while { if !__for_first_591 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_591 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
                     let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(".".into())).into()), symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).into());
-                    append_to_array(&mut messageHashes, messageHash);
+                    if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(messageHash); }
                 }
                 }
             }  else {
-                append_to_array(&mut messageHashes, channel.clone()); // if an empty array is passed, subscribe to all funding rates
+                if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(channel.clone()); }; // if an empty array is passed, subscribe to all funding rates
             }
         }  else {
-            append_to_array(&mut messageHashes, channel);
+            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(channel); }
         }
         let __ws_arg_12 = self.deep_extend(request, &[params]);
         let mut newFundingRates: Value = self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_12, messageHashes.clone()]).await;
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             let mut result: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1440,44 +1443,44 @@ impl ParadexCore {
         if frameLength.as_f64().unwrap_or(f64::NAN) < ((8i64) as f64) {
             return Value::Null;
         }
-        let mut blockLength: Value = self.sbe_read_uint(frameHex.clone(), Value::Int(0), Value::Int(2));
-        let mut templateId: Value = self.sbe_read_uint(frameHex.clone(), Value::Int(2), Value::Int(2));
-        let mut schemaId: Value = self.sbe_read_uint(frameHex.clone(), Value::Int(4), Value::Int(2));
-        if (!is_equal(&schemaId, &Value::Int(1))) || (frameLength.as_f64().unwrap_or(f64::NAN) < self.sum(&[blockLength.clone(), Value::Int(8)]).as_f64().unwrap_or(f64::NAN)) {
+        let mut blockLength: Value = self.parse_to_int(self.sbe_read_uint(frameHex.clone(), Value::Int(0), Value::Int(2)));
+        let mut templateId: Value = self.parse_to_int(self.sbe_read_uint(frameHex.clone(), Value::Int(2), Value::Int(2)));
+        let mut schemaId: Value = self.parse_to_int(self.sbe_read_uint(frameHex.clone(), Value::Int(4), Value::Int(2)));
+        if (schemaId.as_f64() != Some(1.0)) || (frameLength.as_f64().unwrap_or(f64::NAN) < self.sum(&[blockLength.clone(), Value::Int(8)]).as_f64().unwrap_or(f64::NAN)) {
             return Value::Null;
         }
         let mut channel: Value = Value::Null;
         let mut data: Value = Value::Null;
-        if is_equal(&templateId, &Value::Int(1)) {
+        if (templateId.as_f64() == Some(1.0)) {
             data = self.parse_sbe_trade(frameHex.clone(), blockLength.clone(), frameLength.clone());
             if (data != Value::Null) {
-                channel = add(&Value::Str("trades.".into()), &crate::value::get_value_k(&data, "market"));
+                channel = Value::Str(format!("{}{}", Value::Str("trades.".into()), crate::value::get_value_k(&data, "market")).into());
             }
-        }  else if is_equal(&templateId, &Value::Int(3)) {
+        }  else if (templateId.as_f64() == Some(3.0)) {
             data = self.parse_sbe_order_book(frameHex.clone(), blockLength.clone(), frameLength.clone());
             if (data != Value::Null) {
                 channel = self.get_order_book_channel(crate::value::get_value_k(&data, "market")).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
             }
-        }  else if is_equal(&templateId, &Value::Int(4)) {
+        }  else if (templateId.as_f64() == Some(4.0)) {
             data = self.parse_sbe_market_summary(frameHex.clone(), blockLength.clone(), frameLength.clone());
             channel = Value::Str("markets_summary".into());
-        }  else if is_equal(&templateId, &Value::Int(5)) {
+        }  else if (templateId.as_f64() == Some(5.0)) {
             data = self.parse_sbe_funding_data(frameHex.clone(), blockLength.clone(), frameLength.clone());
             channel = Value::Str("funding_data".into());
-        }  else if is_equal(&templateId, &Value::Int(20)) {
+        }  else if (templateId.as_f64() == Some(20.0)) {
             data = self.parse_sbe_order(frameHex.clone(), blockLength.clone(), frameLength.clone());
             if (data != Value::Null) {
-                channel = add(&Value::Str("orders.".into()), &crate::value::get_value_k(&data, "market"));
+                channel = Value::Str(format!("{}{}", Value::Str("orders.".into()), crate::value::get_value_k(&data, "market")).into());
             }
-        }  else if is_equal(&templateId, &Value::Int(21)) {
+        }  else if (templateId.as_f64() == Some(21.0)) {
             data = self.parse_sbe_fill(frameHex.clone(), blockLength.clone(), frameLength.clone());
             if (data != Value::Null) {
-                channel = add(&Value::Str("fills.".into()), &crate::value::get_value_k(&data, "market"));
+                channel = Value::Str(format!("{}{}", Value::Str("fills.".into()), crate::value::get_value_k(&data, "market")).into());
             }
-        }  else if is_equal(&templateId, &Value::Int(22)) {
+        }  else if (templateId.as_f64() == Some(22.0)) {
             data = self.parse_sbe_position(frameHex.clone(), blockLength.clone(), frameLength.clone());
             channel = Value::Str("positions".into());
-        }  else if is_equal(&templateId, &Value::Int(23)) {
+        }  else if (templateId.as_f64() == Some(23.0)) {
             data = self.parse_sbe_account(frameHex, blockLength, frameLength);
             channel = Value::Str("account".into());
         }
@@ -1504,34 +1507,36 @@ impl ParadexCore {
         let mut digits: Value = Value::Str("0123456789abcdef".into());
         let mut result: Value = Value::Int(0);
         let mut factor: Value = Value::Int(1);
-        let mut position: Value = (match (&(offset), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+        let mut count: Value = self.parse_to_int(length);
+        let mut start: Value = self.parse_to_int(offset);
+        let mut position: Value = (match (&(start), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_574: bool = true;
-            while { if !__for_first_574 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_574 = false; i.as_f64().unwrap_or(f64::NAN) < length.as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_592: bool = true;
+            while { if !__for_first_592 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_592 = false; i.as_f64().unwrap_or(f64::NAN) < count.as_f64().unwrap_or(f64::NAN) } {
             // plain variables as slice bounds, php gets end - start unparenthesized
             let mut middle: Value = (match (&(position), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
             let mut next: Value = (match (&(position), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-            let mut high: Value = get_index_of(&digits, &slice(&frameHex, &position, &middle));
-            let mut low: Value = get_index_of(&digits, &slice(&frameHex, &middle, &next));
-            result = self.sum(&[result.clone(), (match (&((match (&(high), &(Value::Int(16))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(factor)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), (match (&(low), &(factor)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
-            factor = (match (&(factor), &(Value::Int(256))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-            position = next;
+            let mut high: Value = (match (&(digits), &((match (&(frameHex), (match &(position) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None }).unwrap_or(0), (match &(middle) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b, __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b, __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null }))) { (Value::Arr(__a), __nd) => Value::Int(__a.iter().position(|__it| match (__it, __nd) { (Value::Null, Value::Null) => true, (Value::Bool(__x), Value::Bool(__y)) => __x == __y, (Value::Str(__x), Value::Str(__y)) => __x == __y, (Value::Int(__x), Value::Int(__y)) => __x == __y, (Value::Float(__x), Value::Float(__y)) => __x == __y, (__p, __q) => match ((match __p { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), (match __q { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })) { (Some(__x), Some(__y)) => __x == __y, _ => false } }).map(|__i| __i as i64).unwrap_or(-1)), (Value::Str(__s), Value::Str(__nd)) => Value::Int(__s.find(&**__nd).map(|__i| __i as i64).unwrap_or(-1)), _ => Value::Int(-1) });
+            let mut low: Value = (match (&(digits), &((match (&(frameHex), (match &(middle) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None }).unwrap_or(0), (match &(next) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b, __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b, __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null }))) { (Value::Arr(__a), __nd) => Value::Int(__a.iter().position(|__it| match (__it, __nd) { (Value::Null, Value::Null) => true, (Value::Bool(__x), Value::Bool(__y)) => __x == __y, (Value::Str(__x), Value::Str(__y)) => __x == __y, (Value::Int(__x), Value::Int(__y)) => __x == __y, (Value::Float(__x), Value::Float(__y)) => __x == __y, (__p, __q) => match ((match __p { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), (match __q { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })) { (Some(__x), Some(__y)) => __x == __y, _ => false } }).map(|__i| __i as i64).unwrap_or(-1)), (Value::Str(__s), Value::Str(__nd)) => Value::Int(__s.find(&**__nd).map(|__i| __i as i64).unwrap_or(-1)), _ => Value::Int(-1) });
+            result = self.parse_to_int(self.sum(&[result.clone(), (match (&((match (&(high), &(Value::Int(16))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(factor)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), (match (&(low), &(factor)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
+            factor = self.parse_to_int((match (&(factor), &(Value::Int(256))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
+            position = self.parse_to_int(next);
         }
         }
-        return result;
+        return self.parse_to_int(result);
 
     Value::Null
 }
 
     pub fn sbe_read_int64(&self, mut frameHex: Value, mut offset: Value) -> Option<String> {
         // a signed int64 as a decimal string, undefined for INT64_MIN which the schema uses as null
-        let mut low: Value = self.sbe_read_uint(frameHex.clone(), offset.clone(), Value::Int(4));
-        let mut high: Value = self.sbe_read_uint(frameHex, (match (&(offset), &(Value::Int(4))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }), Value::Int(4));
-        if (is_equal(&high, &Value::Int(2147483648))) && (is_equal(&low, &Value::Int(0))) {
+        let mut low: Value = self.parse_to_int(self.sbe_read_uint(frameHex.clone(), offset.clone(), Value::Int(4)));
+        let mut high: Value = self.parse_to_int(self.sbe_read_uint(frameHex, self.sum(&[offset, Value::Int(4)]), Value::Int(4)));
+        if (high.as_f64() == Some(2147483648.0)) && (low.as_f64() == Some(0.0)) {
             return None;
         }
-        if is_equal(&high, &Value::Int(0)) {
+        if (high.as_f64() == Some(0.0)) {
             return self.number_to_string(low.clone()).as_str().map(str::to_owned);
         }
         let mut result: Value = crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&self.number_to_string(high.clone()), &Value::Str("4294967296".into())), &self.number_to_string(low));
@@ -1563,64 +1568,77 @@ impl ParadexCore {
 }
 
     pub fn sbe_read_enum(&self, mut frameHex: Value, mut offset: Value, mut values: Value) -> Option<String> {
-        let mut value: Value = self.sbe_read_uint(frameHex, offset, Value::Int(1));
+        let mut value: Value = self.parse_to_int(self.sbe_read_uint(frameHex, offset, Value::Int(1)));
         return self.safe_string(values, self.number_to_string(value), &[]).as_str().map(str::to_owned);
 }
 
     pub fn sbe_read_string(&self, mut frameHex: Value, mut offset: Value, mut length: Value) -> Option<String> {
-        let mut start: Value = (match (&(offset), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-        let mut end: Value = self.sum(&[start.clone(), (match (&(length), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
-        return self.binary_to_string(self.base16_to_binary(slice(&frameHex, &start, &end), &[]), &[]).as_str().map(str::to_owned);
+        let mut first: Value = self.parse_to_int(offset);
+        let mut size: Value = self.parse_to_int(length);
+        let mut start: Value = (match (&(first), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+        let mut end: Value = self.sum(&[start.clone(), (match (&(size), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
+        return self.binary_to_string(self.base16_to_binary((match (&(frameHex), (match &(start) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None }).unwrap_or(0), (match &(end) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b, __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b, __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null }), &[]), &[]).as_str().map(str::to_owned);
 }
 
     pub fn sbe_read_address(&self, mut frameHex: Value, mut offset: Value) -> Option<String> {
         // a 32-byte big-endian account address, printed without leading zeros like the JSON feed
-        let mut rawStart: Value = (match (&(offset), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+        let mut first: Value = self.parse_to_int(offset);
+        let mut rawStart: Value = (match (&(first), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
         let mut rawEnd: Value = (match (&(rawStart), &(Value::Int(64))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-        let mut raw: Value = slice(&frameHex, &rawStart, &rawEnd);
-        let mut start: Value = Value::Int(0);
-        let mut next: Value = Value::Int(1);
-        while (start.as_f64().unwrap_or(f64::NAN) < ((63i64) as f64)) && (slice(&raw, &start, &next).as_str() == Some("0")) {
-            start = next.clone();
-            next = (match (&(start), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+        let mut raw: Value = (match (&(frameHex), (match &(rawStart) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None }).unwrap_or(0), (match &(rawEnd) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b, __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b, __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null });
+        let mut start: Value = Value::Int(63);
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_593: bool = true;
+            while { if !__for_first_593 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_593 = false; i.as_f64().unwrap_or(f64::NAN) < ((63i64) as f64) } {
+            let mut next: Value = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+            if ((match (&(raw), (match &(i) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None }).unwrap_or(0), (match &(next) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b, __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b, __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null }).as_str() != Some("0")) {
+                start = i.clone();
+                break;
+            }
         }
-        return Value::Str(format!("{}{}", Value::Str("0x".into()), slice(&raw, &start, &Value::Int(64))).into()).as_str().map(str::to_owned);
+        }
+        return Value::Str(format!("{}{}", Value::Str("0x".into()), (match (&(raw), (match &(start) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None }).unwrap_or(0), (match &(Value::Int(64)) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b, __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b, __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null })).into()).as_str().map(str::to_owned);
 }
 
     pub fn sbe_read_var_strings(&self, mut frameHex: Value, mut offset: Value, mut count: Value, mut frameLength: Value) -> Value {
         // the var-data section: count strings, each prefixed with a uint8 length. Returns undefined
         // when the frame ends before all of them, and only the strings present when a trailing one is
         // absent, which is how a field appended to var-data reads on a frame from before it
-        let mut result: Value = Value::from(vec![]);
-        let mut position: Value = offset;
+        let mut result: Vec<Value> = Vec::new();
+        let mut end: Value = self.parse_to_int(frameLength);
+        let mut total: Value = self.parse_to_int(count);
+        let mut position: Value = self.parse_to_int(offset);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_575: bool = true;
-            while { if !__for_first_575 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_575 = false; i.as_f64().unwrap_or(f64::NAN) < count.as_f64().unwrap_or(f64::NAN) } {
-            if position.as_f64().unwrap_or(f64::NAN) >= frameLength.as_f64().unwrap_or(f64::NAN) {
-                return result;
+            let mut __for_first_594: bool = true;
+            while { if !__for_first_594 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_594 = false; i.as_f64().unwrap_or(f64::NAN) < total.as_f64().unwrap_or(f64::NAN) } {
+            if position.as_f64().unwrap_or(f64::NAN) >= end.as_f64().unwrap_or(f64::NAN) {
+                return Value::from(result);
             }
-            let mut length: Value = self.sbe_read_uint(frameHex.clone(), position.clone(), Value::Int(1));
-            if self.sum(&[position.clone(), Value::Int(1), length.clone()]).as_f64().unwrap_or(f64::NAN) > frameLength.as_f64().unwrap_or(f64::NAN) {
+            let mut length: Value = self.parse_to_int(self.sbe_read_uint(frameHex.clone(), position.clone(), Value::Int(1)));
+            let mut next: Value = self.parse_to_int(self.sum(&[position.clone(), Value::Int(1), length.clone()]));
+            if next.as_f64().unwrap_or(f64::NAN) > end.as_f64().unwrap_or(f64::NAN) {
                 return Value::Null;
             }
-            append_to_array(&mut result, self.sbe_read_string(frameHex.clone(), (match (&(position), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }), length.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
-            position = self.sum(&[position.clone(), Value::Int(1), length]);
+            result.push(self.sbe_read_string(frameHex.clone(), (match (&(position), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }), length).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+            position = next;
         }
         }
-        return result;
+        return Value::from(result);
 
     Value::Null
 }
 
     pub fn parse_sbe_trade(&self, mut frameHex: Value, mut blockLength: Value, mut frameLength: Value) -> Value {
+        let mut blockSize: Value = self.parse_to_int(blockLength.clone());
         //
         // TradeEvent (templateId 1), 50-byte block
         //
         //     ts int64, seq int64, tradeId int64 (deprecated, truncated), side uint8, price int64,
         //     size int64, createdAt int64, tradeType uint8, then market and tradeIdStr strings
         //
-        if blockLength.as_f64().unwrap_or(f64::NAN) < ((50i64) as f64) {
+        if blockSize.as_f64().unwrap_or(f64::NAN) < ((50i64) as f64) {
             return Value::Null;
         }
         let mut strings: Value = self.sbe_read_var_strings(frameHex.clone(), self.sum(&[blockLength, Value::Int(8)]), Value::Int(2), frameLength);
@@ -1660,48 +1678,50 @@ impl ParadexCore {
 }
 
     pub fn parse_sbe_order_book(&self, mut frameHex: Value, mut blockLength: Value, mut frameLength: Value) -> Value {
+        let mut blockSize: Value = self.parse_to_int(blockLength.clone());
         //
         // BookEvent (templateId 3), 89-byte block
         //
         //     ts int64, seq int64, pkgType uint8, nine best bid/ask int64 fields, then the bids and asks
         //     groups of (price int64, size int64) entries and the market string
         //
-        if blockLength.as_f64().unwrap_or(f64::NAN) < ((17i64) as f64) {
+        if blockSize.as_f64().unwrap_or(f64::NAN) < ((17i64) as f64) {
             return Value::Null;
         }
         // watchOrderBook subscribes to the snapshot channel, a delta would need a book to apply it to
-        let mut pkgType: Value = self.sbe_read_uint(frameHex.clone(), Value::Int(24), Value::Int(1));
-        if !is_equal(&pkgType, &Value::Int(0)) {
+        let mut pkgType: Value = self.parse_to_int(self.sbe_read_uint(frameHex.clone(), Value::Int(24), Value::Int(1)));
+        if (pkgType.as_f64() != Some(0.0)) {
             return Value::Null;
         }
-        let mut inserts: Value = Value::from(vec![]);
+        let mut inserts: Vec<Value> = Vec::new();
         let mut sides: Value = Value::from(vec![Value::Str("BUY".into()), Value::Str("SELL".into())]);
-        let mut position: Value = self.sum(&[blockLength, Value::Int(8)]);
+        let mut frameEnd: Value = self.parse_to_int(frameLength.clone());
+        let mut position: Value = self.parse_to_int(self.sum(&[blockLength, Value::Int(8)]));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_577: bool = true;
-            while { if !__for_first_577 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_577 = false; i.as_f64().unwrap_or(f64::NAN) < ((sides.len() as i64) as f64) } {
-            if add(&position, &Value::Int(4)).as_f64().unwrap_or(f64::NAN) > frameLength.as_f64().unwrap_or(f64::NAN) {
+            let mut __for_first_596: bool = true;
+            while { if !__for_first_596 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_596 = false; i.as_f64().unwrap_or(f64::NAN) < ((sides.len() as i64) as f64) } {
+            if (match (&(position), &(Value::Int(4))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }).as_f64().unwrap_or(f64::NAN) > frameEnd.as_f64().unwrap_or(f64::NAN) {
                 return Value::Null;
             }
-            let mut entryLength: Value = self.sbe_read_uint(frameHex.clone(), position.clone(), Value::Int(2));
-            let mut numInGroup: Value = self.sbe_read_uint(frameHex.clone(), add(&position, &Value::Int(2)), Value::Int(2));
-            position = add(&position, &Value::Int(4));
-            if (entryLength.as_f64().unwrap_or(f64::NAN) < ((16i64) as f64)) || (self.sum(&[position.clone(), multiply(&numInGroup, &entryLength)]).as_f64().unwrap_or(f64::NAN) > frameLength.as_f64().unwrap_or(f64::NAN)) {
+            let mut entryLength: Value = self.parse_to_int(self.sbe_read_uint(frameHex.clone(), position.clone(), Value::Int(2)));
+            let mut numInGroup: Value = self.parse_to_int(self.sbe_read_uint(frameHex.clone(), (match (&(position), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }), Value::Int(2)));
+            position = self.parse_to_int((match (&(position), &(Value::Int(4))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
+            if (entryLength.as_f64().unwrap_or(f64::NAN) < ((16i64) as f64)) || (self.parse_to_int(self.sum(&[position.clone(), (match (&(numInGroup), &(entryLength)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })])).as_f64().unwrap_or(f64::NAN) > frameEnd.as_f64().unwrap_or(f64::NAN)) {
                 return Value::Null;
             }
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_576: bool = true;
-                while { if !__for_first_576 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_576 = false; j.as_f64().unwrap_or(f64::NAN) < numInGroup.as_f64().unwrap_or(f64::NAN) } {
-                append_to_array(&mut inserts, Value::Map({
+                let mut __for_first_595: bool = true;
+                while { if !__for_first_595 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_595 = false; j.as_f64().unwrap_or(f64::NAN) < numInGroup.as_f64().unwrap_or(f64::NAN) } {
+                inserts.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("side".to_string(), sides.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
                         m.insert("price".to_string(), self.sbe_read_decimal(frameHex.clone(), position.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
-                        m.insert("size".to_string(), self.sbe_read_decimal(frameHex.clone(), add(&position, &Value::Int(8))).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+                        m.insert("size".to_string(), self.sbe_read_decimal(frameHex.clone(), (match (&(position), &(Value::Int(8))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
                     m
                 }));
-                position = self.sum(&[position.clone(), entryLength.clone()]);
+                position = self.parse_to_int(self.sum(&[position.clone(), entryLength.clone()]));
             }
             }
         }
@@ -1717,7 +1737,7 @@ impl ParadexCore {
         m.insert("market".to_string(), get_value(&strings, &Value::Int(0)));
         m.insert("last_updated_at".to_string(), self.sbe_read_timestamp(frameHex, Value::Int(8)));
         m.insert("update_type".to_string(), Value::Str("s".into()));
-        m.insert("inserts".to_string(), inserts);
+        m.insert("inserts".to_string(), Value::from(inserts));
         m.insert("updates".to_string(), Value::from(vec![]));
         m.insert("deletes".to_string(), Value::from(vec![]));
     m
@@ -1727,6 +1747,7 @@ impl ParadexCore {
 }
 
     pub fn parse_sbe_market_summary(&self, mut frameHex: Value, mut blockLength: Value, mut frameLength: Value) -> Value {
+        let mut blockSize: Value = self.parse_to_int(blockLength.clone());
         //
         // MarketSummaryEvent (templateId 4), 248-byte block (240 before 1:3), of which the first
         // 12 int64 fields and settlementTwapEstimate are read
@@ -1735,17 +1756,17 @@ impl ParadexCore {
         //     ask, totalVolume, priceChangeRate24h, ..., settlementTwapEstimate (1:3, at 240), then the
         //     market string
         //
-        if blockLength.as_f64().unwrap_or(f64::NAN) < ((96i64) as f64) {
+        if blockSize.as_f64().unwrap_or(f64::NAN) < ((96i64) as f64) {
             return Value::Null;
         }
-        let mut strings: Value = self.sbe_read_var_strings(frameHex.clone(), self.sum(&[blockLength.clone(), Value::Int(8)]), Value::Int(1), frameLength);
+        let mut strings: Value = self.sbe_read_var_strings(frameHex.clone(), self.sum(&[blockLength, Value::Int(8)]), Value::Int(1), frameLength);
         let mut stringsLength: Value = (if (strings == Value::Null) { Value::Int(0) } else { get_array_length(&strings) });
         if stringsLength.as_f64().unwrap_or(f64::NAN) < ((1i64) as f64) {
             return Value::Null;
         }
         // appended in 1:3: null outside the pre-expiry settlement window and for undated markets
         let mut settlementTwapEstimate: Value = Value::Null;
-        if blockLength.as_f64().unwrap_or(f64::NAN) >= ((248i64) as f64) {
+        if blockSize.as_f64().unwrap_or(f64::NAN) >= ((248i64) as f64) {
             settlementTwapEstimate = self.sbe_read_decimal(frameHex.clone(), Value::Int(248)).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         }
         return Value::Map({
@@ -1769,13 +1790,14 @@ impl ParadexCore {
 }
 
     pub fn parse_sbe_funding_data(&self, mut frameHex: Value, mut blockLength: Value, mut frameLength: Value) -> Value {
+        let mut blockSize: Value = self.parse_to_int(blockLength.clone());
         //
         // FundingDataEvent (templateId 5), 66-byte block
         //
         //     ts int64, seq int64, fundingRate int64, fundingIndex int64, createdAt int64,
         //     fundingPremium int64, fundingRate8h int64, fundingPeriodHours int16, ... then the market
         //
-        if blockLength.as_f64().unwrap_or(f64::NAN) < ((58i64) as f64) {
+        if blockSize.as_f64().unwrap_or(f64::NAN) < ((58i64) as f64) {
             return Value::Null;
         }
         let mut strings: Value = self.sbe_read_var_strings(frameHex.clone(), self.sum(&[blockLength, Value::Int(8)]), Value::Int(1), frameLength);
@@ -1799,6 +1821,7 @@ impl ParadexCore {
 }
 
     pub fn parse_sbe_order(&self, mut frameHex: Value, mut blockLength: Value, mut frameLength: Value) -> Value {
+        let mut blockSize: Value = self.parse_to_int(blockLength.clone());
         //
         // OrderEvent (templateId 20), 128-byte block (126 before the 1:2 request fields)
         //
@@ -1807,7 +1830,7 @@ impl ParadexCore {
         //     createdAt int64, updatedAt int64, account [32]byte, receivedAt int64, publishedAt int64,
         //     stp uint8, flags uint8, ... then the orderId, clientOrderId, market and cancelReason strings
         //
-        if blockLength.as_f64().unwrap_or(f64::NAN) < ((126i64) as f64) {
+        if blockSize.as_f64().unwrap_or(f64::NAN) < ((126i64) as f64) {
             return Value::Null;
         }
         let mut strings: Value = self.sbe_read_var_strings(frameHex.clone(), self.sum(&[blockLength, Value::Int(8)]), Value::Int(4), frameLength);
@@ -1894,25 +1917,26 @@ impl ParadexCore {
 
     pub fn sbe_read_flags(&self, mut frameHex: Value, mut offset: Value, mut names: Value) -> Value {
         // a uint8 bitset, names[bit] for each set bit, an empty name for a bit the schema leaves unused
-        let mut flags: Value = Value::from(vec![]);
-        let mut bits: Value = self.sbe_read_uint(frameHex, offset, Value::Int(1));
+        let mut flags: Vec<Value> = Vec::new();
+        let mut bits: Value = self.parse_to_int(self.sbe_read_uint(frameHex, offset, Value::Int(1)));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_578: bool = true;
-            while { if !__for_first_578 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_578 = false; i.as_f64().unwrap_or(f64::NAN) < ((names.len() as i64) as f64) } {
-            let mut bit: Value = self.parse_to_int(mod_val(&bits, &Value::Int(2)));
+            let mut __for_first_597: bool = true;
+            while { if !__for_first_597 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_597 = false; i.as_f64().unwrap_or(f64::NAN) < ((names.len() as i64) as f64) } {
+            let mut bit: Value = self.parse_to_int((match (&(bits), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) if *y != 0 => Value::Int(x % y), (Value::Int(x), Value::Float(y)) if *y != 0.0 => Value::Float(*x as f64 % *y), (Value::Float(x), Value::Int(y)) if *y != 0 => Value::Float(*x % *y as f64), (Value::Float(x), Value::Float(y)) if *y != 0.0 => Value::Float(x % y), _ => Value::Null }));
             if (bit.as_f64() == Some(1.0)) && (names.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null).as_str() != Some("")) {
-                append_to_array(&mut flags, names.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
+                flags.push(names.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
             }
-            bits = self.parse_to_int((match (((subtract(&bits, &bit))).as_f64(), (Value::Int(2)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+            bits = self.parse_to_int((match ((bits).as_f64(), (Value::Int(2)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
         }
         }
-        return flags;
+        return Value::from(flags);
 
     Value::Null
 }
 
     pub fn parse_sbe_fill(&self, mut frameHex: Value, mut blockLength: Value, mut frameLength: Value) -> Value {
+        let mut blockSize: Value = self.parse_to_int(blockLength.clone());
         //
         // FillEvent (templateId 21), 116-byte block (107 before the 1:2 flags and orderbookSeqNo)
         //
@@ -1921,10 +1945,10 @@ impl ParadexCore {
         //     underlyingPrice int64, realizedFunding int64, flags uint8, orderbookSeqNo uint64, then the
         //     fillId, orderId, clientOrderId, tradeId, market and feeCurrency (1:2) strings
         //
-        if blockLength.as_f64().unwrap_or(f64::NAN) < ((107i64) as f64) {
+        if blockSize.as_f64().unwrap_or(f64::NAN) < ((107i64) as f64) {
             return Value::Null;
         }
-        let mut strings: Value = self.sbe_read_var_strings(frameHex.clone(), self.sum(&[blockLength.clone(), Value::Int(8)]), Value::Int(6), frameLength);
+        let mut strings: Value = self.sbe_read_var_strings(frameHex.clone(), self.sum(&[blockLength, Value::Int(8)]), Value::Int(6), frameLength);
         let mut stringsLength: Value = (if (strings == Value::Null) { Value::Int(0) } else { get_array_length(&strings) });
         if stringsLength.as_f64().unwrap_or(f64::NAN) < ((5i64) as f64) {
             return Value::Null;
@@ -1971,7 +1995,7 @@ impl ParadexCore {
                 m.insert("underlying_price".to_string(), self.sbe_read_decimal(frameHex.clone(), Value::Int(99)).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
             m
         });
-        if blockLength.as_f64().unwrap_or(f64::NAN) >= ((116i64) as f64) {
+        if blockSize.as_f64().unwrap_or(f64::NAN) >= ((116i64) as f64) {
             // lowercase, as the JSON feed spells fill flags
             if let Value::Dict(__d) = &mut fill { std::sync::Arc::make_mut(__d).insert("flags".into(), self.sbe_read_flags(frameHex.clone(), Value::Int(115), Value::from(vec![Value::Str("interactive".into()), Value::Str("rpi".into()), Value::Str("fastfill".into()), Value::Str("".into()), Value::Str("".into()), Value::Str("".into()), Value::Str("".into()), Value::Str("unknown".into())]))); }
             if let Value::Dict(__d) = &mut fill { std::sync::Arc::make_mut(__d).insert("orderbook_seq_no".into(), self.sbe_read_int64(frameHex, Value::Int(116)).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)); }
@@ -1982,6 +2006,7 @@ impl ParadexCore {
 }
 
     pub fn parse_sbe_position(&self, mut frameHex: Value, mut blockLength: Value, mut frameLength: Value) -> Value {
+        let mut blockSize: Value = self.parse_to_int(blockLength.clone());
         //
         // PositionEvent (templateId 22), 154-byte block
         //
@@ -1991,7 +2016,7 @@ impl ParadexCore {
         //     int64, cost int64, costUsd int64, cachedFundingIndex int64, unrealizedFundingPnl int64,
         //     status uint8, then the market and lastFillId strings
         //
-        if blockLength.as_f64().unwrap_or(f64::NAN) < ((154i64) as f64) {
+        if blockSize.as_f64().unwrap_or(f64::NAN) < ((154i64) as f64) {
             return Value::Null;
         }
         let mut strings: Value = self.sbe_read_var_strings(frameHex.clone(), self.sum(&[blockLength, Value::Int(8)]), Value::Int(2), frameLength);
@@ -2026,7 +2051,7 @@ impl ParadexCore {
         m.insert("cached_funding_index".to_string(), self.sbe_read_decimal(frameHex.clone(), Value::Int(145)).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
         m.insert("cost".to_string(), self.sbe_read_decimal(frameHex.clone(), Value::Int(129)).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
         m.insert("cost_usd".to_string(), self.sbe_read_decimal(frameHex.clone(), Value::Int(137)).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
-        m.insert("id".to_string(), add(&Value::Str(format!("{}{}", account, Value::Str("-".into())).into()), &get_value(&strings, &Value::Int(0))));
+        m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", account, Value::Str("-".into())).into()), get_value(&strings, &Value::Int(0))).into()));
         m.insert("last_fill_id".to_string(), self.safe_string(strings.clone(), Value::Int(1), &[]));
         m.insert("last_updated_at".to_string(), self.sbe_read_timestamp(frameHex.clone(), Value::Int(81)));
         m.insert("leverage".to_string(), self.sbe_read_decimal(frameHex.clone(), Value::Int(73)).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
@@ -2046,6 +2071,7 @@ impl ParadexCore {
 }
 
     pub fn parse_sbe_account(&self, mut frameHex: Value, mut blockLength: Value, mut frameLength: Value) -> Value {
+        let mut blockSize: Value = self.parse_to_int(blockLength.clone());
         //
         // AccountEvent (templateId 23), 121-byte block (113 before the 1:2 lastSeenNotification)
         //
@@ -2054,10 +2080,10 @@ impl ParadexCore {
         //     int64, account [32]byte, marginCushion int64, status uint8, lastSeenNotification int64,
         //     then the settlementAsset string
         //
-        if blockLength.as_f64().unwrap_or(f64::NAN) < ((113i64) as f64) {
+        if blockSize.as_f64().unwrap_or(f64::NAN) < ((113i64) as f64) {
             return Value::Null;
         }
-        let mut strings: Value = self.sbe_read_var_strings(frameHex.clone(), self.sum(&[blockLength.clone(), Value::Int(8)]), Value::Int(1), frameLength);
+        let mut strings: Value = self.sbe_read_var_strings(frameHex.clone(), self.sum(&[blockLength, Value::Int(8)]), Value::Int(1), frameLength);
         let mut stringsLength: Value = (if (strings == Value::Null) { Value::Int(0) } else { get_array_length(&strings) });
         if stringsLength.as_f64().unwrap_or(f64::NAN) < ((1i64) as f64) {
             return Value::Null;
@@ -2083,7 +2109,7 @@ impl ParadexCore {
                 m.insert("updated_at".to_string(), self.sbe_read_timestamp(frameHex.clone(), Value::Int(72)));
             m
         });
-        if blockLength.as_f64().unwrap_or(f64::NAN) >= ((121i64) as f64) {
+        if blockSize.as_f64().unwrap_or(f64::NAN) >= ((121i64) as f64) {
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("last_seen_notification".into(), self.sbe_read_timestamp(frameHex, Value::Int(121))); }
         }
         return account;
@@ -2174,7 +2200,7 @@ impl ParadexCore {
         let mut data: Value = self.safe_dict_k(parsedMessage.clone(), "params", &[]);
         if (data != Value::Null) {
             let mut channel: Value = self.safe_string_k(data, "channel", &[]);
-            let mut parts: Value = split(&channel, &Value::Str(".".into()));
+            let mut parts: Value = Value::Array(channel.as_str().map(|__s| __s.split(".").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
             let mut name: Value = self.safe_string(parts, Value::Int(0), &[]);
             let mut methods: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();

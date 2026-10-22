@@ -772,7 +772,7 @@ export default class luno extends Exchange {
         return this.parseOrderBook (response, market['symbol'], timestamp, 'bids', 'asks', 'price', 'volume');
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             // todo add other statuses
             'PENDING': 'open',
@@ -1428,8 +1428,8 @@ export default class luno extends Exchange {
         await this.loadAccounts ();
         let currency: Currency = undefined;
         let id = this.safeString (params, 'id'); // account id
-        let min_row = this.safeValue (params, 'min_row');
-        let max_row = this.safeValue (params, 'max_row');
+        const minRowParam = this.safeInteger (params, 'min_row');
+        const maxRowParam = this.safeInteger (params, 'max_row');
         if (id === undefined) {
             if (code === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchLedger() requires a currency code argument if no account id specified in params');
@@ -1442,20 +1442,16 @@ export default class luno extends Exchange {
             }
             id = this.safeString (account, 'id');
         }
-        if (min_row === undefined && max_row === undefined) {
-            max_row = 0; // Default to most recent transactions
-            min_row = -1000; // Maximum number of records supported
-        } else if (min_row === undefined || max_row === undefined) {
+        if ((minRowParam === undefined || maxRowParam === undefined) && (minRowParam !== undefined || maxRowParam !== undefined)) {
             throw new ExchangeError (this.id + " fetchLedger() require both params 'max_row' and 'min_row' or neither to be defined");
         }
-        if (limit !== undefined && max_row - min_row > limit) {
-            if (max_row <= 0) {
-                min_row = max_row - limit;
-            } else if (min_row > 0) {
-                max_row = min_row + limit;
-            }
-        }
-        if (max_row - min_row > 1000) {
+        const maxRowBase = this.safeInteger (params, 'max_row', 0); // Default to most recent transactions
+        const minRowBase = this.safeInteger (params, 'min_row', -1000); // Maximum number of records supported
+        const limitApplies = (limit !== undefined) && (maxRowBase - minRowBase > limit);
+        const min_row = (limitApplies && (limit !== undefined) && maxRowBase <= 0) ? maxRowBase - limit : minRowBase;
+        const max_row = (limitApplies && maxRowBase > 0 && minRowBase > 0) ? minRowBase + limit : maxRowBase;
+        const limitAdjusts = limitApplies && (maxRowBase <= 0 || minRowBase > 0); // max_row - min_row becomes limit
+        if ((limitAdjusts && limit > 1000) || (!limitAdjusts && maxRowBase - minRowBase > 1000)) {
             throw new ExchangeError (this.id + " fetchLedger() requires the params 'max_row' - 'min_row' <= 1000");
         }
         const request: Dict = {
@@ -1706,7 +1702,7 @@ export default class luno extends Exchange {
         return this.assignDefaultDepositWithdrawFees (result, currency) as DepositWithdrawFee;
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
         const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {

@@ -1658,7 +1658,7 @@ class kraken extends Exchange {
         //     }
         //
         $result = $this->safe_dict($response, 'result', array());
-        $trades = $this->safe_value($result, $id);
+        $trades = $this->safe_list($result, $id, array());
         // trades is a sorted array: last (most recent trade) goes last
         $length = count($trades);
         if ($length <= 0) {
@@ -1881,7 +1881,7 @@ class kraken extends Exchange {
             $orderRequest = $this->order_request('createOrders', $marketId, $type, $req, $amount, $price, $orderParams);
             $ordersRequests[] = $orderRequest[0];
         }
-        $orderSymbols = $this->market_symbols($orderSymbols, null, false, true, true);
+        $this->market_symbols($orderSymbols, null, false, true, true);
         $response = null;
         $request = array(
             'orders' => $ordersRequests,
@@ -1935,7 +1935,7 @@ class kraken extends Exchange {
         return $market;
     }
 
-    public function get_delisted_market_by_id(mixed $id) {
+    public function get_delisted_market_by_id(?string $id): mixed {
         if ($id === null) {
             return $id;
         }
@@ -1975,7 +1975,7 @@ class kraken extends Exchange {
         return $market;
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'pending' => 'open', // order pending book entry
             'open' => 'open',
@@ -2105,12 +2105,7 @@ class kraken extends Exchange {
         $orderOmitted = $this->omit($order, 'usingCost');
         $description = $this->safe_dict($orderOmitted, 'descr', array());
         $orderDescriptionObj = $this->safe_dict($orderOmitted, 'descr'); // can be null
-        $orderDescription = null;
-        if ($orderDescriptionObj !== null) {
-            $orderDescription = $this->safe_string($orderDescriptionObj, 'order');
-        } else {
-            $orderDescription = $this->safe_string($orderOmitted, 'descr');
-        }
+        $orderDescription = ($orderDescriptionObj !== null) ? $this->safe_string($orderDescriptionObj, 'order') : $this->safe_string($orderOmitted, 'descr');
         $side = null;
         $rawType = null;
         $marketId = null;
@@ -2121,7 +2116,7 @@ class kraken extends Exchange {
         if ($orderDescription !== null) {
             $parts = explode(' ', $orderDescription);
             $side = $this->safe_string($parts, 0);
-            if ($isUsingCost !== true) {
+            if (!$isUsingCost) {
                 $amount = $this->safe_string($parts, 1);
             } else {
                 $cost = $this->safe_string($parts, 1);
@@ -2349,10 +2344,9 @@ class kraken extends Exchange {
                 $request['reduce_only'] = 'true'; // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
             }
         }
-        $close = $this->safe_dict($paramsOmitted2, 'close');
-        if ($close !== null) {
-            $close = $this->extend(array(), $close);
-            $close = ($close === null) ? array() : $close;
+        $rawClose = $this->safe_dict($paramsOmitted2, 'close');
+        if ($rawClose !== null) {
+            $close = $this->extend(array(), $rawClose);
             $closePrice = $this->safe_value($close, 'price');
             if ($closePrice !== null) {
                 $close['price'] = $this->price_to_precision($symbol, $closePrice);
@@ -2369,7 +2363,7 @@ class kraken extends Exchange {
         }
         $isMarket = ($type === 'market');
         list($postOnly, $paramsPostOnly) = $this->handle_post_only($isMarket, false, $paramsOmitted2);
-        if ($postOnly === true) {
+        if ($postOnly) {
             $extendedPostFlags = 'post';
             if ($flags !== null) {
                 $extendedPostFlags = $flags . ',post';
@@ -2430,7 +2424,7 @@ class kraken extends Exchange {
         $isMarket = ($type === 'market');
         $postOnly = null;
         list($postOnly, $paramsOmitted) = $this->handle_post_only($isMarket, false, $paramsOmitted);
-        if ($postOnly === true) {
+        if ($postOnly) {
             $request['post_only'] = 'true'; // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
         }
         if ($amount !== null) {
@@ -2575,17 +2569,20 @@ class kraken extends Exchange {
         $options = $this->safe_dict($this->options, 'fetchOrderTrades', array());
         $batchSize = $this->safe_integer($options, 'batchSize', 20);
         $numTradeIds = count($tradeIds);
-        $numBatches = $this->parse_to_int($numTradeIds / $batchSize);
-        $numBatches = $this->sum($numBatches, 1);
-        $result = array();
-        for ($j = 0; $j < $numBatches; $j++) {
-            $requestIds = array();
-            for ($k = 0; $k < $batchSize; $k++) {
-                $index = $this->sum($j * $batchSize, $k);
-                if ($index < $numTradeIds) {
-                    $requestIds[] = $tradeIds[$index];
-                }
+        // full batches of batchSize ids, then the remainder (an empty one when the ids divide evenly)
+        $batches = array();
+        $batch = array();
+        for ($i = 0; $i < $numTradeIds; $i++) {
+            $batch[] = $tradeIds[$i];
+            if (strlen($batch) >= $batchSize) {
+                $batches[] = $batch;
+                $batch = array();
             }
+        }
+        $batches[] = $batch;
+        $result = array();
+        for ($j = 0; $j < count($batches); $j++) {
+            $requestIds = $batches[$j];
             $request = array(
                 'txid' => implode(',', $requestIds),
             );
@@ -3083,7 +3080,7 @@ class kraken extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         // IFEX transaction states
         $statuses = array(
             'Initial' => 'pending',
@@ -3396,9 +3393,9 @@ class kraken extends Exchange {
         return $this->parse_transactions_by_type('withdrawal', $rawWithdrawals, $code, $since, $limit);
     }
 
-    public function add_pagination_cursor_to_result(mixed $result) {
+    public function add_pagination_cursor_to_result(array $result): array {
         $cursor = $this->safe_string($result, 'next_cursor');
-        $data = $this->safe_value($result, 'withdrawals');
+        $data = $this->safe_list($result, 'withdrawals', array());
         $dataLength = count($data);
         if ($cursor !== null && $dataLength > 0) {
             $last = $data[$dataLength - 1];
@@ -3473,7 +3470,8 @@ class kraken extends Exchange {
         //         ]
         //     }
         //
-        return $this->safe_value($response, 'result');
+        $result = $this->safe_list($response, 'result', array());
+        return $result;
     }
 
     public function fetch_deposit_address(string $code, $params = array()): PromiseInterface {
@@ -3744,7 +3742,7 @@ class kraken extends Exchange {
         ));
     }
 
-    public function parse_account_type(?string $account) {
+    public function parse_account_type(?string $account): ?string {
         $accountByType = array(
             'spot' => 'Spot Wallet',
             'swap' => 'Futures Wallet',

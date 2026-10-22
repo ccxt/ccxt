@@ -538,7 +538,7 @@ class mexc extends \ccxt\async\mexc {
         $paramsOmitted = $this->omit($params, array( 'unsubscribed' ));
         $url = $this->urls['api']['ws']['spot'];
         $method = 'SUBSCRIPTION';
-        if ($unsubscribed === true) {
+        if ($unsubscribed) {
             $method = 'UNSUBSCRIPTION';
         }
         $request = array(
@@ -872,7 +872,7 @@ class mexc extends \ccxt\async\mexc {
         if (($nonce === null) || ($firstDeltaNonce === null)) {
             return -1;
         }
-        if ($nonce < $firstDeltaNonce - 1) {
+        if (($nonce !== null) && ($firstDeltaNonce !== null) && ($nonce < $firstDeltaNonce - 1)) {
             return -1;
         }
         for ($i = 0; $i < count($cache); $i++) {
@@ -2133,7 +2133,7 @@ class mexc extends \ccxt\async\mexc {
         $client = $this->client($this->urls['api']['ws']['spot']);
         $messageHash = 'authenticate:listenKey';
         $isFetching = $this->safe_bool($this->options, 'listenKeyFetching', false);
-        if ($isFetching === true) {
+        if ($isFetching) {
             Async\await($client->future($messageHash));
             return $this->safe_string($this->options, 'listenKey');
         }

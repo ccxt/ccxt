@@ -495,7 +495,10 @@ public partial class independentreserve : Exchange
                         } },
                     } },
                     { "created", null },
-                    { "info", id },
+                    { "info", new Dictionary<string, object>() {
+                        { "primaryCurrencyCode", baseId },
+                        { "secondaryCurrencyCode", quoteId },
+                    } },
                 });
             }
         }
@@ -858,11 +861,7 @@ public partial class independentreserve : Exchange
             request["primaryCurrencyCode"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
             request["secondaryCurrencyCode"] = (market.ContainsKey("quoteId") ? market["quoteId"] : null);
         }
-        Int64? limitResolved = limit;
-        if ((limitResolved == null))
-        {
-            limitResolved = ((Int64?)50);
-        }
+        Int64? limitResolved = ((limit == null)) ? 50 : limit;
         request["pageIndex"] = 1;
         request["pageSize"] = limitResolved;
         Dictionary<string, object> response = await this.privatePostGetOpenOrders(this.extend(request, parameters));
@@ -895,11 +894,7 @@ public partial class independentreserve : Exchange
             request["primaryCurrencyCode"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
             request["secondaryCurrencyCode"] = (market.ContainsKey("quoteId") ? market["quoteId"] : null);
         }
-        Int64? limitResolved = limit;
-        if ((limitResolved == null))
-        {
-            limitResolved = ((Int64?)50);
-        }
+        Int64? limitResolved = ((limit == null)) ? 50 : limit;
         request["pageIndex"] = 1;
         request["pageSize"] = limitResolved;
         Dictionary<string, object> response = await this.privatePostGetClosedOrders(this.extend(request, parameters));
@@ -1116,7 +1111,7 @@ public partial class independentreserve : Exchange
         {
             response = await this.privatePostPlaceMarketOrder(this.extend(request, parameters));
         }
-        return this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", GetValue(response, "OrderGuid") },         }, market);
+        return this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", (response != null && response.ContainsKey("OrderGuid") ? response["OrderGuid"] : null) },         }, market);
     }
 
     /**
@@ -1388,11 +1383,12 @@ public partial class independentreserve : Exchange
                 { "headers", signedHeaders },
             };
         }
+        Dictionary<string, object> headers = new Dictionary<string, object>() {};
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
             { "body", null },
-            { "headers", null },
+            { "headers", headers },
         };
     }
 }

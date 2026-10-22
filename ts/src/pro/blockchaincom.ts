@@ -742,7 +742,7 @@ export default class blockchaincom extends blockchaincomRest {
         bookside.storeArray (bookArray);
     }
 
-    override handleDeltas (bookside: any, deltas: any) {
+    override handleDeltas (bookside: any, deltas: any[]) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
@@ -800,7 +800,7 @@ export default class blockchaincom extends blockchaincomRest {
                 'channel': 'auth',
                 'token': this.secret,
             };
-            return this.watch (url, messageHash, this.extend (request, params), messageHash);
+            return await this.watch (url, messageHash, this.extend (request, params), messageHash);
         }
         return await future;
     }

@@ -126,7 +126,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
         Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (data), (Map<String, Object>) null);
         stored.append(trade);
         Helpers.addElementToObject(this.trades, symbol, stored);
-        client.resolve(Helpers.GetValue(this.trades, symbol), messageHash);
+        client.resolve((symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol)), messageHash);
     }
 
     public Trade parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
@@ -271,7 +271,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
             orderbook.put("datetime", this.iso8601(timestamp));
         }
         Object checksum = this.handleOption("watchOrderBook", "checksum", true);
-        if ((java.util.Objects.equals(checksum, true)) && (java.util.Objects.equals(receivedSnapshot, true)))
+        if (Helpers.isTrue((checksum)) && Boolean.TRUE.equals(receivedSnapshot))
         {
             io.github.ccxt.ws.OrderBookSide storedAsks = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("asks"));
             io.github.ccxt.ws.OrderBookSide storedBids = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("bids"));
@@ -303,7 +303,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
                 return;
             }
         }
-        if (java.util.Objects.equals(receivedSnapshot, true))
+        if (Boolean.TRUE.equals(receivedSnapshot))
         {
             client.resolve(orderbook, messageHash);
         }
@@ -330,9 +330,9 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
 
     public void handleDeltas(Object bookside, Object deltas)
     {
-        for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
+        for (var i = 0; i < ((List<?>)deltas).size(); i++)
         {
-            this.handleDelta(bookside, Helpers.GetValue(deltas, i));
+            this.handleDelta(bookside, (deltas == null || i < 0 || i >= ((List<?>)deltas).size() ? null : ((List<?>)deltas).get(i)));
         }
     }
 

@@ -6,14 +6,12 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinbaseinternational import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, FundingHistory, Int, MarginModification, Market, Num, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, FundingRateHistory, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, Int, Leverage, Market, Num, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, FundingRateHistory, MarketInterface, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
-from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidOrder
-from ccxt.base.errors import DuplicateOrderId
 from ccxt.base.errors import NotSupported
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -29,25 +27,22 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             'certified': False,
             'pro': True,
             'rateLimit': 100,  # 10 requests per second
-            'version': 'v1',
+            'version': 'v2',
             'userAgent': self.userAgents['chrome'],
-            'headers': {
-                'CB-VERSION': '2018-05-30',
-            },
             'has': {
                 'CORS': True,
                 'spot': True,
-                'margin': True,
+                'margin': False,
                 'swap': True,
-                'future': False,
-                'option': False,
+                'future': True,
+                'option': True,
                 'addMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': False,
                 'closeAllPositions': False,
                 'closePosition': False,
-                'createDepositAddress': True,
+                'createDepositAddress': False,
                 'createLimitBuyOrder': True,
                 'createLimitSellOrder': True,
                 'createMarketBuyOrder': True,
@@ -62,7 +57,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
                 'editOrder': True,
-                'fetchAccounts': True,
+                'fetchAccounts': False,
                 'fetchBalance': True,
                 'fetchBidsAsks': False,
                 'fetchBorrowRateHistories': False,
@@ -74,7 +69,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                 'fetchCurrencies': True,
                 'fetchDeposits': True,
                 'fetchDepositsWithdrawals': True,
-                'fetchFundingHistory': True,
+                'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
@@ -83,7 +78,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                 'fetchIsolatedBorrowRates': False,
                 'fetchL2OrderBook': False,
                 'fetchLedger': False,
-                'fetchLeverage': False,
+                'fetchLeverage': True,
                 'fetchLeverageTiers': False,
                 'fetchMarginAdjustmentHistory': False,
                 'fetchMarginMode': False,
@@ -96,7 +91,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
-                'fetchOrderBook': False,
+                'fetchOrderBook': True,
                 'fetchOrders': False,
                 'fetchPosition': True,
                 'fetchPositionHistory': False,
@@ -107,32 +102,34 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
-                'fetchTime': False,
+                'fetchTime': True,
                 'fetchTrades': False,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
                 'fetchTransfers': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
-                'sandbox': True,
-                'setLeverage': False,
-                'setMargin': True,
+                'sandbox': False,
+                'setLeverage': True,
+                'setMargin': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
-                'transfer': True,
-                'withdraw': True,
+                'transfer': False,
+                'withdraw': False,
             },
             'urls': {
                 'logo': 'https://github.com/ccxt/ccxt/assets/43336371/866ae638-6ab5-4ebf-ab2c-cdcce9545625',
                 'api': {
-                    'rest': 'https://api.international.coinbase.com/api',
-                },
-                'test': {
-                    'rest': 'https://api-n5e1.coinbase.com/api',
+                    'rest': 'https://drb.coinbase.com/api/v2',
                 },
                 'www': 'https://international.coinbase.com',
                 'doc': [
-                    'https://docs.cloud.coinbase.com/intx/docs',
+                    'https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/guides/derivatives/overview',
+                    'https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/guides/derivatives/technical#authentication',
+                    'https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication',
+                    'https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication#generating-a-jwt',
+                    'https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/access-and-refresh-tokens',
+                    'https://docs.deribit.com',
                 ],
                 'fees': [
                     'https://help.coinbase.com/en/international-exchange/trading-deposits-withdrawals/international-exchange-fees',
@@ -142,83 +139,142 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             'requiredCredentials': {
                 'apiKey': True,
                 'secret': True,
-                'password': True,
             },
             'api': {
-                'v1': {
-                    'public': {
-                        'get': {
-                            'assets': {'cost': 1},
-                            'assets/{assets}': {'cost': 1},
-                            'assets/{asset}/networks': {'cost': 1},
-                            'instruments': {'cost': 1},
-                            'instruments/{instrument}': {'cost': 1},
-                            'instruments/{instrument}/quote': {'cost': 1},
-                            'instruments/{instrument}/funding': {'cost': 1},
-                            'instruments/{instrument}/candles': {'cost': 1},
-                            'instruments/volumes/daily': {'cost': 1},
-                            'position-offsets': {'cost': 1},
-                            'fee-rate-tiers': {'cost': 1},
-                        },
+                'public': {
+                    'post': {
+                        'auth': {'cost': 1},
                     },
-                    'private': {
-                        'get': {
-                            'address-book': {'cost': 1},
-                            'orders': {'cost': 1},
-                            'orders/{id}': {'cost': 1},
-                            'index/{index}/composition': {'cost': 1},
-                            'index/{index}/composition-history': {'cost': 1},
-                            'index/{index}/price': {'cost': 1},
-                            'index/{index}/candles': {'cost': 1},
-                            'portfolios': {'cost': 1},
-                            'portfolios/{portfolio}': {'cost': 1},
-                            'portfolios/{portfolio}/detail': {'cost': 1},
-                            'portfolios/{portfolio}/summary': {'cost': 1},
-                            'portfolios/{portfolio}/balances': {'cost': 1},
-                            'portfolios/{portfolio}/balances/{asset}': {'cost': 1},
-                            'portfolios/{portfolio}/positions': {'cost': 1},
-                            'portfolios/{portfolio}/positions/{instrument}': {'cost': 1},
-                            'portfolios/{portfolio}/position-limits': {'cost': 1},
-                            'portfolios/{portfolio}/position-limits/positions': {'cost': 1},
-                            'portfolios/{portfolio}/position-limits/positions/{instrument}': {'cost': 1},
-                            'portfolios/fills': {'cost': 1},
-                            'portfolios/{portfolio}/fills': {'cost': 1},
-                            'portfolios/fee-rates': {'cost': 1},
-                            'portfolios/{portfolio}/loans': {'cost': 1},
-                            'portfolios/{portfolio}/loans/{asset}': {'cost': 1},
-                            'portfolios/{portfolio}/loans/{asset}/availability': {'cost': 1},
-                            'portfolios/{portfolio}/margin-call-status': {'cost': 1},
-                            'transfers': {'cost': 1},
-                            'transfers/{transfer_uuid}': {'cost': 1},
-                            'transfers/withdraw/{portfolio}/{asset}/counterparty-withdrawal-limit': {'cost': 1},
-                        },
-                        'post': {
-                            'orders': {'cost': 1},
-                            'portfolios': {'cost': 1},
-                            'portfolios/margin': {'cost': 1},
-                            'portfolios/{portfolio}/cross-collateral-enabled': {'cost': 1},
-                            'portfolios/{portfolio}/auto-margin-enabled': {'cost': 1},
-                            'portfolios/{portfolio}/loans/{asset}': {'cost': 1},
-                            'portfolios/{portfolio}/loans/{asset}/preview': {'cost': 1},
-                            'portfolios/transfer': {'cost': 1},
-                            'portfolios/transfer-position': {'cost': 1},
-                            'transfers/withdraw': {'cost': 1},
-                            'transfers/address': {'cost': 1},
-                            'transfers/create-counterparty-id': {'cost': 1},
-                            'transfers/validate-counterparty-id': {'cost': 1},
-                            'transfers/withdraw/counterparty': {'cost': 1},
-                        },
-                        'put': {
-                            'orders/{id}': {'cost': 1},
-                            'portfolios/{portfolio}': {'cost': 1},
-                        },
-                        'delete': {
-                            'orders': {'cost': 1},
-                            'orders/{id}': {'cost': 1},
-                        },
-                        'patch': {
-                            'portfolios/{portfolio}': {'cost': 1},
-                        },
+                    'get': {
+                        'disable_heartbeat': {'cost': 1},
+                        'get_announcements': {'cost': 1},
+                        'get_block_rfq_trades': {'cost': 1},
+                        'get_book_summary_by_currency': {'cost': 1},
+                        'get_book_summary_by_instrument': {'cost': 1},
+                        'get_combo_details': {'cost': 1},
+                        'get_combo_ids': {'cost': 1},
+                        'get_combos': {'cost': 1},
+                        'get_contract_size': {'cost': 1},
+                        'get_currencies': {'cost': 1},
+                        'get_delivery_prices': {'cost': 1},
+                        'get_expirations': {'cost': 1},
+                        'get_funding_chart_data': {'cost': 1},
+                        'get_funding_rate_history': {'cost': 1},
+                        'get_funding_rate_value': {'cost': 1},
+                        'get_historical_volatility': {'cost': 1},
+                        'get_index_chart_data': {'cost': 1},
+                        'get_index_price': {'cost': 1},
+                        'get_index_price_names': {'cost': 1},
+                        'get_instrument': {'cost': 1},
+                        'get_instruments': {'cost': 1},
+                        'get_last_settlements_by_currency': {'cost': 1},
+                        'get_last_settlements_by_instrument': {'cost': 1},
+                        'get_last_trades_by_currency': {'cost': 1},
+                        'get_last_trades_by_currency_and_time': {'cost': 1},
+                        'get_last_trades_by_instrument': {'cost': 1},
+                        'get_last_trades_by_instrument_and_time': {'cost': 1},
+                        'get_mark_price_history': {'cost': 1},
+                        'get_order_book': {'cost': 1},
+                        'get_order_book_by_instrument_id': {'cost': 1},
+                        'get_supported_index_names': {'cost': 1},
+                        'get_time': {'cost': 1},
+                        'get_trade_volumes': {'cost': 1},
+                        'get_tradingview_chart_data': {'cost': 1},
+                        'get_volatility_index_data': {'cost': 1},
+                        'hello': {'cost': 1},
+                        'set_heartbeat': {'cost': 1},
+                        'status': {'cost': 1},
+                        'subscribe': {'cost': 1},
+                        'test': {'cost': 1},
+                        'ticker': {'cost': 1},
+                        'tickers_by_currency': {'cost': 1},
+                        'unsubscribe': {'cost': 1},
+                        'unsubscribe_all': {'cost': 1},
+                    },
+                },
+                'private': {
+                    'get': {
+                        'accept_block_rfq': {'cost': 1},
+                        'add_block_rfq_quote': {'cost': 1},
+                        'approve_block_trade': {'cost': 1},
+                        'buy': {'cost': 1},
+                        'cancel': {'cost': 1},
+                        'cancel_all': {'cost': 1},
+                        'cancel_all_block_rfq_quotes': {'cost': 1},
+                        'cancel_all_by_currency': {'cost': 1},
+                        'cancel_all_by_currency_pair': {'cost': 1},
+                        'cancel_all_by_instrument': {'cost': 1},
+                        'cancel_all_by_kind_or_type': {'cost': 1},
+                        'cancel_block_rfq': {'cost': 1},
+                        'cancel_block_rfq_quote': {'cost': 1},
+                        'cancel_block_rfq_trigger': {'cost': 1},
+                        'cancel_by_label': {'cost': 1},
+                        'change_margin_model': {'cost': 1},
+                        'close_position': {'cost': 1},
+                        'create_block_rfq': {'cost': 1},
+                        'create_combo': {'cost': 1},
+                        'disable_cancel_on_disconnect': {'cost': 1},
+                        'edit': {'cost': 1},
+                        'edit_block_rfq_quote': {'cost': 1},
+                        'edit_by_label': {'cost': 1},
+                        'enable_cancel_on_disconnect': {'cost': 1},
+                        'execute_block_trade': {'cost': 1},
+                        'get_access_log': {'cost': 1},
+                        'get_account_summaries': {'cost': 1},
+                        'get_account_summary': {'cost': 1},
+                        'get_block_rfq_makers': {'cost': 1},
+                        'get_block_rfq_quotes': {'cost': 1},
+                        'get_block_rfq_user_info': {'cost': 1},
+                        'get_block_rfqs': {'cost': 1},
+                        'get_block_trade': {'cost': 1},
+                        'get_block_trade_requests': {'cost': 1},
+                        'get_block_trades': {'cost': 1},
+                        'get_broker_trade_requests': {'cost': 1},
+                        'get_broker_trades': {'cost': 1},
+                        'get_cancel_on_disconnect': {'cost': 1},
+                        'get_leg_prices': {'cost': 1},
+                        'get_leverage': {'cost': 1},
+                        'get_margins': {'cost': 1},
+                        'get_max_order_size': {'cost': 1},
+                        'get_open_orders': {'cost': 1},
+                        'get_open_orders_by_currency': {'cost': 1},
+                        'get_open_orders_by_instrument': {'cost': 1},
+                        'get_open_orders_by_label': {'cost': 1},
+                        'get_order_history_by_currency': {'cost': 1},
+                        'get_order_history_by_instrument': {'cost': 1},
+                        'get_order_margin_by_ids': {'cost': 1},
+                        'get_order_state': {'cost': 1},
+                        'get_order_state_by_label': {'cost': 1},
+                        'get_pme_params': {'cost': 1},
+                        'get_position': {'cost': 1},
+                        'get_positions': {'cost': 1},
+                        'get_risk_profile': {'cost': 1},
+                        'get_settlement_history_by_currency': {'cost': 1},
+                        'get_settlement_history_by_instrument': {'cost': 1},
+                        'get_subaccounts': {'cost': 1},
+                        'get_subaccounts_details': {'cost': 1},
+                        'get_trading_limits': {'cost': 1},
+                        'get_transaction_log': {'cost': 10},  # 1 request per second
+                        'get_trigger_order_history': {'cost': 1},
+                        'get_user_locks': {'cost': 1},
+                        'get_user_trades_by_currency': {'cost': 1},
+                        'get_user_trades_by_currency_and_time': {'cost': 1},
+                        'get_user_trades_by_instrument': {'cost': 1},
+                        'get_user_trades_by_instrument_and_time': {'cost': 1},
+                        'get_user_trades_by_order': {'cost': 1},
+                        'invalidate_block_trade_signature': {'cost': 1},
+                        'logout': {'cost': 1},
+                        'pme/simulate': {'cost': 1},
+                        'reject_block_trade': {'cost': 1},
+                        'sell': {'cost': 1},
+                        'set_leverage': {'cost': 1},
+                        'simulate_block_trade': {'cost': 1},
+                        'simulate_portfolio': {'cost': 1},
+                        'subscribe': {'cost': 1},
+                        'submit_transfer_between_subaccounts': {'cost': 1},
+                        'unsubscribe': {'cost': 1},
+                        'unsubscribe_all': {'cost': 1},
+                        'verify_block_trade': {'cost': 1},
                     },
                 },
             },
@@ -250,45 +306,56 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
-                'exact': {},
+                'exact': {
+                    '13004': AuthenticationError,
+                },
                 'broad': {
-                    'DUPLICATE_CLIENT_ORDER_ID': DuplicateOrderId,
-                    'Order rejected': InvalidOrder,
-                    'market orders must be IoC': InvalidOrder,
-                    'tif is required': InvalidOrder,
-                    'Invalid replace order request': InvalidOrder,
-                    'Unauthorized': PermissionDenied,
-                    'invalid result_limit': BadRequest,
-                    'is a required field': BadRequest,
-                    'Not Found': BadRequest,
-                    'ip not allowed': AuthenticationError,
-                    'cbe spot routing instrument not supported': NotSupported,
+                    'invalid_credentials': AuthenticationError,
                 },
             },
             'timeframes': {
-                '1m': 'ONE_MINUTE',
-                '5m': 'FIVE_MINUTE',
-                '15m': 'FIFTEEN_MINUTE',
-                '30m': 'THIRTY_MINUTE',
-                '1h': 'ONE_HOUR',
-                '2h': 'TWO_HOUR',
-                '6h': 'SIX_HOUR',
-                '1d': 'ONE_DAY',
+                '1m': '1',
+                '5m': '5',
+                '15m': '15',
+                '30m': '30',
+                '1h': '60',
+                '2h': '120',
+                '6h': '360',
+                '1d': '1D',
             },
             'options': {
+                'route': 'auto',  # deribit for native Deribit, coinbase for Coinbase, auto detects known native key formats
                 'brokerId': 'nfqkvdjp',
                 'portfolio': '',  # default portfolio id
-                'withdraw': {
-                    'method': 'v1PrivatePostTransfersWithdraw',  # use v1PrivatePostTransfersWithdrawCounterparty for counterparty withdrawals
-                },
+                'accessTokenRefreshRatio': 0.8,  # refresh the bearer token after 80% of expires_in
                 'networksById': {
-                    'ethereum': 'ERC20',
-                    'arbitrum': 'ARBITRUM',
-                    'avacchain': 'AVAX',
-                    'optimism': 'OPTIMISM',
-                    'polygon': 'MATIC',
-                    'solana': 'SOL',
-                    'bitcoin': 'BTC',
+                    'networks/algorand-mainnet': 'ALGO',
+                    'networks/aptos-mainnet': 'APT',
+                    'networks/arbitrum-mainnet': 'ARBITRUM',
+                    'networks/avacchain-mainnet': 'AVAX',
+                    'networks/base-mainnet': 'BASE',
+                    'networks/bitcoin-mainnet': 'BTC',
+                    'networks/bitcoincash-mainnet': 'BCH',
+                    'networks/bittensor-mainnet': 'TAO',
+                    'networks/bsc-mainnet': 'BSC',
+                    'networks/cardano-mainnet': 'ADA',
+                    'networks/cosmos-mainnet': 'ATOM',
+                    'networks/dfinity-mainnet': 'ICP',
+                    'networks/doge-mainnet': 'DOGE',
+                    'networks/ethereum-mainnet': 'ETH',
+                    'networks/filecoin-mainnet': 'FIL',
+                    'networks/hedera-mainnet': 'HBAR',
+                    'networks/hyperliquid-mainnet': 'HYPE',
+                    'networks/litecoin-mainnet': 'LTC',
+                    'networks/near-mainnet': 'NEAR',
+                    'networks/optimism-mainnet': 'OPTIMISM',
+                    'networks/polkadot-mainnet': 'DOT',
+                    'networks/polygon-mainnet': 'MATIC',
+                    'networks/ripple-mainnet': 'XRP',
+                    'networks/solana-mainnet': 'SOL',
+                    'networks/stellar-mainnet': 'XLM',
+                    'networks/sui-mainnet': 'SUI',
+                    'networks/vechain-mainnet': 'VET',
                 },
             },
             'features': {
@@ -301,7 +368,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                         'triggerDirection': True,
                         'stopLossPrice': False,  # todo implementation
                         'takeProfitPrice': False,  # todo implementation
-                        'attachedStopLossTakeProfit': None,
+                        'attachedStopLossTakeProfit': None,  # todo implementation
                         'timeInForce': {
                             'IOC': True,
                             'FOK': True,
@@ -313,17 +380,17 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                         'trailing': False,
                         'leverage': False,
                         'marketBuyByCost': False,
-                        'marketBuyRequiresPrice': True,
-                        'selfTradePrevention': True,  # todo: implement
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
                         'iceberg': False,
                     },
                     'createOrders': None,
                     'fetchMyTrades': {
                         'marginMode': False,
-                        'limit': 100,
+                        'limit': None,
                         'daysBack': None,
                         'untilDays': 10000,
-                        'symbolRequired': False,
+                        'symbolRequired': True,
                     },
                     'fetchOrder': {
                         'marginMode': False,
@@ -356,167 +423,471 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                     },
                 },
                 'future': {
-                    'linear': None,
-                    'inverse': None,
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+                'option': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
                 },
             },
         })
 
-    def handle_portfolio_and_params(self, methodName: str, params: dict = {}) -> list:
-        portfolio, paramsPortfolio = self.handle_option_string_and_params(params, methodName, 'portfolio')
-        if (portfolio is not None) and (portfolio != ''):
-            return [portfolio, paramsPortfolio]
-        defaultPortfolio = self.safe_string(self.options, 'portfolio')
-        if (defaultPortfolio is not None) and (defaultPortfolio != ''):
-            return [defaultPortfolio, paramsPortfolio]
-        accounts = self.fetch_accounts()
-        for i in range(0, len(accounts)):
-            account = self.safe_dict(accounts, i)
-            info = self.safe_dict(account, 'info', {})
-            if self.safe_bool(info, 'is_default', False):
-                portfolioId = self.safe_string(info, 'portfolio_id')
-                self.options['portfolio'] = portfolioId
-                return [portfolioId, paramsPortfolio]
-        raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a portfolio parameter or set the default portfolio with self.options["portfolio"]')
-
-    def handle_network_id_and_params(self, currencyCode: str, methodName: str, params: dict = {}) -> list:
-        networkIdOption, paramsNetworkArnId = self.handle_option_string_and_params(params, methodName, 'network_arn_id')
-        networkId = networkIdOption
-        if networkId is None:
-            self.load_currency_networks(currencyCode)
-            networks = self.currencies[currencyCode]['networks']
-            network = self.safe_string_2(paramsNetworkArnId, 'networkCode', 'network')
-            if network is None:
-                # find default network
-                if self.is_empty(networks):
-                    raise BadRequest(self.id + ' createDepositAddress network not found for currency ' + currencyCode + ' please specify networkId in params')
-                defaultNetwork = self.find_default_network(networks)
-                networkId = defaultNetwork['id']
-            else:
-                networkId = self.network_code_to_id(network, currencyCode)
-        return [networkId, paramsNetworkArnId]
-
-    def fetch_accounts(self, params: dict = {}) -> list[Account]:
+    def fetch_time(self, params: dict = {}) -> Int:
         """
-        fetch all the accounts associated with a profile
+        fetches the current integer timestamp in milliseconds from the exchange server
 
-        https://docs.cloud.coinbase.com/intx/reference/getportfolios
+        https://docs.cdp.coinbase.com/api-reference/supporting/public-get_time
+        https://docs.deribit.com/api-reference/supporting/public-get_time
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `account structures <https://docs.ccxt.com/?id=account-structure>` indexed by the account type
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :returns int: the current integer timestamp in milliseconds from the exchange server
         """
-        if self.markets is None:
-            self.load_markets()
-        response = self.v1PrivateGetPortfolios(params)
+        paramsResolved = self.handle_route_and_params('fetchTime', params)
+        response = self.publicGetGetTime(paramsResolved)
         #
-        #    [
-        #        {
-        #           "portfolio_id":"1ap32qsc-1-0",
-        #           "portfolio_uuid":"028d7f6c-b92c-7361-8b7e-2932711e5a22",
-        #           "name":"CCXT Portfolio 030624-17:16",
-        #           "user_uuid":"e6cf46b6-a32f-5fa7-addb-3324d4526fbd",
-        #           "maker_fee_rate":"0",
-        #           "taker_fee_rate":"0.0002",
-        #           "trading_lock":false,
-        #           "borrow_disabled":false,
-        #           "is_lsp":false,
-        #           "is_default":true,
-        #           "cross_collateral_enabled":false
-        #        }
-        #    ]
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "result": 1788865676744,
+        #         "usIn": 1788865676744468,
+        #         "usOut": 1788865676744569,
+        #         "usDiff": 101,
+        #         "testnet": false
+        #     }
         #
-        return self.parse_accounts(response, params)
+        timestamp = self.safe_integer(response, 'result')
+        return timestamp
 
-    def parse_account(self, account: dict) -> Account:
+    def fetch_markets(self, params: dict = {}) -> list[Market]:
+        """
+        retrieves data on all markets for coinbaseinternational
+
+        https://docs.cdp.coinbase.com/api-reference/market-data/public-get_instruments
+        https://docs.deribit.com/api-reference/market-data/public-get_instruments
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :param str [params.currency]: settlement currency filter, defaults to any on Deribit
+        :returns dict[]: an array of objects representing market data
+        """
+        paramsResolved = self.handle_route_and_params('fetchMarkets', params)
+        request = {}
+        if self.is_native_deribit_credentials():
+            request['currency'] = 'any'
+        response = self.publicGetGetInstruments(self.extend(request, paramsResolved))
         #
-        #    {
-        #       "portfolio_id":"1ap32qsc-1-0",
-        #       "portfolio_uuid":"028d7f6c-b92c-7361-8b7e-2932711e5a22",
-        #       "name":"CCXT Portfolio 030624-17:16",
-        #       "user_uuid":"e6cf46b6-a32f-5fa7-addb-3324d4526fbd",
-        #       "maker_fee_rate":"0",
-        #       "taker_fee_rate":"0.0002",
-        #       "trading_lock":false,
-        #       "borrow_disabled":false,
-        #       "is_lsp":false,
-        #       "is_default":true,
-        #       "cross_collateral_enabled":false
-        #    }
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "id": 1788770469,
+        #         "result": [
+        #             {
+        #                 "block_trade_tick_size": 0.01,
+        #                 "lot_size": 100,
+        #                 "settlement_currency": "USDC",
+        #                 "index_id": 34000004,
+        #                 "creation_timestamp": 1786804445000,
+        #                 "state": "open",
+        #                 "max_liquidation_commission": 0.01,
+        #                 "base_currency_uuid": "b1646860-6b23-5f7d-a506-cba0902f0ca9",
+        #                 "taker_commission": 3.5e-4,
+        #                 "base_currency": "AAVE",
+        #                 "kind": "future",
+        #                 "underlying_type": "crypto",
+        #                 "instrument_id": 675320,
+        #                 "is_active": true,
+        #                 "instrument_type": "linear",
+        #                 "future_type": "linear",
+        #                 "expiration_timestamp": 32503708800000,
+        #                 "max_leverage": 50,
+        #                 "counter_currency": "USDC",
+        #                 "tick_size_steps": [],
+        #                 "quote_currency_uuid": "2b92315d-eab7-5bef-84fa-089a131333f5",
+        #                 "maker_commission": 1.5e-4,
+        #                 "tick_size": 0.01,
+        #                 "settlement_period": "perpetual",
+        #                 "product_group": "TIER_3",
+        #                 "block_trade_commission": 2.5e-4,
+        #                 "min_trade_amount": 0.01,
+        #                 "contract_size": 0.01,
+        #                 "price_index": "aave_usdc",
+        #                 "quote_currency": "USDC",
+        #                 "instrument_name": "AAVE_USDC-PERPETUAL",
+        #                 "max_non_default_leverage": 5.0,
+        #                 "block_trade_min_trade_amount": 200000
+        #             },
+        #             {
+        #                 "state": "open",
+        #                 "price_index": "eth_usd",
+        #                 "kind": "option",
+        #                 "instrument_name": "ETH-25JUN27-5500-P",
+        #                 "maker_commission": 0.0003,
+        #                 "taker_commission": 0.0003,
+        #                 "instrument_type": "reversed",
+        #                 "instrument_id": 677208,
+        #                 "expiration_timestamp": 1813910400000,
+        #                 "underlying_type": "crypto",
+        #                 "product_group": "ETH",
+        #                 "creation_timestamp": 1787173020000,
+        #                 "is_active": true,
+        #                 "contract_size": 1.0,
+        #                 "tick_size": 0.0001,
+        #                 "strike": 5.5e3,
+        #                 "counter_currency": "USD",
+        #                 "option_type": "put",
+        #                 "block_trade_commission": 0.0003,
+        #                 "min_trade_amount": 1,
+        #                 "block_trade_min_trade_amount": 250,
+        #                 "block_trade_tick_size": 0.0001,
+        #                 "settlement_currency": "ETH",
+        #                 "settlement_period": "month",
+        #                 "base_currency": "ETH",
+        #                 "index_id": 2000033,
+        #                 "quote_currency": "ETH",
+        #                 "tick_size_steps": [
+        #                     {
+        #                         "tick_size": 0.0005,
+        #                         "above_price": 0.005
+        #                     }
+        #                 ],
+        #                 "lot_size": 10,
+        #                 "base_currency_uuid": "d85dce9b-5b73-5c3c-8978-522ce1d1c1b4",
+        #                 "quote_currency_uuid": "d85dce9b-5b73-5c3c-8978-522ce1d1c1b4"
+        #             }
+        #         ],
+        #         "usIn": 1788770471610519,
+        #         "usOut": 1788770471610767,
+        #         "usDiff": 248,
+        #         "testnet": false
+        #     }
         #
-        return {
-            'id': self.safe_string_2(account, 'portfolio_id', 'portfolio_uuid'),
-            'type': None,
-            'code': None,
-            'info': account,
+        instruments = self.safe_list(response, 'result', [])
+        return self.parse_markets(instruments)
+
+    def parse_market(self, market: dict) -> Market:
+        instrumentName = self.safe_string(market, 'instrument_name')
+        lowercaseId = self.safe_string_lower(market, 'instrument_name')
+        baseId = self.safe_string(market, 'base_currency')
+        quoteId = self.safe_string(market, 'counter_currency')
+        settleId = self.safe_string(market, 'settlement_currency', quoteId)
+        kind = self.safe_string(market, 'kind', '')
+        settlementPeriod = self.safe_string(market, 'settlement_period')
+        isSpot = (kind == 'spot')
+        isPerpetual = (settlementPeriod == 'perpetual')
+        isFuture = not isPerpetual and (kind.find('future') >= 0)
+        isOption = (kind.find('option') >= 0)
+        comboPosition = kind.find('combo')
+        isComboMarket = comboPosition >= 0
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        settle = self.safe_currency_code(settleId)
+        type = 'swap'
+        if isSpot:
+            type = 'spot'
+        elif isFuture:
+            type = 'future'
+        elif isOption:
+            type = 'option'
+        symbol = instrumentName
+        if not isComboMarket:
+            symbol = base + '/' + quote
+            if not isSpot:
+                symbol = symbol + ':' + settle
+        linear = None if isSpot else (settle == quote)
+        inverse = None if isSpot else (settle != quote)
+        marketSettle = None if isSpot else settle
+        marketSettleId = None if isSpot else settleId
+        minTradeAmount = self.safe_number(market, 'min_trade_amount')
+        tickSize = self.safe_number(market, 'tick_size')
+        isFutureOrOption = isFuture or isOption
+        expiry = self.safe_integer(market, 'expiration_timestamp') if isFutureOrOption else None
+        active = self.safe_bool(market, 'is_active')
+        strike = self.safe_number(market, 'strike')
+        optionType = self.safe_string(market, 'option_type')
+        if not isComboMarket and (isOption or isFuture):
+            expiryString = self.yymmdd(expiry, '')
+            symbol = symbol + '-' + expiryString
+        if not isComboMarket and isOption:
+            optionTypeLetter = 'P'
+            if optionType == 'call':
+                optionTypeLetter = 'C'
+            strikeString = self.number_to_string(strike)
+            symbol = symbol + '-' + strikeString + '-' + optionTypeLetter
+        marketStructure = {
+            'id': instrumentName,
+            'lowercaseId': lowercaseId,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': marketSettle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': marketSettleId,
+            'type': type,
+            'spot': isSpot,
+            'margin': False,
+            'swap': isPerpetual,
+            'future': isFuture,
+            'option': isOption,
+            'active': active,
+            'contract': not isSpot,
+            'linear': linear,
+            'inverse': inverse,
+            'taker': self.safe_number(market, 'taker_commission'),
+            'maker': self.safe_number(market, 'maker_commission'),
+            'contractSize': None if isSpot else self.safe_number(market, 'contract_size'),
+            'expiry': expiry,
+            'expiryDatetime': self.iso8601(expiry),
+            'strike': strike,
+            'optionType': optionType,
+            'precision': {
+                'amount': minTradeAmount,
+                'price': tickSize,
+            },
+            'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': self.safe_number(market, 'max_leverage'),
+                },
+                'amount': {
+                    'min': minTradeAmount,
+                    'max': None,
+                },
+                'price': {
+                    'min': None,
+                    'max': None,
+                },
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'info': market,
+            'created': self.safe_integer(market, 'creation_timestamp'),
         }
+        parsedMarket = self.safe_market_structure(marketStructure)
+        return parsedMarket
+
+    def fetch_currencies(self, params: dict = {}) -> Currencies:
+        """
+        fetches all available currencies on an exchange
+
+        https://docs.cdp.coinbase.com/api-reference/market-data/public-get_currencies
+        https://docs.deribit.com/api-reference/market-data/public-get_currencies
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :returns dict: an associative dictionary of currencies
+        """
+        paramsResolved = self.handle_route_and_params('fetchCurrencies', params)
+        response = self.publicGetGetCurrencies(paramsResolved)
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "result": [
+        #             {
+        #                 "decimals": 6,
+        #                 "currency": "AAVE",
+        #                 "apr": 0.0,
+        #                 "min_withdrawal_fee": 0.0,
+        #                 "withdrawal_fee": 0.0,
+        #                 "coin_type": "AAVE",
+        #                 "withdrawal_priorities": [],
+        #                 "network_fee": 0.0,
+        #                 "coinbase_networks": [
+        #                     {
+        #                         "display_name": "Ethereum",
+        #                         "resource_name": "networks/ethereum-mainnet"
+        #                     }
+        #                 ],
+        #                 "network_currency": "AAVE",
+        #                 "min_confirmations": 0,
+        #                 "currency_long": "Aave",
+        #                 "in_cross_collateral_pool": false,
+        #                 "onchain_operations_precision": 6,
+        #                 "currency_uuid": "b1646860-6b23-5f7d-a506-cba0902f0ca9"
+        #             }
+        #         ],
+        #         "usIn": 1788866173661805,
+        #         "usOut": 1788866173664998,
+        #         "usDiff": 3193,
+        #         "testnet": false
+        #     }
+        #
+        currencies = self.safe_list(response, 'result', [])
+        return self.parse_currencies(currencies)
+
+    def parse_currency(self, currency: dict) -> CurrencyInterface:
+        #
+        #     {
+        #         "decimals": 6,
+        #         "currency": "AAVE",
+        #         "apr": 0.0,
+        #         "min_withdrawal_fee": 0.0,
+        #         "withdrawal_fee": 0.0,
+        #         "coin_type": "AAVE",
+        #         "withdrawal_priorities": [],
+        #         "network_fee": 0.0,
+        #         "coinbase_networks": [
+        #             {
+        #                 "display_name": "Ethereum",
+        #                 "resource_name": "networks/ethereum-mainnet"
+        #             }
+        #         ],
+        #         "network_currency": "AAVE",
+        #         "min_confirmations": 0,
+        #         "currency_long": "Aave",
+        #         "in_cross_collateral_pool": false,
+        #         "onchain_operations_precision": 6,
+        #         "currency_uuid": "b1646860-6b23-5f7d-a506-cba0902f0ca9"
+        #     }
+        #
+        currencyId = self.safe_string(currency, 'currency')
+        code = self.safe_currency_code(currencyId)
+        decimals = self.safe_string_2(currency, 'onchain_operations_precision', 'decimals')
+        precision = self.parse_number(self.parse_precision(decimals))
+        networkFee = self.safe_number(currency, 'network_fee')
+        withdrawalFee = self.safe_number(currency, 'withdrawal_fee')
+        rawNetworks = self.safe_list(currency, 'coinbase_networks', [])
+        networks = {}
+        for i in range(0, len(rawNetworks)):
+            rawNetwork = rawNetworks[i]
+            networkId = self.safe_string(rawNetwork, 'resource_name')
+            network = self.network_id_to_code(networkId, code)
+            if network is not None:
+                networks[network] = self.safe_network({
+                    'info': rawNetwork,
+                    'id': networkId,
+                    'name': self.safe_string(rawNetwork, 'display_name'),
+                    'network': network,
+                    'active': None,
+                    'deposit': None,
+                    'withdraw': None,
+                    'precision': precision,
+                    'fee': networkFee,
+                    'limits': {
+                        'withdraw': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'deposit': {
+                            'min': None,
+                            'max': None,
+                        },
+                    },
+                })
+        return self.safe_currency_structure({
+            'id': currencyId,
+            'name': self.safe_string(currency, 'currency_long'),
+            'code': code,
+            'precision': precision,
+            'info': currency,
+            'active': None,
+            'deposit': None,
+            'withdraw': None,
+            'networks': networks,
+            'fee': withdrawalFee,
+            'fees': {
+                'withdraw': withdrawalFee,
+            },
+            'limits': {
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+                'deposit': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+        })
 
     def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = 100, params: dict = {}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
-        https://docs.cdp.coinbase.com/intx/reference/getinstrumentcandles
+        https://docs.cdp.coinbase.com/api-reference/market-data/public-get_tradingview_chart_data
+        https://docs.deribit.com/api-reference/market-data/public-get_tradingview_chart_data
 
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch, default 100 max 10000
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
+        paramsResolved = self.handle_route_and_params('fetchOHLCV', params)
         if self.markets is None:
             self.load_markets()
-        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
+        paginate, paramsPaginate = self.handle_option_bool_and_params(paramsResolved, 'fetchOHLCV', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 10000)
         market = self.market(symbol)
         request = {
-            'instrument': market['id'],
-            'granularity': self.safe_string(self.timeframes, timeframe, timeframe),
+            'instrument_name': market['id'],
+            'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
         }
+        marketInfo = self.safe_dict(market, 'info', {})
+        if self.is_native_deribit_credentials() and self.safe_bool_2(marketInfo, 'is_cbe_routed', 'is_csr', False):
+            raise NotSupported(self.id + ' fetchOHLCV() is not supported for Coinbase-routed Deribit spot instruments')
+        limitResolved = limit
         duration = self.parse_timeframe(timeframe)
-        if since is not None:
-            request['start'] = self.iso8601(since)
-        else:
-            limitResolved = limit
+        now = self.milliseconds()
+        if since is None:
             if limitResolved is None:
-                limitResolved = 300  # the default of api
-            sinceResolved = self.sum(self.milliseconds(), -limitResolved * duration * 1000)
-            request['start'] = self.iso8601(sinceResolved)
-        unitl = self.safe_integer(paramsPaginate, 'until')
-        if unitl is not None:
-            request['end'] = self.iso8601(unitl)
-        paramsOmitted = self.omit(paramsPaginate, 'until') if (unitl is not None) else paramsPaginate
-        response = self.v1PublicGetInstrumentsInstrumentCandles(self.extend(request, paramsOmitted))
+                limitResolved = 100
+            request['start_timestamp'] = self.sum(now, -limitResolved * duration * 1000)
+            request['end_timestamp'] = now
+        else:
+            sinceResolved = max(since - 1, 0)
+            request['start_timestamp'] = sinceResolved
+            if limitResolved is None:
+                request['end_timestamp'] = now
+            else:
+                request['end_timestamp'] = self.sum(sinceResolved, limitResolved * duration * 1000)
+        until = self.safe_integer(paramsPaginate, 'until')
+        if until is not None:
+            request['end_timestamp'] = until
+        paramsOmitted = self.omit(paramsPaginate, 'until') if (until is not None) else paramsPaginate
+        response = self.publicGetGetTradingviewChartData(self.extend(request, paramsOmitted))
         #
-        #   {
-        #       "aggregations": [
-        #         {
-        #           "start": "2024-04-23T00:00:00Z",
-        #           "open": "62884.4",
-        #           "high": "64710.6",
-        #           "low": "62884.4",
-        #           "close": "63508.4",
-        #           "volume": "3253.9983"
-        #         }
-        #       ]
-        #   }
+        #     {
+        #         "usOut": 1788853501919338,
+        #         "usIn": 1788853501916627,
+        #         "usDiff": 2711,
+        #         "testnet": false,
+        #         "result": {
+        #             "volume": [0.0001, 0.0168, 0],
+        #             "ticks": [1788853380000, 1788853440000, 1788853500000],
+        #             "status": "ok",
+        #             "open": [78494.0, 78444.0, 78441.0],
+        #             "low": [ 78494.0, 78441.0, 78441.0],
+        #             "high": [78494.0, 78444.0, 78441.0],
+        #             "cost": [7.8494, 1317.8151, 0],
+        #             "close": [78494.0, 78441.0, 78441.0]
+        #         },
+        #         "jsonrpc": "2.0"
+        #     }
         #
-        candles = self.safe_list(response, 'aggregations', [])
+        result = self.safe_dict(response, 'result', {})
+        candles = self.convert_trading_view_to_ohlcv(result, 'ticks', 'open', 'high', 'low', 'close', 'volume', True)
         return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
-        #
-        #   {
-        #     "start": "2024-04-23T00:00:00Z",
-        #     "open": "62884.4",
-        #     "high": "64710.6",
-        #     "low": "62884.4",
-        #     "close": "63508.4",
-        #     "volume": "3253.9983"
-        #   }
-        #
+        isArray = isinstance(ohlcv, list)
+        if isArray:
+            return ohlcv
         return [
             self.parse8601(self.safe_string_2(ohlcv, 'start', 'time')),
             self.safe_number(ohlcv, 'open'),
@@ -530,53 +901,69 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         """
         fetches historical funding rate prices
 
-        https://docs.cloud.coinbase.com/intx/reference/getinstrumentfunding
+        https://docs.cdp.coinbase.com/api-reference/market-data/public-get_funding_rate_history
+        https://docs.deribit.com/api-reference/market-data/public-get_funding_rate_history
 
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
         :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>` to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :param int [params.until]: timestamp in ms of the latest funding rate
+        :param boolean [params.paginate]: native Deribit automatic pagination is not supported
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>`
         """
+        paramsResolved = self.handle_route_and_params('fetchFundingRateHistory', params)
+        paramsPaginate = paramsResolved
+        if self.is_native_deribit_credentials():
+            paginate, paramsFinal = self.handle_option_bool_and_params(paramsResolved, 'fetchFundingRateHistory', 'paginate', False)
+            if paginate:
+                raise NotSupported(self.id + ' fetchFundingRateHistory() automatic pagination is not implemented; use since and params.until')
+            paramsPaginate = paramsFinal
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         if self.markets is None:
             self.load_markets()
-        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
-        maxEntriesPerRequest = 100
-        maxEntriesPerRequestOption, paramsMaxEntriesPerRequest = self.handle_option_integer_and_params(paramsPaginate, 'fetchFundingRateHistory', 'maxEntriesPerRequest', maxEntriesPerRequest)
-        pageKey = 'ccxtPageKey'
-        if paginate:
-            return self.fetch_paginated_call_incremental('fetchFundingRateHistory', symbol, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequestOption)
         market = self.market(symbol)
-        page = self.safe_integer(paramsMaxEntriesPerRequest, pageKey, 1) - 1
-        offSet = self.safe_integer_2(paramsMaxEntriesPerRequest, 'offset', 'result_offset', page * maxEntriesPerRequestOption)
+        duration = self.parse_timeframe('1h') * 1000
+        now = self.milliseconds()
+        sinceResolved = since
+        if sinceResolved is None:
+            sinceResolved = now - (30 * 24 * 60 * 60 * 1000)
         request = {
-            'instrument': market['id'],
-            'result_offset': offSet,
+            'instrument_name': market['id'],
+            'start_timestamp': sinceResolved,
+            'end_timestamp': now,
         }
         if limit is not None:
-            request['result_limit'] = limit
-        response = self.v1PublicGetInstrumentsInstrumentFunding(self.extend(request, paramsMaxEntriesPerRequest))
+            endTimestamp = self.sum(sinceResolved, limit * duration)
+            request['end_timestamp'] = endTimestamp
+        until = self.safe_integer(paramsPaginate, 'until')
+        if until is not None:
+            request['end_timestamp'] = until
+        paramsOmitted = paramsPaginate
+        if (until is not None) or self.is_native_deribit_credentials():
+            paramsOmitted = self.omit(paramsPaginate, 'until')
+        response = self.publicGetGetFundingRateHistory(self.extend(request, paramsOmitted))
         #
-        #    {
-        #        "pagination":{
-        #           "result_limit":"25",
-        #           "result_offset":"0"
-        #        },
-        #        "results":[
-        #           {
-        #              "instrument_id":"149264167780483072",
-        #              "funding_rate":"0.000011",
-        #              "mark_price":"47388.1",
-        #              "event_time":"2024-02-10T16:00:00Z"
-        #           },
-        #           ...
-        #        ]
-        #    }
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "result": [
+        #             {
+        #                 "timestamp": 1786269600000,
+        #                 "index_price": 64832.34,
+        #                 "interest_8h": 0.0,
+        #                 "interest_1h": 0.0,
+        #                 "prev_index_price": 64773.05
+        #             },
+        #         ],
+        #         "usIn": 1788858185989192,
+        #         "usOut": 1788858185991663,
+        #         "usDiff": 2471,
+        #         "testnet": false
+        #     }
         #
-        rawRates = self.safe_list(response, 'results', [])
+        rawRates = self.safe_list(response, 'result', [])
         return self.parse_funding_rate_histories(rawRates, market, since, limit)
 
     def parse_funding_rate_history(self, info: object, market: Market = None) -> FundingRateHistory:
@@ -591,26 +978,29 @@ class coinbaseinternational(Exchange, ImplicitAPI):
 
     def parse_funding_rate(self, contract: object, market: Market = None):
         #
-        #    {
-        #       "instrument_id":"149264167780483072",
-        #       "funding_rate":"0.000011",
-        #       "mark_price":"47388.1",
-        #       "event_time":"2024-02-10T16:00:00Z"
-        #    }
+        # fetchFundingRateHistory
         #
-        fundingDatetime = self.safe_string_2(contract, 'event_time', 'time')
+        #     {
+        #         "timestamp": 1786269600000,
+        #         "index_price": 64832.34,
+        #         "interest_8h": 0.0,
+        #         "interest_1h": 0.0,
+        #         "prev_index_price": 64773.05
+        #     }
+        #
+        timestamp = self.safe_integer(contract, 'timestamp')
         return {
             'info': contract,
             'symbol': self.safe_symbol(None, market),
-            'markPrice': self.safe_number(contract, 'mark_price'),
-            'indexPrice': None,
+            'markPrice': None,
+            'indexPrice': self.safe_number(contract, 'index_price'),
             'interestRate': None,
             'estimatedSettlePrice': None,
-            'timestamp': self.parse8601(fundingDatetime),
-            'datetime': fundingDatetime,
-            'fundingRate': self.safe_number(contract, 'funding_rate'),
-            'fundingTimestamp': self.parse8601(fundingDatetime),
-            'fundingDatetime': fundingDatetime,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'fundingRate': self.safe_number(contract, 'interest_8h'),
+            'fundingTimestamp': timestamp,
+            'fundingDatetime': self.iso8601(timestamp),
             'nextFundingRate': None,
             'nextFundingTimestamp': None,
             'nextFundingDatetime': None,
@@ -619,479 +1009,776 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             'previousFundingDatetime': None,
         }
 
-    def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingHistory]:
+    def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
-        fetch the history of funding payments paid and received on self account
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
-        https://docs.cdp.coinbase.com/intx/reference/gettransfers
+        https://docs.cdp.coinbase.com/api-reference/market-data/public-ticker
+        https://docs.deribit.com/api-reference/market-data/public-ticker
 
-        :param str [symbol]: unified market symbol
-        :param int [since]: the earliest time in ms to fetch funding history for
-        :param int [limit]: the maximum number of funding history structures to retrieve
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `funding history structure <https://docs.ccxt.com/?id=funding-history-structure>`
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
+        paramsResolved = self.handle_route_and_params('fetchTickers', params)
         if self.markets is None:
             self.load_markets()
-        request = {
-            'type': 'FUNDING',
-        }
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-        portfolios, paramsPortfolios = self.handle_option_string_and_params(params, 'fetchFundingHistory', 'portfolios')
-        if portfolios is not None:
-            request['portfolios'] = portfolios
-        if since is not None:
-            request['time_from'] = self.iso8601(since)
-        if limit is not None:
-            request['result_limit'] = limit
-        else:
-            request['result_limit'] = 100
-        response = self.v1PrivateGetTransfers(self.extend(request, paramsPortfolios))
-        fundings = self.safe_list(response, 'results', [])
-        return self.parse_incomes(fundings, market, since, limit)
+        symbolsResolved = self.market_symbols(symbols)
+        if symbolsResolved is None:
+            raise ArgumentsRequired(self.id + ' fetchTickers() requires a symbols argument')
+        tickers = {}
+        for i in range(0, len(symbolsResolved)):
+            symbol = self.safe_string(symbolsResolved, i)
+            if symbol is None:
+                continue
+            ticker = self.fetch_ticker(symbol, paramsResolved)
+            tickers[symbol] = ticker
+        return self.filter_by_array_tickers(tickers, 'symbol', symbolsResolved)
 
-    def parse_income(self, income: dict, market: Market = None) -> object:
+    def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+        https://docs.cdp.coinbase.com/api-reference/market-data/public-ticker
+        https://docs.deribit.com/api-reference/market-data/public-ticker
+
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        paramsResolved = self.handle_route_and_params('fetchTicker', params)
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'instrument_name': market['id'],
+        }
+        response = self.publicGetTicker(self.extend(request, paramsResolved))
         #
-        # {
-        #     "amount":"0.0008",
-        #     "asset":"USDC",
-        #     "created_at":"2024-02-22T16:00:00Z",
-        #     "from_portfolio":{
-        #        "id":"13yuk1fs-1-0",
-        #        "name":"Eng Test Portfolio - 2",
-        #        "uuid":"018712f2-5ff9-7de3-9010-xxxxxxxxx"
-        #     },
-        #     "instrument_id":"149264164756389888",
-        #     "instrument_symbol":"ETH-PERP",
-        #     "position_id":"1xy4v51m-1-2",
-        #     "status":"PROCESSED",
-        #     "to_portfolio":{
-        #        "name":"CB_FUND"
-        #     },
-        #     "transfer_type":"FUNDING",
-        #     "transfer_uuid":"a6b708df-2c44-32c5-bb98-xxxxxxxxxx",
-        #     "updated_at":"2024-02-22T16:00:00Z"
-        # }
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "id": 1788867257,
+        #         "result": {
+        #             "timestamp": 1788867258984,
+        #             "state": "open",
+        #             "stats": {
+        #                 "high": 79695.0,
+        #                 "low": 78184.0,
+        #                 "price_change": -1.2347,
+        #                 "volume": 15.0492,
+        #                 "volume_usd": 1188223.3,
+        #                 "volume_notional": 1188367.9964
+        #             },
+        #             "index_price": 78451.93,
+        #             "instrument_name": "BTC_USDC",
+        #             "last_price": 78469.0,
+        #             "min_price": 76882.0,
+        #             "max_price": 80021.0,
+        #             "mark_price": 78451.93,
+        #             "best_ask_price": 78493.0,
+        #             "best_bid_price": 78465.0,
+        #             "best_ask_amount": 0.0004,
+        #             "best_bid_amount": 0.001
+        #         },
+        #         "usIn": 1788867259058846,
+        #         "usOut": 1788867259060040,
+        #         "usDiff": 1194,
+        #         "testnet": false
+        #     }
         #
-        marketId = self.safe_string(income, 'symbol')
-        marketResolved = self.safe_market(marketId, market, None, 'contract')
-        datetime = self.safe_integer(income, 'created_at')
-        timestamp = self.parse8601(datetime)
-        currencyId = self.safe_string(income, 'asset')
-        code = self.safe_currency_code(currencyId)
-        return {
-            'info': income,
-            'symbol': marketResolved['symbol'],
-            'code': code,
+        ticker = self.safe_dict(response, 'result', {})
+        return self.parse_ticker(ticker, market)
+
+    def parse_ticker(self, ticker: object, market: Market = None) -> Ticker:
+        #
+        #     {
+        #         "timestamp": 1788867258984,
+        #         "state": "open",
+        #         "stats": {
+        #             "high": 79695.0,
+        #             "low": 78184.0,
+        #             "price_change": -1.2347,
+        #             "volume": 15.0492,
+        #             "volume_usd": 1188223.3,
+        #             "volume_notional": 1188367.9964
+        #         },
+        #         "index_price": 78451.93,
+        #         "instrument_name": "BTC_USDC",
+        #         "last_price": 78469.0,
+        #         "min_price": 76882.0,
+        #         "max_price": 80021.0,
+        #         "mark_price": 78451.93,
+        #         "best_ask_price": 78493.0,
+        #         "best_bid_price": 78465.0,
+        #         "best_ask_amount": 0.0004,
+        #         "best_bid_amount": 0.001
+        #     }
+        #
+        timestamp = self.safe_integer(ticker, 'timestamp')
+        stats = self.safe_dict(ticker, 'stats', {})
+        last = self.safe_number(ticker, 'last_price')
+        marketId = self.safe_string(ticker, 'instrument_name')
+        quoteVolume = self.safe_number(stats, 'volume_notional')
+        if self.is_native_deribit_credentials():
+            quoteVolume = self.safe_number_2(stats, 'volume_notional', 'volume_usd')
+        return self.safe_ticker({
+            'info': ticker,
+            'symbol': self.safe_symbol(marketId, market),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'id': self.safe_string(income, 'transfer_uuid'),
-            'amount': self.safe_number(income, 'amount'),
-            'rate': None,
+            'bid': self.safe_number(ticker, 'best_bid_price'),
+            'bidVolume': self.safe_number(ticker, 'best_bid_amount'),
+            'ask': self.safe_number(ticker, 'best_ask_price'),
+            'askVolume': self.safe_number(ticker, 'best_ask_amount'),
+            'high': self.safe_number(stats, 'high'),
+            'low': self.safe_number(stats, 'low'),
+            'open': None,
+            'close': last,
+            'last': last,
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'vwap': None,
+            'baseVolume': self.safe_number(stats, 'volume'),
+            'quoteVolume': quoteVolume,
+            'previousClose': None,
+            'markPrice': self.safe_number(ticker, 'mark_price'),
+            'indexPrice': self.safe_number(ticker, 'index_price'),
+        })
+
+    def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}):
+        """
+        fetches a market order book
+
+        https://docs.cdp.coinbase.com/api-reference/market-data/public-get_order_book
+        https://docs.deribit.com/api-reference/market-data/public-get_order_book
+
+        :param str symbol: unified market symbol
+        :param int [limit]: the maximum number of bids and asks to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
+        """
+        paramsResolved = self.handle_route_and_params('fetchOrderBook', params)
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'instrument_name': market['id'],
         }
+        if limit is not None:
+            request['depth'] = limit
+            if self.is_native_deribit_credentials():
+                depths = [1, 5, 10, 20, 50, 100, 1000, 10000]
+                if (limit < 1) or (limit > 10000):
+                    raise BadRequest(self.id + ' fetchOrderBook() limit must be between 1 and 10000')
+                for i in range(0, len(depths)):
+                    if limit <= depths[i]:
+                        request['depth'] = depths[i]
+                        break
+        response = self.publicGetGetOrderBook(self.extend(request, paramsResolved))
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "result": {
+        #             "timestamp": 1788868357984,
+        #             "state": "open",
+        #             "stats": {
+        #                 "high": 79695.0,
+        #                 "low": 78184.0,
+        #                 "price_change": -1.2564,
+        #                 "volume": 15.14,
+        #                 "volume_usd": 1195335.73,
+        #                 "volume_notional": 1195481.8941
+        #             },
+        #             "change_id": 9047601566,
+        #             "index_price": 78375.89,
+        #             "instrument_name": "BTC_USDC",
+        #             "bids": [
+        #                 [78376.0, 0.0037],
+        #                 [78373.0, 0.04],
+        #                 [78369.0, 0.0006],
+        #                 [78361.0, 0.001],
+        #                 [78355.0, 0.001]
+        #             ],
+        #             "asks": [
+        #                 [78419.0, 0.0015],
+        #                 [78421.0, 0.0405],
+        #                 [78431.0, 0.0008],
+        #                 [78432.0, 0.0001],
+        #                 [78433.0, 0.009]
+        #             ],
+        #             "last_price": 78436.0,
+        #             "min_price": 76808.0,
+        #             "max_price": 79944.0,
+        #             "mark_price": 78375.89,
+        #             "best_ask_price": 78419.0,
+        #             "best_bid_price": 78376.0,
+        #             "best_ask_amount": 0.0015,
+        #             "best_bid_amount": 0.0037
+        #         },
+        #         "usIn": 1788868358451540,
+        #         "usOut": 1788868358451883,
+        #         "usDiff": 343,
+        #         "testnet": false
+        #     }
+        #
+        result = self.safe_dict(response, 'result', {})
+        timestamp = self.safe_integer(result, 'timestamp')
+        return self.parse_order_book(result, market['symbol'], timestamp)
+
+    def fetch_balance(self, params: dict = {}) -> Balances:
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+
+        https://docs.cdp.coinbase.com/api-reference/account-management/private-get_account_summaries
+        https://docs.deribit.com/api-reference/account-management/private-get_account_summaries
+        https://docs.deribit.com/api-reference/account-management/private-get_account_summary
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :param str [params.code]: unified currency code for a native Deribit single account summary
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
+        """
+        paramsResolved = self.handle_route_and_params('fetchBalance', params)
+        if self.markets is None:
+            self.load_markets()
+        self.authenticate_v2()
+        code = self.safe_string(paramsResolved, 'code')
+        paramsOmitted = paramsResolved
+        if self.is_native_deribit_credentials():
+            paramsOmitted = self.omit(paramsResolved, 'code')
+        response = None
+        if self.is_native_deribit_credentials() and (code is not None):
+            request = {'currency': self.currency_id(code)}
+            response = self.privateGetGetAccountSummary(self.extend(request, paramsOmitted))
+        else:
+            response = self.privateGetGetAccountSummaries(paramsOmitted)
+        #
+        # {
+        #     "id": 2515,
+        #     "jsonrpc": "2.0",
+        #     "result": {
+        #         "block_rfq_self_match_prevention": true,
+        #         "creation_timestamp": 1687352432143,
+        #         "email": "user@example.com",
+        #         "id": 10,
+        #         "interuser_transfers_enabled": false,
+        #         "login_enabled": false,
+        #         "mmp_enabled": false,
+        #         "referrer_id": null,
+        #         "security_keys_enabled": false,
+        #         "self_trading_extended_to_subaccounts": false,
+        #         "self_trading_reject_mode": "cancel_maker",
+        #         "summaries": [
+        #         {
+        #             "available_funds": 301.38059622,
+        #             "available_withdrawal_funds": 301.35396172,
+        #             "balance": 302.60065765,
+        #             "cross_collateral_enabled": false,
+        #             "currency": "BTC",
+        #             "delta_total": 31.602958,
+        #             "delta_total_map": {
+        #             "btc_usd": 31.594357699
+        #             },
+        #             "equity": 302.61869214,
+        #             "estimated_liquidation_ratio": 0.10098722,
+        #             "estimated_liquidation_ratio_map": {
+        #             "btc_usd": 0.1009872222854525
+        #             },
+        #             "fee_balance": 0,
+        #             "fees": {
+        #             "btc_usd": {
+        #                 "future": {
+        #                 "block_trade": 0.3,
+        #                 "default": {
+        #                     "maker": -0.0001,
+        #                     "taker": 0.00035000000000000005,
+        #                     "type": "fixed"
+        #                 }
+        #                 },
+        #                 "option": {
+        #                 "block_trade": 0.625,
+        #                 "default": {
+        #                     "maker": 0.625,
+        #                     "taker": 0.625,
+        #                     "type": "relative"
+        #                 }
+        #                 },
+        #                 "perpetual": {
+        #                 "block_trade": 0.3,
+        #                 "default": {
+        #                     "maker": -0.0001,
+        #                     "taker": 0.00035000000000000005,
+        #                     "type": "fixed"
+        #                 }
+        #                 }
+        #             }
+        #             },
+        #             "futures_pl": -0.32434225,
+        #             "futures_session_rpl": -0.03258105,
+        #             "futures_session_upl": 0.05921555,
+        #             "initial_margin": 1.24669592,
+        #             "limits": {
+        #             "limits_per_currency": false,
+        #             "matching_engine": {
+        #                 "cancel_all": {
+        #                 "burst": 250,
+        #                 "rate": 200
+        #                 },
+        #                 "guaranteed_quotes": {
+        #                 "burst": 2,
+        #                 "rate": 2
+        #                 },
+        #                 "max_quotes": {
+        #                 "burst": 10,
+        #                 "rate": 10
+        #                 },
+        #                 "quotes": {
+        #                 "burst": 500,
+        #                 "rate": 500
+        #                 },
+        #                 "spot": {
+        #                 "burst": 250,
+        #                 "rate": 200
+        #                 },
+        #                 "trading": {
+        #                 "total": {
+        #                     "burst": 250,
+        #                     "rate": 200
+        #                 }
+        #                 }
+        #             },
+        #             "non_matching_engine": {
+        #                 "burst": 1500,
+        #                 "rate": 1000
+        #             }
+        #             },
+        #             "maintenance_margin": 0.8857841,
+        #             "margin_balance": 302.62729214,
+        #             "margin_model": "segregated_sm",
+        #             "options_delta": -1.01962,
+        #             "options_gamma": 0.00001,
+        #             "options_gamma_map": {
+        #             "btc_usd": 0.00001
+        #             },
+        #             "options_pl": -0.0065,
+        #             "options_session_rpl": 0,
+        #             "options_session_upl": -0.0065,
+        #             "options_theta": 15.97071,
+        #             "options_value": -0.0086,
+        #             "options_vega": 0.0858,
+        #             "options_vega_map": {
+        #             "btc_usd": 0.0858
+        #             },
+        #             "portfolio_margining_enabled": false,
+        #             "projected_delta_total": 32.613978,
+        #             "projected_initial_margin": 1.01529592,
+        #             "projected_maintenance_margin": 0.7543841,
+        #             "session_rpl": -0.03258105,
+        #             "session_upl": 0.05271555,
+        #             "spot_reserve": 0,
+        #             "total_pl": -0.33084225
+        #         },
+        #         {
+        #             "additional_reserve": 0,
+        #             "available_funds": 99.999598,
+        #             "available_withdrawal_funds": 99.999597,
+        #             "balance": 100,
+        #             "cross_collateral_enabled": false,
+        #             "currency": "ETH",
+        #             "delta_total": 0,
+        #             "delta_total_map": {
+        #             "eth_usd": 0
+        #             },
+        #             "equity": 100,
+        #             "estimated_liquidation_ratio": 0,
+        #             "estimated_liquidation_ratio_map": {
+        #             "eth_usd": 0
+        #             },
+        #             "fee_balance": 0,
+        #             "fees": {
+        #             "eth_usd": {
+        #                 "future": {
+        #                 "block_trade": 0.2,
+        #                 "default": {
+        #                     "maker": -0.00005,
+        #                     "taker": 0.00025,
+        #                     "type": "fixed"
+        #                 }
+        #                 },
+        #                 "option": {
+        #                 "block_trade": 0.5,
+        #                 "default": {
+        #                     "maker": 0.5,
+        #                     "taker": 0.5,
+        #                     "type": "relative"
+        #                 }
+        #                 },
+        #                 "perpetual": {
+        #                 "block_trade": 0.2,
+        #                 "default": {
+        #                     "maker": -0.00005,
+        #                     "taker": 0.00025,
+        #                     "type": "fixed"
+        #                 }
+        #                 }
+        #             }
+        #             },
+        #             "futures_pl": 0,
+        #             "futures_session_rpl": 0,
+        #             "futures_session_upl": 0,
+        #             "initial_margin": 0.000402,
+        #             "limits": {
+        #             "limits_per_currency": false,
+        #             "matching_engine": {
+        #                 "cancel_all": {
+        #                 "burst": 250,
+        #                 "rate": 200
+        #                 },
+        #                 "guaranteed_quotes": {
+        #                 "burst": 2,
+        #                 "rate": 2
+        #                 },
+        #                 "max_quotes": {
+        #                 "burst": 10,
+        #                 "rate": 10
+        #                 },
+        #                 "quotes": {
+        #                 "burst": 500,
+        #                 "rate": 500
+        #                 },
+        #                 "spot": {
+        #                 "burst": 250,
+        #                 "rate": 200
+        #                 },
+        #                 "trading": {
+        #                 "total": {
+        #                     "burst": 250,
+        #                     "rate": 200
+        #                 }
+        #                 }
+        #             },
+        #             "non_matching_engine": {
+        #                 "burst": 1500,
+        #                 "rate": 1000
+        #             }
+        #             },
+        #             "maintenance_margin": 0,
+        #             "margin_balance": 100,
+        #             "margin_model": "segregated_sm",
+        #             "options_delta": 0,
+        #             "options_gamma": 0,
+        #             "options_gamma_map": {},
+        #             "options_pl": 0,
+        #             "options_session_rpl": 0,
+        #             "options_session_upl": 0,
+        #             "options_theta": 0,
+        #             "options_theta_map": {},
+        #             "options_value": 0,
+        #             "options_vega": 0,
+        #             "options_vega_map": {},
+        #             "portfolio_margining_enabled": false,
+        #             "projected_delta_total": 0,
+        #             "projected_initial_margin": 0.0002,
+        #             "projected_maintenance_margin": 0,
+        #             "session_rpl": 0,
+        #             "session_upl": 0,
+        #             "spot_reserve": 0.0002,
+        #             "total_pl": 0
+        #         }
+        #         ],
+        #         "system_name": "user",
+        #         "type": "main",
+        #         "username": "user"
+        #     }
+        # }
+        #
+        result = self.safe_dict(response, 'result', {})
+        if not self.is_native_deribit_credentials():
+            # Account summaries are arrays; retain the gateway info shape without dropping balances.
+            summaries = self.safe_list(result, 'summaries')
+            if summaries is not None:
+                return self.parse_balance(summaries)
+            return self.parse_balance(self.safe_dict(result, 'summaries', []))
+        return self.parse_balance(result)
+
+    def parse_balance(self, response: object) -> Balances:
+        result = {
+            'info': response,
+        }
+        summaries = [response]
+        if isinstance(response, list):
+            summaries = response
+        elif self.is_native_deribit_credentials():
+            summaries = self.safe_list(response, 'summaries', [response])
+        for i in range(0, len(summaries)):
+            data = self.safe_dict(summaries, i)
+            currencyId = self.safe_string(data, 'currency')
+            currencyCode = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_string(data, 'available_funds')
+            # available_funds is max(0, margin_balance - initial_margin), so using
+            # margin_balance as total lets safeBalance derive the used collateral
+            # consistently (and avoids reporting maintenance_margin as used funds).
+            account['total'] = self.safe_string_2(data, 'margin_balance', 'equity')
+            if currencyCode is not None:
+                result[currencyCode] = account
+        return self.safe_balance(result)
 
     def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
 
-        https://docs.cdp.coinbase.com/intx/reference/gettransfers
+        https://docs.cdp.coinbase.com/api-reference/account-management/private-get_transaction_log
+        https://docs.deribit.com/api-reference/account-management/private-get_transaction_log
 
         :param str code: unified currency code of the currency transferred
         :param int [since]: the earliest time in ms to fetch transfers for
-        :param int [limit]: the maximum number of  transfers structures to retrieve
+        :param int [limit]: the maximum number of transfers structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :param int [params.until]: timestamp in ms of the latest transfer to fetch
+        :param str [params.continuation]: continuation token for pagination
         :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/?id=transfer-structure>`
         """
+        paramsResolved = self.handle_route_and_params('fetchTransfers', params)
+        if code is None:
+            raise ArgumentsRequired(self.id + ' fetchTransfers() requires a currency code argument')
         if self.markets is None:
             self.load_markets()
+        currency = self.currency(code)
+        now = self.milliseconds()
+        sinceResolved = since
+        if sinceResolved is None:
+            sinceResolved = now - (30 * 24 * 60 * 60 * 1000)
         request = {
-            'type': 'INTERNAL',
+            'currency': currency['id'],
+            'start_timestamp': sinceResolved,
+            'end_timestamp': now,
+            'query': 'transfer',
         }
-        currency = None
-        if code is not None:
-            currency = self.currency(code)
-        portfolios, paramsPortfolios = self.handle_option_string_and_params(params, 'fetchTransfers', 'portfolios')
-        if portfolios is not None:
-            request['portfolios'] = portfolios
-        if since is not None:
-            request['time_from'] = self.iso8601(since)
         if limit is not None:
-            request['result_limit'] = limit
-        else:
-            request['result_limit'] = 100
-        response = self.v1PrivateGetTransfers(self.extend(request, paramsPortfolios))
-        transfers = self.safe_list(response, 'results', [])
+            request['count'] = limit
+        until = self.safe_integer(paramsResolved, 'until')
+        if until is not None:
+            request['end_timestamp'] = until
+        paramsOmitted = self.omit(paramsResolved, 'until') if (until is not None) else paramsResolved
+        self.authenticate_v2()
+        response = self.privateGetGetTransactionLog(self.extend(request, paramsOmitted))
+        #
+        #     {
+        #         "id": 4,
+        #         "jsonrpc": "2.0",
+        #         "result": {
+        #             "continuation": 61282,
+        #             "logs": [
+        #                 {
+        #                     "balance": 3001.22270418,
+        #                     "cashflow": -2.5,
+        #                     "change": -2.5,
+        #                     "commission": 0,
+        #                     "currency": "BTC",
+        #                     "equity": 3000.9275869,
+        #                     "id": 61312,
+        #                     "info": {
+        #                         "other_user": "Subaccount",
+        #                         "other_user_id": 27,
+        #                         "transfer_type": "subaccount"
+        #                     },
+        #                     "instrument_name": null,
+        #                     "interest_pl": null,
+        #                     "order_id": null,
+        #                     "position": null,
+        #                     "price": null,
+        #                     "side": "-",
+        #                     "timestamp": 1613659830333,
+        #                     "trade_id": null,
+        #                     "type": "transfer",
+        #                     "user_id": 7,
+        #                     "user_seq": 6009,
+        #                     "username": "TestUser"
+        #                 },
+        #             ]
+        #         }
+        #     }
+        #
+        result = self.safe_dict(response, 'result', {})
+        transfers = self.safe_list(result, 'logs', [])
         return self.parse_transfers(transfers, currency, since, limit)
 
     def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
-        # {
-        #     "amount":"0.0008",
-        #     "asset":"USDC",
-        #     "created_at":"2024-02-22T16:00:00Z",
-        #     "from_portfolio":{
-        #        "id":"13yuk1fs-1-0",
-        #        "name":"Eng Test Portfolio - 2",
-        #        "uuid":"018712f2-5ff9-7de3-9010-xxxxxxxxx"
-        #     },
-        #     "instrument_id":"149264164756389888",
-        #     "instrument_symbol":"ETH-PERP",
-        #     "position_id":"1xy4v51m-1-2",
-        #     "status":"PROCESSED",
-        #     "to_portfolio":{
-        #        "name":"CB_FUND"
-        #     },
-        #     "transfer_type":"FUNDING",
-        #     "transfer_uuid":"a6b708df-2c44-32c5-bb98-xxxxxxxxxx",
-        #     "updated_at":"2024-02-22T16:00:00Z"
-        # }
+        #     {
+        #         "balance": 3001.22270418,
+        #         "cashflow": -2.5,
+        #         "change": -2.5,
+        #         "commission": 0,
+        #         "currency": "BTC",
+        #         "equity": 3000.9275869,
+        #         "id": 61312,
+        #         "info": {
+        #             "other_user": "Subaccount",
+        #             "other_user_id": 27,
+        #             "transfer_type": "subaccount"
+        #         },
+        #         "instrument_name": null,
+        #         "interest_pl": null,
+        #         "order_id": null,
+        #         "position": null,
+        #         "price": null,
+        #         "side": "-",
+        #         "timestamp": 1613659830333,
+        #         "trade_id": null,
+        #         "type": "transfer",
+        #         "user_id": 7,
+        #         "user_seq": 6009,
+        #         "username": "TestUser"
+        #     }
         #
-        datetime = self.safe_integer(transfer, 'created_at')
-        timestamp = self.parse8601(datetime)
-        currencyId = self.safe_string(transfer, 'asset')
-        code = self.safe_currency_code(currencyId)
-        fromPorfolio = self.safe_dict(transfer, 'from_portfolio', {})
-        fromId = self.safe_string(fromPorfolio, 'id')
-        toPorfolio = self.safe_dict(transfer, 'to_portfolio', {})
-        toId = self.safe_string(toPorfolio, 'id')
+        transactionTimestamp = self.safe_integer(transfer, 'timestamp')
+        currencyId = self.safe_string(transfer, 'currency')
+        info = self.safe_dict(transfer, 'info', {})
+        amount = self.safe_number(transfer, 'change')
+        fromAccount = self.safe_string(transfer, 'username')
+        toAccount = self.safe_string(info, 'other_user')
+        if self.is_native_deribit_credentials():
+            cashflow = self.safe_string_2(transfer, 'cashflow', 'change')
+            amount = self.parse_number(Precise.string_abs(cashflow))
+            if not Precise.string_lt(cashflow, '0'):
+                fromAccount = self.safe_string(info, 'other_user')
+                toAccount = self.safe_string(transfer, 'username')
         return {
             'info': transfer,
-            'id': self.safe_string(transfer, 'transfer_uuid'),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'currency': code,
-            'amount': self.safe_number(transfer, 'amount'),
-            'fromAccount': fromId,
-            'toAccount': toId,
-            'status': self.parse_transfer_status(self.safe_string(transfer, 'status')),
+            'id': self.safe_string(transfer, 'id'),
+            'timestamp': transactionTimestamp,
+            'datetime': self.iso8601(transactionTimestamp),
+            'currency': self.safe_currency_code(currencyId, currency),
+            'amount': amount,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': 'ok',
         }
-
-    def parse_transfer_status(self, status: Str) -> Str:
-        statuses = {
-            'FAILED': 'failed',
-            'PROCESSED': 'ok',
-            'NEW': 'pending',
-            'STARTED': 'pending',
-        }
-        return self.safe_string(statuses, status, status)
-
-    def create_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
-        """
-        create a currency deposit address
-
-        https://docs.cloud.coinbase.com/intx/reference/createaddress
-        https://docs.cloud.coinbase.com/intx/reference/createcounterpartyid
-
-        :param str code: unified currency code of the currency for the deposit address
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.network_arn_id]: Identifies the blockchain network(e.g., networks/ethereum-mainnet/assets/313ef8a9-ae5a-5f2f-8a56-572c0e2a4d5a) if not provided will pick default
-        :param str [params.network]: unified network code to identify the blockchain network
-        :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
-        """
-        if self.markets is None:
-            self.load_markets()
-        method, paramsMethod = self.handle_option_string_and_params(params, 'createDepositAddress', 'method', 'v1PrivatePostTransfersAddress')
-        portfolio, paramsPortfolio = self.handle_portfolio_and_params('createDepositAddress', paramsMethod)
-        requestParams = paramsPortfolio
-        request = {
-            'portfolio': portfolio,
-        }
-        if method == 'v1PrivatePostTransfersAddress':
-            currency = self.currency(code)
-            request['asset'] = currency['id']
-            networkId, paramsNetworkId = self.handle_network_id_and_params(code, 'createDepositAddress', paramsPortfolio)
-            request['network_arn_id'] = networkId
-            requestParams = paramsNetworkId
-        response = None
-        if method == 'v1PrivatePostTransfersCreateCounterpartyId':
-            response = self.v1PrivatePostTransfersCreateCounterpartyId(self.extend(request, requestParams))
-        else:
-            response = self.v1PrivatePostTransfersAddress(self.extend(request, requestParams))
-        #
-        # v1PrivatePostTransfersAddress
-        #    {
-        #        address: "3LkwYscRyh6tUR1XTqXSJQoJnK7ucC1F4n",
-        #        network_arn_id: "networks/bitcoin-mainnet/assets/6ecc0dcc-10a2-500e-b315-a3b9abae19ce",
-        #        destination_tag: "",
-        #    }
-        # v1PrivatePostTransfersCreateCounterpartyId
-        #    {
-        #        "portfolio_uuid":"018e0a8b-6b6b-70e0-9689-1e7926c2c8bc",
-        #        "counterparty_id":"CB2ZPUCZBE"
-        #    }
-        #
-        tag = self.safe_string(response, 'destination_tag')
-        address = self.safe_string_2(response, 'address', 'counterparty_id')
-        return {
-            'currency': code,
-            'tag': tag,
-            'address': address,
-            'network': None,
-            'info': response,
-        }
-
-    def find_default_network(self, networks: dict) -> dict:
-        networksArray = self.to_array(networks)
-        for i in range(0, len(networksArray)):
-            info = self.safe_dict(networksArray[i], 'info')
-            is_default = self.safe_bool(info, 'is_default', False)
-            if is_default is True:
-                return networksArray[i]
-        return networksArray[0]
-
-    def load_currency_networks(self, code: str, params: dict = {}) -> bool:
-        currency = self.currency(code)
-        networks = self.safe_dict(currency, 'networks')
-        if networks is not None:
-            return False
-        request = {
-            'asset': currency['id'],
-        }
-        rawNetworks = self.v1PublicGetAssetsAssetNetworks(request)
-        #
-        #    [
-        #        {
-        #            "asset_id":"1",
-        #            "asset_uuid":"2b92315d-eab7-5bef-84fa-089a131333f5",
-        #            "asset_name":"USDC",
-        #            "network_arn_id":"networks/ethereum-mainnet/assets/9bc140b4-69c3-5fc9-bd0d-b041bcf40039",
-        #            "min_withdrawal_amt":"1",
-        #            "max_withdrawal_amt":"100000000",
-        #            "network_confirms":35,
-        #            "processing_time":485,
-        #            "is_default":true,
-        #            "network_name":"ethereum",
-        #            "display_name":"Ethereum"
-        #        },
-        #        ....
-        #    ]
-        #
-        currency['networks'] = self.parse_networks(rawNetworks)
-        return True
-
-    def parse_networks(self, networks: list[object], params: dict = {}) -> dict:
-        result = {}
-        for i in range(0, len(networks)):
-            network = self.extend(self.parse_network(networks[i]), params)
-            result[network['network']] = network
-        return result
-
-    def parse_network(self, network: dict, params: dict = {}) -> dict:
-        #
-        #    {
-        #        "asset_id":"1",
-        #        "asset_uuid":"2b92315d-eab7-5bef-84fa-089a131333f5",
-        #        "asset_name":"USDC",
-        #        "network_arn_id":"networks/ethereum-mainnet/assets/9bc140b4-69c3-5fc9-bd0d-b041bcf40039",
-        #        "min_withdrawal_amt":"1",
-        #        "max_withdrawal_amt":"100000000",
-        #        "network_confirms":35,
-        #        "processing_time":485,
-        #        "is_default":true,
-        #        "network_name":"ethereum",
-        #        "display_name":"Ethereum"
-        #    }
-        #
-        currencyId = self.safe_string(network, 'asset_name')
-        currencyCode = self.safe_currency_code(currencyId)
-        networkId = self.safe_string(network, 'network_arn_id')
-        networkIdForCode = self.safe_string_n(network, ['network_name', 'display_name', 'network_arn_id'], '')
-        return self.safe_network({
-            'info': network,
-            'id': networkId,
-            'name': self.safe_string(network, 'display_name'),
-            'network': self.network_id_to_code(networkIdForCode, currencyCode),
-            'active': None,
-            'deposit': None,
-            'withdraw': None,
-            'precision': None,
-            'fee': None,
-            'limits': {
-                'withdraw': {
-                    'min': self.safe_number(network, 'min_withdrawal_amt'),
-                    'max': self.safe_number(network, 'max_withdrawal_amt'),
-                },
-                'deposit': {
-                    'min': None,
-                    'max': None,
-                },
-            },
-        })
-
-    def set_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
-        """
-        Either adds or reduces margin in order to set the margin to a specific value
-
-        https://docs.cloud.coinbase.com/intx/reference/setportfoliomarginoverride
-
-        :param str symbol: unified market symbol of the market to set margin in
-        :param float amount: the amount to set the margin to
-        :param dict [params]: parameters specific to the exchange API endpoint
-        :returns dict: A `margin structure <https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure>`
-        """
-        portfolio, paramsPortfolio = self.handle_portfolio_and_params('setMargin', params)
-        if symbol is not None:
-            raise BadRequest(self.id + ' setMargin() only allows setting margin to full portfolio')
-        request = {
-            'portfolio': portfolio,
-            'margin_override': amount,
-        }
-        response = self.v1PrivatePostPortfoliosMargin(self.extend(request, paramsPortfolio))
-        return response
-
-    def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
-        """
-        fetch history of deposits and withdrawals
-
-        https://docs.cloud.coinbase.com/intx/reference/gettransfers
-
-        :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
-        :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
-        :param int [limit]: max number of deposit/withdrawals to return, default is None
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.portfolios]: Identifies the portfolios by UUID(e.g., 892e8c7c-e979-4cad-b61b-55a197932cf1) or portfolio ID(e.g., 5189861793641175). Can provide single or multiple portfolios to filter by or fetches transfers for all portfolios if none are provided.
-        :param int [params.until]: Only find transfers updated before self time. Use timestamp format
-        :param str [params.status]: The current status of transfer. Possible values: [PROCESSED, NEW, FAILED, STARTED]
-        :param str [params.type]: The type of transfer Possible values: [DEPOSIT, WITHDRAW, REBATE, STIPEND, INTERNAL, FUNDING]
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
-        """
-        if self.markets is None:
-            self.load_markets()
-        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchDepositsWithdrawals', 'paginate')
-        maxEntriesPerRequest = 100
-        maxEntriesPerRequestOption, paramsMaxEntriesPerRequest = self.handle_option_integer_and_params(paramsPaginate, 'fetchDepositsWithdrawals', 'maxEntriesPerRequest', maxEntriesPerRequest)
-        pageKey = 'ccxtPageKey'
-        if paginate is True:
-            return self.fetch_paginated_call_incremental('fetchDepositsWithdrawals', code, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequestOption)
-        page = self.safe_integer(paramsMaxEntriesPerRequest, pageKey, 1) - 1
-        offSet = self.safe_integer_2(paramsMaxEntriesPerRequest, 'offset', 'result_offset', page * maxEntriesPerRequestOption)
-        request = {
-            'result_offset': offSet,
-        }
-        if since is not None:
-            request['time_from'] = self.iso8601(since)
-        if limit is not None:
-            newLimit = min(limit, 100)
-            request['result_limit'] = newLimit
-        portfolios, paramsPortfolios = self.handle_option_string_and_params(paramsMaxEntriesPerRequest, 'fetchDepositsWithdrawals', 'portfolios')
-        if portfolios is not None:
-            request['portfolios'] = portfolios
-        until, paramsUntil = self.handle_option_integer_and_params(paramsPortfolios, 'fetchDepositsWithdrawals', 'until')
-        if until is not None:
-            request['time_to'] = self.iso8601(until)
-        response = self.v1PrivateGetTransfers(self.extend(request, paramsUntil))
-        #
-        #    {
-        #        "pagination":{
-        #           "result_limit":25,
-        #           "result_offset":0
-        #        },
-        #        "results":[
-        #           {
-        #              "transfer_uuid":"8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3",
-        #              "transfer_type":"WITHDRAW",
-        #              "amount":"1.000000",
-        #              "asset":"USDC",
-        #              "status":"PROCESSED",
-        #              "network_name":"ethereum",
-        #              "created_at":"2024-03-14T02:32:18.497795Z",
-        #              "updated_at":"2024-03-14T02:35:38.514588Z",
-        #              "from_portfolio":{
-        #                 "id":"1yun54bb-1-6",
-        #                 "uuid":"018e0a8b-6b6b-70e0-9689-1e7926c2c8bc",
-        #                 "name":"fungus technology o?Portfolio"
-        #              },
-        #              "to_address":"0xcdcE79F820BE9d6C5033db5c31d1AE3A8c2399bB"
-        #           }
-        #        ]
-        #    }
-        #
-        rawTransactions = self.safe_list(response, 'results', [])
-        return self.parse_transactions(rawTransactions)
 
     def fetch_position(self, symbol: str, params: dict = {}) -> Position:
         """
-
-        https://docs.cloud.coinbase.com/intx/reference/getportfolioposition
-
         fetch data on an open position
+
+        https://docs.cdp.coinbase.com/api-reference/account-management/private-get_position
+        https://docs.deribit.com/api-reference/account-management/private-get_position
+
         :param str symbol: unified market symbol of the market the position is held in
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
         :returns dict: a `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
+        paramsResolved = self.handle_route_and_params('fetchPosition', params)
         if self.markets is None:
             self.load_markets()
-        symbolValue = self.symbol(symbol)
-        portfolio, paramsPortfolio = self.handle_portfolio_and_params('fetchPosition', params)
+        market = self.market(symbol)
         request = {
-            'portfolio': portfolio,
-            'instrument': self.market_id(symbolValue),
+            'instrument_name': market['id'],
         }
-        position = self.v1PrivateGetPortfoliosPortfolioPositionsInstrument(self.extend(request, paramsPortfolio))
+        self.authenticate_v2()
+        response = self.privateGetGetPosition(self.extend(request, paramsResolved))
         #
-        #    {
-        #        "symbol":"BTC-PERP",
-        #        "instrument_id":"114jqr89-0-0",
-        #        "instrument_uuid":"b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
-        #        "vwap":"52482.3",
-        #        "net_size":"0",
-        #        "buy_order_size":"0.001",
-        #        "sell_order_size":"0",
-        #        "im_contribution":"0.2",
-        #        "unrealized_pnl":"0",
-        #        "mark_price":"52406.8",
-        #        "entry_vwap":"52472.9"
-        #    }
+        #     {
+        #         "id": 404,
+        #         "jsonrpc": "2.0",
+        #         "result": {
+        #             "average_price": 0,
+        #             "delta": 0,
+        #             "direction": "buy",
+        #             "estimated_liquidation_price": 0,
+        #             "floating_profit_loss": 0,
+        #             "index_price": 3555.86,
+        #             "initial_margin": 0,
+        #             "instrument_name": "BTC-PERPETUAL",
+        #             "interest_value": 1.7362511643080387,
+        #             "kind": "future",
+        #             "leverage": 100,
+        #             "maintenance_margin": 0,
+        #             "mark_price": 3556.62,
+        #             "open_orders_margin": 0.000165889,
+        #             "realized_profit_loss": 0,
+        #             "settlement_price": 3555.44,
+        #             "size": 0,
+        #             "size_currency": 0,
+        #             "total_profit_loss": 0
+        #         }
+        #     }
         #
-        return self.parse_position(position)
+        position = self.safe_dict(response, 'result', {})
+        return self.parse_position(position, market)
 
     def parse_position(self, position: dict, market: Market = None) -> Position:
         #
-        #    {
-        #       "symbol":"BTC-PERP",
-        #       "instrument_id":"114jqr89-0-0",
-        #       "instrument_uuid":"b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
-        #       "vwap":"52482.3",
-        #       "net_size":"0",
-        #       "buy_order_size":"0.001",
-        #       "sell_order_size":"0",
-        #       "im_contribution":"0.2",
-        #       "unrealized_pnl":"0",
-        #       "mark_price":"52406.8",
-        #       "entry_vwap":"52472.9"
-        #    }
+        #     {
+        #         "average_price": 0,
+        #         "delta": 0,
+        #         "direction": "buy",
+        #         "estimated_liquidation_price": 0,
+        #         "floating_profit_loss": 0,
+        #         "index_price": 3555.86,
+        #         "initial_margin": 0,
+        #         "instrument_name": "BTC-PERPETUAL",
+        #         "interest_value": 1.7362511643080387,
+        #         "kind": "future",
+        #         "leverage": 100,
+        #         "maintenance_margin": 0,
+        #         "mark_price": 3556.62,
+        #         "open_orders_margin": 0.000165889,
+        #         "realized_profit_loss": 0,
+        #         "settlement_price": 3555.44,
+        #         "size": 0,
+        #         "size_currency": 0,
+        #         "total_profit_loss": 0
+        #     }
         #
-        marketId = self.safe_string(position, 'symbol')
-        quantity = self.safe_string(position, 'net_size')
-        marketResolved = self.safe_market(marketId, market, '-')
-        side = 'long'
-        if Precise.string_le(quantity, '0'):
+        instrumentName = self.safe_string(position, 'instrument_name')
+        marketResolved = self.safe_market(instrumentName, market)
+        side = self.safe_string(position, 'direction')
+        if side == 'buy':
+            side = 'long'
+        elif side == 'sell':
             side = 'short'
-            quantity = Precise.string_mul('-1', quantity)
+        notional = self.safe_string(position, 'size_currency')
+        initialMargin = self.safe_string(position, 'initial_margin')
+        maintenanceMargin = self.safe_string(position, 'maintenance_margin')
+        contracts = self.safe_number(position, 'size')
+        if self.is_native_deribit_credentials():
+            size = self.safe_string(position, 'size')
+            if marketResolved['option'] is not True:
+                notional = size
+                if marketResolved['linear'] is True:
+                    size = self.safe_string(position, 'size_currency')
+            else:
+                notional = Precise.string_mul(size, self.safe_string(position, 'mark_price'))
+            contractsString = self.safe_string(position, 'contracts', Precise.string_div(size, self.safe_string(marketResolved, 'contractSize')))
+            contracts = self.parse_number(Precise.string_abs(contractsString))
         return self.safe_position({
             'info': position,
-            'id': self.safe_string(position, 'id'),
+            'id': None,
             'symbol': marketResolved['symbol'],
-            'entryPrice': None,
+            'entryPrice': self.safe_number(position, 'average_price'),
             'markPrice': self.safe_number(position, 'mark_price'),
-            'notional': None,
+            'notional': self.parse_number(Precise.string_abs(notional)),
             'collateral': None,
-            'unrealizedPnl': self.safe_number(position, 'unrealized_pnl'),
+            'unrealizedPnl': self.safe_number(position, 'floating_profit_loss'),
             'side': side,
-            'contracts': self.parse_number(quantity),
+            'contracts': contracts,
             'contractSize': self.safe_number(marketResolved, 'contractSize'),
             'timestamp': None,
             'datetime': None,
             'hedged': None,
-            'maintenanceMargin': None,
+            'maintenanceMargin': self.parse_number(maintenanceMargin),
             'maintenanceMarginPercentage': None,
-            'initialMargin': self.safe_number(position, 'im_contribution'),
+            'initialMargin': self.parse_number(initialMargin),
             'initialMarginPercentage': None,
-            'leverage': None,
-            'liquidationPrice': None,
+            'leverage': self.safe_number(position, 'leverage'),
+            'liquidationPrice': self.safe_number(position, 'estimated_liquidation_price'),
             'marginRatio': None,
             'marginMode': None,
             'percentage': None,
@@ -1099,620 +1786,285 @@ class coinbaseinternational(Exchange, ImplicitAPI):
 
     def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
         """
-
-        https://docs.cloud.coinbase.com/intx/reference/getportfoliopositions
-
         fetch all open positions
+
+        https://docs.cdp.coinbase.com/api-reference/account-management/private-get_positions
+        https://docs.deribit.com/api-reference/account-management/private-get_positions
+
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :param str [params.currency]: settlement currency filter
+        :param str [params.kind]: instrument kind filter
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
+        paramsResolved = self.handle_route_and_params('fetchPositions', params)
         if self.markets is None:
             self.load_markets()
-        portfolio, paramsPortfolio = self.handle_portfolio_and_params('fetchPositions', params)
-        request = {
-            'portfolio': portfolio,
-        }
-        response = self.v1PrivateGetPortfoliosPortfolioPositions(self.extend(request, paramsPortfolio))
+        self.authenticate_v2()
+        response = self.privateGetGetPositions(paramsResolved)
         #
-        #    [
-        #        {
-        #           "symbol":"BTC-PERP",
-        #           "instrument_id":"114jqr89-0-0",
-        #           "instrument_uuid":"b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
-        #           "vwap":"52482.3",
-        #           "net_size":"0",
-        #           "buy_order_size":"0.001",
-        #           "sell_order_size":"0",
-        #           "im_contribution":"0.2",
-        #           "unrealized_pnl":"0",
-        #           "mark_price":"52406.8",
-        #           "entry_vwap":"52472.9"
-        #        }
-        #    ]
+        #     {
+        #         "id": 2236,
+        #         "jsonrpc": "2.0",
+        #         "result": [
+        #             {
+        #                 "average_price": 7440.18,
+        #                 "delta": 0.006687487,
+        #                 "direction": "buy",
+        #                 "estimated_liquidation_price": 1.74,
+        #                 "floating_profit_loss": 0,
+        #                 "index_price": 7466.79,
+        #                 "initial_margin": 0.000197283,
+        #                 "instrument_name": "BTC-PERPETUAL",
+        #                 "interest_value": 1.7362511643080387,
+        #                 "kind": "future",
+        #                 "leverage": 34,
+        #                 "maintenance_margin": 0.000143783,
+        #                 "mark_price": 7476.65,
+        #                 "open_orders_margin": 0.000197288,
+        #                 "realized_funding": -1e-8,
+        #                 "realized_profit_loss": -9e-9,
+        #                 "settlement_price": 7476.65,
+        #                 "size": 50,
+        #                 "size_currency": 0.006687487,
+        #                 "total_profit_loss": 0.000032781
+        #             }
+        #         ]
+        #     }
         #
-        positions = self.parse_positions(response)
+        result = self.safe_list(response, 'result', [])
         if self.is_empty(symbols):
-            return positions
+            return self.parse_positions(result)
         symbolsNormalized = self.market_symbols(symbols)
-        return self.filter_by_array_positions(positions, 'symbol', symbolsNormalized)
+        return self.parse_positions(result, symbolsNormalized)
+
+    def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
+        """
+        fetch history of deposits and withdrawals
+
+        https://docs.cdp.coinbase.com/api-reference/account-management/private-get_transaction_log
+        https://docs.deribit.com/api-reference/account-management/private-get_transaction_log
+
+        :param str code: unified currency code
+        :param int [since]: timestamp in ms of the earliest transaction to fetch
+        :param int [limit]: the maximum number of transactions to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :param int [params.until]: timestamp in ms of the latest transaction to fetch
+        :param str [params.query]: transaction-log query filter
+        :param str [params.continuation]: continuation token for pagination
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
+        """
+        paramsResolved = self.handle_route_and_params('fetchDepositsWithdrawals', params)
+        if code is None:
+            raise ArgumentsRequired(self.id + ' fetchDepositsWithdrawals() requires a currency code argument')
+        if self.markets is None:
+            self.load_markets()
+        currency = self.currency(code)
+        now = self.milliseconds()
+        sinceResolved = since
+        if sinceResolved is None:
+            sinceResolved = now - (30 * 24 * 60 * 60 * 1000)
+        request = {
+            'currency': currency['id'],
+            'start_timestamp': sinceResolved,
+            'end_timestamp': now,
+        }
+        until = self.safe_integer(paramsResolved, 'until')
+        if until is not None:
+            request['end_timestamp'] = until
+        if limit is not None:
+            request['count'] = limit
+        paramsOmitted = self.omit(paramsResolved, 'until') if (until is not None) else paramsResolved
+        self.authenticate_v2()
+        response = self.privateGetGetTransactionLog(self.extend(request, paramsOmitted))
+        #
+        #     {
+        #         "id": 4,
+        #         "jsonrpc": "2.0",
+        #         "result": {
+        #             "continuation": 61282,
+        #             "logs": [
+        #                 {
+        #                     "balance": 3003.72054712,
+        #                     "cashflow": 0.65,
+        #                     "change": 0.65,
+        #                     "commission": 0,
+        #                     "currency": "BTC",
+        #                     "equity": 3003.4876111,
+        #                     "id": 61291,
+        #                     "info": {
+        #                         "addr": "2N8prMvpZHr8aYqodX3S4yhz5wMxjY8La3p",
+        #                         "deposit_type": "wallet",
+        #                         "transaction": "de6eba075855f32c9510f338d3ca0900376cedcb9f7b142caccfbdc292d3237e"
+        #                     },
+        #                     "instrument_name": null,
+        #                     "interest_pl": null,
+        #                     "order_id": null,
+        #                     "position": null,
+        #                     "price": null,
+        #                     "side": "-",
+        #                     "timestamp": 1613657828414,
+        #                     "trade_id": null,
+        #                     "type": "deposit",
+        #                     "user_id": 7,
+        #                     "user_seq": 6007,
+        #                     "username": "TestUser"
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
+        result = self.safe_dict(response, 'result', {})
+        logs = self.safe_list(result, 'logs', [])
+        if not self.is_native_deribit_credentials():
+            return self.parse_transactions(logs, currency, since, limit)
+        transactions = []
+        for i in range(0, len(logs)):
+            transaction = logs[i]
+            transactionType = self.safe_string(transaction, 'type')
+            if (transactionType == 'deposit') or (transactionType == 'withdrawal'):
+                transactions.append(transaction)
+        return self.parse_transactions(transactions, currency, since, limit)
 
     def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
-        https://docs.cloud.coinbase.com/intx/reference/gettransfers
+        https://docs.cdp.coinbase.com/api-reference/account-management/private-get_transaction_log
+        https://docs.deribit.com/api-reference/account-management/private-get_transaction_log
 
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.portfolios]: Identifies the portfolios by UUID(e.g., 892e8c7c-e979-4cad-b61b-55a197932cf1) or portfolio ID(e.g., 5189861793641175). Can provide single or multiple portfolios to filter by or fetches transfers for all portfolios if none are provided.
-        :param int [params.until]: Only find transfers updated before self time. Use timestamp format
-        :param str [params.status]: The current status of transfer. Possible values: [PROCESSED, NEW, FAILED, STARTED]
-        :param str [params.type]: The type of transfer Possible values: [DEPOSIT, WITHDRAW, REBATE, STIPEND, INTERNAL, FUNDING]
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :param int [params.until]: timestamp in ms of the latest transaction to fetch
+        :param str [params.continuation]: continuation token for pagination
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
+        paramsResolved = self.handle_route_and_params('fetchWithdrawals', params)
         if self.markets is None:
             self.load_markets()
-        params['type'] = 'WITHDRAW'
-        return self.fetch_deposits_withdrawals(code, since, limit, params)
+        return self.fetch_deposits_withdrawals(code, since, limit, self.extend(paramsResolved, {'query': 'withdrawal'}))
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all deposits made to an account
+
+        https://docs.cdp.coinbase.com/api-reference/account-management/private-get_transaction_log
+        https://docs.deribit.com/api-reference/account-management/private-get_transaction_log
+
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.portfolios]: Identifies the portfolios by UUID(e.g., 892e8c7c-e979-4cad-b61b-55a197932cf1) or portfolio ID(e.g., 5189861793641175). Can provide single or multiple portfolios to filter by or fetches transfers for all portfolios if none are provided.
-        :param int [params.until]: Only find transfers updated before self time. Use timestamp format
-        :param str [params.status]: The current status of transfer. Possible values: [PROCESSED, NEW, FAILED, STARTED]
-        :param str [params.type]: The type of transfer Possible values: [DEPOSIT, WITHDRAW, REBATE, STIPEND, INTERNAL, FUNDING]
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :param int [params.until]: timestamp in ms of the latest transaction to fetch
+        :param str [params.continuation]: continuation token for pagination
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
+        paramsResolved = self.handle_route_and_params('fetchDeposits', params)
         if self.markets is None:
             self.load_markets()
-        params['type'] = 'DEPOSIT'
-        return self.fetch_deposits_withdrawals(code, since, limit, params)
-
-    def parse_transaction_status(self, status: Str):
-        statuses = {
-            'PROCESSED': 'ok',
-            'NEW': 'pending',
-            'STARTED': 'pending',
-            'FAILED': 'canceled',
-        }
-        return self.safe_string(statuses, status, status)
+        return self.fetch_deposits_withdrawals(code, since, limit, self.extend(paramsResolved, {'query': 'deposit'}))
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
-        #    {
-        #        "idem":"8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3"
-        #    }
-        # const transactionType = this.safeString (transaction, 'type');
-        datetime = self.safe_string(transaction, 'updated_at')
-        fromPorfolio = self.safe_dict(transaction, 'from_portfolio', {})
-        addressFrom = self.safe_string_n(transaction, ['from_address', 'from_cb_account', self.safe_string_n(fromPorfolio, ['id', 'uuid', 'name']), 'from_counterparty_id'])
-        toPorfolio = self.safe_dict(transaction, 'from_portfolio', {})
-        addressTo = self.safe_string_n(transaction, ['to_address', 'to_cb_account', self.safe_string_n(toPorfolio, ['id', 'uuid', 'name']), 'to_counterparty_id'])
-        code = self.safe_string(currency, 'code')
+        #     {
+        #         "balance": 3003.72054712,
+        #         "cashflow": 0.65,
+        #         "change": 0.65,
+        #         "commission": 0,
+        #         "currency": "BTC",
+        #         "equity": 3003.4876111,
+        #         "id": 61291,
+        #         "info": {
+        #             "addr": "2N8prMvpZHr8aYqodX3S4yhz5wMxjY8La3p",
+        #             "deposit_type": "wallet",
+        #             "transaction": "de6eba075855f32c9510f338d3ca0900376cedcb9f7b142caccfbdc292d3237e"
+        #         },
+        #         "instrument_name": null,
+        #         "interest_pl": null,
+        #         "order_id": null,
+        #         "position": null,
+        #         "price": null,
+        #         "side": "-",
+        #         "timestamp": 1613657828414,
+        #         "trade_id": null,
+        #         "type": "deposit",
+        #         "user_id": 7,
+        #         "user_seq": 6007,
+        #         "username": "TestUser"
+        #     }
+        #
+        transactionTimestamp = self.safe_integer(transaction, 'timestamp')
+        info = self.safe_dict(transaction, 'info', {})
+        transactionType = self.safe_string(transaction, 'type')
+        transactionId = self.safe_string(transaction, 'id')
+        currencyId = self.safe_string(transaction, 'currency')
+        address = self.safe_string(info, 'addr')
+        amount = self.safe_number(transaction, 'change')
+        feeCost = None
+        feeCurrency = None
+        if self.is_native_deribit_credentials():
+            amount = self.parse_number(Precise.string_abs(self.safe_string_2(transaction, 'cashflow', 'change')))
+            feeCost = self.safe_number(transaction, 'commission')
+            feeCurrency = self.safe_currency_code(currencyId, currency)
         return {
             'info': transaction,
-            'id': self.safe_string(transaction, 'transfer_uuid'),
-            'txid': self.safe_string(transaction, 'transaction_uuid'),
-            'timestamp': self.parse8601(datetime),
-            'datetime': datetime,
-            'network': self.network_id_to_code(self.safe_string(transaction, 'network_name'), code),
-            'address': None,  # TODO check if withdraw or deposit and populate
-            'addressTo': addressTo,
-            'addressFrom': addressFrom,
+            'id': transactionId,
+            'txid': self.safe_string(info, 'transaction'),
+            'timestamp': transactionTimestamp,
+            'datetime': self.iso8601(transactionTimestamp),
+            'network': None,
+            'address': address,
+            'addressTo': address,
+            'addressFrom': None,
             'tag': None,
             'tagTo': None,
             'tagFrom': None,
-            'type': self.safe_string(transaction, 'resource'),
-            'amount': self.safe_number(transaction, 'amount'),
-            'currency': self.safe_currency_code(self.safe_string(transaction, 'asset'), currency),
-            'status': self.parse_transaction_status(self.safe_string(transaction, 'status')),
-            'updated': self.parse8601(datetime),
-            'fee': {
-                'cost': None,
-                'currency': None,
-            },
-        }
-
-    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
-        #
-        #    {
-        #       "portfolio_id":"1wp37qsc-1-0",
-        #       "portfolio_uuid":"018d7f6c-b92c-7361-8b7e-2932711e5a22",
-        #       "portfolio_name":"CCXT Portfolio 020624-17:16",
-        #       "fill_id":"1xbfy19y-1-184",
-        #       "exec_id":"280841526207070392",
-        #       "order_id":"1xbfv8yw-1-0",
-        #       "instrument_id":"114jqr89-0-0",
-        #       "instrument_uuid":"b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
-        #       "symbol":"BTC-PERP",
-        #       "match_id":"280841526207053840",
-        #       "fill_price":"52500",
-        #       "fill_qty":"0.01",
-        #       "client_id":"1x59ctku-1-1",
-        #       "client_order_id":"ccxt3e4e2a5f-4a89-",
-        #       "order_qty":"0.01",
-        #       "limit_price":"52500",
-        #       "total_filled":"0.01",
-        #       "filled_vwap":"52500",
-        #       "expire_time":"",
-        #       "stop_price":"",
-        #       "side":"BUY",
-        #       "tif":"GTC",
-        #       "stp_mode":"BOTH",
-        #       "flags":"",
-        #       "fee":"0.105",
-        #       "fee_asset":"USDC",
-        #       "order_status":"DONE",
-        #       "event_time":"2024-02-15T00:43:57.631Z"
-        #    }
-        #
-        marketId = self.safe_string(trade, 'symbol')
-        datetime = self.safe_string(trade, 'event_time')
-        return self.safe_trade({
-            'info': trade,
-            'id': self.safe_string_2(trade, 'fill_id', 'exec_id'),
-            'order': self.safe_string(trade, 'order_id'),
-            'timestamp': self.parse8601(datetime),
-            'datetime': datetime,
-            'symbol': self.safe_symbol(marketId, market),
-            'type': None,
-            'side': self.safe_string_lower(trade, 'side'),
-            'takerOrMaker': None,
-            'price': self.safe_number(trade, 'fill_price'),
-            'amount': self.safe_number(trade, 'fill_qty'),
-            'cost': None,
-            'fee': {
-                'cost': self.safe_number(trade, 'fee'),
-                'currency': self.safe_currency_code(self.safe_string(trade, 'fee_asset')),
-            },
-        })
-
-    def fetch_markets(self, params: dict = {}) -> list[Market]:
-        """
-
-        https://docs.cloud.coinbase.com/intx/reference/getinstruments
-
-        retrieves data on all markets for coinbaseinternational
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: an array of objects representing market data
-        """
-        response = self.v1PublicGetInstruments(params)
-        #
-        #    [
-        #        {
-        #           "instrument_id":"149264164756389888",
-        #           "instrument_uuid":"e9360798-6a10-45d6-af05-67c30eb91e2d",
-        #           "symbol":"ETH-PERP",
-        #           "type":"PERP",
-        #           "base_asset_id":"118059611793145856",
-        #           "base_asset_uuid":"d85dce9b-5b73-5c3c-8978-522ce1d1c1b4",
-        #           "base_asset_name":"ETH",
-        #           "quote_asset_id":"1",
-        #           "quote_asset_uuid":"2b92315d-eab7-5bef-84fa-089a131333f5",
-        #           "quote_asset_name":"USDC",
-        #           "base_increment":"0.0001",
-        #           "quote_increment":"0.01",
-        #           "price_band_percent":"0.02",
-        #           "market_order_percent":"0.0075",
-        #           "qty_24hr":"44434.8131",
-        #           "notional_24hr":"110943454.279785",
-        #           "avg_daily_qty":"1099171.6025",
-        #           "avg_daily_notional":"2637240145.456987",
-        #           "previous_day_qty":"78909.3939",
-        #           "open_interest":"1270.749",
-        #           "position_limit_qty":"1831.9527",
-        #           "position_limit_adq_pct":"0.05",
-        #           "replacement_cost":"0.23",
-        #           "base_imf":"0.1",
-        #           "min_notional_value":"10",
-        #           "funding_interval":"3600000000000",
-        #           "trading_state":"TRADING",
-        #           "quote":{
-        #              "best_bid_price":"2490.8",
-        #              "best_bid_size":"9.0515",
-        #              "best_ask_price":"2490.81",
-        #              "best_ask_size":"4.8486",
-        #              "trade_price":"2490.39",
-        #              "trade_qty":"0.9508",
-        #              "index_price":"2490.5",
-        #              "mark_price":"2490.8",
-        #              "settlement_price":"2490.81",
-        #              "limit_up":"2615.42",
-        #              "limit_down":"2366.34",
-        #              "predicted_funding":"0.000009",
-        #              "timestamp":"2024-02-10T16:07:39.454Z"
-        #           }
-        #        },
-        #        ...
-        #    ]
-        #
-        return self.parse_markets(response)
-
-    def parse_market(self, market: dict) -> Market:
-        #
-        #   {
-        #       "instrument_id":"149264164756389888",
-        #       "instrument_uuid":"e9360798-6a10-45d6-af05-67c30eb91e2d",
-        #       "symbol":"ETH-PERP",
-        #       "type":"PERP",
-        #       "base_asset_id":"118059611793145856",
-        #       "base_asset_uuid":"d85dce9b-5b73-5c3c-8978-522ce1d1c1b4",
-        #       "base_asset_name":"ETH",
-        #       "quote_asset_id":"1",
-        #       "quote_asset_uuid":"2b92315d-eab7-5bef-84fa-089a131333f5",
-        #       "quote_asset_name":"USDC",
-        #       "base_increment":"0.0001",
-        #       "quote_increment":"0.01",
-        #       "price_band_percent":"0.02",
-        #       "market_order_percent":"0.0075",
-        #       "qty_24hr":"44434.8131",
-        #       "notional_24hr":"110943454.279785",
-        #       "avg_daily_qty":"1099171.6025",
-        #       "avg_daily_notional":"2637240145.456987",
-        #       "previous_day_qty":"78909.3939",
-        #       "open_interest":"1270.749",
-        #       "position_limit_qty":"1831.9527",
-        #       "position_limit_adq_pct":"0.05",
-        #       "replacement_cost":"0.23",
-        #       "base_imf":"0.1",
-        #       "min_notional_value":"10",
-        #       "funding_interval":"3600000000000",
-        #       "trading_state":"TRADING",
-        #       "quote":{
-        #          "best_bid_price":"2490.8",
-        #          "best_bid_size":"9.0515",
-        #          "best_ask_price":"2490.81",
-        #          "best_ask_size":"4.8486",
-        #          "trade_price":"2490.39",
-        #          "trade_qty":"0.9508",
-        #          "index_price":"2490.5",
-        #          "mark_price":"2490.8",
-        #          "settlement_price":"2490.81",
-        #          "limit_up":"2615.42",
-        #          "limit_down":"2366.34",
-        #          "predicted_funding":"0.000009",
-        #          "timestamp":"2024-02-10T16:07:39.454Z"
-        #       }
-        #    }
-        #
-        marketId = self.safe_string(market, 'symbol')
-        baseId = self.safe_string(market, 'base_asset_name')
-        quoteId = self.safe_string(market, 'quote_asset_name')
-        typeId = self.safe_string(market, 'type')  # 'SPOT', 'PERP'
-        isSpot = (typeId == 'SPOT')
-        fees = self.fees
-        if (baseId is None) or (quoteId is None):
-            return None
-        symbol = baseId + '/' + quoteId
-        settleId = None
-        if not isSpot:
-            settleId = quoteId
-            symbol += ':' + quoteId
-        isLinear = None if isSpot else (settleId == quoteId)
-        isInverse = None if isSpot else (settleId != quoteId)
-        if marketId is None:
-            raise ExchangeError(self.id + ' parseMarket() missing marketId')
-        return self.safe_market_structure({
-            'id': marketId,
-            'lowercaseId': marketId.lower(),
-            'symbol': symbol,
-            'base': baseId,
-            'quote': quoteId,
-            'settle': settleId,
-            'baseId': baseId,
-            'quoteId': quoteId,
-            'settleId': settleId,
-            'type': 'spot' if isSpot else 'swap',
-            'spot': isSpot,
-            'margin': False,
-            'swap': not isSpot,
-            'future': False,
-            'option': False,
-            'active': self.safe_string(market, 'trading_state') == 'TRADING',
-            'contract': not isSpot,
-            'linear': isLinear,
-            'inverse': isInverse,
-            'taker': fees['trading']['taker'],
-            'maker': fees['trading']['maker'],
-            'contractSize': None if isSpot else 1,
-            'expiry': None,
-            'expiryDatetime': None,
-            'strike': None,
-            'optionType': None,
-            'precision': {
-                'amount': self.safe_number(market, 'base_increment'),
-                'price': self.safe_number(market, 'quote_increment'),
-                'cost': self.safe_number(market, 'quote_increment'),
-            },
-            'limits': {
-                'leverage': {
-                    'min': None,
-                    'max': self.safe_number(market, 'base_imf'),
-                },
-                'amount': {
-                    'min': None,
-                    'max': None if isSpot else self.safe_number(market, 'position_limit_qty'),
-                },
-                'price': {
-                    'min': None,
-                    'max': None,
-                },
-                'cost': {
-                    'min': self.safe_number(market, 'min_notional_value'),
-                    'max': None,
-                },
-            },
-            'info': market,
-            'created': None,
-        })
-
-    def fetch_currencies(self, params: dict = {}) -> Currencies:
-        """
-        fetches all available currencies on an exchange
-
-        https://docs.cloud.coinbase.com/intx/reference/getassets
-
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an associative dictionary of currencies
-        """
-        currencies = self.v1PublicGetAssets(params)
-        #
-        #    [
-        #        {
-        #           "asset_id":"1",
-        #           "asset_uuid":"2b92315d-eab7-5bef-84fa-089a131333f6",
-        #           "asset_name":"USDC",
-        #           "status":"ACTIVE",
-        #           "collateral_weight":1.0,
-        #           "supported_networks_enabled":true
-        #        },
-        #        ...
-        #    ]
-        #
-        return self.parse_currencies(currencies)
-
-    def parse_currency(self, currency: dict) -> CurrencyInterface:
-        #
-        #    {
-        #       "asset_id":"1",
-        #       "asset_uuid":"2b92315d-eab7-5bef-84fa-089a131333f5",
-        #       "asset_name":"USDC",
-        #       "status":"ACTIVE",
-        #       "collateral_weight":1.0,
-        #       "supported_networks_enabled":true
-        #    }
-        #
-        id = self.safe_string(currency, 'asset_name')
-        code = self.safe_currency_code(id)
-        statusId = self.safe_string(currency, 'status')
-        return self.safe_currency_structure({
-            'id': id,
-            'name': code,
-            'code': code,
-            'precision': None,
-            'info': currency,
-            'active': (statusId == 'ACTIVE'),
-            'deposit': None,
-            'withdraw': None,
-            'networks': None,
-            'fee': None,
-            'fees': None,
-            'limits': self.limits,
-        })
-
-    def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
-        """
-        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-
-        https://docs.cloud.coinbase.com/intx/reference/getinstruments
-
-        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
-        """
-        if self.markets is None:
-            self.load_markets()
-        symbolsNormalized = self.market_symbols(symbols)
-        instruments = self.v1PublicGetInstruments(params)
-        tickers = {}
-        rows = []
-        if isinstance(instruments, list):
-            rows = instruments
-        for i in range(0, len(rows)):
-            instrument = self.safe_dict(rows, i)
-            marketId = self.safe_string(instrument, 'symbol')
-            symbol = self.safe_symbol(marketId)
-            quote = self.safe_dict(instrument, 'quote', {})
-            tickers[symbol] = self.parse_ticker(quote, self.safe_market(marketId))
-        return self.filter_by_array(tickers, 'symbol', symbolsNormalized, True)
-
-    def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
-        """
-        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-
-        https://docs.cloud.coinbase.com/intx/reference/getinstrumentquote
-
-        :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
-        """
-        if self.markets is None:
-            self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'instrument': self.market_id(symbol),
-        }
-        ticker = self.v1PublicGetInstrumentsInstrumentQuote(self.extend(request, params))
-        return self.parse_ticker(ticker, market)
-
-    def parse_ticker(self, ticker: object, market: Market = None) -> Ticker:
-        #
-        #    {
-        #        "best_bid_price":"2490.8",
-        #        "best_bid_size":"9.0515",
-        #        "best_ask_price":"2490.81",
-        #        "best_ask_size":"4.8486",
-        #        "trade_price":"2490.39",
-        #        "trade_qty":"0.9508",
-        #        "index_price":"2490.5",
-        #        "mark_price":"2490.8",
-        #        "settlement_price":"2490.81",
-        #        "limit_up":"2615.42",
-        #        "limit_down":"2366.34",
-        #        "predicted_funding":"0.000009",
-        #        "timestamp":"2024-02-10T16:07:39.454Z"
-        #    }
-        #
-        datetime = self.safe_string(ticker, 'timestamp')
-        return self.safe_ticker({
-            'info': ticker,
-            'symbol': self.safe_symbol(None, market),
-            'timestamp': self.parse8601(datetime),
-            'datetime': datetime,
-            'bid': self.safe_number(ticker, 'best_bid_price'),
-            'bidVolume': self.safe_number(ticker, 'best_bid_size'),
-            'ask': self.safe_number(ticker, 'best_ask_price'),
-            'askVolume': self.safe_number(ticker, 'best_ask_size'),
-            'high': None,
-            'low': None,
-            'open': None,
-            'close': None,
-            'last': None,
-            'change': None,
-            'percentage': None,
-            'average': None,
-            'vwap': None,
-            'baseVolume': None,
-            'quoteVolume': None,
-            'previousClose': None,
-            'markPrice': self.safe_number(ticker, 'mark_price'),
-            'indexPrice': self.safe_number(ticker, 'index_price'),
-        })
-
-    def fetch_balance(self, params: dict = {}) -> Balances:
-        """
-        query for balance and get the amount of funds available for trading or funds locked in orders
-
-        https://docs.cloud.coinbase.com/intx/reference/getportfoliobalances
-
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.v3]: default False, set True to use v3 api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
-        """
-        if self.markets is None:
-            self.load_markets()
-        portfolio, paramsPortfolio = self.handle_portfolio_and_params('fetchBalance', params)
-        request = {
-            'portfolio': portfolio,
-        }
-        balances = self.v1PrivateGetPortfoliosPortfolioBalances(self.extend(request, paramsPortfolio))
-        #
-        #    [
-        #        {
-        #           "asset_id":"0-0-1",
-        #           "asset_name":"USDC",
-        #           "asset_uuid":"2b92315d-eab7-5bef-84fa-089a131333f5",
-        #           "quantity":"500000.0000000000",
-        #           "hold":"0",
-        #           "hold_available_for_collateral":"0",
-        #           "transfer_hold":"0",
-        #           "collateral_value":"500000.0",
-        #           "max_withdraw_amount":"500000.0000000000",
-        #           "loan":"0",
-        #           "loan_collateral_requirement":"0.0"
-        #        }
-        #    ]
-        #
-        return self.parse_balance(balances)
-
-    def parse_balance(self, response: object) -> Balances:
-        #
-        #    {
-        #       "asset_id":"0-0-1",
-        #       "asset_name":"USDC",
-        #       "asset_uuid":"2b92315d-eab7-5bef-84fa-089a131333f5",
-        #       "quantity":"500000.0000000000",
-        #       "hold":"0",
-        #       "hold_available_for_collateral":"0",
-        #       "transfer_hold":"0",
-        #       "collateral_value":"500000.0",
-        #       "max_withdraw_amount":"500000.0000000000",
-        #       "loan":"0",
-        #       "loan_collateral_requirement":"0.0"
-        #    }
-        #
-        result = {
-            'info': response,
-        }
-        for i in range(0, len(response)):
-            rawBalance = self.safe_dict(response, i)
-            currencyId = self.safe_string(rawBalance, 'asset_name')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['total'] = self.safe_string(rawBalance, 'quantity')
-            account['used'] = self.safe_string(rawBalance, 'hold')
-            if code is not None:
-                result[code] = account
-        return self.safe_balance(result)
-
-    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}) -> TransferEntry:
-        """
-        Transfer an amount of asset from one portfolio to another.
-
-        https://docs.cloud.coinbase.com/intx/reference/createportfolioassettransfer
-
-        :param str code: unified currency code
-        :param float amount: amount to transfer
-        :param str fromAccount: account to transfer from
-        :param str toAccount: account to transfer to
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `transfer structure <https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure>`
-        """
-        if self.markets is None:
-            self.load_markets()
-        currency = self.currency(code)
-        request = {
-            'asset': currency['id'],
+            'type': transactionType,
             'amount': amount,
-            'from': fromAccount,
-            'to': toAccount,
+            'currency': self.safe_currency_code(currencyId, currency),
+            'status': 'ok',
+            'updated': transactionTimestamp,
+            'fee': {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            },
         }
-        response = self.v1PrivatePostPortfoliosTransfer(self.extend(request, params))
-        success = self.safe_bool(response, 'success')
-        return {
-            'info': response,
-            'id': None,
-            'timestamp': None,
-            'datetime': None,
-            'currency': code,
-            'amount': amount,
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
-            'status': 'ok' if (success is True) else 'failed',
-        }
+
+    def get_order_amount(self, market: MarketInterface, amount: Num) -> Str:
+        """
+ @ignore
+        converts unified native Deribit contract quantities to exchange amount units
+        :param dict market: unified market
+        :param float amount: unified order quantity
+        :returns str: precision-formatted exchange order amount
+        """
+        exchangeAmount = self.number_to_string(amount)
+        if self.is_native_deribit_credentials() and (market['contract'] is True):
+            exchangeAmount = Precise.string_mul(exchangeAmount, self.safe_string(market, 'contractSize'))
+        return self.amount_to_precision(market['symbol'], exchangeAmount)
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
-        https://docs.cloud.coinbase.com/intx/reference/createorder
+        https://docs.cdp.coinbase.com/api-reference/trading/private-buy
+        https://docs.cdp.coinbase.com/api-reference/trading/private-sell
+        https://docs.deribit.com/api-reference/trading/private-buy
+        https://docs.deribit.com/api-reference/trading/private-sell
 
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
-        :param float amount: how much you want to trade in units of the base currency, quote currency for 'market' 'buy' orders
+        :param float amount: number of contracts for native Deribit derivatives, otherwise the exchange order amount(base currency for spot)
         :param float [price]: the price to fulfill the order, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
         :param float [params.stopPrice]: alias for triggerPrice
         :param float [params.triggerPrice]: price to trigger stop orders
         :param float [params.stopLossPrice]: price to trigger stop-loss orders
@@ -1722,157 +2074,303 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         :param str [params.stp_mode]: Possible values: [NONE, AGGRESSING, BOTH] Specifies the behavior for self match handling. None disables the functionality, new cancels the newest order, and both cancels both orders.
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
+        paramsResolved = self.handle_route_and_params('createOrder', params)
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        typeId = type.upper()
-        triggerPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'stop_price'])
-        clientOrderIdprefix = self.safe_string(self.options, 'brokerId', 'nfqkvdjp')
-        clientOrderId = clientOrderIdprefix + '-' + self.uuid()
-        clientOrderId = clientOrderId[0:17]
-        self.check_required_argument('createOrder', side, 'side')
+        triggerPrice = self.safe_number_n(paramsResolved, ['triggerPrice', 'stopPrice', 'stop_price'])
+        if side is None:
+            raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
+        if self.is_native_deribit_credentials():
+            triggerPrice = self.safe_number_n(paramsResolved, ['triggerPrice', 'stopPrice', 'stop_price', 'trigger_price'])
+            if (side != 'buy') and (side != 'sell'):
+                raise ArgumentsRequired(self.id + ' createOrder() requires a buy or sell side argument')
+            if (self.safe_number(paramsResolved, 'stopLossPrice') is not None) or (self.safe_number(paramsResolved, 'takeProfitPrice') is not None):
+                raise NotSupported(self.id + ' createOrder() supports triggerPrice, not stopLossPrice or takeProfitPrice')
         request = {
-            'client_order_id': clientOrderId,
-            'side': side.upper(),
-            'instrument': market['id'],
-            'size': self.amount_to_precision(market['symbol'], amount),
+            'instrument_name': market['id'],
+            'amount': self.get_order_amount(market, amount),
+            'type': type,
         }
         if triggerPrice is not None:
             if type == 'limit':
-                typeId = 'STOP_LIMIT'
+                request['type'] = 'stop_limit'
             else:
-                typeId = 'STOP'
-            request['stop_price'] = triggerPrice
-        request['type'] = typeId
+                request['type'] = 'stop_market'
+            request['trigger_price'] = triggerPrice
+            if self.is_native_deribit_credentials():
+                request['trigger'] = self.safe_string(paramsResolved, 'trigger', 'last_price')
         if type == 'limit':
             if price is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a price parameter for a limit order types')
             request['price'] = price
-        portfolio, paramsPortfolio = self.handle_portfolio_and_params('createOrder', params)
-        if portfolio is not None:
-            request['portfolio'] = portfolio
-        postOnly = self.safe_bool_2(paramsPortfolio, 'postOnly', 'post_only')
-        tif = self.safe_string_2(paramsPortfolio, 'tif', 'timeInForce')
-        # market orders must be IOC
-        if typeId == 'MARKET':
-            if tif is not None and tif != 'IOC':
-                raise InvalidOrder(self.id + ' createOrder() market orders must have tif set to "IOC"')
-            tif = 'IOC'
-        else:
-            if tif is None:
-                tif = 'GTC'
+            if self.is_native_deribit_credentials():
+                request['price'] = self.price_to_precision(symbol, price)
+        postOnly = self.safe_bool_2(paramsResolved, 'postOnly', 'post_only')
+        timeInForce = self.safe_string_2(paramsResolved, 'tif', 'timeInForce')
+        if self.is_native_deribit_credentials():
+            reduceOnly = self.safe_bool_2(paramsResolved, 'reduceOnly', 'reduce_only')
+            if reduceOnly is not None:
+                request['reduce_only'] = reduceOnly
         if postOnly is not None:
             request['post_only'] = postOnly
-        request['tif'] = tif
-        paramsOmitted = self.omit(paramsPortfolio, ['client_order_id', 'user', 'postOnly', 'timeInForce'])
-        response = self.v1PrivatePostOrders(self.extend(request, paramsOmitted))
+            request['reject_post_only'] = postOnly
+        if timeInForce is not None:
+            timeInForces = {
+                'GTC': 'good_til_cancelled',
+                'IOC': 'immediate_or_cancel',
+                'FOK': 'fill_or_kill',
+                'GTD': 'good_til_day',
+            }
+            request['time_in_force'] = self.safe_string(timeInForces, timeInForce, timeInForce)
+        clientOrderId = self.safe_string_2(paramsResolved, 'clientOrderId', 'client_order_id')
+        if clientOrderId is not None:
+            request['label'] = clientOrderId
+        else:
+            brokerId = self.safe_string(self.options, 'brokerId')
+            if brokerId is not None:
+                request['label'] = brokerId + '-' + self.uuid22()
+        if self.is_native_deribit_credentials() and ((timeInForce == 'PO') or (postOnly is True)):
+            if type == 'market':
+                raise InvalidOrder(self.id + ' createOrder() cannot create post-only market orders')
+            request['post_only'] = True
+            request['reject_post_only'] = True
+            request['time_in_force'] = 'good_til_cancelled'
+        paramsOrder = self.omit(paramsResolved, ['clientOrderId', 'client_order_id', 'postOnly', 'post_only', 'tif', 'timeInForce', 'triggerPrice', 'stopPrice', 'stop_price'])
+        if self.is_native_deribit_credentials():
+            paramsOrder = self.omit(paramsOrder, ['reduceOnly', 'reduce_only'])
+        self.authenticate_v2()
+        response = None
+        if side == 'buy':
+            response = self.privateGetBuy(self.extend(request, paramsOrder))
+        else:
+            response = self.privateGetSell(self.extend(request, paramsOrder))
         #
-        #    {
-        #        "order_id":"1x96skvg-1-0",
-        #        "client_order_id":"ccxt",
-        #        "side":"BUY",
-        #        "instrument_id":"114jqr89-0-0",
-        #        "instrument_uuid":"b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
-        #        "symbol":"BTC-PERP",
-        #        "portfolio_id":"1wp37qsc-1-0",
-        #        "portfolio_uuid":"018d7f6c-b92c-7361-8b7e-2932711e5a22",
-        #        "type":"LIMIT",
-        #        "price":"10000",
-        #        "size":"0.001",
-        #        "tif":"GTC",
-        #        "stp_mode":"BOTH",
-        #        "event_type":"NEW",
-        #        "order_status":"WORKING",
-        #        "leaves_qty":"0.001",
-        #        "exec_qty":"0",
-        #        "avg_price":"0",
-        #        "fee":"0"
-        #    }
+        #     {
+        #         "id": 6130,
+        #         "jsonrpc": "2.0",
+        #         "result": {
+        #             "order": {
+        #                 "amount": 21,
+        #                 "api": true,
+        #                 "average_price": 202.8,
+        #                 "creation_timestamp": 1590486335742,
+        #                 "direction": "sell",
+        #                 "filled_amount": 21,
+        #                 "instrument_name": "ETH-PERPETUAL",
+        #                 "is_liquidation": false,
+        #                 "is_rebalance": false,
+        #                 "label": "",
+        #                 "last_update_timestamp": 1590486335742,
+        #                 "max_show": 21,
+        #                 "order_id": "ETH-584864807",
+        #                 "order_state": "filled",
+        #                 "order_type": "limit",
+        #                 "post_only": false,
+        #                 "price": 198.75,
+        #                 "reduce_only": true,
+        #                 "replaced": false,
+        #                 "time_in_force": "good_til_cancelled",
+        #                 "web": false
+        #             },
+        #             "trades": [
+        #                 {
+        #                     "amount": 21,
+        #                     "direction": "sell",
+        #                     "fee": 0.00007766,
+        #                     "fee_currency": "ETH",
+        #                     "index_price": 202.86,
+        #                     "instrument_name": "ETH-PERPETUAL",
+        #                     "liquidity": "T",
+        #                     "mark_price": 202.79,
+        #                     "matching_id": null,
+        #                     "order_id": "ETH-584864807",
+        #                     "order_type": "limit",
+        #                     "post_only": false,
+        #                     "price": 202.8,
+        #                     "reduce_only": true,
+        #                     "state": "filled",
+        #                     "tick_direction": 0,
+        #                     "timestamp": 1590486335742,
+        #                     "trade_id": "ETH-2696097",
+        #                     "trade_seq": 1966068
+        #                 }
+        #             ]
+        #         }
+        #     }
         #
-        return self.parse_order(response, market)
+        result = self.safe_dict(response, 'result', {})
+        order = self.safe_dict(result, 'order', {})
+        trades = self.safe_list(result, 'trades', [])
+        order['trades'] = trades
+        return self.parse_order(order, market)
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
         #
-        #    {
-        #        "order_id":"1x96skvg-1-0",
-        #        "client_order_id":"ccxt",
-        #        "side":"BUY",
-        #        "instrument_id":"114jqr89-0-0",
-        #        "instrument_uuid":"b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
-        #        "symbol":"BTC-PERP",
-        #        "portfolio_id":"1wp37qsc-1-0",
-        #        "portfolio_uuid":"018d7f6c-b92c-7361-8b7e-2932711e5a22",
-        #        "type":"LIMIT",
-        #        "price":"10000",
-        #        "size":"0.001",
-        #        "tif":"GTC",
-        #        "stp_mode":"BOTH",
-        #        "event_type":"NEW",
-        #        "order_status":"WORKING",
-        #        "leaves_qty":"0.001",
-        #        "exec_qty":"0",
-        #        "avg_price":"0",
-        #        "fee":"0"
-        #    }
+        # createOrder, editOrder
         #
-        marketId = self.safe_string(order, 'symbol')
-        feeCost = self.safe_number(order, 'fee')
-        fee = None
-        if feeCost is not None:
+        #     {
+        #         "amount": 21,
+        #         "api": true,
+        #         "average_price": 202.8,
+        #         "creation_timestamp": 1590486335742,
+        #         "direction": "sell",
+        #         "filled_amount": 21,
+        #         "instrument_name": "ETH-PERPETUAL",
+        #         "is_liquidation": false,
+        #         "is_rebalance": false,
+        #         "label": "",
+        #         "last_update_timestamp": 1590486335742,
+        #         "max_show": 21,
+        #         "order_id": "ETH-584864807",
+        #         "order_state": "filled",
+        #         "order_type": "limit",
+        #         "post_only": false,
+        #         "price": 198.75,
+        #         "reduce_only": true,
+        #         "replaced": false,
+        #         "time_in_force": "good_til_cancelled",
+        #         "web": false
+        #     }
+        #
+        # cancelOrder
+        #
+        #     {
+        #         "amount": 5,
+        #         "api": false,
+        #         "creation_timestamp": 1550575961291,
+        #         "direction": "sell",
+        #         "instrument_name": "ETH-PERPETUAL",
+        #         "is_liquidation": false,
+        #         "is_rebalance": false,
+        #         "label": "",
+        #         "last_update_timestamp": 1550575961291,
+        #         "max_show": 5,
+        #         "order_id": "ETH-SLIS-12",
+        #         "order_state": "untriggered",
+        #         "order_type": "stop_market",
+        #         "post_only": false,
+        #         "price": "market_price",
+        #         "reduce_only": false,
+        #         "time_in_force": "good_til_cancelled",
+        #         "trigger": "index_price",
+        #         "trigger_price": 144.73,
+        #         "triggered": false
+        #     }
+        #
+        # fetchOrder, fetchOpenOrders
+        #
+        #     {
+        #         "amount": 37,
+        #         "api": false,
+        #         "average_price": 118.94,
+        #         "creation_timestamp": 1550219749176,
+        #         "direction": "sell",
+        #         "filled_amount": 37,
+        #         "instrument_name": "ETH-PERPETUAL",
+        #         "is_liquidation": false,
+        #         "is_rebalance": false,
+        #         "label": "",
+        #         "last_update_timestamp": 1550219810944,
+        #         "max_show": 37,
+        #         "order_id": "ETH-331562",
+        #         "order_state": "filled",
+        #         "order_type": "limit",
+        #         "post_only": false,
+        #         "price": 118.94,
+        #         "reduce_only": false,
+        #         "time_in_force": "good_til_cancelled"
+        #     }
+        #
+        instrumentName = self.safe_string(order, 'instrument_name')
+        marketResolved = self.safe_market(instrumentName, market)
+        timestamp = self.safe_integer(order, 'creation_timestamp')
+        lastUpdateTimestamp = self.safe_integer(order, 'last_update_timestamp')
+        filled = self.safe_number(order, 'filled_amount')
+        amount = self.safe_number(order, 'amount')
+        if self.is_native_deribit_credentials() and (marketResolved['contract'] is True):
+            contractSize = self.safe_string(marketResolved, 'contractSize')
+            amount = self.parse_number(self.safe_string(order, 'contracts', Precise.string_div(self.safe_string(order, 'amount'), contractSize)))
+            filled = self.parse_number(Precise.string_div(self.safe_string(order, 'filled_amount'), contractSize))
+        remaining = None
+        if (filled is not None) and (amount is not None):
+            remaining = amount - filled
+        price = self.safe_number(order, 'price')
+        average = self.safe_number(order, 'average_price')
+        filledString = self.safe_string(order, 'filled_amount')
+        averageString = self.safe_string(order, 'average_price')
+        cost = None
+        if (filledString is not None) and (averageString is not None):
+            cost = self.parse_number(Precise.string_mul(filledString, averageString))
+            if self.is_native_deribit_credentials() and (marketResolved['inverse'] is True) and (marketResolved['option'] is not True):
+                cost = self.parse_number(Precise.string_div(filledString, averageString))
+        lastTradeTimestamp = lastUpdateTimestamp
+        nativeLastUpdateTimestamp = None
+        orderType = self.safe_string_lower(order, 'order_type')
+        reduceOnly = False
+        fee = {}
+        if self.is_native_deribit_credentials():
+            lastTradeTimestamp = None
+            if (filled is not None) and (filled > 0):
+                lastTradeTimestamp = lastUpdateTimestamp
+            nativeLastUpdateTimestamp = lastUpdateTimestamp
+            orderType = self.safe_string_lower_2(order, 'original_order_type', 'order_type')
+            reduceOnly = self.safe_bool(order, 'reduce_only', False)
             fee = {
-                'cost': feeCost,
+                'cost': self.safe_number(order, 'commission'),
+                'currency': self.safe_string(marketResolved, 'settle', self.safe_string(marketResolved, 'quote')),
             }
-        datetime = self.safe_string_2(order, 'submit_time', 'event_time')
         return self.safe_order({
             'info': order,
             'id': self.safe_string(order, 'order_id'),
-            'clientOrderId': self.safe_string(order, 'client_order_id'),
-            'timestamp': self.parse8601(datetime),
-            'datetime': datetime,
-            'lastTradeTimestamp': None,
-            'symbol': self.safe_symbol(marketId, market),
-            'type': self.parse_order_type(self.safe_string(order, 'type')),
-            'timeInForce': self.safe_string(order, 'tif'),
-            'postOnly': None,
-            'side': self.safe_string_lower(order, 'side'),
-            'price': self.safe_string(order, 'price'),
-            'triggerPrice': self.safe_string(order, 'stop_price'),
-            'amount': self.safe_string(order, 'size'),
-            'filled': self.safe_string(order, 'exec_qty'),
-            'remaining': self.safe_string(order, 'leaves_qty'),
-            'cost': None,
-            'average': self.safe_string(order, 'avg_price'),
-            'status': self.parse_order_status(self.safe_string(order, 'order_status')),
+            'clientOrderId': self.safe_string(order, 'label'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastUpdateTimestamp': nativeLastUpdateTimestamp,
+            'symbol': marketResolved['symbol'],
+            'type': self.parse_order_type(orderType),
+            'timeInForce': self.parse_time_in_force(self.safe_string(order, 'time_in_force')),
+            'postOnly': self.safe_bool(order, 'post_only'),
+            'reduceOnly': reduceOnly,
+            'side': self.safe_string(order, 'direction'),
+            'price': price,
+            'triggerPrice': self.safe_number_2(order, 'trigger_price', 'stop_price'),
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'cost': cost,
+            'average': average,
+            'status': self.parse_order_status(self.safe_string_lower(order, 'order_state')),
             'fee': fee,
-            'trades': None,
-        }, market)
+            'trades': self.safe_list(order, 'trades'),
+        }, marketResolved)
 
-    def parse_order_status(self, status: Str):
+    def parse_time_in_force(self, timeInForce: Str):
+        timeInForces = {
+            'good_til_cancelled': 'GTC',
+            'fill_or_kill': 'FOK',
+            'immediate_or_cancel': 'IOC',
+            'good_til_day': 'GTD',
+        }
+        return self.safe_string(timeInForces, timeInForce, timeInForce)
+
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
-            # order_status carries WORKING and DONE; the other keys are event_type
-            # values, which the same payload reports in its own field
-            'WORKING': 'open',
-            'NEW': 'open',
-            'PARTIAL_FILLED': 'open',
-            'FILLED': 'closed',
-            'CANCELED': 'canceled',
-            'REPLACED': 'canceled',
-            'PENDING_CANCEL': 'open',
-            'REJECTED': 'rejected',
-            'PENDING_NEW': 'open',
-            'EXPIRED': 'expired',
-            'PENDING_REPLACE': 'open',
+            'open': 'open',
+            'cancelled': 'canceled',
+            'filled': 'closed',
+            'rejected': 'rejected',
+            'untriggered': 'open',
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type(self, type: Str):
-        if type == 'UNKNOWN_ORDER_TYPE':
-            return None
+    def parse_order_type(self, type: Str) -> Str:
         types = {
-            'MARKET': 'market',
-            'LIMIT': 'limit',
-            'STOP': 'limit',
-            'STOP_LIMIT': 'limit',
+            'stop_limit': 'limit',
+            'take_limit': 'limit',
+            'stop_market': 'market',
+            'take_market': 'market',
         }
         return self.safe_string(types, type, type)
 
@@ -1880,416 +2378,860 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         """
         cancels an open order
 
-        https://docs.cloud.coinbase.com/intx/reference/cancelorder
+        https://docs.cdp.coinbase.com/api-reference/trading/private-cancel
+        https://docs.deribit.com/api-reference/trading/private-cancel
 
         :param str id: order id
         :param str symbol: not used by cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
+        paramsResolved = self.handle_route_and_params('cancelOrder', params)
         if self.markets is None:
             self.load_markets()
-        portfolio, paramsPortfolio = self.handle_portfolio_and_params('cancelOrder', params)
         request = {
-            'portfolio': portfolio,
-            'id': id,
+            'order_id': id,
         }
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        orders = self.v1PrivateDeleteOrdersId(self.extend(request, paramsPortfolio))
+        self.authenticate_v2()
+        response = self.privateGetCancel(self.extend(request, paramsResolved))
         #
-        #    {
-        #        "order_id":"1x96skvg-1-0",
-        #        "client_order_id":"ccxt",
-        #        "side":"BUY",
-        #        "instrument_id":"114jqr89-0-0",
-        #        "instrument_uuid":"b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
-        #        "symbol":"BTC-PERP",
-        #        "portfolio_id":"1wp37qsc-1-0",
-        #        "portfolio_uuid":"018d7f6c-b92c-7361-8b7e-2932711e5a22",
-        #        "type":"LIMIT",
-        #        "price":"10000",
-        #        "size":"0.001",
-        #        "tif":"GTC",
-        #        "stp_mode":"BOTH",
-        #        "event_type":"CANCELED",
-        #        "order_status":"DONE",
-        #        "leaves_qty":"0.001",
-        #        "exec_qty":"0",
-        #        "avg_price":"0",
-        #        "fee":"0"
-        #    }
+        #     {
+        #         "id": 4214,
+        #         "jsonrpc": "2.0",
+        #         "result": {
+        #             "amount": 5,
+        #             "api": false,
+        #             "creation_timestamp": 1550575961291,
+        #             "direction": "sell",
+        #             "instrument_name": "ETH-PERPETUAL",
+        #             "is_liquidation": false,
+        #             "is_rebalance": false,
+        #             "label": "",
+        #             "last_update_timestamp": 1550575961291,
+        #             "max_show": 5,
+        #             "order_id": "ETH-SLIS-12",
+        #             "order_state": "untriggered",
+        #             "order_type": "stop_market",
+        #             "post_only": false,
+        #             "price": "market_price",
+        #             "reduce_only": false,
+        #             "time_in_force": "good_til_cancelled",
+        #             "trigger": "index_price",
+        #             "trigger_price": 144.73,
+        #             "triggered": false
+        #         }
+        #     }
         #
-        return self.parse_order(orders, market)
+        order = self.safe_dict(response, 'result', {})
+        return self.parse_order(order, market)
 
     def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel all open orders
+
+        https://docs.cdp.coinbase.com/api-reference/trading/private-cancel_all
+        https://docs.cdp.coinbase.com/api-reference/trading/private-cancel_all_by_instrument
+        https://docs.deribit.com/api-reference/trading/private-cancel_all
+        https://docs.deribit.com/api-reference/trading/private-cancel_all_by_instrument
+
         :param str [symbol]: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
+        paramsResolved = self.handle_route_and_params('cancelAllOrders', params)
         if self.markets is None:
             self.load_markets()
-        portfolio, paramsPortfolio = self.handle_portfolio_and_params('cancelAllOrders', params)
-        request = {
-            'portfolio': portfolio,
-        }
-        market = None
-        if (symbol is not None) and (symbol != ''):
+        self.authenticate_v2()
+        response = None
+        if symbol is not None:
             market = self.market(symbol)
-            request['instrument'] = market['id']
-        orders = self.v1PrivateDeleteOrders(self.extend(request, paramsPortfolio))
-        return self.parse_orders(orders, market)
+            request = {
+                'instrument_name': market['id'],
+            }
+            response = self.privateGetCancelAllByInstrument(self.extend(request, paramsResolved))
+        else:
+            response = self.privateGetCancelAll(paramsResolved)
+        #
+        #     {
+        #         "id": 47,
+        #         "jsonrpc": "2.0",
+        #         "result": 4
+        #     }
+        #
+        order = self.safe_order({'info': response})
+        return [order]
 
     def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
         """
         edit a trade order
 
-        https://docs.cloud.coinbase.com/intx/reference/modifyorder
+        https://docs.cdp.coinbase.com/api-reference/trading/private-edit
+        https://docs.deribit.com/api-reference/trading/private-edit
 
         :param str id: cancel order id
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
-        :param float amount: how much of currency you want to trade in units of base currency
+        :param float amount: number of contracts for native Deribit derivatives, otherwise the exchange order amount(base currency for spot)
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str params['clientOrderId']: client order id
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :param float [params.triggerPrice]: price to trigger stop orders
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
+        paramsResolved = self.handle_route_and_params('editOrder', params)
+        if self.is_native_deribit_credentials() and (amount is None) and (self.safe_number(paramsResolved, 'contracts') is None):
+            raise ArgumentsRequired(self.id + ' editOrder() requires amount or params.contracts on Deribit')
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
         request = {
-            'id': id,
+            'order_id': id,
         }
-        portfolio, paramsPortfolio = self.handle_portfolio_and_params('editOrder', params)
-        if portfolio is not None:
-            request['portfolio'] = portfolio
         if amount is not None:
-            request['size'] = self.amount_to_precision(symbol, amount)
+            request['amount'] = self.get_order_amount(market, amount)
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
-        triggerPrice = self.safe_number_n(paramsPortfolio, ['stopPrice', 'stop_price', 'triggerPrice'])
+        triggerPrice = self.safe_number_n(paramsResolved, ['stopPrice', 'stop_price', 'triggerPrice'])
         if triggerPrice is not None:
-            request['stop_price'] = triggerPrice
-        clientOrderId = self.safe_string_2(paramsPortfolio, 'client_order_id', 'clientOrderId')
-        if clientOrderId is None:
-            raise BadRequest(self.id + ' editOrder() requires a clientOrderId parameter')
-        request['client_order_id'] = clientOrderId
-        order = self.v1PrivatePutOrdersId(self.extend(request, paramsPortfolio))
+            request['trigger_price'] = triggerPrice
+        paramsOrder = self.omit(paramsResolved, ['triggerPrice', 'stopPrice', 'stop_price'])
+        self.authenticate_v2()
+        response = self.privateGetEdit(self.extend(request, paramsOrder))
+        #
+        #     {
+        #         "id": 6130,
+        #         "jsonrpc": "2.0",
+        #         "result": {
+        #             "order": {
+        #                 "amount": 21,
+        #                 "api": true,
+        #                 "average_price": 202.8,
+        #                 "creation_timestamp": 1590486335742,
+        #                 "direction": "sell",
+        #                 "filled_amount": 21,
+        #                 "instrument_name": "ETH-PERPETUAL",
+        #                 "is_liquidation": false,
+        #                 "is_rebalance": false,
+        #                 "label": "",
+        #                 "last_update_timestamp": 1590486335742,
+        #                 "max_show": 21,
+        #                 "order_id": "ETH-584864807",
+        #                 "order_state": "filled",
+        #                 "order_type": "limit",
+        #                 "post_only": false,
+        #                 "price": 198.75,
+        #                 "reduce_only": true,
+        #                 "replaced": false,
+        #                 "time_in_force": "good_til_cancelled",
+        #                 "web": false
+        #             },
+        #             "trades": [
+        #                 {
+        #                     "amount": 21,
+        #                     "direction": "sell",
+        #                     "fee": 0.00007766,
+        #                     "fee_currency": "ETH",
+        #                     "index_price": 202.86,
+        #                     "instrument_name": "ETH-PERPETUAL",
+        #                     "liquidity": "T",
+        #                     "mark_price": 202.79,
+        #                     "matching_id": null,
+        #                     "order_id": "ETH-584864807",
+        #                     "order_type": "limit",
+        #                     "post_only": false,
+        #                     "price": 202.8,
+        #                     "reduce_only": true,
+        #                     "state": "filled",
+        #                     "tick_direction": 0,
+        #                     "timestamp": 1590486335742,
+        #                     "trade_id": "ETH-2696097",
+        #                     "trade_seq": 1966068
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
+        result = self.safe_dict(response, 'result', {})
+        order = self.safe_dict(result, 'order', {})
+        trades = self.safe_list(result, 'trades', [])
+        order['trades'] = trades
         return self.parse_order(order, market)
 
     def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches information on an order made by the user
 
-        https://docs.cloud.coinbase.com/intx/reference/modifyorder
+        https://docs.cdp.coinbase.com/api-reference/trading/private-get_order_state
+        https://docs.deribit.com/api-reference/trading/private-get_order_state
 
         :param str id: the order id
         :param str symbol: unified market symbol that the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
+        paramsResolved = self.handle_route_and_params('fetchOrder', params)
         if self.markets is None:
             self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        portfolio, paramsPortfolio = self.handle_portfolio_and_params('fetchOrder', params)
         request = {
-            'id': id,
-            'portfolio': portfolio,
+            'order_id': id,
         }
-        order = self.v1PrivateGetOrdersId(self.extend(request, paramsPortfolio))
+        self.authenticate_v2()
+        response = self.privateGetGetOrderState(self.extend(request, paramsResolved))
         #
-        #    {
-        #        "order_id":"1x96skvg-1-0",
-        #        "client_order_id":"ccxt",
-        #        "side":"BUY",
-        #        "instrument_id":"114jqr89-0-0",
-        #        "instrument_uuid":"b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
-        #        "symbol":"BTC-PERP",
-        #        "portfolio_id":"1wp37qsc-1-0",
-        #        "portfolio_uuid":"018d7f6c-b92c-7361-8b7e-2932711e5a22",
-        #        "type":"LIMIT",
-        #        "price":"10000",
-        #        "size":"0.001",
-        #        "tif":"GTC",
-        #        "stp_mode":"BOTH",
-        #        "event_type":"NEW",
-        #        "event_time":"2024-02-14T03:25:14Z",
-        #        "submit_time":"2024-02-14T03:25:13.999Z",
-        #        "order_status":"WORKING",
-        #        "leaves_qty":"0.001",
-        #        "exec_qty":"0",
-        #        "avg_price":"0",
-        #        "fee":"0"
-        #    }
+        #     {
+        #         "id": 4316,
+        #         "jsonrpc": "2.0",
+        #         "result": {
+        #             "amount": 37,
+        #             "api": false,
+        #             "average_price": 118.94,
+        #             "creation_timestamp": 1550219749176,
+        #             "direction": "sell",
+        #             "filled_amount": 37,
+        #             "instrument_name": "ETH-PERPETUAL",
+        #             "is_liquidation": false,
+        #             "is_rebalance": false,
+        #             "label": "",
+        #             "last_update_timestamp": 1550219810944,
+        #             "max_show": 37,
+        #             "order_id": "ETH-331562",
+        #             "order_state": "filled",
+        #             "order_type": "limit",
+        #             "post_only": false,
+        #             "price": 118.94,
+        #             "reduce_only": false,
+        #             "time_in_force": "good_til_cancelled"
+        #         }
+        #     }
         #
+        order = self.safe_dict(response, 'result', {})
         return self.parse_order(order, market)
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on all currently open orders
 
-        https://docs.cloud.coinbase.com/intx/reference/getorders
+        https://docs.cdp.coinbase.com/api-reference/trading/private-get_open_orders_by_instrument
+        https://docs.deribit.com/api-reference/trading/private-get_open_orders_by_instrument
 
         :param str symbol: unified market symbol of the orders
         :param int [since]: timestamp in ms of the earliest order, default is None
         :param int [limit]: the maximum number of open order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :param boolean [params.paginate]: native Deribit pagination is not supported
         :param int [params.offset]: offset
         :param str [params.event_type]: The most recent type of event that happened to the order. Allowed values: NEW, TRADE, REPLACED
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
+        paramsResolved = self.handle_route_and_params('fetchOpenOrders', params)
+        paramsPaginate = paramsResolved
+        if self.is_native_deribit_credentials():
+            paginate, paramsFinal = self.handle_option_bool_and_params(paramsResolved, 'fetchOpenOrders', 'paginate', False)
+            if paginate:
+                raise NotSupported(self.id + ' fetchOpenOrders() does not support pagination')
+            paramsPaginate = paramsFinal
         if self.markets is None:
             self.load_markets()
-        portfolio, paramsPortfolio = self.handle_portfolio_and_params('fetchOpenOrders', params)
-        paginate, paramsPaginate = self.handle_option_bool_and_params(paramsPortfolio, 'fetchOpenOrders', 'paginate', False)
-        maxEntriesPerRequest = 100
-        maxEntriesPerRequestOption, paramsMaxEntriesPerRequest = self.handle_option_integer_and_params(paramsPaginate, 'fetchOpenOrders', 'maxEntriesPerRequest', maxEntriesPerRequest)
-        pageKey = 'ccxtPageKey'
-        if paginate:
-            return self.fetch_paginated_call_incremental('fetchOpenOrders', symbol, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequestOption)
-        page = self.safe_integer(paramsMaxEntriesPerRequest, pageKey, 1) - 1
-        offSet = self.safe_integer_2(paramsMaxEntriesPerRequest, 'offset', 'result_offset', page * maxEntriesPerRequestOption)
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
+        market = self.market(symbol)
         request = {
-            'portfolio': portfolio,
-            'result_offset': offSet,
+            'instrument_name': market['id'],
         }
-        market = None
-        if (symbol is not None) and (symbol != ''):
-            market = self.market(symbol)
-            request['instrument'] = symbol
-        if limit is not None:
-            if limit > 100:
-                raise BadRequest(self.id + ' fetchOpenOrders() maximum limit is 100')
-            request['result_limit'] = limit
-        if since is not None:
-            request['ref_datetime'] = self.iso8601(since)
-        response = self.v1PrivateGetOrders(self.extend(request, paramsMaxEntriesPerRequest))
+        if not self.is_native_deribit_credentials() and (limit is not None):
+            request['count'] = limit
+        self.authenticate_v2()
+        response = self.privateGetGetOpenOrdersByInstrument(self.extend(request, paramsPaginate))
         #
-        #    {
-        #        "pagination":{
-        #           "result_limit":25,
-        #           "result_offset":0
-        #        },
-        #        "results":[
-        #           {
-        #              "order_id":"1y4cm6b4-1-0",
-        #              "client_order_id":"ccxtd0dd4b5d-8e5f-",
-        #              "side":"SELL",
-        #              "instrument_id":"114jqr89-0-0",
-        #              "instrument_uuid":"b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
-        #              "symbol":"BTC-PERP",
-        #              "portfolio_id":"1wp37qsc-1-0",
-        #              "portfolio_uuid":"018d7f6c-b92c-7361-8b7e-2932711e5a22",
-        #              "type":"LIMIT",
-        #              "price":"54000",
-        #              "size":"0.01",
-        #              "tif":"GTC",
-        #              "stp_mode":"BOTH",
-        #              "event_type":"NEW",
-        #              "event_time":"2024-02-24T16:46:37.413Z",
-        #              "submit_time":"2024-02-24T16:46:37.412Z",
-        #              "order_status":"WORKING",
-        #              "leaves_qty":"0.01",
-        #              "exec_qty":"0",
-        #              "avg_price":"0",
-        #              "fee":"0"
-        #           },
-        #           ...
-        #        ]
-        #    }
+        #     {
+        #         "id": 1953,
+        #         "jsonrpc": "2.0",
+        #         "result": [
+        #             {
+        #                 "amount": 10,
+        #                 "api": true,
+        #                 "average_price": 0,
+        #                 "creation_timestamp": 1550050597036,
+        #                 "direction": "buy",
+        #                 "filled_amount": 0,
+        #                 "instrument_name": "BTC-15FEB19-3250-P",
+        #                 "is_liquidation": false,
+        #                 "is_rebalance": false,
+        #                 "label": "fooBar",
+        #                 "last_update_timestamp": 1550050597036,
+        #                 "max_show": 10,
+        #                 "order_id": "146062",
+        #                 "order_state": "open",
+        #                 "order_type": "limit",
+        #                 "post_only": false,
+        #                 "price": 0.0028,
+        #                 "reduce_only": false,
+        #                 "time_in_force": "good_til_cancelled"
+        #             }
+        #         ]
+        #     }
         #
-        rawOrders = self.safe_list(response, 'results', [])
+        rawOrders = self.safe_list(response, 'result', [])
         return self.parse_orders(rawOrders, market, since, limit)
 
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
 
-        https://docs.cloud.coinbase.com/intx/reference/getmultiportfoliofills
+        https://docs.cdp.coinbase.com/api-reference/trading/private-get_user_trades_by-instrument
+        https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_instrument
+        https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_instrument_and_time
 
         :param str symbol: unified market symbol of the trades
         :param int [since]: timestamp in ms of the earliest order, default is None
         :param int [limit]: the maximum number of trade structures to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param int [params.until]: the latest time in ms to fetch trades for
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :param boolean [params.historical]: native Deribit indexed history, excludes recent trades
+        :param int [params.until]: native Deribit latest time in ms to fetch trades for
+        :param boolean [params.paginate]: native Deribit automatic pagination is not supported
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
+        paramsResolved = self.handle_route_and_params('fetchMyTrades', params)
+        paramsPaginate = paramsResolved
+        if self.is_native_deribit_credentials():
+            paginate, paramsFinal = self.handle_option_bool_and_params(paramsResolved, 'fetchMyTrades', 'paginate', False)
+            if paginate:
+                raise NotSupported(self.id + ' fetchMyTrades() automatic pagination is not implemented; use since, until or native pagination parameters')
+            paramsPaginate = paramsFinal
         if self.markets is None:
             self.load_markets()
-        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
-        pageKey = 'ccxtPageKey'
-        maxEntriesPerRequest, paramsMaxEntriesPerRequest = self.handle_option_integer_and_params(paramsPaginate, 'fetchMyTrades', 'maxEntriesPerRequest', 100)
-        if paginate:
-            return self.fetch_paginated_call_incremental('fetchMyTrades', symbol, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest)
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-        page = self.safe_integer(paramsMaxEntriesPerRequest, pageKey, 1) - 1
-        offSet = self.safe_integer_2(paramsMaxEntriesPerRequest, 'offset', 'result_offset', page * maxEntriesPerRequest)
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
+        market = self.market(symbol)
         request = {
-            'result_offset': offSet,
+            'instrument_name': market['id'],
+            'include_old': True,
         }
         if limit is not None:
-            if limit > 100:
-                raise BadRequest(self.id + ' fetchMyTrades() maximum limit is 100. Consider setting paginate to True to fetch more trades.')
-            request['result_limit'] = limit
-        if since is not None:
-            request['time_from'] = self.iso8601(since)
-        until = self.safe_string(paramsMaxEntriesPerRequest, 'until')
-        if until is not None:
-            request['ref_datetime'] = self.iso8601(until)
-        paramsOmitted = self.omit(paramsMaxEntriesPerRequest, ['until']) if (until is not None) else paramsMaxEntriesPerRequest
-        response = self.v1PrivateGetPortfoliosFills(self.extend(request, paramsOmitted))
+            request['count'] = limit
+        until = self.safe_integer(paramsPaginate, 'until')
+        paramsOmitted = paramsPaginate
+        if self.is_native_deribit_credentials():
+            paramsOmitted = self.omit(paramsPaginate, 'until')
+        self.authenticate_v2()
+        response = None
+        if self.is_native_deribit_credentials() and ((since is not None) or (until is not None)):
+            request['start_timestamp'] = since if (since is not None) else 0
+            request['end_timestamp'] = until if (until is not None) else self.milliseconds()
+            if self.is_native_deribit_credentials():
+                del request['include_old']
+            response = self.privateGetGetUserTradesByInstrumentAndTime(self.extend(request, paramsOmitted))
+            # Documentation example, shared result envelope with get_user_trades_by_instrument.
+            # { "jsonrpc": "2.0", "result": { "has_more": false, "trades": [] } }
+        else:
+            response = self.privateGetGetUserTradesByInstrument(self.extend(request, paramsOmitted))
         #
-        #    {
-        #        "pagination":{
-        #           "result_limit":25,
-        #           "result_offset":0
-        #        },
-        #        "results":[
-        #           {
-        #              "portfolio_id":"1wp37qsc-1-0",
-        #              "portfolio_uuid":"018d7f6c-b92c-7361-8b7e-2932711e5a22",
-        #              "portfolio_name":"CCXT Portfolio 020624-17:16",
-        #              "fill_id":"1xbfy19y-1-184",
-        #              "exec_id":"280841526207070392",
-        #              "order_id":"1xbfv8yw-1-0",
-        #              "instrument_id":"114jqr89-0-0",
-        #              "instrument_uuid":"b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
-        #              "symbol":"BTC-PERP",
-        #              "match_id":"280841526207053840",
-        #              "fill_price":"52500",
-        #              "fill_qty":"0.01",
-        #              "client_id":"1x59ctku-1-1",
-        #              "client_order_id":"ccxt3e4e2a5f-4a89-",
-        #              "order_qty":"0.01",
-        #              "limit_price":"52500",
-        #              "total_filled":"0.01",
-        #              "filled_vwap":"52500",
-        #              "expire_time":"",
-        #              "stop_price":"",
-        #              "side":"BUY",
-        #              "tif":"GTC",
-        #              "stp_mode":"BOTH",
-        #              "flags":"",
-        #              "fee":"0.105",
-        #              "fee_asset":"USDC",
-        #              "order_status":"DONE",
-        #              "event_time":"2024-02-15T00:43:57.631Z"
-        #           },
-        #        ]
-        #    }
+        #     {
+        #         "id": 9292,
+        #         "jsonrpc": "2.0",
+        #         "result": {
+        #             "has_more": false,
+        #             "trades": [
+        #                 {
+        #                     "amount": 1,
+        #                     "direction": "sell",
+        #                     "fee": 0.0004,
+        #                     "fee_currency": "BTC",
+        #                     "index_price": 8993.47,
+        #                     "instrument_name": "BTC-27MAY20-8750-C",
+        #                     "iv": 38.51,
+        #                     "liquidity": "M",
+        #                     "mark_price": 0.03135383,
+        #                     "matching_id": null,
+        #                     "order_id": "4008699030",
+        #                     "order_type": "limit",
+        #                     "post_only": false,
+        #                     "price": 0.028,
+        #                     "reduce_only": false,
+        #                     "state": "filled",
+        #                     "tick_direction": 1,
+        #                     "timestamp": 1590480620145,
+        #                     "trade_id": "48078936",
+        #                     "trade_seq": 1,
+        #                     "underlying_price": 8994.95
+        #                 },
+        #                 {
+        #                     "amount": 10,
+        #                     "direction": "buy",
+        #                     "fee": -2.1e-7,
+        #                     "fee_currency": "BTC",
+        #                     "index_price": 9679.48,
+        #                     "instrument_name": "BTC-26JUN20",
+        #                     "liquidity": "M",
+        #                     "mark_price": 9684,
+        #                     "matching_id": null,
+        #                     "order_id": "3993343822",
+        #                     "order_type": "limit",
+        #                     "post_only": false,
+        #                     "price": 9681.5,
+        #                     "reduce_only": false,
+        #                     "state": "filled",
+        #                     "tick_direction": 2,
+        #                     "timestamp": 1589923311862,
+        #                     "trade_id": "47958936",
+        #                     "trade_seq": 299513
+        #                 }
+        #             ]
+        #         }
+        #     }
         #
-        trades = self.safe_list(response, 'results', [])
+        result = self.safe_dict(response, 'result', {})
+        trades = self.safe_list(result, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
+        #
+        # fetchMyTrades
+        #
+        #     {
+        #         "amount": 1,
+        #         "direction": "sell",
+        #         "fee": 0.0004,
+        #         "fee_currency": "BTC",
+        #         "index_price": 8993.47,
+        #         "instrument_name": "BTC-27MAY20-8750-C",
+        #         "iv": 38.51,
+        #         "liquidity": "M",
+        #         "mark_price": 0.03135383,
+        #         "matching_id": null,
+        #         "order_id": "4008699030",
+        #         "order_type": "limit",
+        #         "post_only": false,
+        #         "price": 0.028,
+        #         "reduce_only": false,
+        #         "state": "filled",
+        #         "tick_direction": 1,
+        #         "timestamp": 1590480620145,
+        #         "trade_id": "48078936",
+        #         "trade_seq": 1,
+        #         "underlying_price": 8994.95
+        #     },
+        #     {
+        #         "amount": 10,
+        #         "direction": "buy",
+        #         "fee": -2.1e-7,
+        #         "fee_currency": "BTC",
+        #         "index_price": 9679.48,
+        #         "instrument_name": "BTC-26JUN20",
+        #         "liquidity": "M",
+        #         "mark_price": 9684,
+        #         "matching_id": null,
+        #         "order_id": "3993343822",
+        #         "order_type": "limit",
+        #         "post_only": false,
+        #         "price": 9681.5,
+        #         "reduce_only": false,
+        #         "state": "filled",
+        #         "tick_direction": 2,
+        #         "timestamp": 1589923311862,
+        #         "trade_id": "47958936",
+        #         "trade_seq": 299513
+        #     }
+        #
+        instrumentName = self.safe_string(trade, 'instrument_name')
+        marketResolved = self.safe_market(instrumentName, market)
+        timestamp = self.safe_integer(trade, 'timestamp')
+        price = self.safe_number(trade, 'price')
+        amount = self.safe_number(trade, 'amount')
+        amountString = self.safe_string(trade, 'amount')
+        if self.is_native_deribit_credentials() and (marketResolved['contract'] is True):
+            amount = self.parse_number(self.safe_string(trade, 'contracts', Precise.string_div(amountString, self.safe_string(marketResolved, 'contractSize'))))
+        priceString = self.safe_string(trade, 'price')
+        cost = None
+        if (amountString is not None) and (priceString is not None):
+            cost = self.parse_number(Precise.string_mul(amountString, priceString))
+            if self.is_native_deribit_credentials() and (marketResolved['inverse'] is True) and (marketResolved['option'] is not True):
+                cost = self.parse_number(Precise.string_div(amountString, priceString))
+        feeCurrencyId = self.safe_string(trade, 'fee_currency')
+        feeCurrency = self.safe_currency_code(feeCurrencyId)
+        fee = {
+            'cost': self.safe_number(trade, 'fee'),
+            'currency': feeCurrency,
+        }
+        takerOrMaker = None
+        if self.is_native_deribit_credentials():
+            liquidities = {'M': 'maker', 'T': 'taker'}
+            takerOrMaker = self.safe_string(liquidities, self.safe_string(trade, 'liquidity'))
+        return self.safe_trade({
+            'info': trade,
+            'id': self.safe_string(trade, 'trade_id'),
+            'order': self.safe_string(trade, 'order_id'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': marketResolved['symbol'],
+            'type': self.safe_string(trade, 'order_type'),
+            'side': self.safe_string(trade, 'direction'),
+            'takerOrMaker': takerOrMaker,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
+        }, marketResolved)
+
+    def fetch_leverage(self, symbol: str, params: dict = {}) -> Leverage:
         """
-        make a withdrawal
+        fetch the set leverage for a market
 
-        https://docs.cloud.coinbase.com/intx/reference/withdraw
-        https://docs.cloud.coinbase.com/intx/reference/counterpartywithdraw
+        https://docs.cdp.coinbase.com/api-reference/account-management/private-get_leverage
 
-        :param str code: unified currency code
-        :param float amount: the amount to withdraw
-        :param str address: the address to withdraw to
+        :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
-        :param boolean [params.add_network_fee_to_total]: if True, deducts network fee from the portfolio, otherwise deduct fee from the withdrawal
-        :param str [params.network_arn_id]: Identifies the blockchain network(e.g., networks/ethereum-mainnet/assets/313ef8a9-ae5a-5f2f-8a56-572c0e2a4d5a)
-        :param str [params.nonce]: a unique integer representing the withdrawal request
-        :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route; native route throws NotSupported; get_leverage is gateway-only
+        :param boolean [params.isolated]: set to True for isolated margin
+        :param int [params.subaccount_id]: The user id for the subaccount, available to retail broker callers, defaults to the authenticated account
+        :returns dict: a `leverage structure <https://docs.ccxt.com/?id=leverage-structure>`
         """
-        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
-        self.check_address(address, code, tagWithdrawTag)
+        paramsResolved = self.handle_route_and_params('fetchLeverage', params)
+        if self.is_native_deribit_credentials():
+            raise NotSupported(self.id + ' fetchLeverage() is a Coinbase gateway method; native Deribit has no documented get_leverage endpoint')
         if self.markets is None:
             self.load_markets()
-        currency = self.currency(code)
-        portfolio, paramsPortfolio = self.handle_portfolio_and_params('withdraw', paramsWithdrawTag)
-        method, paramsMethod = self.handle_option_string_and_params(paramsPortfolio, 'withdraw', 'method', 'v1PrivatePostTransfersWithdraw')
-        networkId, paramsNetworkId = self.handle_network_id_and_params(code, 'withdraw', paramsMethod)
+        market = self.market(symbol)
         request = {
-            'portfolio': portfolio,
-            'type': 'send',
-            'asset': currency['id'],
-            'address': address,
-            'amount': amount,
-            'currency': currency['id'],
-            'network_arn_id': networkId,
-            'nonce': self.nonce(),
+            'instrument_name': market['id'],
         }
-        response = None
-        if method == 'v1PrivatePostTransfersWithdrawCounterparty':
-            response = self.v1PrivatePostTransfersWithdrawCounterparty(self.extend(request, paramsNetworkId))
-        else:
-            response = self.v1PrivatePostTransfersWithdraw(self.extend(request, paramsNetworkId))
+        self.authenticate_v2()
+        response = self.privateGetGetLeverage(self.extend(request, paramsResolved))
         #
-        #    {
-        #        "idem":"8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3"
-        #    }
+        #     {
+        #         "id": 1,
+        #         "jsonrpc": "2.0",
+        #         "result": {
+        #             "instrument_name": "BTC-PERPETUAL",
+        #             "leverage": 25,
+        #             "max_leverage": 100
+        #         }
+        #     }
         #
-        return self.parse_transaction(response, currency)
+        result = self.safe_dict(response, 'result', {})
+        return self.parse_leverage(result, market)
 
-    def sign(self, path: str, api: list[str] = [], method='GET', params: dict = {}) -> dict:
-        version = self.safe_string(api, 0)
-        signed = self.safe_string(api, 1) == 'private'
-        fullPath = '/' + version + '/' + self.implode_params(path, params)
-        query = self.omit(params, self.extract_params(path))
-        savedPath = '/api' + fullPath
-        if method == 'GET' or method == 'DELETE':
-            if len(query) > 0:
-                fullPath += '?' + self.urlencode_with_array_repeat(query)
-        apiUrl = self.safe_string(self.urls['api'], 'rest')
-        if apiUrl is None:
-            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-        url = apiUrl + fullPath
-        hasSignedBody = signed and (method != 'GET') and (len(query) > 0)
-        signedBody = ''
-        if hasSignedBody:
-            signedBody = self.json(query)
-        requestBody = None
-        if hasSignedBody:
-            requestBody = signedBody
-        signedHeaders = None
-        if signed:
-            self.check_required_credentials()
-            nonce = str(self.nonce())
-            payload = signedBody
-            auth = nonce + method + savedPath + payload
-            signature = self.hmac(self.encode(auth), self.base64_to_binary(self.secret), hashlib.sha256, 'base64')
-            signedHeaders = {
-                'CB-ACCESS-TIMESTAMP': nonce,
-                'CB-ACCESS-SIGN': signature,
-                'CB-ACCESS-PASSPHRASE': self.password,
-                'CB-ACCESS-KEY': self.apiKey,
-            }
+    def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
+        marketId = self.safe_string(leverage, 'instrument_name')
+        bothLeverage = self.safe_integer(leverage, 'leverage')
+        if self.is_native_deribit_credentials():
+            bothLeverage = self.safe_number_2(leverage, 'leverage', 'max_leverage')
+        return {
+            'info': leverage,
+            'symbol': self.safe_symbol(marketId, market),
+            'marginMode': None,
+            'longLeverage': bothLeverage,
+            'shortLeverage': bothLeverage,
+        }
+
+    def set_leverage(self, leverage: int, symbol: Str = None, params: dict = {}) -> dict:
+        """
+        set the level of leverage for a market
+
+        https://docs.cdp.coinbase.com/api-reference/trading/private-set_leverage
+
+        :param int leverage: the rate of leverage
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route; native route throws NotSupported; set_leverage is gateway-only
+        :param boolean [params.isolated]: set to True for isolated margin
+        :param int [params.subaccount_id]: The user id for the subaccount, available to retail broker callers, defaults to the authenticated account
+        :returns dict: response from the exchange
+        """
+        paramsResolved = self.handle_route_and_params('setLeverage', params)
+        if self.is_native_deribit_credentials():
+            raise NotSupported(self.id + ' setLeverage() is a Coinbase gateway method; native Deribit has no documented set_leverage endpoint')
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'instrument_name': market['id'],
+            'leverage': self.number_to_string(leverage),
+        }
+        self.authenticate_v2()
+        response = self.privateGetSetLeverage(self.extend(request, paramsResolved))
+        #
+        #     {
+        #         "id": 1,
+        #         "jsonrpc": "2.0",
+        #         "result": 50
+        #     }
+        #
+        return response
+
+    def create_auth_token(self, seconds: Int, method: Str = None, url: Str = None, useEddsa=False):
+        """
+ @ignore
+        signs a short-lived CDP JWT that public/auth exchanges for a gateway access token
+
+        https://docs.cdp.coinbase.com/api-reference/v2/authentication
+        https://docs.cdp.coinbase.com/get-started/authentication/jwt-authentication
+        https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
+        https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication#generating-a-jwt
+        https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/access-and-refresh-tokens
+        https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/rest-api/authentication/post-publicauth
+        https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/guides/derivatives/technical#authentication
+        https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/guides/derivatives/deribit-partners#authentication
+        https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/guides/derivatives/intx-partners#authentication
+
+        :param int seconds: current timestamp in seconds
+        :param str [method]: request method
+        :param str [url]: request URL
+        :param boolean [useEddsa]: True for Ed25519 keys, False for ECDSA PEM keys
+        :returns str: signed JWT
+        """
+        uri = None
+        if url is not None:
+            uri = method + ' ' + url.replace('https://', '')
+            quesPos = uri.find('?')
+            if quesPos > 0:
+                uri = uri[0:quesPos]
+        nonce = self.random_bytes(16)
+        aud = 'retail_rest_api_proxy'
+        if useEddsa:
+            aud = 'cdp_service'
+        iss = 'coinbase-cloud'
+        if useEddsa:
+            iss = 'cdp'
+        request = {
+            'aud': [aud],
+            'sub': self.apiKey,
+            'iss': iss,
+            'nbf': seconds,
+            'exp': seconds + 120,
+            'iat': seconds,
+        }
+        if uri is not None:
+            if not useEddsa:
+                request['uri'] = uri
+            else:
+                request['uris'] = [uri]
+        if useEddsa:
+            byteArray = self.base64_to_binary(self.secret)
+            seed = self.array_slice(byteArray, 0, 32)
+            return self.jwt(request, seed, 'sha256', False, {'kid': self.apiKey, 'nonce': nonce, 'alg': 'EdDSA'})
+        return self.jwt(request, self.encode(self.secret), 'sha256', False, {'kid': self.apiKey, 'nonce': nonce, 'alg': 'ES256'})
+
+    def authenticate_v2(self, params: dict = {}) -> Str:
+        """
+ @ignore
+        exchanges a CDP JWT for a Deribit gateway access token
+
+        https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/guides/derivatives/technical#authentication
+        https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/guides/derivatives/overview
+        https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/access-and-refresh-tokens
+        https://docs.cdp.coinbase.com/api-reference/v2/authentication#generate-bearer-token
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.forceRefresh]: ignore the cached token and request a new one
+        :returns str: a Deribit gateway access token
+        """
+        paramsResolved = self.handle_route_and_params('authenticateV2', params)
+        if self.is_native_deribit_credentials():
+            return None
+        forceRefresh = self.safe_bool(paramsResolved, 'forceRefresh', False)
+        paramsOmitted = self.omit(paramsResolved, 'forceRefresh')
+        now = self.milliseconds()
+        token = self.get_v2_access_token()
+        tokenExpires = self.safe_integer(self.options, 'v2TokenExpires')
+        if not forceRefresh and (token is not None) and (token != '') and (tokenExpires is not None) and (now < tokenExpires):
+            return token
+        response = self.publicPostAuth(paramsOmitted)
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "result": {
+        #             "access_token": "...",
+        #             "expires_in": 899,
+        #             "scope": "...",
+        #             "token_type": "bearer"
+        #         }
+        #     }
+        #
+        result = self.safe_dict(response, 'result', {})
+        accessToken = self.safe_string(result, 'access_token')
+        expiresIn = self.safe_integer(result, 'expires_in')
+        if accessToken is None:
+            raise AuthenticationError(self.id + ' public/auth did not return an access token')
+        if expiresIn is None:
+            raise AuthenticationError(self.id + ' public/auth did not return an expiry')
+        ratio = self.safe_number(self.options, 'accessTokenRefreshRatio')
+        refreshRatio = 0.8 if (ratio is None) else ratio
+        tokenRefreshInMilliseconds = self.parse_to_int(expiresIn * 1000 * refreshRatio)
+        self.token = accessToken
+        self.options['v2AccessToken'] = accessToken
+        self.options['v2TokenExpires'] = self.sum(now, tokenRefreshInMilliseconds)
+        return accessToken
+
+    def get_v2_access_token(self) -> Str:
+        """
+ @ignore
+        the cached gateway access token, options.v2AccessToken takes precedence over exchange.token
+        :returns str|None: the access token
+        """
+        token = self.safe_string(self.options, 'v2AccessToken')
+        if (token is not None) and (token != ''):
+            return token
+        if (self.token is None) or (self.token == ''):
+            return None
+        return self.token
+
+    def sign(self, path: str, api: list[str] | str = 'public', method: str = 'GET', params: dict = {}) -> dict:
+        access = api[0] if isinstance(api, list) else api
+        rpcMethod = access + '/' + path
+        requestParams = self.handle_route_and_params('sign', params)
+        isNativeDeribit = self.is_native_deribit_credentials()
+        baseApiUrl = self.safe_string(self.urls['api'], 'rest', '')
+        if isNativeDeribit:
+            baseApiUrl = 'https://www.deribit.com/api/v2'
+        url = baseApiUrl + '/' + rpcMethod
         requestHeaders = None
-        if signed:
-            requestHeaders = signedHeaders
+        if isNativeDeribit and ((path == 'get_leverage') or (path == 'set_leverage')):
+            raise NotSupported(self.id + ' ' + rpcMethod + ' is only documented on the Coinbase gateway')
+        if (access == 'public') and (path == 'auth'):
+            self.check_required_credentials()
+            if isNativeDeribit:
+                requestParams = self.extend({
+                    'grant_type': 'client_credentials',
+                    'client_id': self.apiKey,
+                    'client_secret': self.secret,
+                }, requestParams)
+            else:
+                requestParams = self.extend({
+                    'grant_type': 'coinbase_cdp',
+                    'token': self.create_auth_token(self.seconds(), method, url, self.is_eddsa_secret()),
+                }, requestParams)
+        elif (access == 'private') and isNativeDeribit:
+            self.check_required_credentials()
+            timestamp = str(self.milliseconds())
+            nonce = str(self.nonce())
+            signedRequest = '/' + 'api/' + self.version + '/' + access + '/' + path
+            if len(requestParams) > 0:
+                signedRequest += '?' + self.urlencode(requestParams)
+            requestData = method + "\n" + signedRequest + "\n" + "\n"  # eslint-disable-line quotes
+            auth = timestamp + "\n" + nonce + "\n" + requestData  # eslint-disable-line quotes
+            signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
+            requestHeaders = {
+                'Content-Type': 'application/json',
+                'Authorization': 'deri-hmac-sha256 id=' + self.apiKey + ',ts=' + timestamp + ',sig=' + signature + ',nonce=' + nonce,
+            }
+        elif access == 'private':
+            accessToken = self.get_v2_access_token()
+            if accessToken is None:
+                raise AuthenticationError(self.id + ' requires an access token from public/auth')
+            requestHeaders = {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + accessToken,
+            }
+        if method == 'GET':
+            requestUrl = url
+            if len(requestParams) > 0:
+                requestUrl += '?' + self.urlencode(requestParams)
+            return {'url': requestUrl, 'method': method, 'body': None, 'headers': requestHeaders}
+        request = {
+            'jsonrpc': '2.0',
+            'id': self.nonce(),
+            'method': rpcMethod,
+            'params': requestParams,
+        }
+        requestBody = self.json(request)
+        requestHeaders = self.extend({'Content-Type': 'application/json'}, requestHeaders)
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
+
+    def is_eddsa_secret(self) -> bool:
+        """
+ @ignore
+        whether the configured secret is an Ed25519(EdDSA) CDP key rather than an ECDSA PEM key
+        :returns boolean: True for Ed25519 keys
+        """
+        secretIsPem = self.secret.find('BEGIN') >= 0
+        if secretIsPem:
+            return False
+        useV2CloudApiKey = self.safe_bool(self.options, 'v2CloudAPiKey', False)
+        return(len(self.secret) == 88) or useV2CloudApiKey or self.secret.endswith('=')
+
+    def handle_route_and_params(self, methodName: str, params: dict = {}) -> dict:
+        """
+ @ignore
+        selects a backend before market loading or authentication and removes routing parameters
+        :param str methodName: unified REST or Pro method name
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
+        :returns dict: cleaned parameters; options.route persists the selection for nested calls and Pro
+        """
+        route, paramsResolved = self.handle_option_and_params(params, methodName, 'route', 'auto')
+        deribit = self.resolve_route(route)
+        previousBackend = self.safe_bool(self.options, 'routeBackend')
+        configuredBackend = self.is_native_deribit_credentials()
+        hasToken = self.get_v2_access_token() is not None
+        hasWsState = self.safe_integer(self.options, 'wsAuthRefreshAt') is not None
+        if (previousBackend is not None) and (previousBackend != deribit):
+            raise BadRequest(self.id + ' cannot switch route backend on an initialized instance; use a separate exchange instance')
+        if (previousBackend is None) and (self.markets is not None or hasToken or hasWsState) and (configuredBackend != deribit):
+            raise BadRequest(self.id + ' cannot switch route backend after markets or authentication state; use a separate exchange instance')
+        # Bind before any await, including failed/in-flight loads; never silently reuse another backend's caches.
+        if deribit:
+            self.options['route'] = 'deribit'
+        else:
+            self.options['route'] = 'coinbase'
+        self.options['routeBackend'] = deribit
+        self.has['fetchLeverage'] = not deribit
+        self.has['setLeverage'] = not deribit
+        return self.omit(paramsResolved, ['route', 'defaultRoute', 'callerMethodName'])
+
+    def is_native_deribit_credentials(self) -> bool:
+        """
+ @ignore
+        reads the selected backend or resolves the configured automatic or explicit route
+        :returns boolean: True for the native Deribit route
+        """
+        return self.resolve_route(self.options['route'])
+
+    def resolve_route(self, route: object = None) -> bool:
+        """
+ @ignore
+        resolves a backend override or conservatively detects the known native Deribit credential format
+        :param str [route]: auto(default), deribit, or coinbase
+        :returns boolean: True for native Deribit, False for Coinbase
+        """
+        if route == 'deribit':
+            return True
+        if route == 'coinbase':
+            return False
+        if (route is not None) and (route != 'auto'):
+            raise BadRequest(self.id + ' route must be auto, deribit, or coinbase')
+        if (self.apiKey is None) or (self.apiKey == '') or (self.secret is None) or (self.secret == ''):
+            return False
+        if (self.apiKey.find('organizations/') >= 0) or (self.secret.find('BEGIN') >= 0) or self.is_eddsa_secret():
+            return False
+        return(len(self.apiKey) == 8) and (len(self.secret) == 43)
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         #
-        #    {
-        #        "title":"io.javalin.http.BadRequestResponse: Order rejected (DUPLICATE_CLIENT_ORDER_ID - duplicate client order id detected)",
-        #        "status":400
-        #    }
+        #     { "jsonrpc": "2.0", "id": 1, "error": { "code": 13004, "message": "invalid_credentials" } }
         #
         if response is None:
             return None  # fallback to default error handler
+        error = self.safe_dict(response, 'error')
+        if error is None:
+            return None
+        errorCode = self.safe_string(error, 'code')
+        errorMessage = self.safe_string(error, 'message')
         feedback = self.id + ' ' + body
-        errMsg = self.safe_string(response, 'title')
-        if errMsg is not None:
-            self.throw_exactly_matched_exception(self.exceptions['exact'], errMsg, feedback)
-            self.throw_broadly_matched_exception(self.exceptions['broad'], errMsg, feedback)
-            raise ExchangeError(feedback)
-        return None
+        self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+        self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
+        raise ExchangeError(feedback)

@@ -566,7 +566,8 @@ class gemini extends Exchange {
         if ($numTables < 2) {
             throw new NotSupported($error);
         }
-        $rows = explode("\n<tr>\n", $tables[1]); // eslint-disable-line quotes
+        $table = $this->safe_string($tables, 1, '');
+        $rows = explode("\n<tr>\n", $table); // eslint-disable-line quotes
         $numRows = count($rows);
         if ($numRows < 2) {
             throw new NotSupported($error);
@@ -587,17 +588,21 @@ class gemini extends Exchange {
             //         '<td>0.01 USD', // quote currency price increment
             //         '</tr>'
             //     ]
-            $marketId = str_replace('<td>', '', $cells[0]);
-            $marketId = str_replace('*', '', $marketId);
+            $cell0 = $this->safe_string($cells, 0, '');
+            $marketIdRaw = str_replace('<td>', '', $cell0);
+            $marketId = str_replace('*', '', $marketIdRaw);
             // const base = this.safeCurrencyCode (baseId);
-            $minAmountString = str_replace('<td>', '', $cells[1]);
+            $cell1 = $this->safe_string($cells, 1, '');
+            $minAmountString = str_replace('<td>', '', $cell1);
             $minAmountParts = explode(' ', $minAmountString);
             $minAmount = $this->safe_number($minAmountParts, 0);
-            $amountPrecisionString = str_replace('<td>', '', $cells[2]);
+            $cell2 = $this->safe_string($cells, 2, '');
+            $amountPrecisionString = str_replace('<td>', '', $cell2);
             $amountPrecisionParts = explode(' ', $amountPrecisionString);
-            $idLength = strlen($marketId) - 0;
+            $idLength = count($marketId);
             $startingIndex = $idLength - 3;
-            $pricePrecisionString = str_replace('<td>', '', $cells[3]);
+            $cell3 = $this->safe_string($cells, 3, '');
+            $pricePrecisionString = str_replace('<td>', '', $cell3);
             $pricePrecisionParts = explode(' ', $pricePrecisionString);
             $quoteId = $this->safe_string_lower($pricePrecisionParts, 1, mb_substr($marketId, $startingIndex, $idLength - $startingIndex));
             $baseId = $this->safe_string_lower($amountPrecisionParts, 1, str_replace($quoteId, '', $marketId));
@@ -848,15 +853,15 @@ class gemini extends Exchange {
             $lowerCaseId = strtolower($marketIdWithoutPerp);
             if (is_array($conflictingMarkets) && array_key_exists($lowerCaseId ?? '', $conflictingMarkets)) {
                 $conflictingMarket = $conflictingMarkets[$lowerCaseId];
-                $baseId = $conflictingMarket['base'];
-                $quoteId = $conflictingMarket['quote'];
+                $baseId = $this->safe_string($conflictingMarket, 'base');
+                $quoteId = $this->safe_string($conflictingMarket, 'quote');
                 if ($isPerp) {
-                    $settleId = $conflictingMarket['quote'];
+                    $settleId = $this->safe_string($conflictingMarket, 'quote');
                 }
             } else {
                 $quoteCurrencies = $this->handle_option('fetchMarketsFromAPI', 'quoteCurrencies', array());
                 for ($i = 0; $i < count($quoteCurrencies); $i++) {
-                    $quoteCurrency = $quoteCurrencies[$i];
+                    $quoteCurrency = $this->safe_string($quoteCurrencies, $i, '');
                     if (str_ends_with($marketIdWithoutPerp, $quoteCurrency)) {
                         $quoteLength = $this->parse_to_int(-1 * strlen($quoteCurrency));
                         $baseId = mb_substr($marketIdWithoutPerp, 0, $quoteLength - 0);
@@ -1699,7 +1704,7 @@ class gemini extends Exchange {
                 }
             }
             $postOnly = $this->safe_bool($params, 'postOnly', false);
-            if ($postOnly === true) {
+            if ($postOnly) {
                 $request['options'] = array( 'maker-or-cancel' );
             }
             // allowing override for auction-only and indication-of-interest order options
@@ -1959,7 +1964,7 @@ class gemini extends Exchange {
         );
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'Advanced' => 'ok',
             'Complete' => 'ok',
@@ -2002,7 +2007,7 @@ class gemini extends Exchange {
         }
         $indexedByNetwork = $this->fetch_deposit_addresses_by_network($code, $params);
         $networkCode = $this->handle_network_code_and_params($params)[0];
-        return $this->safe_value($indexedByNetwork, $networkCode);
+        return $this->safe_dict($indexedByNetwork, $networkCode);
     }
 
     public function fetch_deposit_addresses_by_network(string $code, $params = array()): array {

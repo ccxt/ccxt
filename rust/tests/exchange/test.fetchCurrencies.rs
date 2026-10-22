@@ -38,8 +38,8 @@ pub async fn testFetchCurrencies(mut exchange: Value, mut skippedProperties: Val
         let mut skipMajorCurrencyCheck: bool = in_op(&skippedProperties, &Value::Str("activeMajorCurrencies".into()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1518: bool = true;
-            while { if !__for_first_1518 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1518 = false; i.as_f64().unwrap_or(f64::NAN) < currenciesLength.as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_1556: bool = true;
+            while { if !__for_first_1556 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1556 = false; i.as_f64().unwrap_or(f64::NAN) < currenciesLength.as_f64().unwrap_or(f64::NAN) } {
             let mut currency: Value = values.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             testCurrency(exchange.clone(), skippedProperties.clone(), method.clone(), currency.clone());
             // detailed check for deposit/withdraw
@@ -52,8 +52,8 @@ pub async fn testFetchCurrencies(mut exchange: Value, mut skippedProperties: Val
             let mut withdraw: Value = exchange.safe_bool(currency.clone(), Value::Str("withdraw".into()), &[]);
             let mut deposit: Value = exchange.safe_bool(currency.clone(), Value::Str("deposit".into()), &[]);
             let mut isMicaCompliant: Value = exchange.safe_bool(get_value(&exchange, &Value::Str("options".into())), Value::Str("mica".into()), &[Value::Bool(false)]);
-            let mut skipUsdtForMica: Value = Value::Bool((isMicaCompliant.as_bool() == Some(true)) && (code.as_str() == Some("USDT")));
-            if is_true(&exchange.in_array(code.clone(), requiredActiveCurrencies.clone())) && !skipMajorCurrencyCheck && (skipUsdtForMica.as_bool() != Some(true)) {
+            let mut skipUsdtForMica: bool = is_true(&(isMicaCompliant)) && (code.as_str() == Some("USDT"));
+            if is_true(&exchange.in_array(code.clone(), requiredActiveCurrencies.clone())) && !skipMajorCurrencyCheck && (!skipUsdtForMica) {
                 assert!(ccxt::runtime::is_true(&(((withdraw.as_bool() == Some(true)) && (deposit.as_bool() == Some(true))))));
             }
         }
@@ -76,15 +76,15 @@ fn detectCurrencyConflicts(mut exchange: Value, mut currencyValues: Value) -> Va
     let mut keys: Value = object_keys(&currencyValues);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1519: bool = true;
-        while { if !__for_first_1519 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1519 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(keys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_1557: bool = true;
+        while { if !__for_first_1557 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1557 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(keys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
         let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
         let mut currency: Value = get_value(&currencyValues, &key);
         let mut code: Value = get_value(&currency, &Value::Str("code".into()));
         if !(in_op(&ids, &code)) {
             if let Value::Dict(__d) = &mut ids { std::sync::Arc::make_mut(__d).insert(ccxt::runtime::stringify_param(&code), get_value(&currency, &Value::Str("id".into()))); }
         }  else {
-            let mut isDifferent: Value = Value::Bool(!is_equal(&get_value(&ids, &code), &get_value(&currency, &Value::Str("id".into()))));
+            let mut isDifferent: Value = Value::Bool(!is_equal(&ids.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &get_value(&currency, &Value::Str("id".into()))));
             assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&isDifferent)))));
         }
     }

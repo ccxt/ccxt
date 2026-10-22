@@ -572,10 +572,12 @@ public class Bitbank extends BitbankApi
         String feeCostString = this.safeString(trade, "fee_amount_quote");
         if (!java.util.Objects.equals(feeCostString, null))
         {
-            fee = Helpers.newMap(
-                "currency", marketResolved.get("quote"),
-                "cost", feeCostString
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("currency", marketResolved.get("quote"));
+                hx4NewMap0.put("cost", feeCostString);
+                fee = hx4NewMap0;
+            }
         }
         String orderId = this.safeString(trade, "order_id");
         String type = this.safeString(trade, "type");
@@ -734,7 +736,12 @@ public class Bitbank extends BitbankApi
             Long windowLimit = (((java.util.Objects.equals(limit, null)))) ? 1000L : limit;
             Long limitResolved = (((java.util.Objects.equals(since, null)))) ? windowLimit : limit;
             int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            Object sinceResolved = (((java.util.Objects.equals(since, null)))) ? Helpers.subtract(this.milliseconds(), ((((long) duration) * 1000L) * windowLimit)) : since;
+            Long windowMs = ((((long) duration) * 1000L) * 1000L);
+            if (!java.util.Objects.equals(limit, null))
+            {
+                windowMs = ((((long) duration) * 1000L) * limit);
+            }
+            Object sinceResolved = (((java.util.Objects.equals(since, null)))) ? (this.milliseconds() - windowMs) : since;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -768,7 +775,7 @@ public class Bitbank extends BitbankApi
             List<Object> candlestick = (List<Object>) this.safeList(data, "candlestick", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(candlestick, 0, new HashMap<String, Object>() {{}});
             List<Object> ohlcv = (List<Object>) this.safeList(first, "ohlcv", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOHLCVs(ohlcv, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), Helpers.toLongOrNull(sinceResolved), limitResolved, false);
+            return this.parseOHLCVs(ohlcv, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), ((Long) (switch ((Object) (sinceResolved)) { case null -> (Long) null; case Long hx4J40v0 -> hx4J40v0; case Number hx4J40v0 -> Long.valueOf(hx4J40v0.longValue()); case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v0.getClass().getName()); })), limitResolved, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
@@ -1296,7 +1303,7 @@ public class Bitbank extends BitbankApi
         if ((java.util.Objects.equals(apiName, "public")) || (java.util.Objects.equals(apiName, "markets")))
         {
             url = (url + this.implodeParams(path, parameters));
-            if (Helpers.objectKeys(query).size() > 0)
+            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
@@ -1320,23 +1327,26 @@ public class Bitbank extends BitbankApi
             url = (url + ((this.version + "/") + this.implodeParams(path, parameters)));
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
             {
-                requestBody = this.json(query);
-                auth = (auth + requestBody);
+                String jsonBody = this.json(query);
+                requestBody = jsonBody;
+                auth = (auth + jsonBody);
             } else
             {
                 auth = (auth + ((("/" + this.version) + "/") + path));
-                if (Helpers.objectKeys(query).size() > 0)
+                if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
                 {
-                    query = this.urlencode(query);
-                    url = (url + ("?" + query));
-                    auth = Helpers.add(auth, ("?" + query));
+                    String queryString = this.urlencode(query);
+                    url = (url + ("?" + queryString));
+                    auth = (auth + ("?" + queryString));
                 }
             }
-            requestHeaders = Helpers.newMap(
-                "Content-Type", "application/json",
-                "ACCESS-KEY", this.apiKey,
-                "ACCESS-SIGNATURE", this.hmac(this.encode(auth), this.encode(this.secret), sha256())
-            );
+            {
+                HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
+                hx4NewMap1.put("Content-Type", "application/json");
+                hx4NewMap1.put("ACCESS-KEY", this.apiKey);
+                hx4NewMap1.put("ACCESS-SIGNATURE", this.hmac(this.encode(auth), this.encode(this.secret), sha256()));
+                requestHeaders = hx4NewMap1;
+            }
             if (Boolean.TRUE.equals(isTimeWindow))
             {
                 requestHeaders.put("ACCESS-REQUEST-TIME", requestTime);

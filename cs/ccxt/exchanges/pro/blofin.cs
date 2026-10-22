@@ -67,14 +67,6 @@ public partial class blofin : ccxt.blofin
         return "ping";
     }
 
-    public virtual void handlePong(WebSocketClient client, Dictionary<string, object> message)
-    {
-        //
-        //   'pong'
-        //
-        client.lastPong = this.milliseconds();
-    }
-
     /**
      * @method
      * @name blofin#watchTrades
@@ -582,10 +574,6 @@ public partial class blofin : ccxt.blofin
         //     }
         //
         string marketType = "swap"; // for now
-        if (!((this.balance != null && this.balance.ContainsKey(marketType))))
-        {
-            this.balance[marketType] = new Dictionary<string, object>() {};
-        }
         this.balance[marketType] = this.parseWsBalance(message);
         string messageHash = (marketType + ":balance");
         client.resolve((this.balance != null && this.balance.ContainsKey(marketType) ? this.balance[marketType] : null), messageHash);
@@ -639,7 +627,7 @@ public partial class blofin : ccxt.blofin
             await this.loadMarkets();
         }
         bool? trigger = this.safeBool2(parameters, "stop", "trigger");
-        object paramsOmitted = this.omit(parameters, new List<object>() {"stop", "trigger"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"stop", "trigger"}));
         string channel = "orders";
         if ((trigger == true))
         {
@@ -923,7 +911,6 @@ public partial class blofin : ccxt.blofin
         // incoming data updates' examples can be seen under each handler method
         //
         Dictionary<string, object> methods = new Dictionary<string, object>() {
-            { "pong", this.handlePong },
             { "trades", this.handleTrades },
             { "books", this.handleOrderBook },
             { "tickers", this.handleTicker },
@@ -937,7 +924,8 @@ public partial class blofin : ccxt.blofin
         object method = null;
         if ((message is "pong"))
         {
-            method = this.safeValue(methods, "pong");
+            client.lastPong = this.milliseconds();
+            return;
         } else
         {
             string? eventVar = this.safeString(message, "event");

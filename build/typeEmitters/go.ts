@@ -81,6 +81,7 @@ const NOT_GENERATED: Record<string, string> = {
     'Network': 'synthesised from `CurrencyInterface.networks: Dictionary<any>`, no TS declaration',
     'Balances': 'dictionary wrapper carrying extra Free/Used/Total projections built by hand',
     'OHLCV': 'TS declares a positional tuple; the Go field names (Timestamp/Open/...) exist only in Go',
+    'OrderBookL3': 'rows are mixed [Num, Num, Str] tuples; Go uses the hand-written OrderBookL3Entry row struct',
 };
 
 /** Go field name -> TS field name, where the port renamed the field on purpose. */
@@ -107,6 +108,15 @@ const TYPE_OVERRIDES: Record<string, Record<string, string>> = {
     'Ticker': { 'Info': 'any' },
     'Trade': { 'Info': 'any' },
     'Order': { 'Info': 'any' },
+    'FundingRate': { 'Info': 'any' }, // gochan32 U31
+    'OpenInterest': { 'Info': 'any' }, // gochan32 U31
+    'Leverage': { 'Info': 'any' }, // gochanw2 W32
+    'Status': { 'Info': 'any' }, // gochanw4
+    'PositionModeInfo': { 'Info': 'any' }, // gochanw4
+    'DepositWithdrawFee': { 'Info': 'any' }, // gochanw4
+    'Account': { 'Info': 'any' }, // gochanw4
+    'MarginLoan': { 'Info': 'any' }, // gochanw5
+    'MarketInterface': { 'Info': 'any' }, // gochanw8
 };
 
 /** TS string-literal union aliases emitted as Go `type X string` + one const per member. */

@@ -1453,7 +1453,8 @@ class deribit extends Exchange {
         if ($symbolsNormalized !== null) {
             for ($i = 0; $i < count($symbolsNormalized); $i++) {
                 $market = $this->market($symbolsNormalized[$i]);
-                if ($code !== null && $code !== $market['base']) {
+                $marketBase = $this->safe_string($market, 'base');
+                if ($code !== null && $code !== $marketBase) {
                     throw new BadRequest($this->id . ' fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here => https://docs.deribit.com/#public-get_book_summary_by_currency');
                 }
                 if ($code === null) {
@@ -1559,8 +1560,9 @@ class deribit extends Exchange {
         $duration = $this->parse_timeframe($timeframe);
         $now = $this->milliseconds();
         // at max, it provides 5000 bars, but we set generous default here
-        $windowLimit = ($limit === null) ? 1000 : $limit;
-        $limitResolved = ($since === null) ? $windowLimit : $limit;
+        $defaultLimit = 1000;
+        $windowLimit = ($limit === null) ? $defaultLimit : $limit;
+        $limitResolved = (($since === null) && ($limit === null)) ? $defaultLimit : $limit;
         $sinceResolved = ($since === null) ? null : max($since - 1, 0);
         if ($since === null) {
             $request['start_timestamp'] = $now - ($windowLimit - 1) * $duration * 1000;
@@ -1964,7 +1966,7 @@ class deribit extends Exchange {
         return $orderbook;
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'open' => 'open',
             'cancelled' => 'canceled',
@@ -1975,7 +1977,7 @@ class deribit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_time_in_force(?string $timeInForce) {
+    public function parse_time_in_force(?string $timeInForce): ?string {
         $timeInForces = array(
             'good_til_cancelled' => 'GTC',
             'fill_or_kill' => 'FOK',
@@ -2193,9 +2195,9 @@ class deribit extends Exchange {
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
         $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only');
         // only stop loss sell orders are allowed when price crossed from above
-        $stopLossPrice = $this->safe_value($params, 'stopLossPrice');
+        $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
         // only take profit buy orders are allowed when price crossed from below
-        $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
+        $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
         $trailingAmount = $this->safe_string_2($params, 'trailingAmount', 'trigger_offset');
         $isTrailingAmountOrder = $trailingAmount !== null;
         $isStopLimit = $type === 'stop_limit';
@@ -2795,7 +2797,7 @@ class deribit extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit, $params);
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'completed' => 'ok',
             'unconfirmed' => 'pending',
@@ -3474,7 +3476,8 @@ class deribit extends Exchange {
         $duration = $this->parse_timeframe($eachItemDuration) * 1000;
         $now = $this->milliseconds();
         $month = 30 * 24 * 60 * 60 * 1000;
-        $sinceResolved = ($since === null) ? $now - $month : $since;
+        $defaultSince = $now - $month;
+        $sinceResolved = ($since === null) ? $defaultSince : $since;
         $time = ($since === null) ? $now : $since . $month;
         $request = array(
             'instrument_name' => $market['id'],
@@ -3482,11 +3485,8 @@ class deribit extends Exchange {
         );
         $until = $this->safe_integer_2($paramsPaginate, 'until', 'end_timestamp');
         $paramsUntil = ($until !== null) ? $this->omit($paramsPaginate, array( 'until' )) : $paramsPaginate;
-        if ($until !== null) {
-            $request['end_timestamp'] = $until;
-        } else {
-            $request['end_timestamp'] = $time;
-        }
+        $endTimestamp = ($until !== null) ? $until : $time;
+        $request['end_timestamp'] = $endTimestamp;
         $isPaginationCall = (is_array($paramsUntil) && array_key_exists('isDeribitPaginationCall' ?? '', $paramsUntil));
         $paramsOmitted = $paramsUntil;
         if ($isPaginationCall) {
@@ -3496,8 +3496,8 @@ class deribit extends Exchange {
             if ($limit === null) {
                 throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a limit argument');
             }
-            $maxUntil = $this->sum($sinceResolved, $limit * $duration);
-            $request['end_timestamp'] = min($request['end_timestamp'], $maxUntil);
+            $maxUntil = $this->parse_to_int($this->sum($sinceResolved, $limit * $duration));
+            $request['end_timestamp'] = ($endTimestamp < $maxUntil) ? $endTimestamp : $maxUntil;
         }
         $response = Async\await($this->publicGetGetFundingRateHistory($this->extend($request, $paramsOmitted)));
         //

@@ -507,7 +507,7 @@ class whitebit extends \ccxt\async\whitebit {
         //       "id": null
         //   }
         //
-        $trade = $this->safe_value($message, 'params');
+        $trade = $this->safe_list($message, 'params', array());
         if ($this->myTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $this->myTrades = new ArrayCache($limit);
@@ -761,7 +761,7 @@ class whitebit extends \ccxt\async\whitebit {
         ), $marketResolved);
     }
 
-    public function parse_ws_order_type(mixed $status): string {
+    public function parse_ws_order_type(?string $status): ?string {
         $statuses = array(
             '1' => 'limit',
             '2' => 'market',
@@ -819,7 +819,7 @@ class whitebit extends \ccxt\async\whitebit {
         return Async\await($this->watch_private($messageHash, $method, array(), $paramsAwaitBalanceSnapshot));
     }
 
-    public function set_balance_cache(Client $client, ?string $type, mixed $subscriptionHash) {
+    public function set_balance_cache(Client $client, ?string $type, string $subscriptionHash) {
         if (is_array($client->subscriptions) && array_key_exists($subscriptionHash ?? '', $client->subscriptions)) {
             return;
         }
@@ -833,11 +833,11 @@ class whitebit extends \ccxt\async\whitebit {
         }
     }
 
-    public function load_balance_snapshot(mixed $client, mixed $messageHash, mixed $type, mixed $subscriptionHash) {
+    public function load_balance_snapshot(Client $client, string $messageHash, ?string $type, string $subscriptionHash) {
         return Async\async(self::do_load_balance_snapshot(...))($client, $messageHash, $type, $subscriptionHash);
     }
 
-    private function do_load_balance_snapshot(mixed $client, mixed $messageHash, mixed $type, mixed $subscriptionHash) {
+    private function do_load_balance_snapshot(Client $client, string $messageHash, ?string $type, string $subscriptionHash) {
         $response = Async\await($this->fetch_balance(array( 'type' => $type )));
         $this->balance = $this->extend($response, $this->balance);
         // don't remove the future from the .futures cache
@@ -982,7 +982,7 @@ class whitebit extends \ccxt\async\whitebit {
             $market = $this->market($symbol);
             $marketId = $market['id'];
             $isSubscribed = $this->safe_bool($subscription, $marketId, false);
-            if ($isSubscribed !== true) {
+            if (!$isSubscribed) {
                 if ($marketId !== null) {
                     $subscription[$marketId] = true;
                 }

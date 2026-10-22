@@ -823,11 +823,8 @@ class derive extends Exchange {
          * @return {array[]} an array of raw instrument entries
          */
         $allInstruments = array();
-        $maxPages = 25;
-        $paramsOmitted = array();
-        list($maxPages, $paramsOmitted) = $this->handle_option_and_params($params, 'getMarketsPaginated', 'maxMarketPages', $maxPages);
-        $pageSize = 1000;
-        list($pageSize, $paramsOmitted) = $this->handle_option_and_params($paramsOmitted, 'getMarketsPaginated', 'maxMarketsPerPage', $pageSize);
+        list($maxPages, $paramsMaxPages) = $this->handle_option_integer_and_params($params, 'getMarketsPaginated', 'maxMarketPages', 25);
+        list($pageSize, $paramsOmitted) = $this->handle_option_and_params($paramsMaxPages, 'getMarketsPaginated', 'maxMarketsPerPage', 1000);
         $page = 1;
         for ($i = 0; $i < $maxPages; $i++) {
             $requestExtension = array(
@@ -1492,12 +1489,9 @@ class derive extends Exchange {
         if ($limit !== null && $limit > 1000) {
             $limitResolved = 1000;
         }
-        if ($limitResolved !== null) {
+        if ($limit !== null) {
             // the venue lists every match twice (a maker row and a taker row) and parseTrades drops the maker duplicates, so twice the limit is requested to return close to the asked amount
-            $pageSize = $limitResolved * 2;
-            if ($pageSize > 1000) {
-                $pageSize = 1000; // default 100, max 1000
-            }
+            $pageSize = ($limit > 500) ? 1000 : $limit * 2; // default 100, max 1000
             $request['page_size'] = $pageSize;
         }
         if ($since !== null) {
@@ -1670,30 +1664,30 @@ class derive extends Exchange {
         $until = $this->safe_integer($paramsPrice, 'until');
         $paramsOmitted = $this->omit($paramsPrice, array( 'until' ));
         $duration = $this->parse_timeframe($timeframe);
-        $end = null;
+        $untilSeconds = $this->seconds();
         if ($until !== null) {
-            $end = $this->parse_to_int($until / 1000);
-        } else {
-            $end = $this->seconds();
+            $untilSeconds = $this->parse_to_int($until / 1000);
         }
-        $limitResolved = $limit;
-        if ($limitResolved === null) {
-            $limitResolved = ($since !== null) ? 5000 : 1000;
+        // the venue keeps only the latest 5000 buckets of the requested window
+        $defaultLimit = ($since === null) ? 1000 : 5000;
+        $limitResolved = $this->parse_to_int($defaultLimit);
+        if ($limit !== null) {
+            $limitResolved = $this->parse_to_int($limit);
         }
         if ($limitResolved > 5000) {
-            $limitResolved = 5000; // the venue keeps only the latest 5000 buckets of the requested window
+            $limitResolved = $this->parse_to_int(5000);
         }
-        $start = null;
+        $span = $this->parse_to_int($limitResolved * $duration);
+        $windowStart = $this->parse_to_int($untilSeconds - $span);
+        $start = $windowStart;
+        $end = $untilSeconds;
         if ($since !== null) {
-            $start = $this->parse_to_int($since / 1000);
+            $sinceSeconds = $this->parse_to_int($since / 1000);
+            $start = $sinceSeconds;
             // the window is anchored at since: otherwise the venue clamp would silently drop the head of a wider range and deterministic pagination would collect the same tail on every page
-            $calculatedEnd = $limitResolved * $duration;
-            $maxEnd = $this->sum($start, $calculatedEnd);
-            if ($maxEnd < $end) {
-                $end = $maxEnd;
+            if ($sinceSeconds < $windowStart) {
+                $end = $this->sum($sinceSeconds, $span);
             }
-        } else {
-            $start = $end - $limitResolved * $duration;
         }
         $request = array(
             'period' => $period,
@@ -1992,14 +1986,14 @@ class derive extends Exchange {
         );
     }
 
-    public function hash_order_message(mixed $order) {
+    public function hash_order_message(mixed $order): string {
         $accountHash = $this->hash($this->eth_abi_encode(array(
             'bytes32', 'uint256', 'uint256', 'address', 'bytes32', 'uint256', 'address', 'address',
         ), $order), 'keccak', 'binary');
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         // EIP712Domain (name "Matching", version "1.0", verifyingContract 0xeB8d770ec18DB98Db922E9D83260A585b9F0DeAD) precomputed for chainId 1 (mainnet) and 11155111 (sepolia testnet)
         $DOMAIN_SEPARATOR = 'da616dfabb88681b08e1592820a41d55ddc62d68de110e327ae99d734506fe19';
-        if ($sandboxMode === true) {
+        if ($sandboxMode) {
             $DOMAIN_SEPARATOR = '24d674cd5f2b9d564691c51e9d88f649b99246a2244dd74ce27b96578d773e85';
         }
         $binaryDomainSeparator = $this->base16_to_binary($DOMAIN_SEPARATOR);
@@ -2028,7 +2022,7 @@ class derive extends Exchange {
         return $milliseconds . $padded;
     }
 
-    public function hash_message(mixed $message) {
+    public function hash_message(string $message): string {
         $binaryMessage = $this->encode($message);
         $binaryMessageLength = $this->binary_length($binaryMessage);
         $x19 = $this->base16_to_binary('19');
@@ -2046,7 +2040,7 @@ class derive extends Exchange {
         return '0x' . str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($s, 64, '0', STR_PAD_LEFT) . $v;
     }
 
-    public function sign_message(mixed $message, string $privateKey): string {
+    public function sign_message(string $message, string $privateKey): string {
         return $this->sign_hash($this->hash_message($message), mb_substr($privateKey, -64));
     }
 
@@ -2179,7 +2173,7 @@ class derive extends Exchange {
         }
         $request['signature'] = $signature;
         $paramsOmitted = $this->omit($paramsDeriveWalletAddress, array( 'reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'test', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trigger_price', 'stopLossPrice', 'takeProfitPrice', 'trigger_price_type' ));
-        if ($test === true) {
+        if ($test) {
             $response = Async\await($this->privatePostOrderDebug($this->extend($request, $paramsOmitted)));
         } else {
             $response = Async\await($this->privatePostOrder($this->extend($request, $paramsOmitted)));
@@ -2459,7 +2453,7 @@ class derive extends Exchange {
             $response = Async\await($this->privatePostCancelByLabel($this->extend($request, $paramsLabel)));
         } else {
             $request['order_id'] = $id;
-            if ($isTrigger === true) {
+            if ($isTrigger) {
                 $response = Async\await($this->privatePostCancelTriggerOrder($this->extend($request, $paramsOmitted)));
             } else {
                 $response = Async\await($this->privatePostCancel($this->extend($request, $paramsOmitted)));
@@ -2737,7 +2731,7 @@ class derive extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        if ($isTrigger === true) {
+        if ($isTrigger) {
             $response = Async\await($this->privatePostGetTriggerOrders($this->extend($request, $paramsDeriveSubaccountId)));
         } else {
             $response = Async\await($this->privatePostGetOpenOrders($this->extend($request, $paramsDeriveSubaccountId)));
@@ -2843,7 +2837,7 @@ class derive extends Exchange {
         return $this->filter_by($orders, 'status', 'canceled');
     }
 
-    public function parse_time_in_force(?string $timeInForce) {
+    public function parse_time_in_force(?string $timeInForce): ?string {
         $timeInForces = array(
             'ioc' => 'IOC',
             'fok' => 'FOK',
@@ -2853,7 +2847,7 @@ class derive extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         if ($status !== null) {
             $statuses = array(
                 'open' => 'open',
@@ -3290,6 +3284,8 @@ class derive extends Exchange {
         $markPrice = $this->safe_string($position, 'mark_price');
         $timestamp = $this->safe_integer($position, 'creation_timestamp');
         $unrealisedPnl = $this->safe_string($position, 'unrealized_pnl');
+        $initialMarginString = Precise::string_abs($this->safe_string($position, 'initial_margin'));
+        $maintenanceMarginString = Precise::string_abs($this->safe_string($position, 'maintenance_margin'));
         $size = Precise::string_abs($size);
         $notional = Precise::string_mul($size, $markPrice);
         return $this->safe_position(array(
@@ -3299,11 +3295,11 @@ class derive extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastUpdateTimestamp' => null,
-            'initialMargin' => $this->safe_number($position, 'initial_margin'),
-            'initialMarginPercentage' => null,
-            'maintenanceMargin' => $this->safe_number($position, 'maintenance_margin'),
-            'maintenanceMarginPercentage' => null,
-            'entryPrice' => null,
+            'initialMargin' => $this->parse_number($initialMarginString),
+            'initialMarginPercentage' => $this->parse_number(Precise::string_div($initialMarginString, $notional, 8)),
+            'maintenanceMargin' => $this->parse_number($maintenanceMarginString),
+            'maintenanceMarginPercentage' => $this->parse_number(Precise::string_div($maintenanceMarginString, $notional, 8)),
+            'entryPrice' => $this->safe_number_2($position, 'average_price', 'average_price_excl_fees'),
             'notional' => $this->parse_number($notional),
             'leverage' => $this->safe_number($position, 'leverage'),
             'unrealizedPnl' => $this->parse_number($unrealisedPnl),
@@ -3799,7 +3795,7 @@ class derive extends Exchange {
         }
         $fromId = $this->parse_to_int($fromAccount);
         // the destination is optional on the subaccount-creation path, an undefined must not reach the int conversion
-        $toId = ($toAccount === null) ? 0 : $this->parse_to_int($toAccount);
+        $toId = $this->parse_to_int(($toAccount === null) ? 0 : $toAccount);
         $amountString = $this->number_to_string($amount);
         $maxFeeUsd = $this->safe_string($params, 'max_fee_usd', '0');
         $newSubaccountManager = $this->safe_integer($params, 'new_subaccount_manager', 0);
@@ -4397,7 +4393,7 @@ class derive extends Exchange {
         );
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'Batching' => 'pending',
             'Executing' => 'pending',
@@ -4486,10 +4482,9 @@ class derive extends Exchange {
             if ($apiName === 'private') {
                 $now = $this->number_to_string($this->nonce());
                 $signature = $this->sign_message($now, $this->privateKey);
-                $deriveWalletAddress = $this->safe_string($this->options, 'deriveWalletAddress');
-                if (($deriveWalletAddress === null) || ($deriveWalletAddress === '')) {
-                    $deriveWalletAddress = $this->walletAddress; // v3: the owner wallet is the user's own EOA
-                }
+                $configuredWalletAddress = $this->safe_string($this->options, 'deriveWalletAddress');
+                // v3: the owner wallet is the user's own EOA
+                $deriveWalletAddress = (($configuredWalletAddress === null) || ($configuredWalletAddress === '')) ? $this->walletAddress : $configuredWalletAddress;
                 $postHeaders['X-DeriveWallet'] = $deriveWalletAddress;
                 $postHeaders['X-DeriveTimestamp'] = $now;
                 $postHeaders['X-DeriveSignature'] = $signature;

@@ -1473,7 +1473,7 @@ public partial class luno : Exchange
         {
             throw new NullResponse ((this.id + " createOrder() returned empty response")) ;
         }
-        return this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", GetValue(response, "order_id") },         }, market);
+        return this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", (response != null && response.ContainsKey("order_id") ? response["order_id"] : null) },         }, market);
     }
 
     /**
@@ -1540,8 +1540,8 @@ public partial class luno : Exchange
         await this.loadAccounts();
         IDictionary<string, object> currency = null;
         string? id = this.safeString(parameters, "id"); // account id
-        object min_row = this.safeValue(parameters, "min_row");
-        object max_row = this.safeValue(parameters, "max_row");
+        Int64? minRowParam = this.safeInteger(parameters, "min_row");
+        Int64? maxRowParam = this.safeInteger(parameters, "max_row");
         if ((id == null))
         {
             if ((code == null))
@@ -1557,25 +1557,17 @@ public partial class luno : Exchange
             }
             id = this.safeString(account, "id");
         }
-        if ((min_row == null) && (max_row == null))
-        {
-            max_row = 0; // Default to most recent transactions
-            min_row = -1000; // Maximum number of records supported
-        } else if ((min_row == null) || (max_row == null))
+        if (((minRowParam == null) || (maxRowParam == null)) && ((minRowParam != null) || (maxRowParam != null)))
         {
             throw new ExchangeError ((this.id + " fetchLedger() require both params 'max_row' and 'min_row' or neither to be defined")) ;
         }
-        if ((limit != null) && isGreaterThan(subtract(max_row, min_row), limit))
-        {
-            if (isLessThanOrEqual(max_row, 0))
-            {
-                min_row = subtract(max_row, limit);
-            } else if (isGreaterThan(min_row, 0))
-            {
-                max_row = add(min_row, limit);
-            }
-        }
-        if (isGreaterThan(subtract(max_row, min_row), 1000))
+        Int64? maxRowBase = this.safeInteger(parameters, "max_row", 0); // Default to most recent transactions
+        Int64? minRowBase = this.safeInteger(parameters, "min_row", -1000); // Maximum number of records supported
+        bool limitApplies = ((limit != null)) && (((limit == null || (maxRowBase - minRowBase) > limit)));
+        object min_row = (limitApplies && ((limit != null)) && (maxRowBase == null || maxRowBase <= 0)) ? ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(maxRowBase, limit) : minRowBase;
+        object max_row = (limitApplies && (maxRowBase > 0) && (minRowBase > 0)) ? add(minRowBase, limit) : maxRowBase;
+        bool limitAdjusts = limitApplies && ((maxRowBase == null || maxRowBase <= 0) || (minRowBase > 0)); // max_row - min_row becomes limit
+        if ((limitAdjusts && (limit > 1000)) || (!limitAdjusts && ((maxRowBase - minRowBase) > 1000)))
         {
             throw new ExchangeError ((this.id + " fetchLedger() requires the params 'max_row' - 'min_row' <= 1000")) ;
         }

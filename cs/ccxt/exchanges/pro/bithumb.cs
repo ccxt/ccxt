@@ -361,10 +361,11 @@ public partial class bithumb : ccxt.bithumb
         string time = this.safeString(ticker, "time", "");
         string kstDatetime = ((((((((((((date == null) ? null : date.Substring(0, Math.Min(4, date.Length))) + "-") + ((date == null) ? null : date.Substring(Math.Min(4, date.Length), Math.Min(6, date.Length) - Math.Min(4, date.Length)))) + "-") + ((date == null) ? null : date.Substring(Math.Min(6, date.Length), Math.Min(8, date.Length) - Math.Min(6, date.Length)))) + "T") + ((time == null) ? null : time.Substring(0, Math.Min(2, time.Length)))) + ":") + ((time == null) ? null : time.Substring(Math.Min(2, time.Length), Math.Min(4, time.Length) - Math.Min(2, time.Length)))) + ":") + ((time == null) ? null : time.Substring(Math.Min(4, time.Length), Math.Min(6, time.Length) - Math.Min(4, time.Length))));
         // date/time are the exchange's local KST wall-clock, not UTC — shift -9h like parseWsTrade
-        object timestamp = this.parse8601(kstDatetime);
-        if (!(timestamp == null))
+        object timestamp = null;
+        Int64? kstTimestamp = this.parse8601(kstDatetime);
+        if ((kstTimestamp != null))
         {
-            timestamp = (subtract(timestamp, 32400000));
+            timestamp = (kstTimestamp - 32400000);
         }
         string? marketId = this.safeString(ticker, "symbol");
         return this.safeTicker(new Dictionary<string, object>() {
@@ -586,7 +587,7 @@ public partial class bithumb : ccxt.bithumb
             side = "bids";
         }
         List<object> bidAsk = this.parseOrderBookBidAsk(delta, "price", "quantity");
-        object orderbookSide = getValue(orderbook, side);
+        object orderbookSide = (orderbook != null && side != null && orderbook.ContainsKey(side) ? orderbook[side] : null);
         (orderbookSide as IOrderBookSide).storeArray(bidAsk);
     }
 
@@ -779,7 +780,12 @@ public partial class bithumb : ccxt.bithumb
         string? marketId = this.safeString(trade, "symbol");
         string? datetime = this.safeString(trade, "contDtm");
         // that date is not UTC iso8601, but exchange's local time, -9hr difference
-        object timestamp = subtract(this.parseToInt(this.parse8601(datetime)), 32400000);
+        object timestamp = null;
+        Int64? kstTimestamp = this.parse8601(datetime);
+        if ((kstTimestamp != null))
+        {
+            timestamp = (kstTimestamp - 32400000);
+        }
         string? sideId = this.safeString(trade, "buySellGb");
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", null },
@@ -946,7 +952,7 @@ public partial class bithumb : ccxt.bithumb
         List<object> keys = new List<object>(subscriptions.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
-            request.Add(getValue(subscriptions, keys[i]));
+            request.Add((subscriptions != null && keys[i] != null && subscriptions.ContainsKey((string)keys[i]) ? subscriptions[(string)keys[i]] : null));
         }
         return request;
     }
@@ -1206,7 +1212,7 @@ public partial class bithumb : ccxt.bithumb
             this.handlePing(client, message);
             return;
         }
-        if (!isEqual(this.handleErrorMessage(client, message), true))
+        if (!(this.handleErrorMessage(client, message) == true))
         {
             return;
         }

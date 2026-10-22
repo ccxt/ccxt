@@ -686,7 +686,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         amount = self.safe_float(delta, 1)
         bookside.store(price, amount)
 
-    def handle_deltas(self, bookside: object, deltas: object):
+    def handle_deltas(self, bookside: object, deltas: list[object]):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
@@ -705,7 +705,8 @@ class bitvavo(ccxt.async_support.bitvavo):
         #     }
         #
         nonce = self.safe_integer(message, 'nonce')
-        if nonce > orderbook['nonce']:
+        currentNonce = self.safe_integer(orderbook, 'nonce')
+        if (nonce is not None) and (currentNonce is not None) and (nonce > currentNonce):
             self.handle_deltas(orderbook['asks'], self.safe_list(message, 'asks', []))
             self.handle_deltas(orderbook['bids'], self.safe_list(message, 'bids', []))
             orderbook['nonce'] = nonce
@@ -849,7 +850,7 @@ class bitvavo(ccxt.async_support.bitvavo):
                     limit = self.safe_integer(subscription, 'limit')
                     self.orderbooks[symbol] = self.order_book({}, limit)
 
-    async def un_watch_channels(self, topic: str, channels: list[object], subMessageHashes: list[str], subscriptionArgs: dict, params={}) -> object:
+    async def un_watch_channels(self, topic: str, channels: list[object], subMessageHashes: list[str], subscriptionArgs: dict, params: dict = {}) -> object:
         url = self.urls['api']['ws']
         request = {
             'action': 'unsubscribe',
@@ -1659,7 +1660,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         #
         messageHash = 'authenticated'
         authenticated = self.safe_bool(message, 'authenticated', False)
-        if authenticated is True:
+        if authenticated:
             # we resolve the future here permanently so authentication only happens once
             client.resolve(message, messageHash)
         else:

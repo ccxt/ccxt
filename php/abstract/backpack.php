@@ -94,6 +94,24 @@ abstract class backpack extends \ccxt\Exchange {
     /**
      * @return list<mixed>
      */
+    public function public_get_api_v1_stocksessions($params = array()) {
+        return $this->request('api/v1/stockSessions', array('public'), 'GET', $params, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function public_get_api_v1_stockholidays($params = array()) {
+        return $this->request('api/v1/stockHolidays', array('public'), 'GET', $params, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_get_api_v1_stockindicativequote($params = array()) {
+        return $this->request('api/v1/stockIndicativeQuote', array('public'), 'GET', $params, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
     public function public_get_api_v1_securities($params = array()) {
         return $this->request('api/v1/securities', array('public'), 'GET', $params, array("cost" => 1));
     }
@@ -388,12 +406,6 @@ abstract class backpack extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
-    public function private_post_api_v1_rfq_refresh($params = array()) {
-        return $this->request('api/v1/rfq/refresh', array('private'), 'POST', $params, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
     public function private_post_api_v1_rfq_cancel($params = array()) {
         return $this->request('api/v1/rfq/cancel', array('private'), 'POST', $params, array("cost" => 1));
     }
@@ -522,6 +534,24 @@ abstract class backpack extends \ccxt\Exchange {
      */
     public function publicGetApiV1MarketHolidays($params = array()) {
         return $this->request('api/v1/market-holidays', array('public'), 'GET', $params, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function publicGetApiV1StockSessions($params = array()) {
+        return $this->request('api/v1/stockSessions', array('public'), 'GET', $params, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function publicGetApiV1StockHolidays($params = array()) {
+        return $this->request('api/v1/stockHolidays', array('public'), 'GET', $params, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicGetApiV1StockIndicativeQuote($params = array()) {
+        return $this->request('api/v1/stockIndicativeQuote', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return list<mixed>
@@ -816,12 +846,6 @@ abstract class backpack extends \ccxt\Exchange {
      */
     public function privatePostApiV1RfqAccept($params = array()) {
         return $this->request('api/v1/rfq/accept', array('private'), 'POST', $params, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function privatePostApiV1RfqRefresh($params = array()) {
-        return $this->request('api/v1/rfq/refresh', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>

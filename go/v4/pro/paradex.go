@@ -75,12 +75,12 @@ func (this *Paradex) RequestId() int64 {
 	this.Options.Store("requestId", requestId)
 	return requestId
 }
-func (this *Paradex) AuthenticateAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Paradex) AuthenticateAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[*string] {
+	ch := make(chan ccxt.AsyncResult[*string], 1)
 	go this.authenticateBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Paradex) authenticateBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
+func (this *Paradex) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -90,13 +90,13 @@ func (this *Paradex) authenticateBody(ch chan ccxt.AsyncResult[any], optionalArg
 	var messageHash string = "authenticated"
 	var future any = client.(ccxt.ClientInterface).ReusableFuture("authenticated")
 	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
-	if ccxt.IsEqual(authenticated, nil) {
+	if authenticated == nil {
 
 		r := <-this.AuthenticateRestAsync()
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var token *string = ccxt.SafeStringPtr(r.Raw)
+		var token *string = ccxt.SafeStringPtr(r.Value)
 		var request map[string]any = map[string]any{
 			"jsonrpc": "2.0",
 			"id":      this.RequestId(),
@@ -112,7 +112,16 @@ func (this *Paradex) authenticateBody(ch chan ccxt.AsyncResult[any], optionalArg
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
+	var resolved *string
+	switch resolvedBox := r1.Value.(type) {
+	case *string:
+		resolved = resolvedBox
+	case string:
+		resolved = &resolvedBox
+	default:
+		_ = resolvedBox
+	}
+	ch <- ccxt.AsyncResult[*string]{Value: resolved}
 	return nil
 }
 func (this *Paradex) HandleAuthenticationMessage(client any, message any) {
@@ -127,7 +136,7 @@ func (this *Paradex) HandleAuthenticationMessage(client any, message any) {
 	if result != nil {
 		// client.resolve (true, messageHash)
 		var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), "authenticated")
-		if !ccxt.IsEqual(future, nil) {
+		if future != nil {
 			future.(*ccxt.Future).Resolve(true)
 		}
 	}
@@ -144,12 +153,12 @@ func (this *Paradex) HandleAuthenticationMessage(client any, message any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Paradex) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
-	ch := make(chan ccxt.AsyncResult[[]any], 1)
+func (this *Paradex) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Paradex) watchTradesBody(ch chan ccxt.AsyncResult[[]any], symbol any, optionalArgs ...any) any {
+func (this *Paradex) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -191,7 +200,7 @@ func (this *Paradex) watchTradesBody(ch chan ccxt.AsyncResult[[]any], symbol any
 		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
-	ch <- ccxt.AsyncResult[[]any]{Value: this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true)}
+	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true))}
 	return nil
 }
 func (this *Paradex) HandleTrade(client any, message map[string]any) any {
@@ -215,11 +224,11 @@ func (this *Paradex) HandleTrade(client any, message map[string]any) any {
 	//
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
-	var parsedTrade map[string]any = ccxt.MapTyped(ccxt.TradeToMap(this.ParseTrade(data)))
+	var parsedTrade map[string]any = ccxt.TradeToMap(this.ParseTrade(data))
 	var symbol *string = ccxt.SafeStringPtr(parsedTrade["symbol"])
 	var messageHash *string = this.SafeString(params, "channel")
 	var stored any = this.SafeValue(this.Trades, symbol)
-	if ccxt.IsEqual(stored, nil) {
+	if stored == nil {
 		stored = ccxt.NewArrayCache(this.SafeInteger(this.Options, "tradesLimit", 1000))
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
@@ -358,12 +367,12 @@ func (this *Paradex) HandleOrderBook(client any, message map[string]any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Paradex) WatchTickerAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
-	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
+func (this *Paradex) WatchTickerAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.Ticker] {
+	ch := make(chan ccxt.AsyncResult[ccxt.Ticker], 1)
 	go this.watchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Paradex) watchTickerBody(ch chan ccxt.AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
+func (this *Paradex) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -387,7 +396,7 @@ func (this *Paradex) watchTickerBody(ch chan ccxt.AsyncResult[map[string]any], s
 			"channel": channel,
 		},
 	}
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("markets_summary.", market["symbol"]))
+	var messageHash *string = ccxt.SafeStringPtr("markets_summary." + market["symbol"].(string))
 
 	r1 := <-this.Watch(url, messageHash, this.DeepExtend(request, params), channel)
 	if r1.Err != nil {
@@ -403,7 +412,7 @@ func (this *Paradex) watchTickerBody(ch chan ccxt.AsyncResult[map[string]any], s
 	default:
 		panic(ccxt.ExchangeError("resolved value is not map[string]any"))
 	}
-	ch <- ccxt.AsyncResult[map[string]any]{Value: resolved}
+	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: ccxt.TickerFromMap(resolved)}
 	return nil
 }
 
@@ -416,12 +425,12 @@ func (this *Paradex) watchTickerBody(ch chan ccxt.AsyncResult[map[string]any], s
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Paradex) WatchTickersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
-	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
+func (this *Paradex) WatchTickersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]ccxt.Ticker] {
+	ch := make(chan ccxt.AsyncResult[map[string]ccxt.Ticker], 1)
 	go this.watchTickersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Paradex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]any], optionalArgs ...any) any {
+func (this *Paradex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ticker], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
@@ -467,7 +476,7 @@ func (this *Paradex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]any], 
 			ccxt.AddElementToObject(result, newTickerSymbol, newTicker)
 		}
 
-		ch <- ccxt.AsyncResult[map[string]any]{Value: result}
+		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(result)}
 		return nil
 	}
 
@@ -481,7 +490,7 @@ func (this *Paradex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]any], 
 	default:
 		panic(ccxt.ExchangeError("resolved value is not map[string]any"))
 	}
-	ch <- ccxt.AsyncResult[map[string]any]{Value: resolved}
+	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(resolved)}
 	return nil
 }
 
@@ -496,12 +505,12 @@ func (this *Paradex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]any], 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Paradex) WatchOrdersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
-	ch := make(chan ccxt.AsyncResult[[]any], 1)
+func (this *Paradex) WatchOrdersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Order] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.Order], 1)
 	go this.watchOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Paradex) watchOrdersBody(ch chan ccxt.AsyncResult[[]any], optionalArgs ...any) any {
+func (this *Paradex) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -558,7 +567,7 @@ func (this *Paradex) watchOrdersBody(ch chan ccxt.AsyncResult[[]any], optionalAr
 		limitResolved = ccxt.ToGetsLimit(orders).GetLimit(symbolResolved, limit)
 	}
 
-	ch <- ccxt.AsyncResult[[]any]{Value: this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true)}
+	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true))}
 	return nil
 }
 func (this *Paradex) HandleOrder(client any, message map[string]any) {
@@ -617,12 +626,12 @@ func (this *Paradex) HandleOrder(client any, message map[string]any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Paradex) WatchMyTradesAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
-	ch := make(chan ccxt.AsyncResult[[]any], 1)
+func (this *Paradex) WatchMyTradesAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchMyTradesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Paradex) watchMyTradesBody(ch chan ccxt.AsyncResult[[]any], optionalArgs ...any) any {
+func (this *Paradex) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -679,7 +688,7 @@ func (this *Paradex) watchMyTradesBody(ch chan ccxt.AsyncResult[[]any], optional
 		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(symbolResolved, limit)
 	}
 
-	ch <- ccxt.AsyncResult[[]any]{Value: this.FilterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true)}
+	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true))}
 	return nil
 }
 func (this *Paradex) HandleMyTrade(client any, message map[string]any) {
@@ -709,7 +718,7 @@ func (this *Paradex) HandleMyTrade(client any, message map[string]any) {
 	//
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
-	var trade map[string]any = ccxt.MapTyped(ccxt.TradeToMap(this.ParseTrade(data)))
+	var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(data))
 	var symbol *string = this.SafeString(trade, "symbol")
 	if this.MyTrades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -735,12 +744,12 @@ func (this *Paradex) HandleMyTrade(client any, message map[string]any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *Paradex) WatchPositionsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
-	ch := make(chan ccxt.AsyncResult[[]any], 1)
+func (this *Paradex) WatchPositionsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Position] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.Position], 1)
 	go this.watchPositionsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Paradex) watchPositionsBody(ch chan ccxt.AsyncResult[[]any], optionalArgs ...any) any {
+func (this *Paradex) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
@@ -809,11 +818,11 @@ func (this *Paradex) watchPositionsBody(ch chan ccxt.AsyncResult[[]any], optiona
 		default:
 			panic(ccxt.ExchangeError("resolved value is not []any"))
 		}
-		ch <- ccxt.AsyncResult[[]any]{Value: resolved}
+		ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(resolved)}
 		return nil
 	}
 
-	ch <- ccxt.AsyncResult[[]any]{Value: this.FilterBySymbolsSinceLimit(this.Positions, symbolsNormalized, since, limit, true)}
+	ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterBySymbolsSinceLimit(this.Positions, symbolsNormalized, since, limit, true))}
 	return nil
 }
 func (this *Paradex) HandlePositions(client any, message map[string]any) {
@@ -846,7 +855,7 @@ func (this *Paradex) HandlePositions(client any, message map[string]any) {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
 	var cache any = this.Positions
-	var position map[string]any = ccxt.MapTyped(this.ParsePosition(data))
+	var position map[string]any = ccxt.MapTyped(ccxt.PositionToMap(this.ParsePosition(data)))
 	var symbol *string = ccxt.SafeStringPtr(position["symbol"])
 	var newPositions []any = []any{}
 	// one position per market, so a fill through zero flips its side: the cache keys by
@@ -882,12 +891,12 @@ func (this *Paradex) HandlePositions(client any, message map[string]any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Paradex) WatchBalanceAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
-	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
+func (this *Paradex) WatchBalanceAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.Balances] {
+	ch := make(chan ccxt.AsyncResult[ccxt.Balances], 1)
 	go this.watchBalanceBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Paradex) watchBalanceBody(ch chan ccxt.AsyncResult[map[string]any], optionalArgs ...any) any {
+func (this *Paradex) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -928,7 +937,7 @@ func (this *Paradex) watchBalanceBody(ch chan ccxt.AsyncResult[map[string]any], 
 	default:
 		panic(ccxt.ExchangeError("resolved value is not map[string]any"))
 	}
-	ch <- ccxt.AsyncResult[map[string]any]{Value: resolved}
+	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(resolved)}
 	return nil
 }
 func (this *Paradex) HandleBalance(client any, message map[string]any) {
@@ -1028,12 +1037,12 @@ func (this *Paradex) HandleTicker(client any, message map[string]any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Paradex) WatchFundingRateAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Paradex) WatchFundingRateAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.FundingRate] {
+	ch := make(chan ccxt.AsyncResult[ccxt.FundingRate], 1)
 	go this.watchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Paradex) watchFundingRateBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Paradex) watchFundingRateBody(ch chan ccxt.AsyncResult[ccxt.FundingRate], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1061,7 +1070,17 @@ func (this *Paradex) watchFundingRateBody(ch chan ccxt.AsyncResult[any], symbol 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
+	var resolved map[string]any
+	switch resolvedBox := r1.Value.(type) {
+	case map[string]any:
+		resolved = resolvedBox
+	case *sync.Map:
+		resolved = ccxt.SafeMapToMap(resolvedBox)
+	case nil:
+	default:
+		panic(ccxt.ExchangeError("resolved value is not map[string]any"))
+	}
+	ch <- ccxt.AsyncResult[ccxt.FundingRate]{Value: ccxt.FundingRateFromMap(resolved)}
 	return nil
 }
 
@@ -1074,12 +1093,12 @@ func (this *Paradex) watchFundingRateBody(ch chan ccxt.AsyncResult[any], symbol 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Paradex) WatchFundingRatesAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Paradex) WatchFundingRatesAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]ccxt.FundingRate] {
+	ch := make(chan ccxt.AsyncResult[map[string]ccxt.FundingRate], 1)
 	go this.watchFundingRatesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Paradex) watchFundingRatesBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
+func (this *Paradex) watchFundingRatesBody(ch chan ccxt.AsyncResult[map[string]ccxt.FundingRate], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
@@ -1130,11 +1149,21 @@ func (this *Paradex) watchFundingRatesBody(ch chan ccxt.AsyncResult[any], option
 			ccxt.AddElementToObject(result, newFundingRatesSymbol, newFundingRates)
 		}
 
-		ch <- ccxt.AsyncResult[any]{Value: result}
+		ch <- ccxt.AsyncResult[map[string]ccxt.FundingRate]{Value: ccxt.FundingRateMapFromMap(result)}
 		return nil
 	}
 
-	ch <- ccxt.AsyncResult[any]{Value: this.FilterByArray(this.FundingRates, "symbol", symbolsNormalized)}
+	var resolved map[string]any
+	switch resolvedBox := this.FilterByArray(this.FundingRates, "symbol", symbolsNormalized).(type) {
+	case map[string]any:
+		resolved = resolvedBox
+	case *sync.Map:
+		resolved = ccxt.SafeMapToMap(resolvedBox)
+	case nil:
+	default:
+		panic(ccxt.ExchangeError("resolved value is not map[string]any"))
+	}
+	ch <- ccxt.AsyncResult[map[string]ccxt.FundingRate]{Value: ccxt.FundingRateMapFromMap(resolved)}
 	return nil
 }
 func (this *Paradex) HandleFundingRate(client any, message map[string]any) {
@@ -1228,45 +1257,45 @@ func (this *Paradex) ParseSbeMessage(message any) any {
 	if frameLength < 8 {
 		return nil
 	}
-	var blockLength any = this.SbeReadUint(frameHex, 0, 2)
-	var templateId any = this.SbeReadUint(frameHex, 2, 2)
-	var schemaId any = this.SbeReadUint(frameHex, 4, 2)
-	if (!ccxt.IsEqual(schemaId, 1)) || (ccxt.IsLessThan(frameLength, this.Sum(blockLength, 8))) {
+	var blockLength int64 = this.ParseToInt(this.SbeReadUint(ccxt.SafeStringPtr(frameHex), 0, 2))
+	var templateId int64 = this.ParseToInt(this.SbeReadUint(ccxt.SafeStringPtr(frameHex), 2, 2))
+	var schemaId int64 = this.ParseToInt(this.SbeReadUint(ccxt.SafeStringPtr(frameHex), 4, 2))
+	if (schemaId != 1) || (frameLength < (blockLength + 8)) {
 		return nil
 	}
 	var channel any = nil
 	var data any = nil
-	if ccxt.IsEqual(templateId, 1) {
-		data = this.ParseSbeTrade(frameHex, blockLength, frameLength)
+	if templateId == 1 {
+		data = this.ParseSbeTrade(ccxt.SafeStringPtr(frameHex), blockLength, frameLength)
 		if !ccxt.IsEqual(data, nil) {
 			channel = ccxt.Add("trades.", ccxt.GetValue(data, "market"))
 		}
-	} else if ccxt.IsEqual(templateId, 3) {
-		data = this.ParseSbeOrderBook(frameHex, blockLength, frameLength)
+	} else if templateId == 3 {
+		data = this.ParseSbeOrderBook(ccxt.SafeStringPtr(frameHex), blockLength, frameLength)
 		if !ccxt.IsEqual(data, nil) {
 			channel = this.GetOrderBookChannel(ccxt.GetValue(data, "market"))
 		}
-	} else if ccxt.IsEqual(templateId, 4) {
-		data = this.ParseSbeMarketSummary(frameHex, blockLength, frameLength)
+	} else if templateId == 4 {
+		data = this.ParseSbeMarketSummary(ccxt.SafeStringPtr(frameHex), blockLength, frameLength)
 		channel = "markets_summary"
-	} else if ccxt.IsEqual(templateId, 5) {
-		data = this.ParseSbeFundingData(frameHex, blockLength, frameLength)
+	} else if templateId == 5 {
+		data = this.ParseSbeFundingData(ccxt.SafeStringPtr(frameHex), blockLength, frameLength)
 		channel = "funding_data"
-	} else if ccxt.IsEqual(templateId, 20) {
-		data = this.ParseSbeOrder(frameHex, blockLength, frameLength)
+	} else if templateId == 20 {
+		data = this.ParseSbeOrder(ccxt.SafeStringPtr(frameHex), blockLength, frameLength)
 		if !ccxt.IsEqual(data, nil) {
 			channel = ccxt.Add("orders.", ccxt.GetValue(data, "market"))
 		}
-	} else if ccxt.IsEqual(templateId, 21) {
-		data = this.ParseSbeFill(frameHex, blockLength, frameLength)
+	} else if templateId == 21 {
+		data = this.ParseSbeFill(ccxt.SafeStringPtr(frameHex), blockLength, frameLength)
 		if !ccxt.IsEqual(data, nil) {
 			channel = ccxt.Add("fills.", ccxt.GetValue(data, "market"))
 		}
-	} else if ccxt.IsEqual(templateId, 22) {
-		data = this.ParseSbePosition(frameHex, blockLength, frameLength)
+	} else if templateId == 22 {
+		data = this.ParseSbePosition(ccxt.SafeStringPtr(frameHex), blockLength, frameLength)
 		channel = "positions"
-	} else if ccxt.IsEqual(templateId, 23) {
-		data = this.ParseSbeAccount(frameHex, blockLength, frameLength)
+	} else if templateId == 23 {
+		data = this.ParseSbeAccount(ccxt.SafeStringPtr(frameHex), blockLength, frameLength)
 		channel = "account"
 	}
 	if ccxt.IsEqual(data, nil) {
@@ -1280,41 +1309,44 @@ func (this *Paradex) ParseSbeMessage(message any) any {
 		},
 	}
 }
-func (this *Paradex) SbeReadUint(frameHex any, offset any, length any) any {
+func (this *Paradex) SbeReadUint(frameHex *string, offset any, length any) any {
 	// a little-endian unsigned integer of at most 4 bytes, so that it stays exact in every language
 	var digits string = "0123456789abcdef"
 	var result any = 0
-	var factor any = 1
-	var position any = ccxt.Multiply(offset, 2)
-	for i := 0; ccxt.IsLessThan(i, length); i++ {
+	var factor int64 = 1
+	var count int64 = this.ParseToInt(length)
+	var start int64 = this.ParseToInt(offset)
+	var position int64 = start * 2
+	for i := 0; int64(i) < count; i++ {
 		// plain variables as slice bounds, php gets end - start unparenthesized
-		var middle any = ccxt.Add(position, 1)
-		var next any = ccxt.Add(position, 2)
+		var middle int64 = position + 1
+		var next int64 = position + 2
 		var high int = strings.Index(digits, ccxt.Slice(frameHex, position, middle))
 		var low int = strings.Index(digits, ccxt.Slice(frameHex, middle, next))
-		result = this.Sum(result, ccxt.Multiply(high*16, factor), ccxt.Multiply(low, factor))
-		factor = ccxt.Multiply(factor, 256)
-		position = next
+		result = this.ParseToInt(this.Sum(result, ccxt.Multiply(high*16, factor), (int64(low) * factor)))
+		factor = this.ParseToInt(factor * 256)
+		position = this.ParseToInt(next)
 	}
-	return result
+	// an exact integer below 2^32, parseToInt keeps it and types the return as an integer
+	return this.ParseToInt(result)
 }
-func (this *Paradex) SbeReadInt64(frameHex any, offset any) any {
+func (this *Paradex) SbeReadInt64(frameHex *string, offset any) any {
 	// a signed int64 as a decimal string, undefined for INT64_MIN which the schema uses as null
-	var low any = this.SbeReadUint(frameHex, offset, 4)
-	var high any = this.SbeReadUint(frameHex, ccxt.Add(offset, 4), 4)
-	if (ccxt.IsEqual(high, 2147483648)) && (ccxt.IsEqual(low, 0)) {
+	var low int64 = this.ParseToInt(this.SbeReadUint(frameHex, offset, 4))
+	var high int64 = this.ParseToInt(this.SbeReadUint(frameHex, this.Sum(offset, 4), 4))
+	if (high == 2147483648) && (low == 0) {
 		return nil
 	}
-	if ccxt.IsEqual(high, 0) {
+	if high == 0 {
 		return this.NumberToString(low)
 	}
 	var result *string = ccxt.Precise.StringAdd(ccxt.Precise.StringMul(this.NumberToString(high), "4294967296"), this.NumberToString(low))
-	if ccxt.IsGreaterThanOrEqual(high, 2147483648) {
+	if high >= 2147483648 {
 		result = ccxt.Precise.StringSub(result, "18446744073709551616")
 	}
 	return result
 }
-func (this *Paradex) SbeReadDecimal(frameHex any, offset any) any {
+func (this *Paradex) SbeReadDecimal(frameHex *string, offset any) any {
 	// prices, sizes and rates are int64 mantissas with a fixed exponent of -8
 	var mantissa any = this.SbeReadInt64(frameHex, offset)
 	if mantissa == nil {
@@ -1322,7 +1354,7 @@ func (this *Paradex) SbeReadDecimal(frameHex any, offset any) any {
 	}
 	return ccxt.Precise.StringDiv(mantissa, "100000000", 8)
 }
-func (this *Paradex) SbeReadTimestamp(frameHex any, offset any) any {
+func (this *Paradex) SbeReadTimestamp(frameHex *string, offset any) any {
 	// timestamps are microseconds, truncated to milliseconds with ccxt.Precise: a float
 	// quotient like 1791906071000.999 is rounded up when php converts it to an int
 	var microseconds any = this.SbeReadInt64(frameHex, offset)
@@ -1331,55 +1363,64 @@ func (this *Paradex) SbeReadTimestamp(frameHex any, offset any) any {
 	}
 	return this.ParseToInt(ccxt.Precise.StringDiv(microseconds, "1000", 0))
 }
-func (this *Paradex) SbeReadEnum(frameHex any, offset any, values any) any {
-	var value any = this.SbeReadUint(frameHex, offset, 1)
+func (this *Paradex) SbeReadEnum(frameHex *string, offset any, values map[string]any) *string {
+	var value int64 = this.ParseToInt(this.SbeReadUint(frameHex, offset, 1))
 	return this.SafeString(values, this.NumberToString(value))
 }
-func (this *Paradex) SbeReadString(frameHex any, offset any, length any) string {
-	var start any = ccxt.Multiply(offset, 2)
-	var end any = this.Sum(start, ccxt.Multiply(length, 2))
+func (this *Paradex) SbeReadString(frameHex *string, offset int64, length int64) string {
+	var first int64 = this.ParseToInt(offset)
+	var size int64 = this.ParseToInt(length)
+	var start int64 = first * 2
+	var end any = this.Sum(start, size*2)
 	return this.BinaryToString(this.Base16ToBinary(ccxt.Slice(frameHex, start, end)))
 }
-func (this *Paradex) SbeReadAddress(frameHex any, offset any) string {
+func (this *Paradex) SbeReadAddress(frameHex *string, offset any) string {
 	// a 32-byte big-endian account address, printed without leading zeros like the JSON feed
-	var rawStart any = ccxt.Multiply(offset, 2)
-	var rawEnd any = ccxt.Add(rawStart, 64)
+	var first int64 = this.ParseToInt(offset)
+	var rawStart int64 = first * 2
+	var rawEnd int64 = rawStart + 64
 	var raw string = ccxt.Slice(frameHex, rawStart, rawEnd)
-	var start any = 0
-	var next any = 1
-	for (ccxt.IsLessThan(start, 63)) && (ccxt.Slice(raw, start, next) == "0") {
-		start = next
-		next = ccxt.Add(start, 1)
+	var start any = 63
+	for i := 0; i < 63; i++ {
+		var next int = i + 1
+		if ccxt.Slice(raw, i, next) != "0" {
+			start = i
+			break
+		}
 	}
 	return "0x" + ccxt.Slice(raw, start, 64)
 }
-func (this *Paradex) SbeReadVarStrings(frameHex any, offset any, count any, frameLength any) any {
+func (this *Paradex) SbeReadVarStrings(frameHex *string, offset any, count any, frameLength int64) any {
 	// the var-data section: count strings, each prefixed with a uint8 length. Returns undefined
 	// when the frame ends before all of them, and only the strings present when a trailing one is
 	// absent, which is how a field appended to var-data reads on a frame from before it
 	var result []any = []any{}
-	var position any = offset
-	for i := 0; ccxt.IsLessThan(i, count); i++ {
-		if ccxt.IsGreaterThanOrEqual(position, frameLength) {
+	var end int64 = this.ParseToInt(frameLength)
+	var total int64 = this.ParseToInt(count)
+	var position int64 = this.ParseToInt(offset)
+	for i := 0; int64(i) < total; i++ {
+		if position >= end {
 			return result
 		}
-		var length any = this.SbeReadUint(frameHex, position, 1)
-		if ccxt.IsGreaterThan(this.Sum(position, 1, length), frameLength) {
+		var length int64 = this.ParseToInt(this.SbeReadUint(frameHex, position, 1))
+		var next int64 = this.ParseToInt(this.Sum(position, 1, length))
+		if next > end {
 			return nil
 		}
-		result = append(result, this.SbeReadString(frameHex, ccxt.Add(position, 1), length))
-		position = this.Sum(position, 1, length)
+		result = append(result, this.SbeReadString(frameHex, position+1, length))
+		position = next
 	}
 	return result
 }
-func (this *Paradex) ParseSbeTrade(frameHex any, blockLength any, frameLength any) any {
+func (this *Paradex) ParseSbeTrade(frameHex *string, blockLength int64, frameLength int64) any {
+	var blockSize int64 = this.ParseToInt(blockLength)
 	//
 	// TradeEvent (templateId 1), 50-byte block
 	//
 	//     ts int64, seq int64, tradeId int64 (deprecated, truncated), side uint8, price int64,
 	//     size int64, createdAt int64, tradeType uint8, then market and tradeIdStr strings
 	//
-	if ccxt.IsLessThan(blockLength, 50) {
+	if blockSize < 50 {
 		return nil
 	}
 	var strings any = this.SbeReadVarStrings(frameHex, this.Sum(blockLength, 8), 2, frameLength)
@@ -1414,35 +1455,37 @@ func (this *Paradex) ParseSbeTrade(frameHex any, blockLength any, frameLength an
 		"trade_type": this.SbeReadEnum(frameHex, 57, tradeTypes),
 	}
 }
-func (this *Paradex) ParseSbeOrderBook(frameHex any, blockLength any, frameLength any) any {
+func (this *Paradex) ParseSbeOrderBook(frameHex *string, blockLength int64, frameLength int64) any {
+	var blockSize int64 = this.ParseToInt(blockLength)
 	//
 	// BookEvent (templateId 3), 89-byte block
 	//
 	//     ts int64, seq int64, pkgType uint8, nine best bid/ask int64 fields, then the bids and asks
 	//     groups of (price int64, size int64) entries and the market string
 	//
-	if ccxt.IsLessThan(blockLength, 17) {
+	if blockSize < 17 {
 		return nil
 	}
 	// watchOrderBook subscribes to the snapshot channel, a delta would need a book to apply it to
-	var pkgType any = this.SbeReadUint(frameHex, 24, 1)
-	if !ccxt.IsEqual(pkgType, 0) {
+	var pkgType int64 = this.ParseToInt(this.SbeReadUint(frameHex, 24, 1))
+	if pkgType != 0 {
 		return nil
 	}
 	var inserts []any = []any{}
 	var sides []any = []any{"BUY", "SELL"}
-	var position any = this.Sum(blockLength, 8)
+	var frameEnd int64 = this.ParseToInt(frameLength)
+	var position int64 = this.ParseToInt(this.Sum(blockLength, 8))
 	for i := 0; i < len(sides); i++ {
-		if ccxt.IsGreaterThan(ccxt.Add(position, 4), frameLength) {
+		if (position + 4) > frameEnd {
 			return nil
 		}
-		var entryLength any = this.SbeReadUint(frameHex, position, 2)
-		var numInGroup any = this.SbeReadUint(frameHex, ccxt.Add(position, 2), 2)
-		position = ccxt.Add(position, 4)
-		if (ccxt.IsLessThan(entryLength, 16)) || (ccxt.IsGreaterThan(this.Sum(position, ccxt.Multiply(numInGroup, entryLength)), frameLength)) {
+		var entryLength int64 = this.ParseToInt(this.SbeReadUint(frameHex, position, 2))
+		var numInGroup int64 = this.ParseToInt(this.SbeReadUint(frameHex, position+2, 2))
+		position = this.ParseToInt(position + 4)
+		if (entryLength < 16) || (this.ParseToInt(this.Sum(position, numInGroup*entryLength)) > frameEnd) {
 			return nil
 		}
-		for j := 0; ccxt.IsLessThan(j, numInGroup); j++ {
+		for j := 0; int64(j) < numInGroup; j++ {
 			inserts = append(inserts, map[string]any{
 				"side": func() any {
 					if i >= 0 && i < len(sides) {
@@ -1451,9 +1494,9 @@ func (this *Paradex) ParseSbeOrderBook(frameHex any, blockLength any, frameLengt
 					return nil
 				}(),
 				"price": this.SbeReadDecimal(frameHex, position),
-				"size":  this.SbeReadDecimal(frameHex, ccxt.Add(position, 8)),
+				"size":  this.SbeReadDecimal(frameHex, position+8),
 			})
-			position = this.Sum(position, entryLength)
+			position = this.ParseToInt(this.Sum(position, entryLength))
 		}
 	}
 	var strings any = this.SbeReadVarStrings(frameHex, position, 1, frameLength)
@@ -1476,7 +1519,8 @@ func (this *Paradex) ParseSbeOrderBook(frameHex any, blockLength any, frameLengt
 		"deletes":         []any{},
 	}
 }
-func (this *Paradex) ParseSbeMarketSummary(frameHex any, blockLength any, frameLength any) any {
+func (this *Paradex) ParseSbeMarketSummary(frameHex *string, blockLength int64, frameLength int64) any {
+	var blockSize int64 = this.ParseToInt(blockLength)
 	//
 	// MarketSummaryEvent (templateId 4), 248-byte block (240 before 1:3), of which the first
 	// 12 int64 fields and settlementTwapEstimate are read
@@ -1485,7 +1529,7 @@ func (this *Paradex) ParseSbeMarketSummary(frameHex any, blockLength any, frameL
 	//     ask, totalVolume, priceChangeRate24h, ..., settlementTwapEstimate (1:3, at 240), then the
 	//     market string
 	//
-	if ccxt.IsLessThan(blockLength, 96) {
+	if blockSize < 96 {
 		return nil
 	}
 	var strings any = this.SbeReadVarStrings(frameHex, this.Sum(blockLength, 8), 1, frameLength)
@@ -1500,7 +1544,7 @@ func (this *Paradex) ParseSbeMarketSummary(frameHex any, blockLength any, frameL
 	}
 	// appended in 1:3: null outside the pre-expiry settlement window and for undated markets
 	var settlementTwapEstimate any = nil
-	if ccxt.IsGreaterThanOrEqual(blockLength, 248) {
+	if blockSize >= 248 {
 		settlementTwapEstimate = this.SbeReadDecimal(frameHex, 248)
 	}
 	return map[string]any{
@@ -1518,14 +1562,15 @@ func (this *Paradex) ParseSbeMarketSummary(frameHex any, blockLength any, frameL
 		"settlement_twap_estimate": settlementTwapEstimate,
 	}
 }
-func (this *Paradex) ParseSbeFundingData(frameHex any, blockLength any, frameLength any) any {
+func (this *Paradex) ParseSbeFundingData(frameHex *string, blockLength int64, frameLength int64) any {
+	var blockSize int64 = this.ParseToInt(blockLength)
 	//
 	// FundingDataEvent (templateId 5), 66-byte block
 	//
 	//     ts int64, seq int64, fundingRate int64, fundingIndex int64, createdAt int64,
 	//     fundingPremium int64, fundingRate8h int64, fundingPeriodHours int16, ... then the market
 	//
-	if ccxt.IsLessThan(blockLength, 58) {
+	if blockSize < 58 {
 		return nil
 	}
 	var strings any = this.SbeReadVarStrings(frameHex, this.Sum(blockLength, 8), 1, frameLength)
@@ -1548,7 +1593,8 @@ func (this *Paradex) ParseSbeFundingData(frameHex any, blockLength any, frameLen
 		"created_at":           this.SbeReadTimestamp(frameHex, 40),
 	}
 }
-func (this *Paradex) ParseSbeOrder(frameHex any, blockLength any, frameLength any) any {
+func (this *Paradex) ParseSbeOrder(frameHex *string, blockLength int64, frameLength int64) any {
+	var blockSize int64 = this.ParseToInt(blockLength)
 	//
 	// OrderEvent (templateId 20), 128-byte block (126 before the 1:2 request fields)
 	//
@@ -1557,7 +1603,7 @@ func (this *Paradex) ParseSbeOrder(frameHex any, blockLength any, frameLength an
 	//     createdAt int64, updatedAt int64, account [32]byte, receivedAt int64, publishedAt int64,
 	//     stp uint8, flags uint8, ... then the orderId, clientOrderId, market and cancelReason strings
 	//
-	if ccxt.IsLessThan(blockLength, 126) {
+	if blockSize < 126 {
 		return nil
 	}
 	var strings any = this.SbeReadVarStrings(frameHex, this.Sum(blockLength, 8), 4, frameLength)
@@ -1602,7 +1648,7 @@ func (this *Paradex) ParseSbeOrder(frameHex any, blockLength any, frameLength an
 		"2": "EXPIRE_TAKER",
 		"3": "EXPIRE_BOTH",
 	}
-	var flags any = this.SbeReadFlags(frameHex, 133, []any{"REDUCE_ONLY", "STOP_CONDITION_BELOW_TRIGGER", "STOP_CONDITION_ABOVE_TRIGGER", "INTERACTIVE", "TARGET_STRATEGY_VWAP", "MMP"})
+	var flags []any = this.SbeReadFlags(frameHex, 133, []any{"REDUCE_ONLY", "STOP_CONDITION_BELOW_TRIGGER", "STOP_CONDITION_ABOVE_TRIGGER", "INTERACTIVE", "TARGET_STRATEGY_VWAP", "MMP"})
 	var order map[string]any = map[string]any{
 		"account":         this.SbeReadAddress(frameHex, 84),
 		"avg_fill_price":  this.SbeReadDecimal(frameHex, 60),
@@ -1632,20 +1678,21 @@ func (this *Paradex) ParseSbeOrder(frameHex any, blockLength any, frameLength an
 	}
 	return order
 }
-func (this *Paradex) SbeReadFlags(frameHex any, offset any, names any) any {
+func (this *Paradex) SbeReadFlags(frameHex *string, offset any, names any) []any {
 	// a uint8 bitset, names[bit] for each set bit, an empty name for a bit the schema leaves unused
 	var flags []any = []any{}
-	var bits any = this.SbeReadUint(frameHex, offset, 1)
+	var bits int64 = this.ParseToInt(this.SbeReadUint(frameHex, offset, 1))
 	for i := 0; i < ccxt.GetArrayLength(names); i++ {
-		var bit int64 = this.ParseToInt(ccxt.Mod(bits, 2))
+		var bit int64 = this.ParseToInt(bits % 2)
 		if (bit == 1) && (ccxt.GetValue(names, i) != "") {
 			flags = append(flags, ccxt.GetValue(names, i))
 		}
-		bits = this.ParseToInt(ccxt.Divide((ccxt.Subtract(bits, bit)), 2))
+		bits = this.ParseToInt(float64(bits) / 2)
 	}
 	return flags
 }
-func (this *Paradex) ParseSbeFill(frameHex any, blockLength any, frameLength any) any {
+func (this *Paradex) ParseSbeFill(frameHex *string, blockLength int64, frameLength int64) any {
+	var blockSize int64 = this.ParseToInt(blockLength)
 	//
 	// FillEvent (templateId 21), 116-byte block (107 before the 1:2 flags and orderbookSeqNo)
 	//
@@ -1654,7 +1701,7 @@ func (this *Paradex) ParseSbeFill(frameHex any, blockLength any, frameLength any
 	//     underlyingPrice int64, realizedFunding int64, flags uint8, orderbookSeqNo uint64, then the
 	//     fillId, orderId, clientOrderId, tradeId, market and feeCurrency (1:2) strings
 	//
-	if ccxt.IsLessThan(blockLength, 107) {
+	if blockSize < 107 {
 		return nil
 	}
 	var strings any = this.SbeReadVarStrings(frameHex, this.Sum(blockLength, 8), 6, frameLength)
@@ -1701,14 +1748,15 @@ func (this *Paradex) ParseSbeFill(frameHex any, blockLength any, frameLength any
 		"size":             this.SbeReadDecimal(frameHex, 35),
 		"underlying_price": this.SbeReadDecimal(frameHex, 99),
 	}
-	if ccxt.IsGreaterThanOrEqual(blockLength, 116) {
+	if blockSize >= 116 {
 		// lowercase, as the JSON feed spells fill flags
 		fill["flags"] = this.SbeReadFlags(frameHex, 115, []any{"interactive", "rpi", "fastfill", "", "", "", "", "unknown"})
 		fill["orderbook_seq_no"] = this.SbeReadInt64(frameHex, 116)
 	}
 	return fill
 }
-func (this *Paradex) ParseSbePosition(frameHex any, blockLength any, frameLength any) any {
+func (this *Paradex) ParseSbePosition(frameHex *string, blockLength int64, frameLength int64) any {
+	var blockSize int64 = this.ParseToInt(blockLength)
 	//
 	// PositionEvent (templateId 22), 154-byte block
 	//
@@ -1718,7 +1766,7 @@ func (this *Paradex) ParseSbePosition(frameHex any, blockLength any, frameLength
 	//     int64, cost int64, costUsd int64, cachedFundingIndex int64, unrealizedFundingPnl int64,
 	//     status uint8, then the market and lastFillId strings
 	//
-	if ccxt.IsLessThan(blockLength, 154) {
+	if blockSize < 154 {
 		return nil
 	}
 	var strings any = this.SbeReadVarStrings(frameHex, this.Sum(blockLength, 8), 2, frameLength)
@@ -1739,11 +1787,11 @@ func (this *Paradex) ParseSbePosition(frameHex any, blockLength any, frameLength
 		"1": "OPEN",
 		"2": "CLOSED",
 	}
-	var side any = this.SbeReadEnum(frameHex, 24, sides)
+	var side *string = this.SbeReadEnum(frameHex, 24, sides)
 	var account string = this.SbeReadAddress(frameHex, 89)
 	// the frame carries the size unsigned, the JSON channel signs it negative for a short
 	var size any = this.SbeReadDecimal(frameHex, 25)
-	if (ccxt.IsEqual(side, "SHORT")) && (!ccxt.IsEqual(size, "0")) {
+	if (side != nil && *side == "SHORT") && (!ccxt.IsEqual(size, "0")) {
 		size = ccxt.Precise.StringNeg(size)
 	}
 	return map[string]any{
@@ -1768,7 +1816,8 @@ func (this *Paradex) ParseSbePosition(frameHex any, blockLength any, frameLength
 		"unrealized_pnl":          this.SbeReadDecimal(frameHex, 41),
 	}
 }
-func (this *Paradex) ParseSbeAccount(frameHex any, blockLength any, frameLength any) any {
+func (this *Paradex) ParseSbeAccount(frameHex *string, blockLength int64, frameLength int64) any {
+	var blockSize int64 = this.ParseToInt(blockLength)
 	//
 	// AccountEvent (templateId 23), 121-byte block (113 before the 1:2 lastSeenNotification)
 	//
@@ -1777,7 +1826,7 @@ func (this *Paradex) ParseSbeAccount(frameHex any, blockLength any, frameLength 
 	//     int64, account [32]byte, marginCushion int64, status uint8, lastSeenNotification int64,
 	//     then the settlementAsset string
 	//
-	if ccxt.IsLessThan(blockLength, 113) {
+	if blockSize < 113 {
 		return nil
 	}
 	var strings any = this.SbeReadVarStrings(frameHex, this.Sum(blockLength, 8), 1, frameLength)
@@ -1807,7 +1856,7 @@ func (this *Paradex) ParseSbeAccount(frameHex any, blockLength any, frameLength 
 		"total_collateral":               this.SbeReadDecimal(frameHex, 24),
 		"updated_at":                     this.SbeReadTimestamp(frameHex, 72),
 	}
-	if ccxt.IsGreaterThanOrEqual(blockLength, 121) {
+	if blockSize >= 121 {
 		account["last_seen_notification"] = this.SbeReadTimestamp(frameHex, 121)
 	}
 	return account
@@ -1903,7 +1952,7 @@ func (this *Paradex) HandleMessage(client any, message any) {
 			"account":         this.HandleBalance,
 		}
 		var method any = this.SafeValue(methods, name)
-		if !ccxt.IsEqual(method, nil) {
+		if method != nil {
 			ccxt.CallDynamically(method, client, parsedMessage)
 		}
 	}
@@ -1945,7 +1994,7 @@ func (this *Paradex) WatchTrades(symbol string, options ...ccxt.WatchTradesOptio
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.Trade = ccxt.NewTradeArray(r.Value)
+	var res []ccxt.Trade = r.Value
 	return res, nil
 }
 
@@ -1994,7 +2043,7 @@ func (this *Paradex) WatchTicker(symbol string, options ...ccxt.WatchTickerOptio
 	if r.Err != nil {
 		return ccxt.Ticker{}, r.Err
 	}
-	var res ccxt.Ticker = ccxt.NewTicker(r.Value)
+	var res ccxt.Ticker = r.Value
 	return res, nil
 }
 
@@ -2018,7 +2067,7 @@ func (this *Paradex) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Tic
 	if r.Err != nil {
 		return ccxt.Tickers{}, r.Err
 	}
-	var res ccxt.Tickers = ccxt.NewTickers(r.Value)
+	var res ccxt.Tickers = ccxt.Tickers{Tickers: r.Value}
 	return res, nil
 }
 
@@ -2044,7 +2093,7 @@ func (this *Paradex) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Ord
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.Order = ccxt.NewOrderArray(r.Value)
+	var res []ccxt.Order = r.Value
 	return res, nil
 }
 
@@ -2070,7 +2119,7 @@ func (this *Paradex) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccxt
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.Trade = ccxt.NewTradeArray(r.Value)
+	var res []ccxt.Trade = r.Value
 	return res, nil
 }
 
@@ -2096,7 +2145,7 @@ func (this *Paradex) WatchPositions(options ...ccxt.WatchPositionsOptions) ([]cc
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.Position = ccxt.NewPositionArray(r.Value)
+	var res []ccxt.Position = r.Value
 	return res, nil
 }
 
@@ -2114,7 +2163,7 @@ func (this *Paradex) WatchBalance(params ...any) (ccxt.Balances, error) {
 	if r.Err != nil {
 		return ccxt.Balances{}, r.Err
 	}
-	var res ccxt.Balances = ccxt.NewBalances(r.Value)
+	var res ccxt.Balances = r.Value
 	return res, nil
 }
 
@@ -2138,7 +2187,7 @@ func (this *Paradex) WatchFundingRate(symbol string, options ...ccxt.WatchFundin
 	if r.Err != nil {
 		return ccxt.FundingRate{}, r.Err
 	}
-	var res ccxt.FundingRate = ccxt.NewFundingRate(r.Value)
+	var res ccxt.FundingRate = r.Value
 	return res, nil
 }
 
@@ -2162,6 +2211,6 @@ func (this *Paradex) WatchFundingRates(options ...ccxt.WatchFundingRatesOptions)
 	if r.Err != nil {
 		return ccxt.FundingRates{}, r.Err
 	}
-	var res ccxt.FundingRates = ccxt.NewFundingRates(r.Value)
+	var res ccxt.FundingRates = ccxt.FundingRates{FundingRates: r.Value}
 	return res, nil
 }

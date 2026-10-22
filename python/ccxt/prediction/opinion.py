@@ -8,6 +8,7 @@ from ccxt.abstract.prediction.opinion import ImplicitAPI
 import asyncio
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByOutcomeById
 from ccxt.base.types import Balances, Int, Market, Num, OrderSide, OrderType, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition
+from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -186,9 +187,9 @@ class opinion(PredictionExchange, ImplicitAPI):
         # so the cache gets the base indexing (id + handle + slug) instead of a raw assignment
         seenEvents = {}
         eventsList = []
-        page = 1
-        fetchedRawCount = 0
-        while(True):
+        # every raw (unflattened) row fetched so far, so its length is the raw fetched count
+        fetchedRawRows = []
+        for page in range(1, maxPages):
             request = {
                 'marketType': 2,  # all - both standalone binaries and categorical parents
                 'limit': pageLimit,
@@ -198,17 +199,17 @@ class opinion(PredictionExchange, ImplicitAPI):
             result = self.safe_dict(response, 'result', {})
             rawMarkets = self.safe_list(result, 'list', [])
             rawMarketsLength = len(rawMarkets)
-            fetchedRawCount = self.sum(fetchedRawCount, rawMarketsLength)
             # categorical parents expand into several flatMarkets entries each, so the raw,
             # unflattened row count in 'total' must be compared against fetchedRawCount, not
             # flatMarkets.length - otherwise expansion makes the comparison meaningless
             total = self.safe_integer(result, 'total')
             for i in range(0, rawMarketsLength):
                 raw = rawMarkets[i]
+                fetchedRawRows.append(raw)
                 marketType = self.safe_integer(raw, 'marketType')
                 if marketType == 1:
                     event = self.parse_event(raw)
-                    childMarkets = event['markets']
+                    childMarkets = self.safe_list(event, 'markets', [])
                     childMarketsLength = len(childMarkets)
                     for ci in range(0, childMarketsLength):
                         flatMarkets.append(childMarkets[ci])
@@ -219,9 +220,9 @@ class opinion(PredictionExchange, ImplicitAPI):
                 else:
                     flatMarkets.append(self.parse_opinion_market(raw))
             collectedLength = len(flatMarkets)
+            fetchedRawCount = len(fetchedRawRows)
             if (rawMarketsLength < pageLimit) or (page >= maxPages) or ((total is not None) and (fetchedRawCount >= total)) or ((userLimit is not None) and (collectedLength >= userLimit)):
                 break
-            page = self.sum(page, 1)
         self.set_events(eventsList)
         flatMarketsLength = len(flatMarkets)
         if (userLimit is not None) and (flatMarketsLength > userLimit):
@@ -403,23 +404,17 @@ class opinion(PredictionExchange, ImplicitAPI):
             self.index_event_outcomes(single)
             return self.apply_event_fetch_params([single], params, queries)
         rest = self.omit(params, ['query', 'queries', 'tags', 'status', 'sort', 'searchIn', 'limit'])
-        pageLimit = self.safe_integer(self.options, 'defaultFetchEventsLimit', 20)
-        userLimit = self.safe_integer(params, 'limit')
+        pageLimit = self.parse_to_int(self.safe_integer(self.options, 'defaultFetchEventsLimit', 20))
         # bound how many events are actually FETCHED: the user limit when given, otherwise
         # options.maxFetchEventsResults - the scope filters keep the listing narrow, but a broad
         # label can still hold more than one page
-        fetchCap = self.safe_integer(self.options, 'maxFetchEventsResults', 100)
-        if userLimit is not None:
-            fetchCap = userLimit
+        fetchCap = self.safe_integer(params, 'limit', self.safe_integer(self.options, 'maxFetchEventsResults', 100))
         maxPages = self.safe_integer(self.options, 'maxEventsPages', 50)
         rawEvents = []
-        page = 1
-        fetchedRawCount = 0
-        while(True):
-            reqLimit = pageLimit
-            remaining = fetchCap - fetchedRawCount
-            if remaining < reqLimit:
-                reqLimit = remaining
+        for page in range(1, maxPages):
+            fetchedSoFar = len(rawEvents)
+            remaining = self.parse_to_int(fetchCap - fetchedSoFar)
+            reqLimit = remaining if (remaining < pageLimit) else pageLimit
             if reqLimit <= 0:
                 break
             request = {
@@ -431,13 +426,13 @@ class opinion(PredictionExchange, ImplicitAPI):
             result = self.safe_dict(response, 'result', {})
             pageEvents = self.safe_list(result, 'list', [])
             pageEventsLength = len(pageEvents)
-            fetchedRawCount = self.sum(fetchedRawCount, pageEventsLength)
             for i in range(0, pageEventsLength):
                 rawEvents.append(pageEvents[i])
+            # rawEvents holds every row fetched so far, so its length is the raw fetched count
+            fetchedRawCount = len(rawEvents)
             total = self.safe_integer(result, 'total')
             if (pageEventsLength < reqLimit) or (page >= maxPages) or ((total is not None) and (fetchedRawCount >= total)) or (fetchedRawCount >= fetchCap):
                 break
-            page = self.sum(page, 1)
         rawEventsLength = len(rawEvents)
         parsedEvents = []
         if self.markets is None:
@@ -476,7 +471,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         self.index_event_outcomes(event)
         return event
 
-    def parse_event(self, rawEvent: dict) -> object:
+    def parse_event(self, rawEvent: dict) -> PredictionEvent:
         """
  @ignore
         parses a raw opinion categorical market(with nested childMarkets) into the unified event shape
@@ -896,10 +891,12 @@ class opinion(PredictionExchange, ImplicitAPI):
         sig = self.sign_message(encoded, self.privateKey)
         return '0x' + self.remove0x_prefix(sig['r']) + self.remove0x_prefix(sig['s']) + self.int_to_base16(sig['v'])
 
-    def opinion_order_raw_amounts(self, isMarket: bool, side: str, amount: Num, price: Num, decimals: float) -> dict:
+    def opinion_order_raw_amounts(self, isMarket: bool, side: str, amount: Num, price: Num, decimals: Int) -> dict:
         decimalsStr = '1'
-        for i in range(0, decimals):
-            decimalsStr = decimalsStr + '0'
+        if decimals is not None:
+            decimalsCount = self.parse_to_int(decimals)
+            for i in range(0, decimalsCount):
+                decimalsStr = decimalsStr + '0'
         amountStr = self.number_to_string(amount)
         if isMarket and (side == 'BUY'):
             marketMakerAmountWei = self.decimal_to_precision(Precise.string_mul(amountStr, decimalsStr), TRUNCATE, 0, DECIMAL_PLACES)
@@ -1043,7 +1040,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         # a false result does NOT mean the order is still open — it may already be filled,
         # already cancelled, or unknown; don't invent a status the venue didn't report.
         # error responses with an errno never reach this line, handleErrors throws on them
-        status = 'canceled' if (canceled is True) else None
+        status = 'canceled' if (canceled) else None
         return self.safe_prediction_order({'id': id, 'status': status, 'info': response})
 
     def parse_order_status(self, status: Str) -> Str:
@@ -1356,9 +1353,9 @@ class opinion(PredictionExchange, ImplicitAPI):
         response = await self.opinionPrivateGetPositionsUserWalletAddress(self.extend(request, params))
         result = self.safe_dict(response, 'result', {})
         positions = self.safe_list(result, 'list', [])
-        parsed = self.parse_prediction_positions(positions)
         if outcomesLength == 0:
-            return parsed
+            return self.parse_prediction_positions(positions)
+        parsed = self.parse_prediction_positions(positions)
         wantedTokenIds = {}
         # copy to a plain list so the strict null checks see one shape
         outcomesList = [] if (outcomes is None) else outcomes
@@ -1579,7 +1576,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         elif msgType == 'trade.record.new':
             self.handle_my_trade(client, message)
 
-    def opinion_outcome_by_market_id_side(self, marketId: Int, outcomeSide: Int) -> object:
+    def opinion_outcome_by_market_id_side(self, marketId: Int, outcomeSide: Int) -> dict:
         """
  @ignore
         resolves a cached outcome object from the numeric marketId + outcomeSide(1 yes / 2 no) the user channels report instead of a tokenId - cache-only, returns None on a cold cache
@@ -1643,7 +1640,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         orderbook.reset(snapshot)
         self.orderbooks[sym] = orderbook
 
-    def handle_order_book(self, client: object, message: dict):
+    def handle_order_book(self, client: Client, message: dict):
         #
         #     {
         #         "marketId": 2764,
@@ -1690,7 +1687,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         messageHash = 'ticker::' + sym
         return await self.subscribe_opinion_channel(messageHash, 'market.last.price', marketId)
 
-    def handle_ticker(self, client: object, message: dict):
+    def handle_ticker(self, client: Client, message: dict):
         #
         #     {
         #         "tokenId": "19120407572139442221452465677574895365338028945317996490376653704877573103648",
@@ -1740,7 +1737,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         trades = await self.subscribe_opinion_channel(messageHash, 'market.last.trade', marketId)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client: object, message: dict):
+    def handle_trades(self, client: Client, message: dict):
         #
         #     {
         #         "tokenId": "19120407572139442221452465677574895365338028945317996490376653704877573103648",
@@ -1827,7 +1824,7 @@ class opinion(PredictionExchange, ImplicitAPI):
             return 'rejected'
         return None
 
-    def handle_order(self, client: object, message: dict):
+    def handle_order(self, client: Client, message: dict):
         #
         #     {
         #         "orderUpdateType": "orderConfirm",
@@ -1914,7 +1911,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         sym = self.safe_outcome_symbol(outcome, outcomeObj)
         return self.filter_by_value_since_limit(trades, 'outcome', sym, since, limit, 'timestamp', True)
 
-    def handle_my_trade(self, client: object, message: dict):
+    def handle_my_trade(self, client: Client, message: dict):
         #
         #     {
         #         "orderId": "3c7af25f-e21f-11f0-9714-0a58a9feac02",
@@ -1981,7 +1978,7 @@ class opinion(PredictionExchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def sign(self, path: str, api: list[str] = ['opinion'], method='GET', params: dict = {}):
+    def sign(self, path: str, api: list[str] = ['opinion'], method: str = 'GET', params: dict = {}):
         """
  @ignore
         builds the request url and attaches the apikey/EIP-712 authentication headers for private endpoints

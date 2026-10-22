@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitrue.js';
-import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Int, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int, DepositWithdrawFees, Status } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Int, MarginModification, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int, DepositWithdrawFees, Status } from './base/types.js';
 /**
  * @class bitrue
  * @augments Exchange
@@ -292,7 +292,7 @@ export default class bitrue extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
-    parseDepositWithdrawFee(fee: any, currency?: Currency): any;
+    parseDepositWithdrawFee(fee: NullableDict, currency?: Currency): any;
     /**
      * @method
      * @name bitrue#fetchDepositWithdrawFees

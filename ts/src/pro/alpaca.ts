@@ -269,7 +269,7 @@ export default class alpaca extends alpacaRest {
             this.orderbooks[symbol] = this.orderBook ();
         }
         const orderbook = this.orderbooks[symbol];
-        if (isSnapshot === true) {
+        if (isSnapshot) {
             const snapshot = this.parseOrderBook (message, symbol, timestamp, 'b', 'a', 'p', 's');
             orderbook.reset (snapshot);
         } else {
@@ -290,7 +290,7 @@ export default class alpaca extends alpacaRest {
         bookside.storeArray (bidAsk);
     }
 
-    override handleDeltas (bookside: any, deltas: any) {
+    override handleDeltas (bookside: any, deltas: any[]) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }

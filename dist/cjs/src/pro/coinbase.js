@@ -275,7 +275,8 @@ class coinbase extends coinbase$1["default"] {
             const currentToken = this.safeString(this.options, 'wsToken');
             const tokenTimestamp = this.safeInteger(this.options, 'wsTokenTimestamp', 0);
             const seconds = this.seconds();
-            if (currentToken === undefined || tokenTimestamp + 120 < seconds) {
+            const tokenExpiry = tokenTimestamp + 120;
+            if (currentToken === undefined || tokenExpiry < seconds) {
                 // we should generate new token
                 const token = this.createAuthToken(seconds);
                 this.options['wsToken'] = token;

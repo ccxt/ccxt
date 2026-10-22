@@ -886,7 +886,7 @@ class zaif extends Exchange {
         );
     }
 
-    public function custom_nonce() {
+    public function custom_nonce(): string {
         $num = $this->number_to_string($this->milliseconds() / 1000);
         $nonce = floatval($num);
         return sprintf('%.8f', $nonce);
@@ -943,7 +943,7 @@ class zaif extends Exchange {
             throw new ExchangeError($feedback); // unknown message
         }
         $success = $this->safe_bool($response, 'success', true);
-        if ($success !== true) {
+        if (!$success) {
             throw new ExchangeError($feedback);
         }
         return null;

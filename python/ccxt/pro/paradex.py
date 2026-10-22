@@ -842,9 +842,9 @@ class paradex(ccxt.async_support.paradex):
         frameLength = self.parse_to_int(len(frameHex) / 2)
         if frameLength < 8:
             return None
-        blockLength = self.sbe_read_uint(frameHex, 0, 2)
-        templateId = self.sbe_read_uint(frameHex, 2, 2)
-        schemaId = self.sbe_read_uint(frameHex, 4, 2)
+        blockLength = self.parse_to_int(self.sbe_read_uint(frameHex, 0, 2))
+        templateId = self.parse_to_int(self.sbe_read_uint(frameHex, 2, 2))
+        schemaId = self.parse_to_int(self.sbe_read_uint(frameHex, 4, 2))
         if (schemaId != 1) or (frameLength < self.sum(blockLength, 8)):
             return None
         channel = None
@@ -887,27 +887,30 @@ class paradex(ccxt.async_support.paradex):
             },
         }
 
-    def sbe_read_uint(self, frameHex: str, offset: float, length: float) -> object:
+    def sbe_read_uint(self, frameHex: str, offset: float, length: float) -> int:
         # a little-endian unsigned integer of at most 4 bytes, so that it stays exact in every language
         digits = '0123456789abcdef'
         result = 0
         factor = 1
-        position = offset * 2
-        for i in range(0, length):
+        count = self.parse_to_int(length)
+        start = self.parse_to_int(offset)
+        position = start * 2
+        for i in range(0, count):
             # plain variables as slice bounds, php gets end - start unparenthesized
             middle = position + 1
             next = position + 2
             high = digits.find(frameHex[position:middle])
             low = digits.find(frameHex[middle:next])
-            result = self.sum(result, high * 16 * factor, low * factor)
-            factor = factor * 256
-            position = next
-        return result
+            result = self.parse_to_int(self.sum(result, high * 16 * factor, low * factor))
+            factor = self.parse_to_int(factor * 256)
+            position = self.parse_to_int(next)
+        # an exact integer below 2^32, parseToInt keeps it and types the return as an integer
+        return self.parse_to_int(result)
 
     def sbe_read_int64(self, frameHex: str, offset: float) -> Str:
         # a signed int64 as a decimal string, undefined for INT64_MIN which the schema uses as null
-        low = self.sbe_read_uint(frameHex, offset, 4)
-        high = self.sbe_read_uint(frameHex, offset + 4, 4)
+        low = self.parse_to_int(self.sbe_read_uint(frameHex, offset, 4))
+        high = self.parse_to_int(self.sbe_read_uint(frameHex, self.sum(offset, 4), 4))
         if (high == 2147483648) and (low == 0):
             return None
         if high == 0:
@@ -933,24 +936,28 @@ class paradex(ccxt.async_support.paradex):
         return self.parse_to_int(Precise.string_div(microseconds, '1000', 0))
 
     def sbe_read_enum(self, frameHex: str, offset: float, values: dict) -> Str:
-        value = self.sbe_read_uint(frameHex, offset, 1)
+        value = self.parse_to_int(self.sbe_read_uint(frameHex, offset, 1))
         return self.safe_string(values, self.number_to_string(value))
 
     def sbe_read_string(self, frameHex: str, offset: float, length: float) -> str:
-        start = offset * 2
-        end = self.sum(start, length * 2)
+        first = self.parse_to_int(offset)
+        size = self.parse_to_int(length)
+        start = first * 2
+        end = self.sum(start, size * 2)
         return self.binary_to_string(self.base16_to_binary(frameHex[start:end]))
 
     def sbe_read_address(self, frameHex: str, offset: float) -> str:
         # a 32-byte big-endian account address, printed without leading zeros like the JSON feed
-        rawStart = offset * 2
+        first = self.parse_to_int(offset)
+        rawStart = first * 2
         rawEnd = rawStart + 64
         raw = frameHex[rawStart:rawEnd]
-        start = 0
-        next = 1
-        while((start < 63) and (raw[start:next] == '0')):
-            start = next
-            next = start + 1
+        start = 63
+        for i in range(0, 63):
+            next = i + 1
+            if raw[i:next] != '0':
+                start = i
+                break
         return '0x' + raw[start:64]
 
     def sbe_read_var_strings(self, frameHex: str, offset: float, count: float, frameLength: float) -> object:
@@ -958,25 +965,29 @@ class paradex(ccxt.async_support.paradex):
         # when the frame ends before all of them, and only the strings present when a trailing one is
         # absent, which is how a field appended to var-data reads on a frame from before it
         result = []
-        position = offset
-        for i in range(0, count):
-            if position >= frameLength:
+        end = self.parse_to_int(frameLength)
+        total = self.parse_to_int(count)
+        position = self.parse_to_int(offset)
+        for i in range(0, total):
+            if position >= end:
                 return result
-            length = self.sbe_read_uint(frameHex, position, 1)
-            if self.sum(position, 1, length) > frameLength:
+            length = self.parse_to_int(self.sbe_read_uint(frameHex, position, 1))
+            next = self.parse_to_int(self.sum(position, 1, length))
+            if next > end:
                 return None
             result.append(self.sbe_read_string(frameHex, position + 1, length))
-            position = self.sum(position, 1, length)
+            position = next
         return result
 
-    def parse_sbe_trade(self, frameHex: str, blockLength: float, frameLength: float) -> object:
+    def parse_sbe_trade(self, frameHex: str, blockLength: float, frameLength: float) -> dict:
+        blockSize = self.parse_to_int(blockLength)
         #
         # TradeEvent (templateId 1), 50-byte block
         #
         #     ts int64, seq int64, tradeId int64 (deprecated, truncated), side uint8, price int64,
         #     size int64, createdAt int64, tradeType uint8, then market and tradeIdStr strings
         #
-        if blockLength < 50:
+        if blockSize < 50:
             return None
         strings = self.sbe_read_var_strings(frameHex, self.sum(blockLength, 8), 2, frameLength)
         stringsLength = 0 if (strings is None) else len(strings)
@@ -995,29 +1006,31 @@ class paradex(ccxt.async_support.paradex):
             'trade_type': self.sbe_read_enum(frameHex, 57, tradeTypes),
         }
 
-    def parse_sbe_order_book(self, frameHex: str, blockLength: float, frameLength: float) -> object:
+    def parse_sbe_order_book(self, frameHex: str, blockLength: float, frameLength: float) -> dict:
+        blockSize = self.parse_to_int(blockLength)
         #
         # BookEvent (templateId 3), 89-byte block
         #
         #     ts int64, seq int64, pkgType uint8, nine best bid/ask int64 fields, then the bids and asks
         #     groups of (price int64, size int64) entries and the market string
         #
-        if blockLength < 17:
+        if blockSize < 17:
             return None
         # watchOrderBook subscribes to the snapshot channel, a delta would need a book to apply it to
-        pkgType = self.sbe_read_uint(frameHex, 24, 1)
+        pkgType = self.parse_to_int(self.sbe_read_uint(frameHex, 24, 1))
         if pkgType != 0:
             return None
         inserts = []
         sides = ['BUY', 'SELL']
-        position = self.sum(blockLength, 8)
+        frameEnd = self.parse_to_int(frameLength)
+        position = self.parse_to_int(self.sum(blockLength, 8))
         for i in range(0, len(sides)):
-            if position + 4 > frameLength:
+            if position + 4 > frameEnd:
                 return None
-            entryLength = self.sbe_read_uint(frameHex, position, 2)
-            numInGroup = self.sbe_read_uint(frameHex, position + 2, 2)
-            position = position + 4
-            if (entryLength < 16) or (self.sum(position, numInGroup * entryLength) > frameLength):
+            entryLength = self.parse_to_int(self.sbe_read_uint(frameHex, position, 2))
+            numInGroup = self.parse_to_int(self.sbe_read_uint(frameHex, position + 2, 2))
+            position = self.parse_to_int(position + 4)
+            if (entryLength < 16) or (self.parse_to_int(self.sum(position, numInGroup * entryLength)) > frameEnd):
                 return None
             for j in range(0, numInGroup):
                 inserts.append({
@@ -1025,7 +1038,7 @@ class paradex(ccxt.async_support.paradex):
                     'price': self.sbe_read_decimal(frameHex, position),
                     'size': self.sbe_read_decimal(frameHex, position + 8),
                 })
-                position = self.sum(position, entryLength)
+                position = self.parse_to_int(self.sum(position, entryLength))
         strings = self.sbe_read_var_strings(frameHex, position, 1, frameLength)
         stringsLength = 0 if (strings is None) else len(strings)
         if stringsLength < 1:
@@ -1040,7 +1053,8 @@ class paradex(ccxt.async_support.paradex):
             'deletes': [],
         }
 
-    def parse_sbe_market_summary(self, frameHex: str, blockLength: float, frameLength: float) -> object:
+    def parse_sbe_market_summary(self, frameHex: str, blockLength: float, frameLength: float) -> dict:
+        blockSize = self.parse_to_int(blockLength)
         #
         # MarketSummaryEvent (templateId 4), 248-byte block (240 before 1:3), of which the first
         # 12 int64 fields and settlementTwapEstimate are read
@@ -1049,7 +1063,7 @@ class paradex(ccxt.async_support.paradex):
         #     ask, totalVolume, priceChangeRate24h, ..., settlementTwapEstimate (1:3, at 240), then the
         #     market string
         #
-        if blockLength < 96:
+        if blockSize < 96:
             return None
         strings = self.sbe_read_var_strings(frameHex, self.sum(blockLength, 8), 1, frameLength)
         stringsLength = 0 if (strings is None) else len(strings)
@@ -1057,7 +1071,7 @@ class paradex(ccxt.async_support.paradex):
             return None
         # appended in 1:3: null outside the pre-expiry settlement window and for undated markets
         settlementTwapEstimate = None
-        if blockLength >= 248:
+        if blockSize >= 248:
             settlementTwapEstimate = self.sbe_read_decimal(frameHex, 248)
         return {
             'symbol': strings[0],
@@ -1075,14 +1089,15 @@ class paradex(ccxt.async_support.paradex):
             'settlement_twap_estimate': settlementTwapEstimate,
         }
 
-    def parse_sbe_funding_data(self, frameHex: str, blockLength: float, frameLength: float) -> object:
+    def parse_sbe_funding_data(self, frameHex: str, blockLength: float, frameLength: float) -> dict:
+        blockSize = self.parse_to_int(blockLength)
         #
         # FundingDataEvent (templateId 5), 66-byte block
         #
         #     ts int64, seq int64, fundingRate int64, fundingIndex int64, createdAt int64,
         #     fundingPremium int64, fundingRate8h int64, fundingPeriodHours int16, ... then the market
         #
-        if blockLength < 58:
+        if blockSize < 58:
             return None
         strings = self.sbe_read_var_strings(frameHex, self.sum(blockLength, 8), 1, frameLength)
         stringsLength = 0 if (strings is None) else len(strings)
@@ -1098,7 +1113,8 @@ class paradex(ccxt.async_support.paradex):
             'created_at': self.sbe_read_timestamp(frameHex, 40),
         }
 
-    def parse_sbe_order(self, frameHex: str, blockLength: float, frameLength: float) -> object:
+    def parse_sbe_order(self, frameHex: str, blockLength: float, frameLength: float) -> dict:
+        blockSize = self.parse_to_int(blockLength)
         #
         # OrderEvent (templateId 20), 128-byte block (126 before the 1:2 request fields)
         #
@@ -1107,7 +1123,7 @@ class paradex(ccxt.async_support.paradex):
         #     createdAt int64, updatedAt int64, account [32]byte, receivedAt int64, publishedAt int64,
         #     stp uint8, flags uint8, ... then the orderId, clientOrderId, market and cancelReason strings
         #
-        if blockLength < 126:
+        if blockSize < 126:
             return None
         strings = self.sbe_read_var_strings(frameHex, self.sum(blockLength, 8), 4, frameLength)
         stringsLength = 0 if (strings is None) else len(strings)
@@ -1150,15 +1166,16 @@ class paradex(ccxt.async_support.paradex):
     def sbe_read_flags(self, frameHex: str, offset: float, names: list[str]) -> list[str]:
         # a uint8 bitset, names[bit] for each set bit, an empty name for a bit the schema leaves unused
         flags = []
-        bits = self.sbe_read_uint(frameHex, offset, 1)
+        bits = self.parse_to_int(self.sbe_read_uint(frameHex, offset, 1))
         for i in range(0, len(names)):
             bit = self.parse_to_int(bits % 2)
             if (bit == 1) and (names[i] != ''):
                 flags.append(names[i])
-            bits = self.parse_to_int((bits - bit) / 2)
+            bits = self.parse_to_int(bits / 2)
         return flags
 
-    def parse_sbe_fill(self, frameHex: str, blockLength: float, frameLength: float) -> object:
+    def parse_sbe_fill(self, frameHex: str, blockLength: float, frameLength: float) -> dict:
+        blockSize = self.parse_to_int(blockLength)
         #
         # FillEvent (templateId 21), 116-byte block (107 before the 1:2 flags and orderbookSeqNo)
         #
@@ -1167,7 +1184,7 @@ class paradex(ccxt.async_support.paradex):
         #     underlyingPrice int64, realizedFunding int64, flags uint8, orderbookSeqNo uint64, then the
         #     fillId, orderId, clientOrderId, tradeId, market and feeCurrency (1:2) strings
         #
-        if blockLength < 107:
+        if blockSize < 107:
             return None
         strings = self.sbe_read_var_strings(frameHex, self.sum(blockLength, 8), 6, frameLength)
         stringsLength = 0 if (strings is None) else len(strings)
@@ -1194,13 +1211,14 @@ class paradex(ccxt.async_support.paradex):
             'size': self.sbe_read_decimal(frameHex, 35),
             'underlying_price': self.sbe_read_decimal(frameHex, 99),
         }
-        if blockLength >= 116:
+        if blockSize >= 116:
             # lowercase, as the JSON feed spells fill flags
             fill['flags'] = self.sbe_read_flags(frameHex, 115, ['interactive', 'rpi', 'fastfill', '', '', '', '', 'unknown'])
             fill['orderbook_seq_no'] = self.sbe_read_int64(frameHex, 116)
         return fill
 
-    def parse_sbe_position(self, frameHex: str, blockLength: float, frameLength: float) -> object:
+    def parse_sbe_position(self, frameHex: str, blockLength: float, frameLength: float) -> dict:
+        blockSize = self.parse_to_int(blockLength)
         #
         # PositionEvent (templateId 22), 154-byte block
         #
@@ -1210,7 +1228,7 @@ class paradex(ccxt.async_support.paradex):
         #     int64, cost int64, costUsd int64, cachedFundingIndex int64, unrealizedFundingPnl int64,
         #     status uint8, then the market and lastFillId strings
         #
-        if blockLength < 154:
+        if blockSize < 154:
             return None
         strings = self.sbe_read_var_strings(frameHex, self.sum(blockLength, 8), 2, frameLength)
         stringsLength = 0 if (strings is None) else len(strings)
@@ -1247,7 +1265,8 @@ class paradex(ccxt.async_support.paradex):
             'unrealized_pnl': self.sbe_read_decimal(frameHex, 41),
         }
 
-    def parse_sbe_account(self, frameHex: str, blockLength: float, frameLength: float) -> object:
+    def parse_sbe_account(self, frameHex: str, blockLength: float, frameLength: float) -> dict:
+        blockSize = self.parse_to_int(blockLength)
         #
         # AccountEvent (templateId 23), 121-byte block (113 before the 1:2 lastSeenNotification)
         #
@@ -1256,7 +1275,7 @@ class paradex(ccxt.async_support.paradex):
         #     int64, account [32]byte, marginCushion int64, status uint8, lastSeenNotification int64,
         #     then the settlementAsset string
         #
-        if blockLength < 113:
+        if blockSize < 113:
             return None
         strings = self.sbe_read_var_strings(frameHex, self.sum(blockLength, 8), 1, frameLength)
         stringsLength = 0 if (strings is None) else len(strings)
@@ -1276,7 +1295,7 @@ class paradex(ccxt.async_support.paradex):
             'total_collateral': self.sbe_read_decimal(frameHex, 24),
             'updated_at': self.sbe_read_timestamp(frameHex, 72),
         }
-        if blockLength >= 121:
+        if blockSize >= 121:
             account['last_seen_notification'] = self.sbe_read_timestamp(frameHex, 121)
         return account
 

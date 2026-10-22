@@ -115,7 +115,7 @@ export default class deribit extends deribitRest {
     handleOrderBook(client: Client, message: Dict): void;
     cleanOrderBook(data: Dict): Dict;
     handleDelta(bookside: any, delta: any): void;
-    handleDeltas(bookside: any, deltas: any): void;
+    handleDeltas(bookside: any, deltas: any[]): void;
     /**
      * @method
      * @name deribit#watchOrders

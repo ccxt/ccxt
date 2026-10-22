@@ -295,11 +295,11 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         // }
         //
         String channel = this.safeString(message, "topic");
-        Object rawTrades = this.safeValue(message, "data");
+        List<Object> rawTrades = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         // usually the first message is an empty array
         // when the user does not have any trades yet
-        Integer dataLength = Helpers.getArrayLength(rawTrades);
-        if ((dataLength != null && dataLength == 0))
+        Integer dataLength = ((List<?>)rawTrades).size();
+        if (java.util.Objects.equals(dataLength, 0))
         {
             return;
         }
@@ -310,9 +310,9 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         Map<String, Object> marketIds = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < Helpers.getArrayLength(rawTrades); i++)
+        for (var i = 0; i < ((List<?>)rawTrades).size(); i++)
         {
-            Object trade = Helpers.GetValue(rawTrades, i);
+            Object trade = (rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i));
             Map<String, Object> parsed = (Map<String, Object>) this.parseTrade(trade, (Map<String, Object>) null);
             stored.append(parsed);
             Object symbol = Helpers.GetValue(trade, "symbol");
@@ -439,7 +439,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         String channel = this.safeString(message, "topic");
         Object data = this.safeValue(message, "data", new HashMap<String, Object>() {{}});
         // usually the first message is an empty array
-        Integer dataLength = Helpers.getArrayLength(data);
+        Integer dataLength = (switch ((Object)(data)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; });
         if ((dataLength != null && dataLength == 0))
         {
             return;
@@ -524,15 +524,15 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         //     }
         //
         String messageHash = this.safeString(message, "topic");
-        Object data = this.safeValue(message, "data");
-        List<Object> keys = Helpers.objectKeys(data);
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        List<String> keys = new ArrayList<String>(data.keySet());
         Long timestamp = this.safeTimestamp(message, "time");
         Helpers.addElementToObject(this.balance, "info", data);
         Helpers.addElementToObject(this.balance, "timestamp", timestamp);
         Helpers.addElementToObject(this.balance, "datetime", this.iso8601(timestamp));
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)key).split(java.util.regex.Pattern.quote("_"))));
             String currencyId = this.safeString(parts, 0);
             String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
@@ -578,7 +578,8 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             Object expires = this.safeString(this.options, "ws-expires");
             if (java.util.Objects.equals(expires, null))
             {
-                Object timeout = Helpers.parseInt(String.valueOf((Helpers.divide(this.timeout, 1000))));
+                Long timeoutMs = this.parseToInt(this.timeout);
+                Long timeout = this.parseToInt((((double) timeoutMs) / ((double) 1000)));
                 expires = this.sum(this.seconds(), timeout);
                 if (java.util.Objects.equals(expires, null))
                 {
@@ -623,7 +624,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             }
         } catch(Exception e)
         {
-            if (Helpers.isInstance(e, AuthenticationError.class))
+            if ((e instanceof AuthenticationError))
             {
                 return false;
             }

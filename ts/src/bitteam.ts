@@ -475,7 +475,7 @@ export default class bitteam extends Exchange {
         let minCost: Num = undefined;
         const currenciesValuedInUsd = this.handleOption ('fetchMarkets', 'currenciesValuedInUsd', {});
         const quoteInUsd = this.safeBool (currenciesValuedInUsd, quote, false);
-        if (quoteInUsd === true) {
+        if (quoteInUsd) {
             const settings = this.safeDict (market, 'settings', {});
             minCost = this.safeNumber (settings, 'limit_usd');
         }
@@ -1386,7 +1386,7 @@ export default class bitteam extends Exchange {
         }, marketResolved);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'accepted': 'open',
             'executed': 'closed',
@@ -1408,7 +1408,7 @@ export default class bitteam extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseValueToPricision (valueObject: Dict, valueKey: string, preciseObject: NullableDict, precisionKey: string) {
+    parseValueToPricision (valueObject: Dict, valueKey: string, preciseObject: NullableDict, precisionKey: string): Str {
         const valueRawString = this.safeString (valueObject, valueKey);
         const precisionRawString = this.safeString (preciseObject, precisionKey);
         if (valueRawString === undefined || precisionRawString === undefined) {
@@ -2425,7 +2425,7 @@ export default class bitteam extends Exchange {
         return this.safeString (types, (type as string), type);
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             'approving': 'pending',
             'success': 'ok',
@@ -2433,7 +2433,7 @@ export default class bitteam extends Exchange {
         return this.safeString (statuses, status as string, status);
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
         const request = this.omit (params, this.extractParams (path));
         const endpoint = '/' + this.implodeParams (path, params);

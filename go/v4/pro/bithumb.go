@@ -50,12 +50,12 @@ func (this *Bithumb) Describe() any {
 		"exceptions": map[string]any{},
 	})
 }
-func (this *Bithumb) PongAsync(client any, message any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Bithumb) PongAsync(client any, message any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.pongBody(ch, client, message)
 	return ch
 }
-func (this *Bithumb) pongBody(ch chan ccxt.AsyncResult[any], client any, message any) any {
+func (this *Bithumb) pongBody(ch chan ccxt.AsyncResult[bool], client any, message any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var ping *int64 = this.SafeInteger(message, "ping")
@@ -95,12 +95,12 @@ func (this *Bithumb) HandlePong(client any, message any) {
  * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
  * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
  */
-func (this *Bithumb) WatchTickerAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
-	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
+func (this *Bithumb) WatchTickerAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.Ticker] {
+	ch := make(chan ccxt.AsyncResult[ccxt.Ticker], 1)
 	go this.watchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) watchTickerBody(ch chan ccxt.AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
+func (this *Bithumb) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -113,7 +113,7 @@ func (this *Bithumb) watchTickerBody(ch chan ccxt.AsyncResult[map[string]any], s
 		}
 	}
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "watchTicker", "generation", 2)
-	var isGenerationTwo bool = (ccxt.IsEqual(generation, 2))
+	var isGenerationTwo bool = (generation == 2)
 	var url any = func() any {
 		if isGenerationTwo {
 			return ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "publicGen2")
@@ -121,7 +121,7 @@ func (this *Bithumb) watchTickerBody(ch chan ccxt.AsyncResult[map[string]any], s
 		return ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public")
 	}()
 	var market map[string]any = this.Market(symbol)
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker:", market["symbol"]))
+	var messageHash *string = ccxt.SafeStringPtr("ticker:" + market["symbol"].(string))
 	var tickTypes *string = this.SafeString(paramsGeneration, "tickTypes", "24H")
 	var paramsOmitted any = this.Omit(paramsGeneration, "tickTypes")
 	var request any = map[string]any{
@@ -152,7 +152,7 @@ func (this *Bithumb) watchTickerBody(ch chan ccxt.AsyncResult[map[string]any], s
 		default:
 			panic(ccxt.ExchangeError("resolved value is not map[string]any"))
 		}
-		ch <- ccxt.AsyncResult[map[string]any]{Value: resolved}
+		ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: ccxt.TickerFromMap(resolved)}
 		return nil
 	}
 
@@ -170,7 +170,7 @@ func (this *Bithumb) watchTickerBody(ch chan ccxt.AsyncResult[map[string]any], s
 	default:
 		panic(ccxt.ExchangeError("resolved value is not map[string]any"))
 	}
-	ch <- ccxt.AsyncResult[map[string]any]{Value: resolved1}
+	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: ccxt.TickerFromMap(resolved1)}
 	return nil
 }
 
@@ -186,12 +186,12 @@ func (this *Bithumb) watchTickerBody(ch chan ccxt.AsyncResult[map[string]any], s
  * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure} indexed by market symbols
  */
-func (this *Bithumb) WatchTickersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
-	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
+func (this *Bithumb) WatchTickersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]ccxt.Ticker] {
+	ch := make(chan ccxt.AsyncResult[map[string]ccxt.Ticker], 1)
 	go this.watchTickersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) watchTickersBody(ch chan ccxt.AsyncResult[map[string]any], optionalArgs ...any) any {
+func (this *Bithumb) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ticker], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
@@ -206,7 +206,7 @@ func (this *Bithumb) watchTickersBody(ch chan ccxt.AsyncResult[map[string]any], 
 		}
 	}
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "watchTickers", "generation", 2)
-	var isGenerationTwo bool = (ccxt.IsEqual(generation, 2))
+	var isGenerationTwo bool = (generation == 2)
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false, true, true)
 	var symbolsLength int = func() int {
 		if symbolsNormalized == nil {
@@ -242,7 +242,7 @@ func (this *Bithumb) watchTickersBody(ch chan ccxt.AsyncResult[map[string]any], 
 			streamMarketId = (ccxt.Add(ccxt.Add(market["base"], "_"), market["quote"]))
 		}
 		streamMarketIds = append(streamMarketIds, streamMarketId)
-		messageHashes = append(messageHashes, ccxt.Add("ticker:", market["symbol"]))
+		messageHashes = append(messageHashes, "ticker:"+market["symbol"].(string))
 	}
 	var tickTypes *string = this.SafeString(paramsGeneration, "tickTypes", "24H")
 	var paramsOmitted any = this.Omit(paramsGeneration, "tickTypes")
@@ -274,7 +274,7 @@ func (this *Bithumb) watchTickersBody(ch chan ccxt.AsyncResult[map[string]any], 
 			ccxt.AddElementToObject(result, newTickerSymbol, newTicker)
 		}
 
-		ch <- ccxt.AsyncResult[map[string]any]{Value: result}
+		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(result)}
 		return nil
 	}
 
@@ -288,7 +288,7 @@ func (this *Bithumb) watchTickersBody(ch chan ccxt.AsyncResult[map[string]any], 
 	default:
 		panic(ccxt.ExchangeError("resolved value is not map[string]any"))
 	}
-	ch <- ccxt.AsyncResult[map[string]any]{Value: resolved}
+	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(resolved)}
 	return nil
 }
 func (this *Bithumb) HandleTicker(client any, message map[string]any) {
@@ -487,12 +487,10 @@ func (this *Bithumb) ParseWsTicker(ticker any, optionalArgs ...any) any {
 		return str[4:min(6, len(str))]
 	}()
 	// date/time are the exchange's local KST wall-clock, not UTC — shift -9h like parseWsTrade
-	var timestamp any
-	if derefPtr := this.Parse8601(kstDatetime); derefPtr != nil {
-		timestamp = *derefPtr
-	}
-	if !ccxt.IsEqual(timestamp, nil) {
-		timestamp = (ccxt.Subtract(timestamp, 32400000))
+	var timestamp any = nil
+	var kstTimestamp *int64 = this.Parse8601(kstDatetime)
+	if kstTimestamp != nil {
+		timestamp = *kstTimestamp - 32400000
 	}
 	var marketId *string = this.SafeString(ticker, "symbol")
 	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
@@ -551,7 +549,7 @@ func (this *Bithumb) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 		}
 	}
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "watchOrderBook", "generation", 2)
-	var isGenerationTwo bool = (ccxt.IsEqual(generation, 2))
+	var isGenerationTwo bool = (generation == 2)
 	var url any = func() any {
 		if isGenerationTwo {
 			return ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "publicGen2")
@@ -752,12 +750,12 @@ func (this *Bithumb) HandleBookDeltas(orderbook any, deltas any) {
  * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
  * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
  */
-func (this *Bithumb) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
-	ch := make(chan ccxt.AsyncResult[[]any], 1)
+func (this *Bithumb) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) watchTradesBody(ch chan ccxt.AsyncResult[[]any], symbol any, optionalArgs ...any) any {
+func (this *Bithumb) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -774,7 +772,7 @@ func (this *Bithumb) watchTradesBody(ch chan ccxt.AsyncResult[[]any], symbol any
 		}
 	}
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "watchTrades", "generation", 2)
-	var isGenerationTwo bool = (ccxt.IsEqual(generation, 2))
+	var isGenerationTwo bool = (generation == 2)
 	var url any = func() any {
 		if isGenerationTwo {
 			return ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "publicGen2")
@@ -810,7 +808,7 @@ func (this *Bithumb) watchTradesBody(ch chan ccxt.AsyncResult[[]any], symbol any
 		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(symbolValue, limit)
 	}
 
-	ch <- ccxt.AsyncResult[[]any]{Value: this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true)}
+	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true))}
 	return nil
 }
 func (this *Bithumb) HandleTrades(client any, message map[string]any) {
@@ -940,7 +938,11 @@ func (this *Bithumb) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(trade, "symbol")
 	var datetime *string = this.SafeString(trade, "contDtm")
 	// that date is not UTC iso8601, but exchange's local time, -9hr difference
-	var timestamp int64 = this.ParseToInt(this.Parse8601(datetime)) - 32400000
+	var timestamp any = nil
+	var kstTimestamp *int64 = this.Parse8601(datetime)
+	if kstTimestamp != nil {
+		timestamp = *kstTimestamp - 32400000
+	}
 	var sideId *string = this.SafeString(trade, "buySellGb")
 	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"id":        nil,
@@ -980,7 +982,7 @@ func (this *Bithumb) HandleErrorMessage(client any, message any) any {
 		} else {
 			addedMessage = ""
 		}
-		client.(ccxt.ClientInterface).Reject(ccxt.ExchangeError(ccxt.Add(this.Id+" websocket error "+*errorName, addedMessage)))
+		client.(ccxt.ClientInterface).Reject(ccxt.ExchangeError(this.Id + " websocket error " + *errorName + addedMessage))
 		return false
 	}
 	if !(ccxt.InOp(message, "status")) {
@@ -1030,12 +1032,12 @@ func (this *Bithumb) HandleErrorMessage(client any, message any) any {
  * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Bithumb) WatchBalanceAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
-	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
+func (this *Bithumb) WatchBalanceAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.Balances] {
+	ch := make(chan ccxt.AsyncResult[ccxt.Balances], 1)
 	go this.watchBalanceBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) watchBalanceBody(ch chan ccxt.AsyncResult[map[string]any], optionalArgs ...any) any {
+func (this *Bithumb) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1058,7 +1060,7 @@ func (this *Bithumb) watchBalanceBody(ch chan ccxt.AsyncResult[map[string]any], 
 	}
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "privateGen2"))
 	var messageHash string = "myAsset"
-	var request any = this.BuildGen2SubscriptionRequest(messageHash, map[string]any{
+	var request []any = this.BuildGen2SubscriptionRequest(messageHash, map[string]any{
 		"type": messageHash,
 	})
 
@@ -1078,7 +1080,7 @@ func (this *Bithumb) watchBalanceBody(ch chan ccxt.AsyncResult[map[string]any], 
 	default:
 		panic(ccxt.ExchangeError("resolved value is not map[string]any"))
 	}
-	ch <- ccxt.AsyncResult[map[string]any]{Value: resolved}
+	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(resolved)}
 	return nil
 }
 func (this *Bithumb) HandleBalance(client any, message map[string]any) {
@@ -1133,7 +1135,7 @@ func (this *Bithumb) HandleBalance(client any, message map[string]any) {
  * @param {object} subscription the subscription entry for that type
  * @returns {object[]} the SUBSCRIBE frame to send
  */
-func (this *Bithumb) BuildGen2SubscriptionRequest(subscriptionType any, subscription any) any {
+func (this *Bithumb) BuildGen2SubscriptionRequest(subscriptionType any, subscription map[string]any) []any {
 	var wsOptions any = this.SafeDict(this.Options, "ws", map[string]any{})
 	var subscriptions any = this.SafeDict(wsOptions, "gen2Subscriptions", map[string]any{})
 	ccxt.AddElementToObject(subscriptions, subscriptionType, subscription)
@@ -1148,12 +1150,12 @@ func (this *Bithumb) BuildGen2SubscriptionRequest(subscriptionType any, subscrip
 	}
 	return request
 }
-func (this *Bithumb) AuthenticateAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Bithumb) AuthenticateAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.ClientInterface] {
+	ch := make(chan ccxt.AsyncResult[ccxt.ClientInterface], 1)
 	go this.authenticateBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) authenticateBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
+func (this *Bithumb) authenticateBody(ch chan ccxt.AsyncResult[ccxt.ClientInterface], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1179,7 +1181,7 @@ func (this *Bithumb) authenticateBody(ch chan ccxt.AsyncResult[any], optionalArg
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "privateGen2"))
 	var client ccxt.ClientInterface = this.Client(url)
 
-	ch <- ccxt.AsyncResult[any]{Value: client}
+	ch <- ccxt.AsyncResult[ccxt.ClientInterface]{Value: client}
 	return nil
 }
 
@@ -1196,12 +1198,12 @@ func (this *Bithumb) authenticateBody(ch chan ccxt.AsyncResult[any], optionalArg
  * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bithumb) WatchOrdersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
-	ch := make(chan ccxt.AsyncResult[[]any], 1)
+func (this *Bithumb) WatchOrdersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Order] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.Order], 1)
 	go this.watchOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) watchOrdersBody(ch chan ccxt.AsyncResult[[]any], optionalArgs ...any) any {
+func (this *Bithumb) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -1231,7 +1233,7 @@ func (this *Bithumb) watchOrdersBody(ch chan ccxt.AsyncResult[[]any], optionalAr
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "privateGen2"))
 	var messageHash any = "myOrder"
 	var codes []any = ccxt.SafeListTypedDefault(params, "codes", []any{})
-	var request any = this.BuildGen2SubscriptionRequest(messageHash, map[string]any{
+	var request []any = this.BuildGen2SubscriptionRequest(messageHash, map[string]any{
 		"type":  messageHash,
 		"codes": codes,
 	})
@@ -1256,7 +1258,7 @@ func (this *Bithumb) watchOrdersBody(ch chan ccxt.AsyncResult[[]any], optionalAr
 		limitResolved = ccxt.ToGetsLimit(orders).GetLimit(symbolResolved, limit)
 	}
 
-	ch <- ccxt.AsyncResult[[]any]{Value: this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true)}
+	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true))}
 	return nil
 }
 func (this *Bithumb) HandleOrders(client any, message map[string]any) {
@@ -1439,7 +1441,7 @@ func (this *Bithumb) HandleMessage(client any, message any) {
 			"myOrder":        this.HandleOrders,
 		}
 		var method any = this.SafeValue(methods, topic)
-		if !ccxt.IsEqual(method, nil) {
+		if method != nil {
 			ccxt.CallDynamically(method, client, message)
 		}
 	}
@@ -1482,7 +1484,7 @@ func (this *Bithumb) WatchTicker(symbol string, options ...ccxt.WatchTickerOptio
 	if r.Err != nil {
 		return ccxt.Ticker{}, r.Err
 	}
-	var res ccxt.Ticker = ccxt.NewTicker(r.Value)
+	var res ccxt.Ticker = r.Value
 	return res, nil
 }
 
@@ -1509,7 +1511,7 @@ func (this *Bithumb) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Tic
 	if r.Err != nil {
 		return ccxt.Tickers{}, r.Err
 	}
-	var res ccxt.Tickers = ccxt.NewTickers(r.Value)
+	var res ccxt.Tickers = ccxt.Tickers{Tickers: r.Value}
 	return res, nil
 }
 
@@ -1564,7 +1566,7 @@ func (this *Bithumb) WatchTrades(symbol string, options ...ccxt.WatchTradesOptio
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.Trade = ccxt.NewTradeArray(r.Value)
+	var res []ccxt.Trade = r.Value
 	return res, nil
 }
 
@@ -1582,7 +1584,7 @@ func (this *Bithumb) WatchBalance(params ...any) (ccxt.Balances, error) {
 	if r.Err != nil {
 		return ccxt.Balances{}, r.Err
 	}
-	var res ccxt.Balances = ccxt.NewBalances(r.Value)
+	var res ccxt.Balances = r.Value
 	return res, nil
 }
 
@@ -1610,6 +1612,6 @@ func (this *Bithumb) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Ord
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.Order = ccxt.NewOrderArray(r.Value)
+	var res []ccxt.Order = r.Value
 	return res, nil
 }

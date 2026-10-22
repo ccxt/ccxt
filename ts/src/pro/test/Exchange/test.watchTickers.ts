@@ -45,7 +45,7 @@ async function testWatchTickersHelper (exchange: Exchange, skippedProperties: ob
         if (shouldReturn) {
             return false;
         }
-        if (success === true) {
+        if (success) {
             assert (exchange.isDictionary (response), exchange.id + ' ' + method + ' ' + exchange.json (argSymbols) + ' must return a dictionary. ' + exchange.json (response));
             const values = Object.values (response);
             let checkedSymbol: Str = undefined;

@@ -797,8 +797,8 @@ class cryptocom extends cryptocom$1["default"] {
             const strike = this.safeString(market, 'strike');
             const marginBuyEnabled = this.safeBool(market, 'margin_buy_enabled');
             const marginSellEnabled = this.safeBool(market, 'margin_sell_enabled');
-            const expiryString = this.omitZero(this.safeString(market, 'expiry_timestamp_ms'));
-            const expiry = (expiryString !== undefined) ? parseInt(expiryString) : undefined;
+            const expiryRaw = this.safeInteger(market, 'expiry_timestamp_ms');
+            const expiry = (expiryRaw === 0) ? undefined : expiryRaw;
             let symbol = base + '/' + quote;
             let type = undefined;
             let contract = undefined;
@@ -1137,8 +1137,9 @@ class cryptocom extends cryptocom$1["default"] {
         const paramsOmitted = this.omit(paramsPaginate, ['until']);
         if (since !== undefined) {
             request['start_ts'] = since - duration * 1000;
-            if (limitResolved !== undefined) {
-                request['end_ts'] = this.sum(since, duration * limitResolved * 1000);
+            if (limit !== undefined) {
+                const countLimit = this.parseToInt(Math.min(limit, 300));
+                request['end_ts'] = this.sum(since, duration * countLimit * 1000);
             }
             else {
                 request['end_ts'] = until;
@@ -1396,7 +1397,7 @@ class cryptocom extends cryptocom$1["default"] {
             }
         }
         const postOnly = this.safeBool(paramsValue, 'postOnly', false);
-        if ((postOnly === true) || (timeInForce === 'PO')) {
+        if ((postOnly) || (timeInForce === 'PO')) {
             request['exec_inst'] = ['POST_ONLY'];
             request['time_in_force'] = 'GOOD_TILL_CANCEL';
         }
@@ -1628,7 +1629,7 @@ class cryptocom extends cryptocom$1["default"] {
             }
         }
         const postOnly = this.safeBool(params, 'postOnly', false);
-        if ((postOnly === true) || (timeInForce === 'PO')) {
+        if ((postOnly) || (timeInForce === 'PO')) {
             request['exec_inst'] = ['POST_ONLY'];
             request['time_in_force'] = 'GOOD_TILL_CANCEL';
         }
@@ -2038,18 +2039,12 @@ class cryptocom extends cryptocom$1["default"] {
         return this.parseTrades(trades, market, since, limit);
     }
     parseAddress(addressString) {
-        let address = undefined;
-        let tag = undefined;
-        let rawTag = undefined;
-        if (addressString.indexOf('?') > 0) {
-            [address, rawTag] = addressString.split('?');
+        if (addressString !== undefined && addressString.indexOf('?') > 0) {
+            const [address, rawTag] = addressString.split('?');
             const splitted = rawTag.split('=');
-            tag = splitted[1];
+            return [address, splitted[1]];
         }
-        else {
-            address = addressString;
-        }
-        return [address, tag];
+        return [addressString, undefined];
     }
     /**
      * @method
@@ -2185,11 +2180,11 @@ class cryptocom extends cryptocom$1["default"] {
         if (networkParam !== undefined) {
             const network = this.safeString(this.networkAliases, networkParam, networkParam);
             if (network in depositAddresses) {
-                return depositAddresses[network];
+                return this.safeDict(depositAddresses, network);
             }
         }
         const keys = Object.keys(depositAddresses);
-        return depositAddresses[keys[0]];
+        return this.safeDict(depositAddresses, this.safeString(keys, 0));
     }
     /**
      * @method
@@ -2699,7 +2694,7 @@ class cryptocom extends cryptocom$1["default"] {
             }
         }
         else {
-            if ((defaultType === 'margin') || (isMargin === true)) {
+            if ((defaultType === 'margin') || (isMargin)) {
                 marginMode = 'cross';
             }
         }
@@ -3148,7 +3143,7 @@ class cryptocom extends cryptocom$1["default"] {
         const timestamp = this.safeInteger(contract, 't');
         let fundingTimestamp = undefined;
         if (timestamp !== undefined) {
-            fundingTimestamp = Math.ceil(timestamp / 3600000) * 3600000; // end of the next hour
+            fundingTimestamp = this.parseToInt(Math.ceil(timestamp / 3600000)) * 3600000; // end of the next hour
         }
         return {
             'info': contract,
@@ -3410,7 +3405,8 @@ class cryptocom extends cryptocom$1["default"] {
     }
     paramsToString(object, level) {
         const maxLevel = 3;
-        if (level >= maxLevel) {
+        const depth = this.parseToInt(level);
+        if (depth >= maxLevel) {
             return object.toString();
         }
         if (typeof object === 'string') {

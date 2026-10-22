@@ -372,9 +372,8 @@ class bithumb extends Exchange {
             ),
             'options' => array(
                 'generation' => 2, // either API generation 1 or 2
-                // Bithumb v2 ticker endpoint returns HTTP 414 when the `markets` query string is too long.
-                // Keep this conservative to reduce requests while staying below URL-length limits.
-                'fetchTickersGeneration2MaxMarketIdsPerRequest' => 300,
+                // Bithumb v2 ticker endpoint rejects more than 200 ids in `markets`
+                'fetchTickersGeneration2MaxMarketIdsPerRequest' => 200,
                 'createMarketBuyOrderRequiresPrice' => true,
                 'quoteCurrencies' => array(
                     'KRW' => array(
@@ -1020,26 +1019,19 @@ class bithumb extends Exchange {
             }
             $marketIdsChunks = array();
             $promises = array();
-            if ($symbols !== null) {
-                $request['markets'] = implode(',', $marketIds);
-                $marketIdsChunks[] = $marketIds;
-                $promises[] = $this->publicGetV1Ticker($this->extend($request, $paramsGeneration));
-            } else {
-                $maxMarketIdsPerRequest = $this->safe_integer($this->options, 'fetchTickersGeneration2MaxMarketIdsPerRequest', 300);
-                if (($maxMarketIdsPerRequest === null) || ($maxMarketIdsPerRequest < 1)) {
-                    $maxMarketIdsPerRequest = 300;
-                }
-                $marketIdsChunk = array();
-                for ($i = 0; $i < $marketIdsLength; $i++) {
-                    $marketIdsChunk[] = $marketIds[$i];
-                    $marketIdsChunkLength = count($marketIdsChunk);
-                    $isLastMarketId = ($i === ($marketIdsLength - 1));
-                    if (($marketIdsChunkLength >= $maxMarketIdsPerRequest) || $isLastMarketId) {
-                        $marketIdsChunks[] = $marketIdsChunk;
-                        $request['markets'] = implode(',', $marketIdsChunk);
-                        $promises[] = $this->publicGetV1Ticker($this->extend($request, $paramsGeneration));
-                        $marketIdsChunk = array();
-                    }
+            // the exchange rejects more than 200 market ids per request
+            $maxMarketIdsOption = $this->safe_integer($this->options, 'fetchTickersGeneration2MaxMarketIdsPerRequest', 200);
+            $maxMarketIdsPerRequest = $this->parse_to_int((($maxMarketIdsOption === null) || ($maxMarketIdsOption < 1)) ? 200 : $maxMarketIdsOption);
+            $marketIdsChunk = array();
+            for ($i = 0; $i < $marketIdsLength; $i++) {
+                $marketIdsChunk[] = $marketIds[$i];
+                $marketIdsChunkLength = count($marketIdsChunk);
+                $isLastMarketId = ($i === ($marketIdsLength - 1));
+                if (($marketIdsChunkLength >= $maxMarketIdsPerRequest) || $isLastMarketId) {
+                    $marketIdsChunks[] = $marketIdsChunk;
+                    $request['markets'] = implode(',', $marketIdsChunk);
+                    $promises[] = $this->publicGetV1Ticker($this->extend($request, $paramsGeneration));
+                    $marketIdsChunk = array();
                 }
             }
             //
@@ -1082,9 +1074,9 @@ class bithumb extends Exchange {
                     $response = $response['data'];
                 }
                 $expectedMarketId = null;
-                $marketIdsChunk = $this->safe_list($marketIdsChunks, $i, array());
-                $firstMarketId = $this->safe_string($marketIdsChunk, 0);
-                if (($firstMarketId !== null) && ($this->safe_string($marketIdsChunk, 1) === null)) {
+                $requestedMarketIds = $this->safe_list($marketIdsChunks, $i, array());
+                $firstMarketId = $this->safe_string($requestedMarketIds, 0);
+                if (($firstMarketId !== null) && ($this->safe_string($requestedMarketIds, 1) === null)) {
                     $expectedMarketId = $firstMarketId;
                 }
                 $tickers = array();
@@ -1176,7 +1168,7 @@ class bithumb extends Exchange {
                     $currencyId = $currencyIds[$j];
                     $ticker = $data[$currencyId];
                     $base = $this->safe_currency_code($currencyId);
-                    if (($base === null) || ($quote === null)) {
+                    if ($base === null) {
                         continue;
                     }
                     $symbol = $base . '/' . $quote;
@@ -1493,25 +1485,32 @@ class bithumb extends Exchange {
         //     }
         //
         // a workaround for their bug in date format, hours are not 0-padded
-        $timestamp = $this->safe_integer($trade, 'timestamp');
-        $isGenerationTwo = ($timestamp !== null);
+        $generationTwoTimestamp = $this->safe_integer($trade, 'timestamp');
+        $timestamp = $generationTwoTimestamp;
+        $isGenerationTwo = ($generationTwoTimestamp !== null);
         $transactionDatetime = $this->safe_string($trade, 'transaction_date');
         if ($transactionDatetime !== null) {
             $parts = explode(' ', $transactionDatetime);
             $numParts = count($parts);
             if ($numParts > 1) {
                 $transactionDate = $parts[0];
-                $transactionTime = $parts[1];
-                if (strlen($transactionTime) < 8) {
-                    $transactionTime = '0' . $transactionTime;
+                $rawTransactionTime = $this->safe_string($parts, 1, '');
+                $transactionTime = $rawTransactionTime;
+                if (strlen($rawTransactionTime) < 8) {
+                    $transactionTime = '0' . $rawTransactionTime;
                 }
-                $timestamp = $this->parse8601($transactionDate . ' ' . $transactionTime);
+                $kstTimestamp = $this->parse8601($transactionDate . ' ' . $transactionTime);
+                $timestamp = $kstTimestamp;
+                if (($kstTimestamp !== null) && (!$isGenerationTwo)) {
+                    $timestamp = $kstTimestamp - 9 * 3600000; // they report UTC + 9 hours, server in Korean timezone
+                }
             } else {
-                $timestamp = $this->safe_integer_product($trade, 'transaction_date', 0.001);
+                $productTimestamp = $this->safe_integer_product($trade, 'transaction_date', 0.001);
+                $timestamp = $productTimestamp;
+                if (($productTimestamp !== null) && (!$isGenerationTwo)) {
+                    $timestamp = $productTimestamp - 9 * 3600000; // they report UTC + 9 hours, server in Korean timezone
+                }
             }
-        }
-        if (($timestamp !== null) && (!$isGenerationTwo)) {
-            $timestamp -= 9 * 3600000; // they report UTC + 9 hours, server in Korean timezone
         }
         $type = null;
         $side = $this->safe_string_lower_2($trade, 'ask_bid', 'type');
@@ -1526,10 +1525,8 @@ class bithumb extends Exchange {
         $marketId = $this->safe_string($trade, 'market');
         $marketResolved = $this->safe_market($marketId, $market);
         $priceString = $this->safe_string_2($trade, 'price', 'trade_price');
-        $amountString = $this->safe_string($trade, 'trade_volume');
-        if ($amountString === null) {
-            $amountString = $this->fix_comma_number($this->safe_string_2($trade, 'units_traded', 'units'));
-        }
+        $tradeVolume = $this->safe_string($trade, 'trade_volume');
+        $amountString = ($tradeVolume === null) ? $this->fix_comma_number($this->safe_string_2($trade, 'units_traded', 'units')) : $tradeVolume;
         $costString = $this->safe_string($trade, 'total');
         $fee = null;
         $feeCostString = $this->safe_string($trade, 'fee');
@@ -1682,8 +1679,8 @@ class bithumb extends Exchange {
             $orderRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $orderParams);
             $ordersRequests[] = $orderRequest;
         }
-        $orderSymbols = $this->market_symbols($orderSymbols, null, false, true, true);
-        $market = $this->market($orderSymbols[0]);
+        $symbols = $this->market_symbols($orderSymbols, null, false, true, true);
+        $market = $this->market($symbols[0]);
         $request = array(
             'batch_orders' => $ordersRequests,
         );
@@ -1756,19 +1753,16 @@ class bithumb extends Exchange {
             if ($side === 'buy') {
                 $typeRequest = 'price';
                 // for market buy it requires the amount of quote currency to spend
-                $cost = $this->safe_string($paramsOrder, 'cost');
+                $costParam = $this->safe_string($paramsOrder, 'cost');
                 list($createMarketBuyOrderRequiresPrice, $paramsRequiresPrice) = $this->handle_option_bool_and_params($this->omit($paramsOrder, 'cost'), 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
                 $paramsOrder = $paramsRequiresPrice;
+                $amountString = $this->number_to_string($amount);
+                $cost = ($costParam === null) ? $amountString : $costParam;
                 if ($createMarketBuyOrderRequiresPrice) {
-                    if (($price === null) && ($cost === null)) {
+                    if (($price === null) && ($costParam === null)) {
                         throw new InvalidOrder($this->id . ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
-                    } else {
-                        $amountString = $this->number_to_string($amount);
-                        $priceString = $this->number_to_string($price);
-                        $cost = Precise::string_mul($amountString, $priceString);
                     }
-                } else {
-                    $cost = ($cost === null) ? $this->number_to_string($amount) : $cost;
+                    $cost = Precise::string_mul($amountString, $this->number_to_string($price));
                 }
                 $request['price'] = $this->price_to_precision($symbol, $cost);
             } else {
@@ -2101,7 +2095,7 @@ class bithumb extends Exchange {
         return $this->parse_order($parsedOrder, $market);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'Pending' => 'open',
             'Completed' => 'closed',
@@ -3380,7 +3374,7 @@ class bithumb extends Exchange {
         );
     }
 
-    public function fix_comma_number(?string $numberStr) {
+    public function fix_comma_number(?string $numberStr): ?string {
         // some endpoints need this https://github.com/ccxt/ccxt/issues/11031
         if ($numberStr === null) {
             return null;
@@ -3396,7 +3390,7 @@ class bithumb extends Exchange {
         return $this->milliseconds();
     }
 
-    public function urlencode_with_array_brackets(array $query) {
+    public function urlencode_with_array_brackets(array $query): string {
         $keys = is_array($query) ? array_keys($query) : array();
         $result = '';
         for ($i = 0; $i < count($keys); $i++) {
@@ -3481,11 +3475,11 @@ class bithumb extends Exchange {
                 $token = $this->jwt($request, $this->encode($this->secret), 'sha256');
                 $requestHeaders['Authorization'] = 'Bearer ' . $token;
             } else {
-                $requestBody = $this->urlencode($this->extend(array(
+                $encodedBody = $this->urlencode($this->extend(array(
                     'endpoint' => $endpoint,
                 ), $query));
                 // bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
-                $bodyParts = explode('%20', $requestBody);
+                $bodyParts = explode('%20', $encodedBody);
                 $requestBody = implode('+', $bodyParts);
                 $nonce = (string) $this->nonce();
                 $auth = $endpoint . "\0" . $requestBody . "\0" . $nonce; // eslint-disable-line quotes

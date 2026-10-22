@@ -1021,7 +1021,7 @@ class deribit extends \ccxt\async\deribit {
             'id' => $this->request_id(),
         );
         $extendedRequest = $this->deep_extend($request, $params);
-        $maxMessageByteLimit = 32768 - 1; // 'Message Too Big: limit 32768B'
+        $maxMessageByteLimit = 32767; // 'Message Too Big: limit 32768B'
         $jsonedText = $this->json($extendedRequest);
         if (strlen($jsonedText) >= $maxMessageByteLimit) {
             throw new ExchangeError($this->id . ' requested subscription length over limit, try to reduce symbols amount');

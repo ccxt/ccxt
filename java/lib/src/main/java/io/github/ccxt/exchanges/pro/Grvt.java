@@ -140,7 +140,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         }
     }
 
-    public CompletableFuture<Object> subscribeMultiple(Object messageHashes, Map<String, Object> request, Object rawHashes, Object publicOrPrivate)
+    public CompletableFuture<Object> subscribeMultiple(Object messageHashes, Map<String, Object> request, Object rawHashes, Boolean publicOrPrivate)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -152,7 +152,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
                 put( "id", Grvt.this.requestId() );
             }};
             String apiPart = "privateTrading";
-            if (Helpers.isTrue(java.util.Objects.requireNonNullElse(publicOrPrivate, true)))
+            if (java.util.Objects.requireNonNullElse(publicOrPrivate, true))
             {
                 apiPart = "publicMarket";
             }
@@ -163,12 +163,12 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
 
     public Long requestId()
     {
-        Object newValue;
+        Long newValue;
         synchronized (this) {
-        newValue = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
+        newValue = (Long) this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         Helpers.addElementToObject(this.options, "requestId", newValue);
         }
-        return Helpers.toLongOrNull(newValue);
+        return newValue;
     }
 
     /**
@@ -460,7 +460,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             Helpers.addElementToObject(this.trades, symbol, new ArrayCache(((Number)limit).intValue()));
         }
         Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (data), (Map<String, Object>) null);
-        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) (symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol));
         stored.append(parsed);
         client.resolve(stored, ("trade::" + symbol));
     }

@@ -377,13 +377,13 @@ public class Coincheck extends CoincheckApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        List<Object> codes = Helpers.objectKeys(this.currencies);
+        List<Object> codes = ((List<Object>) switch ((Object)(this.currencies)) { case Map<?, ?> j39v3 -> { synchronized (j39v3) { yield new ArrayList<Object>(j39v3.keySet()); } } case null, default -> new ArrayList<Object>(); });
         for (var i = 0; i < ((List<?>)codes).size(); i++)
         {
             Object code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
             Map<String, Object> currency = this.currency((String) (code));
             String currencyId = (String) currency.get("id");
-            if (Helpers.inOp(response, currencyId))
+            if ((switch ((Object)(response)) { case List<?> j39v2 -> ((Object)(currencyId)) != null && j39v2.contains(currencyId); case Map<?, ?> j39v1 -> ((Object)(currencyId)) instanceof String && j39v1.containsKey(currencyId); case null, default -> false; }))
             {
                 Map<String, Object> account = this.account();
                 String reserved = (currencyId + "_reserved");
@@ -1192,10 +1192,12 @@ public class Coincheck extends CoincheckApi
         Double feeCost = this.safeNumber(transaction, "fee", (Object) null);
         if (!java.util.Objects.equals(feeCost, null))
         {
-            fee = Helpers.newMap(
-                "cost", feeCost,
-                "currency", code
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("cost", feeCost);
+                hx4NewMap0.put("currency", code);
+                fee = hx4NewMap0;
+            }
         }
         {
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
@@ -1242,7 +1244,7 @@ public class Coincheck extends CoincheckApi
         Object query = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals(apiName, "public"))
         {
-            if (Helpers.objectKeys(query).size() > 0)
+            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v6 -> { synchronized (j39v6) { yield new ArrayList<Object>(j39v6.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
@@ -1253,25 +1255,27 @@ public class Coincheck extends CoincheckApi
             String queryString = "";
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
-                if (Helpers.objectKeys(query).size() > 0)
+                if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v5 -> { synchronized (j39v5) { yield new ArrayList<Object>(j39v5.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
                 {
                     url = (url + ("?" + this.urlencode(this.keysort(query))));
                 }
             } else
             {
-                if (Helpers.objectKeys(query).size() > 0)
+                if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v4 -> { synchronized (j39v4) { yield new ArrayList<Object>(j39v4.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
                 {
                     bodySigned = this.urlencode(this.keysort(query));
                     queryString = bodySigned;
                 }
             }
             String auth = ((nonce + url) + queryString);
-            headersSigned = Helpers.newMap(
-                "Content-Type", "application/x-www-form-urlencoded",
-                "ACCESS-KEY", this.apiKey,
-                "ACCESS-NONCE", nonce,
-                "ACCESS-SIGNATURE", this.hmac(this.encode(auth), this.encode(this.secret), sha256())
-            );
+            {
+                HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
+                hx4NewMap1.put("Content-Type", "application/x-www-form-urlencoded");
+                hx4NewMap1.put("ACCESS-KEY", this.apiKey);
+                hx4NewMap1.put("ACCESS-NONCE", nonce);
+                hx4NewMap1.put("ACCESS-SIGNATURE", this.hmac(this.encode(auth), this.encode(this.secret), sha256()));
+                headersSigned = hx4NewMap1;
+            }
         }
         Map<String, Object> headersResolved = headersSigned;
         String bodyResolved = bodySigned;
@@ -1296,7 +1300,7 @@ public class Coincheck extends CoincheckApi
         //     {"success":false,"error":"invalid authentication"}
         //
         Boolean success = (Boolean) this.safeBool(response, "success", true);
-        if (!java.util.Objects.equals(success, true))
+        if (!Boolean.TRUE.equals(success))
         {
             String error = this.safeString(response, "error");
             String feedback = ((this.id + " ") + this.json(response));

@@ -539,6 +539,16 @@ export interface OrderBook {
     copy (): OrderBook;
 }
 
+export interface OrderBookL3 {
+    asks: [Num, Num, Str][];
+    bids: [Num, Num, Str][];
+    datetime: Str;
+    timestamp: Int;
+    nonce: Int;
+    symbol: Str;
+    copy (): OrderBookL3;
+}
+
 export interface OrderBooks extends Dictionary<OrderBook> {
 }
 
@@ -709,6 +719,7 @@ export interface Position {
     leverage?: Num;
     unrealizedPnl?: Num;
     realizedPnl?: Num;
+    positionMargin?: Num;
     collateral?: Num;
     entryPrice?: Num;
     markPrice?: Num;
@@ -775,11 +786,16 @@ export interface DepositWithdrawFeeNetwork {
     percentage?: boolean;
 }
 
+export interface DepositWithdrawFeeNetworkEntry {
+    deposit?: DepositWithdrawFeeNetwork;
+    withdraw?: DepositWithdrawFeeNetwork;
+}
+
 export interface DepositWithdrawFee {
     info: any;
     withdraw?: DepositWithdrawFeeNetwork,
     deposit?: DepositWithdrawFeeNetwork,
-    networks?: Dictionary<DepositWithdrawFeeNetwork>;
+    networks?: Dictionary<DepositWithdrawFeeNetworkEntry>;
 }
 
 export interface DepositWithdrawFees extends Dictionary<DepositWithdrawFee> {

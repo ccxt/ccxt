@@ -684,7 +684,12 @@ public partial class bitbank : Exchange
         Int64? windowLimit = ((limit == null)) ? 1000 : limit;
         Int64? limitResolved = ((since == null)) ? windowLimit : limit;
         int duration = this.parseTimeframe(timeframeVar);
-        object sinceResolved = ((since == null)) ? subtract(this.milliseconds(), ((duration * 1000L) * windowLimit)) : since;
+        Int64? windowMs = ((duration * 1000L) * 1000);
+        if ((limit != null))
+        {
+            windowMs = ((duration * 1000L) * limit);
+        }
+        object sinceResolved = ((since == null)) ? (this.milliseconds() - windowMs) : since;
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -1108,7 +1113,7 @@ public partial class bitbank : Exchange
         string? tagWithdrawTag = ((string)(tagAndParams != null && 0 < tagAndParams.Count ? tagAndParams[0] : null));
         object paramsWithdrawTag = (tagAndParams != null && 1 < tagAndParams.Count ? tagAndParams[1] : null);
         this.checkAddress(address, code, tagWithdrawTag);
-        if (!(inOp(paramsWithdrawTag, "uuid")))
+        if (!((paramsWithdrawTag is IDictionary<string, object> inOpDict0 && inOpDict0.ContainsKey("uuid"))))
         {
             throw new ExchangeError ((this.id + " uuid is required for withdrawal")) ;
         }
@@ -1234,16 +1239,17 @@ public partial class bitbank : Exchange
             url = url + ((this.version + "/") + this.implodeParams(path, parameters));
             if ((method == "POST"))
             {
-                requestBody = this.json(query);
-                auth = auth + requestBody;
+                string jsonBody = this.json(query);
+                requestBody = jsonBody;
+                auth = auth + jsonBody;
             } else
             {
                 auth = auth + ((("/" + this.version) + "/") + path);
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
-                    query = this.urlencode(query);
-                    url = url + ("?" + (query));
-                    auth = auth + ("?" + (query));
+                    string queryString = this.urlencode(query);
+                    url = url + ("?" + queryString);
+                    auth = auth + ("?" + queryString);
                 }
             }
             requestHeaders = new Dictionary<string, object>() {
