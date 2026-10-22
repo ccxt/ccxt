@@ -12499,7 +12499,6 @@ impl std::ops::DerefMut for ${coreName} {
         };
         let fnReturns: Map<string, Set<string>> | null = null;
         const fields = this.r28Fields();
-        const loose = (v: string) => `(match ${v} { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })`;
         const helperRe = /(?<![A-Za-z0-9_:.])is_(?:equal|true)\(/;
         const rewrites: Array<{ start: number, end: number, text: string }> = [];
         for (const sm of masked.matchAll(/(?<![A-Za-z0-9_:.])(is_true|is_equal)\(&/g)) {
@@ -12513,10 +12512,9 @@ impl std::ops::DerefMut for ${coreName} {
                 if (args.length !== 2) continue;
                 const a = args[0].trim(); const b = args[1].trim();
                 if (!a.startsWith('&') || !b.startsWith('&') || helperRe.test(a + b)) continue;
-                rewrites.push({ start, end: close + 1, text:
-                    `(match (${a}, ${b}) { (Value::Null, Value::Null) => true, (Value::Bool(__x), Value::Bool(__y)) => __x == __y, ` +
-                    `(Value::Str(__x), Value::Str(__y)) => __x == __y, (Value::Int(__x), Value::Int(__y)) => __x == __y, ` +
-                    `(Value::Float(__x), Value::Float(__y)) => __x == __y, (__a, __b) => matches!((${loose('__a')}, ${loose('__b')}), (Some(__x), Some(__y)) if __x == __y) })` });
+                this._x37Src = content;
+                const eq = this.x37Eq(a.slice(1).trim(), b.slice(1).trim(), masked, regionOf(start)); // hx5 X37
+                if (eq !== undefined) rewrites.push({ start, end: close + 1, text: eq });
                 continue;
             }
             const e0 = inner.slice(1).trim();
@@ -12741,6 +12739,84 @@ impl std::ops::DerefMut for ${coreName} {
             content = out + content.slice(at);
         }
         return content;
+    }
+
+    // hx5 X37 — r28 `is_equal(&A, &B)`: native only where both operands are proven to hold one scalar
+    // variant or Null (`S`=Str, `B`=Bool, `I`=Int, `N`=Null). `runtime::is_equal` on such a pair is exactly
+    // `as_str()/as_bool()/as_i64()` equality: same-variant arms compare the payload, Null∘Null is true and a
+    // Null∘scalar pair (also Bool∘Bool / Int∘Int only) reaches `as_f64(Null) = None` → false. Mixed scalar
+    // kinds (`"1" == 1`, `true == 1`) coerce at runtime, so they keep the helper. The hx4 inline replay of
+    // the runtime match is gone: an unproven pair keeps `is_equal(&a, &b)` exactly as master printed it.
+    private x37Kind(e: string, masked: string, region: [number, number], depth = 0): Set<string> | undefined {
+        e = this.stripOuterParens(e.trim()).trim();
+        if (e === 'Value::Null') return new Set(['N']);
+        if (/^Value::Str\("(?:[^"\\]|\\.)*"\.(?:into|to_string)\(\)\)$/.test(e)) return new Set(['S']);
+        if (/^Value::Bool\((?:true|false)\)$/.test(e)) return new Set(['B']);
+        if (/^Value::Int\(-?[0-9]+\)$/.test(e)) return new Set(['I']);
+        // base readers whose result is one variant or the (single) default
+        const call = /^self\.(safe_string(?:_k|2|_lower_k|_upper_k|_lower|_upper)?|safe_bool(?:_k|2)?|safe_integer(?:_k|2)?)\(/.exec(e);
+        if (call !== null && this.closeParenAt(e, call[0].length - 1) === e.length - 1) {
+            const own = call[1].startsWith('safe_string') ? 'S' : call[1].startsWith('safe_bool') ? 'B' : 'I';
+            const args = this.splitTopLevelCommas(e.slice(call[0].length, -1)).map(x => x.trim());
+            const dflt = args[args.length - 1] ?? '';
+            if (dflt === '&[]') return new Set([own, 'N']);
+            const dm = /^&\[(.*)\]$/.exec(dflt);
+            if (dm === null || this.splitTopLevelCommas(dm[1]).length !== 1) return undefined;
+            const k = this.x37Kind(dm[1], masked, region, depth + 1);
+            return k === undefined ? undefined : new Set([own, ...k]);
+        }
+        if (depth > 2 || !/^[A-Za-z_][A-Za-z0-9_]*$/.test(e)) return undefined;
+        // a local: one `let`, every `let` / plain `=` write in its fn region proven; no `&mut`, no rebinding.
+        const [from, to] = region;
+        const body = masked.slice(from, to);
+        const header = body.slice(0, Math.max(0, body.indexOf('{')));
+        if (new RegExp(`\\b${e}\\s*:`).test(header)) return undefined;
+        if (new RegExp(`&mut ${e}\\b|(?<!\\|)\\|(?!\\|)[^|\\n]*\\b${e}\\b[^|\\n]*(?<!\\|)\\|(?!\\|)|\\bfor [^\\n]*\\b${e}\\b[^\\n]* in |Some\\((?:mut )?${e}\\)|Ok\\((?:mut )?${e}\\)|Err\\((?:mut )?${e}\\)|\\blet \\([^)]*\\b${e}\\b|\\b${e}\\s*(?:\\+|-|\\*|/|%)=|\\b${e}\\.(?:push|insert|clear|take)\\(`).test(body)) return undefined;
+        const out = new Set<string>(); let decls = 0; let writes = 0;
+        for (const m of body.matchAll(new RegExp(`(?:\\blet (?:mut )?${e}(?:\\s*:\\s*Value)?|(?<![A-Za-z0-9_.:&])${e})\\s*=(?![=>])`, 'g'))) {
+            if (/^let /.test(m[0])) decls++;
+            const s = (m.index as number) + m[0].length;
+            let d = 0; let i = s;
+            for (; i < body.length; i++) {
+                const c = body[i];
+                if (c === '(' || c === '[' || c === '{') d++;
+                else if (c === ')' || c === ']' || c === '}') { if (d === 0) break; d--; }
+                else if (c === ';' && d === 0) break;
+            }
+            if (body[i] !== ';') return undefined;
+            const k = this.x37Kind(this._x37Src.slice(from + s, from + i), masked, region, depth + 1);
+            if (k === undefined) return undefined;
+            writes++;
+            for (const x of k) out.add(x);
+        }
+        if (decls !== 1 || writes === 0) return undefined;
+        return out;
+    }
+
+    private _x37Src = '';
+
+    private x37Eq(a: string, b: string, masked: string, region: [number, number]): string | undefined {
+        const ka = this.x37Kind(a, masked, region);
+        if (ka === undefined) return undefined;
+        const kb = this.x37Kind(b, masked, region);
+        if (kb === undefined) return undefined;
+        const kinds = new Set([...ka, ...kb]); kinds.delete('N');
+        if (kinds.size !== 1) return undefined; // mixed scalar kinds coerce, or both sides are Null
+        const kind = [...kinds][0];
+        const acc = kind === 'S' ? 'as_str' : kind === 'B' ? 'as_bool' : 'as_i64';
+        const lit = (e: string) => {
+            const t = this.stripOuterParens(e.trim()).trim();
+            return /^Value::Str\(("(?:[^"\\]|\\.)*")\.(?:into|to_string)\(\)\)$/.exec(t)?.[1]
+                ?? /^Value::Bool\((true|false)\)$/.exec(t)?.[1] ?? /^Value::Int\((-?[0-9]+)\)$/.exec(t)?.[1];
+        };
+        const la = lit(a); const lb = lit(b);
+        if (la !== undefined && lb !== undefined) return undefined; // constant compare: leave it
+        const onlyNull = (k: Set<string>) => k.size === 1 && k.has('N');
+        if (onlyNull(ka)) return `${b}.is_null()`;
+        if (onlyNull(kb)) return `${a}.is_null()`;
+        if (lb !== undefined) return `(${a}.${acc}() == Some(${lb}))`;
+        if (la !== undefined) return `(${b}.${acc}() == Some(${la}))`;
+        return `(${a}.${acc}() == ${b}.${acc}())`;
     }
 }
 
