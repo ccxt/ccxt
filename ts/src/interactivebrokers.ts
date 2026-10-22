@@ -4,7 +4,7 @@ import Exchange from './abstract/interactivebrokers.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, OperationFailed, OrderNotFound, RateLimitExceeded, NullResponse } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Account, Balances, Dict, Endpoint, Int, List, Market, Num, NullableDict, OHLCV, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, int, Dictionary } from './base/types.js';
+import type { Account, Balances, Dict, Endpoint, Greeks, Int, LastPrice, LastPrices, List, Market, Num, NullableDict, OHLCV, OpenInterest, OpenInterests, Order, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, Trade, int, Dictionary } from './base/types.js';
 import { rsa } from './base/functions/rsa.js';
 import { sha256 } from '@noble/hashes/sha2.js';
 import { sha1 } from '@noble/hashes/legacy.js';
@@ -36,16 +36,16 @@ export default class interactivebrokers extends Exchange {
                 'cancelOrder': true,
                 'cancelOrders': false,
                 'createDepositAddress': false,
-                'createMarketOrder': false,
                 'createOrder': true,
                 'deposit': false,
                 'editOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
-                'fetchBidsAsks': false,
+                'fetchBidsAsks': true,
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
+                'fetchCanceledAndClosedOrders': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrder': false,
                 'fetchClosedOrders': true,
@@ -59,28 +59,34 @@ export default class interactivebrokers extends Exchange {
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
+                'fetchGreeks': true,
                 'fetchIndexOHLCV': false,
                 'fetchL2OrderBook': false,
+                'fetchLastPrices': true,
                 'fetchLedger': false,
                 'fetchLedgerEntry': false,
                 'fetchLeverageTiers': false,
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
+                'fetchMarkPrice': true,
+                'fetchMarkPrices': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': true,
+                'fetchOpenInterests': true,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': false,
                 'fetchOrderBooks': false,
                 'fetchOrders': true,
-                'fetchOrderTrades': false,
                 'fetchPosition': false,
                 'fetchPositions': true,
+                'fetchPositionsForSymbol': true,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
-                'fetchStatus': false,
+                'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': false,
@@ -1578,29 +1584,8 @@ export default class interactivebrokers extends Exchange {
         }
         await this.loadMarkets ();
         const symbolsNormalized = this.marketSymbols (symbols);
-        const conids: string[] = [];
-        for (let i = 0; i < symbolsNormalized.length; i++) {
-            const market = this.market (symbolsNormalized[i]);
-            conids.push (this.safeString (market, 'id', ''));
-        }
-        const options = this.safeDict (this.options, 'fetchTickers', {});
         const [ fields, query ] = this.handleOptionAndParams (params, 'fetchTickers', 'fields');
-        const retries = this.safeInteger (options, 'retries', 5);
-        const retryDelay = this.safeInteger (options, 'retryDelay', 500);
-        const request: Dict = {
-            'conids': conids.join (','),
-            'fields': fields,
-        };
-        let response: List = [];
-        for (let i = 0; i <= retries; i++) {
-            response = await this.webapiGetV1ApiIserverMarketdataSnapshot (this.extend (request, query));
-            if (this.ibkrSnapshotReady (response)) {
-                break;
-            }
-            if (i < retries) {
-                await this.sleep (retryDelay);
-            }
-        }
+        const response = await this.ibkrFetchSnapshot (symbolsNormalized, fields, query);
         //
         //     [
         //         {
@@ -1622,21 +1607,285 @@ export default class interactivebrokers extends Exchange {
         return this.parseTickers (response, symbolsNormalized);
     }
 
-    ibkrSnapshotReady (response: List): boolean {
+    /**
+     * @method
+     * @name interactivebrokers#ibkrFetchSnapshot
+     * @description fetches a market data snapshot, the first snapshot request only subscribes to the market data, so the request is retried until data arrives
+     * @ignore
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-market-data/get-market-data-snapshot
+     * @param {string[]} symbols unified market symbols
+     * @param {string} fields comma-separated snapshot field ids
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string[]} [readyFields] the snapshot is ready once every item has at least one of these fields, default [ '31', '84', '86' ]
+     * @returns {object[]} the raw snapshot items
+     */
+    async ibkrFetchSnapshot (symbols: string[], fields: string, params: Dict = {}, readyFields: Strings = undefined): Promise<List> {
+        const conids: string[] = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const market = this.market (symbols[i]);
+            conids.push (this.safeString (market, 'id', ''));
+        }
+        const options = this.safeDict (this.options, 'fetchTickers', {});
+        const retries = this.safeInteger (options, 'retries', 5);
+        const retryDelay = this.safeInteger (options, 'retryDelay', 500);
+        const request: Dict = {
+            'conids': conids.join (','),
+            'fields': fields,
+        };
+        let response: List = [];
+        for (let i = 0; i <= retries; i++) {
+            response = await this.webapiGetV1ApiIserverMarketdataSnapshot (this.extend (request, params)) as any;
+            if (this.ibkrSnapshotReady (response, readyFields)) {
+                break;
+            }
+            if (i < retries) {
+                await this.sleep (retryDelay);
+            }
+        }
+        return response;
+    }
+
+    ibkrSnapshotReady (response: List, readyFields: Strings = undefined): boolean {
         const numItems = response.length;
         if (numItems === 0) {
             return false;
         }
+        const fieldIds = (readyFields === undefined) ? [ '31', '84', '86' ] : readyFields;
         for (let i = 0; i < response.length; i++) {
             const item = response[i];
-            const last = this.safeString (item, '31');
-            const bid = this.safeString (item, '84');
-            const ask = this.safeString (item, '86');
-            if ((last === undefined) && (bid === undefined) && (ask === undefined)) {
+            let found = false;
+            for (let j = 0; j < fieldIds.length; j++) {
+                if (this.safeString (item, fieldIds[j]) !== undefined) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
                 return false;
             }
         }
         return true;
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#fetchBidsAsks
+     * @description fetches the bid and ask price and volume for multiple markets
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-market-data/get-market-data-snapshot
+     * @param {string[]} symbols unified symbols of the markets to fetch the bids and asks for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.fields] comma-separated snapshot field ids, default '84,85,86,88'
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    override async fetchBidsAsks (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
+        if (symbols === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchBidsAsks() requires a symbols argument');
+        }
+        await this.loadMarkets ();
+        const symbolsNormalized = this.marketSymbols (symbols);
+        const fields = this.safeString (params, 'fields', '84,85,86,88');
+        const query = this.omit (params, 'fields');
+        const response = await this.ibkrFetchSnapshot (symbolsNormalized, fields, query, [ '84', '86' ]);
+        //
+        //     [ { "84": "82836.00", "85": "0.00018171", "86": "82843.75", "88": "0.27167244", "conidEx": "479624278", "_updated": 1791449398940, "conid": 479624278 } ]
+        //
+        return this.parseTickers (response, symbolsNormalized);
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#fetchLastPrices
+     * @description fetches the last price for multiple markets
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-market-data/get-market-data-snapshot
+     * @param {string[]} symbols unified symbols of the markets to fetch the last prices for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [last price structures]{@link https://docs.ccxt.com/?id=last-price-structure}
+     */
+    override async fetchLastPrices (symbols: Strings = undefined, params: Dict = {}): Promise<LastPrices> {
+        if (symbols === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchLastPrices() requires a symbols argument');
+        }
+        await this.loadMarkets ();
+        const symbolsNormalized = this.marketSymbols (symbols);
+        const response = await this.ibkrFetchSnapshot (symbolsNormalized, '31', params, [ '31' ]);
+        //
+        //     [ { "31": "82838.50", "conidEx": "479624278", "_updated": 1791449398940, "conid": 479624278 } ]
+        //
+        return this.parseLastPrices (response, symbolsNormalized);
+    }
+
+    override parseLastPrice (entry: Dict, market: Market = undefined): LastPrice {
+        const marketId = this.safeString (entry, 'conid');
+        const resolved = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (entry, '_updated');
+        return {
+            'symbol': resolved['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'price': this.parseNumber (this.ibkrParseValue (this.safeString (entry, '31'))),
+            'side': undefined,
+            'info': entry,
+        };
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#fetchMarkPrices
+     * @description fetches the mark price for multiple markets
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-market-data/get-market-data-snapshot
+     * @param {string[]} symbols unified symbols of the markets to fetch the mark prices for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    override async fetchMarkPrices (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
+        if (symbols === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMarkPrices() requires a symbols argument');
+        }
+        await this.loadMarkets ();
+        const symbolsNormalized = this.marketSymbols (symbols);
+        const response = await this.ibkrFetchSnapshot (symbolsNormalized, '7635', params, [ '7635' ]);
+        //
+        //     [ { "7635": "82840.25", "conidEx": "479624278", "_updated": 1791449398940, "conid": 479624278 } ]
+        //
+        return this.parseTickers (response, symbolsNormalized);
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#fetchOpenInterests
+     * @description retrieves the open interest of multiple futures or swap markets
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-market-data/get-market-data-snapshot
+     * @param {string[]} symbols unified symbols of the markets to fetch the open interest for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    override async fetchOpenInterests (symbols: Strings = undefined, params: Dict = {}): Promise<OpenInterests> {
+        if (symbols === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenInterests() requires a symbols argument');
+        }
+        await this.loadMarkets ();
+        const symbolsNormalized = this.marketSymbols (symbols);
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const market = this.market (symbolsNormalized[i]);
+            if (!market['contract']) {
+                throw new BadRequest (this.id + ' fetchOpenInterests() supports contract markets only, ' + market['symbol'] + ' is not a contract market');
+            }
+        }
+        // 7697 futures open interest, 7638 option open interest, 31 last price for the open interest value
+        const response = await this.ibkrFetchSnapshot (symbolsNormalized, '31,7697,7638', params, [ '7697', '7638' ]);
+        //
+        //     [ { "31": "82838.50", "7697": "12345", "conidEx": "770561201", "_updated": 1791449398940, "conid": 770561201 } ]
+        //
+        return this.parseOpenInterests (response, symbolsNormalized);
+    }
+
+    override parseOpenInterest (interest: Dict, market: Market = undefined): OpenInterest {
+        const marketId = this.safeString (interest, 'conid');
+        const resolved = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (interest, '_updated');
+        const openInterest = this.ibkrParseValue (this.safeString2 (interest, '7697', '7638'));
+        const last = this.ibkrParseValue (this.safeString (interest, '31'));
+        const contractSize = this.safeString (resolved, 'contractSize');
+        let openInterestValue: Str = undefined;
+        if ((openInterest !== undefined) && (last !== undefined) && (contractSize !== undefined)) {
+            openInterestValue = Precise.stringMul (Precise.stringMul (openInterest, contractSize), last);
+        }
+        return this.safeOpenInterest ({
+            'symbol': resolved['symbol'],
+            'openInterestAmount': this.parseNumber (openInterest),
+            'openInterestValue': this.parseNumber (openInterestValue),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': interest,
+        }, resolved);
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#fetchGreeks
+     * @description fetches an option contracts greeks, the implied volatility is returned as a ratio, e.g. 0.25 for 25%
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-market-data/get-market-data-snapshot
+     * @param {string} symbol unified symbol of the market to fetch greeks for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+     */
+    override async fetchGreeks (symbol: string, params: Dict = {}): Promise<Greeks> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        // 7308 delta, 7309 gamma, 7310 theta, 7311 vega, 7633 implied vol %, 7635 mark, 31 last, 84/86 bid/ask, 88/85 bid/ask size
+        const fields = '31,84,85,86,88,7308,7309,7310,7311,7633,7635';
+        const response = await this.ibkrFetchSnapshot ([ market['symbol'] ], fields, params, [ '7308', '7633' ]);
+        //
+        //     [ { "31": "5.20", "84": "5.10", "86": "5.30", "7308": "0.512", "7309": "0.031", "7310": "-0.084", "7311": "0.215", "7633": "24.8%", "conid": 265598, "_updated": 1791449398940 } ]
+        //
+        const first = this.safeDict (response, 0, {});
+        return this.parseGreeks (first, market);
+    }
+
+    override parseGreeks (greeks: Dict, market: Market = undefined): Greeks {
+        const marketId = this.safeString (greeks, 'conid');
+        const resolved = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (greeks, '_updated');
+        const impliedVolatilityPercent = this.ibkrParseValue (this.safeString (greeks, '7633'));
+        let impliedVolatility: Str = undefined;
+        if (impliedVolatilityPercent !== undefined) {
+            impliedVolatility = Precise.stringDiv (impliedVolatilityPercent, '100');
+        }
+        return {
+            'symbol': resolved['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'delta': this.parseNumber (this.ibkrParseValue (this.safeString (greeks, '7308'))),
+            'gamma': this.parseNumber (this.ibkrParseValue (this.safeString (greeks, '7309'))),
+            'theta': this.parseNumber (this.ibkrParseValue (this.safeString (greeks, '7310'))),
+            'vega': this.parseNumber (this.ibkrParseValue (this.safeString (greeks, '7311'))),
+            'rho': undefined,
+            'bidSize': this.parseNumber (this.ibkrParseValue (this.safeString (greeks, '88'))),
+            'askSize': this.parseNumber (this.ibkrParseValue (this.safeString (greeks, '85'))),
+            'bidImpliedVolatility': undefined,
+            'askImpliedVolatility': undefined,
+            'markImpliedVolatility': this.parseNumber (impliedVolatility),
+            'bidPrice': this.parseNumber (this.ibkrParseValue (this.safeString (greeks, '84'))),
+            'askPrice': this.parseNumber (this.ibkrParseValue (this.safeString (greeks, '86'))),
+            'markPrice': this.parseNumber (this.ibkrParseValue (this.safeString (greeks, '7635'))),
+            'lastPrice': this.parseNumber (this.ibkrParseValue (this.safeString (greeks, '31'))),
+            'underlyingPrice': undefined,
+            'info': greeks,
+        };
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#fetchStatus
+     * @description the status of the brokerage session, 'ok' when authenticated and connected
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-session/get-brokerage-session-status
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+     */
+    override async fetchStatus (params: Dict = {}): Promise<Status> {
+        await this.authenticate ();
+        const response = await this.webapiPostV1ApiIserverAuthStatus (params);
+        //
+        //     {
+        //         "authenticated": true,
+        //         "competing": false,
+        //         "connected": true,
+        //         "message": "",
+        //         "MAC": "12:B:B3:23:BF:A0",
+        //         "serverInfo": { "serverName": "JifN19053", "serverVersion": "Build 10.25.0p, Dec 5, 2023 5:48:12 PM" },
+        //         "fail": ""
+        //     }
+        //
+        const authenticated = this.safeBool (response, 'authenticated', false);
+        const connected = this.safeBool (response, 'connected', false);
+        const status = (authenticated && connected) ? 'ok' : 'error';
+        return {
+            'status': status,
+            'updated': undefined,
+            'eta': undefined,
+            'url': undefined,
+            'info': response,
+        };
     }
 
     ibkrParseValue (value: Str): Str {
@@ -2144,7 +2393,7 @@ export default class interactivebrokers extends Exchange {
         } else if (isMarket) {
             orderType = 'MKT';
             const cost = this.safeString2 (params, 'cost', 'cashQty');
-            if (cost === undefined) {
+            if (cost === undefined && side === 'buy') {
                 throw new InvalidOrder (this.id + ' createOrder() requires cost for market orders');
             }
             request['cashQty'] = this.parseNumber (this.priceToPrecision (symbol, cost));
@@ -2397,6 +2646,38 @@ export default class interactivebrokers extends Exchange {
      */
     override async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         return await this.fetchOrdersByStatusFilter ('canceled', 'cancelled', symbol, since, limit, params);
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#fetchCanceledAndClosedOrders
+     * @description fetches information on multiple filled and canceled orders of the current brokerage session
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-orders/get-live-orders
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.filters] comma-separated status filters, default 'filled,cancelled'
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        const market = this.marketOrNull (symbol);
+        const filters = this.safeString (params, 'filters', 'filled,cancelled');
+        const request: Dict = {
+            'filters': filters,
+        };
+        const orders = await this.fetchLiveOrdersRaw (this.extend (request, params));
+        const parsed = this.parseOrders (orders, market, undefined, undefined);
+        const result: Order[] = [];
+        for (let i = 0; i < parsed.length; i++) {
+            const order = parsed[i];
+            const status = order['status'];
+            if ((status === 'closed') || (status === 'canceled')) {
+                result.push (order);
+            }
+        }
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit) as Order[];
     }
 
     /**
@@ -2896,6 +3177,55 @@ export default class interactivebrokers extends Exchange {
         //     ]
         //
         return this.parsePositions (response, symbols);
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#fetchPositionsForSymbol
+     * @description fetch the open positions of a single market
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-portfolio/get-position-by-conid
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountId] the account id, defaults to options["accountId"]
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    override async fetchPositionsForSymbol (symbol: string, params: Dict = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const [ accountId, query ] = await this.loadAccountId (params);
+        const request: Dict = {
+            'accountId': accountId,
+            'conid': market['id'],
+        };
+        const response = await this.webapiGetV1ApiPortfolioAccountIdPositionConid (this.extend (request, query));
+        //
+        //     [
+        //         {
+        //             "acctId": "U1234567",
+        //             "conid": 265598,
+        //             "contractDesc": "AAPL",
+        //             "position": 614.2639,
+        //             "mktPrice": 197.7639923,
+        //             "mktValue": 121479.28,
+        //             "currency": "USD",
+        //             "avgCost": 192.7477563,
+        //             "avgPrice": 192.7477563,
+        //             "realizedPnl": 0.0,
+        //             "unrealizedPnl": 3081.29,
+        //             "assetClass": "STK",
+        //             "model": ""
+        //         }
+        //     ]
+        //
+        const positions = Array.isArray (response) ? response : [];
+        const result: Position[] = [];
+        for (let i = 0; i < positions.length; i++) {
+            const position = this.parsePosition (positions[i], market);
+            if (Precise.stringGt (this.safeString (position, 'contracts', '0'), '0')) {
+                result.push (position);
+            }
+        }
+        return result;
     }
 
     override parsePosition (position: Dict, market: Market = undefined): Position {

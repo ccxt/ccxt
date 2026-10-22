@@ -3,6 +3,79 @@
     "skipKeys": ["acctIds"],
     "options": {},
     "methods": {
+        "fetchPositionsForSymbol": [
+            {
+                "description": "crypto spot",
+                "method": "fetchPositionsForSymbol",
+                "url": "https://api.ibkr.com/v1/api/portfolio/U3448646/position/495759171",
+                "input": [
+                    "ETH/USD"
+                ],
+                "output": null
+            }
+        ],
+        "fetchCanceledAndClosedOrders": [
+            {
+                "description": "crypto spot",
+                "method": "fetchCanceledAndClosedOrders",
+                "url": "https://api.ibkr.com/v1/api/iserver/account/orders?filters=filled%2Ccancelled",
+                "input": [
+                    "ETH/USD"
+                ],
+                "output": null
+            }
+        ],
+        "fetchStatus": [
+            {
+                "description": "default",
+                "method": "fetchStatus",
+                "url": "https://api.ibkr.com/v1/api/iserver/auth/status",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchMarkPrices": [
+            {
+                "description": "crypto spot",
+                "method": "fetchMarkPrices",
+                "url": "https://api.ibkr.com/v1/api/iserver/marketdata/snapshot?conids=479624278%2C495759171&fields=7635",
+                "input": [
+                    [
+                        "BTC/USD",
+                        "ETH/USD"
+                    ]
+                ],
+                "output": null
+            }
+        ],
+        "fetchLastPrices": [
+            {
+                "description": "crypto spot",
+                "method": "fetchLastPrices",
+                "url": "https://api.ibkr.com/v1/api/iserver/marketdata/snapshot?conids=479624278%2C495759171&fields=31",
+                "input": [
+                    [
+                        "BTC/USD",
+                        "ETH/USD"
+                    ]
+                ],
+                "output": null
+            }
+        ],
+        "fetchBidsAsks": [
+            {
+                "description": "crypto spot",
+                "method": "fetchBidsAsks",
+                "url": "https://api.ibkr.com/v1/api/iserver/marketdata/snapshot?conids=479624278%2C495759171&fields=84%2C85%2C86%2C88",
+                "input": [
+                    [
+                        "BTC/USD",
+                        "ETH/USD"
+                    ]
+                ],
+                "output": null
+            }
+        ],
         "createOrder": [
             {
                 "description": "spot crypto buy market",
