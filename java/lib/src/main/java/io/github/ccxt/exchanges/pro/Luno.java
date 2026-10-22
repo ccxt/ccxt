@@ -145,7 +145,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
             stored.append(trade);
         }
         Helpers.addElementToObject(this.trades, symbol, stored);
-        client.resolve(Helpers.GetValue(this.trades, symbol), messageHash);
+        client.resolve((symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol)), messageHash);
     }
 
     public Trade parseTrade(Object trade, Map<String, Object> market)
@@ -284,7 +284,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         }
         if (!java.util.Objects.equals(asks, null))
         {
-            Object snapshot = this.customParseOrderBook((Map<String, Object>) (message), (String) (symbol), timestamp, "bids", "asks", "price", "volume", "id");
+            Map<String, Object> snapshot = (Map<String, Object>) this.customParseOrderBook((Map<String, Object>) (message), (String) (symbol), timestamp, "bids", "asks", "price", "volume", "id");
             orderbook.reset(snapshot);
         } else
         {
@@ -405,7 +405,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         Map<String, Object> createUpdate = (Map<String, Object>) this.safeDict(message, "create_update", (Object) null);
         if (!java.util.Objects.equals(createUpdate, null))
         {
-            Object bidAskArray = this.customParseBidAsk(createUpdate, "price", "volume", "order_id");
+            List<Object> bidAskArray = (List<Object>) this.customParseBidAsk(createUpdate, "price", "volume", "order_id");
             String type = this.safeString(createUpdate, "type");
             if (java.util.Objects.equals(type, "ASK"))
             {
@@ -434,9 +434,9 @@ public class Luno extends io.github.ccxt.exchanges.Luno
      * @param {string} tradedAmount the traded amount in base currency, as a string
      * @returns {boolean} true if the order was found in this side, false otherwise
      */
-    public Boolean reduceOrderVolume(Object orderSide, Object orderId, Object tradedAmount)
+    public Boolean reduceOrderVolume(Object orderSide, String orderId, String tradedAmount)
     {
-        Integer sideLength = Helpers.getArrayLength(orderSide);
+        Integer sideLength = (switch ((Object)(orderSide)) { case null -> 0; case List<?> j39v4 -> j39v4.size(); case String j39v5 -> j39v5.length(); case Object j39v6 -> j39v6.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v6) : 0; });
         for (var i = 0; (sideLength != null && i < sideLength); i++)
         {
             Object order = Helpers.GetValue(orderSide, i);
@@ -491,8 +491,8 @@ public class Luno extends io.github.ccxt.exchanges.Luno
             // an old or replayed frame, discard it
             return false;
         }
-        Object expectedSequence = (storedNonce + 1L);
-        if (!Helpers.isEqual(messageSequence, expectedSequence))
+        Long expectedSequence = (Long) (storedNonce + 1L);
+        if (!java.util.Objects.equals(messageSequence, expectedSequence))
         {
             // a gap in the sequence means a lost message and the book is
             // unrecoverable on a live connection, because luno only sends

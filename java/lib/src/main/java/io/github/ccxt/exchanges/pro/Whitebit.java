@@ -290,7 +290,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
 
     public void handleDeltas(Object bookside, Object deltas)
     {
-        for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
+        for (var i = 0; i < (switch ((Object)(deltas)) { case null -> 0; case List<?> j39v2 -> j39v2.size(); case String j39v3 -> j39v3.length(); case Object j39v4 -> j39v4.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v4) : 0; }); i++)
         {
             this.handleDelta(bookside, Helpers.GetValue(deltas, i));
         }
@@ -397,7 +397,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         // watchTicker
         client.resolve(ticker, messageHash);
         // watchTickers
-        List<Object> messageHashes = Helpers.objectKeys(client.futures);
+        List<Object> messageHashes = ((List<Object>) switch ((Object)(client.futures)) { case Map<?, ?> j39v5 -> { synchronized (j39v5) { yield new ArrayList<Object>(j39v5.keySet()); } } case null, default -> new ArrayList<Object>(); });
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
             Object currentMessageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
@@ -562,7 +562,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         //       "id": null
         //   }
         //
-        Object trade = this.safeValue(message, "params");
+        List<Object> trade = (List<Object>) this.safeList(message, "params", new ArrayList<Object>(Arrays.asList()));
         if (java.util.Objects.equals(this.myTrades, null))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -613,10 +613,12 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             {
                 feeCurrencyCode = marketResolved.get("quote");
             }
-            fee = Helpers.newMap(
-                "cost", feeCost,
-                "currency", feeCurrencyCode
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("cost", feeCost);
+                hx4NewMap0.put("currency", feeCurrencyCode);
+                fee = hx4NewMap0;
+            }
         }
         Long rawSide = this.safeInteger(trade, 8);
         String side = null;
@@ -773,7 +775,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         String cost = this.safeString(order, "deal_money");
         String stopPrice = this.safeString(order, "activation_price");
         String rawType = this.safeString(order, "type");
-        String type = this.parseWsOrderType(rawType);
+        String type = this.parseWsOrderType((String) (rawType));
         String amount = null;
         String remaining = null;
         if (java.util.Objects.equals(type, "market"))
@@ -798,10 +800,12 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(dealFee, null))
         {
-            fee = Helpers.newMap(
-                "cost", this.parseNumber(dealFee),
-                "currency", marketResolved.get("quote")
-            );
+            {
+                HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
+                hx4NewMap1.put("cost", this.parseNumber(dealFee));
+                hx4NewMap1.put("currency", marketResolved.get("quote"));
+                fee = hx4NewMap1;
+            }
         }
         String unifiedStatus = null;
         if (((status != null && status == 1)) || ((status != null && status == 2)))
@@ -843,7 +847,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         return this.safeOrder(mapLiteral2, marketResolved);
     }
 
-    public String parseWsOrderType(Object status)
+    public String parseWsOrderType(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "1", "limit" );
@@ -916,7 +920,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
 
     public void setBalanceCache(Client client, String type, Object subscriptionHash)
     {
-        if ((subscriptionHash != null && ((Map<?, ?>)client.subscriptions).containsKey(subscriptionHash)))
+        if (((Map<?, ?>)client.subscriptions).containsKey(subscriptionHash))
         {
             return;
         }
@@ -927,12 +931,12 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))
             {
                 client.future(messageHash);
-                this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash, type, subscriptionHash); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash, (String) (type), subscriptionHash); } catch(Exception _e) { throw new RuntimeException(_e); } });
             }
         }
     }
 
-    public CompletableFuture<Object> loadBalanceSnapshot(Client client, Object messageHash, Object type, Object subscriptionHash)
+    public CompletableFuture<Object> loadBalanceSnapshot(Client client, Object messageHash, String type, Object subscriptionHash)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -942,7 +946,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             }})).join();
             this.balance = this.extend(response, this.balance);
             // don't remove the future from the .futures cache
-            if ((messageHash != null && ((Map<?, ?>)client.futures).containsKey(messageHash)))
+            if (((Map<?, ?>)client.futures).containsKey(messageHash))
             {
                 io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
                 future.resolve();
@@ -1090,11 +1094,13 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                 {
                     marketIds = new ArrayList<Object>(Arrays.asList(marketIds));
                 }
-                request = Helpers.newMap(
-                    "id", id,
-                    "method", method,
-                    "params", marketIds
-                );
+                {
+                    HashMap<String, Object> hx4NewMap2 = new HashMap<String, Object>();
+                    hx4NewMap2.put("id", id);
+                    hx4NewMap2.put("method", method);
+                    hx4NewMap2.put("params", marketIds);
+                    request = hx4NewMap2;
+                }
                 Map<String, Object> message = this.extend(request, parameters);
                 return (this.watch(url, messageHash, message, method, subscription)).join();
             } else
@@ -1119,7 +1125,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                 } else
                 {
                     // resubscribe
-                    Object marketIdsNew = new ArrayList<Object>(Arrays.asList());
+                    List<Object> marketIdsNew = new ArrayList<Object>(Arrays.asList());
                     marketIdsNew = new ArrayList<Object>(subscription.keySet());
                     if (java.util.Objects.requireNonNullElse(isNested, false))
                     {
@@ -1285,7 +1291,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             }
         } catch(Exception e)
         {
-            if (Helpers.isInstance(e, AuthenticationError.class))
+            if ((switch ((Object) (e)) { case null -> false; case Throwable hx4J44v0 -> { Throwable hx4J44v0u = hx4J44v0; while ((hx4J44v0u instanceof java.util.concurrent.CompletionException || hx4J44v0u instanceof java.util.concurrent.ExecutionException) && hx4J44v0u.getCause() != null) { hx4J44v0u = hx4J44v0u.getCause(); } yield AuthenticationError.class.isInstance(hx4J44v0u); } case Object hx4J44v0 -> AuthenticationError.class.isInstance(hx4J44v0); }))
             {
                 client.reject(e, "authenticated");
                 if (((Map<?, ?>)client.subscriptions).containsKey("authenticated"))
@@ -1354,7 +1360,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             if (!java.util.Objects.equals(subscription, true))
             {
                 Long subId = this.safeInteger(subscription, "id");
-                if ((!java.util.Objects.equals(subId, null)) && (Helpers.isEqual(subId, id)))
+                if ((!java.util.Objects.equals(subId, null)) && (((java.util.function.BiPredicate<Object, Object>) (hx4J40v0A, hx4J40v0B) -> { try { if (hx4J40v0A == null && hx4J40v0B == null) { return true; } if (hx4J40v0A == null || hx4J40v0B == null) { return false; } java.util.function.Predicate<Object> hx4J40v0N = hx4J40v0o -> { try { Double.parseDouble(String.valueOf(hx4J40v0o)); return true; } catch (Exception hx4J40v0e) { return false; } }; if (!hx4J40v0A.getClass().equals(hx4J40v0B.getClass()) && !(hx4J40v0N.test(hx4J40v0A) && hx4J40v0N.test(hx4J40v0B))) { return false; } java.util.function.Predicate<Object> hx4J40v0I = hx4J40v0o -> hx4J40v0o instanceof Byte || hx4J40v0o instanceof Short || hx4J40v0o instanceof Integer || hx4J40v0o instanceof Long || hx4J40v0o instanceof java.util.concurrent.atomic.AtomicInteger || hx4J40v0o instanceof java.util.concurrent.atomic.AtomicLong || ((hx4J40v0o instanceof Float || hx4J40v0o instanceof Double || hx4J40v0o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(hx4J40v0o)).stripTrailingZeros().scale() <= 0); java.util.function.ToDoubleFunction<Object> hx4J40v0D = hx4J40v0o -> { if (hx4J40v0o instanceof Double || hx4J40v0o instanceof Float || hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof java.math.BigDecimal) { return ((Number) hx4J40v0o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v0o)); } catch (NumberFormatException hx4J40v0e) { return 0.0; } }; if (hx4J40v0I.test(hx4J40v0A) && hx4J40v0I.test(hx4J40v0B)) { java.util.function.ToLongFunction<Object> hx4J40v0L = hx4J40v0o -> hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof Double || hx4J40v0o instanceof Float || hx4J40v0o instanceof java.math.BigDecimal ? ((Number) hx4J40v0o).longValue() : Long.parseLong(String.valueOf(hx4J40v0o)); return hx4J40v0L.applyAsLong(hx4J40v0A) == hx4J40v0L.applyAsLong(hx4J40v0B); } if (hx4J40v0A instanceof Double || hx4J40v0B instanceof Double) { return hx4J40v0D.applyAsDouble(hx4J40v0A) == hx4J40v0D.applyAsDouble(hx4J40v0B); } if (hx4J40v0A instanceof Float || hx4J40v0B instanceof Float) { java.util.function.Function<Object, Float> hx4J40v0F = hx4J40v0o -> hx4J40v0o instanceof Float || hx4J40v0o instanceof Double || hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof java.math.BigDecimal ? ((Number) hx4J40v0o).floatValue() : Float.parseFloat(String.valueOf(hx4J40v0o)); return hx4J40v0F.apply(hx4J40v0A).floatValue() == hx4J40v0F.apply(hx4J40v0B).floatValue(); } if (hx4J40v0A instanceof String && hx4J40v0B instanceof String) { return hx4J40v0A.equals(hx4J40v0B); } if (hx4J40v0A instanceof Boolean && hx4J40v0B instanceof Boolean) { return hx4J40v0A.equals(hx4J40v0B); } if (hx4J40v0N.test(hx4J40v0A) && hx4J40v0N.test(hx4J40v0B)) { return new java.math.BigDecimal(String.valueOf(hx4J40v0A)).compareTo(new java.math.BigDecimal(String.valueOf(hx4J40v0B))) == 0; } return false; } catch (Exception hx4J40v0e) { return false; } }).test(subId, id)))
                 {
                     Object method = this.safeValue(subscription, "method");
                     if (!java.util.Objects.equals(method, null))

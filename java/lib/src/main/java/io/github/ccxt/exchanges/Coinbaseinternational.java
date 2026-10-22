@@ -853,7 +853,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         Boolean isFuture = !Boolean.TRUE.equals(isPerpetual) && (((String)kind).indexOf("future") >= 0);
         Boolean isOption = (((String)kind).indexOf("option") >= 0);
         Object comboPosition = ((String)kind).indexOf("combo");
-        Boolean isComboMarket = Helpers.isGreaterThanOrEqual(comboPosition, 0);
+        Boolean isComboMarket = (((Integer) comboPosition) >= 0);
         String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
         String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
         String settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
@@ -1157,7 +1157,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 {
                     limitResolved = 100;
                 }
-                request.put("start_timestamp", this.sum(now, Helpers.multiply(Helpers.multiply(Helpers.opNeg(limitResolved), duration), 1000)));
+                request.put("start_timestamp", this.sum(now, ((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a == null || j36b == null) return null; if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) * ((Long) j36b)); java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; double j36r = j36d.applyAsDouble(j36a) * j36d.applyAsDouble(j36b); if (new java.math.BigDecimal(String.valueOf(j36r)).stripTrailingZeros().scale() <= 0) return (Object) ((long) j36r); return (Object) j36r; }).apply(((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a == null || j36b == null) return null; if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) * ((Long) j36b)); java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; double j36r = j36d.applyAsDouble(j36a) * j36d.applyAsDouble(j36b); if (new java.math.BigDecimal(String.valueOf(j36r)).stripTrailingZeros().scale() <= 0) return (Object) ((long) j36r); return (Object) j36r; }).apply(((java.util.function.UnaryOperator<Object>) (j37a) -> { if (j37a instanceof Byte j37v) return (byte) -j37v; if (j37a instanceof Short j37v) return (short) -j37v; if (j37a instanceof Integer j37v) return -j37v; if (j37a instanceof Long j37v) return -j37v; if (j37a instanceof Float j37v) return -j37v; if (j37a instanceof Double j37v) return -j37v; return null; }).apply(limitResolved), duration), 1000)));
                 request.put("end_timestamp", now);
             } else
             {
@@ -1168,7 +1168,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                     request.put("end_timestamp", now);
                 } else
                 {
-                    request.put("end_timestamp", this.sum(sinceResolved, Helpers.multiply(Helpers.multiply(limitResolved, duration), 1000)));
+                    request.put("end_timestamp", this.sum(sinceResolved, ((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a == null || j36b == null) return null; if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) * ((Long) j36b)); java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; double j36r = j36d.applyAsDouble(j36a) * j36d.applyAsDouble(j36b); if (new java.math.BigDecimal(String.valueOf(j36r)).stripTrailingZeros().scale() <= 0) return (Object) ((long) j36r); return (Object) j36r; }).apply(((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a == null || j36b == null) return null; if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) * ((Long) j36b)); java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; double j36r = j36d.applyAsDouble(j36a) * j36d.applyAsDouble(j36b); if (new java.math.BigDecimal(String.valueOf(j36r)).stripTrailingZeros().scale() <= 0) return (Object) ((long) j36r); return (Object) j36r; }).apply(limitResolved, duration), 1000)));
                 }
             }
             Long until = this.safeInteger(paramsPaginate, "until");
@@ -1198,7 +1198,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Object candles = this.convertTradingViewToOHLCV(((Object)result), "ticks", "open", "high", "low", "close", "volume", true);
+            List<Object> candles = (List<Object>) this.convertTradingViewToOHLCV(((Object)result), "ticks", "open", "high", "low", "close", "volume", true);
             return this.parseOHLCVs(candles, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, java.util.Objects.requireNonNullElse(limit, 100L), false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -1388,7 +1388,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 {
                     continue;
                 }
-                Ticker ticker = (this.fetchTicker(symbol, Helpers.toMapArg(paramsResolved))).join();
+                Ticker ticker = (this.fetchTicker(symbol, ((Map<String, Object>) (switch ((Object) (paramsResolved)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v7 -> (Map<String, Object>) hx4J40v7; case Object hx4J40v7 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v7.getClass().getName()); })))).join();
                 tickers.put(symbol, ticker);
             }
             return this.filterByArrayTickers(tickers, "symbol", symbolsResolved);
@@ -1559,7 +1559,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                     }
                     for (var i = 0; i < ((List<?>)depths).size(); i++)
                     {
-                        if (Helpers.isLessThanOrEqual(limit, (depths == null || i < 0 || i >= depths.size() ? null : depths.get(i))))
+                        if (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return (!j38g && !j38e) || j38e; }).test(limit, (depths == null || i < 0 || i >= depths.size() ? null : depths.get(i))))
                         {
                             request.put("depth", (depths == null || i < 0 || i >= depths.size() ? null : depths.get(i)));
                             break;
@@ -2899,7 +2899,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         Long lastTradeTimestamp = lastUpdateTimestamp;
         Long nativeLastUpdateTimestamp = null;
         String orderType = this.safeStringLower(order, "order_type");
-        Object reduceOnly = false;
+        Boolean reduceOnly = false;
         Map<String, Object> fee = new HashMap<String, Object>() {{}};
         if (this.isNativeDeribitCredentials())
         {
@@ -2910,7 +2910,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             }
             nativeLastUpdateTimestamp = lastUpdateTimestamp;
             orderType = this.safeStringLower2(order, "original_order_type", "order_type");
-            reduceOnly = this.safeBool(order, "reduce_only", false);
+            reduceOnly = (Boolean) this.safeBool(order, "reduce_only", false);
             fee = new HashMap<String, Object>() {{
                 put( "cost", Coinbaseinternational.this.safeNumber(order, "commission", (Object) null) );
                 put( "currency", Coinbaseinternational.this.safeString(marketResolved, "settle", Coinbaseinternational.this.safeString(marketResolved, "quote")) );
@@ -3741,19 +3741,19 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         {
             uri = ((method + " ") + ((String)url).replaceFirst("https://", ""));
             Object quesPos = ((String)uri).indexOf("?");
-            if (Helpers.isGreaterThan(quesPos, 0))
+            if ((((Integer) quesPos) > 0))
             {
-                uri = Helpers.slice(uri, 0, quesPos);
+                uri = ((java.util.function.Function<Object[], String>) (hx4J41a) -> { if (hx4J41a[0] == null) return null; String hx4J41s = (String) hx4J41a[0]; java.util.function.ToIntFunction<Object> hx4J41i = (hx4J41o) -> (hx4J41o instanceof Integer hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Long hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Double hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Float hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof java.math.BigDecimal hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof String hx4J41n) ? Integer.parseInt(hx4J41n) : Integer.parseInt(String.valueOf(hx4J41o)); int hx4J41b = (hx4J41a[1] != null) ? hx4J41i.applyAsInt(hx4J41a[1]) : -1; if (hx4J41a[2] == null) { if (hx4J41b < 0) return hx4J41s.substring(Math.max(hx4J41s.length() + hx4J41b, 0)); if (hx4J41b > hx4J41s.length()) return ""; return hx4J41s.substring(hx4J41b); } int hx4J41e = hx4J41i.applyAsInt(hx4J41a[2]); if (hx4J41b < 0) hx4J41b = hx4J41s.length() + hx4J41b; if (hx4J41e < 0) hx4J41e = hx4J41s.length() + hx4J41e; if (hx4J41b < 0) hx4J41b = 0; if (hx4J41e > hx4J41s.length()) hx4J41e = hx4J41s.length(); if (hx4J41b > hx4J41e) hx4J41b = hx4J41e; return hx4J41s.substring(hx4J41b, hx4J41e); }).apply(new Object[] { uri, 0, quesPos });
             }
         }
         String nonce = this.randomBytes(16);
         String aud = "retail_rest_api_proxy";
-        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(useEddsa, false)))
+        if ((switch ((Object) (java.util.Objects.requireNonNullElse(useEddsa, false))) { case null -> false; case Boolean hx4J40v6 -> hx4J40v6.booleanValue(); case Long hx4J40v6 -> hx4J40v6 != 0L; case Integer hx4J40v6 -> hx4J40v6 != 0; case Double hx4J40v6 -> hx4J40v6 != 0.0; case String hx4J40v6 -> !hx4J40v6.isEmpty(); case List<?> hx4J40v6 -> !hx4J40v6.isEmpty(); case Map<?, ?> hx4J40v6 -> true; default -> false; }))
         {
             aud = "cdp_service";
         }
         String iss = "coinbase-cloud";
-        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(useEddsa, false)))
+        if ((switch ((Object) (java.util.Objects.requireNonNullElse(useEddsa, false))) { case null -> false; case Boolean hx4J40v5 -> hx4J40v5.booleanValue(); case Long hx4J40v5 -> hx4J40v5 != 0L; case Integer hx4J40v5 -> hx4J40v5 != 0; case Double hx4J40v5 -> hx4J40v5 != 0.0; case String hx4J40v5 -> !hx4J40v5.isEmpty(); case List<?> hx4J40v5 -> !hx4J40v5.isEmpty(); case Map<?, ?> hx4J40v5 -> true; default -> false; }))
         {
             iss = "cdp";
         }
@@ -3762,11 +3762,11 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         request.put("sub", this.apiKey);
         request.put("iss", iss);
         request.put("nbf", seconds);
-        request.put("exp", Helpers.add(seconds, 120));
+        request.put("exp", ((Object) (switch ((Object) (seconds)) { case null -> (Object) null; case Long hx4J40v4 -> (Object) (hx4J40v4 + 120L); case Integer hx4J40v4 -> (Object) (hx4J40v4.longValue() + 120L); case Double hx4J40v4 -> (Object) (hx4J40v4 + ((double) 120L)); case String hx4J40v4 -> (Object) (hx4J40v4 + "120"); default -> (Object) null; })));
         request.put("iat", seconds);
         if (!java.util.Objects.equals(uri, null))
         {
-            if (!Helpers.isTrue(java.util.Objects.requireNonNullElse(useEddsa, false)))
+            if (!(switch ((Object) (java.util.Objects.requireNonNullElse(useEddsa, false))) { case null -> false; case Boolean hx4J40v3 -> hx4J40v3.booleanValue(); case Long hx4J40v3 -> hx4J40v3 != 0L; case Integer hx4J40v3 -> hx4J40v3 != 0; case Double hx4J40v3 -> hx4J40v3 != 0.0; case String hx4J40v3 -> !hx4J40v3.isEmpty(); case List<?> hx4J40v3 -> !hx4J40v3.isEmpty(); case Map<?, ?> hx4J40v3 -> true; default -> false; }))
             {
                 request.put("uri", uri);
             } else
@@ -3774,7 +3774,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 request.put("uris", new ArrayList<Object>(Arrays.asList(uri)));
             }
         }
-        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(useEddsa, false)))
+        if ((switch ((Object) (java.util.Objects.requireNonNullElse(useEddsa, false))) { case null -> false; case Boolean hx4J40v2 -> hx4J40v2.booleanValue(); case Long hx4J40v2 -> hx4J40v2 != 0L; case Integer hx4J40v2 -> hx4J40v2 != 0; case Double hx4J40v2 -> hx4J40v2 != 0.0; case String hx4J40v2 -> !hx4J40v2.isEmpty(); case List<?> hx4J40v2 -> !hx4J40v2.isEmpty(); case Map<?, ?> hx4J40v2 -> true; default -> false; }))
         {
             Object byteArray = this.base64ToBinary(this.secret);
             Object seed = this.arraySlice(byteArray, 0, 32);
@@ -3846,11 +3846,11 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 throw new AuthenticationError((this.id + " public/auth did not return an expiry")) ;
             }
             Double ratio = this.safeNumber(this.options, "accessTokenRefreshRatio", (Object) null);
-            Object refreshRatio = (((java.util.Objects.equals(ratio, null)))) ? 0.8 : ratio;
-            Long tokenRefreshInMilliseconds = this.parseToInt(Helpers.multiply((expiresIn * 1000L), refreshRatio));
+            Double refreshRatio = (((java.util.Objects.equals(ratio, null)))) ? 0.8 : ratio;
+            Long tokenRefreshInMilliseconds = this.parseToInt(((expiresIn * 1000L) * refreshRatio));
             this.token = accessToken;
-            Helpers.addElementToObject(this.options, "v2AccessToken", accessToken);
-            Helpers.addElementToObject(this.options, "v2TokenExpires", this.sum(now, tokenRefreshInMilliseconds));
+            { Map<Object, Object> j39v4 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v5 = "v2AccessToken"; Object j39v6 = accessToken; if (j39v4 == null) { if (j39v5 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v4) { if (j39v6 == null && j39v4 instanceof java.util.concurrent.ConcurrentHashMap) { j39v4.remove(j39v5); } else { j39v4.put(j39v5, j39v6); } } }
+            { Map<Object, Object> j39v1 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v2 = "v2TokenExpires"; Object j39v3 = this.sum(now, tokenRefreshInMilliseconds); if (j39v1 == null) { if (j39v2 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v1) { if (j39v3 == null && j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); } else { j39v1.put(j39v2, j39v3); } } }
             return accessToken;
         }).thenApply(res -> (String) res);
 
@@ -3880,14 +3880,14 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
     {
         Object access = (((java.util.Objects.requireNonNullElse(api, "public") instanceof List))) ? (java.util.Objects.requireNonNullElse(api, "public") == null || 0 >= ((List<?>)java.util.Objects.requireNonNullElse(api, "public")).size() ? null : ((List<?>)java.util.Objects.requireNonNullElse(api, "public")).get(0)) : java.util.Objects.requireNonNullElse(api, "public");
         String rpcMethod = ((access + "/") + path);
-        Object requestParams = this.handleRouteAndParams("sign", Helpers.toMapArg(parameters));
+        Object requestParams = this.handleRouteAndParams("sign", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
         Boolean isNativeDeribit = this.isNativeDeribitCredentials();
-        Object baseApiUrl = ((Map<String, Object>)this.urls.get("api")).get("rest");
+        String baseApiUrl = this.safeString(this.urls.get("api"), "rest", "");
         if (Boolean.TRUE.equals(isNativeDeribit))
         {
             baseApiUrl = "https://www.deribit.com/api/v2";
         }
-        String url = (Helpers.add(baseApiUrl, "/") + rpcMethod);
+        String url = ((baseApiUrl + "/") + rpcMethod);
         Map<String, Object> requestHeaders = null;
         if (Boolean.TRUE.equals(isNativeDeribit) && ((java.util.Objects.equals(path, "get_leverage")) || (java.util.Objects.equals(path, "set_leverage"))))
         {
@@ -3907,7 +3907,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             {
                 HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
                 mapLiteral8.put("grant_type", "coinbase_cdp");
-                mapLiteral8.put("token", this.createAuthToken(this.seconds(), Helpers.toStringArg(java.util.Objects.requireNonNullElse(method, "GET")), url, this.isEddsaSecret()));
+                mapLiteral8.put("token", this.createAuthToken(this.seconds(), java.util.Objects.toString(java.util.Objects.requireNonNullElse(method, "GET"), null), url, this.isEddsaSecret()));
                 requestParams = this.extend(mapLiteral8, requestParams);
             }
         } else if ((java.util.Objects.equals(access, "private")) && Boolean.TRUE.equals(isNativeDeribit))
@@ -3923,10 +3923,12 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             String requestData = ((((java.util.Objects.requireNonNullElse(method, "GET") + "\n") + signedRequest) + "\n") + "\n"); // eslint-disable-line quotes
             String auth = ((((timestamp + "\n") + nonce) + "\n") + requestData); // eslint-disable-line quotes
             String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
-            requestHeaders = Helpers.newMap(
-                "Content-Type", "application/json",
-                "Authorization", ((((((("deri-hmac-sha256 id=" + this.apiKey) + ",ts=") + timestamp) + ",sig=") + signature) + ",nonce=") + nonce)
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("Content-Type", "application/json");
+                hx4NewMap0.put("Authorization", ((((((("deri-hmac-sha256 id=" + this.apiKey) + ",ts=") + timestamp) + ",sig=") + signature) + ",nonce=") + nonce));
+                requestHeaders = hx4NewMap0;
+            }
         } else if (java.util.Objects.equals(access, "private"))
         {
             Object accessToken = this.getV2AccessToken();
@@ -3934,10 +3936,12 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             {
                 throw new AuthenticationError((this.id + " requires an access token from public/auth")) ;
             }
-            requestHeaders = Helpers.newMap(
-                "Content-Type", "application/json",
-                "Authorization", ("Bearer " + accessToken)
-            );
+            {
+                HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
+                hx4NewMap1.put("Content-Type", "application/json");
+                hx4NewMap1.put("Authorization", ("Bearer " + accessToken));
+                requestHeaders = hx4NewMap1;
+            }
         }
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
@@ -4001,7 +4005,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} cleaned parameters; options.route persists the selection for nested calls and Pro
      */
-    public Object handleRouteAndParams(Object methodName, Map<String, Object> parameters)
+    public Object handleRouteAndParams(String methodName, Map<String, Object> parameters)
     {
         List<Object> routeparamsResolvedVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "route", "auto");
         var route = ((List<Object>) routeparamsResolvedVariable).get(0);
@@ -4022,14 +4026,14 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         // Bind before any await, including failed/in-flight loads; never silently reuse another backend's caches.
         if (Boolean.TRUE.equals(deribit))
         {
-            Helpers.addElementToObject(this.options, "route", "deribit");
+            { Map<Object, Object> j39v19 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v20 = "route"; Object j39v21 = "deribit"; if (j39v19 == null) { if (j39v20 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v19) { if (j39v21 == null && j39v19 instanceof java.util.concurrent.ConcurrentHashMap) { j39v19.remove(j39v20); } else { j39v19.put(j39v20, j39v21); } } }
         } else
         {
-            Helpers.addElementToObject(this.options, "route", "coinbase");
+            { Map<Object, Object> j39v16 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v17 = "route"; Object j39v18 = "coinbase"; if (j39v16 == null) { if (j39v17 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v16) { if (j39v18 == null && j39v16 instanceof java.util.concurrent.ConcurrentHashMap) { j39v16.remove(j39v17); } else { j39v16.put(j39v17, j39v18); } } }
         }
-        Helpers.addElementToObject(this.options, "routeBackend", deribit);
-        Helpers.addElementToObject(this.has, "fetchLeverage", !Boolean.TRUE.equals(deribit));
-        Helpers.addElementToObject(this.has, "setLeverage", !Boolean.TRUE.equals(deribit));
+        { Map<Object, Object> j39v13 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v14 = "routeBackend"; Object j39v15 = deribit; if (j39v13 == null) { if (j39v14 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v13) { if (j39v15 == null && j39v13 instanceof java.util.concurrent.ConcurrentHashMap) { j39v13.remove(j39v14); } else { j39v13.put(j39v14, j39v15); } } }
+        { Map<Object, Object> j39v10 = (Map<Object, Object>) (Map<?, ?>) (this.has); Object j39v11 = "fetchLeverage"; Object j39v12 = !Boolean.TRUE.equals(deribit); if (j39v10 == null) { if (j39v11 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v10) { if (j39v12 == null && j39v10 instanceof java.util.concurrent.ConcurrentHashMap) { j39v10.remove(j39v11); } else { j39v10.put(j39v11, j39v12); } } }
+        { Map<Object, Object> j39v7 = (Map<Object, Object>) (Map<?, ?>) (this.has); Object j39v8 = "setLeverage"; Object j39v9 = !Boolean.TRUE.equals(deribit); if (j39v7 == null) { if (j39v8 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v7) { if (j39v9 == null && j39v7 instanceof java.util.concurrent.ConcurrentHashMap) { j39v7.remove(j39v8); } else { j39v7.put(j39v8, j39v9); } } }
         return this.omit(paramsResolved, new ArrayList<Object>(Arrays.asList("route", "defaultRoute", "callerMethodName")));
     }
 

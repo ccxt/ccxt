@@ -611,7 +611,7 @@ public class P2b extends P2bApi
         //
         Long timestamp = this.safeIntegerProduct(ticker, "at", 1000);
         Object tickerInner = ticker;
-        if (Helpers.inOp(ticker, "ticker"))
+        if ((switch ((Object)(ticker)) { case List<?> j39v2 -> j39v2.contains("ticker"); case Map<?, ?> j39v1 -> j39v1.containsKey("ticker"); case null, default -> false; }))
         {
             tickerInner = this.safeDict(ticker, "ticker", (Object) null);
         }
@@ -805,7 +805,7 @@ public class P2b extends P2bApi
         //        "deal": "10.9740544"          // Total (price * amount)
         //    }
         //
-        Object timestamp = this.safeIntegerProduct2(trade, "time", "deal_time", 1000);
+        Long timestamp = (Long) this.safeIntegerProduct2(trade, "time", "deal_time", 1000);
         String takerOrMaker = this.safeString(trade, "role");
         if (java.util.Objects.equals(takerOrMaker, "1"))
         {
@@ -969,7 +969,7 @@ public class P2b extends P2bApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        List<Object> keys = Helpers.objectKeys(response);
+        List<Object> keys = ((List<Object>) switch ((Object)(response)) { case Map<?, ?> j39v3 -> { synchronized (j39v3) { yield new ArrayList<Object>(j39v3.keySet()); } } case null, default -> new ArrayList<Object>(); });
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object currencyId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
@@ -1263,26 +1263,37 @@ public class P2b extends P2bApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long untilParam = this.safeInteger(parameters, "until");
             Map<String, Object> paramsOmitted = this.omit(parameters, "until");
-            if (java.util.Objects.equals(until, null))
+            Object until = null;
+            Long sinceResolved = 0L;
+            if (!java.util.Objects.equals(untilParam, null))
             {
-                if (java.util.Objects.equals(since, null))
+                until = untilParam;
+                if (!java.util.Objects.equals(since, null))
                 {
-                    until = this.milliseconds();
+                    if (((untilParam - since)) > 86400000)
+                    {
+                        throw new BadRequest((this.id + " fetchMyTrades () the time between since and params[\"until\"] cannot be greater than 24 hours")) ;
+                    }
+                    sinceResolved = since;
                 } else
                 {
-                    until = (since + 86400000L);
+                    sinceResolved = (untilParam - 86400000L);
                 }
-            }
-            Object sinceResolved = (((java.util.Objects.equals(since, null)))) ? (Helpers.subtract(until, 86400000)) : since;
-            if (Helpers.isGreaterThan((Helpers.subtract(until, sinceResolved)), 86400000))
+            } else if (!java.util.Objects.equals(since, null))
             {
-                throw new BadRequest((this.id + " fetchMyTrades () the time between since and params[\"until\"] cannot be greater than 24 hours")) ;
+                until = (since + 86400000L);
+                sinceResolved = since;
+            } else
+            {
+                Long now = this.milliseconds();
+                until = now;
+                sinceResolved = (now - 86400000L);
             }
             Map<String, Object> market = this.market(symbol);
-            Long sinceSec = this.parseToInt(Helpers.divide(sinceResolved, 1000));
-            Long untilSec = this.parseToInt(Helpers.divide(until, 1000));
+            Long sinceSec = this.parseToInt((((double) sinceResolved) / ((double) 1000)));
+            Long untilSec = this.parseToInt((until == null ? null : ((Number) until).doubleValue() / ((double) 1000)));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", market.get("id") );
                 put( "startTime", sinceSec );
@@ -1321,7 +1332,7 @@ public class P2b extends P2bApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> deals = (List<Object>) this.safeList(result, "deals", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(deals, market, Helpers.toLongOrNull(sinceResolved), limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(deals, market, sinceResolved, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1350,30 +1361,41 @@ public class P2b extends P2bApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long untilParam = this.safeInteger(parameters, "until");
             Map<String, Object> paramsOmitted = this.omit(parameters, "until");
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
             }
-            if (java.util.Objects.equals(until, null))
+            Object until = null;
+            Long sinceResolved = 0L;
+            if (!java.util.Objects.equals(untilParam, null))
             {
-                if (java.util.Objects.equals(since, null))
+                until = untilParam;
+                if (!java.util.Objects.equals(since, null))
                 {
-                    until = this.milliseconds();
+                    if (((untilParam - since)) > 86400000)
+                    {
+                        throw new BadRequest((this.id + " fetchClosedOrders () the time between since and params[\"until\"] cannot be greater than 24 hours")) ;
+                    }
+                    sinceResolved = since;
                 } else
                 {
-                    until = (since + 86400000L);
+                    sinceResolved = (untilParam - 86400000L);
                 }
-            }
-            Object sinceResolved = (((java.util.Objects.equals(since, null)))) ? (Helpers.subtract(until, 86400000)) : since;
-            if (Helpers.isGreaterThan((Helpers.subtract(until, sinceResolved)), 86400000))
+            } else if (!java.util.Objects.equals(since, null))
             {
-                throw new BadRequest((this.id + " fetchClosedOrders () the time between since and params[\"until\"] cannot be greater than 24 hours")) ;
+                until = (since + 86400000L);
+                sinceResolved = since;
+            } else
+            {
+                Long now = this.milliseconds();
+                until = now;
+                sinceResolved = (now - 86400000L);
             }
-            Long sinceSec = this.parseToInt(Helpers.divide(sinceResolved, 1000));
-            Long untilSec = this.parseToInt(Helpers.divide(until, 1000));
+            Long sinceSec = this.parseToInt((((double) sinceResolved) / ((double) 1000)));
+            Long untilSec = this.parseToInt((until == null ? null : ((Number) until).doubleValue() / ((double) 1000)));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "startTime", sinceSec );
                 put( "endTime", untilSec );
@@ -1414,14 +1436,14 @@ public class P2b extends P2bApi
             //    }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Object orders = new ArrayList<Object>(Arrays.asList());
+            List<Object> orders = new ArrayList<Object>(Arrays.asList());
             List<String> keys = new ArrayList<String>(result.keySet());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 String marketId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 Object marketOrders = (result == null || marketId == null ? null : result.get(marketId));
-                List<Object> parsedOrders = this.parseOrders(marketOrders, market, Helpers.toLongOrNull(sinceResolved), limit, new HashMap<String, Object>() {{}});
-                orders = this.arrayConcat(orders, parsedOrders);
+                List<Object> parsedOrders = this.parseOrders(marketOrders, market, sinceResolved, limit, new HashMap<String, Object>() {{}});
+                orders = (List<Object>) this.arrayConcat(orders, parsedOrders);
             }
             return orders;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -1467,7 +1489,7 @@ public class P2b extends P2bApi
         //        "dealMoney": "10.9740544"     // Filled total
         //    }
         //
-        Object timestamp = this.safeIntegerProduct2(order, "timestamp", "ctime", 1000);
+        Long timestamp = (Long) this.safeIntegerProduct2(order, "timestamp", "ctime", 1000);
         String marketId = this.safeString(order, "market");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         return this.safeOrder(new HashMap<String, Object>() {{
@@ -1567,7 +1589,8 @@ public class P2b extends P2bApi
             String feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
             String codeAsString = String.valueOf(code);
-            if ((Helpers.isLessThan(code, 400)) || !(((Map<?, ?>)this.httpExceptions).containsKey(codeAsString)))
+            Long statusCode = this.parseToInt(code);
+            if ((((statusCode == null || statusCode < 400))) || !(((Map<?, ?>)this.httpExceptions).containsKey(codeAsString)))
             {
                 throw new ExchangeError(feedback) ;
             }

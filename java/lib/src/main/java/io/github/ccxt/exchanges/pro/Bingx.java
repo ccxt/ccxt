@@ -381,7 +381,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         {
             inverse = isInverse;
         }
-        String baseVolumeKey = ((Helpers.isTrue(inverse))) ? "m" : "v";
+        String baseVolumeKey = (((switch ((Object) (inverse)) { case null -> false; case Boolean hx4J40v1 -> hx4J40v1.booleanValue(); case Long hx4J40v1 -> hx4J40v1 != 0L; case Integer hx4J40v1 -> hx4J40v1 != 0; case Double hx4J40v1 -> hx4J40v1 != 0.0; case String hx4J40v1 -> !hx4J40v1.isEmpty(); case List<?> hx4J40v1 -> !hx4J40v1.isEmpty(); case Map<?, ?> hx4J40v1 -> true; default -> false; }))) ? "m" : "v";
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", marketResolved.get("symbol") );
             put( "timestamp", timestamp );
@@ -406,7 +406,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         }}, marketResolved);
     }
 
-    public Object getOrderBookLimitByMarketType(Object marketType, Long limit)
+    public Object getOrderBookLimitByMarketType(String marketType, Long limit)
     {
         if (java.util.Objects.equals(limit, null))
         {
@@ -634,7 +634,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         {
             marketType = "swap";
         }
-        Map<String, Object> market = this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, marketType);
+        Map<String, Object> market = this.safeMarket(java.util.Objects.toString(marketId, null), (Map<String, Object>) null, (String) null, marketType);
         String symbol = (String) market.get("symbol");
         String messageHash = ("trade::" + symbol);
         List<Object> trades = null;
@@ -1016,7 +1016,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         Object rawTimeframe = Helpers.GetValue(new ArrayList<Object>(Arrays.asList(((String)dataType).split(java.util.regex.Pattern.quote("_")))), 1);
         Map<String, Object> marketOptions = (Map<String, Object>) this.safeDict(this.options, marketType, (Object) null);
         Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(marketOptions, "timeframes", new HashMap<String, Object>() {{}});
-        Object unifiedTimeframe = this.findTimeframe(rawTimeframe, timeframes);
+        String unifiedTimeframe = this.findTimeframe(rawTimeframe, timeframes);
         if (java.util.Objects.equals(this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), rawTimeframe), null))
         {
             String subscriptionHash = dataType;
@@ -1031,16 +1031,16 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         for (var i = 0; i < ((List<?>)candles).size(); i++)
         {
             Object candle = (candles == null || i < 0 || i >= candles.size() ? null : candles.get(i));
-            Object parsed = this.parseWsOHLCV(candle, market);
+            List<Object> parsed = (List<Object>) this.parseWsOHLCV(candle, market);
             stored.append(parsed);
         }
         List<Object> resolveData = new ArrayList<Object>(Arrays.asList(symbol, unifiedTimeframe, stored));
-        String messageHash = this.getMessageHash("ohlcv", symbol, Helpers.toStringArg(unifiedTimeframe));
+        String messageHash = this.getMessageHash("ohlcv", symbol, unifiedTimeframe);
         client.resolve(resolveData, messageHash);
         // resolve for "all"
         if (Boolean.TRUE.equals(isAllEndpoint))
         {
-            String messageHashForAll = this.getMessageHash("ohlcv", (String) null, Helpers.toStringArg(unifiedTimeframe));
+            String messageHashForAll = this.getMessageHash("ohlcv", (String) null, unifiedTimeframe);
             client.resolve(resolveData, messageHashForAll);
         }
     }
@@ -1582,7 +1582,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             {
                 Position position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
                 Double contracts = this.safeNumber(position, "contracts", 0);
-                if ((contracts != null && contracts > 0))
+                if ((!java.util.Objects.equals(contracts, null)) && ((contracts != null && contracts > 0)))
                 {
                     cache.append(position);
                 }
@@ -1710,10 +1710,10 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             ((List<Object>)newPositions).add(position);
             cache.append(position);
         }
-        Object messageHashes = this.findMessageHashes(client, "swap:positions::");
+        List<Object> messageHashes = (List<Object>) this.findMessageHashes(client, "swap:positions::");
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
-            Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
+            Object messageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = (String) (parts == null || 1 >= parts.size() ? null : parts.get(1));
             List<Object> filteredSymbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
@@ -1781,15 +1781,15 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                     }
                     String url = ((baseUrl + "?listenKey=") + listenKey);
                     Client client = this.client(url);
-                    List<Object> messageHashes = Helpers.objectKeys(client.futures);
+                    List<Object> messageHashes = ((List<Object>) switch ((Object)(client.futures)) { case Map<?, ?> j39v13 -> { synchronized (j39v13) { yield new ArrayList<Object>(j39v13.keySet()); } } case null, default -> new ArrayList<Object>(); });
                     for (var j = 0; j < ((List<?>)messageHashes).size(); j++)
                     {
                         Object messageHash = (messageHashes == null || j < 0 || j >= messageHashes.size() ? null : messageHashes.get(j));
                         client.reject(error, messageHash);
                     }
                 }
-                Helpers.addElementToObject(this.options, "listenKey", null);
-                Helpers.addElementToObject(this.options, "lastAuthenticatedTime", 0);
+                { Map<Object, Object> j39v10 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v11 = "listenKey"; Object j39v12 = null; if (j39v10 == null) { if (j39v11 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v10) { if (j39v12 == null && j39v10 instanceof java.util.concurrent.ConcurrentHashMap) { j39v10.remove(j39v11); } else { j39v10.put(j39v11, j39v12); } } }
+                { Map<Object, Object> j39v7 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v8 = "lastAuthenticatedTime"; Object j39v9 = 0; if (j39v7 == null) { if (j39v8 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v7) { if (j39v9 == null && j39v7 instanceof java.util.concurrent.ConcurrentHashMap) { j39v7.remove(j39v8); } else { j39v7.put(j39v8, j39v9); } } }
                 return null;
             }
             // whether or not to schedule another listenKey keepAlive request
@@ -1808,7 +1808,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             Long time = this.milliseconds();
             Long lastAuthenticatedTime = this.safeInteger(this.options, "lastAuthenticatedTime", 0);
             Long listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 3600000); // 1 hour
-            if (((listenKeyRefreshRate == null || (time - lastAuthenticatedTime) > listenKeyRefreshRate)))
+            if ((!java.util.Objects.equals(listenKeyRefreshRate, null)) && (((listenKeyRefreshRate == null || (time - lastAuthenticatedTime) > listenKeyRefreshRate))))
             {
                 // single-flight leader election on a never-dialed client, see
                 // https://github.com/ccxt/ccxt/issues/29393: racing fetches mint
@@ -1838,8 +1838,8 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                     {
                         throw new AuthenticationError((this.id + " authenticate() received an empty listenKey")) ;
                     }
-                    Helpers.addElementToObject(this.options, "listenKey", listenKey);
-                    Helpers.addElementToObject(this.options, "lastAuthenticatedTime", time);
+                    { Map<Object, Object> j39v17 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v18 = "listenKey"; Object j39v19 = listenKey; if (j39v17 == null) { if (j39v18 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v17) { if (j39v19 == null && j39v17 instanceof java.util.concurrent.ConcurrentHashMap) { j39v17.remove(j39v18); } else { j39v17.put(j39v18, j39v19); } } }
+                    { Map<Object, Object> j39v14 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v15 = "lastAuthenticatedTime"; Object j39v16 = time; if (j39v14 == null) { if (j39v15 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v14) { if (j39v16 == null && j39v14 instanceof java.util.concurrent.ConcurrentHashMap) { j39v14.remove(j39v15); } else { j39v14.put(j39v15, j39v16); } } }
                     this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", parameters);
                     // settle the flight: client.resolve () removes the future from
                     // client.futures and wakes every waiter
@@ -2199,7 +2199,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             return;
         }
         // public subscriptions
-        if (Helpers.inOp(message, "ping"))
+        if ((switch ((Object)(message)) { case List<?> j39v21 -> j39v21.contains("ping"); case Map<?, ?> j39v20 -> j39v20.containsKey("ping"); case null, default -> false; }))
         {
             this.spawn(() -> { try { this.pong(client, message); } catch(Exception _e) { throw new RuntimeException(_e); } });
             return;

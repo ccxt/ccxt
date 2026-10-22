@@ -477,7 +477,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 throw new ArgumentsRequired((this.id + " watchBidsAsks required symbols argument")) ;
             }
             Object markets = this.requireValue(this.marketsForSymbols(symbolsNormalized), "watchBidsAsks() markets is required");
-            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBidsAsks", Helpers.toMapArg((markets == null || 0 >= ((List<?>)markets).size() ? null : ((List<?>)markets).get(0))), parameters, (String) null);
+            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBidsAsks", ((Map<String, Object>) (switch ((Object) ((markets == null || 0 >= ((List<?>)markets).size() ? null : ((List<?>)markets).get(0)))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })), parameters, (String) null);
             String marketType = marketTypeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             Boolean isSpot = java.util.Objects.equals(marketType, "spot");
@@ -532,7 +532,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         //        "t": 1678643605721
         //    }
         //
-        Object parsedTicker = this.parseWsBidAsk((Map<String, Object>) (message), (Map<String, Object>) null);
+        Map<String, Object> parsedTicker = (Map<String, Object>) this.parseWsBidAsk((Map<String, Object>) (message), (Map<String, Object>) null);
         String symbol = this.safeString(parsedTicker, "symbol");
         if (java.util.Objects.equals(symbol, null))
         {
@@ -773,11 +773,11 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "publicSpotKline", new HashMap<String, Object>() {{}});
             String timeframeId = this.safeString(data, "interval");
             timeframe = this.findTimeframe(timeframeId, this.options.get("timeframes"));
-            parsed = this.parseWsOHLCV(data, Helpers.toMapArg(this.safeMarket(Helpers.toStringArg(symbol), (Map<String, Object>) null, (String) null, (String) null)));
+            parsed = this.parseWsOHLCV(data, this.safeMarket(java.util.Objects.toString(symbol, null), (Map<String, Object>) null, (String) null, (String) null));
         } else
         {
             Map<String, Object> d = (Map<String, Object>) this.safeDict2(message, "d", "data", new HashMap<String, Object>() {{}});
-            Object rawOhlcv = this.safeDict(d, "k", d);
+            Map<String, Object> rawOhlcv = (Map<String, Object>) this.safeDict(d, "k", d);
             String timeframeId = this.safeString2(rawOhlcv, "i", "interval");
             Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
             timeframe = this.findTimeframe(timeframeId, timeframes);
@@ -796,7 +796,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             if (!java.util.Objects.equals(timeframe, null))
             {
-                Helpers.addElementToObject(symbolOhlcvs, timeframe, stored);
+                { Map<Object, Object> j39v7 = (Map<Object, Object>) (Map<?, ?>) (symbolOhlcvs); Object j39v8 = timeframe; Object j39v9 = stored; if (j39v7 == null) { if (j39v8 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v7) { if (j39v9 == null && j39v7 instanceof java.util.concurrent.ConcurrentHashMap) { j39v7.remove(j39v8); } else { j39v7.put(j39v8, j39v9); } } }
             }
         }
         ((io.github.ccxt.ws.ArrayCache) stored).append(parsed);
@@ -919,7 +919,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         orderbook.put("nonce", null);
-        Helpers.addElementToObject(orderbook, "cache", new ArrayList<Object>(Arrays.asList()));
+        orderbook.put("cache", new ArrayList<Object>(Arrays.asList()));
     }
 
     public Object getCacheIndex(Object orderbook, Object cache)
@@ -932,11 +932,11 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         {
             return -1;
         }
-        if (((nonce == null || nonce < (firstDeltaNonce - 1L))))
+        if ((!java.util.Objects.equals(nonce, null)) && (!java.util.Objects.equals(firstDeltaNonce, null)) && (((nonce == null || nonce < (firstDeltaNonce - 1L)))))
         {
             return -1;
         }
-        for (var i = 0; i < Helpers.getArrayLength(cache); i++)
+        for (var i = 0; i < (switch ((Object)(cache)) { case null -> 0; case List<?> j39v13 -> j39v13.size(); case String j39v14 -> j39v14.length(); case Object j39v15 -> j39v15.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v15) : 0; }); i++)
         {
             Map<String, Object> delta = (Map<String, Object>) this.safeDict(cache, i, (Object) null);
             Long deltaNonce = this.safeIntegerN(delta, new ArrayList<Object>(Arrays.asList("r", "version", "fromVersion")));
@@ -949,7 +949,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 return i;
             }
         }
-        return Helpers.getArrayLength(cache);
+        return (switch ((Object)(cache)) { case null -> 0; case List<?> j39v10 -> j39v10.size(); case String j39v11 -> j39v11.length(); case Object j39v12 -> j39v12.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v12) : 0; });
     }
 
     public void handleOrderBook(Client client, Map<String, Object> message)
@@ -1038,7 +1038,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         {
             Object cacheLength = ((List<?>)((List<Object>)(storedOrderBook == null ? null : storedOrderBook.get("cache")))).size();
             Object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 25);
-            if (Helpers.isEqual(cacheLength, snapshotDelay))
+            if (((java.util.function.BiPredicate<Object, Object>) (hx4J40v1A, hx4J40v1B) -> { try { if (hx4J40v1A == null && hx4J40v1B == null) { return true; } if (hx4J40v1A == null || hx4J40v1B == null) { return false; } java.util.function.Predicate<Object> hx4J40v1N = hx4J40v1o -> { try { Double.parseDouble(String.valueOf(hx4J40v1o)); return true; } catch (Exception hx4J40v1e) { return false; } }; if (!hx4J40v1A.getClass().equals(hx4J40v1B.getClass()) && !(hx4J40v1N.test(hx4J40v1A) && hx4J40v1N.test(hx4J40v1B))) { return false; } java.util.function.Predicate<Object> hx4J40v1I = hx4J40v1o -> hx4J40v1o instanceof Byte || hx4J40v1o instanceof Short || hx4J40v1o instanceof Integer || hx4J40v1o instanceof Long || hx4J40v1o instanceof java.util.concurrent.atomic.AtomicInteger || hx4J40v1o instanceof java.util.concurrent.atomic.AtomicLong || ((hx4J40v1o instanceof Float || hx4J40v1o instanceof Double || hx4J40v1o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(hx4J40v1o)).stripTrailingZeros().scale() <= 0); java.util.function.ToDoubleFunction<Object> hx4J40v1D = hx4J40v1o -> { if (hx4J40v1o instanceof Double || hx4J40v1o instanceof Float || hx4J40v1o instanceof Long || hx4J40v1o instanceof Integer || hx4J40v1o instanceof java.math.BigDecimal) { return ((Number) hx4J40v1o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v1o)); } catch (NumberFormatException hx4J40v1e) { return 0.0; } }; if (hx4J40v1I.test(hx4J40v1A) && hx4J40v1I.test(hx4J40v1B)) { java.util.function.ToLongFunction<Object> hx4J40v1L = hx4J40v1o -> hx4J40v1o instanceof Long || hx4J40v1o instanceof Integer || hx4J40v1o instanceof Double || hx4J40v1o instanceof Float || hx4J40v1o instanceof java.math.BigDecimal ? ((Number) hx4J40v1o).longValue() : Long.parseLong(String.valueOf(hx4J40v1o)); return hx4J40v1L.applyAsLong(hx4J40v1A) == hx4J40v1L.applyAsLong(hx4J40v1B); } if (hx4J40v1A instanceof Double || hx4J40v1B instanceof Double) { return hx4J40v1D.applyAsDouble(hx4J40v1A) == hx4J40v1D.applyAsDouble(hx4J40v1B); } if (hx4J40v1A instanceof Float || hx4J40v1B instanceof Float) { java.util.function.Function<Object, Float> hx4J40v1F = hx4J40v1o -> hx4J40v1o instanceof Float || hx4J40v1o instanceof Double || hx4J40v1o instanceof Long || hx4J40v1o instanceof Integer || hx4J40v1o instanceof java.math.BigDecimal ? ((Number) hx4J40v1o).floatValue() : Float.parseFloat(String.valueOf(hx4J40v1o)); return hx4J40v1F.apply(hx4J40v1A).floatValue() == hx4J40v1F.apply(hx4J40v1B).floatValue(); } if (hx4J40v1A instanceof String && hx4J40v1B instanceof String) { return hx4J40v1A.equals(hx4J40v1B); } if (hx4J40v1A instanceof Boolean && hx4J40v1B instanceof Boolean) { return hx4J40v1A.equals(hx4J40v1B); } if (hx4J40v1N.test(hx4J40v1A) && hx4J40v1N.test(hx4J40v1B)) { return new java.math.BigDecimal(String.valueOf(hx4J40v1A)).compareTo(new java.math.BigDecimal(String.valueOf(hx4J40v1B))) == 0; } return false; } catch (Exception hx4J40v1e) { return false; } }).test(cacheLength, snapshotDelay))
             {
                 this.spawn(() -> { try { this.loadOrderBook(client, messageHash, symbol, limit, new HashMap<String, Object>() {{}}); } catch(Exception _e) { throw new RuntimeException(_e); } });
             }
@@ -1691,10 +1691,12 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         String feeCurrency = this.safeString(order, "N");
         if (!java.util.Objects.equals(feeCurrency, null))
         {
-            fee = Helpers.newMap(
-                "currency", feeCurrency,
-                "cost", null
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("currency", feeCurrency);
+                hx4NewMap0.put("cost", null);
+                fee = hx4NewMap0;
+            }
         }
         HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
         mapLiteral2.put("id", this.safeString(order, "id"));
@@ -2070,7 +2072,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 throw new ArgumentsRequired((this.id + " watchBidsAsks required symbols argument")) ;
             }
             Object markets = this.requireValue(this.marketsForSymbols(symbolsNormalized), "unWatchBidsAsks() markets is required");
-            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBidsAsks", Helpers.toMapArg((markets == null || 0 >= ((List<?>)markets).size() ? null : ((List<?>)markets).get(0))), parameters, (String) null);
+            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBidsAsks", ((Map<String, Object>) (switch ((Object) ((markets == null || 0 >= ((List<?>)markets).size() ? null : ((List<?>)markets).get(0)))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })), parameters, (String) null);
             String marketType = marketTypeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             Boolean isSpot = java.util.Objects.equals(marketType, "spot");
@@ -2246,29 +2248,29 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
             Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
-            String subMessageHash = Helpers.replace(((String)messageHash), "unsubscribe:", "");
+            String subMessageHash = (messageHash == null ? null : ((String)messageHash).replaceFirst("unsubscribe:", ""));
             this.cleanUnsubscription(client, subMessageHash, (String) (messageHash), false);
             if (((String)messageHash).indexOf("ticker") >= 0)
             {
-                String symbol = Helpers.replace(((String)messageHash), "unsubscribe:ticker:", "");
+                String symbol = (messageHash == null ? null : ((String)messageHash).replaceFirst("unsubscribe:ticker:", ""));
                 if (((String)symbol).indexOf("unsubscribe") >= 0)
                 {
                     // unWatchTickers
-                    List<Object> symbols = Helpers.objectKeys(this.tickers);
+                    List<Object> symbols = ((List<Object>) switch ((Object)(this.tickers)) { case Map<?, ?> j39v30 -> { synchronized (j39v30) { yield new ArrayList<Object>(j39v30.keySet()); } } case null, default -> new ArrayList<Object>(); });
                     for (var j = 0; j < ((List<?>)symbols).size(); j++)
                     {
                         ((Map<String,Object>)this.tickers).remove((String)(symbols == null || j < 0 || j >= symbols.size() ? null : symbols.get(j)));
                     }
                 } else if (((Map<?, ?>)this.tickers).containsKey(symbol))
                 {
-                    ((Map<String,Object>)this.tickers).remove((String)symbol);
+                    ((Map<String,Object>)this.tickers).remove(symbol);
                 }
             } else if (((String)messageHash).indexOf("bidask") >= 0)
             {
-                String symbol = Helpers.replace(((String)messageHash), "unsubscribe:bidask:", "");
+                String symbol = (messageHash == null ? null : ((String)messageHash).replaceFirst("unsubscribe:bidask:", ""));
                 if (((Map<?, ?>)this.bidsasks).containsKey(symbol))
                 {
-                    ((Map<String,Object>)this.bidsasks).remove((String)symbol);
+                    ((Map<String,Object>)this.bidsasks).remove(symbol);
                 }
             } else if (((String)messageHash).indexOf("candles") >= 0)
             {
@@ -2285,24 +2287,24 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 }
             } else if (((String)messageHash).indexOf("orderbook") >= 0)
             {
-                String symbol = Helpers.replace(((String)messageHash), "unsubscribe:orderbook:", "");
+                String symbol = (messageHash == null ? null : ((String)messageHash).replaceFirst("unsubscribe:orderbook:", ""));
                 if (((Map<?, ?>)this.orderbooks).containsKey(symbol))
                 {
-                    ((Map<String,Object>)this.orderbooks).remove((String)symbol);
+                    ((Map<String,Object>)this.orderbooks).remove(symbol);
                 }
             } else if (((String)messageHash).indexOf("trades") >= 0)
             {
-                String symbol = Helpers.replace(((String)messageHash), "unsubscribe:trades:", "");
+                String symbol = (messageHash == null ? null : ((String)messageHash).replaceFirst("unsubscribe:trades:", ""));
                 if (((Map<?, ?>)this.trades).containsKey(symbol))
                 {
-                    ((Map<String,Object>)this.trades).remove((String)symbol);
+                    ((Map<String,Object>)this.trades).remove(symbol);
                 }
             } else if (((String)messageHash).indexOf("fundingRate") >= 0)
             {
-                String symbol = Helpers.replace(((String)messageHash), "unsubscribe:fundingRate:", "");
+                String symbol = (messageHash == null ? null : ((String)messageHash).replaceFirst("unsubscribe:fundingRate:", ""));
                 if (((Map<?, ?>)this.fundingRates).containsKey(symbol))
                 {
-                    ((Map<String,Object>)this.fundingRates).remove((String)symbol);
+                    ((Map<String,Object>)this.fundingRates).remove(symbol);
                 }
             }
         }
@@ -2331,7 +2333,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 client.future(messageHash).getFuture().join();
                 return this.safeString(this.options, "listenKey");
             }
-            Helpers.addElementToObject(this.options, "listenKeyFetching", true);
+            { Map<Object, Object> j39v40 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v41 = "listenKeyFetching"; Object j39v42 = true; if (j39v40 == null) { if (j39v41 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v40) { if (j39v42 == null && j39v40 instanceof java.util.concurrent.ConcurrentHashMap) { j39v40.remove(j39v41); } else { j39v40.put(j39v41, j39v42); } } }
             client.future(messageHash); // created ahead of the request below, so concurrent callers can find it
             Map<String, Object> response = null;
             try
@@ -2339,18 +2341,18 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 response = (this.spotPrivatePostUserDataStream(parameters)).join();
             } catch(Exception e)
             {
-                Helpers.addElementToObject(this.options, "listenKeyFetching", false);
+                { Map<Object, Object> j39v37 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v38 = "listenKeyFetching"; Object j39v39 = false; if (j39v37 == null) { if (j39v38 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v37) { if (j39v39 == null && j39v37 instanceof java.util.concurrent.ConcurrentHashMap) { j39v37.remove(j39v38); } else { j39v37.put(j39v38, j39v39); } } }
                 client.reject(e, messageHash);
                 throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
             }
-            Helpers.addElementToObject(this.options, "listenKeyFetching", false);
+            { Map<Object, Object> j39v34 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v35 = "listenKeyFetching"; Object j39v36 = false; if (j39v34 == null) { if (j39v35 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v34) { if (j39v36 == null && j39v34 instanceof java.util.concurrent.ConcurrentHashMap) { j39v34.remove(j39v35); } else { j39v34.put(j39v35, j39v36); } } }
             //
             //    {
             //        "listenKey": "pqia91ma19a5s61cv6a81va65sdf19v8a65a1a5s61cv6a81va65sdf19v8a65a1"
             //    }
             //
             listenKey = this.safeString(response, "listenKey");
-            Helpers.addElementToObject(this.options, "listenKey", listenKey);
+            { Map<Object, Object> j39v31 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v32 = "listenKey"; Object j39v33 = listenKey; if (j39v31 == null) { if (j39v32 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v31) { if (j39v33 == null && j39v31 instanceof java.util.concurrent.ConcurrentHashMap) { j39v31.remove(j39v32); } else { j39v31.put(j39v32, j39v33); } } }
             client.resolve(listenKey, messageHash);
             Long listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 1200000);
             this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", (String) (listenKey), parameters);
@@ -2384,7 +2386,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 }
                 String url = ((wsUrl + "?listenKey=") + listenKey);
                 Client client = this.client(url);
-                Helpers.addElementToObject(this.options, "listenKey", null);
+                { Map<Object, Object> j39v44 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v45 = "listenKey"; Object j39v46 = null; if (j39v44 == null) { if (j39v45 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v44) { if (j39v46 == null && j39v44 instanceof java.util.concurrent.ConcurrentHashMap) { j39v44.remove(j39v45); } else { j39v44.put(j39v45, j39v46); } } }
                 client.reject(error);
                 ((Map<String,Object>)this.clients).remove(url);
             }
@@ -2493,7 +2495,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             this.handleProtobufMessage(client, (Map<String, Object>) (decodedMessage));
             return;
         }
-        if (Helpers.inOp(message, "msg"))
+        if ((switch ((Object)(message)) { case List<?> j39v48 -> j39v48.contains("msg"); case Map<?, ?> j39v47 -> j39v47.containsKey("msg"); case null, default -> false; }))
         {
             this.handleSubscriptionStatus(client, (Map<String, Object>) (message));
             return;

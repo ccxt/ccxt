@@ -1177,7 +1177,7 @@ public class TestMain extends BaseTest
                     {
                         // copy to a const so the dict capture is effectively-final (Java inner-class rule),
                         // since eventId is reassigned above. every venue must refetch an event by its own id
-                        Object eventIdScope = eventId;
+                        String eventIdScope = eventId;
                         ((List<Object>)scopesToTest).add(new HashMap<String, Object>() {{
                             put( "eventId", eventIdScope );
                         }});
@@ -1767,7 +1767,7 @@ public class TestMain extends BaseTest
             {
                 continue;
             }
-            String exchangeName = Helpers.replace(((String)file), ".json", "");
+            String exchangeName = (file == null ? null : ((String)file).replaceFirst(java.util.regex.Pattern.quote(".json"), ""));
             Object content = ioFileRead(Helpers.add(folder, file));
             result.put(exchangeName, content);
         }
@@ -2465,19 +2465,19 @@ public class TestMain extends BaseTest
             // runners and the frame's resolution would be dropped
             for (var i = 0; i < ((List<?>)messages).size(); i++)
             {
-                Object waited = 0;
-                while (!Helpers.isTrue(wsClientHasPendingFutures(exchange, url)) && (Helpers.isLessThan(waited, 5000)))
+                long waited = 0;
+                while (!Helpers.isTrue(wsClientHasPendingFutures(exchange, url)) && ((waited < 5000)))
                 {
                     (exchange.sleep(50)).join();
-                    waited = Helpers.add(waited, 50);
+                    waited = (waited + 50L);
                 }
                 // a reply frame must not arrive before its request was sent, or it is dropped
                 String frameId = exchange.safeString((messages == null || i < 0 || i >= ((List<?>)messages).size() ? null : ((List<?>)messages).get(i)), "id");
-                Object waitedSent = 0;
-                while ((!java.util.Objects.equals(frameId, null)) && !Boolean.TRUE.equals(this.wsRequestWasSent(exchange, url, frameId)) && (Helpers.isLessThan(waitedSent, 5000)))
+                long waitedSent = 0;
+                while ((!java.util.Objects.equals(frameId, null)) && !Boolean.TRUE.equals(this.wsRequestWasSent(exchange, url, frameId)) && ((waitedSent < 5000)))
                 {
                     (exchange.sleep(50)).join();
-                    waitedSent = Helpers.add(waitedSent, 50);
+                    waitedSent = (waitedSent + 50L);
                 }
                 // a frame given as { "binary": "<base16>" } is replayed as a binary frame (e.g. SBE)
                 Object frame = (messages == null || i < 0 || i >= ((List<?>)messages).size() ? null : ((List<?>)messages).get(i));
@@ -2492,11 +2492,11 @@ public class TestMain extends BaseTest
                 // observe a stale future and burn the next frame early; frames
                 // that resolve nothing (e.g. subscribe acks) fall through on the
                 // timeout
-                Object settled = 0;
-                while (Helpers.isTrue(wsClientHasPendingFutures(exchange, url)) && (Helpers.isLessThan(settled, 500)))
+                long settled = 0;
+                while (Helpers.isTrue(wsClientHasPendingFutures(exchange, url)) && ((settled < 500)))
                 {
                     (exchange.sleep(20)).join();
-                    settled = Helpers.add(settled, 20);
+                    settled = (settled + 20L);
                 }
             }
             (exchange.sleep(50)).join();
@@ -2509,12 +2509,12 @@ public class TestMain extends BaseTest
                 // executed inline on a stack that blocks the watch side (forkjoin
                 // work stealing): give up eventually so the stack unwinds instead
                 // of deadlocking
-                Object waitedDone = 0;
-                while (!Helpers.isTrue(isWsTestCompleted(exchange, url)) && (Helpers.isLessThan(waitedDone, 30000)))
+                long waitedDone = 0;
+                while (!Helpers.isTrue(isWsTestCompleted(exchange, url)) && ((waitedDone < 30000)))
                 {
                     rejectPendingWsFutures(exchange, url);
                     (exchange.sleep(50)).join();
-                    waitedDone = Helpers.add(waitedDone, 50);
+                    waitedDone = (waitedDone + 50L);
                 }
             }
             // reject anything still pending so a wrong fixture fails fast

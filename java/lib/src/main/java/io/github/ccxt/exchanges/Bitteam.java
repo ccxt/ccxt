@@ -739,7 +739,7 @@ public class Bitteam extends BitteamApi
             //     }
             //
             statusesResponse = this.indexBy(statusesResponse, "unified_cryptoasset_id");
-            Helpers.addElementToObject(this.options, "_temp_currencies_statuses", statusesResponse);
+            { Map<Object, Object> j39v1 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v2 = "_temp_currencies_statuses"; Object j39v3 = statusesResponse; if (j39v1 == null) { if (j39v2 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v1) { if (j39v3 == null && j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); } else { j39v1.put(j39v2, j39v3); } } }
             Object result = this.parseCurrencies(currencies);
             ((Map<String,Object>)this.options).remove("_temp_currencies_statuses");
             return result;
@@ -1575,7 +1575,7 @@ public class Bitteam extends BitteamApi
         return this.safeString(statuses, status, status);
     }
 
-    public String parseValueToPricision(Map<String, Object> valueObject, Object valueKey, Object preciseObject, Object precisionKey)
+    public String parseValueToPricision(Map<String, Object> valueObject, String valueKey, Object preciseObject, String precisionKey)
     {
         String valueRawString = this.safeString(valueObject, valueKey);
         String precisionRawString = this.safeString(preciseObject, precisionKey);
@@ -2721,9 +2721,9 @@ public class Bitteam extends BitteamApi
         {
             return null;
         }
-        if (!Helpers.isEqual(code, 200))
+        if (!(code != null && ((Number) code).doubleValue() == 200))
         {
-            if (Helpers.isEqual(code, 404))
+            if ((code != null && ((Number) code).doubleValue() == 404))
             {
                 if ((((String)url).indexOf("/ccxt/order/") >= 0) && (java.util.Objects.equals(method, "GET")))
                 {

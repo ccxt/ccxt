@@ -350,7 +350,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         //    }
         //
         Map<String, Object> snapshot = (Map<String, Object>) this.safeDict2(message, "snapshot", "data", (Object) null);
-        Object data = this.safeDict(message, "update", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "update", new HashMap<String, Object>() {{}});
         if (!java.util.Objects.equals(snapshot, null))
         {
             data = snapshot;
@@ -360,13 +360,13 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         {
             type = "snapshot";
         }
-        List<String> marketIds = new ArrayList<String>(((Map<String, Object>)data).keySet());
+        List<String> marketIds = new ArrayList<String>(data.keySet());
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
         {
             String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
             String symbol = (String) market.get("symbol");
-            Object item = Helpers.GetValue(data, marketId);
+            Object item = (data == null || marketId == null ? null : data.get(marketId));
             String messageHash = ("orderbooks::" + symbol);
             if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
             {
@@ -406,7 +406,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
 
     public void handleDeltas(Object bookside, Object deltas)
     {
-        for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
+        for (var i = 0; i < (switch ((Object)(deltas)) { case null -> 0; case List<?> j39v6 -> j39v6.size(); case String j39v7 -> j39v7.length(); case Object j39v8 -> j39v8.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v8) : 0; }); i++)
         {
             this.handleDelta(bookside, Helpers.GetValue(deltas, i));
         }
@@ -707,7 +707,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
             String symbol = (String) market.get("symbol");
-            Object ticker = this.parseWsBidAsk((Map<String, Object>) ((data == null || marketId == null ? null : data.get(marketId))), market);
+            Map<String, Object> ticker = (Map<String, Object>) this.parseWsBidAsk((Map<String, Object>) ((data == null || marketId == null ? null : data.get(marketId))), market);
             Helpers.addElementToObject(this.bidsasks, symbol, ticker);
             ((List<Object>)result).add(ticker);
             String messageHash = ((topic + "::") + symbol);
@@ -985,10 +985,10 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
                 Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
             }
-            Object ohlcvs = this.parseWsOHLCVs((data == null || marketId == null ? null : data.get(marketId)), market, "1m", (Long) null, (Long) null);
+            List<Object> ohlcvs = (List<Object>) this.parseWsOHLCVs((data == null || marketId == null ? null : data.get(marketId)), market, "1m", (Long) null, (Long) null);
             for (var j = 0; j < ((List<?>)ohlcvs).size(); j++)
             {
-                stored.append((ohlcvs == null || j < 0 || j >= ((List<?>)ohlcvs).size() ? null : ((List<?>)ohlcvs).get(j)));
+                stored.append((ohlcvs == null || j < 0 || j >= ohlcvs.size() ? null : ohlcvs.get(j)));
             }
             String messageHash = ("candles::" + symbol);
             client.resolve(stored, messageHash);
@@ -1726,7 +1726,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             } catch(Exception e)
             {
                 String id = this.safeString(message, "id");
-                if (Helpers.isInstance(e, AuthenticationError.class))
+                if ((switch ((Object) (e)) { case null -> false; case Throwable hx4J44v0 -> { Throwable hx4J44v0u = hx4J44v0; while ((hx4J44v0u instanceof java.util.concurrent.CompletionException || hx4J44v0u instanceof java.util.concurrent.ExecutionException) && hx4J44v0u.getCause() != null) { hx4J44v0u = hx4J44v0u.getCause(); } yield AuthenticationError.class.isInstance(hx4J44v0u); } case Object hx4J44v0 -> AuthenticationError.class.isInstance(hx4J44v0); }))
                 {
                     String messageHash = "authenticated";
                     client.reject(e, messageHash);
@@ -1741,7 +1741,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 // subscriptions keep the request id, reject the futures waiting for a subscription refused by the exchange,
                 // authentication errors included: a private channel the api key has no access to is refused with 1003
                 // the login request has no id, so a login error matches no subscription
-                List<Object> subscriptionHashes = Helpers.objectKeys(client.subscriptions);
+                List<Object> subscriptionHashes = ((List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v10 -> { synchronized (j39v10) { yield new ArrayList<Object>(j39v10.keySet()); } } case null, default -> new ArrayList<Object>(); });
                 for (var i = 0; i < ((List<?>)subscriptionHashes).size(); i++)
                 {
                     Object subscriptionHash = (subscriptionHashes == null || i < 0 || i >= subscriptionHashes.size() ? null : subscriptionHashes.get(i));
