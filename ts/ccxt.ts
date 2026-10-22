@@ -240,6 +240,12 @@ import polymarketPrediction from  './src/prediction/polymarket.js'
 import predictfunPrediction from  './src/prediction/predictfun.js'
 import sxbetPrediction from  './src/prediction/sxbet.js'
 
+/**
+ * Map of exchange IDs to Exchange constructor classes (`Record<string, typeof Exchange>`).
+ * In ESM, `import { exchanges } from 'ccxt'` provides this dictionary.
+ * With CommonJS `require`, `exchanges` is the array of exchange ID strings (`ccxt.exchanges`).
+ * To get an array of all available exchange ID strings across all environments, use `ccxt.exchanges`.
+ */
 const exchanges = {
     'alpaca':                 alpaca,
     'apex':                   apex,
@@ -455,10 +461,6 @@ export {
     Exchange,
     BaseExchange,
     PredictionExchange,
-    /**
-     * Map of exchange IDs to Exchange constructor classes (`Record<string, typeof Exchange>`).
-     * To get an array of all available exchange ID strings, use `ccxt.exchanges`.
-     */
     exchanges,
     pro,
     prediction,

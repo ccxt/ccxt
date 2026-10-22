@@ -207,8 +207,8 @@ console.log (ccxt.exchanges) // print all available exchanges
 
 Note:
 - `ccxt.exchanges` (default import) is an `Array<string>` containing all available exchange IDs (e.g. `['binance', 'kraken', ...]`).
-- The named import `import { exchanges } from 'ccxt'` is a dictionary object (`Record<string, typeof Exchange>`) mapping each exchange ID to its constructor class.
-- In certain CommonJS bundling setups, named `exchanges` may resolve to `ccxt.exchanges` (the array of IDs). For consistency across all runtimes and bundlers, use `ccxt.exchanges` directly rather than calling `Object.keys(exchanges)`.
+- The named import `import { exchanges } from 'ccxt'` (ESM) is a dictionary object (`Record<string, typeof Exchange>`) mapping each exchange ID to its constructor class.
+- With CommonJS `require` (e.g. `const { exchanges } = require('ccxt')`), `exchanges` is always the same id array as `ccxt.exchanges`. For consistency across all runtimes and bundlers, use `ccxt.exchanges` directly rather than calling `Object.keys(exchanges)`.
 #### **Python**
 ```python
 import ccxt
