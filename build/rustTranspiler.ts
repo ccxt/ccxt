@@ -9013,7 +9013,7 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = this.hx4R29InlineCollectionHelpers(rustContent);
                 rustContent = this.r31Str(rustContent); // hx4 R31
                 rustContent = this.r32Native(rustContent); // hx4 R32
-                rustContent = this.hx5X46ForCounterIncrement(rustContent); // hx5 X46
+                rustContent = this.x46Incr(rustContent); // hx5 X46
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
                 throw new Error(
@@ -9742,7 +9742,7 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = this.hx4R29InlineCollectionHelpers(finalFile);
         finalFile = this.r31Str(finalFile); // hx4 R31
         finalFile = this.r32Native(finalFile); // hx4 R32
-        finalFile = this.hx5X46ForCounterIncrement(finalFile); // hx5 X46
+        finalFile = this.x46Incr(finalFile); // hx5 X46
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
         //   `export class BaseExchange { ... }`  (holds the transpile marker)
@@ -12751,7 +12751,7 @@ impl std::ops::DerefMut for ${coreName} {
     // is this incrementor. Int ± Int stays Int, so `i` is always `Value::Int`
     // and the match only ever takes its Int/Int arm: emit that arm natively.
     // Unproven counters are left exactly as printed.
-    hx5X46NativeForCounter(content: string): string {
+    x46Incr(content: string): string {
         const incrRe = /while \{ if !(__for_first_\d+) \{ (\w+) = \(match \(&\(\2\), &\(Value::Int\(1\)\)\) \{ \(Value::Int\(x\), Value::Int\(y\)\) => Value::Int\(x ([+-]) y\), \(Value::Int\(x\), Value::Float\(y\)\) => Value::Float\(\*x as f64 \3 \*y\), \(Value::Float\(x\), Value::Int\(y\)\) => Value::Float\(\*x \3 \*y as f64\), \(Value::Float\(x\), Value::Float\(y\)\) => Value::Float\(x \3 y\), _ => Value::Null \}\); \}/g;
         const rewrites: Array<{ start: number, end: number, text: string }> = [];
         let m: RegExpExecArray | null;
