@@ -1070,7 +1070,7 @@ export default class coinbaseinternational extends Exchange {
             const ticker = await this.fetchTicker (symbol, paramsResolved);
             tickers[symbol] = ticker;
         }
-        return this.filterByArray (tickers, 'symbol', symbolsResolved, true);
+        return this.filterByArrayTickers (tickers, 'symbol', symbolsResolved);
     }
 
     /**
