@@ -3124,9 +3124,9 @@ export default class bybit extends Exchange {
         } else {
             if (since !== undefined) {
                 // end time is required when since is not empty
-                let fundingInterval = 28800000; // 8 hours in milliseconds
+                let fundingInterval = 60 * 60 * 8 * 1000;
                 if (fundingTimeFrameMins !== undefined) {
-                    fundingInterval = fundingTimeFrameMins * 60000;
+                    fundingInterval = fundingTimeFrameMins * 60 * 1000;
                 }
                 if (limit === undefined) {
                     request['endTime'] = this.sum (since, 200 * fundingInterval);
