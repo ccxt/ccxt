@@ -21,7 +21,7 @@ fn helperTestInitThrottler() {
     let mut rateLimit: Value = crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("rateLimit".into()));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&rateLimit, &Value::Float(10.8))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&tokenBucket, &Value::Str("delay".into())), &Value::Float(0.001))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&tokenBucket, &Value::Str("refillRate".into())), &divide(&Value::Int(1), &rateLimit))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&tokenBucket, &Value::Str("refillRate".into())), &(match (&(Value::Int(1)), &(rateLimit)) { (__a, __b) => match (__a.as_f64(), (match __b { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })) { (Some(__x), Some(__y)) if __y != 0.0 => Value::Float(__x / __y), _ => Value::Null } }))))));
     // fix decimal/integer issues across langs
     assert!(ccxt::runtime::is_true(&(exchange.in_array(get_value(&tokenBucket, &Value::Str("capacity".into())), Value::from(vec![Value::Int(1), Value::Int(1)])))));
     let mut cost: Value = exchange.parse_to_numeric(exchange.safe_string2(tokenBucket.clone(), Value::Str("cost".into()), Value::Str("defaultCost".into()), &[])); // python sync, todo fix
@@ -132,8 +132,8 @@ fn helperTestProperties() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("userAgents".into())) != Value::Null))));
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1522: bool = true;
-        while { if !__for_first_1522 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1522 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(keys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_1521: bool = true;
+        while { if !__for_first_1521 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1521 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(keys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
         let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
         let mut userAgent: Value = get_value(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("userAgents".into())), &key);
         assert!(ccxt::runtime::is_true(&(Value::Bool(userAgent != Value::Null))));
