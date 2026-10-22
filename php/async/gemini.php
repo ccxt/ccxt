@@ -2105,7 +2105,7 @@ class gemini extends Exchange {
         }
         $indexedByNetwork = Async\await($this->fetch_deposit_addresses_by_network($code, $params));
         $networkCode = $this->handle_network_code_and_params($params)[0];
-        return $this->safe_value($indexedByNetwork, $networkCode);
+        return $this->safe_dict($indexedByNetwork, $networkCode);
     }
 
     public function fetch_deposit_addresses_by_network(string $code, $params = array()): PromiseInterface {

@@ -5200,24 +5200,23 @@ class mexc extends Exchange {
          */
         $network = $this->safe_string($params, 'network');
         $addressStructures = Async\await($this->fetch_deposit_addresses_by_network($code, $params));
+        $key = null;
         if ($network !== null) {
-            $netCode = $this->network_id_to_code($network, $code);
-            $result = ($netCode === null) ? null : $this->safe_dict($addressStructures, $netCode);
+            $key = $this->network_id_to_code($network, $code);
         } else {
             $options = $this->safe_dict($this->options, 'defaultNetworks');
             $defaultNetworkForCurrency = $this->safe_string($options, $code);
             if ($defaultNetworkForCurrency !== null) {
-                $result = $this->safe_dict($addressStructures, $defaultNetworkForCurrency);
+                $key = $defaultNetworkForCurrency;
             } else {
                 $keys = is_array($addressStructures) ? array_keys($addressStructures) : array();
                 $key = $this->safe_string($keys, 0);
-                $result = $this->safe_dict($addressStructures, $key);
             }
         }
-        if ($result === null) {
+        if (($key === null) || ($this->safe_dict($addressStructures, $key) === null)) {
             throw new InvalidAddress($this->id . ' fetchDepositAddress() cannot find a deposit address for ' . $code . ', and network' . $network . 'consider creating one using .createDepositAddress() method or in MEXC website');
         }
-        return $result;
+        return $this->safe_dict($addressStructures, $key);
     }
 
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {

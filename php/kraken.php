@@ -3327,7 +3327,8 @@ class kraken extends Exchange {
         //         ]
         //     }
         //
-        return $this->safe_value($response, 'result');
+        $result = $this->safe_list($response, 'result', array());
+        return $result;
     }
 
     public function fetch_deposit_address(string $code, $params = array()): array {

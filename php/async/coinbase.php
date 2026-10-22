@@ -989,7 +989,7 @@ class coinbase extends Exchange {
         list($currencyType, $paramsCurrencyType) = $this->handle_option_string_and_params($params, 'fetchWithdrawals', 'currencyType');
         if ($currencyType === 'crypto') {
             $results = Async\await($this->fetch_transactions_with_method('v2PrivateGetAccountsAccountIdTransactions', $code, $since, $limit, $paramsCurrencyType));
-            return $this->filter_by_array($results, 'type', 'withdrawal', false);
+            return $this->to_array($this->filter_by_array($results, 'type', 'withdrawal', false));
         }
         return Async\await($this->fetch_transactions_with_method('v2PrivateGetAccountsAccountIdWithdrawals', $code, $since, $limit, $paramsCurrencyType));
     }
@@ -1015,7 +1015,7 @@ class coinbase extends Exchange {
         list($currencyType, $paramsCurrencyType) = $this->handle_option_string_and_params($params, 'fetchDeposits', 'currencyType');
         if ($currencyType === 'crypto') {
             $results = Async\await($this->fetch_transactions_with_method('v2PrivateGetAccountsAccountIdTransactions', $code, $since, $limit, $paramsCurrencyType));
-            return $this->filter_by_array($results, 'type', 'deposit', false);
+            return $this->to_array($this->filter_by_array($results, 'type', 'deposit', false));
         }
         return Async\await($this->fetch_transactions_with_method('v2PrivateGetAccountsAccountIdDeposits', $code, $since, $limit, $paramsCurrencyType));
     }
@@ -1040,7 +1040,7 @@ class coinbase extends Exchange {
             Async\await($this->load_markets());
         }
         $results = Async\await($this->fetch_transactions_with_method('v2PrivateGetAccountsAccountIdTransactions', $code, $since, $limit, $params));
-        return $this->filter_by_array($results, 'type', array( 'deposit', 'withdrawal' ), false);
+        return $this->to_array($this->filter_by_array($results, 'type', array( 'deposit', 'withdrawal' ), false));
     }
 
     public function parse_transaction_status(?string $status) {
@@ -2783,18 +2783,17 @@ class coinbase extends Exchange {
         $data = $this->safe_list($response, 'data', array());
         $ledger = $this->parse_ledger($data, $currency, $since, $limit);
         $length = count($ledger);
-        if ($length === 0) {
-            return $ledger;
+        if ($length > 0) {
+            $lastIndex = $length - 1;
+            $last = $this->safe_dict($ledger, $lastIndex);
+            $pagination = $this->safe_dict($response, 'pagination', array());
+            $cursor = $this->safe_string($pagination, 'next_starting_after');
+            if (($cursor !== null) && ($cursor !== '')) {
+                $last['info']['next_starting_after'] = $cursor;
+                $ledger[$lastIndex] = $last;
+            }
         }
-        $lastIndex = $length - 1;
-        $last = $this->safe_dict($ledger, $lastIndex);
-        $pagination = $this->safe_dict($response, 'pagination', array());
-        $cursor = $this->safe_string($pagination, 'next_starting_after');
-        if (($cursor !== null) && ($cursor !== '')) {
-            $last['info']['next_starting_after'] = $cursor;
-            $ledger[$lastIndex] = $last;
-        }
-        return $ledger;
+        return $this->to_array($ledger);
     }
 
     public function parse_ledger_entry_status(?string $status): ?string {
@@ -3141,7 +3140,7 @@ class coinbase extends Exchange {
         for ($i = 0; $i < count($this->accounts); $i++) {
             $account = $this->accounts[$i];
             if ($account['code'] === $code) {
-                return $account['id'];
+                return $this->safe_string($account, 'id');
             }
         }
         return null;
@@ -5403,7 +5402,7 @@ class coinbase extends Exchange {
         return $result;
     }
 
-    public function parse_portfolio_details(array $portfolioData) {
+    public function parse_portfolio_details(array $portfolioData): array {
         $breakdown = $this->safe_dict($portfolioData, 'breakdown');
         $portfolioInfo = $this->safe_dict($breakdown, 'portfolio', array());
         $portfolioName = $this->safe_string($portfolioInfo, 'name', 'Unknown');

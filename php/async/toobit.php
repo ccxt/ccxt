@@ -1604,7 +1604,7 @@ class toobit extends Exchange {
             $results[] = $ticker;
         }
         $symbolsNormalized = $this->market_symbols($symbols);
-        return $this->filter_by_array($results, 'symbol', $symbolsNormalized);
+        return $this->filter_by_array_tickers($results, 'symbol', $symbolsNormalized);
     }
 
     public function parse_bid_ask_custom(array $ticker): array {

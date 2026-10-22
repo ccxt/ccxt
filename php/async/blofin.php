@@ -3373,7 +3373,8 @@ class blofin extends Exchange {
             $request['clientOrderId'] = $clientOrderId;
         }
         $response = Async\await($this->privatePostTradeClosePosition($this->extend($request, $paramsMarginMode)));
-        return $this->safe_dict($response, 'data');
+        $data = $this->safe_dict($response, 'data', array());
+        return $this->parse_order($data, $market);
     }
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {

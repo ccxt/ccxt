@@ -5409,7 +5409,7 @@ class bybit extends Exchange {
         if ($length > 1) {
             throw new InvalidOrder($this->id . ' returned more than one order');
         }
-        return $this->safe_value($result, 0);
+        return $this->safe_dict($result, 0);
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
@@ -5636,19 +5636,19 @@ class bybit extends Exchange {
 
     private function do_fetch_closed_order(string $id, ?string $symbol = null, $params = array()) {
         /**
-         * fetches information on a closed order made by the user
+         * fetches information on a closed $order made by the user
          *
          * @see https://bybit-exchange.github.io/docs/v5/order/order-list
          *
-         * @param {string} $id order $id
-         * @param {string} [$symbol] unified $symbol of the market the order was made in
+         * @param {string} $id $order $id
+         * @param {string} [$symbol] unified $symbol of the market the $order was made in
          * @param {array} [$params] $extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->trigger] set to true for fetching a closed trigger order
+         * @param {boolean} [$params->trigger] set to true for fetching a closed trigger $order
          * @param {boolean} [$params->stop] alias for trigger
          * @param {string} [$params->type] market type, ['swap', 'option', 'spot']
          * @param {string} [$params->subType] market subType, ['linear', 'inverse']
          * @param {string} [$params->orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
-         * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -5666,7 +5666,8 @@ class bybit extends Exchange {
         if ($length > 1) {
             throw new InvalidOrder($this->id . ' returned more than one order');
         }
-        return $this->safe_value($result, 0);
+        $order = $this->safe_dict($result, 0);
+        return $order;
     }
 
     public function fetch_open_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
@@ -5675,21 +5676,21 @@ class bybit extends Exchange {
 
     private function do_fetch_open_order(string $id, ?string $symbol = null, $params = array()) {
         /**
-         * fetches information on an open order made by the user
+         * fetches information on an open $order made by the user
          *
-         * @see https://bybit-exchange.github.io/docs/v5/order/open-order
+         * @see https://bybit-exchange.github.io/docs/v5/order/open-$order
          *
-         * @param {string} $id order $id
-         * @param {string} [$symbol] unified $symbol of the market the order was made in
+         * @param {string} $id $order $id
+         * @param {string} [$symbol] unified $symbol of the market the $order was made in
          * @param {array} [$params] $extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->trigger] set to true for fetching an open trigger order
+         * @param {boolean} [$params->trigger] set to true for fetching an open trigger $order
          * @param {boolean} [$params->stop] alias for trigger
          * @param {string} [$params->type] market type, ['swap', 'option', 'spot']
          * @param {string} [$params->subType] market subType, ['linear', 'inverse']
          * @param {string} [$params->baseCoin] Base coin. Supports linear, inverse & option
          * @param {string} [$params->settleCoin] Settle coin. Supports linear, inverse & option
          * @param {string} [$params->orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
-         * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -5707,7 +5708,8 @@ class bybit extends Exchange {
         if ($length > 1) {
             throw new InvalidOrder($this->id . ' returned more than one order');
         }
-        return $this->safe_value($result, 0);
+        $order = $this->safe_dict($result, 0);
+        return $order;
     }
 
     public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -6236,7 +6238,7 @@ class bybit extends Exchange {
         list($networkCode, $paramsOmited) = $this->handle_network_code_and_params($params);
         $indexedAddresses = Async\await($this->fetch_deposit_addresses_by_network($code, $paramsOmited));
         $selectedNetworkCode = $this->select_network_key_from_networks($currency['code'], $networkCode, $indexedAddresses, true);
-        return $this->safe_value($indexedAddresses, $selectedNetworkCode);
+        return $this->safe_dict($indexedAddresses, $selectedNetworkCode);
     }
 
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -9225,7 +9227,7 @@ class bybit extends Exchange {
             'nextPageCursor' => $cursorValue,
         );
         $result[$lastIndex] = $last;
-        return $result;
+        return $this->to_array($result);
     }
 
     public function fetch_leverage_tiers(?array $symbols = null, $params = array()): PromiseInterface {

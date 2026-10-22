@@ -2026,7 +2026,7 @@ class hyperliquid extends Exchange {
         return $this->apply_event_fetch_params($events, $params, $queries);
     }
 
-    public function parse_event(array $raw): mixed {
+    public function parse_event(array $raw): array {
         /**
          * @ignore
          * parses a grouped set of outcome $markets into a unified prediction event object

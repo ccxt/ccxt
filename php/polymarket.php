@@ -1018,7 +1018,7 @@ class polymarket extends Exchange {
         $symbolsNormalized = $this->market_symbols($symbols);
         $response = $this->publicGetInfoTickers($params);
         $result = $this->parse_funding_rates($response);
-        return $this->filter_by_array($result, 'symbol', $symbolsNormalized);
+        return $this->index_by($this->filter_by_array($result, 'symbol', $symbolsNormalized, false), 'symbol');
     }
 
     public function parse_funding_rate(mixed $contract, ?array $market = null): array {
@@ -1163,7 +1163,7 @@ class polymarket extends Exchange {
         $symbolsNormalized = $this->market_symbols($symbols);
         $response = $this->publicGetInfoTickers($params);
         $result = $this->parse_open_interests($response);
-        return $this->filter_by_array($result, 'symbol', $symbolsNormalized);
+        return $this->index_by($this->filter_by_array($result, 'symbol', $symbolsNormalized, false), 'symbol');
     }
 
     public function parse_open_interest(mixed $interest, ?array $market = null) {

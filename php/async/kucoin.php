@@ -11868,8 +11868,8 @@ class kucoin extends Exchange {
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->uta] set to true to fetch leverage tiers for unified trading account instead of futures account (default is false)
-         * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-tiers-structure leverage tiers structure~
+         * @param {boolean} [$params->uta] set to true to fetch leverage $tiers for unified trading account instead of futures account (default is false)
+         * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-$tiers-structure leverage $tiers structure~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -11882,7 +11882,8 @@ class kucoin extends Exchange {
         list($utaOption, $paramsUta) = $this->handle_option_bool_and_params($params, 'fetchMarketLeverageTiers', 'uta', $uta);
         if ($utaOption) {
             $result = Async\await($this->fetch_leverage_tiers(array( $symbol ), $paramsUta));
-            return $this->safe_list($result, $symbol, array());
+            $tiers = $this->safe_list($result, $symbol, array());
+            return $tiers;
         }
         $request = array(
             'symbol' => $market['id'],
@@ -12178,14 +12179,13 @@ class kucoin extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {boolean} true if unified account is enabled, false otherwise
          */
-        $uta = $this->safe_bool($this->options, 'uta');
-        if ($uta === null) {
+        if ($this->safe_bool($this->options, 'uta') === null) {
             $response = Async\await($this->utaPrivateGetAccountMode($params));
             $data = $this->safe_dict($response, 'data', array());
             $accountMode = $this->safe_string($data, 'selfAccountMode');
-            $uta = ($accountMode === 'UNIFIED');
-            $this->options['uta'] = $uta;
+            $this->options['uta'] = ($accountMode === 'UNIFIED');
         }
+        $uta = $this->safe_bool($this->options, 'uta') === true;
         return $uta;
     }
 

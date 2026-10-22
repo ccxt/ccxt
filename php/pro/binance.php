@@ -992,8 +992,9 @@ class binance extends \ccxt\async\binance {
         $subscription = array(
             'method' => array($this, 'handle_fetch_order_book'),
         );
-        $orderbook = Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
-        $orderbook['symbol'] = $market['symbol'];
+        $snapshot = Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
+        $snapshot['symbol'] = $market['symbol'];
+        $orderbook = $this->order_book($snapshot);
         return $orderbook;
     }
 

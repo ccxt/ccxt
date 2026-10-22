@@ -1341,10 +1341,10 @@ class binance extends Exchange {
         // }
         //
         $data = $this->safe_list($response, 'positions', array());
-        $positions = $this->parse_prediction_positions($data);
         if ($outcomes === null) {
-            return $positions;
+            return $this->parse_prediction_positions($data);
         }
+        $positions = $this->parse_prediction_positions($data);
         $filtered = array();
         $positionsLength = count($positions);
         for ($i = 0; $i < $positionsLength; $i++) {
@@ -1635,9 +1635,8 @@ class binance extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a wallet
          */
-        $cachedWallet = $this->safe_dict($this->options, 'wallet');
-        if ($cachedWallet !== null) {
-            return $cachedWallet;
+        if ($this->safe_dict($this->options, 'wallet') !== null) {
+            return $this->safe_dict($this->options, 'wallet');
         }
         $walletAddress = $this->handle_option_string_and_params($params, $methodName, 'walletAddress', $this->walletAddress)[0];
         $response = Async\await($this->sapiPrivateGetWalletList());
@@ -1654,23 +1653,18 @@ class binance extends Exchange {
         //
         $wallets = $this->safe_list($response, 'wallets', array());
         if ($walletAddress === null) {
-            $cachedWallet = $this->safe_dict($wallets, 0);
-            $this->options['wallet'] = $cachedWallet;
-            return $cachedWallet;
+            $this->options['wallet'] = $this->safe_dict($wallets, 0);
+            return $this->safe_dict($this->options, 'wallet');
         }
         $walletLength = count($wallets);
         for ($i = 0; $i < $walletLength; $i++) {
             $w = $this->safe_string($wallets[$i], 'walletAddress', '');
             if ($w === $walletAddress) {
-                $cachedWallet = $wallets[$i];
-                break;
+                $this->options['wallet'] = $wallets[$i];
+                return $this->safe_dict($this->options, 'wallet');
             }
         }
-        if ($cachedWallet === null) {
-            throw new NotSupported($this->id . 'fetchWallet could\'n find wallet ' . $walletAddress);
-        }
-        $this->options['wallet'] = $cachedWallet;
-        return $cachedWallet;
+        throw new NotSupported($this->id . 'fetchWallet could\'n find wallet ' . $walletAddress);
     }
 
     public function fetch_quote(array $request, $params = array()): PromiseInterface {

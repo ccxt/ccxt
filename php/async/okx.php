@@ -5809,7 +5809,7 @@ class okx extends Exchange {
         }
         $codeNetwork = $this->network_id_to_code($codeValue, $codeValue);
         if (($codeNetwork !== null) && (is_array($response) && array_key_exists($codeNetwork ?? '', $response))) {
-            return $response[$codeNetwork];
+            return $this->safe_dict($response, $codeNetwork);
         }
         // if the network is not specified, return the first address
         $keys = is_array($response) ? array_keys($response) : array();
@@ -9082,7 +9082,7 @@ class okx extends Exchange {
         //     }
         //
         $underlyings = $this->safe_list($response, 'data', array());
-        return $underlyings[0];
+        return $this->to_array($this->safe_list($underlyings, 0, array()));
     }
 
     public function fetch_greeks(string $symbol, $params = array()): PromiseInterface {

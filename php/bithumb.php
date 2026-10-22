@@ -2852,7 +2852,7 @@ class bithumb extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_withdrawal_whitelist($params = array()): mixed {
+    public function fetch_withdrawal_whitelist($params = array()): array {
         /**
          * fetch a list of allowed withdrawal addresses
          *

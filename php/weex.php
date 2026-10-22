@@ -3895,7 +3895,7 @@ class weex extends Exchange {
          * @param {string} $symbol Unified CCXT $market $symbol
          * @param {string} [$side] not used by current exchange
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -3905,8 +3905,8 @@ class weex extends Exchange {
             'symbol' => $market['id'],
         );
         $response = $this->contractPrivatePostCapiV3ClosePositions($this->extend($request, $params));
-        $orders = $this->parse_orders($response, $market);
-        return $this->safe_dict($orders, 0);
+        $order = $this->safe_dict($response, 0, array());
+        return $this->parse_order($order, $market);
     }
 
     public function fetch_trading_fee(string $symbol, $params = array()): array {

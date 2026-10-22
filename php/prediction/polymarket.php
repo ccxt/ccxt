@@ -914,9 +914,8 @@ class polymarket extends Exchange {
                     $this->markets[$mkt['market']] = $mkt;
                 }
                 $this->populate_outcomes();
-                $byId = $this->safe_value($this->outcomes_by_id, $outcomeSymbol);
-                if ($byId !== null) {
-                    return $byId;
+                if ($this->safe_dict($this->outcomes_by_id, $outcomeSymbol) !== null) {
+                    return $this->safe_dict($this->outcomes_by_id, $outcomeSymbol);
                 }
             }
         }
@@ -1793,10 +1792,10 @@ class polymarket extends Exchange {
         $positions = $this->safe_list($response, 'data', array());
         // parse without the base outcome filter (it resolves standard markets, not outcome tokens),
         // then filter by the requested outcomes' token ids ourselves
-        $parsed = $this->parse_prediction_positions($positions);
         if ($outcomesLength === 0) {
-            return $parsed;
+            return $this->parse_prediction_positions($positions);
         }
+        $parsed = $this->parse_prediction_positions($positions);
         $wantedIds = array();
         if ($outcomes === null) {
             throw new ExchangeError($this->id . ' fetchPositions() missing outcomes');

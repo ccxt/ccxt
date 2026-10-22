@@ -7316,7 +7316,7 @@ class BaseExchange {
             throw new NotSupported($this->id . ' fetchDepositWithdrawFee() is not supported yet');
         }
         $fees = $this->fetch_deposit_withdraw_fees(array( $code ), $params);
-        return $this->safe_value($fees, $code);
+        return $this->safe_dict($fees, $code);
     }
 
     public function get_supported_mapping(?string $key, array $mapping = array()) {
@@ -7779,13 +7779,12 @@ class BaseExchange {
 
     public function fetch_deposit_address(string $code, $params = array()) {
         if ($this->has['fetchDepositAddresses'] !== null && $this->has['fetchDepositAddresses'] !== false) {
-            $depositAddresses = $this->fetch_deposit_addresses(array( $code ), $params);
-            $depositAddress = $this->safe_value($depositAddresses, $code);
-            if ($depositAddress === null) {
+            $depositAddressesList = $this->fetch_deposit_addresses(array( $code ), $params);
+            $depositAddresses = $this->index_by($depositAddressesList, 'currency');
+            if ($this->safe_dict($depositAddresses, $code) === null) {
                 throw new InvalidAddress($this->id . ' fetchDepositAddress() could not find a deposit address for ' . $code . ', make sure you have created a corresponding deposit address in your wallet on the exchange website');
-            } else {
-                return $depositAddress;
             }
+            return $this->safe_dict($depositAddresses, $code);
         } elseif ($this->has['fetchDepositAddressesByNetwork'] !== null && $this->has['fetchDepositAddressesByNetwork'] !== false) {
             $network = $this->safe_string($params, 'network');
             $paramsOmitted = $this->omit($params, 'network');
@@ -8077,7 +8076,7 @@ class BaseExchange {
             throw new ExchangeError($this->id . ' loadTimeDifference() missing serverTime');
         }
         $this->options['timeDifference'] = $after - $serverTime;
-        return $this->options['timeDifference'];
+        return $this->parse_to_int($this->options['timeDifference']);
     }
 
     public function implode_hostname(string $url) {
@@ -8091,7 +8090,8 @@ class BaseExchange {
                 throw new BadSymbol($this->id . ' fetchMarketLeverageTiers() supports contract markets only');
             }
             $tiers = $this->fetch_leverage_tiers(array( $symbol ));
-            return $this->safe_value($tiers, $symbol);
+            $marketTiers = $this->safe_list($tiers, $symbol);
+            return $marketTiers;
         } else {
             throw new NotSupported($this->id . ' fetchMarketLeverageTiers() is not supported yet');
         }
@@ -8155,7 +8155,7 @@ class BaseExchange {
             }
         }
         $symbolsNormalized = $this->market_symbols($symbols);
-        return $this->filter_by_array($results, 'symbol', $symbolsNormalized);
+        return $this->index_by($this->filter_by_array($results, 'symbol', $symbolsNormalized, false), 'symbol');
     }
 
     public function parse_tickers(mixed $tickers, ?array $symbols = null, $params = array()) {
@@ -8209,10 +8209,10 @@ class BaseExchange {
             $result[] = $address;
         }
         if ($codes !== null) {
-            $result = $this->filter_by_array($result, 'currency', $codes, false);
+            $result = $this->to_array($this->filter_by_array($result, 'currency', $codes, false));
         }
         if ($indexed) {
-            $result = $this->filter_by_array($result, 'currency', null, $indexed);
+            $result = $this->to_array($this->filter_by_array($result, 'currency', null, $indexed));
         }
         return $result;
     }
@@ -8467,7 +8467,7 @@ class BaseExchange {
                 $result[$parsed['symbol']] = $parsed;
             }
         }
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return $this->index_by($this->filter_by_array($result, 'symbol', $symbols, false), 'symbol');
     }
 
     public function parse_open_interests_history(mixed $response, ?array $market = null, ?int $since = null, ?int $limit = null) {
@@ -8820,7 +8820,7 @@ class BaseExchange {
          * @ignore
          * Typed wrapper for filterByArray that returns a list of ADL Ranks
          */
-        return $this->filter_by_array($objects, $key, $values, $indexed);
+        return $this->to_array($this->filter_by_array($objects, $key, $values, $indexed));
     }
 
     public function create_ohlcv_object(string $symbol, string $timeframe, mixed $data) {
@@ -9316,7 +9316,7 @@ class BaseExchange {
             }
         }
         $symbolsNormalized = $this->market_symbols($symbols);
-        return $this->filter_by_array($results, 'symbol', $symbolsNormalized);
+        return $this->index_by($this->filter_by_array($results, 'symbol', $symbolsNormalized, false), 'symbol');
     }
 
     public function parse_option(array $chain, ?array $currency = null, ?array $market = null) {
@@ -9769,7 +9769,7 @@ class Exchange extends BaseExchange {
 
     public function fetch_position_history(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
-         * fetches the history of margin added or reduced from contract isolated $positions
+         * fetches the history of margin added or reduced from contract isolated positions
          * @param {string} [$symbol] unified market $symbol
          * @param {int} [$since] timestamp in ms of the position
          * @param {int} [$limit] the maximum amount of candles to fetch, default=1000
@@ -9777,8 +9777,7 @@ class Exchange extends BaseExchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
          */
         if ($this->has['fetchPositionsHistory'] !== null && $this->has['fetchPositionsHistory'] !== false) {
-            $positions = $this->fetchPositionsHistory(array( $symbol ), $since, $limit, $params);
-            return $positions;
+            return $this->fetchPositionsHistory(array( $symbol ), $since, $limit, $params);
         } else {
             throw new NotSupported($this->id . ' fetchPositionHistory () is not supported yet');
         }
@@ -10353,7 +10352,7 @@ class Exchange extends BaseExchange {
         // TODO: TypeScript: change method signature by replacing
         // Promise<string> with Promise<Order['status']>.
         $order = $this->fetchOrder($id, $symbol, $params);
-        return $order['status'];
+        return $this->safe_string($order, 'status');
     }
 
     public function fetch_unified_order(mixed $order, $params = array()) {

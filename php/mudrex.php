@@ -1168,10 +1168,10 @@ class mudrex extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
+        $market = $this->market($symbol);
         $positionId = $this->safe_string($params, 'position_id');
         $amount = $this->safe_value($params, 'amount');
         if ($positionId === null) {
-            $market = $this->market($symbol);
             $positions = $this->fetch_positions(array( $symbol ), $params);
             for ($i = 0; $i < count($positions); $i++) {
                 $p = $positions[$i];
@@ -1200,11 +1200,13 @@ class mudrex extends Exchange {
             }
             $partialParams = $this->omit($params, array( 'order_type', 'limit_price', 'amount', 'position_id' ));
             $partialResponse = $this->privatePostFuturesPositionsPositionIdClosePartial($this->extend($request, $partialParams));
-            return $partialResponse;
+            $partialData = $this->safe_dict($partialResponse, 'data', $partialResponse);
+            return $this->parse_order($partialData, $market);
         }
         $closeParams = $this->omit($params, array( 'position_id' ));
         $response = $this->privatePostFuturesPositionsPositionIdClose($this->extend($request, $closeParams));
-        return $response;
+        $data = $this->safe_dict($response, 'data', $response);
+        return $this->parse_order($data, $market);
     }
 
     public function add_margin(string $symbol, float $amount, $params = array()): array {

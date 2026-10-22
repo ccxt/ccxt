@@ -1879,14 +1879,14 @@ class hyperliquid extends Exchange {
             'nonce' => $nonce,
             'signature' => $signature,
         );
-        $response = null;
+        $success = false;
         try {
-            $response = $this->privatePostExchange($request);
-            return $response;
+            $this->privatePostExchange($request);
+            $success = true;
         } catch (Exception $e) {
-            $response = null; // ignore this
+            $success = false; // ignore this
         }
-        return $response;
+        return $success;
     }
 
     public function approve_builder_fee(string $builder, string $maxFeeRate) {

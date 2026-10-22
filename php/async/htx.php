@@ -6624,7 +6624,7 @@ class htx extends Exchange {
         list($networkCode, $paramsOmited) = $this->handle_network_code_and_params($params);
         $indexedAddresses = Async\await($this->fetch_deposit_addresses_by_network($code, $paramsOmited));
         $selectedNetworkCode = $this->select_network_key_from_networks($currency['code'], $networkCode, $indexedAddresses, true);
-        return $this->safe_value($indexedAddresses, $selectedNetworkCode);
+        return $this->safe_dict($indexedAddresses, $selectedNetworkCode);
     }
 
     public function fetch_withdraw_addresses(string $code, ?string $note = null, ?string $networkCode = null, $params = array()): PromiseInterface {
@@ -9749,7 +9749,7 @@ class htx extends Exchange {
                     ),
                 );
             }
-            $result = $this->assign_default_deposit_withdraw_fees($result, $currency);
+            $this->assign_default_deposit_withdraw_fees($result, $currency);
         }
         return $result;
     }

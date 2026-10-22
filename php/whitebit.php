@@ -2311,7 +2311,7 @@ class whitebit extends Exchange {
         $sortedOrders = $this->sort_by($allOrders, 'timestamp', true);
         // Apply limit if specified (since and symbol filtering already handled by individual methods)
         if ($limit !== null && strlen($sortedOrders) > $limit) {
-            return mb_substr($sortedOrders, 0, $limit - 0);
+            return $this->array_slice($sortedOrders, 0, $limit);
         }
         return $sortedOrders;
     }
@@ -2541,9 +2541,7 @@ class whitebit extends Exchange {
                 $results[] = $this->extend($order, array( 'status' => 'closed' ));
             }
         }
-        $results = $this->sort_by($results, 'timestamp');
-        $results = $this->filter_by_symbol_since_limit($results, $symbolResolved, $since, $limit);
-        return $results;
+        return $this->filter_by_symbol_since_limit($this->sort_by($results, 'timestamp'), $symbolResolved, $since, $limit);
     }
 
     public function parse_order_type(?string $type) {

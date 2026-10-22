@@ -2833,14 +2833,11 @@ class lbank extends Exchange {
             $method = $this->safe_string($params, 'method', $defaultMethod);
             $paramsOmitted = $this->omit($params, 'method');
             if ($method === 'fetchPublicTransactionFees') {
-                $result = Async\await($this->fetch_public_transaction_fees($paramsOmitted));
-            } else {
-                $result = Async\await($this->fetch_private_transaction_fees($paramsOmitted));
+                return Async\await($this->fetch_public_transaction_fees($paramsOmitted));
             }
-        } else {
-            $result = Async\await($this->fetch_public_transaction_fees($params));
+            return Async\await($this->fetch_private_transaction_fees($paramsOmitted));
         }
-        return $result;
+        return Async\await($this->fetch_public_transaction_fees($params));
     }
 
     public function fetch_private_transaction_fees($params = array()): PromiseInterface {
@@ -3008,14 +3005,11 @@ class lbank extends Exchange {
             $method = $this->safe_string($params, 'method', $defaultMethod);
             $paramsOmitted = $this->omit($params, 'method');
             if ($method === 'fetchPublicDepositWithdrawFees') {
-                $response = Async\await($this->fetch_public_deposit_withdraw_fees($codes, $paramsOmitted));
-            } else {
-                $response = Async\await($this->fetch_private_deposit_withdraw_fees($codes, $paramsOmitted));
+                return Async\await($this->fetch_public_deposit_withdraw_fees($codes, $paramsOmitted));
             }
-        } else {
-            $response = Async\await($this->fetch_public_deposit_withdraw_fees($codes, $params));
+            return Async\await($this->fetch_private_deposit_withdraw_fees($codes, $paramsOmitted));
         }
-        return $response;
+        return Async\await($this->fetch_public_deposit_withdraw_fees($codes, $params));
     }
 
     public function fetch_private_deposit_withdraw_fees(?array $codes = null, $params = array()): PromiseInterface {

@@ -1333,13 +1333,13 @@ class apex extends Exchange {
         return $seeds;
     }
 
-    public function get_account_id() {
+    public function get_account_id(): ?string {
         $accountId = $this->safe_string($this->options, 'accountId', '0');
         if ($accountId === '0') {
             $accountData = $this->fetch_account();
             $this->options['accountId'] = $this->safe_string($accountData, 'id', '0');
         }
-        return $this->options['accountId'];
+        return $this->safe_string($this->options, 'accountId');
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {

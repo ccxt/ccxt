@@ -455,7 +455,7 @@ class lighter extends Exchange {
         /**
          * if the required credentials are available in options, it will pre-load the lighter Signer to avoid delaying sensitive calls like createOrder the first time they're executed
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {boolean} true if the $signer was loaded, false otherwise
+         * @return {boolean} true if the $signer was $loaded, false otherwise
          */
         list($apiKeyIndex, $paramsApiKeyIndex) = $this->handle_api_key_index($params, 'loadAccount', 'apiKeyIndex', 'api_key_index');
         $accountIndexAndParams = $this->handle_account_index($paramsApiKeyIndex, 'loadAccount', 'accountIndex', 'account_index');
@@ -472,7 +472,8 @@ class lighter extends Exchange {
         }
         $signer = $this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex);
         $this->handle_builder_fee_approval($accountIndex, $apiKeyIndex);
-        return ($signer !== null);
+        $loaded = ($signer !== null);
+        return $loaded;
     }
 
     public function handle_api_key_index(array $params, string $methodName1, string $optionName1, string $optionName2, mixed $defaultValue = null): array {
@@ -666,12 +667,13 @@ class lighter extends Exchange {
         return true;
     }
 
-    public function check_if_standard_tier(float $accountIndex) {
+    public function check_if_standard_tier(float $accountIndex): bool {
         $tiersForAccountIndexes = $this->safe_dict($this->options, 'tiersForAccountIndexes', array());
         $accountIndexStr = (string) $accountIndex;
         $isStandardTier = $this->safe_bool($tiersForAccountIndexes, $accountIndexStr);
         if ($isStandardTier !== null) {
-            return $isStandardTier;
+            $cachedIsStandard = ($isStandardTier === true);
+            return $cachedIsStandard;
         }
         $accountLimits = $this->privateGetAccountLimits(array( 'account_index' => $accountIndex ));
         //
@@ -922,11 +924,11 @@ class lighter extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchNonce() requires accountIndex and apiKeyIndex.');
         }
         if (is_array($params) && array_key_exists('nonce' ?? '', $params)) {
-            return $this->safe_integer($params, 'nonce');
+            return $this->parse_to_int($this->safe_integer($params, 'nonce'));
         }
         $nonceInOptions = $this->safe_integer($this->options, 'nonce');
         if ($nonceInOptions !== null) {
-            return $nonceInOptions;
+            return $this->parse_to_int($nonceInOptions);
         }
         // avoid skipNonce for l1 operations
         $skipNonce = $this->handle_option_bool_and_params($params, 'fetchNonce', 'skipNonce', true)[0];
@@ -934,7 +936,7 @@ class lighter extends Exchange {
             return $this->milliseconds();
         }
         $response = $this->publicGetNextNonce(array( 'account_index' => $accountIndex, 'api_key_index' => $apiKeyIndex ));
-        return $this->safe_integer($response, 'nonce');
+        return $this->parse_to_int($this->safe_integer($response, 'nonce'));
     }
 
     public function sign_and_create_order(string $method, ?string $symbol, string $type, string $side, ?float $amount, ?float $price = null, $params = array()): array {

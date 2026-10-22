@@ -1386,7 +1386,7 @@ class woofipro extends Exchange {
             $interest = $this->extend(array( 'timestamp' => $timestamp ), $row);
             $result[] = $this->parse_open_interest($interest);
         }
-        return $this->filter_by_array($result, 'symbol', $symbolsNormalized);
+        return $this->index_by($this->filter_by_array($result, 'symbol', $symbolsNormalized, false), 'symbol');
     }
 
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {

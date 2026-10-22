@@ -1794,7 +1794,7 @@ class aster extends Exchange {
             $results[] = $priceData;
         }
         $symbolsNormalized2 = $this->market_symbols($symbolsNormalized);
-        return $this->filter_by_array($results, 'symbol', $symbolsNormalized2);
+        return $this->index_by($this->filter_by_array($results, 'symbol', $symbolsNormalized2, false), 'symbol');
     }
 
     public function parse_last_price(array $entry, ?array $market = null): array {

@@ -3052,17 +3052,14 @@ class nado extends Exchange {
     }
 
     public function query_contracts($params = array()): array {
-        $cachedContracts = $this->safe_dict($this->options, 'gatewayContracts');
-        if ($cachedContracts !== null) {
-            return $cachedContracts;
+        if ($this->safe_dict($this->options, 'gatewayContracts') === null) {
+            $request = array(
+                'type' => 'contracts',
+            );
+            $response = $this->gatewayPublicGetQuery($this->extend($request, $params));
+            $this->options['gatewayContracts'] = $this->safe_dict($response, 'data', array());
         }
-        $request = array(
-            'type' => 'contracts',
-        );
-        $response = $this->gatewayPublicGetQuery($this->extend($request, $params));
-        $data = $this->safe_dict($response, 'data', array());
-        $this->options['gatewayContracts'] = $data;
-        return $data;
+        return $this->safe_dict($this->options, 'gatewayContracts', array());
     }
 
     public function order_verifying_contract(?int $productId) {

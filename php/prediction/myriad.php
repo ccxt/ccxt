@@ -556,7 +556,7 @@ class myriad extends Exchange {
          * @param {string[]} [$outcomes] unified $outcomes to filter by
          * @param {array} [$params] extra exchange-specific parameters
          * @param {string} [$params->address] the wallet $address to query, defaults to $this->walletAddress
-         * @return {array[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
+         * @return {array[]} a list of [prediction $position structures](https://docs.ccxt.com/#/?id=prediction-$position-structure)
          */
         // resolve the owner the same way fetchBalance does — derive from the configured privateKey
         // when no explicit walletAddress/param is set, so a privateKey-only config works for both
@@ -612,9 +612,12 @@ class myriad extends Exchange {
         $data = $this->safe_list($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
-            $result[] = $this->parse_prediction_position($data[$i]);
+            $position = $this->parse_prediction_position($data[$i]);
+            if (($outcomes === null) || $this->in_array($position['outcome'], $outcomes)) {
+                $result[] = $position;
+            }
         }
-        return $this->filter_by_array($result, 'outcome', $outcomes, false);
+        return $result;
     }
 
     public function parse_prediction_position(array $position, ?array $market = null): array {
@@ -2126,7 +2129,7 @@ class myriad extends Exchange {
         ), $market);
     }
 
-    public function parse_market_to_event(array $raw, mixed $market): mixed {
+    public function parse_market_to_event(array $raw, mixed $market): array {
         /**
          * @ignore
          * wraps a parsed myriad $market into a unified event structure
@@ -3234,7 +3237,7 @@ class myriad extends Exchange {
         return $this->apply_event_fetch_params($result, $postParams, $queries);
     }
 
-    public function parse_event(array $rawEvent): mixed {
+    public function parse_event(array $rawEvent): array {
         /**
          * @ignore
          * parses a raw myriad question object into the unified event shape with a nested markets list

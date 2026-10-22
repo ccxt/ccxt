@@ -2171,10 +2171,10 @@ class predictfun extends Exchange {
         //     }
         //
         $rows = $this->safe_list($response, 'data', array());
-        $parsed = $this->parse_prediction_positions($rows);
         if ($outcomesLength === 0) {
-            return $parsed;
+            return $this->parse_prediction_positions($rows);
         }
+        $parsed = $this->parse_prediction_positions($rows);
         // the venue filters by marketId only, so a set of outcome handles is applied here
         $wanted = array();
         $wantedOutcomes = $this->to_array($outcomes);

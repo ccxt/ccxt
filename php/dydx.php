@@ -1269,7 +1269,7 @@ class dydx extends Exchange {
         $this->load_dydx_protos();
         $dydxAccount = $this->safe_dict($this->options, 'dydxAccount');
         if ($dydxAccount !== null) {
-            return $dydxAccount;
+            return $this->safe_dict($this->options, 'dydxAccount', array());
         }
         if ($this->walletAddress === null) {
             throw new ArgumentsRequired($this->id . ' fetchDydxAccount() requires the walletAddress to be set using the dydx chain address eg => dydx1cpb4tedmwq304c2kc9pwzjwq0sc6z2a4tasxrz');
@@ -1300,7 +1300,7 @@ class dydx extends Exchange {
             'key' => $account['pub_key']['key'],
         );
         $this->options['dydxAccount'] = $account;
-        return $account;
+        return $this->safe_dict($this->options, 'dydxAccount', array());
     }
 
     public function pow(string $n, ?string $m) {
@@ -2296,7 +2296,8 @@ class dydx extends Exchange {
         //     ]
         // }
         //
-        return $this->safe_list($response, 'transfers', array());
+        $transfers = $this->safe_list($response, 'transfers', array());
+        return $transfers;
     }
 
     public function fetch_accounts($params = array()): array {

@@ -870,8 +870,7 @@ class btse extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
-        $result = $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
-        return $result;
+        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
@@ -995,10 +994,10 @@ class btse extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
-        $rates = $this->parse_funding_rate_histories($data, $market, $since, $limit);
         if ($until === null) {
-            return $rates;
+            return $this->parse_funding_rate_histories($data, $market, $since, $limit);
         }
+        $rates = $this->parse_funding_rate_histories($data, $market, $since, $limit);
         $result = array();
         for ($i = 0; $i < count($rates); $i++) {
             $rate = $rates[$i];
@@ -1245,7 +1244,7 @@ class btse extends Exchange {
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-tiers-structure leverage tiers structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-$tiers-structure leverage $tiers structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1253,7 +1252,8 @@ class btse extends Exchange {
             throw new BadRequest($this->id . ' fetchMarketLeverageTiers() supports contract markets only');
         }
         $result = $this->fetch_leverage_tiers(array( $symbol ), $params);
-        return $result[$symbol];
+        $tiers = $this->safe_list($result, $symbol);
+        return $tiers;
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array()): array {
@@ -1605,10 +1605,10 @@ class btse extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
-        $trades = $this->parse_trades($data, $market, $since, $limit);
         if ($until === null) {
-            return $trades;
+            return $this->parse_trades($data, $market, $since, $limit);
         }
+        $trades = $this->parse_trades($data, $market, $since, $limit);
         $result = array();
         for ($i = 0; $i < count($trades); $i++) {
             $trade = $trades[$i];

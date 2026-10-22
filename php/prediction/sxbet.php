@@ -587,7 +587,7 @@ class sxbet extends Exchange {
         return false;
     }
 
-    public function parse_event(string $fixtureId, array $rawMarkets): mixed {
+    public function parse_event(string $fixtureId, array $rawMarkets): array {
         /**
          * @ignore
          * groups a fixture's $raw markets (all sharing one sportXeventId) into one unified event structure
@@ -1220,7 +1220,8 @@ class sxbet extends Exchange {
         } else {
             $response = Async\await($this->sxbetPrivateDeleteOrdersV3All($rest));
         }
-        $result = $this->parse_sxbet_cancel_response($response);
+        $result = array();
+        $result = $this->array_concat($result, $this->parse_sxbet_cancel_response($response));
         // both paths paginate their async submission - keep going on the SAME route while more remain
         $hasMore = $this->safe_bool($this->safe_dict($response, 'data', array()), 'hasMore', false);
         $guard = 0;

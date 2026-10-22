@@ -524,7 +524,7 @@ class opinion extends Exchange {
         return $event;
     }
 
-    public function parse_event(array $rawEvent): mixed {
+    public function parse_event(array $rawEvent): array {
         /**
          * @ignore
          * parses a raw opinion categorical market (with nested childMarkets) into the unified event shape
@@ -1530,10 +1530,10 @@ class opinion extends Exchange {
         $response = Async\await($this->opinionPrivateGetPositionsUserWalletAddress($this->extend($request, $params)));
         $result = $this->safe_dict($response, 'result', array());
         $positions = $this->safe_list($result, 'list', array());
-        $parsed = $this->parse_prediction_positions($positions);
         if ($outcomesLength === 0) {
-            return $parsed;
+            return $this->parse_prediction_positions($positions);
         }
+        $parsed = $this->parse_prediction_positions($positions);
         $wantedTokenIds = array();
         // copy to a plain list so the strict null checks see one shape
         $outcomesList = ($outcomes === null) ? array() : $outcomes;

@@ -1101,7 +1101,7 @@ class bittrade extends Exchange {
             $this->load_markets();
         }
         $response = $this->privateGetAccountAccounts($params);
-        return $this->safe_list($response, 'data', array());
+        return $this->to_array($this->safe_list($response, 'data', array()));
     }
 
     public function fetch_currencies($params = array()): array {

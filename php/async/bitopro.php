@@ -974,7 +974,7 @@ class bitopro extends Exchange {
         return $this->insert_missing_candles($sparse, $timeframeInSeconds, $alignedSince, $limitResolved);
     }
 
-    public function insert_missing_candles(mixed $candles, float $distance, ?int $since, float $limit) {
+    public function insert_missing_candles(mixed $candles, float $distance, ?int $since, float $limit): array {
         // the exchange doesn't send zero volume candles so we emulate them instead
         // otherwise sending a limit arg leads to unexpected results
         $length = count($candles);
@@ -1545,6 +1545,10 @@ class bitopro extends Exchange {
     }
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_closed_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches information on multiple closed orders made by the user
          *
@@ -1559,7 +1563,7 @@ class bitopro extends Exchange {
         $request = array(
             'statusKind' => 'DONE',
         );
-        return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
+        return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
     }
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {

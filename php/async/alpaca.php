@@ -1091,7 +1091,7 @@ class alpaca extends Exchange {
             ), $market);
             $results[] = $ticker;
         }
-        return $this->filter_by_array($results, 'symbol', $symbolsNormalized);
+        return $this->filter_by_array_tickers($results, 'symbol', $symbolsNormalized);
     }
 
     public function generate_client_order_id(array $params): ?string {
@@ -2006,7 +2006,8 @@ class alpaca extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        return Async\await($this->fetch_transactions_helper('BOTH', $code, $since, $limit, $params));
+        $transactions = Async\await($this->fetch_transactions_helper('BOTH', $code, $since, $limit, $params));
+        return $this->to_array($transactions);
     }
 
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -2025,7 +2026,8 @@ class alpaca extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
-        return Async\await($this->fetch_transactions_helper('INCOMING', $code, $since, $limit, $params));
+        $transactions = Async\await($this->fetch_transactions_helper('INCOMING', $code, $since, $limit, $params));
+        return $this->to_array($transactions);
     }
 
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -2044,7 +2046,8 @@ class alpaca extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
-        return Async\await($this->fetch_transactions_helper('OUTGOING', $code, $since, $limit, $params));
+        $transactions = Async\await($this->fetch_transactions_helper('OUTGOING', $code, $since, $limit, $params));
+        return $this->to_array($transactions);
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {

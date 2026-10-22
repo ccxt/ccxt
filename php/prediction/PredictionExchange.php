@@ -1549,7 +1549,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         }
         $results = $this->sort_by_2($results, 'timestamp', 'id');
         $outcomeHandle = $this->safe_string($outcomeObj, 'outcome');
-        return $this->filter_by_outcome_since_limit($results, $outcomeHandle, $since, $limit);
+        return $this->filter_by_value_since_limit($results, 'outcome', $outcomeHandle, $since, $limit, 'timestamp', false);
     }
 
     public function parse_prediction_orders(array $orders, mixed $outcomeObj = null, ?int $since = null, ?int $limit = null, $params = array()) {

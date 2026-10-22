@@ -934,7 +934,7 @@ class bitopro extends Exchange {
         return $this->insert_missing_candles($sparse, $timeframeInSeconds, $alignedSince, $limitResolved);
     }
 
-    public function insert_missing_candles(mixed $candles, float $distance, ?int $since, float $limit) {
+    public function insert_missing_candles(mixed $candles, float $distance, ?int $since, float $limit): array {
         // the exchange doesn't send zero volume candles so we emulate them instead
         // otherwise sending a limit arg leads to unexpected results
         $length = count($candles);

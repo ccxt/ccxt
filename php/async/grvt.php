@@ -1827,7 +1827,7 @@ class grvt extends Exchange {
         $rows = $this->safe_list($response, 'result', array());
         $transfers = $this->parse_transfers($rows, $currency, $since, $limit);
         $filteredResults = $this->filter_transfers_by_type($transfers, 'internal', false);
-        return $filteredResults[1];
+        return $this->to_array($filteredResults[1]);
     }
 
     public function filter_transfers_by_type(mixed $transfers, string $transferType, $onlyMainAccount = true): mixed {

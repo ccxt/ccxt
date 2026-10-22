@@ -817,7 +817,9 @@ class bitstamp extends Exchange {
                 'timestamp' => $now,
             ));
         }
-        return $this->safe_value($this->options['fetchMarkets'], 'response');
+        $cache = $this->safe_dict($this->options, 'fetchMarkets', array());
+        $markets = $this->safe_list($cache, 'response', array());
+        return $markets;
     }
 
     public function fetch_currencies($params = array()): array {

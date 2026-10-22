@@ -2159,7 +2159,7 @@ class bitfinex extends Exchange {
             'id' => array( intval($id) ),
         );
         $orders = $this->fetch_open_orders($symbol, null, null, $this->extend($request, $params));
-        $order = $this->safe_value($orders, 0);
+        $order = $this->safe_dict($orders, 0);
         if ($order === null) {
             throw new OrderNotFound($this->id . ' order ' . $id . ' not found');
         }
@@ -2182,7 +2182,7 @@ class bitfinex extends Exchange {
             'id' => array( intval($id) ),
         );
         $orders = $this->fetch_closed_orders($symbol, null, null, $this->extend($request, $params));
-        $order = $this->safe_value($orders, 0);
+        $order = $this->safe_dict($orders, 0);
         if ($order === null) {
             throw new OrderNotFound($this->id . ' order ' . $id . ' not found');
         }

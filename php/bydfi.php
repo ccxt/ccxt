@@ -906,8 +906,7 @@ class bydfi extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
-        $result = $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
-        return $result;
+        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
@@ -2799,7 +2798,8 @@ class bydfi extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
-        return $this->fetch_transactions_helper('deposit', $code, $since, $limit, $params);
+        $transactions = $this->fetch_transactions_helper('deposit', $code, $since, $limit, $params);
+        return $this->to_array($transactions);
     }
 
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -2814,7 +2814,8 @@ class bydfi extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
-        return $this->fetch_transactions_helper('withdrawal', $code, $since, $limit, $params);
+        $transactions = $this->fetch_transactions_helper('withdrawal', $code, $since, $limit, $params);
+        return $this->to_array($transactions);
     }
 
     public function fetch_transactions_helper(string $type, ?string $code, ?int $since, ?int $limit, mixed $params): array {

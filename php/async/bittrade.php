@@ -1161,7 +1161,7 @@ class bittrade extends Exchange {
             Async\await($this->load_markets());
         }
         $response = Async\await($this->privateGetAccountAccounts($params));
-        return $this->safe_list($response, 'data', array());
+        return $this->to_array($this->safe_list($response, 'data', array()));
     }
 
     public function fetch_currencies($params = array()): PromiseInterface {

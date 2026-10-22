@@ -1208,14 +1208,14 @@ class deepcoin extends Exchange {
 
     public function fetch_deposit_address(string $code, $params = array()): array {
         /**
-         * fetch the deposit $address for a currency associated with this account
+         * fetch the deposit address for a currency associated with this account
          *
          * @see https://www.deepcoin.com/docs/assets/chainlist
          *
          * @param {string} $code unified currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->network] unified $network $code for deposit chain
-         * @return {array} an ~@link https://docs.ccxt.com/?id=$address-structure $address structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1232,16 +1232,17 @@ class deepcoin extends Exchange {
         $paramsOmitted = ($network !== null) ? $this->omit($params, 'network') : $params;
         $addressess = $this->fetch_deposit_addresses(array( $code ), $paramsOmitted);
         $length = count($addressess);
-        $address = $this->safe_dict($addressess, 0, array());
+        $index = 0;
         if (($network !== null) && ($length > 1)) {
+            // the last entry on the requested network wins
             for ($i = 0; $i < $length; $i++) {
-                $entry = $addressess[$i];
-                if ($entry['network'] === $network) {
-                    $address = $entry;
+                $entryNetwork = $this->safe_string($this->safe_dict($addressess, $i, array()), 'network');
+                if ($entryNetwork === $network) {
+                    $index = $i;
                 }
             }
         }
-        return $address;
+        return $this->safe_dict($addressess, $index, array());
     }
 
     public function parse_deposit_address(array $response, ?array $currency = null): array {

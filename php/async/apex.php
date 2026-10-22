@@ -1389,7 +1389,7 @@ class apex extends Exchange {
         return $seeds;
     }
 
-    public function get_account_id() {
+    public function get_account_id(): PromiseInterface {
         return Async\async(self::do_get_account_id(...))();
     }
 
@@ -1399,7 +1399,7 @@ class apex extends Exchange {
             $accountData = Async\await($this->fetch_account());
             $this->options['accountId'] = $this->safe_string($accountData, 'id', '0');
         }
-        return $this->options['accountId'];
+        return $this->safe_string($this->options, 'accountId');
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {

@@ -798,12 +798,12 @@ class bitflyer extends Exchange {
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = 100, $params = array()): array {
         /**
-         * fetches information on multiple $orders made by the user
+         * fetches information on multiple orders made by the user
          *
-         * @see https://lightning.bitflyer.com/docs?lang=en#list-$orders
+         * @see https://lightning.bitflyer.com/docs?lang=en#list-orders
          *
-         * @param {string} $symbol unified $market $symbol of the $market $orders were made in
-         * @param {int} [$since] the earliest time in ms to fetch $orders for
+         * @param {string} $symbol unified $market $symbol of the $market orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
@@ -820,11 +820,10 @@ class bitflyer extends Exchange {
             'count' => $limit,
         );
         $response = $this->privateGetGetchildorders($this->extend($request, $params));
-        $orders = $this->parse_orders($response, $market, $since, $limit);
         if ($symbol !== null) {
-            $orders = $this->filter_by($orders, 'symbol', $symbol);
+            return $this->filter_by($this->parse_orders($response, $market, $since, $limit), 'symbol', $symbol);
         }
-        return $orders;
+        return $this->parse_orders($response, $market, $since, $limit);
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = 100, $params = array()): array {

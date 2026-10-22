@@ -2354,13 +2354,13 @@ class pacifica extends Exchange {
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
-         * fetch all $orders
+         * fetch all orders
          *
          * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-order-history
          *
          * @param {string} $symbol unified $market $symbol
-         * @param {int} [$since] the earliest time in ms to fetch open $orders for
-         * @param {int} [$limit] the maximum number of open $orders structures to retrieve
+         * @param {int} [$since] the earliest time in ms to fetch open orders for
+         * @param {int} [$limit] the maximum number of open orders structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->account] will default to walletAddress if not provided
          * @param {string} [$params->cursor] pagination cursor from prev $request (manual use)
@@ -2416,8 +2416,7 @@ class pacifica extends Exchange {
         // }
         //
         $data = $this->add_pagination_cursor_to_result($response);
-        $orders = $this->parse_orders($data, $market, $since, $limit);
-        return $orders;
+        return $this->parse_orders($data, $market, $since, $limit);
     }
 
     public function add_pagination_cursor_to_result(array $response): array {

@@ -4969,7 +4969,7 @@ class binance extends Exchange {
         return $this->parse_tickers($response, $symbolsNormalized);
     }
 
-    public function parse_tickers_for_rolling(mixed $response, mixed $symbols) {
+    public function parse_tickers_for_rolling(mixed $response, ?array $symbols): array {
         $results = array();
         for ($i = 0; $i < count($response); $i++) {
             $marketId = $this->safe_string($response[$i], 'symbol');
@@ -4978,7 +4978,7 @@ class binance extends Exchange {
             $parsedTicker['symbol'] = $tickerMarket['symbol'];
             $results[] = $parsedTicker;
         }
-        return $this->filter_by_array($results, 'symbol', $symbols);
+        return $this->filter_by_array_tickers($results, 'symbol', $symbols);
     }
 
     public function fetch_mark_price(string $symbol, $params = array()): array {
@@ -5137,12 +5137,12 @@ class binance extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [$limit] the maximum amount of $candles to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->price] "mark" or "index" for mark $price and index $price $candles
+         * @param {string} [$params->price] "mark" or "index" for mark $price and index $price candles
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {int[][]} A list of $candles ordered as timestamp, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -5252,8 +5252,7 @@ class binance extends Exchange {
         //         }
         //     ]
         //
-        $candles = $this->parse_ohlcvs($this->to_array($response), $market, $timeframe, $since, $limitValue);
-        return $candles;
+        return $this->parse_ohlcvs($this->to_array($response), $market, $timeframe, $since, $limitValue);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -10922,7 +10921,7 @@ class binance extends Exchange {
             //       },
             //    ]
             //
-            $result = array();
+            $spotFees = array();
             if ($response === null) {
                 throw new NullResponse($this->id . ' method() returned empty response');
             }
@@ -10931,10 +10930,10 @@ class binance extends Exchange {
                 $fee = $this->parse_trading_fee($fees[$i]);
                 $symbol = $fee['symbol'];
                 if ($symbol !== null) {
-                    $result[$symbol] = $fee;
+                    $spotFees[$symbol] = $fee;
                 }
             }
-            return $result;
+            return $spotFees;
         } elseif ($isLinear) {
             //
             //     {
@@ -10962,7 +10961,7 @@ class binance extends Exchange {
                 throw new ExchangeError($this->id . ' markets not loaded');
             }
             $symbols = is_array($markets) ? array_keys($markets) : array();
-            $result = array();
+            $linearFees = array();
             $feeTier = $this->safe_integer($response, 'feeTier');
             $feeTiers = ($this->fees)['linear']['trading']['tiers'];
             $maker = $feeTiers['maker'][$feeTier][1];
@@ -10971,7 +10970,7 @@ class binance extends Exchange {
                 $symbol = $symbols[$i];
                 $market = $markets[$symbol];
                 if ($this->safe_bool($market, 'linear', false)) {
-                    $result[$symbol] = array(
+                    $linearFees[$symbol] = array(
                         'info' => array(
                             'feeTier' => $feeTier,
                         ),
@@ -10981,7 +10980,7 @@ class binance extends Exchange {
                     );
                 }
             }
-            return $result;
+            return $linearFees;
         } elseif ($isInverse) {
             //
             //     {
@@ -10997,7 +10996,7 @@ class binance extends Exchange {
                 throw new ExchangeError($this->id . ' markets not loaded');
             }
             $symbols = is_array($markets) ? array_keys($markets) : array();
-            $result = array();
+            $inverseFees = array();
             $feeTier = $this->safe_integer($response, 'feeTier');
             $feeTiers = ($this->fees)['inverse']['trading']['tiers'];
             $maker = $feeTiers['maker'][$feeTier][1];
@@ -11006,7 +11005,7 @@ class binance extends Exchange {
                 $symbol = $symbols[$i];
                 $market = $markets[$symbol];
                 if ($this->safe_bool($market, 'inverse', false)) {
-                    $result[$symbol] = array(
+                    $inverseFees[$symbol] = array(
                         'info' => array(
                             'feeTier' => $feeTier,
                         ),
@@ -11016,7 +11015,7 @@ class binance extends Exchange {
                     );
                 }
             }
-            return $result;
+            return $inverseFees;
         }
         throw new NotSupported($this->id . ' fetchTradingFees() is not supported for ' . $type . ' markets');
     }
