@@ -10782,7 +10782,7 @@ function hx5X32TextIsStringLiteral (text) {
     return /^(?:'[^'\\]*'|"[^"\\]*")$/.test (t);
 }
 
-// `Str` / `string | undefined`: a string-only union with an undefined/null member
+// `Str` / `string` / `string | undefined`: a cheap pre-filter; goNativeParameterType is the proof
 function hx5X32NullableStringParam (goTranspiler, param) {
     let type;
     try {
@@ -10790,9 +10790,10 @@ function hx5X32NullableStringParam (goTranspiler, param) {
     } catch (e) {
         return false;
     }
-    const parts = ((type !== undefined) && (typeof type.isUnionType === 'function') && type.isUnionType ()) ? type.getTypes () : [];
+    // ccxt compiles without strictNullChecks, where `Str` collapses to plain `string`
+    const parts = (type === undefined) ? [] : (((typeof type.isUnionType === 'function') && type.isUnionType ()) ? type.getTypes () : [ type ]);
     const strings = parts.filter ((p) => (p.flags & (ts.TypeFlags.String | ts.TypeFlags.StringLiteral)) !== 0);
-    return (strings.length > 0) && (strings.length < parts.length)
+    return (strings.length > 0)
         && parts.every ((p) => (p.flags & (ts.TypeFlags.String | ts.TypeFlags.StringLiteral | ts.TypeFlags.Undefined | ts.TypeFlags.Null)) !== 0);
 }
 
