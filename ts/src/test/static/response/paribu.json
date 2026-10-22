@@ -3,6 +3,509 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchDepositAddress": [
+            {
+                "description": "deposit address on the BTC network, response body copied verbatim from the docs example (docs.paribu.com/api/deposit-and-withdrawals/assigning-deposit-address)",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "BTC",
+                    {
+                        "network": "BTC"
+                    }
+                ],
+                "httpResponse": {
+                    "address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+                    "id": "019a4f2c-3b81-7e60-9d24-5c8f1a0be7d3",
+                    "user_id": "019b1d7e-5c40-7a93-8e15-2f6c0d9ab471",
+                    "currency": "btc",
+                    "network": "btc",
+                    "created_at": "2026-06-10T19:49:57.529806Z",
+                    "updated_at": null,
+                    "deleted_at": ""
+                },
+                "parsedResponse": {
+                    "info": {
+                        "address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+                        "id": "019a4f2c-3b81-7e60-9d24-5c8f1a0be7d3",
+                        "user_id": "019b1d7e-5c40-7a93-8e15-2f6c0d9ab471",
+                        "currency": "btc",
+                        "network": "btc",
+                        "created_at": "2026-06-10T19:49:57.529806Z",
+                        "updated_at": null,
+                        "deleted_at": ""
+                    },
+                    "currency": "BTC",
+                    "network": "BTC",
+                    "address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+                    "tag": null
+                }
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancel by clientOrderId (v2), response copied verbatim from the docs example (docs.paribu.com/api/orders/client-order-id-v2)",
+                "method": "cancelOrder",
+                "input": [
+                    "mm-order-123",
+                    "BTC/TRY",
+                    {
+                        "clientOrderId": "mm-order-123"
+                    }
+                ],
+                "httpResponse": {
+                    "orderId": "1234567890",
+                    "clientOrderId": "mm-order-123"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "1234567890",
+                        "clientOrderId": "mm-order-123"
+                    },
+                    "id": "1234567890",
+                    "clientOrderId": "mm-order-123",
+                    "symbol": "BTC/TRY",
+                    "fees": [],
+                    "timestamp": null,
+                    "datetime": null,
+                    "type": null,
+                    "side": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "price": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "trades": [],
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "status": null,
+                    "fee": null
+                }
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "limit buy with clientOrderId (v2), FULL response with fills copied verbatim from the docs example (docs.paribu.com/api/orders/client-order-id-v2)",
+                "method": "createOrder",
+                "input": [
+                    "BTC/TRY",
+                    "limit",
+                    "buy",
+                    0.1,
+                    100000,
+                    {
+                        "clientOrderId": "mm-order-123",
+                        "response_type": "FULL"
+                    }
+                ],
+                "httpResponse": {
+                    "uid": "1234567890",
+                    "market": "btc_tl",
+                    "trade": "buy",
+                    "type": "limit",
+                    "status": "filled",
+                    "clientOrderId": "mm-order-123",
+                    "response_type": "FULL",
+                    "fills": [
+                        {
+                            "price": "100000",
+                            "qty": "0.1"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": {
+                        "uid": "1234567890",
+                        "market": "btc_tl",
+                        "trade": "buy",
+                        "type": "limit",
+                        "status": "filled",
+                        "clientOrderId": "mm-order-123",
+                        "response_type": "FULL",
+                        "fills": [
+                            {
+                                "price": "100000",
+                                "qty": "0.1"
+                            }
+                        ]
+                    },
+                    "id": "1234567890",
+                    "clientOrderId": "mm-order-123",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": "closed",
+                    "symbol": "BTC/TRY",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": "buy",
+                    "price": null,
+                    "triggerPrice": null,
+                    "amount": 0.1,
+                    "cost": 10000,
+                    "average": 100000,
+                    "filled": 0.1,
+                    "remaining": 0,
+                    "fee": null,
+                    "trades": [
+                        {
+                            "info": {
+                                "price": "100000",
+                                "qty": "0.1"
+                            },
+                            "id": null,
+                            "order": null,
+                            "timestamp": null,
+                            "datetime": null,
+                            "symbol": "BTC/TRY",
+                            "type": null,
+                            "side": null,
+                            "takerOrMaker": null,
+                            "price": 100000,
+                            "amount": 0.1,
+                            "cost": 10000,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        }
+                    ],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "limit buy with clientOrderId (v2), ACK response copied verbatim from the docs example (docs.paribu.com/api/orders/client-order-id-v2)",
+                "method": "createOrder",
+                "input": [
+                    "BTC/TRY",
+                    "limit",
+                    "buy",
+                    0.1,
+                    100000,
+                    {
+                        "clientOrderId": "mm-order-123"
+                    }
+                ],
+                "httpResponse": {
+                    "uid": "1234567890",
+                    "market": "btc_tl",
+                    "trade": "buy",
+                    "type": "limit",
+                    "status": "open",
+                    "price": "100000",
+                    "amount": "0.1",
+                    "clientOrderId": "mm-order-123"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "uid": "1234567890",
+                        "market": "btc_tl",
+                        "trade": "buy",
+                        "type": "limit",
+                        "status": "open",
+                        "price": "100000",
+                        "amount": "0.1",
+                        "clientOrderId": "mm-order-123"
+                    },
+                    "id": "1234567890",
+                    "clientOrderId": "mm-order-123",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": "open",
+                    "symbol": "BTC/TRY",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": "buy",
+                    "price": 100000,
+                    "triggerPrice": null,
+                    "amount": 0.1,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "balance, response body copied verbatim from the docs example (docs.paribu.com/api/account/assets)",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "symbol": "btc",
+                        "available": "0.5",
+                        "locked": "0.1",
+                        "total": "0.6"
+                    },
+                    {
+                        "symbol": "usdt",
+                        "available": "1000",
+                        "locked": "0",
+                        "total": "1000"
+                    }
+                ],
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "symbol": "btc",
+                            "available": "0.5",
+                            "locked": "0.1",
+                            "total": "0.6"
+                        },
+                        {
+                            "symbol": "usdt",
+                            "available": "1000",
+                            "locked": "0",
+                            "total": "1000"
+                        }
+                    ],
+                    "timestamp": null,
+                    "datetime": null,
+                    "BTC": {
+                        "free": 0.5,
+                        "used": 0.1,
+                        "total": 0.6
+                    },
+                    "USDT": {
+                        "free": 1000,
+                        "used": 0,
+                        "total": 1000
+                    },
+                    "free": {
+                        "BTC": 0.5,
+                        "USDT": 1000
+                    },
+                    "used": {
+                        "BTC": 0.1,
+                        "USDT": 0
+                    },
+                    "total": {
+                        "BTC": 0.6,
+                        "USDT": 1000
+                    }
+                }
+            }
+        ],
+        "fetchDepositsWithdrawals": [
+            {
+                "description": "deposits and withdrawals, response body copied verbatim from the docs example (docs.paribu.com/api/account/transfers)",
+                "method": "fetchDepositsWithdrawals",
+                "input": [],
+                "httpResponse": {
+                    "paging": {
+                        "page": 1,
+                        "pageSize": 20,
+                        "total": 2
+                    },
+                    "transfers": [
+                        {
+                            "transferId": "<transfer-uuid>",
+                            "userId": "<user-uuid>",
+                            "currency": "tl",
+                            "amount": "2500.00000000",
+                            "direction": "TransferDirection_Withdraw",
+                            "status": "TransferStatus_Completed",
+                            "kind": "TransferKind_Transfer",
+                            "network": "",
+                            "crossAddress": "",
+                            "tx": "<bank-reference>",
+                            "addressLabel": "<iban>",
+                            "bankName": "<bank-name>",
+                            "createdAt": "2026-09-12T09:14:03.512839Z",
+                            "verifiedAt": "2026-09-12T09:20:41.20794Z",
+                            "deletedAt": null
+                        },
+                        {
+                            "transferId": "<transfer-uuid>",
+                            "userId": "<user-uuid>",
+                            "currency": "usdt",
+                            "amount": "500.00000000",
+                            "direction": "TransferDirection_Deposit",
+                            "status": "TransferStatus_Completed",
+                            "kind": "TransferKind_Transfer",
+                            "network": "arb",
+                            "crossAddress": "",
+                            "tx": "<tx-hash>",
+                            "addressLabel": "<deposit-address>",
+                            "bankName": "",
+                            "createdAt": "2026-09-10T15:30:12.884105Z",
+                            "verifiedAt": "2026-09-10T15:32:55.031276Z",
+                            "deletedAt": null
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "transferId": "<transfer-uuid>",
+                            "userId": "<user-uuid>",
+                            "currency": "usdt",
+                            "amount": "500.00000000",
+                            "direction": "TransferDirection_Deposit",
+                            "status": "TransferStatus_Completed",
+                            "kind": "TransferKind_Transfer",
+                            "network": "arb",
+                            "crossAddress": "",
+                            "tx": "<tx-hash>",
+                            "addressLabel": "<deposit-address>",
+                            "bankName": "",
+                            "createdAt": "2026-09-10T15:30:12.884105Z",
+                            "verifiedAt": "2026-09-10T15:32:55.031276Z",
+                            "deletedAt": null
+                        },
+                        "id": "<transfer-uuid>",
+                        "txid": "<tx-hash>",
+                        "timestamp": 1789054212884,
+                        "datetime": "2026-09-10T15:30:12.884Z",
+                        "network": "ARBITRUM",
+                        "address": "<deposit-address>",
+                        "addressTo": "<deposit-address>",
+                        "addressFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "tagFrom": null,
+                        "type": "deposit",
+                        "amount": 500,
+                        "currency": "USDT",
+                        "status": "ok",
+                        "updated": 1789054375031,
+                        "internal": null,
+                        "comment": null,
+                        "fee": null
+                    },
+                    {
+                        "info": {
+                            "transferId": "<transfer-uuid>",
+                            "userId": "<user-uuid>",
+                            "currency": "tl",
+                            "amount": "2500.00000000",
+                            "direction": "TransferDirection_Withdraw",
+                            "status": "TransferStatus_Completed",
+                            "kind": "TransferKind_Transfer",
+                            "network": "",
+                            "crossAddress": "",
+                            "tx": "<bank-reference>",
+                            "addressLabel": "<iban>",
+                            "bankName": "<bank-name>",
+                            "createdAt": "2026-09-12T09:14:03.512839Z",
+                            "verifiedAt": "2026-09-12T09:20:41.20794Z",
+                            "deletedAt": null
+                        },
+                        "id": "<transfer-uuid>",
+                        "txid": "<bank-reference>",
+                        "timestamp": 1789204443512,
+                        "datetime": "2026-09-12T09:14:03.512Z",
+                        "network": null,
+                        "address": "<iban>",
+                        "addressTo": "<iban>",
+                        "addressFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "tagFrom": null,
+                        "type": "withdrawal",
+                        "amount": 2500,
+                        "currency": "TRY",
+                        "status": "ok",
+                        "updated": 1789204841207,
+                        "internal": null,
+                        "comment": null,
+                        "fee": null
+                    }
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "my trades, response body copied verbatim from the docs example (docs.paribu.com/api/account/trades-history)",
+                "method": "fetchMyTrades",
+                "input": [],
+                "httpResponse": {
+                    "paging": {
+                        "page": 1,
+                        "pageSize": 20,
+                        "total": 0
+                    },
+                    "trades": [
+                        {
+                            "amount": "12.53400000",
+                            "commission": "0.03509520",
+                            "createdAt": "2025-10-15T11:56:49Z",
+                            "direction": "buy",
+                            "marketCurrency": "avax",
+                            "matchId": "7c1f9a04b83e4d6215af0c73e8b91d52",
+                            "orderId": "z46plm1y-8q2g-ol39-zo05-grv0j37wno9o",
+                            "paymentCurrency": "tl",
+                            "price": "570.00000000",
+                            "role": "TAKER",
+                            "userId": "k2xorljq-07w6-g0w7-rnw9-e9mypn3814vz"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "amount": "12.53400000",
+                            "commission": "0.03509520",
+                            "createdAt": "2025-10-15T11:56:49Z",
+                            "direction": "buy",
+                            "marketCurrency": "avax",
+                            "matchId": "7c1f9a04b83e4d6215af0c73e8b91d52",
+                            "orderId": "z46plm1y-8q2g-ol39-zo05-grv0j37wno9o",
+                            "paymentCurrency": "tl",
+                            "price": "570.00000000",
+                            "role": "TAKER",
+                            "userId": "k2xorljq-07w6-g0w7-rnw9-e9mypn3814vz"
+                        },
+                        "id": "7c1f9a04b83e4d6215af0c73e8b91d52",
+                        "order": "z46plm1y-8q2g-ol39-zo05-grv0j37wno9o",
+                        "timestamp": 1760529409000,
+                        "datetime": "2025-10-15T11:56:49.000Z",
+                        "symbol": "AVAX/TRY",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 570,
+                        "amount": 12.534,
+                        "cost": 7144.38,
+                        "fee": {
+                            "currency": "AVAX",
+                            "cost": 0.0350952
+                        },
+                        "fees": [
+                            {
+                                "currency": "AVAX",
+                                "cost": 0.0350952
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
         "fetchTrades": [
             {
                 "description": "recent trades with limit",
