@@ -9500,8 +9500,8 @@ function j40Rewrite (name: string, args: string[], argsM: string[], n: number, i
         return `((long) (switch ((Object) (${x})) { case null -> Long.parseLong("null"); case Long ${v} -> ${v}.longValue(); case Integer ${v} -> ${v}.longValue(); case Double ${v} -> ${v}.longValue(); case Float ${v} -> ${v}.longValue(); case java.math.BigDecimal ${v} -> ${v}.longValue(); case String ${v} -> Long.parseLong(${v}); case Object ${v} -> Long.parseLong(String.valueOf(${v})); }))`;
     }
     if (name === 'isTrue') {
-        if (args.length !== 1) { return undefined; }
-        return `(switch ((Object) (${x})) { case null -> false; case Boolean ${v} -> ${v}.booleanValue(); case Long ${v} -> ${v} != 0L; case Integer ${v} -> ${v} != 0; case Double ${v} -> ${v} != 0.0; case String ${v} -> !${v}.isEmpty(); case java.util.List<?> ${v} -> !${v}.isEmpty(); case java.util.Map<?, ?> ${v} -> true; default -> false; })`;
+        // hx5 X14: native only on a proven boolean/Boolean operand, else the helper call stays
+        return args.length === 1 ? j40X14IsTrue(x, ctx) : undefined;
     }
     if (args.length !== 2) { return undefined; }
     const a = args[0].trim(); const b = args[1].trim();
@@ -9591,13 +9591,13 @@ export function nativeJavaJ40 (content: string): string {
 
 // hx4 J40: snippet checks (`--audit-string-types --self-test`)
 function j40SelfTest (): string[] {
-    const problems: string[] = [];
+    const problems: string[] = j40X14SelfTest();
     const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Object p, String s, Long n)\n    {\n${body}\n    }\n}`;
     const cases: [string, string, string | undefined][] = [
         [ 'isEqual null', '        if (Helpers.isEqual(p, null)) {}', 'if ((((Object) (p)) == null)) {}' ],
         [ 'isEqual int lit', '        if (Helpers.isEqual(p, 5)) {}', 'case Long hx4J40v0 -> hx4J40v0 == 5L;' ],
         [ 'isEqual word', '        if (Helpers.isEqual(p, "abc")) {}', '"abc".equals(p)' ],
-        [ 'isTrue', '        if (Helpers.isTrue(p)) {}', 'case Boolean hx4J40v0 -> hx4J40v0.booleanValue();' ],
+        [ 'isTrue Object', '        if (Helpers.isTrue(p)) {}', undefined ], // hx5 X14
         [ 'toMapArg', '        return this.f(Helpers.toMapArg(p));', 'case java.util.Map<?, ?> hx4J40v0' ],
         [ 'toStringArg', '        return this.f(Helpers.toStringArg(p));', 'this.f(java.util.Objects.toString(p, null))' ],
         [ 'add Object lit', '        Object x = p;\n        return Helpers.add(x, 1);', 'case Integer hx4J40v0 -> (Object) (hx4J40v0.longValue() + 1L);' ],
@@ -9853,13 +9853,82 @@ function j44SelfTest (): string[] {
         [ 'isInstance', '        try {} catch(Exception e) { if (Helpers.isInstance(e, AuthenticationError.class)) {} }', 'yield AuthenticationError.class.isInstance(hx4J44v0u);' ],
         [ 'isArray', '        if (Helpers.isArray(p)) {}', 'case java.util.List<?> hx4J44v0 -> true;' ],
         [ 'inOp nested', '        if (Helpers.inOp(p, Helpers.GetValue(q, "id"))) {}', '.test(p, Helpers.GetValue(q, "id"))' ],
-        [ 'isTrue', '        if (Helpers.isTrue(p)) {}', 'case Boolean hx4J40v0' ],
+        [ 'isTrue Object', '        if (Helpers.isTrue(p)) {}', undefined ], // hx5 X14: helper left alone
         [ 'statement', '        Helpers.isArray(p);', undefined ],
     ];
     for (const [ name, body, expect ] of cases) {
         const out = nativeJavaJ44 (cls (body));
         const ok = expect === undefined ? out === cls (body) : out.includes (expect) && !/Helpers\.(?:isInstance|isArray|inOp|isEqual|isTrue)\(/.test (out);
         if (!ok) problems.push (`hx4 J44: ${name}\n${out}`);
+    }
+    return problems;
+}
+
+// hx5 X14: J40 truthiness. Helpers.isTrue tests null, Boolean, Long, Integer, Double, String, List, Map in
+// order, so a native test is only correct on a proven boolean (`x`) or Boolean (`Boolean.TRUE.equals(x)`).
+// Every other operand keeps the plain helper call; no inline pattern switch is ever emitted.
+function j40X14DeclTypes (masked: string, name: string, pos: number): string[] {
+    const before = masked.slice(0, pos);
+    const breaks = [ ...before.matchAll(/^[ \t]*(?:public|private|protected)[ \t]/gm) ];
+    if (breaks.length === 0) { return []; }
+    const window = before.slice(breaks[breaks.length - 1].index);
+    const out: string[] = [];
+    for (const mm of window.matchAll(new RegExp(`(?:^|[\\s(,])((?:final )?[\\w.<>?,\\[\\]]+)\\s+${name}\\s*(?=[=;,)])`, 'g'))) {
+        const t = mm[1].replace(/^final /, '');
+        if (/,$/.test(t) || /^(?:return|new|else|case|throw|instanceof)$/.test(t)) { continue; }
+        out.push(t);
+    }
+    // an untyped lambda parameter of the same name is a different binding
+    if (new RegExp(`(?:\\(|, )${name}\\) ->|(?<![\\w.])${name} ->`).test(window)) { return []; }
+    return out;
+}
+
+function j40X14Type (e: string, ctx: J40Ctx): 'boolean' | 'Boolean' | undefined {
+    let t = e.trim();
+    while (/^\(.*\)$/s.test(t) && j05Close(t, 0) === t.length) { t = t.slice(1, -1).trim(); }
+    if (/^[A-Za-z_]\w*$/.test(t)) {
+        if (ctx.fields.has(t) || /^(?:true|false|null|this)$/.test(t)) { return t === 'true' || t === 'false' ? 'boolean' : undefined; }
+        const decls = j40X14DeclTypes(ctx.masked, t, ctx.pos);
+        if (decls.length === 0) { return undefined; }
+        if (decls.every((d) => d === 'boolean')) { return 'boolean'; }
+        if (decls.every((d) => d === 'boolean' || d === 'Boolean' || d === 'java.lang.Boolean')) { return 'Boolean'; }
+        return undefined;
+    }
+    // requireNonNullElse(<Boolean>, <boolean literal>) is a non-null Boolean
+    const r = /^java\.util\.Objects\.requireNonNullElse\(([A-Za-z_]\w*), (?:true|false)\)$/.exec(t);
+    if (r !== null && j40X14Type(r[1], ctx) !== undefined) { return 'Boolean'; }
+    if (j35JavaBoolean(t)) { return 'boolean'; }
+    return undefined;
+}
+
+function j40X14IsTrue (x: string, ctx: J40Ctx): string | undefined {
+    const t = j40X14Type(x, ctx);
+    if (t === 'boolean') { return j05IsPrimary(x) ? x : `(${x})`; }
+    if (t === 'Boolean') { return `Boolean.TRUE.equals(${x})`; }
+    return undefined;
+}
+
+function j40X14SelfTest (): string[] {
+    const problems: string[] = [];
+    const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Object p, Boolean q, boolean r)\n    {\n${body}\n    }\n}`;
+    const cases: [string, string, string | undefined][] = [
+        [ 'Boolean param', '        if (Helpers.isTrue(q)) {}', 'if (Boolean.TRUE.equals(q)) {}' ],
+        [ 'boolean param', '        if (Helpers.isTrue(r)) {}', 'if (r) {}' ],
+        [ 'Boolean local', '        Boolean b = null;\n        if (Helpers.isTrue(b)) {}', 'if (Boolean.TRUE.equals(b)) {}' ],
+        [ 'paren Boolean', '        if (Helpers.isTrue((q))) {}', 'if (Boolean.TRUE.equals((q))) {}' ],
+        [ 'requireNonNullElse', '        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(q, false))) {}', 'if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(q, false))) {}' ],
+        [ 'java boolean expr', '        if (Helpers.isTrue(p == null)) {}', 'if ((p == null)) {}' ],
+        // helper left alone: Object param, Object local, mixed declarations, requireNonNullElse on Object, call result
+        [ 'Object param', '        if (Helpers.isTrue(p)) {}', undefined ],
+        [ 'Object local', '        Object b = p;\n        if (Helpers.isTrue(b)) {}', undefined ],
+        [ 'mixed decls', '        { Object b = p; }\n        Boolean b = q;\n        if (Helpers.isTrue(b)) {}', undefined ],
+        [ 'rNNE Object', '        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(p, false))) {}', undefined ],
+        [ 'call', '        if (Helpers.isTrue(this.safeBool(p, "a"))) {}', undefined ],
+    ];
+    for (const [ name, body, expect ] of cases) {
+        const out = nativeJavaJ40 (cls (body));
+        const ok = expect === undefined ? out === cls (body) : out.includes (expect) && !out.includes ('Helpers.isTrue(') && !out.includes ('switch') && nativeJavaJ40 (out) === out;
+        if (!ok) problems.push (`hx5 X14: ${name}\n${out}`);
     }
     return problems;
 }
