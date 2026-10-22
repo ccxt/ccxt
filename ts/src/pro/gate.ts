@@ -520,7 +520,7 @@ export default class gate extends gateRest {
         const interval = intervalDefault;
         const [ intervalOption, paramsInterval ] = this.handleOptionStringAndParams (params, 'watchOrderBook', 'interval', interval);
         const messageType = this.getTypeByMarket (market);
-        let limit = this.safeInteger (paramsInterval, 'limit');
+        let limit: Int = this.safeInteger (paramsInterval, 'limit');
         if (limit === undefined) {
             limit = (market['spot'] === true) ? 50 : 100; // max 100 atm
             if (messageType === 'options') {
@@ -2277,7 +2277,7 @@ export default class gate extends gateRest {
         }
     }
 
-    getUrlByMarketType (type: Str, isInverse: Bool = false): Str {
+    getUrlByMarketType (type: Str, isInverse: boolean = false): Str {
         const api = this.urls['api'];
         const url = this.safeValue (api, type);
         if ((type === 'swap') || (type === 'future')) {
@@ -2422,7 +2422,7 @@ export default class gate extends gateRest {
         return await this.watch (url, messageHash, request, messageHash, requestIdResolved);
     }
 
-    async subscribePrivate (url: Str, messageHash: string, payload: any, channel: Str, params: Dict, requiresUid: Bool = false) {
+    async subscribePrivate (url: Str, messageHash: string, payload: any, channel: Str, params: Dict, requiresUid: boolean = false) {
         this.checkRequiredCredentials ();
         // uid is required for some subscriptions only so it's not a part of required credentials
         if (requiresUid) {
