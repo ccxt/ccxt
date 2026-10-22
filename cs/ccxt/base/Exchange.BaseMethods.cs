@@ -5861,7 +5861,7 @@ public partial class BaseExchange
         parameters ??= new Dictionary<string, object>();
         if (!isEqual((this.has.ContainsKey("fetchDepositAddresses") ? this.has["fetchDepositAddresses"] : null), null) && (((this.has.ContainsKey("fetchDepositAddresses") ? this.has["fetchDepositAddresses"] : null) as bool?) != false))
         {
-            object depositAddressesList = ccxt.BaseExchange.FromDepositAddressList(await this.FetchDepositAddresses(new List<object>() {code}, parameters));
+            List<object> depositAddressesList = ccxt.BaseExchange.FromDepositAddressList(await this.FetchDepositAddresses(new List<object>() {code}, parameters));
             Dictionary<string, object> depositAddresses = this.indexBy(depositAddressesList, "currency");
             if ((this.safeDict(depositAddresses, code) == null))
             {

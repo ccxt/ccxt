@@ -3188,7 +3188,7 @@ public partial class bydfi : Exchange
     public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object transactions = ccxt.BaseExchange.FromTransactionList(await this.FetchTransactionsHelper("deposit", code, since, limit, parameters));
+        List<object> transactions = ccxt.BaseExchange.FromTransactionList(await this.FetchTransactionsHelper("deposit", code, since, limit, parameters));
         return ccxt.BaseExchange.ToTransactionList(this.toArray(transactions));
     }
 
@@ -3206,7 +3206,7 @@ public partial class bydfi : Exchange
     public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object transactions = ccxt.BaseExchange.FromTransactionList(await this.FetchTransactionsHelper("withdrawal", code, since, limit, parameters));
+        List<object> transactions = ccxt.BaseExchange.FromTransactionList(await this.FetchTransactionsHelper("withdrawal", code, since, limit, parameters));
         return ccxt.BaseExchange.ToTransactionList(this.toArray(transactions));
     }
 
