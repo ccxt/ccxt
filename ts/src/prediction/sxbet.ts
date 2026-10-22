@@ -722,7 +722,7 @@ export default class sxbet extends Exchange {
         // dynamic ABI string return: [32-byte offset][32-byte length][utf8 bytes, right-padded]
         const lengthHex = hex.slice (64, 128);
         const length = this.parseToInt (this.hexToInt (lengthHex));
-        const dataEnd = 128 + length * 2;
+        const dataEnd = this.sum (128, length * 2);
         const dataHex = hex.slice (128, dataEnd);
         return this.decode (this.base16ToBinary (dataHex));
     }
@@ -744,7 +744,7 @@ export default class sxbet extends Exchange {
             const ch = lowerHex[i];
             const digitValue = this.parseToInt (digits.indexOf (ch));
             const shifted = result * 16;
-            result = this.parseToInt (shifted + digitValue);
+            result = this.parseToInt (this.sum (shifted, digitValue));
         }
         return result;
     }
@@ -1139,7 +1139,7 @@ export default class sxbet extends Exchange {
         // the venue caps one cancel request at maxCancelOrders ids (100, see /metadata/obv3) -
         // chunk larger batches instead of letting the whole request 400
         const chunkSize = this.safeInteger (this.options, 'cancelOrdersBatchSize', 100);
-        const chunkCount = this.parseToInt ((idsLength + chunkSize - 1) / chunkSize);
+        const chunkCount = this.parseToInt (this.sum (idsLength, chunkSize - 1) / chunkSize);
         let result: PredictionOrder[] = [];
         for (let c = 0; c < chunkCount; c++) {
             const chunkIndex = this.parseToInt (c);
@@ -1913,7 +1913,7 @@ export default class sxbet extends Exchange {
             return this.parseSxbetTickersByHash (outcomesList, rowsByHash);
         }
         const chunkSize = this.safeInteger (this.options, 'bestOddsBatchSize', 100);
-        const chunkCount = this.parseToInt ((hashesLength + chunkSize - 1) / chunkSize);
+        const chunkCount = this.parseToInt (this.sum (hashesLength, chunkSize - 1) / chunkSize);
         for (let c = 0; c < chunkCount; c++) {
             const chunkIndex = this.parseToInt (c);
             const chunkWidth = this.parseToInt (chunkSize);
@@ -2132,7 +2132,7 @@ export default class sxbet extends Exchange {
         }
         const options = this.options['requestId'];
         const previousValue = this.safeInteger (options, url, 0);
-        const newValue = previousValue + 1;
+        const newValue = this.sum (previousValue, 1);
         if (url !== undefined) {
             this.options['requestId'][url] = newValue;
         }

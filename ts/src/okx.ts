@@ -8366,7 +8366,7 @@ export default class okx extends Exchange {
             } else {
                 windowDuration = effectiveLimit * this.parseTimeframe (unitPeriod.toLowerCase ()) * 1000;
             }
-            const windowEnd = since + windowDuration;
+            const windowEnd = this.sum (since, windowDuration);
             end = (end === undefined) ? windowEnd : Math.min (end, windowEnd);
         }
         if (end !== undefined) {

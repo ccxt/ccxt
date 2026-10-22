@@ -1175,7 +1175,7 @@ export default class kalshi extends Exchange {
             const sinceS = this.parseToInt (since / 1000);
             request['start_ts'] = sinceS;
             if (limit !== undefined) {
-                const end = sinceS + limit * tf;
+                const end = this.sum (sinceS, limit * tf);
                 request['end_ts'] = (end < now) ? end : now;
             } else {
                 // the candlesticks endpoint requires end_ts - default to now

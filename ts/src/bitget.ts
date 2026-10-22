@@ -4858,7 +4858,7 @@ export default class bitget extends Exchange {
             calculatedStartTime = since;
             request['startTime'] = since;
             if (until === undefined) {
-                calculatedEndTime = since + recentDuration;
+                calculatedEndTime = this.sum (since, recentDuration);
                 if (since > now - recentDuration) {
                     calculatedEndTime = now;
                 }
