@@ -2550,8 +2550,7 @@ export default class whitebit extends Exchange {
             }
         }
         const sorted = this.sortBy (results, 'timestamp');
-        const filtered = this.filterBySymbolSinceLimit (sorted, symbolResolved, since, limit);
-        return filtered as Order[];
+        return this.filterBySymbolSinceLimit (sorted, symbolResolved, since, limit) as Order[];
     }
 
     parseOrderType (type: Str): Str {

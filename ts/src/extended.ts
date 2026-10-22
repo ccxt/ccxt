@@ -2505,12 +2505,11 @@ export default class extended extends Exchange {
     async fetchExtendedAccount (params: Dict = {}): Promise<Dict> {
         const cachedAccount = this.safeDict (this.options, 'account');
         if (cachedAccount !== undefined) {
-            return cachedAccount;
+            return this.safeDict (this.options, 'account', {});
         }
         const accountData = await this.fetchAccount (params);
-        const account = this.safeDict (accountData, 'info', {});
-        this.options['account'] = account;
-        return account;
+        this.options['account'] = accountData['info'];
+        return this.safeDict (this.options, 'account', {});
     }
 
     createOrderSettlementData (isBuy: boolean, amountString: string, priceString: string, params: Dict = {}): Dict {
