@@ -9014,6 +9014,7 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = this.hx4R29InlineCollectionHelpers(rustContent);
                 rustContent = this.r31Str(rustContent); // hx4 R31
                 rustContent = this.r32Native(rustContent); // hx4 R32
+                rustContent = this.x46Incr(rustContent); // hx5 X46
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
                 throw new Error(
@@ -9743,6 +9744,7 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = this.hx4R29InlineCollectionHelpers(finalFile);
         finalFile = this.r31Str(finalFile); // hx4 R31
         finalFile = this.r32Native(finalFile); // hx4 R32
+        finalFile = this.x46Incr(finalFile); // hx5 X46
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
         //   `export class BaseExchange { ... }`  (holds the transpile marker)
@@ -12924,6 +12926,49 @@ impl std::ops::DerefMut for ${coreName} {
             out += content.slice(at, r.start) + r.text;
             at = r.end;
         }
+        return out + content.slice(at);
+    }
+
+    // hx5 X46 — `for (let i = 0; ...; i++)` over a `Value` counter. The ast
+    // printer emits the incrementor as the full `printNativeNumeric` match
+    // (`i = (match (&(i), &(Value::Int(1))) { 5 arms })`), ~300 chars per loop.
+    // Proof: the counter is declared `let mut i: Value = Value::Int(N);` right
+    // before the loop flag, and inside that `for` block the only write to `i`
+    // is this incrementor. Int ± Int stays Int, so `i` is always `Value::Int`
+    // and the match only ever takes its Int/Int arm: emit that arm natively.
+    // Unproven counters are left exactly as printed.
+    x46Incr(content: string): string {
+        const incrRe = /while \{ if !(__for_first_\d+) \{ (\w+) = \(match \(&\(\2\), &\(Value::Int\(1\)\)\) \{ \(Value::Int\(x\), Value::Int\(y\)\) => Value::Int\(x ([+-]) y\), \(Value::Int\(x\), Value::Float\(y\)\) => Value::Float\(\*x as f64 \3 \*y\), \(Value::Float\(x\), Value::Int\(y\)\) => Value::Float\(\*x \3 \*y as f64\), \(Value::Float\(x\), Value::Float\(y\)\) => Value::Float\(x \3 y\), _ => Value::Null \}\); \}/g;
+        const rewrites: Array<{ start: number, end: number, text: string }> = [];
+        let m: RegExpExecArray | null;
+        while ((m = incrRe.exec(content)) !== null) {
+            const [whole, flag, v, sign] = m;
+            const flagDecl = content.lastIndexOf(`let mut ${flag}: bool = true;`, m.index);
+            if (flagDecl < 0) continue;
+            const declRe = new RegExp(`let mut ${v}: Value = Value::Int\\(-?\\d+\\);\\s*$`);
+            if (!declRe.test(content.slice(Math.max(0, flagDecl - 200), flagDecl))) continue;
+            // The `{` printForStatement opened before the declaration.
+            const blockOpen = content.lastIndexOf('{', content.lastIndexOf(`let mut ${v}: Value`, flagDecl));
+            let depth = 0, end = -1;
+            for (let k = blockOpen; k < content.length; k++) {
+                const c = content[k];
+                if (c === '"') { k++; while (k < content.length && content[k] !== '"') { if (content[k] === '\\') k++; k++; } continue; }
+                if (c === '{') depth++;
+                else if (c === '}' && --depth === 0) { end = k; break; }
+            }
+            if (end < 0) continue;
+            const block = content.slice(blockOpen, end).replace(whole, '');
+            const esc = v.replace(/[$]/g, '\\$');
+            const writes = new RegExp(`(?<![\\w.])${esc}\\s*(=(?!=)|[-+*/%]=)|&mut\\s+${esc}\\b|let\\s+(mut\\s+)?${esc}\\b`, 'g');
+            const hits = block.match(writes) || [];
+            // Exactly one hit: the declaration itself.
+            if (hits.length !== 1) continue;
+            const text = `while { if !${flag} { if let Value::Int(n) = &mut ${v} { *n ${sign}= 1; } }`;
+            rewrites.push({ start: m.index, end: m.index + whole.length, text });
+        }
+        if (rewrites.length === 0) return content;
+        let out = '', at = 0;
+        for (const r of rewrites) { out += content.slice(at, r.start) + r.text; at = r.end; }
         return out + content.slice(at);
     }
 }
