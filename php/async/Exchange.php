@@ -6449,7 +6449,8 @@ class BaseExchange extends \ccxt\BaseExchange {
                 break;
             }
             $tasks[] = $this->safe_deterministic_call($method, $symbol, $currentSince, $maxEntriesPerRequestValue, $timeframe, $paramsOmitted);
-            $currentSince = $currentSince . $step - 1;
+            // this.sum keeps it numeric in PHP, where the regex transpiler turns `a + b` into string concatenation
+            $currentSince = $this->sum($currentSince, $step) - 1;
         }
         $results = Async\await(Promise\all($tasks));
         $result = array();
@@ -6482,7 +6483,7 @@ class BaseExchange extends \ccxt\BaseExchange {
             try {
                 if ($cursorValue !== null) {
                     if ($cursorIncrement !== null) {
-                        $cursorValue = $this->parse_to_int($cursorValue) . $cursorIncrement;
+                        $cursorValue = $this->sum($this->parse_to_int($cursorValue), $cursorIncrement);
                     }
                     $paramsOmitted[$cursorSent] = $cursorValue;
                 }
@@ -6582,8 +6583,8 @@ class BaseExchange extends \ccxt\BaseExchange {
                 $errors = 0;
                 $responseLength = count($response);
                 if ($this->verbose) {
-                    $iteration = ($i . (string) 1);
-                    $incrementalMessage = 'Incremental pagination call ' . $iteration . ' method ' . $method . ' response length ' . (string) $responseLength;
+                    $iteration = ($i + 1);
+                    $incrementalMessage = 'Incremental pagination call ' . (string) $iteration . ' method ' . $method . ' response length ' . (string) $responseLength;
                     $this->log($incrementalMessage);
                 }
                 if ($responseLength === 0) {
