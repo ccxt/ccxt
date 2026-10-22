@@ -2208,12 +2208,12 @@ class bitget extends bitget$1["default"] {
                     const entry = this.safeDict(data, j, {});
                     const entrySymbol = this.safeString(entry, 'symbol');
                     const entryBorrowable = this.safeBool(entry, 'isBorrowable', true);
-                    if ((entryBorrowable === true) && this.safeBool(entry, 'isCrossBorrowable', true)) {
+                    if ((entryBorrowable) && this.safeBool(entry, 'isCrossBorrowable', true)) {
                         crossKeys.push(entrySymbol);
                     }
                     const isolatedBase = this.safeBool(entry, 'isIsolatedBaseBorrowable', true);
                     const isolatedQuote = this.safeBool2(entry, 'isIsolatedQuotedBorrowable', 'isIsolatedQuoteBorrowable', true);
-                    if ((entryBorrowable === true) && ((isolatedBase === true) || (isolatedQuote === true))) {
+                    if ((entryBorrowable) && ((isolatedBase) || (isolatedQuote))) {
                         isolatedKeys.push(entrySymbol);
                     }
                 }
@@ -3219,7 +3219,7 @@ class bitget extends bitget$1["default"] {
         result['type'] = 'withdrawal';
         const withdrawOptions = this.safeDict(this.options, 'withdraw', {});
         const fillResponseFromRequest = this.safeBool(withdrawOptions, 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest === true) {
+        if (fillResponseFromRequest) {
             result['currency'] = code;
             result['amount'] = amount;
             result['tag'] = tag;
@@ -4590,7 +4590,7 @@ class bitget extends bitget$1["default"] {
             paramsMarginMode = this.omit(paramsMarginMode, 'margin');
             const request = {};
             if (marketType === 'spot') {
-                if ((marginMode !== undefined) || (utaMargin === true)) {
+                if ((marginMode !== undefined) || (utaMargin)) {
                     request['category'] = 'MARGIN';
                 }
                 else {
@@ -4640,7 +4640,7 @@ class bitget extends bitget$1["default"] {
         if (marketType === 'spot') {
             const margin = this.safeBool(paramsMarginMode, 'margin', false);
             paramsMarginMode = this.omit(paramsMarginMode, 'margin');
-            if ((marginMode !== undefined) || (margin === true)) {
+            if ((marginMode !== undefined) || (margin)) {
                 response = await this.publicMarginGetV2MarginCurrencies(paramsMarginMode);
             }
             else {
@@ -4814,7 +4814,7 @@ class bitget extends bitget$1["default"] {
             maxLimitForHistoryEndpoint = 100; // the uta history endpoint rejects a limit above 100
         }
         if (paginate) {
-            const limitForPagination = (useHistoryEndpointForPagination === true) ? maxLimitForHistoryEndpoint : maxLimitForRecentEndpoint;
+            const limitForPagination = (useHistoryEndpointForPagination) ? maxLimitForHistoryEndpoint : maxLimitForRecentEndpoint;
             const paramsWithUta = this.extend(paramsUTA, { 'uta': uta });
             return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsWithUta, limitForPagination);
         }
@@ -4893,7 +4893,7 @@ class bitget extends bitget$1["default"] {
         }
         // if historical endpoint is needed, we should re-set the variables
         let historicalEndpointNeeded = false;
-        if ((calculatedStartTime !== undefined && calculatedStartTime <= recentEndpointBoundaryTs) || (useHistoryEndpoint === true)) {
+        if ((calculatedStartTime !== undefined && calculatedStartTime <= recentEndpointBoundaryTs) || (useHistoryEndpoint)) {
             historicalEndpointNeeded = true;
             // only for "historical-candles" - ensure we use correct max limit
             limitResolved = Math.min(limitResolved, maxLimitForHistoryEndpoint);
@@ -5948,7 +5948,7 @@ class bitget extends bitget$1["default"] {
             if (timeInForce !== undefined) {
                 timeInForce = timeInForce.toUpperCase();
             }
-            if (postOnly === true) {
+            if (postOnly) {
                 request['timeInForce'] = 'post_only';
             }
             else if (timeInForce === 'GTC') {
@@ -5964,7 +5964,7 @@ class bitget extends bitget$1["default"] {
         const reduceOnly = this.safeBool(paramsProductType, 'reduceOnly', false);
         let hedged = undefined;
         [hedged, paramsProductType] = this.handleParamBool(paramsProductType, 'hedged', false);
-        if (reduceOnly === true) {
+        if (reduceOnly) {
             if ((hedged === true) || isStopLossOrTakeProfitTrigger) {
                 let reduceOnlyPosSide = 'short';
                 if (side === 'sell') {
@@ -6053,7 +6053,7 @@ class bitget extends bitget$1["default"] {
         if (timeInForce !== undefined) {
             timeInForce = timeInForce.toUpperCase();
         }
-        if (postOnly === true) {
+        if (postOnly) {
             request['force'] = 'post_only';
         }
         else if (timeInForce === 'GTC') {
@@ -6170,7 +6170,7 @@ class bitget extends bitget$1["default"] {
                 }
                 request['marginMode'] = marginModeRequest;
                 let requestSide = side;
-                if (reduceOnly === true) {
+                if (reduceOnly) {
                     if (hedged !== true) {
                         request['reduceOnly'] = 'YES';
                     }
@@ -6549,7 +6549,7 @@ class bitget extends bitget$1["default"] {
             const cost = this.safeString(paramsOmitted, 'cost');
             paramsOmitted = this.omit(paramsOmitted, 'cost');
             const editMarketBuyOrderRequiresPrice = this.safeBool(this.options, 'editMarketBuyOrderRequiresPrice', true);
-            if (((editMarketBuyOrderRequiresPrice === true) || (cost !== undefined)) && isMarketOrder && (side === 'buy')) {
+            if (((editMarketBuyOrderRequiresPrice) || (cost !== undefined)) && isMarketOrder && (side === 'buy')) {
                 if (price === undefined && cost === undefined) {
                     throw new errors.InvalidOrder(this.id + ' editOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively provide `cost` in the params');
                 }
@@ -9120,7 +9120,7 @@ class bitget extends bitget$1["default"] {
         }
         let method = undefined;
         const useHistoryEndpoint = this.safeBool(paramsPaginate, 'useHistoryEndpoint', false);
-        if (useHistoryEndpoint === true) {
+        if (useHistoryEndpoint) {
             method = 'privateMixGetV2MixPositionHistoryPosition';
         }
         else {
@@ -12413,7 +12413,7 @@ class bitget extends bitget$1["default"] {
         }
         let headersResult = requestHeaders;
         const sandboxMode = this.safeBool2(this.options, 'sandboxMode', 'sandbox', false);
-        if ((sandboxMode === true) && (path !== 'v2/public/time') && (path !== 'v3/market/current-fund-rate')) {
+        if ((sandboxMode) && (path !== 'v2/public/time') && (path !== 'v3/market/current-fund-rate')) {
             // https://github.com/ccxt/ccxt/issues/25252#issuecomment-2662742336
             if (headersResult === undefined) {
                 headersResult = {};

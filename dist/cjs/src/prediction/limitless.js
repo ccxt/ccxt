@@ -417,7 +417,7 @@ class limitless extends limitless$1["default"] {
         // market is tradeable only while it is FUNDED and not yet expired
         const isExpired = this.safeBool(raw, 'expired', false);
         const marketStatus = this.safeString(raw, 'status');
-        const active = (isExpired !== true) && (marketStatus === 'FUNDED');
+        const active = (!isExpired) && (marketStatus === 'FUNDED');
         // expiry is a ms timestamp string (`expirationTimestamp`); `deadline`/`expiresAt` do not exist
         const expiryTimestamp = this.safeInteger(raw, 'expirationTimestamp');
         // limitless reports lifetime volume (human-readable in `volumeFormatted`), not a 24h figure

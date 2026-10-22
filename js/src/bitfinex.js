@@ -1794,7 +1794,7 @@ export default class bitfinex extends Exchange {
         }
         const ioc = (timeInForce === 'IOC');
         const fok = (timeInForce === 'FOK');
-        const postOnly = ((postOnlyParam === true) || (timeInForce === 'PO'));
+        const postOnly = ((postOnlyParam) || (timeInForce === 'PO'));
         if ((ioc || fok) && (price === undefined)) {
             throw new InvalidOrder(this.id + ' createOrder() requires a price argument with IOC and FOK orders');
         }
@@ -1821,7 +1821,7 @@ export default class bitfinex extends Exchange {
         if (postOnly) {
             flags = this.sum(flags, 4096);
         }
-        if (reduceOnly === true) {
+        if (reduceOnly) {
             flags = this.sum(flags, 1024);
         }
         if (flags !== 0) {
@@ -2869,7 +2869,7 @@ export default class bitfinex extends Exchange {
         }
         const withdrawOptions = this.safeDict(this.options, 'withdraw', {});
         const includeFee = this.safeBool(withdrawOptions, 'includeFee', false);
-        if (includeFee === true) {
+        if (includeFee) {
             request['fee_deduct'] = 1;
         }
         const response = await this.privatePostAuthWWithdraw(this.extend(request, paramsOmitted2));
@@ -3995,7 +3995,7 @@ export default class bitfinex extends Exchange {
                 request['price_aux_limit'] = this.priceToPrecision(symbol, price);
             }
         }
-        const postOnly = ((postOnlyParam === true) || (timeInForce === 'PO'));
+        const postOnly = ((postOnlyParam) || (timeInForce === 'PO'));
         if ((type !== 'market') && (triggerPrice === undefined)) {
             request['price'] = this.priceToPrecision(symbol, price);
         }
@@ -4004,7 +4004,7 @@ export default class bitfinex extends Exchange {
         if (postOnly) {
             flags = this.sum(flags, 4096);
         }
-        if (reduceOnly === true) {
+        if (reduceOnly) {
             flags = this.sum(flags, 1024);
         }
         if (flags !== 0) {

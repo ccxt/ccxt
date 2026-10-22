@@ -1361,7 +1361,7 @@ class lbank extends lbank$1["default"] {
         }
         // from spotPrivatePostSupplementUserInfo
         const isArray = Array.isArray(data);
-        if (isArray === true) {
+        if (isArray) {
             for (let i = 0; i < data.length; i++) {
                 const item = this.safeDict(data, i);
                 const currencyId = this.safeString(item, 'coin');
@@ -1657,7 +1657,7 @@ class lbank extends lbank$1["default"] {
         };
         const ioc = (timeInForce === 'IOC');
         const fok = (timeInForce === 'FOK');
-        const maker = ((postOnly === true) || (timeInForce === 'PO'));
+        const maker = ((postOnly) || (timeInForce === 'PO'));
         if ((type === 'market') && (ioc || fok || maker)) {
             throw new errors.InvalidOrder(this.id + ' createOrder () does not allow market FOK, IOC, or postOnly orders. Only limit IOC, FOK, and postOnly orders are allowed');
         }
@@ -2683,7 +2683,7 @@ class lbank extends lbank$1["default"] {
         }
         const isAuthorized = this.checkRequiredCredentials(false);
         let result;
-        if (isAuthorized === true) {
+        if (isAuthorized) {
             const options = this.safeDict(this.options, 'fetchTransactionFees', {});
             const defaultMethod = this.safeString(options, 'method', 'fetchPrivateTransactionFees');
             const method = this.safeString(params, 'method', defaultMethod);
@@ -2846,7 +2846,7 @@ class lbank extends lbank$1["default"] {
         }
         const isAuthorized = this.checkRequiredCredentials(false);
         let response;
-        if (isAuthorized === true) {
+        if (isAuthorized) {
             const options = this.safeDict(this.options, 'fetchDepositWithdrawFees', {});
             const defaultMethod = this.safeString(options, 'method', 'fetchPrivateDepositWithdrawFees');
             const method = this.safeString(params, 'method', defaultMethod);
@@ -3103,7 +3103,7 @@ class lbank extends lbank$1["default"] {
             if (signatureMethod === 'RSA') {
                 const cacheSecretAsPem = this.safeBool(this.options, 'cacheSecretAsPem', true);
                 let pem = undefined;
-                if (cacheSecretAsPem === true) {
+                if (cacheSecretAsPem) {
                     pem = this.safeString(this.options, 'pem');
                     if (pem === undefined) {
                         pem = this.convertSecretToPem(this.encode(this.secret));

@@ -769,7 +769,7 @@ export default class cex extends cexRest {
         }
         order['remaining'] = remains;
         const canceled = this.safeBool(data, 'cancel', false);
-        if (canceled === true) {
+        if (canceled) {
             order['status'] = 'canceled';
         }
         if (isTransaction) {
@@ -865,7 +865,7 @@ export default class cex extends cexRest {
         }
         const canceled = this.safeBool(order, 'cancel', false);
         let status = 'open';
-        if (canceled === true) {
+        if (canceled) {
             status = 'canceled';
         }
         else if (isTransaction) {

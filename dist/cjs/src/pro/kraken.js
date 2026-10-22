@@ -128,7 +128,7 @@ class kraken extends kraken$1["default"] {
         }
         const isMarket = (type === 'market');
         const [postOnly, paramsPostOnly] = this.handlePostOnly(isMarket, false, params);
-        if (postOnly === true) {
+        if (postOnly) {
             request['params']['post_only'] = true;
         }
         const clientOrderId = this.safeString(paramsPostOnly, 'clientOrderId');

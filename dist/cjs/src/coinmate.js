@@ -821,7 +821,7 @@ class coinmate extends coinmate$1["default"] {
         const data = this.safeDict(response, 'data', {});
         const transaction = this.parseTransaction(data, currency);
         const fillResponseFromRequest = this.safeBool(withdrawOptions, 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest === true) {
+        if (fillResponseFromRequest) {
             transaction['amount'] = amount;
             transaction['currency'] = code;
             transaction['address'] = address;

@@ -2005,7 +2005,7 @@ export default class modetrade extends Exchange {
     async cancelOrder(id, symbol = undefined, params = {}) {
         const trigger = this.safeBool2(params, 'stop', 'trigger', false);
         const paramsOmitted = this.omit(params, ['stop', 'trigger']);
-        if ((trigger !== true) && (symbol === undefined)) {
+        if ((!trigger) && (symbol === undefined)) {
             throw new ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
         if (this.markets === undefined) {
@@ -2023,7 +2023,7 @@ export default class modetrade extends Exchange {
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
         const paramsClientOrder = this.omit(paramsOmitted, ['clOrdID', 'clientOrderId', 'client_order_id']);
         let response;
-        if (trigger === true) {
+        if (trigger) {
             if (isByClientOrder) {
                 request['client_order_id'] = clientOrderIdExchangeSpecific;
                 response = await this.v1PrivateDeleteAlgoClientOrder(this.extend(request, paramsClientOrder));
@@ -2065,7 +2065,7 @@ export default class modetrade extends Exchange {
         else {
             extendParams['id'] = id;
         }
-        if (trigger === true) {
+        if (trigger) {
             return this.extend(this.parseOrder(response), extendParams);
         }
         const data = this.safeDict(response, 'data', {});
@@ -2190,7 +2190,7 @@ export default class modetrade extends Exchange {
         const clientOrderId = this.safeStringN(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
         const paramsOmitted = this.omit(params, ['stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id']);
         let response;
-        if (trigger === true) {
+        if (trigger) {
             if (clientOrderId !== undefined && clientOrderId !== '') {
                 request['client_order_id'] = clientOrderId;
                 response = await this.v1PrivateGetAlgoClientOrderClientOrderId(this.extend(request, paramsOmitted));
@@ -2262,7 +2262,7 @@ export default class modetrade extends Exchange {
             await this.loadMarkets();
         }
         const isTrigger = this.safeBool2(params, 'stop', 'trigger', false);
-        const maxLimit = (isTrigger === true) ? 100 : 500;
+        const maxLimit = (isTrigger) ? 100 : 500;
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOrders', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallIncremental('fetchOrders', symbol, since, limit, paramsPaginate, 'page', maxLimit);
@@ -2283,12 +2283,12 @@ export default class modetrade extends Exchange {
         else {
             request['size'] = maxLimit;
         }
-        if (isTrigger === true) {
+        if (isTrigger) {
             request['algo_type'] = 'STOP';
         }
         const [requestUntil, paramsUntil] = this.handleUntilOption('end_t', request, paramsOmitted);
         let response;
-        if (isTrigger === true) {
+        if (isTrigger) {
             response = await this.v1PrivateGetAlgoOrders(this.extend(requestUntil, paramsUntil));
         }
         else {
@@ -3192,7 +3192,7 @@ export default class modetrade extends Exchange {
             const isOrder = path === 'algo/order' || path === 'order' || path === 'batch-order';
             if (isPostOrPut && isOrder) {
                 const isSandboxMode = this.safeBool(this.options, 'sandboxMode', false);
-                if (isSandboxMode !== true) {
+                if (!isSandboxMode) {
                     const brokerId = this.safeString(this.options, 'brokerId', 'CCXTMODE');
                     if (path === 'batch-order') {
                         const ordersList = this.safeList(paramsSorted, 'orders', []);

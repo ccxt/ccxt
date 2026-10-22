@@ -919,7 +919,7 @@ class whitebit extends whitebit$1["default"] {
             const market = this.market(symbol);
             const marketId = market['id'];
             const isSubscribed = this.safeBool(subscription, marketId, false);
-            if (isSubscribed !== true) {
+            if (!isSubscribed) {
                 if (marketId !== undefined) {
                     subscription[marketId] = true;
                 }

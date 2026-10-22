@@ -2023,7 +2023,7 @@ class kraken extends kraken$1["default"] {
         if (orderDescription !== undefined) {
             const parts = orderDescription.split(' ');
             side = this.safeString(parts, 0);
-            if (isUsingCost !== true) {
+            if (!isUsingCost) {
                 amount = this.safeString(parts, 1);
             }
             else {
@@ -2288,7 +2288,7 @@ class kraken extends kraken$1["default"] {
         }
         const isMarket = (type === 'market');
         const [postOnly, paramsPostOnly] = this.handlePostOnly(isMarket, false, paramsOmitted2);
-        if (postOnly === true) {
+        if (postOnly) {
             let extendedPostFlags = 'post';
             if (flags !== undefined) {
                 extendedPostFlags = flags + ',post';
@@ -2344,7 +2344,7 @@ class kraken extends kraken$1["default"] {
         const isMarket = (type === 'market');
         let postOnly = undefined;
         [postOnly, paramsOmitted] = this.handlePostOnly(isMarket, false, paramsOmitted);
-        if (postOnly === true) {
+        if (postOnly) {
             request['post_only'] = 'true'; // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
         }
         if (amount !== undefined) {

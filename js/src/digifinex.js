@@ -1890,11 +1890,11 @@ export default class digifinex extends Exchange {
             const timeInForce = this.safeString(paramsMarginMode, 'timeInForce');
             let orderType = undefined;
             if (side === 'buy') {
-                const requestType = (reduceOnly === true) ? 4 : 1;
+                const requestType = (reduceOnly) ? 4 : 1;
                 request['type'] = requestType;
             }
             else {
-                const requestType = (reduceOnly === true) ? 3 : 2;
+                const requestType = (reduceOnly) ? 3 : 2;
                 request['type'] = requestType;
             }
             if (isLimitOrder) {
@@ -1920,7 +1920,7 @@ export default class digifinex extends Exchange {
             paramsRequest = this.omit(paramsMarginMode, ['reduceOnly', 'timeInForce', 'postOnly']);
         }
         else {
-            postOnlyParsed = (postOnly === true) ? 1 : 2;
+            postOnlyParsed = (postOnly) ? 1 : 2;
             request['market'] = marketType;
             let suffix = '';
             if (type === 'market') {
@@ -4397,7 +4397,7 @@ export default class digifinex extends Exchange {
                 throw new NotSupported(this.id + ' only cross margin is supported');
             }
         }
-        else if ((defaultType === 'margin') || (isMargin === true)) {
+        else if ((defaultType === 'margin') || (isMargin)) {
             return ['cross', paramsMarginMode];
         }
         return [marginMode, paramsMarginMode];

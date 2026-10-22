@@ -305,7 +305,7 @@ class aster extends aster$1["default"] {
             const symbol = symbolsList[i];
             const market = this.market(symbol);
             let suffix = '';
-            if (use1sFreq === true) {
+            if (use1sFreq) {
                 suffix = '@1s';
             }
             subscriptionArgs.push(this.safeStringLower(market, 'id') + '@markPrice' + suffix);
@@ -362,7 +362,7 @@ class aster extends aster$1["default"] {
             const symbol = symbolsList[i];
             const market = this.market(symbol);
             let suffix = '';
-            if (use1sFreq === true) {
+            if (use1sFreq) {
                 suffix = '@1s';
             }
             subscriptionArgs.push(this.safeStringLower(market, 'id') + '@markPrice' + suffix);
@@ -1417,7 +1417,7 @@ class aster extends aster$1["default"] {
         }
         const options = this.safeDict(this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool(options, 'fetchBalanceSnapshot', false);
-        if (fetchBalanceSnapshot === true) {
+        if (fetchBalanceSnapshot) {
             const messageHash = type + ':fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future(messageHash);

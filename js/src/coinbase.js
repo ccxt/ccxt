@@ -1900,7 +1900,7 @@ export default class coinbase extends Exchange {
             'swap': isSwap,
             'future': !isSwap,
             'option': false,
-            'active': tradingDisabled !== true,
+            'active': !tradingDisabled,
             'contract': true,
             'linear': true,
             'inverse': false,
@@ -2554,7 +2554,7 @@ export default class coinbase extends Exchange {
         if ((marketType === 'future') || (marketType === 'swap')) {
             response = await this.v3PrivateGetBrokerageCfmBalanceSummary(this.extend(request, paramsMarketType));
         }
-        else if ((isV3 === true) || (method === 'v3PrivateGetBrokerageAccounts')) {
+        else if ((isV3) || (method === 'v3PrivateGetBrokerageAccounts')) {
             request['limit'] = 250;
             response = await this.v3PrivateGetBrokerageAccounts(this.extend(request, paramsMarketType));
             // an explicit params.cursor means the caller pages manually
@@ -3304,7 +3304,7 @@ export default class coinbase extends Exchange {
         const paramsOmitted = this.omit(paramsBase, ['timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'stop_price', 'stopDirection', 'stop_direction', 'clientOrderId', 'postOnly', 'post_only', 'end_time', 'marginMode']);
         const preview = this.safeBool2(paramsOmitted, 'preview', 'test', false);
         let response = undefined;
-        if (preview === true) {
+        if (preview) {
             request = this.omit(request, 'client_order_id');
             response = await this.v3PrivatePostBrokerageOrdersPreview(this.extend(request, this.omit(paramsOmitted, ['preview', 'test'])));
         }
@@ -3623,7 +3623,7 @@ export default class coinbase extends Exchange {
         }
         const preview = this.safeBool2(params, 'preview', 'test', false);
         let response = undefined;
-        if (preview === true) {
+        if (preview) {
             response = await this.v3PrivatePostBrokerageOrdersEditPreview(this.extend(request, this.omit(params, ['preview', 'test'])));
         }
         else {

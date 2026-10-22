@@ -591,7 +591,7 @@ export default class toobit extends toobitRest {
         //     }
         //
         const isSnapshot = this.safeBool(message, 'f', false);
-        if (isSnapshot === true) {
+        if (isSnapshot) {
             this.setOrderBookSnapshot(client, message, 'diffDepth');
             return;
         }

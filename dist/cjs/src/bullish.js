@@ -1499,7 +1499,7 @@ class bullish extends bullish$1["default"] {
         await Promise.all([this.loadMarkets(), this.handleToken()]);
         const tradingAccountId = await this.loadAccount(params);
         const paginate = this.safeBool(params, 'paginate', false);
-        if (paginate === true) {
+        if (paginate) {
             const paramsPagination = this.handlePaginationParams('fetchOrders', since, params);
             return await this.fetchPaginatedCallDynamic('fetchOrders', symbol, since, limit, paramsPagination, 100);
         }
@@ -1837,7 +1837,7 @@ class bullish extends bullish$1["default"] {
             request['type'] = type.toUpperCase();
         }
         const postOnly = this.safeBool(params, 'postOnly', false);
-        if (postOnly === true) {
+        if (postOnly) {
             request['type'] = 'POST_ONLY';
         }
         if (amount !== undefined) {
@@ -1846,7 +1846,7 @@ class bullish extends bullish$1["default"] {
         if (price !== undefined) {
             request['price'] = this.priceToPrecision(symbol, price);
         }
-        const paramsOmitted = (postOnly === true) ? this.omit(params, 'postOnly') : params;
+        const paramsOmitted = (postOnly) ? this.omit(params, 'postOnly') : params;
         const response = await this.privatePostV2Command(this.extend(request, paramsOmitted));
         return this.parseOrder(response, market);
     }
@@ -2698,7 +2698,7 @@ class bullish extends bullish$1["default"] {
         const transferOptions = this.safeDict(this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
         const transfer = this.parseTransfer(response, currency);
-        if (fillResponseFromRequest === true) {
+        if (fillResponseFromRequest) {
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
             transfer['amount'] = amount;

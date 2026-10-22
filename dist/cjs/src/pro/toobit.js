@@ -584,7 +584,7 @@ class toobit extends toobit$1["default"] {
         //     }
         //
         const isSnapshot = this.safeBool(message, 'f', false);
-        if (isSnapshot === true) {
+        if (isSnapshot) {
             this.setOrderBookSnapshot(client, message, 'diffDepth');
             return;
         }
