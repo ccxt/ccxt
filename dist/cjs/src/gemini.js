@@ -1991,7 +1991,7 @@ class gemini extends gemini$1["default"] {
         }
         const indexedByNetwork = await this.fetchDepositAddressesByNetwork(code, params);
         const networkCode = this.handleNetworkCodeAndParams(params)[0];
-        return this.safeValue(indexedByNetwork, networkCode);
+        return this.safeDict(indexedByNetwork, networkCode);
     }
     /**
      * @method

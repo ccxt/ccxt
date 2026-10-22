@@ -432,7 +432,7 @@ export default class polymarket extends Exchange {
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
     fetchEvent(id: string, params?: Dict): Promise<PredictionEvent>;
-    parseEvent(rawEvent: Dict): Dict;
+    parseEvent(rawEvent: Dict): PredictionEvent;
     /**
      * @ignore
      * @method

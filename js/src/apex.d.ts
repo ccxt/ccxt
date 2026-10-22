@@ -150,7 +150,7 @@ export default class apex extends Exchange {
     generateRandomClientIdOmni(_accountId: Str): string;
     addHyphenBeforeUsdt(symbol: string): string;
     getSeeds(): string;
-    getAccountId(): Promise<any>;
+    getAccountId(): Promise<Str>;
     /**
      * @method
      * @name apex#createOrder

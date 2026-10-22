@@ -1059,7 +1059,7 @@ export default class alpaca extends Exchange {
             }, market);
             results.push(ticker);
         }
-        return this.filterByArray(results, 'symbol', symbolsNormalized);
+        return this.filterByArrayTickers(results, 'symbol', symbolsNormalized);
     }
     generateClientOrderId(params) {
         const clientOrderIdprefix = this.safeString(this.options, 'clientOrderId');
@@ -1892,7 +1892,8 @@ export default class alpaca extends Exchange {
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchTransactionsHelper('BOTH', code, since, limit, params);
+        const transactions = await this.fetchTransactionsHelper('BOTH', code, since, limit, params);
+        return this.toArray(transactions);
     }
     /**
      * @method
@@ -1906,7 +1907,8 @@ export default class alpaca extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchTransactionsHelper('INCOMING', code, since, limit, params);
+        const transactions = await this.fetchTransactionsHelper('INCOMING', code, since, limit, params);
+        return this.toArray(transactions);
     }
     /**
      * @method
@@ -1920,7 +1922,8 @@ export default class alpaca extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchTransactionsHelper('OUTGOING', code, since, limit, params);
+        const transactions = await this.fetchTransactionsHelper('OUTGOING', code, since, limit, params);
+        return this.toArray(transactions);
     }
     parseTransaction(transaction, currency = undefined) {
         //

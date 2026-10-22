@@ -1316,7 +1316,7 @@ class woofipro extends woofipro$1["default"] {
             const interest = this.extend({ 'timestamp': timestamp }, row);
             result.push(this.parseOpenInterest(interest));
         }
-        return this.filterByArray(result, 'symbol', symbolsNormalized);
+        return this.indexBy(this.filterByArray(result, 'symbol', symbolsNormalized, false), 'symbol');
     }
     /**
      * @method

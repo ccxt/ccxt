@@ -843,7 +843,7 @@ class bydfi extends bydfi$1["default"] {
         const maxLimit = 500; // docs says max 1500, but in practice only 500 works
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit);
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit);
         }
         const market = this.market(symbol);
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
@@ -903,8 +903,7 @@ class bydfi extends bydfi$1["default"] {
         //     }
         //
         const data = this.safeList(response, 'data', []);
-        const result = this.parseOHLCVs(data, market, timeframe, since, limit);
-        return result;
+        return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
         //
@@ -2771,7 +2770,8 @@ class bydfi extends bydfi$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchTransactionsHelper('deposit', code, since, limit, params);
+        const transactions = await this.fetchTransactionsHelper('deposit', code, since, limit, params);
+        return this.toArray(transactions);
     }
     /**
      * @method
@@ -2785,7 +2785,8 @@ class bydfi extends bydfi$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchTransactionsHelper('withdrawal', code, since, limit, params);
+        const transactions = await this.fetchTransactionsHelper('withdrawal', code, since, limit, params);
+        return this.toArray(transactions);
     }
     async fetchTransactionsHelper(type, code, since, limit, params) {
         let methodName = 'fetchWithdrawals';

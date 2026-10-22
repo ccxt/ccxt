@@ -3903,8 +3903,8 @@ class weex extends weex$1["default"] {
             'symbol': market['id'],
         };
         const response = await this.contractPrivatePostCapiV3ClosePositions(this.extend(request, params));
-        const orders = this.parseOrders(response, market);
-        return this.safeDict(orders, 0);
+        const order = this.safeDict(response, 0, {});
+        return this.parseOrder(order, market);
     }
     /**
      * @method

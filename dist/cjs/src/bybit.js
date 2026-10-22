@@ -5318,7 +5318,7 @@ class bybit extends bybit$1["default"] {
         if (length > 1) {
             throw new errors.InvalidOrder(this.id + ' returned more than one order');
         }
-        return this.safeValue(result, 0);
+        return this.safeDict(result, 0);
     }
     /**
      * @method
@@ -5560,7 +5560,8 @@ class bybit extends bybit$1["default"] {
         if (length > 1) {
             throw new errors.InvalidOrder(this.id + ' returned more than one order');
         }
-        return this.safeValue(result, 0);
+        const order = this.safeDict(result, 0);
+        return order;
     }
     /**
      * @method
@@ -5596,7 +5597,8 @@ class bybit extends bybit$1["default"] {
         if (length > 1) {
             throw new errors.InvalidOrder(this.id + ' returned more than one order');
         }
-        return this.safeValue(result, 0);
+        const order = this.safeDict(result, 0);
+        return order;
     }
     /**
      * @method
@@ -6085,7 +6087,7 @@ class bybit extends bybit$1["default"] {
         const [networkCode, paramsOmited] = this.handleNetworkCodeAndParams(params);
         const indexedAddresses = await this.fetchDepositAddressesByNetwork(code, paramsOmited);
         const selectedNetworkCode = this.selectNetworkKeyFromNetworks(currency['code'], networkCode, indexedAddresses, true);
-        return this.safeValue(indexedAddresses, selectedNetworkCode);
+        return this.safeDict(indexedAddresses, selectedNetworkCode);
     }
     /**
      * @method
@@ -8918,7 +8920,7 @@ class bybit extends bybit$1["default"] {
             'nextPageCursor': cursorValue,
         };
         result[lastIndex] = last;
-        return result;
+        return this.toArray(result);
     }
     /**
      * @method

@@ -1646,8 +1646,7 @@ class poloniex extends poloniex$1["default"] {
         //         }
         //     ]
         //
-        const result = this.parseTrades(response, market, since, limit);
-        return result;
+        return this.parseTrades(response, market, since, limit);
     }
     parseOrderStatus(status) {
         const statuses = {
@@ -2592,7 +2591,9 @@ class poloniex extends poloniex$1["default"] {
         await this.loadMarkets();
         const orders = await this.fetchOpenOrders(symbol, undefined, undefined, params);
         const indexed = this.indexBy(orders, 'id');
-        return (id in indexed) ? 'open' : 'closed';
+        const statuses = { 'true': 'open', 'false': 'closed' };
+        const found = (id in indexed) ? 'true' : 'false';
+        return this.safeString(statuses, found);
     }
     /**
      * @method

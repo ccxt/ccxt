@@ -1160,10 +1160,10 @@ export default class mudrex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
+        const market = this.market(symbol);
         let positionId = this.safeString(params, 'position_id');
         const amount = this.safeValue(params, 'amount');
         if (positionId === undefined) {
-            const market = this.market(symbol);
             const positions = await this.fetchPositions([symbol], params);
             for (let i = 0; i < positions.length; i++) {
                 const p = positions[i];
@@ -1192,11 +1192,13 @@ export default class mudrex extends Exchange {
             }
             const partialParams = this.omit(params, ['order_type', 'limit_price', 'amount', 'position_id']);
             const partialResponse = await this.privatePostFuturesPositionsPositionIdClosePartial(this.extend(request, partialParams));
-            return partialResponse;
+            const partialData = this.safeDict(partialResponse, 'data', partialResponse);
+            return this.parseOrder(partialData, market);
         }
         const closeParams = this.omit(params, ['position_id']);
         const response = await this.privatePostFuturesPositionsPositionIdClose(this.extend(request, closeParams));
-        return response;
+        const data = this.safeDict(response, 'data', response);
+        return this.parseOrder(data, market);
     }
     /**
      * @method

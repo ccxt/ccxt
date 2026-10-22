@@ -315,7 +315,7 @@ export default class bullish extends Exchange {
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseTransactionType(type: Str): Str;
     parseTransactionStatus(status: Str): Str;
-    loadAccount(params?: Dict): Promise<string>;
+    loadAccount(params?: Dict): Promise<Str>;
     /**
      * @method
      * @name bullish#fetchAccounts

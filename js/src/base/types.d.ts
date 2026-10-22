@@ -689,11 +689,15 @@ export interface DepositWithdrawFeeNetwork {
     fee?: number;
     percentage?: boolean;
 }
+export interface DepositWithdrawFeeNetworkEntry {
+    deposit?: DepositWithdrawFeeNetwork;
+    withdraw?: DepositWithdrawFeeNetwork;
+}
 export interface DepositWithdrawFee {
     info: any;
     withdraw?: DepositWithdrawFeeNetwork;
     deposit?: DepositWithdrawFeeNetwork;
-    networks?: Dictionary<DepositWithdrawFeeNetwork>;
+    networks?: Dictionary<DepositWithdrawFeeNetworkEntry>;
 }
 export interface DepositWithdrawFees extends Dictionary<DepositWithdrawFee> {
 }

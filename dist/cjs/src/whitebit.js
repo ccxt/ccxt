@@ -2319,7 +2319,7 @@ class whitebit extends whitebit$1["default"] {
         const sortedOrders = this.sortBy(allOrders, 'timestamp', true);
         // Apply limit if specified (since and symbol filtering already handled by individual methods)
         if (limit !== undefined && sortedOrders.length > limit) {
-            return sortedOrders.slice(0, limit);
+            return this.arraySlice(sortedOrders, 0, limit);
         }
         return sortedOrders;
     }
@@ -2539,7 +2539,7 @@ class whitebit extends whitebit$1["default"] {
         //     }
         //
         const marketIds = Object.keys(response);
-        let results = [];
+        const results = [];
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const marketNew = this.safeMarket(marketId, undefined, '_');
@@ -2549,9 +2549,7 @@ class whitebit extends whitebit$1["default"] {
                 results.push(this.extend(order, { 'status': 'closed' }));
             }
         }
-        results = this.sortBy(results, 'timestamp');
-        results = this.filterBySymbolSinceLimit(results, symbolResolved, since, limit);
-        return results;
+        return this.filterBySymbolSinceLimit(this.sortBy(results, 'timestamp'), symbolResolved, since, limit);
     }
     parseOrderType(type) {
         const types = {

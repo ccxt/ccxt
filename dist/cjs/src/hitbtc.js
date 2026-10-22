@@ -1660,7 +1660,8 @@ class hitbtc extends hitbtc$1["default"] {
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchTransactionsHelper('DEPOSIT,WITHDRAW', code, since, limit, params);
+        const transactions = await this.fetchTransactionsHelper('DEPOSIT,WITHDRAW', code, since, limit, params);
+        return this.toArray(transactions);
     }
     /**
      * @method
@@ -1674,7 +1675,8 @@ class hitbtc extends hitbtc$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchTransactionsHelper('DEPOSIT', code, since, limit, params);
+        const transactions = await this.fetchTransactionsHelper('DEPOSIT', code, since, limit, params);
+        return this.toArray(transactions);
     }
     /**
      * @method
@@ -1688,7 +1690,8 @@ class hitbtc extends hitbtc$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchTransactionsHelper('WITHDRAW', code, since, limit, params);
+        const transactions = await this.fetchTransactionsHelper('WITHDRAW', code, since, limit, params);
+        return this.toArray(transactions);
     }
     /**
      * @method
@@ -2017,7 +2020,14 @@ class hitbtc extends hitbtc$1["default"] {
             }
         }
         const parsed = this.parseOrders(response, market, since, limit);
-        return this.filterByArray(parsed, 'status', ['closed', 'canceled'], false);
+        const result = [];
+        for (let i = 0; i < parsed.length; i++) {
+            const status = this.safeString(parsed[i], 'status');
+            if ((status === 'closed') || (status === 'canceled')) {
+                result.push(parsed[i]);
+            }
+        }
+        return result;
     }
     /**
      * @method
@@ -2942,7 +2952,7 @@ class hitbtc extends hitbtc$1["default"] {
             const fundingRate = this.parseFundingRate(rawFundingRate, marketInner);
             fundingRates[symbol] = fundingRate;
         }
-        return this.filterByArray(fundingRates, 'symbol', symbolsNormalized);
+        return this.indexBy(this.filterByArray(fundingRates, 'symbol', symbolsNormalized, false), 'symbol');
     }
     /**
      * @method
@@ -3333,7 +3343,7 @@ class hitbtc extends hitbtc$1["default"] {
             const openInterest = this.safeDict(response, marketId, {});
             results.push(this.parseOpenInterest(openInterest, marketInner));
         }
-        return this.filterByArray(results, 'symbol', symbolsNormalized);
+        return this.indexBy(this.filterByArray(results, 'symbol', symbolsNormalized, false), 'symbol');
     }
     /**
      * @method

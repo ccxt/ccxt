@@ -1474,7 +1474,7 @@ class bitopro extends bitopro$1["default"] {
         const request = {
             'statusKind': 'DONE',
         };
-        return this.fetchOrders(symbol, since, limit, this.extend(request, params));
+        return await this.fetchOrders(symbol, since, limit, this.extend(request, params));
     }
     /**
      * @method

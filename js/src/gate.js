@@ -1267,7 +1267,8 @@ export default class gate extends Exchange {
                 this.options['unifiedAccount'] = false;
             }
         }
-        return this.options['unifiedAccount'];
+        const unified = this.safeBool(this.options, 'unifiedAccount') === true;
+        return unified;
     }
     async upgradeUnifiedTradeAccount(params = {}) {
         return await this.privateUnifiedPutUnifiedMode(params);
@@ -2458,7 +2459,7 @@ export default class gate extends Exchange {
         const chainsIndexedByIdRaw = await this.fetchDepositAddressesByNetwork(code, paramsNetworkCode);
         const chainsIndexedById = chainsIndexedByIdRaw;
         const selectedNetworkIdOrCode = this.selectNetworkKeyFromNetworks(code, networkCode, chainsIndexedById, true);
-        return chainsIndexedById[selectedNetworkIdOrCode];
+        return this.safeDict(chainsIndexedById, selectedNetworkIdOrCode);
     }
     parseDepositAddress(depositAddress, currency = undefined) {
         //
@@ -3850,8 +3851,7 @@ export default class gate extends Exchange {
         //          }
         //      ]
         //
-        const response = await this.fetchMyTrades(symbol, since, limit, { 'order_id': id });
-        return response;
+        return await this.fetchMyTrades(symbol, since, limit, { 'order_id': id });
     }
     /**
      * @method

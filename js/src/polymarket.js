@@ -1014,7 +1014,7 @@ export default class polymarket extends Exchange {
         const symbolsNormalized = this.marketSymbols(symbols);
         const response = await this.publicGetInfoTickers(params);
         const result = this.parseFundingRates(response);
-        return this.filterByArray(result, 'symbol', symbolsNormalized);
+        return this.indexBy(this.filterByArray(result, 'symbol', symbolsNormalized, false), 'symbol');
     }
     parseFundingRate(contract, market = undefined) {
         //
@@ -1155,7 +1155,7 @@ export default class polymarket extends Exchange {
         const symbolsNormalized = this.marketSymbols(symbols);
         const response = await this.publicGetInfoTickers(params);
         const result = this.parseOpenInterests(response);
-        return this.filterByArray(result, 'symbol', symbolsNormalized);
+        return this.indexBy(this.filterByArray(result, 'symbol', symbolsNormalized, false), 'symbol');
     }
     parseOpenInterest(interest, market = undefined) {
         //

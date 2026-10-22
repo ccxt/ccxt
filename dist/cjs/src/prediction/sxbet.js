@@ -1174,7 +1174,8 @@ class sxbet extends sxbet$1["default"] {
         else {
             response = await this.sxbetPrivateDeleteOrdersV3All(rest);
         }
-        let result = this.parseSxbetCancelResponse(response);
+        let result = [];
+        result = this.arrayConcat(result, this.parseSxbetCancelResponse(response));
         // both paths paginate their async submission - keep going on the SAME route while more remain
         let hasMore = this.safeBool(this.safeDict(response, 'data', {}), 'hasMore', false);
         let guard = 0;

@@ -373,7 +373,7 @@ export default class krakenfutures extends Exchange {
     fetchLeverageTiers(symbols?: Strings, params?: Dict): Promise<LeverageTiers>;
     parseMarketLeverageTiers(info: any, market?: Market): LeverageTier[];
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
-    parseAccount(account: any): any;
+    parseKrakenAccountName(account: string): string;
     /**
      * @method
      * @name krakenfutures#transferOut

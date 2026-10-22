@@ -2185,11 +2185,11 @@ class cryptocom extends cryptocom$1["default"] {
         if (networkParam !== undefined) {
             const network = this.safeString(this.networkAliases, networkParam, networkParam);
             if (network in depositAddresses) {
-                return depositAddresses[network];
+                return this.safeDict(depositAddresses, network);
             }
         }
         const keys = Object.keys(depositAddresses);
-        return depositAddresses[keys[0]];
+        return this.safeDict(depositAddresses, this.safeString(keys, 0));
     }
     /**
      * @method

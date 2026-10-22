@@ -1317,7 +1317,7 @@ export default class woofipro extends Exchange {
             const interest = this.extend({ 'timestamp': timestamp }, row);
             result.push(this.parseOpenInterest(interest));
         }
-        return this.filterByArray(result, 'symbol', symbolsNormalized);
+        return this.indexBy(this.filterByArray(result, 'symbol', symbolsNormalized, false), 'symbol');
     }
     /**
      * @method

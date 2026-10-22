@@ -227,7 +227,7 @@ export default class binance extends Exchange {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure} tokenized stock symbols are not supported here, use fetchTicker() per symbol instead
      */
     fetchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
-    parseTickersForRolling(response: any, symbols: any): any;
+    parseTickersForRolling(response: any, symbols: Strings): Tickers;
     /**
      * @method
      * @name binance#fetchMarkPrice

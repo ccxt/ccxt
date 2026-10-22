@@ -1114,7 +1114,7 @@ export default class bittrade extends Exchange {
             await this.loadMarkets();
         }
         const response = await this.privateGetAccountAccounts(params);
-        return this.safeList(response, 'data', []);
+        return this.toArray(this.safeList(response, 'data', []));
     }
     /**
      * @method

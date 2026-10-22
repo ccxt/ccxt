@@ -3312,7 +3312,8 @@ class kraken extends kraken$1["default"] {
         //         ]
         //     }
         //
-        return this.safeValue(response, 'result');
+        const result = this.safeList(response, 'result', []);
+        return result;
     }
     /**
      * @method

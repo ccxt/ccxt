@@ -822,7 +822,9 @@ class bitstamp extends bitstamp$1["default"] {
                 'timestamp': now,
             });
         }
-        return this.safeValue(this.options['fetchMarkets'], 'response');
+        const cache = this.safeDict(this.options, 'fetchMarkets', {});
+        const markets = this.safeList(cache, 'response', []);
+        return markets;
     }
     /**
      * @method

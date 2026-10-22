@@ -2134,10 +2134,10 @@ class predictfun extends predictfun$1["default"] {
         //     }
         //
         const rows = this.safeList(response, 'data', []);
-        const parsed = this.parsePredictionPositions(rows);
         if (outcomesLength === 0) {
-            return parsed;
+            return this.parsePredictionPositions(rows);
         }
+        const parsed = this.parsePredictionPositions(rows);
         // the venue filters by marketId only, so a set of outcome handles is applied here
         const wanted = {};
         const wantedOutcomes = this.toArray(outcomes);

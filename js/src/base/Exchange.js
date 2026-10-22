@@ -6351,7 +6351,7 @@ export class BaseExchange {
             throw new NotSupported(this.id + ' fetchDepositWithdrawFee() is not supported yet');
         }
         const fees = await this.fetchDepositWithdrawFees([code], params);
-        return this.safeValue(fees, code);
+        return this.safeDict(fees, code);
     }
     getSupportedMapping(key, mapping = {}) {
         if (key === undefined) {
@@ -6776,14 +6776,12 @@ export class BaseExchange {
     }
     async fetchDepositAddress(code, params = {}) {
         if (this.has['fetchDepositAddresses'] !== undefined && this.has['fetchDepositAddresses'] !== false) {
-            const depositAddresses = await this.fetchDepositAddresses([code], params);
-            const depositAddress = this.safeValue(depositAddresses, code);
-            if (depositAddress === undefined) {
+            const depositAddressesList = await this.fetchDepositAddresses([code], params);
+            const depositAddresses = this.indexBy(depositAddressesList, 'currency');
+            if (this.safeDict(depositAddresses, code) === undefined) {
                 throw new InvalidAddress(this.id + ' fetchDepositAddress() could not find a deposit address for ' + code + ', make sure you have created a corresponding deposit address in your wallet on the exchange website');
             }
-            else {
-                return depositAddress;
-            }
+            return this.safeDict(depositAddresses, code);
         }
         else if (this.has['fetchDepositAddressesByNetwork'] !== undefined && this.has['fetchDepositAddressesByNetwork'] !== false) {
             const network = this.safeString(params, 'network');
@@ -7068,7 +7066,7 @@ export class BaseExchange {
             throw new ExchangeError(this.id + ' loadTimeDifference() missing serverTime');
         }
         this.options['timeDifference'] = after - serverTime;
-        return this.options['timeDifference'];
+        return this.parseToInt(this.options['timeDifference']);
     }
     implodeHostname(url) {
         return this.implodeParams(url, { 'hostname': this.hostname });
@@ -7080,7 +7078,8 @@ export class BaseExchange {
                 throw new BadSymbol(this.id + ' fetchMarketLeverageTiers() supports contract markets only');
             }
             const tiers = await this.fetchLeverageTiers([symbol]);
-            return this.safeValue(tiers, symbol);
+            const marketTiers = this.safeList(tiers, symbol);
+            return marketTiers;
         }
         else {
             throw new NotSupported(this.id + ' fetchMarketLeverageTiers() is not supported yet');
@@ -7140,7 +7139,7 @@ export class BaseExchange {
             }
         }
         const symbolsNormalized = this.marketSymbols(symbols);
-        return this.filterByArray(results, 'symbol', symbolsNormalized);
+        return this.indexBy(this.filterByArray(results, 'symbol', symbolsNormalized, false), 'symbol');
     }
     parseTickers(tickers, symbols = undefined, params = {}) {
         //
@@ -7193,10 +7192,10 @@ export class BaseExchange {
             result.push(address);
         }
         if (codes !== undefined) {
-            result = this.filterByArray(result, 'currency', codes, false);
+            result = this.toArray(this.filterByArray(result, 'currency', codes, false));
         }
         if (indexed) {
-            result = this.filterByArray(result, 'currency', undefined, indexed);
+            result = this.toArray(this.filterByArray(result, 'currency', undefined, indexed));
         }
         return result;
     }
@@ -7439,7 +7438,7 @@ export class BaseExchange {
                 result[parsed['symbol']] = parsed;
             }
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.indexBy(this.filterByArray(result, 'symbol', symbols, false), 'symbol');
     }
     parseOpenInterestsHistory(response, market = undefined, since = undefined, limit = undefined) {
         const interests = [];
@@ -7798,7 +7797,7 @@ export class BaseExchange {
          * @method
          * @description Typed wrapper for filterByArray that returns a list of ADL Ranks
          */
-        return this.filterByArray(objects, key, values, indexed);
+        return this.toArray(this.filterByArray(objects, key, values, indexed));
     }
     createOHLCVObject(symbol, timeframe, data) {
         const res = {};
@@ -8292,7 +8291,7 @@ export class BaseExchange {
             }
         }
         const symbolsNormalized = this.marketSymbols(symbols);
-        return this.filterByArray(results, 'symbol', symbolsNormalized);
+        return this.indexBy(this.filterByArray(results, 'symbol', symbolsNormalized, false), 'symbol');
     }
     parseOption(chain, currency = undefined, market = undefined) {
         throw new NotSupported(this.id + ' parseOption () is not supported yet');
@@ -8763,8 +8762,7 @@ export default class Exchange extends BaseExchange {
          * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
          */
         if (this.has['fetchPositionsHistory'] !== undefined && this.has['fetchPositionsHistory'] !== false) {
-            const positions = await this.fetchPositionsHistory([symbol], since, limit, params);
-            return positions;
+            return await this.fetchPositionsHistory([symbol], since, limit, params);
         }
         else {
             throw new NotSupported(this.id + ' fetchPositionHistory () is not supported yet');
@@ -9346,7 +9344,7 @@ export default class Exchange extends BaseExchange {
         // TODO: TypeScript: change method signature by replacing
         // Promise<string> with Promise<Order['status']>.
         const order = await this.fetchOrder(id, symbol, params);
-        return order['status'];
+        return this.safeString(order, 'status');
     }
     async fetchUnifiedOrder(order, params = {}) {
         return await this.fetchOrder(this.safeString(order, 'id'), this.safeString(order, 'symbol'), params);
@@ -9591,7 +9589,7 @@ export default class Exchange extends BaseExchange {
         throw new NotSupported(this.id + ' cancelAllOrders() is not supported yet');
     }
     async cancelUnifiedOrder(order, params = {}) {
-        return this.cancelOrder(this.safeString(order, 'id'), this.safeString(order, 'symbol'), params);
+        return await this.cancelOrder(this.safeString(order, 'id'), this.safeString(order, 'symbol'), params);
     }
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if ((this.has['fetchOpenOrders'] !== undefined && this.has['fetchOpenOrders'] !== false) && (this.has['fetchClosedOrders'] !== undefined && this.has['fetchClosedOrders'] !== false)) {

@@ -2682,23 +2682,17 @@ class lbank extends lbank$1["default"] {
             await this.loadMarkets();
         }
         const isAuthorized = this.checkRequiredCredentials(false);
-        let result;
         if (isAuthorized) {
             const options = this.safeDict(this.options, 'fetchTransactionFees', {});
             const defaultMethod = this.safeString(options, 'method', 'fetchPrivateTransactionFees');
             const method = this.safeString(params, 'method', defaultMethod);
             const paramsOmitted = this.omit(params, 'method');
             if (method === 'fetchPublicTransactionFees') {
-                result = await this.fetchPublicTransactionFees(paramsOmitted);
+                return await this.fetchPublicTransactionFees(paramsOmitted);
             }
-            else {
-                result = await this.fetchPrivateTransactionFees(paramsOmitted);
-            }
+            return await this.fetchPrivateTransactionFees(paramsOmitted);
         }
-        else {
-            result = await this.fetchPublicTransactionFees(params);
-        }
-        return result;
+        return await this.fetchPublicTransactionFees(params);
     }
     async fetchPrivateTransactionFees(params = {}) {
         // complete response
@@ -2845,23 +2839,17 @@ class lbank extends lbank$1["default"] {
             await this.loadMarkets();
         }
         const isAuthorized = this.checkRequiredCredentials(false);
-        let response;
         if (isAuthorized) {
             const options = this.safeDict(this.options, 'fetchDepositWithdrawFees', {});
             const defaultMethod = this.safeString(options, 'method', 'fetchPrivateDepositWithdrawFees');
             const method = this.safeString(params, 'method', defaultMethod);
             const paramsOmitted = this.omit(params, 'method');
             if (method === 'fetchPublicDepositWithdrawFees') {
-                response = await this.fetchPublicDepositWithdrawFees(codes, paramsOmitted);
+                return await this.fetchPublicDepositWithdrawFees(codes, paramsOmitted);
             }
-            else {
-                response = await this.fetchPrivateDepositWithdrawFees(codes, paramsOmitted);
-            }
+            return await this.fetchPrivateDepositWithdrawFees(codes, paramsOmitted);
         }
-        else {
-            response = await this.fetchPublicDepositWithdrawFees(codes, params);
-        }
-        return response;
+        return await this.fetchPublicDepositWithdrawFees(codes, params);
     }
     async fetchPrivateDepositWithdrawFees(codes = undefined, params = {}) {
         // complete response

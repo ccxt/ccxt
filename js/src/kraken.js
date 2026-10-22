@@ -3314,7 +3314,8 @@ export default class kraken extends Exchange {
         //         ]
         //     }
         //
-        return this.safeValue(response, 'result');
+        const result = this.safeList(response, 'result', []);
+        return result;
     }
     /**
      * @method

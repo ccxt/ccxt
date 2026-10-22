@@ -41,7 +41,7 @@ export default class limitless extends Exchange {
      * @returns {object[]} raw single-market rows only
      */
     expandGroupRows(rawRows: any[]): any[];
-    parseEvent(event: Dict): any;
+    parseEvent(event: Dict): PredictionEvent;
     /**
      * @method
      * @name limitless#fetchTicker

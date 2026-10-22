@@ -1511,7 +1511,7 @@ export default class PredictionExchange extends BaseExchange {
         }
         results = this.sortBy2(results, 'timestamp', 'id');
         const outcomeHandle = this.safeString(outcomeObj, 'outcome');
-        return this.filterByOutcomeSinceLimit(results, outcomeHandle, since, limit);
+        return this.filterByValueSinceLimit(results, 'outcome', outcomeHandle, since, limit, 'timestamp', false);
     }
     /**
      * @ignore
