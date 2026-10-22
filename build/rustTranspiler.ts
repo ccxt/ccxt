@@ -12612,11 +12612,11 @@ impl std::ops::DerefMut for ${coreName} {
     // `stringify_simple` is private: scalars inline, the `__precise` dict goes through the public
     // `runtime::stringify_param` alias, other containers through `Display` exactly like the helper.
     r31Str(content: string): string {
-        const names = [ 'to_string_val', 'join', 'split', 'replace_str', 'ends_with', 'starts_with', 'pad_end', 'pad_start', 'to_fixed' ];
+        // hx5 X41: pad_start/pad_end/to_fixed (and slice) are not r31 targets: no site has a proven `&str`/number
+        // operand with in-range bounds, so the master `runtime::` helper call stays. Never print their bodies inline.
+        const names = [ 'to_string_val', 'join', 'split', 'replace_str', 'ends_with', 'starts_with' ];
         if (!names.some(n => content.includes(n + '('))) return content;
         const str = (v: string) => `(match ${v} { Value::Str(__s) => __s.to_string(), Value::Int(__n) => __n.to_string(), Value::Float(__f) => __f.to_string(), Value::Bool(__b) => __b.to_string(), Value::Null => "null".to_string(), Value::Dict(__m) if __m.contains_key("__precise") => crate::runtime::stringify_param(${v}), __o => format!("{}", __o) })`;
-        const i64v = (v: string) => `(match ${v} { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1i64 } else { 0i64 }), _ => None })`;
-        const pad = (a: string[], start: boolean) => `({ let __r31s: &Value = ${a[0]}; let __r31l: &Value = ${a[1]}; let __r31p: &Value = ${a[2]}; let __t: usize = match ${i64v('__r31l')} { Some(__v) => __v as usize, None => 0 }; let __p: String = match __r31p { Value::Str(__x) => __x.to_string(), _ => " ".to_string() }; match __r31s { Value::Str(__sv) => { if __sv.chars().count() >= __t { Value::Str(__sv.clone()) } else { let __need = __t - __sv.chars().count(); let __fill = __p.repeat((__need / __p.chars().count().max(1)).max(1)); Value::Str(${start ? 'format!("{}{}", __fill, __sv)' : 'format!("{}{}", __sv, __fill)'}.into()) } } _ => Value::Null } })`;
         const build = (name: string, args: string[]): string | undefined => {
             const a = args.map(s => s.trim());
             if (name === 'to_string_val' && a.length === 1) {
@@ -12630,13 +12630,9 @@ impl std::ops::DerefMut for ${coreName} {
             if ((name === 'starts_with' || name === 'ends_with') && a.length === 2) {
                 return `({ let __r31a: &Value = ${a[0]}; let __r31b: &Value = ${a[1]}; match (__r31a, __r31b) { (Value::Str(__h), Value::Str(__x)) => __h.${name}(__x.as_ref()), _ => false } })`;
             }
-            if ((name === 'pad_start' || name === 'pad_end') && a.length === 3) return pad(a, name === 'pad_start');
-            if (name === 'to_fixed' && a.length === 2) {
-                return `({ let __r31x: &Value = ${a[0]}; let __r31g: &Value = ${a[1]}; let __d: usize = match ${i64v('__r31g')} { Some(__v) => __v.max(0) as usize, None => 0 }; let __n: f64 = match __r31x { Value::Int(__i) => *__i as f64, Value::Float(__f) => *__f, Value::Str(__s) => __s.trim().parse::<f64>().unwrap_or(0.0), _ => 0.0 }; Value::Str(format!("{:.*}", __d, __n).into()) })`;
-            }
             return undefined;
         };
-        const re = /(?<![A-Za-z0-9_:.])(to_string_val|join|split|replace_str|ends_with|starts_with|pad_end|pad_start|to_fixed)\(/g;
+        const re = /(?<![A-Za-z0-9_:.])(to_string_val|join|split|replace_str|ends_with|starts_with)\(/g;
         for (let round = 0; round < 8; round++) {
             const masked = this.maskStringsAndComments(content);
             const rewrites: Array<{ start: number, end: number, text: string }> = [];
