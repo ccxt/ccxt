@@ -3284,7 +3284,7 @@ export default class coinbaseinternational extends Exchange {
         const rpcMethod = access + '/' + path;
         let requestParams: Dict = this.handleRouteAndParams ('sign', params);
         const isNativeDeribit = this.isNativeDeribitCredentials ();
-        let baseApiUrl = this.urls['api']['rest'];
+        let baseApiUrl = this.safeString (this.urls['api'], 'rest', '');
         if (isNativeDeribit) {
             baseApiUrl = 'https://www.deribit.com/api/v2';
         }
