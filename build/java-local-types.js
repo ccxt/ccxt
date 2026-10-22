@@ -4550,7 +4550,8 @@ function handleTupleIsSafeToNarrow (printer, scope, skipNode, sourceName, expect
                 return false;
             }
         }
-        if (isProFile && feedsInheritedAsyncCall (printer, use, scope) && !h2kJ04FeedsMapCoreSlot (printer, use, expected)) {
+        if (isProFile && feedsInheritedAsyncCall (printer, use, scope) && !h2kJ04FeedsMapCoreSlot (printer, use, expected)
+            && !hx7H4FeedsCastSlot (printer, use, expected)) {
             return false;
         }
     }
@@ -19761,4 +19762,45 @@ function x21BaseOnlyDispatch (call) {
     const declarations = javaFreshMapDispatch (call.getSourceFile ().fileName, name);
     return declarations !== undefined && declarations.length > 0
         && declarations.every ((d) => BASE_SOURCE_FILE.test (d.getSourceFile ().fileName));
+}
+
+// ===== hx7 H4: handle* Pair slot-0 locals feeding an already-cast slot of an inherited async call =====
+// The pro-file guard keeps a tuple local Object when it feeds an inherited async call, because a
+// typed argument could pick a different (typed core) overload. When the printed call already casts
+// that argument to the element type (`(String) (x)` / `(Boolean) (x)`), the argument's static type is the
+// element type either way, so overload resolution cannot change; the local may take the typed read.
+const HX7_H4_CAST_TYPES = new Set ([ 'String', 'Boolean' ]);
+
+export function hx7H4FeedsCastSlot (printer, use, expected) {
+    if (!HX7_H4_CAST_TYPES.has (expected) || use === undefined || !ts.isIdentifier (use)) {
+        return false;
+    }
+    let child = use;
+    let call = use.parent;
+    while (call !== undefined && ts.isParenthesizedExpression (call)) {
+        child = call;
+        call = call.parent;
+    }
+    if (call === undefined || !ts.isCallExpression (call) || call.arguments.indexOf (child) === -1 || !isThisOrSuperCall (call)) {
+        return false;
+    }
+    // the slot is a typed core parameter of exactly the element type: the Object local already
+    // prints `(String) (x)` there (javaConvertToCoreType), the typed local prints `x`; same static type
+    const index = call.arguments.indexOf (child);
+    let method;
+    try {
+        method = printer.javaMethodImplementation (printer.getChecker ().getResolvedSignature (call)?.declaration?.resolve ());
+    } catch (e) {
+        return false;
+    }
+    if (method === undefined || !printer.javaIsPrintedMethod (method)) {
+        return false;
+    }
+    const params = method.parameters;
+    if (call.arguments.length > params.length || params.some ((p) => p.dotDotDotToken !== undefined)
+        || call.arguments.some ((a) => a.kind === ts.SyntaxKind.SpreadElement)) {
+        return false;
+    }
+    const core = printer.javaCoreParameterTypes (method)?.[index];
+    return core !== undefined && pairSameType (core, expected);
 }
