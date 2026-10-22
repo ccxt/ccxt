@@ -3255,7 +3255,7 @@ class BaseExchange(object):
         if k is not None:
             dict[k] = value
 
-    def handle_deltas(self, bookside: object, deltas: object):
+    def handle_deltas(self, bookside: object, deltas: list[object]):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
@@ -3538,7 +3538,7 @@ class BaseExchange(object):
             self.urls = newUrls
         self.options['enableDemoTrading'] = enable
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}):
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}):
         return {'url': None, 'method': None, 'headers': None, 'body': None}
 
     def fetch_accounts(self, params: dict = {}):
@@ -5835,7 +5835,11 @@ class BaseExchange(object):
     def incrementing_nonce(self):
         """
  @ignore
-        returns a strictly-increasing nonce for venues that reject duplicate nonces per signer; the unit is whatever nonce() returns — the base default is seconds, so a venue that does not override nonce() gets a second-resolution counter that drifts ahead of wall clock under load, while venues needing milliseconds override nonce() as hyperliquid does. The counter is per exchange instance, so it narrows the duplicate-nonce race but does not remove it across instances or processes.
+        returns a strictly-increasing nonce for venues that reject duplicate nonces per signer
+ the unit is whatever nonce() returns — the base default is seconds, so a venue that does not override
+ nonce() gets a second-resolution counter that drifts ahead of wall clock under load, while venues
+ needing milliseconds override nonce() as hyperliquid does. The counter is per exchange instance,
+ so it narrows the duplicate-nonce race but does not remove it across instances or processes.
         :returns int: a strictly-increasing nonce in the unit returned by nonce()
         """
         currentNonce = self.nonce()
@@ -7097,15 +7101,11 @@ class BaseExchange(object):
         :returns boolean: True if a post only order, False otherwise
         """
         timeInForce = self.safe_string_upper(params, 'timeInForce')
-        postOnly = self.safe_bool_2(params, 'postOnly', 'post_only', False)
         # we assume timeInForce is uppercase from safeStringUpper (params, 'timeInForce')
         ioc = timeInForce == 'IOC'
         fok = timeInForce == 'FOK'
         timeInForcePostOnly = timeInForce == 'PO'
-        if not postOnly:
-            postOnly = timeInForcePostOnly
-        if not postOnly:
-            postOnly = exchangeSpecificParam
+        postOnly = self.safe_bool_2(params, 'postOnly', 'post_only', False) or timeInForcePostOnly or exchangeSpecificParam
         if postOnly:
             if ioc or fok:
                 raise InvalidOrder(self.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce)
@@ -7125,14 +7125,10 @@ class BaseExchange(object):
         :returns Array:
         """
         timeInForce = self.safe_string_upper(params, 'timeInForce')
-        postOnly = self.safe_bool(params, 'postOnly', False)
         ioc = timeInForce == 'IOC'
         fok = timeInForce == 'FOK'
         po = timeInForce == 'PO'
-        if not postOnly:
-            postOnly = po
-        if not postOnly:
-            postOnly = exchangeSpecificPostOnlyOption
+        postOnly = self.safe_bool(params, 'postOnly', False) or po or exchangeSpecificPostOnlyOption
         if postOnly:
             if ioc or fok:
                 raise InvalidOrder(self.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce)
@@ -7160,7 +7156,7 @@ class BaseExchange(object):
     def fetch_convert_currencies(self, params: dict = {}):
         raise NotSupported(self.id + ' fetchConvertCurrencies() is not supported yet')
 
-    def parse_open_interest(self, interest: object, market: Market = None):
+    def parse_open_interest(self, interest: dict, market: Market = None):
         raise NotSupported(self.id + ' parseOpenInterest () is not supported yet')
 
     def parse_open_interests(self, response: object, symbols: Strings = None):
@@ -7355,7 +7351,7 @@ class BaseExchange(object):
                 depositWithdrawFees[code] = self.parse_deposit_withdraw_fee(dictionary, currency)
         return depositWithdrawFees
 
-    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None):
+    def parse_deposit_withdraw_fee(self, fee: dict, currency: Currency = None):
         raise NotSupported(self.id + ' parseDepositWithdrawFee() is not supported yet')
 
     def deposit_withdraw_fee(self, info: object):
@@ -7748,7 +7744,7 @@ class BaseExchange(object):
         return self.filter_by_since_limit(sorted, since, limit, key)
 
     def sort_cursor_paginated_result(self, result: object):
-        first = self.safe_value(result, 0)
+        first = self.safe_dict(result, 0)
         if first is not None:
             if 'timestamp' in first:
                 return self.sort_by(result, 'timestamp', True)

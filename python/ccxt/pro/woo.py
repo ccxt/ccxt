@@ -309,7 +309,7 @@ class woo(ccxt.async_support.woo):
         amount = self.safe_float_2(delta, 'quantity', 1)
         bookside.store(price, amount)
 
-    def handle_deltas(self, bookside: object, deltas: object):
+    def handle_deltas(self, bookside: object, deltas: list[object]):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 

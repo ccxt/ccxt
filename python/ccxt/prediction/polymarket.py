@@ -1864,9 +1864,10 @@ class polymarket(PredictionExchange, ImplicitAPI):
         if isinstance(response, list):
             for i in range(0, len(response)):
                 # request echo first so the response's real orderID/status win on overlap
-                enriched = self.extend(requests[i], response[i])
+                rawItem = response[i]
+                enriched = self.extend(requests[i], rawItem)
                 parsedItem = self.parse_prediction_order(enriched, outcomes[i])
-                parsedItem['info'] = response[i]   # keep info the raw exchange response
+                parsedItem['info'] = rawItem   # keep info the raw exchange response
                 result.append(parsedItem)
         else:
             result.append(self.parse_prediction_order(response))
@@ -2484,7 +2485,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         # unique when two identical orders are signed within the same millisecond
         return self.milliseconds()
 
-    def sign(self, path: str, api: list[str] = ['gamma'], method='GET', params: dict = {}):
+    def sign(self, path: str, api: list[str] = ['gamma'], method: str = 'GET', params: dict = {}):
         """
  @ignore
         builds the request url and attaches HMAC-SHA256 authentication headers for private endpoints

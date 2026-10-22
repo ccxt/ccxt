@@ -218,7 +218,7 @@ class revolutx(Exchange, ImplicitAPI):
             },
         })
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         requestHeaders = None
         requestBody = None
         implodedPath = self.implode_params(path, params)

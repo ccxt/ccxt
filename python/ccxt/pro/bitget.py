@@ -989,7 +989,7 @@ class bitget(ccxt.async_support.bitget):
         bidAsk.append(delta)
         bookside.storeArray(bidAsk)
 
-    def handle_deltas(self, bookside: object, deltas: object):
+    def handle_deltas(self, bookside: object, deltas: list[object]):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
@@ -2452,7 +2452,7 @@ class bitget(ccxt.async_support.bitget):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    async def un_watch_private(self, uta: object, messageHash: object, args: object, params={}):
+    async def un_watch_private(self, uta: object, messageHash: object, args: object, params: dict = {}):
         isUta = (uta is True)
         url = self.urls['api']['ws']['utaPrivate'] if isUta else self.urls['api']['ws']['private']
         sandboxMode = self.safe_bool_2(self.options, 'sandboxMode', 'sandbox', False)

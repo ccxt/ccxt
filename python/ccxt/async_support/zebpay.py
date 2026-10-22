@@ -1832,7 +1832,7 @@ class zebpay(Exchange, ImplicitAPI):
             'datetime': None,
         }
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         bodySigned = None
         headersSigned = None
         paramsOmitted = self.omit(params, 'defaultType')

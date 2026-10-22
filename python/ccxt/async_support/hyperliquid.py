@@ -4521,7 +4521,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             record = records[i]
             if self.safe_string(record, 'type') == 'vaultDeposit':
                 delta = self.safe_dict(record, 'delta', {})
-                if delta['vault'] == '0x' + vaultAddress:
+                if self.safe_string(delta, 'vault') == '0x' + vaultAddress:
                     deposits.append(record)
         return self.parse_transactions(deposits, None, since, limit)
 
@@ -4581,7 +4581,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             record = records[i]
             if self.safe_string(record, 'type') == 'vaultWithdraw':
                 delta = self.safe_dict(record, 'delta', {})
-                if delta['vault'] == '0x' + vaultAddress:
+                if self.safe_string(delta, 'vault') == '0x' + vaultAddress:
                     withdrawals.append(record)
         return self.parse_transactions(withdrawals, None, since, limit)
 
@@ -4617,7 +4617,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         openInterest = self.safe_dict(ois, symbolValue)
         return openInterest
 
-    def parse_open_interest(self, interest: object, market: Market = None) -> OpenInterest:
+    def parse_open_interest(self, interest: dict, market: Market = None) -> OpenInterest:
         #
         #  {
         #      szDecimals: '2',
@@ -4864,7 +4864,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)  # unknown message
         return None
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
         apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:

@@ -662,7 +662,7 @@ class deribit(ccxt.async_support.deribit):
         elif action == 'delete':
             bookside.storeArray([price, amount, 0])
 
-    def handle_deltas(self, bookside: object, deltas: object):
+    def handle_deltas(self, bookside: object, deltas: list[object]):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 

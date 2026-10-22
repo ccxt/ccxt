@@ -2837,7 +2837,7 @@ class lbank(Exchange, ImplicitAPI):
                             }
         return result
 
-    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None) -> object:
+    def parse_deposit_withdraw_fee(self, fee: dict, currency: Currency = None) -> object:
         #
         # * only used for fetchPrivateDepositWithdrawFees
         #
@@ -2891,7 +2891,7 @@ class lbank(Exchange, ImplicitAPI):
                     }
         return result
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         query = self.omit(params, self.extract_params(path))
         apiUrl = self.safe_string(self.urls['api'], 'rest')
         if apiUrl is None:

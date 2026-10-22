@@ -1648,7 +1648,7 @@ class backpack(Exchange, ImplicitAPI):
         interest = self.safe_dict(response, 0, {})
         return self.parse_open_interest(interest, market)
 
-    def parse_open_interest(self, interest: object, market: Market = None) -> OpenInterest:
+    def parse_open_interest(self, interest: dict, market: Market = None) -> OpenInterest:
         #
         #     [
         #         {
@@ -3091,7 +3091,7 @@ class backpack(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' nonce() requires a numeric options["timeDifference"]')
         return self.milliseconds() - timeDifference
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
         endpoint = '/' + path
         apiUrl = self.safe_string(self.urls['api'], apiName)

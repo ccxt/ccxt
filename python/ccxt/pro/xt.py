@@ -226,7 +226,7 @@ class xt(ccxt.async_support.xt):
         url = self.safe_string(self.urls['api']['ws'], tradeType) + '/' + tail
         return await self.watch(url, messageHash, request, messageHash, subscription)
 
-    async def un_subscribe(self, messageHash: str, name: str, access: str, methodName: str, topic: str, market: Market = None, symbols: Strings = None, params={}, subscriptionParams={}) -> object:
+    async def un_subscribe(self, messageHash: str, name: str, access: str, methodName: str, topic: str, market: Market = None, symbols: Strings = None, params: dict = {}, subscriptionParams={}) -> object:
         """
  @ignore
         Connects to a websocket channel
