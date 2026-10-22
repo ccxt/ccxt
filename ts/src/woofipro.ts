@@ -1222,7 +1222,7 @@ export default class woofipro extends Exchange {
         return this.filterByArrayTickers (result, 'symbol', symbolsNormalized);
     }
 
-    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
+    override parseOpenInterest (interest: NullableDict, market: Market = undefined): OpenInterest {
         //
         //     {
         //         "symbol": "PERP_BTC_USDC",

@@ -11703,7 +11703,7 @@ export default class kucoin extends Exchange {
         return this.parseOpenInterests (data, symbolsNormalized) as OpenInterests;
     }
 
-    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
+    override parseOpenInterest (interest: NullableDict, market: Market = undefined): OpenInterest {
         //
         //     {
         //         "symbol": "ETHUSDTM",

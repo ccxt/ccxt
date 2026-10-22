@@ -1453,7 +1453,7 @@ export default class extended extends Exchange {
         return this.parseOpenInterestsHistory (data, market, sinceResolved, limitResolved);
     }
 
-    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
+    override parseOpenInterest (interest: NullableDict, market: Market = undefined): OpenInterest {
         //
         //     {
         //       "i": "112620590.6060360000000000",

@@ -5018,7 +5018,7 @@ export default class hyperliquid extends Exchange {
         return openInterest as OpenInterest;
     }
 
-    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
+    override parseOpenInterest (interest: NullableDict, market: Market = undefined): OpenInterest {
         //
         //  {
         //      szDecimals: '2',

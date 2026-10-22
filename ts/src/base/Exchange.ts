@@ -8256,7 +8256,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' fetchConvertCurrencies() is not supported yet');
     }
 
-    parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
+    parseOpenInterest (interest: NullableDict, market: Market = undefined): OpenInterest {
         throw new NotSupported (this.id + ' parseOpenInterest () is not supported yet');
     }
 

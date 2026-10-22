@@ -3259,7 +3259,7 @@ export default class hitbtc extends Exchange {
         });
     }
 
-    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
+    override parseOpenInterest (interest: NullableDict, market: Market = undefined): OpenInterest {
         //
         //     {
         //         "contract_type": "perpetual",

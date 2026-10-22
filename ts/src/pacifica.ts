@@ -3058,7 +3058,7 @@ export default class pacifica extends Exchange {
         return oi as OpenInterest;
     }
 
-    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
+    override parseOpenInterest (interest: NullableDict, market: Market = undefined): OpenInterest {
         //
         //     {
         //       "funding": "0.00010529",
