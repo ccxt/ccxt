@@ -7,6 +7,8 @@
 
 package io.github.ccxt.api;
 import io.github.ccxt.Exchange;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class CryptomusApi extends Exchange
 {
@@ -25,7 +27,7 @@ public class CryptomusApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV2UserApiExchangeMarkets (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV2UserApiExchangeMarkets (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV2UserApiExchangeMarkets", optionalArgs);
     }
@@ -36,9 +38,20 @@ public class CryptomusApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV2UserApiExchangeMarketPrice (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV2UserApiExchangeMarketPrice (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV2UserApiExchangeMarketPrice", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetV2UserApiExchangeMarketsPrice endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  publicGetV2UserApiExchangeMarketsPrice (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetV2UserApiExchangeMarketsPrice", optionalArgs);
     }
 
     /**
@@ -47,7 +60,7 @@ public class CryptomusApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1ExchangeMarketAssets (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV1ExchangeMarketAssets (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1ExchangeMarketAssets", optionalArgs);
     }
@@ -58,7 +71,7 @@ public class CryptomusApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1ExchangeMarketOrderBookCurrencyPair (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV1ExchangeMarketOrderBookCurrencyPair (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1ExchangeMarketOrderBookCurrencyPair", optionalArgs);
     }
@@ -69,7 +82,7 @@ public class CryptomusApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1ExchangeMarketTickers (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV1ExchangeMarketTickers (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1ExchangeMarketTickers", optionalArgs);
     }
@@ -80,7 +93,7 @@ public class CryptomusApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1ExchangeMarketTradesCurrencyPair (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV1ExchangeMarketTradesCurrencyPair (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1ExchangeMarketTradesCurrencyPair", optionalArgs);
     }
@@ -91,7 +104,7 @@ public class CryptomusApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV2UserApiExchangeOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV2UserApiExchangeOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV2UserApiExchangeOrders", optionalArgs);
     }
@@ -102,7 +115,7 @@ public class CryptomusApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV2UserApiExchangeOrdersHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV2UserApiExchangeOrdersHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV2UserApiExchangeOrdersHistory", optionalArgs);
     }
@@ -113,7 +126,7 @@ public class CryptomusApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV2UserApiExchangeAccountBalance (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV2UserApiExchangeAccountBalance (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV2UserApiExchangeAccountBalance", optionalArgs);
     }
@@ -124,7 +137,7 @@ public class CryptomusApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV2UserApiExchangeAccountTariffs (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV2UserApiExchangeAccountTariffs (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV2UserApiExchangeAccountTariffs", optionalArgs);
     }
@@ -135,7 +148,7 @@ public class CryptomusApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV2UserApiPaymentServices (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV2UserApiPaymentServices (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV2UserApiPaymentServices", optionalArgs);
     }
@@ -146,7 +159,7 @@ public class CryptomusApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV2UserApiPayoutServices (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV2UserApiPayoutServices (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV2UserApiPayoutServices", optionalArgs);
     }
@@ -157,9 +170,97 @@ public class CryptomusApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV2UserApiTransactionList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV2UserApiTransactionList (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV2UserApiTransactionList", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetV2UserApiBalance endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privateGetV2UserApiBalance (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV2UserApiBalance", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetV2UserApiConvertDirectionList endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privateGetV2UserApiConvertDirectionList (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV2UserApiConvertDirectionList", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetV2UserApiConvertOrderList endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privateGetV2UserApiConvertOrderList (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV2UserApiConvertOrderList", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetV2UserApiAmlCheckBalance endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privateGetV2UserApiAmlCheckBalance (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV2UserApiAmlCheckBalance", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetV2UserApiAmlCheckCurrencies endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privateGetV2UserApiAmlCheckCurrencies (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV2UserApiAmlCheckCurrencies", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetV2UserApiAmlCheckPackages endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privateGetV2UserApiAmlCheckPackages (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV2UserApiAmlCheckPackages", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetV2UserApiAmlCheckRequest endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privateGetV2UserApiAmlCheckRequest (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV2UserApiAmlCheckRequest", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetV2UserApiAmlCheckRequestId endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privateGetV2UserApiAmlCheckRequestId (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV2UserApiAmlCheckRequestId", optionalArgs);
     }
 
     /**
@@ -168,7 +269,7 @@ public class CryptomusApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV2UserApiExchangeOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV2UserApiExchangeOrders (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV2UserApiExchangeOrders", optionalArgs);
     }
@@ -179,9 +280,64 @@ public class CryptomusApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV2UserApiExchangeOrdersMarket (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV2UserApiExchangeOrdersMarket (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV2UserApiExchangeOrdersMarket", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV2UserApiConvert endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privatePostV2UserApiConvert (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV2UserApiConvert", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV2UserApiConvertCalculate endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privatePostV2UserApiConvertCalculate (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV2UserApiConvertCalculate", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV2UserApiConvertLimit endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privatePostV2UserApiConvertLimit (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV2UserApiConvertLimit", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV2UserApiAmlCheckRequest endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privatePostV2UserApiAmlCheckRequest (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV2UserApiAmlCheckRequest", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV2UserApiAmlCheckRequestIdReportSend endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privatePostV2UserApiAmlCheckRequestIdReportSend (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV2UserApiAmlCheckRequestIdReportSend", optionalArgs);
     }
 
     /**
@@ -190,9 +346,20 @@ public class CryptomusApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteV2UserApiExchangeOrdersOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteV2UserApiExchangeOrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteV2UserApiExchangeOrdersOrderId", optionalArgs);
+    }
+
+    /**
+     * Calls the privateDeleteV2UserApiConvertOrderUuid endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privateDeleteV2UserApiConvertOrderUuid (Object... optionalArgs)
+    {
+        return this.callAsync ("privateDeleteV2UserApiConvertOrderUuid", optionalArgs);
     }
 
 }

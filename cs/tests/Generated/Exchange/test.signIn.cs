@@ -10,7 +10,7 @@ public partial class testMainClass : BaseTest
     async static public Task<object> testSignIn(BaseExchange exchange, object skippedProperties)
     {
         string method = "signIn";
-        if (isTrue(isTrue(!isEqual(getValue(exchange.has, method), null)) && isTrue(!isEqual(getValue(exchange.has, method), false))))
+        if (!isEqual(getValue(exchange.has, method), null) && !isEqual(getValue(exchange.has, method), false))
         {
             await invokeExchangeDynamically(exchange, "signIn");
         }

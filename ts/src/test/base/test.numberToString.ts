@@ -1,9 +1,7 @@
 
 
-
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
-
 
 function testNumberToString () {
     const exchange = new ccxt.Exchange ({

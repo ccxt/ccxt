@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var okx = require('./okx.js');
+var myokx$1 = require('../abstract/pro/myokx.js');
 
 // ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-class myokx extends okx["default"] {
+class myokx extends myokx$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'myokx',
@@ -15,7 +15,7 @@ class myokx extends okx["default"] {
             'urls': {
                 'api': {
                     'rest': 'https://{hostname}',
-                    'ws': 'wss://wseea.okx.com:8443/ws/v5',
+                    'ws': 'wss://wseea.okx.com:443/ws/v5',
                 },
                 'www': 'https://my.okx.com',
                 'doc': 'https://my.okx.com/docs-v5/en/#overview',
@@ -25,7 +25,7 @@ class myokx extends okx["default"] {
                     'discount': 0.2,
                 },
                 'test': {
-                    'ws': 'wss://wseeapap.okx.com:8443/ws/v5',
+                    'ws': 'wss://wseeapap.okx.com:443/ws/v5',
                 },
             },
             'has': {

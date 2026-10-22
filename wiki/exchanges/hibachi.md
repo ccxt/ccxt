@@ -340,12 +340,12 @@ make a withdrawal
 | code | <code>string</code> | Yes | unified currency code, only support USDT |
 | amount | <code>float</code> | Yes | the amount to withdraw |
 | address | <code>string</code> | Yes | the address to withdraw to |
-| tag | <code>string</code> | Yes |  |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
 
 
 ```javascript
-hibachi.withdraw (code, amount, address, tag, params?)
+hibachi.withdraw (code, amount, address, params?)
 ```
 
 
@@ -407,7 +407,7 @@ fetches all current open orders
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | No | unified market symbol to filter by |
-| since | <code>int</code> | No | milisecond timestamp of the earliest order |
+| since | <code>int</code> | No | millisecond timestamp of the earliest order |
 | limit | <code>int</code> | No | the maximum number of open orders to return |
 | params | <code>object</code> | No | extra parameters |
 

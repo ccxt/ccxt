@@ -2,15 +2,14 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-require('../utils/base58.js');
 var data = require('../utils/data.js');
 require('../utils/errors.js');
-require('../utils/fixednumber.js');
 require('../utils/maths.js');
 require('../utils/utf8.js');
 require('../../../base/functions/platform.js');
 require('../../../base/functions/encode.js');
 require('../../../base/functions/crypto.js');
+require('../../../base/functions/time.js');
 require('../../../base/functions/io.js');
 require('@noble/hashes/sha3.js');
 require('@noble/hashes/sha2.js');

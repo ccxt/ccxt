@@ -37,6 +37,7 @@
 * [fetchOrderTrades](#fetchordertrades)
 * [fetchMyTrades](#fetchmytrades)
 * [fetchLedger](#fetchledger)
+* [fetchFundingHistory](#fetchfundinghistory)
 * [fetchPositions](#fetchpositions)
 * [fetchPosition](#fetchposition)
 * [fetchPositionsForSymbol](#fetchpositionsforsymbol)
@@ -933,6 +934,31 @@ fetch the history of changes, actions done by the user or operations that altere
 
 ```javascript
 weex.fetchLedger (code?, since?, limit?, params?)
+```
+
+
+<a name="fetchFundingHistory" id="fetchfundinghistory"></a>
+
+### fetchFundingHistory{docsify-ignore}
+fetch the history of funding payments paid and received on this account
+
+**Kind**: instance method of [<code>weex</code>](#weex)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding history structures](https://docs.ccxt.com/?id=funding-history-structure)
+
+**See**: https://www.weex.com/api-doc/contract/Account_API/GetContractBills  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | No | unified market symbol |
+| since | <code>int</code> | No | the earliest time in ms to fetch funding history for |
+| limit | <code>int</code> | No | the maximum number of funding history structures to retrieve (default 20, max 100) |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest funding history entry, requires since to be set, the span may not exceed 100 days |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+
+
+```javascript
+weex.fetchFundingHistory (symbol?, since?, limit?, params?)
 ```
 
 

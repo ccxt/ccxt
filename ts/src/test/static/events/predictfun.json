@@ -1,0 +1,1604 @@
+[
+    {
+        "id": "what-price-will-bitcoin-hit-in-september-2026",
+        "slug": "what-price-will-bitcoin-hit-in-september-2026",
+        "event": "PRICE_BITCOIN_HIT_SEPTEMBER_2026",
+        "title": "What price will Bitcoin hit in September?",
+        "description": "What price will Bitcoin hit in September?",
+        "markets": [
+            {
+                "id": "1878469",
+                "market": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000",
+                "base": "USDT",
+                "quote": "USDT",
+                "baseId": "1878469",
+                "quoteId": "USDT",
+                "type": "prediction",
+                "marketType": "binary",
+                "executionModel": "clob",
+                "collateral": "USDT",
+                "spot": false,
+                "margin": false,
+                "swap": false,
+                "future": false,
+                "option": false,
+                "prediction": true,
+                "active": true,
+                "resolved": false,
+                "contract": false,
+                "expiry": 1790827200000,
+                "expiryDatetime": "2026-10-01T04:00:00.000Z",
+                "taker": 0.02,
+                "maker": 0,
+                "percentage": true,
+                "tierBased": false,
+                "feeSide": "get",
+                "precision": {
+                    "amount": 0.01,
+                    "price": 0.001
+                },
+                "limits": {
+                    "leverage": {
+                        "min": 1,
+                        "max": 1
+                    },
+                    "amount": {},
+                    "price": {
+                        "min": 0.01,
+                        "max": 0.99
+                    },
+                    "cost": {
+                        "min": 1
+                    }
+                },
+                "outcomes": [
+                    {
+                        "id": "59609662274634420713255055715470737173946398995313530846306470637882773028040",
+                        "outcomeId": "59609662274634420713255055715470737173946398995313530846306470637882773028040",
+                        "outcome": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000:YES",
+                        "market": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000",
+                        "event": "PRICE_BITCOIN_HIT_SEPTEMBER_2026",
+                        "label": "YES",
+                        "active": true,
+                        "precision": {
+                            "amount": 0.01,
+                            "price": 0.001
+                        },
+                        "info": {
+                            "marketId": "1878469",
+                            "bestAsk": {
+                                "price": 0.04,
+                                "size": 6.19
+                            },
+                            "bestBid": {
+                                "price": 0.023,
+                                "size": 198.97645854657114
+                            },
+                            "indexSet": 1,
+                            "name": "Yes",
+                            "onChainId": "59609662274634420713255055715470737173946398995313530846306470637882773028040",
+                            "status": null,
+                            "team": null,
+                            "variantData": null
+                        }
+                    },
+                    {
+                        "id": "96698288160790104687834887423441831252979718939737526835951872455705731505479",
+                        "outcomeId": "96698288160790104687834887423441831252979718939737526835951872455705731505479",
+                        "outcome": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000:NO",
+                        "market": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000",
+                        "event": "PRICE_BITCOIN_HIT_SEPTEMBER_2026",
+                        "label": "NO",
+                        "active": true,
+                        "precision": {
+                            "amount": 0.01,
+                            "price": 0.001
+                        },
+                        "info": {
+                            "marketId": "1878469",
+                            "bestAsk": {
+                                "price": 0.977,
+                                "size": 198.97645854657114
+                            },
+                            "bestBid": {
+                                "price": 0.96,
+                                "size": 6.19
+                            },
+                            "indexSet": 2,
+                            "name": "No",
+                            "onChainId": "96698288160790104687834887423441831252979718939737526835951872455705731505479",
+                            "status": null,
+                            "team": null,
+                            "variantData": null
+                        }
+                    }
+                ],
+                "info": {
+                    "boostEndsAt": null,
+                    "boostStartsAt": null,
+                    "categorySlug": "what-price-will-bitcoin-hit-in-september-2026",
+                    "conditionId": "0x4990a3bee9a6a7cd2bcfa9b2efa1623c949e7fbb2f4fcb2ab990f0f69a7848c2",
+                    "createdAt": "2026-09-01T05:15:43.909Z",
+                    "decimalPrecision": 3,
+                    "description": "This market will immediately resolve to \"Yes\" if any Binance 1 minute candle for BTC/USDT during the month specified in the title (from 00:00 AM ET on the first day to 11:59 PM ET on the last), has a final High price equal to or greater than the price specified in the title. Otherwise, this market will resolve to \"No.\"\n\nThe resolution source for this market is Binance, specifically the BTC/USDT High prices available at https://www.binance.com/en/trade/BTC_USDT, with the chart settings on \"1m\" for one-minute candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance BTC/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.",
+                    "feeRateBps": 200,
+                    "id": 1878469,
+                    "imageUrl": "https://static.predict.fun/market-images/e94457e8-2eb0-4593-835a-6306ae4fd930.jpg",
+                    "isBoosted": false,
+                    "isNegRisk": false,
+                    "isVisible": true,
+                    "isYieldBearing": true,
+                    "kalshiMarketTicker": null,
+                    "marketType": null,
+                    "marketVariant": "DEFAULT",
+                    "oracleQuestionId": "0x802bf782bc6674141be308fe157fbd47b01ac50169c14e8eef06d321323bb5a7",
+                    "outcomes": [
+                        {
+                            "bestAsk": {
+                                "price": 0.04,
+                                "size": 6.19
+                            },
+                            "bestBid": {
+                                "price": 0.023,
+                                "size": 198.97645854657114
+                            },
+                            "indexSet": 1,
+                            "name": "Yes",
+                            "onChainId": "59609662274634420713255055715470737173946398995313530846306470637882773028040",
+                            "status": null,
+                            "team": null,
+                            "variantData": null
+                        },
+                        {
+                            "bestAsk": {
+                                "price": 0.977,
+                                "size": 198.97645854657114
+                            },
+                            "bestBid": {
+                                "price": 0.96,
+                                "size": 6.19
+                            },
+                            "indexSet": 2,
+                            "name": "No",
+                            "onChainId": "96698288160790104687834887423441831252979718939737526835951872455705731505479",
+                            "status": null,
+                            "team": null,
+                            "variantData": null
+                        }
+                    ],
+                    "polymarketConditionIds": [
+                        "0x913581dc6f16ad7018bbfb51f6e2fa0a4bdd305212ef7976efb5cf0209304cb6"
+                    ],
+                    "question": "Will Bitcoin reach $100,000 in September?",
+                    "questionIndex": null,
+                    "resolution": null,
+                    "resolverAddress": "0x947cc06D38d3cB0a2BB5AdFB668b99B4FF53d7B4",
+                    "rewards": {
+                        "current": {
+                            "endsAt": "2026-10-01T04:00:00.000Z",
+                            "hourlyRate": 10,
+                            "startsAt": "2026-09-06T16:25:07.341Z"
+                        },
+                        "schedule": [
+                            {
+                                "endsAt": "2026-09-06T16:25:07.341Z",
+                                "hourlyRate": 50,
+                                "startsAt": "2026-09-03T16:25:21.131Z"
+                            },
+                            {
+                                "endsAt": "2026-10-01T04:00:00.000Z",
+                                "hourlyRate": 10,
+                                "startsAt": "2026-09-06T16:25:07.341Z"
+                            }
+                        ]
+                    },
+                    "shareThreshold": 100,
+                    "spreadThreshold": 0.06,
+                    "status": "REGISTERED",
+                    "team": null,
+                    "title": "↑ 100,000",
+                    "tradingStatus": "OPEN",
+                    "variantData": null
+                },
+                "created": 1788239743909
+            },
+            {
+                "id": "1878478",
+                "market": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_90000",
+                "base": "USDT",
+                "quote": "USDT",
+                "baseId": "1878478",
+                "quoteId": "USDT",
+                "type": "prediction",
+                "marketType": "binary",
+                "executionModel": "clob",
+                "collateral": "USDT",
+                "spot": false,
+                "margin": false,
+                "swap": false,
+                "future": false,
+                "option": false,
+                "prediction": true,
+                "active": true,
+                "resolved": false,
+                "contract": false,
+                "expiry": 1790827200000,
+                "expiryDatetime": "2026-10-01T04:00:00.000Z",
+                "taker": 0.02,
+                "maker": 0,
+                "percentage": true,
+                "tierBased": false,
+                "feeSide": "get",
+                "precision": {
+                    "amount": 0.01,
+                    "price": 0.001
+                },
+                "limits": {
+                    "leverage": {
+                        "min": 1,
+                        "max": 1
+                    },
+                    "amount": {},
+                    "price": {
+                        "min": 0.01,
+                        "max": 0.99
+                    },
+                    "cost": {
+                        "min": 1
+                    }
+                },
+                "outcomes": [
+                    {
+                        "id": "65274334030216668388326777009600494147965632969344057582089992694410689034723",
+                        "outcomeId": "65274334030216668388326777009600494147965632969344057582089992694410689034723",
+                        "outcome": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_90000:YES",
+                        "market": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_90000",
+                        "event": "PRICE_BITCOIN_HIT_SEPTEMBER_2026",
+                        "label": "YES",
+                        "active": true,
+                        "precision": {
+                            "amount": 0.01,
+                            "price": 0.001
+                        },
+                        "info": {
+                            "marketId": "1878478",
+                            "bestAsk": {
+                                "price": 0.22,
+                                "size": 200
+                            },
+                            "bestBid": {
+                                "price": 0.128,
+                                "size": 20
+                            },
+                            "indexSet": 1,
+                            "name": "Yes",
+                            "onChainId": "65274334030216668388326777009600494147965632969344057582089992694410689034723",
+                            "status": null,
+                            "team": null,
+                            "variantData": null
+                        }
+                    },
+                    {
+                        "id": "105480339509866602036775588312012284886176291612454466848515440546825358519909",
+                        "outcomeId": "105480339509866602036775588312012284886176291612454466848515440546825358519909",
+                        "outcome": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_90000:NO",
+                        "market": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_90000",
+                        "event": "PRICE_BITCOIN_HIT_SEPTEMBER_2026",
+                        "label": "NO",
+                        "active": true,
+                        "precision": {
+                            "amount": 0.01,
+                            "price": 0.001
+                        },
+                        "info": {
+                            "marketId": "1878478",
+                            "bestAsk": {
+                                "price": 0.872,
+                                "size": 20
+                            },
+                            "bestBid": {
+                                "price": 0.78,
+                                "size": 200
+                            },
+                            "indexSet": 2,
+                            "name": "No",
+                            "onChainId": "105480339509866602036775588312012284886176291612454466848515440546825358519909",
+                            "status": null,
+                            "team": null,
+                            "variantData": null
+                        }
+                    }
+                ],
+                "info": {
+                    "boostEndsAt": null,
+                    "boostStartsAt": null,
+                    "categorySlug": "what-price-will-bitcoin-hit-in-september-2026",
+                    "conditionId": "0x1a70777953631881db7f193527fc2e4b7555c51d6bbf2f0f59fb83d273873ad7",
+                    "createdAt": "2026-09-01T05:15:43.909Z",
+                    "decimalPrecision": 3,
+                    "description": "This market will immediately resolve to \"Yes\" if any Binance 1 minute candle for BTC/USDT during the month specified in the title (from 00:00 AM ET on the first day to 11:59 PM ET on the last), has a final High price equal to or greater than the price specified in the title. Otherwise, this market will resolve to \"No.\"\n\nThe resolution source for this market is Binance, specifically the BTC/USDT High prices available at https://www.binance.com/en/trade/BTC_USDT, with the chart settings on \"1m\" for one-minute candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance BTC/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.",
+                    "feeRateBps": 200,
+                    "id": 1878478,
+                    "imageUrl": "https://static.predict.fun/market-images/e94457e8-2eb0-4593-835a-6306ae4fd930.jpg",
+                    "isBoosted": false,
+                    "isNegRisk": false,
+                    "isVisible": true,
+                    "isYieldBearing": true,
+                    "kalshiMarketTicker": null,
+                    "marketType": null,
+                    "marketVariant": "DEFAULT",
+                    "oracleQuestionId": "0xb8ebb325b0e81d40d9898471cab59bd1686adbeab7ade9bad127a210c6db0bcb",
+                    "outcomes": [
+                        {
+                            "bestAsk": {
+                                "price": 0.22,
+                                "size": 200
+                            },
+                            "bestBid": {
+                                "price": 0.128,
+                                "size": 20
+                            },
+                            "indexSet": 1,
+                            "name": "Yes",
+                            "onChainId": "65274334030216668388326777009600494147965632969344057582089992694410689034723",
+                            "status": null,
+                            "team": null,
+                            "variantData": null
+                        },
+                        {
+                            "bestAsk": {
+                                "price": 0.872,
+                                "size": 20
+                            },
+                            "bestBid": {
+                                "price": 0.78,
+                                "size": 200
+                            },
+                            "indexSet": 2,
+                            "name": "No",
+                            "onChainId": "105480339509866602036775588312012284886176291612454466848515440546825358519909",
+                            "status": null,
+                            "team": null,
+                            "variantData": null
+                        }
+                    ],
+                    "polymarketConditionIds": [
+                        "0x69b547a99088602456fbce087cbc5a503c8b902b3ba58e8873aa771b0bee46a5"
+                    ],
+                    "question": "Will Bitcoin reach $90,000 in September?",
+                    "questionIndex": null,
+                    "resolution": null,
+                    "resolverAddress": "0x947cc06D38d3cB0a2BB5AdFB668b99B4FF53d7B4",
+                    "rewards": {
+                        "current": {
+                            "endsAt": "2026-10-01T04:00:00.000Z",
+                            "hourlyRate": 10,
+                            "startsAt": "2026-09-06T16:25:07.341Z"
+                        },
+                        "schedule": [
+                            {
+                                "endsAt": "2026-09-06T16:25:07.341Z",
+                                "hourlyRate": 50,
+                                "startsAt": "2026-09-03T16:25:21.131Z"
+                            },
+                            {
+                                "endsAt": "2026-10-01T04:00:00.000Z",
+                                "hourlyRate": 10,
+                                "startsAt": "2026-09-06T16:25:07.341Z"
+                            }
+                        ]
+                    },
+                    "shareThreshold": 100,
+                    "spreadThreshold": 0.06,
+                    "status": "REGISTERED",
+                    "team": null,
+                    "title": "↑ 90,000",
+                    "tradingStatus": "OPEN",
+                    "variantData": null
+                },
+                "created": 1788239743909
+            },
+            {
+                "id": "1878491",
+                "market": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_72500",
+                "base": "USDT",
+                "quote": "USDT",
+                "baseId": "1878491",
+                "quoteId": "USDT",
+                "type": "prediction",
+                "marketType": "binary",
+                "executionModel": "clob",
+                "collateral": "USDT",
+                "spot": false,
+                "margin": false,
+                "swap": false,
+                "future": false,
+                "option": false,
+                "prediction": true,
+                "active": true,
+                "resolved": false,
+                "contract": false,
+                "expiry": 1790827200000,
+                "expiryDatetime": "2026-10-01T04:00:00.000Z",
+                "taker": 0.02,
+                "maker": 0,
+                "percentage": true,
+                "tierBased": false,
+                "feeSide": "get",
+                "precision": {
+                    "amount": 0.01,
+                    "price": 0.001
+                },
+                "limits": {
+                    "leverage": {
+                        "min": 1,
+                        "max": 1
+                    },
+                    "amount": {},
+                    "price": {
+                        "min": 0.01,
+                        "max": 0.99
+                    },
+                    "cost": {
+                        "min": 1
+                    }
+                },
+                "outcomes": [
+                    {
+                        "id": "104366377417915028029364535642079541573410921747846419335322048079064270658808",
+                        "outcomeId": "104366377417915028029364535642079541573410921747846419335322048079064270658808",
+                        "outcome": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_72500:YES",
+                        "market": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_72500",
+                        "event": "PRICE_BITCOIN_HIT_SEPTEMBER_2026",
+                        "label": "YES",
+                        "active": true,
+                        "precision": {
+                            "amount": 0.01,
+                            "price": 0.001
+                        },
+                        "info": {
+                            "marketId": "1878491",
+                            "bestAsk": {
+                                "price": 0.37,
+                                "size": 0.02
+                            },
+                            "bestBid": {
+                                "price": 0.361,
+                                "size": 200
+                            },
+                            "indexSet": 1,
+                            "name": "Yes",
+                            "onChainId": "104366377417915028029364535642079541573410921747846419335322048079064270658808",
+                            "status": null,
+                            "team": null,
+                            "variantData": null
+                        }
+                    },
+                    {
+                        "id": "114127859540016728477404208940006985598239958676137129928158282431855602060323",
+                        "outcomeId": "114127859540016728477404208940006985598239958676137129928158282431855602060323",
+                        "outcome": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_72500:NO",
+                        "market": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_72500",
+                        "event": "PRICE_BITCOIN_HIT_SEPTEMBER_2026",
+                        "label": "NO",
+                        "active": true,
+                        "precision": {
+                            "amount": 0.01,
+                            "price": 0.001
+                        },
+                        "info": {
+                            "marketId": "1878491",
+                            "bestAsk": {
+                                "price": 0.639,
+                                "size": 200
+                            },
+                            "bestBid": {
+                                "price": 0.63,
+                                "size": 0.02
+                            },
+                            "indexSet": 2,
+                            "name": "No",
+                            "onChainId": "114127859540016728477404208940006985598239958676137129928158282431855602060323",
+                            "status": null,
+                            "team": null,
+                            "variantData": null
+                        }
+                    }
+                ],
+                "info": {
+                    "boostEndsAt": null,
+                    "boostStartsAt": null,
+                    "categorySlug": "what-price-will-bitcoin-hit-in-september-2026",
+                    "conditionId": "0xaf09e11f613db53bd5bf08ec1c1d655cc095b697154388e8e667e4288512393f",
+                    "createdAt": "2026-09-01T05:15:43.909Z",
+                    "decimalPrecision": 3,
+                    "description": "This market will immediately resolve to \"Yes\" if any Binance 1 minute candle for BTC/USDT during the month specified in the title (from 00:00 AM ET on the first day to 11:59 PM ET on the last), has a final Low price equal to or lower than the price specified in the title. Otherwise, this market will resolve to \"No.\"\n\nThe resolution source for this market is Binance, specifically the BTC/USDT Low prices available at https://www.binance.com/en/trade/BTC_USDT, with the chart settings on \"1m\" for one-minute candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance BTC/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.",
+                    "feeRateBps": 200,
+                    "id": 1878491,
+                    "imageUrl": "https://static.predict.fun/market-images/e94457e8-2eb0-4593-835a-6306ae4fd930.jpg",
+                    "isBoosted": false,
+                    "isNegRisk": false,
+                    "isVisible": true,
+                    "isYieldBearing": true,
+                    "kalshiMarketTicker": null,
+                    "marketType": null,
+                    "marketVariant": "DEFAULT",
+                    "oracleQuestionId": "0xc103b15932c6d05accc5204e8c324e1a312c2c8c79ea93ca1b5d6d75f2645586",
+                    "outcomes": [
+                        {
+                            "bestAsk": {
+                                "price": 0.37,
+                                "size": 0.02
+                            },
+                            "bestBid": {
+                                "price": 0.361,
+                                "size": 200
+                            },
+                            "indexSet": 1,
+                            "name": "Yes",
+                            "onChainId": "104366377417915028029364535642079541573410921747846419335322048079064270658808",
+                            "status": null,
+                            "team": null,
+                            "variantData": null
+                        },
+                        {
+                            "bestAsk": {
+                                "price": 0.639,
+                                "size": 200
+                            },
+                            "bestBid": {
+                                "price": 0.63,
+                                "size": 0.02
+                            },
+                            "indexSet": 2,
+                            "name": "No",
+                            "onChainId": "114127859540016728477404208940006985598239958676137129928158282431855602060323",
+                            "status": null,
+                            "team": null,
+                            "variantData": null
+                        }
+                    ],
+                    "polymarketConditionIds": [
+                        "0x7c724b5dc9c0d7932049feb52b645f69a4f43a201fe24f8d67d271566e00868d"
+                    ],
+                    "question": "Will Bitcoin dip to $72,500 in September?",
+                    "questionIndex": null,
+                    "resolution": null,
+                    "resolverAddress": "0x947cc06D38d3cB0a2BB5AdFB668b99B4FF53d7B4",
+                    "rewards": {
+                        "current": {
+                            "endsAt": "2026-10-01T04:00:00.000Z",
+                            "hourlyRate": 10,
+                            "startsAt": "2026-09-04T11:18:13.961Z"
+                        },
+                        "schedule": [
+                            {
+                                "endsAt": "2026-09-04T11:18:13.961Z",
+                                "hourlyRate": 50,
+                                "startsAt": "2026-09-01T11:18:13.961Z"
+                            },
+                            {
+                                "endsAt": "2026-10-01T04:00:00.000Z",
+                                "hourlyRate": 10,
+                                "startsAt": "2026-09-04T11:18:13.961Z"
+                            }
+                        ]
+                    },
+                    "shareThreshold": 100,
+                    "spreadThreshold": 0.06,
+                    "status": "REGISTERED",
+                    "team": null,
+                    "title": "↓ 72,500",
+                    "tradingStatus": "OPEN",
+                    "variantData": null
+                },
+                "created": 1788239743909
+            }
+        ],
+        "active": true,
+        "image": "https://static.predict.fun/market-images/e94457e8-2eb0-4593-835a-6306ae4fd930.jpg",
+        "created": 1788239743909,
+        "createdDatetime": "2026-09-01T05:15:43.909Z",
+        "end": 1790827200000,
+        "endDatetime": "2026-10-01T04:00:00.000Z",
+        "category": "DEFAULT",
+        "resolved": false,
+        "info": {
+            "createdAt": "2026-09-01T05:15:43.909Z",
+            "description": "What price will Bitcoin hit in September?",
+            "endsAt": "2026-10-01T04:00:00.000Z",
+            "id": 424541,
+            "imageUrl": "https://static.predict.fun/market-images/e94457e8-2eb0-4593-835a-6306ae4fd930.jpg",
+            "isNegRisk": false,
+            "isVisible": true,
+            "isYieldBearing": true,
+            "marketVariant": "DEFAULT",
+            "markets": [
+                {
+                    "boostEndsAt": null,
+                    "boostStartsAt": null,
+                    "categorySlug": "what-price-will-bitcoin-hit-in-september-2026",
+                    "conditionId": "0x4990a3bee9a6a7cd2bcfa9b2efa1623c949e7fbb2f4fcb2ab990f0f69a7848c2",
+                    "createdAt": "2026-09-01T05:15:43.909Z",
+                    "decimalPrecision": 3,
+                    "description": "This market will immediately resolve to \"Yes\" if any Binance 1 minute candle for BTC/USDT during the month specified in the title (from 00:00 AM ET on the first day to 11:59 PM ET on the last), has a final High price equal to or greater than the price specified in the title. Otherwise, this market will resolve to \"No.\"\n\nThe resolution source for this market is Binance, specifically the BTC/USDT High prices available at https://www.binance.com/en/trade/BTC_USDT, with the chart settings on \"1m\" for one-minute candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance BTC/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.",
+                    "feeRateBps": 200,
+                    "id": 1878469,
+                    "imageUrl": "https://static.predict.fun/market-images/e94457e8-2eb0-4593-835a-6306ae4fd930.jpg",
+                    "isBoosted": false,
+                    "isNegRisk": false,
+                    "isVisible": true,
+                    "isYieldBearing": true,
+                    "kalshiMarketTicker": null,
+                    "marketType": null,
+                    "marketVariant": "DEFAULT",
+                    "oracleQuestionId": "0x802bf782bc6674141be308fe157fbd47b01ac50169c14e8eef06d321323bb5a7",
+                    "outcomes": [
+                        {
+                            "bestAsk": {
+                                "price": 0.04,
+                                "size": 6.19
+                            },
+                            "bestBid": {
+                                "price": 0.023,
+                                "size": 198.97645854657114
+                            },
+                            "indexSet": 1,
+                            "name": "Yes",
+                            "onChainId": "59609662274634420713255055715470737173946398995313530846306470637882773028040",
+                            "status": null,
+                            "team": null,
+                            "variantData": null
+                        },
+                        {
+                            "bestAsk": {
+                                "price": 0.977,
+                                "size": 198.97645854657114
+                            },
+                            "bestBid": {
+                                "price": 0.96,
+                                "size": 6.19
+                            },
+                            "indexSet": 2,
+                            "name": "No",
+                            "onChainId": "96698288160790104687834887423441831252979718939737526835951872455705731505479",
+                            "status": null,
+                            "team": null,
+                            "variantData": null
+                        }
+                    ],
+                    "polymarketConditionIds": [
+                        "0x913581dc6f16ad7018bbfb51f6e2fa0a4bdd305212ef7976efb5cf0209304cb6"
+                    ],
+                    "question": "Will Bitcoin reach $100,000 in September?",
+                    "questionIndex": null,
+                    "resolution": null,
+                    "resolverAddress": "0x947cc06D38d3cB0a2BB5AdFB668b99B4FF53d7B4",
+                    "rewards": {
+                        "current": {
+                            "endsAt": "2026-10-01T04:00:00.000Z",
+                            "hourlyRate": 10,
+                            "startsAt": "2026-09-06T16:25:07.341Z"
+                        },
+                        "schedule": [
+                            {
+                                "endsAt": "2026-09-06T16:25:07.341Z",
+                                "hourlyRate": 50,
+                                "startsAt": "2026-09-03T16:25:21.131Z"
+                            },
+                            {
+                                "endsAt": "2026-10-01T04:00:00.000Z",
+                                "hourlyRate": 10,
+                                "startsAt": "2026-09-06T16:25:07.341Z"
+                            }
+                        ]
+                    },
+                    "shareThreshold": 100,
+                    "spreadThreshold": 0.06,
+                    "status": "REGISTERED",
+                    "team": null,
+                    "title": "↑ 100,000",
+                    "tradingStatus": "OPEN",
+                    "variantData": null
+                },
+                {
+                    "boostEndsAt": null,
+                    "boostStartsAt": null,
+                    "categorySlug": "what-price-will-bitcoin-hit-in-september-2026",
+                    "conditionId": "0x1a70777953631881db7f193527fc2e4b7555c51d6bbf2f0f59fb83d273873ad7",
+                    "createdAt": "2026-09-01T05:15:43.909Z",
+                    "decimalPrecision": 3,
+                    "description": "This market will immediately resolve to \"Yes\" if any Binance 1 minute candle for BTC/USDT during the month specified in the title (from 00:00 AM ET on the first day to 11:59 PM ET on the last), has a final High price equal to or greater than the price specified in the title. Otherwise, this market will resolve to \"No.\"\n\nThe resolution source for this market is Binance, specifically the BTC/USDT High prices available at https://www.binance.com/en/trade/BTC_USDT, with the chart settings on \"1m\" for one-minute candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance BTC/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.",
+                    "feeRateBps": 200,
+                    "id": 1878478,
+                    "imageUrl": "https://static.predict.fun/market-images/e94457e8-2eb0-4593-835a-6306ae4fd930.jpg",
+                    "isBoosted": false,
+                    "isNegRisk": false,
+                    "isVisible": true,
+                    "isYieldBearing": true,
+                    "kalshiMarketTicker": null,
+                    "marketType": null,
+                    "marketVariant": "DEFAULT",
+                    "oracleQuestionId": "0xb8ebb325b0e81d40d9898471cab59bd1686adbeab7ade9bad127a210c6db0bcb",
+                    "outcomes": [
+                        {
+                            "bestAsk": {
+                                "price": 0.22,
+                                "size": 200
+                            },
+                            "bestBid": {
+                                "price": 0.128,
+                                "size": 20
+                            },
+                            "indexSet": 1,
+                            "name": "Yes",
+                            "onChainId": "65274334030216668388326777009600494147965632969344057582089992694410689034723",
+                            "status": null,
+                            "team": null,
+                            "variantData": null
+                        },
+                        {
+                            "bestAsk": {
+                                "price": 0.872,
+                                "size": 20
+                            },
+                            "bestBid": {
+                                "price": 0.78,
+                                "size": 200
+                            },
+                            "indexSet": 2,
+                            "name": "No",
+                            "onChainId": "105480339509866602036775588312012284886176291612454466848515440546825358519909",
+                            "status": null,
+                            "team": null,
+                            "variantData": null
+                        }
+                    ],
+                    "polymarketConditionIds": [
+                        "0x69b547a99088602456fbce087cbc5a503c8b902b3ba58e8873aa771b0bee46a5"
+                    ],
+                    "question": "Will Bitcoin reach $90,000 in September?",
+                    "questionIndex": null,
+                    "resolution": null,
+                    "resolverAddress": "0x947cc06D38d3cB0a2BB5AdFB668b99B4FF53d7B4",
+                    "rewards": {
+                        "current": {
+                            "endsAt": "2026-10-01T04:00:00.000Z",
+                            "hourlyRate": 10,
+                            "startsAt": "2026-09-06T16:25:07.341Z"
+                        },
+                        "schedule": [
+                            {
+                                "endsAt": "2026-09-06T16:25:07.341Z",
+                                "hourlyRate": 50,
+                                "startsAt": "2026-09-03T16:25:21.131Z"
+                            },
+                            {
+                                "endsAt": "2026-10-01T04:00:00.000Z",
+                                "hourlyRate": 10,
+                                "startsAt": "2026-09-06T16:25:07.341Z"
+                            }
+                        ]
+                    },
+                    "shareThreshold": 100,
+                    "spreadThreshold": 0.06,
+                    "status": "REGISTERED",
+                    "team": null,
+                    "title": "↑ 90,000",
+                    "tradingStatus": "OPEN",
+                    "variantData": null
+                },
+                {
+                    "boostEndsAt": null,
+                    "boostStartsAt": null,
+                    "categorySlug": "what-price-will-bitcoin-hit-in-september-2026",
+                    "conditionId": "0xaf09e11f613db53bd5bf08ec1c1d655cc095b697154388e8e667e4288512393f",
+                    "createdAt": "2026-09-01T05:15:43.909Z",
+                    "decimalPrecision": 3,
+                    "description": "This market will immediately resolve to \"Yes\" if any Binance 1 minute candle for BTC/USDT during the month specified in the title (from 00:00 AM ET on the first day to 11:59 PM ET on the last), has a final Low price equal to or lower than the price specified in the title. Otherwise, this market will resolve to \"No.\"\n\nThe resolution source for this market is Binance, specifically the BTC/USDT Low prices available at https://www.binance.com/en/trade/BTC_USDT, with the chart settings on \"1m\" for one-minute candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance BTC/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.",
+                    "feeRateBps": 200,
+                    "id": 1878491,
+                    "imageUrl": "https://static.predict.fun/market-images/e94457e8-2eb0-4593-835a-6306ae4fd930.jpg",
+                    "isBoosted": false,
+                    "isNegRisk": false,
+                    "isVisible": true,
+                    "isYieldBearing": true,
+                    "kalshiMarketTicker": null,
+                    "marketType": null,
+                    "marketVariant": "DEFAULT",
+                    "oracleQuestionId": "0xc103b15932c6d05accc5204e8c324e1a312c2c8c79ea93ca1b5d6d75f2645586",
+                    "outcomes": [
+                        {
+                            "bestAsk": {
+                                "price": 0.37,
+                                "size": 0.02
+                            },
+                            "bestBid": {
+                                "price": 0.361,
+                                "size": 200
+                            },
+                            "indexSet": 1,
+                            "name": "Yes",
+                            "onChainId": "104366377417915028029364535642079541573410921747846419335322048079064270658808",
+                            "status": null,
+                            "team": null,
+                            "variantData": null
+                        },
+                        {
+                            "bestAsk": {
+                                "price": 0.639,
+                                "size": 200
+                            },
+                            "bestBid": {
+                                "price": 0.63,
+                                "size": 0.02
+                            },
+                            "indexSet": 2,
+                            "name": "No",
+                            "onChainId": "114127859540016728477404208940006985598239958676137129928158282431855602060323",
+                            "status": null,
+                            "team": null,
+                            "variantData": null
+                        }
+                    ],
+                    "polymarketConditionIds": [
+                        "0x7c724b5dc9c0d7932049feb52b645f69a4f43a201fe24f8d67d271566e00868d"
+                    ],
+                    "question": "Will Bitcoin dip to $72,500 in September?",
+                    "questionIndex": null,
+                    "resolution": null,
+                    "resolverAddress": "0x947cc06D38d3cB0a2BB5AdFB668b99B4FF53d7B4",
+                    "rewards": {
+                        "current": {
+                            "endsAt": "2026-10-01T04:00:00.000Z",
+                            "hourlyRate": 10,
+                            "startsAt": "2026-09-04T11:18:13.961Z"
+                        },
+                        "schedule": [
+                            {
+                                "endsAt": "2026-09-04T11:18:13.961Z",
+                                "hourlyRate": 50,
+                                "startsAt": "2026-09-01T11:18:13.961Z"
+                            },
+                            {
+                                "endsAt": "2026-10-01T04:00:00.000Z",
+                                "hourlyRate": 10,
+                                "startsAt": "2026-09-04T11:18:13.961Z"
+                            }
+                        ]
+                    },
+                    "shareThreshold": 100,
+                    "spreadThreshold": 0.06,
+                    "status": "REGISTERED",
+                    "team": null,
+                    "title": "↓ 72,500",
+                    "tradingStatus": "OPEN",
+                    "variantData": null
+                }
+            ],
+            "negRiskOnChainId": null,
+            "parentSlug": null,
+            "publishedAt": "2026-09-01T11:19:37.559Z",
+            "resolutionProvider": "THREE_PO",
+            "shortTitle": null,
+            "slug": "what-price-will-bitcoin-hit-in-september-2026",
+            "startsAt": "2026-09-01T08:49:00.000Z",
+            "stats": null,
+            "status": "OPEN",
+            "tags": [
+                {
+                    "id": "2",
+                    "level": 1,
+                    "makerRebateBps": 0,
+                    "name": "Crypto",
+                    "parentId": null
+                },
+                {
+                    "id": "120",
+                    "level": 2,
+                    "makerRebateBps": 0,
+                    "name": "Hit Price",
+                    "parentId": "2"
+                }
+            ],
+            "teams": null,
+            "title": "What price will Bitcoin hit in September?",
+            "variantData": null
+        }
+    },
+    {
+        "id": "bitcoin-up-or-down-september-9-2026-1am-et",
+        "slug": "bitcoin-up-or-down-september-9-2026-1am-et",
+        "event": "BITCOIN_UP_DOWN_SEPTEMBER_9_2026_1AM_ET",
+        "title": "Bitcoin Up or Down - September 9, 1AM ET",
+        "description": "This market will resolve to \"Up\" if the close price is greater than or equal to the open price for the BTC/USDT 1 hour candle that begins on the time and date specified in the title. Otherwise, this market will resolve to \"Down\".\n\nThe resolution source for this market is information from Binance, specifically the BTC/USDT pair (https://www.binance.com/en/trade/BTC_USDT). The close « C » and open « O » displayed at the top of the graph for the relevant \"1H\" candle will be used once the data for that candle is finalized.\n\nPlease note that this market is about the price according to Binance BTC/USDT, not according to other exchanges or trading pairs.",
+        "markets": [
+            {
+                "id": "2067886",
+                "market": "BITCOIN_UP_DOWN_SEPTEMBER_9_2026_1AM_ET",
+                "base": "USDT",
+                "quote": "USDT",
+                "baseId": "2067886",
+                "quoteId": "USDT",
+                "type": "prediction",
+                "marketType": "binary",
+                "executionModel": "clob",
+                "collateral": "USDT",
+                "spot": false,
+                "margin": false,
+                "swap": false,
+                "future": false,
+                "option": false,
+                "prediction": true,
+                "active": true,
+                "resolved": false,
+                "contract": false,
+                "expiry": 1788933600000,
+                "expiryDatetime": "2026-09-09T06:00:00.000Z",
+                "taker": 0.02,
+                "maker": 0,
+                "percentage": true,
+                "tierBased": false,
+                "feeSide": "get",
+                "precision": {
+                    "amount": 0.01,
+                    "price": 0.01
+                },
+                "limits": {
+                    "leverage": {
+                        "min": 1,
+                        "max": 1
+                    },
+                    "amount": {},
+                    "price": {
+                        "min": 0.01,
+                        "max": 0.99
+                    },
+                    "cost": {
+                        "min": 1
+                    }
+                },
+                "outcomes": [
+                    {
+                        "id": "71111667581947966458963638272722498520811333974978184910327698120887210008877",
+                        "outcomeId": "71111667581947966458963638272722498520811333974978184910327698120887210008877",
+                        "outcome": "BITCOIN_UP_DOWN_SEPTEMBER_9_2026_1AM_ET:UP",
+                        "market": "BITCOIN_UP_DOWN_SEPTEMBER_9_2026_1AM_ET",
+                        "event": "BITCOIN_UP_DOWN_SEPTEMBER_9_2026_1AM_ET",
+                        "label": "UP",
+                        "active": true,
+                        "precision": {
+                            "amount": 0.01,
+                            "price": 0.01
+                        },
+                        "info": {
+                            "marketId": "2067886",
+                            "bestAsk": {
+                                "price": 0.01,
+                                "size": 2609.502
+                            },
+                            "bestBid": null,
+                            "indexSet": 1,
+                            "name": "Up",
+                            "onChainId": "71111667581947966458963638272722498520811333974978184910327698120887210008877",
+                            "status": null,
+                            "team": null,
+                            "variantData": null
+                        }
+                    },
+                    {
+                        "id": "19086624472796468879527907370045594937164247259899387104641626781793315396785",
+                        "outcomeId": "19086624472796468879527907370045594937164247259899387104641626781793315396785",
+                        "outcome": "BITCOIN_UP_DOWN_SEPTEMBER_9_2026_1AM_ET:DOWN",
+                        "market": "BITCOIN_UP_DOWN_SEPTEMBER_9_2026_1AM_ET",
+                        "event": "BITCOIN_UP_DOWN_SEPTEMBER_9_2026_1AM_ET",
+                        "label": "DOWN",
+                        "active": true,
+                        "precision": {
+                            "amount": 0.01,
+                            "price": 0.01
+                        },
+                        "info": {
+                            "marketId": "2067886",
+                            "bestAsk": null,
+                            "bestBid": {
+                                "price": 0.99,
+                                "size": 2609.502
+                            },
+                            "indexSet": 2,
+                            "name": "Down",
+                            "onChainId": "19086624472796468879527907370045594937164247259899387104641626781793315396785",
+                            "status": null,
+                            "team": null,
+                            "variantData": null
+                        }
+                    }
+                ],
+                "info": {
+                    "boostEndsAt": "2026-09-09T06:00:00.000Z",
+                    "boostStartsAt": "2026-09-09T05:00:00.000Z",
+                    "categorySlug": "bitcoin-up-or-down-september-9-2026-1am-et",
+                    "conditionId": "0xfbfd0c0710ad6833e2d8b4501915357110c1428cac47bf233a5965b4fa2fbc9f",
+                    "createdAt": "2026-09-07T05:05:57.988Z",
+                    "decimalPrecision": 2,
+                    "description": "This market will resolve to \"Up\" if the close price is greater than or equal to the open price for the BTC/USDT 1 hour candle that begins on the time and date specified in the title. Otherwise, this market will resolve to \"Down\".\n\nThe resolution source for this market is information from Binance, specifically the BTC/USDT pair (https://www.binance.com/en/trade/BTC_USDT). The close « C » and open « O » displayed at the top of the graph for the relevant \"1H\" candle will be used once the data for that candle is finalized.\n\nPlease note that this market is about the price according to Binance BTC/USDT, not according to other exchanges or trading pairs.",
+                    "feeRateBps": 200,
+                    "id": 2067886,
+                    "imageUrl": "https://static.predict.fun/automarket-btc-usd-hourly-gold",
+                    "isBoosted": true,
+                    "isNegRisk": false,
+                    "isVisible": true,
+                    "isYieldBearing": false,
+                    "kalshiMarketTicker": null,
+                    "marketType": null,
+                    "marketVariant": "CRYPTO_UP_DOWN",
+                    "oracleQuestionId": "0xec074b96e70cf7aa8230f922d4f83c9df0080b96a3fee58b57c43c009d1e4336",
+                    "outcomes": [
+                        {
+                            "bestAsk": {
+                                "price": 0.01,
+                                "size": 2609.502
+                            },
+                            "bestBid": null,
+                            "indexSet": 1,
+                            "name": "Up",
+                            "onChainId": "71111667581947966458963638272722498520811333974978184910327698120887210008877",
+                            "status": null,
+                            "team": null,
+                            "variantData": null
+                        },
+                        {
+                            "bestAsk": null,
+                            "bestBid": {
+                                "price": 0.99,
+                                "size": 2609.502
+                            },
+                            "indexSet": 2,
+                            "name": "Down",
+                            "onChainId": "19086624472796468879527907370045594937164247259899387104641626781793315396785",
+                            "status": null,
+                            "team": null,
+                            "variantData": null
+                        }
+                    ],
+                    "polymarketConditionIds": [
+                        "0x02bae938d1e07c7b34a9800fe278358ff47c41326ab4c20f0cca2b26d4c6b2a7"
+                    ],
+                    "question": "Bitcoin Up or Down - September 9, 1AM ET",
+                    "questionIndex": null,
+                    "resolution": null,
+                    "resolverAddress": "0x242E1Ba24f6fC524bfb410062Ca5689A9622613d",
+                    "rewards": {
+                        "current": null,
+                        "schedule": [
+                            {
+                                "endsAt": "2026-09-09T06:00:00.000Z",
+                                "hourlyRate": 2510,
+                                "startsAt": "2026-09-09T05:00:00.000Z"
+                            }
+                        ]
+                    },
+                    "shareThreshold": 100,
+                    "spreadThreshold": 0.06,
+                    "status": "REGISTERED",
+                    "team": null,
+                    "title": "Bitcoin Up or Down - September 9, 1AM ET",
+                    "tradingStatus": "OPEN",
+                    "variantData": {
+                        "endPrice": 78923.43,
+                        "priceFeedId": null,
+                        "priceFeedProvider": "BINANCE",
+                        "priceFeedSymbol": "BTCUSDT",
+                        "startPrice": 79171.5,
+                        "type": "CRYPTO_UP_DOWN"
+                    }
+                },
+                "created": 1788757557988
+            }
+        ],
+        "active": true,
+        "image": "https://static.predict.fun/automarket-btc-usd-hourly-gold",
+        "created": 1788757557988,
+        "createdDatetime": "2026-09-07T05:05:57.988Z",
+        "end": 1788933600000,
+        "endDatetime": "2026-09-09T06:00:00.000Z",
+        "category": "CRYPTO_UP_DOWN",
+        "resolved": false,
+        "info": {
+            "createdAt": "2026-09-07T05:05:57.988Z",
+            "description": "This market will resolve to \"Up\" if the close price is greater than or equal to the open price for the BTC/USDT 1 hour candle that begins on the time and date specified in the title. Otherwise, this market will resolve to \"Down\".\n\nThe resolution source for this market is information from Binance, specifically the BTC/USDT pair (https://www.binance.com/en/trade/BTC_USDT). The close « C » and open « O » displayed at the top of the graph for the relevant \"1H\" candle will be used once the data for that candle is finalized.\n\nPlease note that this market is about the price according to Binance BTC/USDT, not according to other exchanges or trading pairs.",
+            "endsAt": "2026-09-09T06:00:00.000Z",
+            "id": 447258,
+            "imageUrl": "https://static.predict.fun/automarket-btc-usd-hourly-gold",
+            "isNegRisk": false,
+            "isVisible": true,
+            "isYieldBearing": false,
+            "marketVariant": "CRYPTO_UP_DOWN",
+            "markets": [
+                {
+                    "boostEndsAt": "2026-09-09T06:00:00.000Z",
+                    "boostStartsAt": "2026-09-09T05:00:00.000Z",
+                    "categorySlug": "bitcoin-up-or-down-september-9-2026-1am-et",
+                    "conditionId": "0xfbfd0c0710ad6833e2d8b4501915357110c1428cac47bf233a5965b4fa2fbc9f",
+                    "createdAt": "2026-09-07T05:05:57.988Z",
+                    "decimalPrecision": 2,
+                    "description": "This market will resolve to \"Up\" if the close price is greater than or equal to the open price for the BTC/USDT 1 hour candle that begins on the time and date specified in the title. Otherwise, this market will resolve to \"Down\".\n\nThe resolution source for this market is information from Binance, specifically the BTC/USDT pair (https://www.binance.com/en/trade/BTC_USDT). The close « C » and open « O » displayed at the top of the graph for the relevant \"1H\" candle will be used once the data for that candle is finalized.\n\nPlease note that this market is about the price according to Binance BTC/USDT, not according to other exchanges or trading pairs.",
+                    "feeRateBps": 200,
+                    "id": 2067886,
+                    "imageUrl": "https://static.predict.fun/automarket-btc-usd-hourly-gold",
+                    "isBoosted": true,
+                    "isNegRisk": false,
+                    "isVisible": true,
+                    "isYieldBearing": false,
+                    "kalshiMarketTicker": null,
+                    "marketType": null,
+                    "marketVariant": "CRYPTO_UP_DOWN",
+                    "oracleQuestionId": "0xec074b96e70cf7aa8230f922d4f83c9df0080b96a3fee58b57c43c009d1e4336",
+                    "outcomes": [
+                        {
+                            "bestAsk": {
+                                "price": 0.01,
+                                "size": 2609.502
+                            },
+                            "bestBid": null,
+                            "indexSet": 1,
+                            "name": "Up",
+                            "onChainId": "71111667581947966458963638272722498520811333974978184910327698120887210008877",
+                            "status": null,
+                            "team": null,
+                            "variantData": null
+                        },
+                        {
+                            "bestAsk": null,
+                            "bestBid": {
+                                "price": 0.99,
+                                "size": 2609.502
+                            },
+                            "indexSet": 2,
+                            "name": "Down",
+                            "onChainId": "19086624472796468879527907370045594937164247259899387104641626781793315396785",
+                            "status": null,
+                            "team": null,
+                            "variantData": null
+                        }
+                    ],
+                    "polymarketConditionIds": [
+                        "0x02bae938d1e07c7b34a9800fe278358ff47c41326ab4c20f0cca2b26d4c6b2a7"
+                    ],
+                    "question": "Bitcoin Up or Down - September 9, 1AM ET",
+                    "questionIndex": null,
+                    "resolution": null,
+                    "resolverAddress": "0x242E1Ba24f6fC524bfb410062Ca5689A9622613d",
+                    "rewards": {
+                        "current": null,
+                        "schedule": [
+                            {
+                                "endsAt": "2026-09-09T06:00:00.000Z",
+                                "hourlyRate": 2510,
+                                "startsAt": "2026-09-09T05:00:00.000Z"
+                            }
+                        ]
+                    },
+                    "shareThreshold": 100,
+                    "spreadThreshold": 0.06,
+                    "status": "REGISTERED",
+                    "team": null,
+                    "title": "Bitcoin Up or Down - September 9, 1AM ET",
+                    "tradingStatus": "OPEN",
+                    "variantData": {
+                        "endPrice": 78923.43,
+                        "priceFeedId": null,
+                        "priceFeedProvider": "BINANCE",
+                        "priceFeedSymbol": "BTCUSDT",
+                        "startPrice": 79171.5,
+                        "type": "CRYPTO_UP_DOWN"
+                    }
+                }
+            ],
+            "negRiskOnChainId": null,
+            "parentSlug": null,
+            "publishedAt": "2026-09-08T05:00:45.544Z",
+            "resolutionProvider": "THREE_PO",
+            "shortTitle": "BTC Up or Down 1h",
+            "slug": "bitcoin-up-or-down-september-9-2026-1am-et",
+            "startsAt": "2026-09-09T05:00:00.000Z",
+            "stats": null,
+            "status": "OPEN",
+            "tags": [
+                {
+                    "id": "2",
+                    "level": 1,
+                    "makerRebateBps": 0,
+                    "name": "Crypto",
+                    "parentId": null
+                },
+                {
+                    "id": "15",
+                    "level": null,
+                    "makerRebateBps": 0,
+                    "name": "BTC",
+                    "parentId": null
+                },
+                {
+                    "id": "111",
+                    "level": 2,
+                    "makerRebateBps": 2500,
+                    "name": "Up/Down",
+                    "parentId": "2"
+                },
+                {
+                    "id": "147",
+                    "level": 2,
+                    "makerRebateBps": 0,
+                    "name": "1 Hour",
+                    "parentId": "2"
+                }
+            ],
+            "teams": null,
+            "title": "Bitcoin Up or Down - September 9, 1AM ET",
+            "variantData": {
+                "endPrice": 78923.43,
+                "priceFeedId": null,
+                "priceFeedProvider": "BINANCE",
+                "priceFeedSymbol": "BTCUSDT",
+                "startPrice": 79171.5,
+                "type": "CRYPTO_UP_DOWN"
+            },
+            "variantDetails": {
+                "crypto": {
+                    "endPrice": 78923.43,
+                    "priceFeedProvider": "BINANCE",
+                    "priceFeedSymbol": "BTCUSDT",
+                    "startPrice": 79171.5
+                },
+                "upDown": {
+                    "endPrice": 78923.43,
+                    "priceFeedProvider": "BINANCE",
+                    "priceFeedSymbol": "BTCUSDT",
+                    "startPrice": 79171.5
+                }
+            }
+        }
+    },
+    {
+        "id": "will-trump-acquire-greenland-before-2027",
+        "slug": "will-trump-acquire-greenland-before-2027",
+        "event": "TRUMP_ACQUIRE_GREENLAND_2027",
+        "title": "Will Trump acquire Greenland before 2027?",
+        "description": "This market will resolve to \"Yes\" if the United States officially announces that Greenland will come under US sovereignty by December 31, 2026, 11:59 PM ET. Otherwise this market will resolve to \"No\".\n\nSovereignty is defined as the transfer of the majority of the territory of Greenland from its current status as an autonomous territory within the Kingdom of Denmark to being under the formal governance or jurisdiction of the United States, either as a state, territory, or other classification within the US system.\n\nAn official announcement made by the United States and Denmark that Greenland will come under US sovereignty will qualify, even if the actual transfer of sovereignty is yet to occur. Only announcements of official agreements or actions (e.g. executive order, signed legislation, etc.) will count - mere posts on Social Media will not.\n\nThe resolution source for this market will be official information from the governments of the US, Greenland, and Denmark, however a consensus of credible reporting confirming that Greenland has come under U.S. sovereignty will also qualify.",
+        "markets": [
+            {
+                "id": "2107",
+                "market": "TRUMP_ACQUIRE_GREENLAND_2027",
+                "base": "USDT",
+                "quote": "USDT",
+                "baseId": "2107",
+                "quoteId": "USDT",
+                "type": "prediction",
+                "marketType": "binary",
+                "executionModel": "clob",
+                "collateral": "USDT",
+                "spot": false,
+                "margin": false,
+                "swap": false,
+                "future": false,
+                "option": false,
+                "prediction": true,
+                "active": true,
+                "resolved": false,
+                "contract": false,
+                "expiry": 1798675200000,
+                "expiryDatetime": "2026-12-31T00:00:00.000Z",
+                "taker": 0.02,
+                "maker": 0,
+                "percentage": true,
+                "tierBased": false,
+                "feeSide": "get",
+                "precision": {
+                    "amount": 0.01,
+                    "price": 0.001
+                },
+                "limits": {
+                    "leverage": {
+                        "min": 1,
+                        "max": 1
+                    },
+                    "amount": {},
+                    "price": {
+                        "min": 0.01,
+                        "max": 0.99
+                    },
+                    "cost": {
+                        "min": 1
+                    }
+                },
+                "outcomes": [
+                    {
+                        "id": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+                        "outcomeId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+                        "outcome": "TRUMP_ACQUIRE_GREENLAND_2027:YES",
+                        "market": "TRUMP_ACQUIRE_GREENLAND_2027",
+                        "event": "TRUMP_ACQUIRE_GREENLAND_2027",
+                        "label": "YES",
+                        "active": true,
+                        "precision": {
+                            "amount": 0.01,
+                            "price": 0.001
+                        },
+                        "info": {
+                            "marketId": "2107",
+                            "bestAsk": {
+                                "price": 0.029,
+                                "size": 1483.2199999999998
+                            },
+                            "bestBid": {
+                                "price": 0.02,
+                                "size": 1386.724081632653
+                            },
+                            "indexSet": 1,
+                            "name": "Yes",
+                            "onChainId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+                            "status": null,
+                            "team": null,
+                            "variantData": null
+                        }
+                    },
+                    {
+                        "id": "11755619521560507246941857733124673401539364429068333264940202564484253415073",
+                        "outcomeId": "11755619521560507246941857733124673401539364429068333264940202564484253415073",
+                        "outcome": "TRUMP_ACQUIRE_GREENLAND_2027:NO",
+                        "market": "TRUMP_ACQUIRE_GREENLAND_2027",
+                        "event": "TRUMP_ACQUIRE_GREENLAND_2027",
+                        "label": "NO",
+                        "active": true,
+                        "precision": {
+                            "amount": 0.01,
+                            "price": 0.001
+                        },
+                        "info": {
+                            "marketId": "2107",
+                            "bestAsk": {
+                                "price": 0.98,
+                                "size": 1386.724081632653
+                            },
+                            "bestBid": {
+                                "price": 0.971,
+                                "size": 1483.2199999999998
+                            },
+                            "indexSet": 2,
+                            "name": "No",
+                            "onChainId": "11755619521560507246941857733124673401539364429068333264940202564484253415073",
+                            "status": null,
+                            "team": null,
+                            "variantData": null
+                        }
+                    }
+                ],
+                "info": {
+                    "boostEndsAt": null,
+                    "boostStartsAt": null,
+                    "categorySlug": "will-trump-acquire-greenland-before-2027",
+                    "conditionId": "0xdad1aee2cfb0533d53ef98e6b98c667e80c745f738898924acac9e7f20a26381",
+                    "createdAt": "2026-01-09T18:08:20.140Z",
+                    "decimalPrecision": 3,
+                    "description": "This market will resolve to \"Yes\" if the United States officially announces that Greenland will come under US sovereignty by December 31, 2026, 11:59 PM ET. Otherwise this market will resolve to \"No\".\n\nSovereignty is defined as the transfer of the majority of the territory of Greenland from its current status as an autonomous territory within the Kingdom of Denmark to being under the formal governance or jurisdiction of the United States, either as a state, territory, or other classification within the US system.\n\nAn official announcement made by the United States and Denmark that Greenland will come under US sovereignty will qualify, even if the actual transfer of sovereignty is yet to occur. Only announcements of official agreements or actions (e.g. executive order, signed legislation, etc.) will count - mere posts on Social Media will not.\n\nThe resolution source for this market will be official information from the governments of the US, Greenland, and Denmark, however a consensus of credible reporting confirming that Greenland has come under U.S. sovereignty will also qualify.",
+                    "feeRateBps": 200,
+                    "id": 2107,
+                    "imageUrl": "https://static.predict.fun/will-trump-acquire-greenland-before-2027-will-trump-acquire-greenland-before-2027",
+                    "isBoosted": false,
+                    "isNegRisk": false,
+                    "isVisible": true,
+                    "isYieldBearing": true,
+                    "kalshiMarketTicker": null,
+                    "marketType": null,
+                    "marketVariant": "DEFAULT",
+                    "oracleQuestionId": "0x67ac8d736a5c9cf194a48c691b3223ae28c2ac7afa42d645cf29833318179498",
+                    "outcomes": [
+                        {
+                            "bestAsk": {
+                                "price": 0.029,
+                                "size": 1483.2199999999998
+                            },
+                            "bestBid": {
+                                "price": 0.02,
+                                "size": 1386.724081632653
+                            },
+                            "indexSet": 1,
+                            "name": "Yes",
+                            "onChainId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+                            "status": null,
+                            "team": null,
+                            "variantData": null
+                        },
+                        {
+                            "bestAsk": {
+                                "price": 0.98,
+                                "size": 1386.724081632653
+                            },
+                            "bestBid": {
+                                "price": 0.971,
+                                "size": 1483.2199999999998
+                            },
+                            "indexSet": 2,
+                            "name": "No",
+                            "onChainId": "11755619521560507246941857733124673401539364429068333264940202564484253415073",
+                            "status": null,
+                            "team": null,
+                            "variantData": null
+                        }
+                    ],
+                    "polymarketConditionIds": [
+                        "0xd595eb9b81885ff018738300c79047e3ec89e87294424f57a29a7fa9162bf116"
+                    ],
+                    "question": "Will Trump acquire Greenland before 2027?",
+                    "questionIndex": null,
+                    "resolution": null,
+                    "resolverAddress": "0x947cc06D38d3cB0a2BB5AdFB668b99B4FF53d7B4",
+                    "rewards": {
+                        "current": {
+                            "endsAt": "2026-12-31T00:00:00.000Z",
+                            "hourlyRate": 0,
+                            "startsAt": "2026-05-07T04:30:00.000Z"
+                        },
+                        "schedule": [
+                            {
+                                "endsAt": "2026-05-07T04:30:00.000Z",
+                                "hourlyRate": 120,
+                                "startsAt": "2026-05-07T01:00:00.000Z"
+                            },
+                            {
+                                "endsAt": "2026-12-31T00:00:00.000Z",
+                                "hourlyRate": 0,
+                                "startsAt": "2026-05-07T04:30:00.000Z"
+                            }
+                        ]
+                    },
+                    "shareThreshold": 100,
+                    "spreadThreshold": 0.06,
+                    "status": "REGISTERED",
+                    "team": null,
+                    "title": "Will Trump acquire Greenland before 2027?",
+                    "tradingStatus": "OPEN",
+                    "variantData": null
+                },
+                "created": 1767982100140
+            }
+        ],
+        "active": true,
+        "image": "https://static.predict.fun/will-trump-acquire-greenland-before-2027",
+        "created": 1767982085921,
+        "createdDatetime": "2026-01-09T18:08:05.921Z",
+        "end": 1798675200000,
+        "endDatetime": "2026-12-31T00:00:00.000Z",
+        "category": "DEFAULT",
+        "resolved": false,
+        "info": {
+            "createdAt": "2026-01-09T18:08:05.921Z",
+            "description": "This market will resolve to \"Yes\" if the United States officially announces that Greenland will come under US sovereignty by December 31, 2026, 11:59 PM ET. Otherwise this market will resolve to \"No\".\n\nSovereignty is defined as the transfer of the majority of the territory of Greenland from its current status as an autonomous territory within the Kingdom of Denmark to being under the formal governance or jurisdiction of the United States, either as a state, territory, or other classification within the US system.\n\nAn official announcement made by the United States and Denmark that Greenland will come under US sovereignty will qualify, even if the actual transfer of sovereignty is yet to occur. Only announcements of official agreements or actions (e.g. executive order, signed legislation, etc.) will count - mere posts on Social Media will not.\n\nThe resolution source for this market will be official information from the governments of the US, Greenland, and Denmark, however a consensus of credible reporting confirming that Greenland has come under U.S. sovereignty will also qualify.",
+            "endsAt": "2026-12-31T00:00:00.000Z",
+            "id": 1799,
+            "imageUrl": "https://static.predict.fun/will-trump-acquire-greenland-before-2027",
+            "isNegRisk": false,
+            "isVisible": true,
+            "isYieldBearing": true,
+            "marketVariant": "DEFAULT",
+            "markets": [
+                {
+                    "boostEndsAt": null,
+                    "boostStartsAt": null,
+                    "categorySlug": "will-trump-acquire-greenland-before-2027",
+                    "conditionId": "0xdad1aee2cfb0533d53ef98e6b98c667e80c745f738898924acac9e7f20a26381",
+                    "createdAt": "2026-01-09T18:08:20.140Z",
+                    "decimalPrecision": 3,
+                    "description": "This market will resolve to \"Yes\" if the United States officially announces that Greenland will come under US sovereignty by December 31, 2026, 11:59 PM ET. Otherwise this market will resolve to \"No\".\n\nSovereignty is defined as the transfer of the majority of the territory of Greenland from its current status as an autonomous territory within the Kingdom of Denmark to being under the formal governance or jurisdiction of the United States, either as a state, territory, or other classification within the US system.\n\nAn official announcement made by the United States and Denmark that Greenland will come under US sovereignty will qualify, even if the actual transfer of sovereignty is yet to occur. Only announcements of official agreements or actions (e.g. executive order, signed legislation, etc.) will count - mere posts on Social Media will not.\n\nThe resolution source for this market will be official information from the governments of the US, Greenland, and Denmark, however a consensus of credible reporting confirming that Greenland has come under U.S. sovereignty will also qualify.",
+                    "feeRateBps": 200,
+                    "id": 2107,
+                    "imageUrl": "https://static.predict.fun/will-trump-acquire-greenland-before-2027-will-trump-acquire-greenland-before-2027",
+                    "isBoosted": false,
+                    "isNegRisk": false,
+                    "isVisible": true,
+                    "isYieldBearing": true,
+                    "kalshiMarketTicker": null,
+                    "marketType": null,
+                    "marketVariant": "DEFAULT",
+                    "oracleQuestionId": "0x67ac8d736a5c9cf194a48c691b3223ae28c2ac7afa42d645cf29833318179498",
+                    "outcomes": [
+                        {
+                            "bestAsk": {
+                                "price": 0.029,
+                                "size": 1483.2199999999998
+                            },
+                            "bestBid": {
+                                "price": 0.02,
+                                "size": 1386.724081632653
+                            },
+                            "indexSet": 1,
+                            "name": "Yes",
+                            "onChainId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+                            "status": null,
+                            "team": null,
+                            "variantData": null
+                        },
+                        {
+                            "bestAsk": {
+                                "price": 0.98,
+                                "size": 1386.724081632653
+                            },
+                            "bestBid": {
+                                "price": 0.971,
+                                "size": 1483.2199999999998
+                            },
+                            "indexSet": 2,
+                            "name": "No",
+                            "onChainId": "11755619521560507246941857733124673401539364429068333264940202564484253415073",
+                            "status": null,
+                            "team": null,
+                            "variantData": null
+                        }
+                    ],
+                    "polymarketConditionIds": [
+                        "0xd595eb9b81885ff018738300c79047e3ec89e87294424f57a29a7fa9162bf116"
+                    ],
+                    "question": "Will Trump acquire Greenland before 2027?",
+                    "questionIndex": null,
+                    "resolution": null,
+                    "resolverAddress": "0x947cc06D38d3cB0a2BB5AdFB668b99B4FF53d7B4",
+                    "rewards": {
+                        "current": {
+                            "endsAt": "2026-12-31T00:00:00.000Z",
+                            "hourlyRate": 0,
+                            "startsAt": "2026-05-07T04:30:00.000Z"
+                        },
+                        "schedule": [
+                            {
+                                "endsAt": "2026-05-07T04:30:00.000Z",
+                                "hourlyRate": 120,
+                                "startsAt": "2026-05-07T01:00:00.000Z"
+                            },
+                            {
+                                "endsAt": "2026-12-31T00:00:00.000Z",
+                                "hourlyRate": 0,
+                                "startsAt": "2026-05-07T04:30:00.000Z"
+                            }
+                        ]
+                    },
+                    "shareThreshold": 100,
+                    "spreadThreshold": 0.06,
+                    "status": "REGISTERED",
+                    "team": null,
+                    "title": "Will Trump acquire Greenland before 2027?",
+                    "tradingStatus": "OPEN",
+                    "variantData": null
+                }
+            ],
+            "negRiskOnChainId": null,
+            "parentSlug": null,
+            "publishedAt": "2026-01-09T18:15:47.920Z",
+            "resolutionProvider": "PREDICT_DOT_FUN",
+            "shortTitle": null,
+            "slug": "will-trump-acquire-greenland-before-2027",
+            "startsAt": "2026-01-09T18:08:00.801Z",
+            "stats": null,
+            "status": "OPEN",
+            "tags": [
+                {
+                    "id": "1",
+                    "level": 1,
+                    "makerRebateBps": 0,
+                    "name": "Politics",
+                    "parentId": null
+                },
+                {
+                    "id": "130",
+                    "level": 2,
+                    "makerRebateBps": 0,
+                    "name": "Trump",
+                    "parentId": "1"
+                }
+            ],
+            "teams": null,
+            "title": "Will Trump acquire Greenland before 2027?",
+            "variantData": null
+        }
+    }
+]

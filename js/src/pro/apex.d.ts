@@ -14,7 +14,7 @@ export default class apex extends apexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name apex#watchTradesForSymbols
@@ -26,9 +26,9 @@ export default class apex extends apexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    handleTrades(client: Client, message: any): void;
-    parseWsTrade(trade: any, market?: Market): Trade;
+    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
+    handleTrades(client: Client, message: Dict): void;
+    parseWsTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method
      * @name apex#watchOrderBook
@@ -39,7 +39,7 @@ export default class apex extends apexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     /**
      * @method
      * @name apex#watchOrderBookForSymbols
@@ -50,11 +50,11 @@ export default class apex extends apexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
-    watchTopics(url: any, messageHashes: any, topics: any, params?: {}): Promise<any>;
+    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: Dict): Promise<OrderBook>;
+    watchTopics(url: string, messageHashes: string[], topics: string[], params?: Dict): Promise<any>;
     getWsPublicUrl(): string;
     getWsPrivateUrl(): string;
-    handleOrderBook(client: Client, message: any): void;
+    handleOrderBook(client: Client, message: Dict): void;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
     /**
@@ -66,7 +66,7 @@ export default class apex extends apexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    watchTicker(symbol: string, params?: Dict): Promise<Ticker>;
     /**
      * @method
      * @name apex#watchTickers
@@ -76,8 +76,8 @@ export default class apex extends apexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
-    handleTicker(client: Client, message: any): void;
+    watchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
+    handleTicker(client: Client, message: Dict): void;
     /**
      * @method
      * @name apex#watchOHLCV
@@ -102,8 +102,8 @@ export default class apex extends apexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: {}): Promise<import("../base/types.js").Dictionary<import("../base/types.js").Dictionary<OHLCV[]>>>;
-    handleOHLCV(client: Client, message: any): void;
+    watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: Dict): Promise<import("../base/types.js").Dictionary<import("../base/types.js").Dictionary<OHLCV[]>>>;
+    handleOHLCV(client: Client, message: Dict): void;
     parseWsOHLCV(ohlcv: any, market?: Market): OHLCV;
     /**
      * @method
@@ -117,7 +117,7 @@ export default class apex extends apexRest {
      * @param {boolean} [params.unifiedMargin] use unified margin account
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name apex#watchPositions
@@ -129,7 +129,7 @@ export default class apex extends apexRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
+    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
     /**
      * @method
      * @name apex#watchOrders
@@ -141,23 +141,23 @@ export default class apex extends apexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    handleMyTrades(client: Client, lists: any): void;
-    handleOrder(client: Client, lists: any): void;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
+    handleMyTrades(client: Client, lists: any[]): void;
+    handleOrder(client: Client, lists: any[]): void;
     setPositionsCache(client: Client, symbols?: Strings): void;
-    loadPositionsSnapshot(client: Client, messageHash: any): Promise<void>;
-    handlePositions(client: any, lists: any): void;
-    authenticate(url: any, params?: {}): Promise<any>;
-    handleErrorMessage(client: Client, message: any): Bool;
+    loadPositionsSnapshot(client: Client, messageHash: string): Promise<void>;
+    handlePositions(client: Client, lists: any[]): void;
+    authenticate(url: string, params?: Dict): Promise<any>;
+    handleErrorMessage(client: Client, message: Dict): Bool;
     handleMessage(client: Client, message: any): void;
     ping(client: Client): {
         args: string[];
         op: string;
     };
-    pong(client: Client, message: any): Promise<void>;
-    handlePong(client: Client, message: any): any;
-    handlePing(client: Client, message: any): void;
-    handleAccount(client: Client, message: any): void;
-    handleAuthenticate(client: Client, message: any): any;
-    handleSubscriptionStatus(client: Client, message: any): any;
+    pong(client: Client, message: Dict): Promise<void>;
+    handlePong(client: Client, message: Dict): Dict;
+    handlePing(client: Client, message: Dict): void;
+    handleAccount(client: Client, message: Dict): void;
+    handleAuthenticate(client: Client, message: Dict): Dict;
+    handleSubscriptionStatus(client: Client, message: Dict): Dict;
 }

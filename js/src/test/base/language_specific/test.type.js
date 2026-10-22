@@ -8,8 +8,8 @@
 //@ts-nocheck
 /* eslint-disable */
 import { functions } from '../../../../ccxt.js';
-import { equal } from 'assert';
-const { safeFloat, safeInteger, safeValue } = functions;
+import { equal, ok } from 'assert';
+const { asFloat, asInteger, safeFloat, safeInteger, safeIntegerProduct, safeTimestamp, safeValue } = functions;
 /*  ------------------------------------------------------------------------ */
 function testSafeFloatSafeInteger() {
     const $default = {};
@@ -38,6 +38,75 @@ function testSafeFloatSafeInteger() {
     equal(safeFloat({ 'x': 1.59999999 }, 'x'), 1.59999999);
     equal(safeInteger({ 'x': 1.59999999 }, 'x'), 1);
 }
+function testAsFloatAsInteger() {
+    // numbers pass through without string coercion
+    equal(asFloat(1.5), 1.5);
+    equal(asFloat(0), 0);
+    equal(asFloat(-0.5), -0.5);
+    equal(asFloat(1e3), 1000);
+    equal(asInteger(1.9), 1);
+    equal(asInteger(-1.9), -1); // truncation toward zero, not floor
+    equal(asInteger(0), 0);
+    // deliberate consequence of skipping the string round-trip: -0 survives, where the
+    // old parseFloat (x) normalised it to +0 (parseFloat stringifies and String (-0) is '0').
+    // harmless downstream: -0 === 0, JSON.stringify (-0) is 0 and numberToString (-0) is '0'
+    ok(Object.is(asFloat(-0), -0));
+    ok(Object.is(asInteger(-0), -0));
+    ok(Object.is(asFloat('-0'), -0));
+    // non-finite numbers are rejected
+    ok(Number.isNaN(asFloat(Number.POSITIVE_INFINITY)));
+    ok(Number.isNaN(asFloat(Number.NaN)));
+    ok(Number.isNaN(asInteger(Number.POSITIVE_INFINITY)));
+    ok(Number.isNaN(asInteger(Number.NaN)));
+    // strings are parsed, empty strings rejected
+    equal(asFloat('1.5'), 1.5);
+    equal(asFloat('1.5abc'), 1.5);
+    equal(asFloat('0'), 0);
+    equal(asFloat('1e3'), 1000);
+    equal(asInteger('1.9'), 1);
+    equal(asInteger('-1.9'), -1);
+    equal(asInteger('1e3'), 1000);
+    ok(Number.isNaN(asFloat('')));
+    ok(Number.isNaN(asInteger('')));
+    // everything else is rejected
+    ok(Number.isNaN(asFloat(true)));
+    ok(Number.isNaN(asFloat(null)));
+    ok(Number.isNaN(asFloat(undefined)));
+    ok(Number.isNaN(asFloat([])));
+    ok(Number.isNaN(asFloat([0])));
+    ok(Number.isNaN(asInteger(true)));
+    ok(Number.isNaN(asInteger(null)));
+    ok(Number.isNaN(asInteger(undefined)));
+    ok(Number.isNaN(asInteger([])));
+}
+function testSafeTimestampSafeIntegerProduct() {
+    // seconds to ms, including float seconds and negatives (truncation toward zero)
+    equal(safeTimestamp({ 'x': 1.5 }, 'x'), 1500);
+    equal(safeTimestamp({ 'x': '1.5' }, 'x'), 1500);
+    equal(safeTimestamp({ 'x': -0.9 }, 'x'), -900);
+    equal(safeTimestamp({ 'x': 1 }, 'x'), 1000);
+    equal(safeIntegerProduct({ 'x': 2.5 }, 'x', 100), 250);
+    equal(safeIntegerProduct({ 'x': '-2.5' }, 'x', 100), -250);
+    equal(safeIntegerProduct({ 'x': 1.005 }, 'x', 100), 100); // product 100.4999... truncates toward zero
+    equal(safeIntegerProduct({ 'x': -1.005 }, 'x', 100), -100);
+    equal(safeIntegerProduct({ 'x': 'abc' }, 'x', 100, 42), 42);
+    equal(safeTimestamp({ 'x': 'abc' }, 'x', 42), 42);
+    // products at/above 1e21 must not go through string parsing
+    // (parseInt ('1e+21') === 1; python int (float * factor) agrees, php intval overflows PHP_INT_MAX)
+    equal(safeIntegerProduct({ 'x': 1e18 }, 'x', 1000), 1e21);
+    // sub-microsecond products must truncate to 0, not go through string parsing
+    // (0.5 * 0.000001 = 5e-7 and parseInt ('5e-7') === 5)
+    equal(safeIntegerProduct({ 'x': 0.5 }, 'x', 0.000001), 0);
+    // a finite value whose product overflows to Infinity must fall back to the default,
+    // not leak Infinity (or NaN, as the old parseInt ('Infinity') path did)
+    equal(safeIntegerProduct({ 'x': 1e308 }, 'x', 10, 42), 42);
+    equal(safeIntegerProduct({ 'x': -1e308 }, 'x', 10, 42), 42);
+    equal(safeIntegerProduct({ 'x': '1e308' }, 'x', 10, 42), 42);
+    equal(safeIntegerProduct({ 'x': 1e308 }, 'x', 10), undefined);
+    equal(safeTimestamp({ 'x': 1e308 }, 'x', 42), 42);
+    equal(safeTimestamp({ 'x': -1e308 }, 'x', 42), 42);
+    equal(safeTimestamp({ 'x': 1e308 }, 'x'), undefined);
+}
 function testSafeValue() {
     equal(safeValue({}, 'foo'), undefined);
     equal(safeValue({}, 'foo', 'bar'), 'bar');
@@ -47,6 +116,8 @@ function testSafeValue() {
 }
 function testTypeAll() {
     testSafeFloatSafeInteger();
+    testAsFloatAsInteger();
+    testSafeTimestampSafeIntegerProduct();
     testSafeValue();
 }
 export default testTypeAll;

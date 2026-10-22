@@ -39,7 +39,7 @@ public partial class BaseTest
             //
             // add binary tests
             //
-            object binaryData = exchange.base16ToBinary("191919191919");
+            byte[] binaryData = exchange.base16ToBinary("191919191919");
             Assert(isEqual(exchange.urlencodeBase64(binaryData), "GRkZGRkZ"));
         }
 }

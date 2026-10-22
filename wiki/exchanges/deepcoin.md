@@ -1049,6 +1049,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
 | limit | <code>int</code> | No | the maximum amount of order book entries to return. |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.aggregation | <code>string</code> | No | price aggregation level of the book, e.g. '0.1' or '0.0001', defaults to the market's price tick size |
 
 
 ```javascript
@@ -1070,6 +1071,7 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified array of symbols |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.aggregation | <code>string</code> | No | price aggregation level the book was subscribed with, defaults to the market's price tick size |
 
 
 ```javascript

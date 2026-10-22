@@ -333,6 +333,48 @@ public partial class dydx : Exchange
         return await this.callAsync<Dictionary<string, object>> ("indexerGetHistoricalPnlParentSubaccount",parameters);
     }
 
+    /// <summary>Calls the indexerGetPnl endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> indexerGetPnl (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("indexerGetPnl",parameters);
+    }
+
+    /// <summary>Calls the indexerGetPnlParentSubaccountNumber endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> indexerGetPnlParentSubaccountNumber (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("indexerGetPnlParentSubaccountNumber",parameters);
+    }
+
+    /// <summary>Calls the indexerGetTradeHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> indexerGetTradeHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("indexerGetTradeHistory",parameters);
+    }
+
+    /// <summary>Calls the indexerGetTradeHistoryParentSubaccountNumber endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> indexerGetTradeHistoryParentSubaccountNumber (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("indexerGetTradeHistoryParentSubaccountNumber",parameters);
+    }
+
+    /// <summary>Calls the indexerPostTurnkeySignin endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> indexerPostTurnkeySignin (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("indexerPostTurnkeySignin",parameters);
+    }
+
+    /// <summary>Calls the indexerPostTurnkeyUploadAddress endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> indexerPostTurnkeyUploadAddress (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("indexerPostTurnkeyUploadAddress",parameters);
+    }
+
     /// <summary>Calls the nodeRpcGetAbciInfo endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> nodeRpcGetAbciInfo (object parameters = null)

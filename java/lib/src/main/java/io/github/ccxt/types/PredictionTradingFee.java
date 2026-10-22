@@ -9,7 +9,7 @@ import java.util.Map;
 // of the base fields (flat typed access) and adds the prediction
 // identity fields. Identity is the `outcome` handle ("MARKET:LABEL"), no symbol. Mirrors the standalone
 // `PredictionTradingFee` interface in ts/src/base/types.ts.
-public final class PredictionTradingFee {
+public final class PredictionTradingFee extends TypedMap {
     public Double maker;
     public Double taker;
     public Boolean percentage;
@@ -22,6 +22,7 @@ public final class PredictionTradingFee {
 
     @SuppressWarnings("unchecked")
     public PredictionTradingFee(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.maker = TypeHelper.safeFloat(data, "maker");
         this.taker = TypeHelper.safeFloat(data, "taker");

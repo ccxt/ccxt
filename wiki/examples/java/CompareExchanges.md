@@ -3,20 +3,19 @@ package examples;
 
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.Exchange;
-
-import java.util.Map;
+import io.github.ccxt.types.Ticker;
 
 /**
  * Compare the price of a symbol across multiple exchanges.
  * Uses Exchange.dynamicallyCreateInstance for the generic/dynamic pattern.
- * The result is untyped (Object/Map) since the exchange type is unknown at compile time.
+ * Every Exchange carries the typed surface, so fetchTicker returns a Ticker
+ * even when the concrete class is only known at runtime.
  *
  * Usage:
  *   cd java && ./gradlew :examples:run -PmainClass=examples.CompareExchanges
  */
 public class CompareExchanges {
 
-    @SuppressWarnings("unchecked")
     public static void main(String[] args) {
         String symbol = args.length > 0 ? args[0] : "BTC/USDT";
         String[] exchangeIds = {"binance", "bybit", "okx", "kraken", "bitget"};
@@ -32,14 +31,13 @@ public class CompareExchanges {
                 // Trading methods (fetchTicker/createOrder/...) live on the Exchange tier,
                 // not BaseExchange, so use Exchange here (every crypto venue is an Exchange).
                 Exchange exchange = (Exchange) BaseExchange.dynamicallyCreateInstance(id, null);
-                exchange.loadMarkets(false).join();
+                exchange.loadMarkets(false);
 
-                // Untyped: fetchTicker returns CompletableFuture<Object>
-                Map<String, Object> ticker = (Map<String, Object>) exchange.fetchTicker(symbol).join();
+                Ticker ticker = exchange.fetchTicker(symbol);
 
-                Double last = toDouble(ticker.get("last"));
-                Double bid = toDouble(ticker.get("bid"));
-                Double ask = toDouble(ticker.get("ask"));
+                Double last = ticker.last;
+                Double bid = ticker.bid;
+                Double ask = ticker.ask;
 
                 double spread = 0;
                 if (ask != null && bid != null) {
@@ -56,11 +54,6 @@ public class CompareExchanges {
                 System.out.printf("%-12s %s%n", id, "ERROR: " + rootMessage(e));
             }
         }
-    }
-
-    static Double toDouble(Object v) {
-        if (v instanceof Number n) return n.doubleValue();
-        return null;
     }
 
     static double safe(Double v) { return v != null ? v : 0.0; }

@@ -35,7 +35,7 @@ async def test_watch_trades(exchange, skipped_properties, symbol):
         if success:
             test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, response)
             for i in range(0, len(response)):
-                test_trade(exchange, skipped_properties, method, response[i], symbol, now)
+                test_trade(exchange, skipped_properties, method, response[i], symbol, now, True)
             if (now - start_time) > max_idle_time:
                 idle = True
     return True

@@ -1,6 +1,6 @@
 Every endpoint in `krakenfutures`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/krakenfutures) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicGetFeeschedules`); the snake_case alias (`public_get_feeschedules`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`PublicGetFeeschedules`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicGetFeeschedules`); Python and PHP use the snake_case form (`public_get_feeschedules`), and Go uses the PascalCase form (`PublicGetFeeschedules`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -53,9 +53,9 @@ response := <-krakenfutures.PublicGetFeeschedules(params)
 
 Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; everything else in `params` is sent as the query string or request body. **Cost** is the rate-limiter weight of each call.
 
-📚 **Official krakenfutures API documentation:** [docs.kraken.com](https://docs.kraken.com/api/docs/futures-api/trading/market-data/)
+📚 **Official krakenfutures API documentation:** [docs.kraken.com](https://docs.kraken.com/exchange/guides/futures/rest)
 
-> 39 implicit endpoints across 4 access groups.
+> 55 implicit endpoints across 4 access groups.
 
 ## public
 
@@ -65,8 +65,11 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | --- | --- | --- | --- |
 | `publicGetFeeschedules` | GET | `feeschedules` | 1 |
 | `publicGetInstruments` | GET | `instruments` | 1 |
+| `publicGetInstrumentsStatus` | GET | `instruments/status` | 1 |
+| `publicGetInstrumentsSymbolStatus` | GET | `instruments/{symbol}/status` | 1 |
 | `publicGetOrderbook` | GET | `orderbook` | 1 |
 | `publicGetTickers` | GET | `tickers` | 1 |
+| `publicGetTickersSymbol` | GET | `tickers/{symbol}` | 1 |
 | `publicGetHistory` | GET | `history` | 1 |
 | `publicGetHistoricalfundingrates` | GET | `historicalfundingrates` | 1 |
 
@@ -89,10 +92,16 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetAssignmentprogramCurrent` | GET | `assignmentprogram/current` | 1 |
 | `privateGetAssignmentprogramHistory` | GET | `assignmentprogram/history` | 1 |
 | `privateGetOrdersStatus` | GET | `orders/status` | 1 |
+| `privateGetUnwindqueue` | GET | `unwindqueue` | 1 |
+| `privateGetSelfTradeStrategy` | GET | `self-trade-strategy` | 1 |
+| `privateGetSubaccounts` | GET | `subaccounts` | 1 |
+| `privateGetSubaccountUidTradingEnabled` | GET | `subaccount/{uid}/trading-enabled` | 1 |
+| `privateGetRfqAssignmentMaxLeverage` | GET | `rfq-assignment/max-leverage` | 1 |
 | `privatePostSendorder` | POST | `sendorder` | 1 |
 | `privatePostEditorder` | POST | `editorder` | 1 |
 | `privatePostCancelorder` | POST | `cancelorder` | 1 |
 | `privatePostTransfer` | POST | `transfer` | 1 |
+| `privatePostTransferSubaccount` | POST | `transfer/subaccount` | 1 |
 | `privatePostBatchorder` | POST | `batchorder` | 1 |
 | `privatePostCancelallorders` | POST | `cancelallorders` | 1 |
 | `privatePostCancelallordersafter` | POST | `cancelallordersafter` | 1 |
@@ -101,6 +110,10 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostAssignmentprogramDelete` | POST | `assignmentprogram/delete` | 1 |
 | `privatePutLeveragepreferences` | PUT | `leveragepreferences` | 1 |
 | `privatePutPnlpreferences` | PUT | `pnlpreferences` | 1 |
+| `privatePutSelfTradeStrategy` | PUT | `self-trade-strategy` | 1 |
+| `privatePutSubaccountUidTradingEnabled` | PUT | `subaccount/{uid}/trading-enabled` | 1 |
+| `privatePutRfqAssignmentMaxLeverage` | PUT | `rfq-assignment/max-leverage` | 1 |
+| `privateDeleteRfqAssignmentMaxLeverage` | DELETE | `rfq-assignment/max-leverage` | 1 |
 
 ## charts
 
@@ -109,6 +122,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
 | `chartsGetPriceTypeSymbolInterval` | GET | `{price_type}/{symbol}/{interval}` | 1 |
+| `chartsGetAnalyticsLiquidityPool` | GET | `analytics/liquidity-pool` | 1 |
 
 ## history
 
@@ -123,4 +137,6 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `historyGetAccountLog` | GET | `account-log` | 1 |
 | `historyGetMarketSymbolOrders` | GET | `market/{symbol}/orders` | 1 |
 | `historyGetMarketSymbolExecutions` | GET | `market/{symbol}/executions` | 1 |
+| `historyGetMarketSymbolPrice` | GET | `market/{symbol}/price` | 1 |
+| `historyGetPositions` | GET | `positions` | 1 |
 

@@ -137,11 +137,25 @@ public partial class latoken : Exchange
         return await this.callAsync<List<object>> ("privateGetAuthAccountCurrencyCurrencyType",parameters);
     }
 
+    /// <summary>Calls the privateGetAuthAccountFiltered endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetAuthAccountFiltered (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateGetAuthAccountFiltered",parameters);
+    }
+
     /// <summary>Calls the privateGetAuthOrder endpoint.</summary>
     /// <returns>a JSON array</returns>
     public async Task<List<object>> privateGetAuthOrder (object parameters = null)
     {
         return await this.callAsync<List<object>> ("privateGetAuthOrder",parameters);
+    }
+
+    /// <summary>Calls the privateGetAuthOrderActive endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetAuthOrderActive (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateGetAuthOrderActive",parameters);
     }
 
     /// <summary>Calls the privateGetAuthOrderGetOrderId endpoint.</summary>
@@ -270,11 +284,25 @@ public partial class latoken : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privatePostAuthOrderCancelAllCurrencyQuote",parameters);
     }
 
+    /// <summary>Calls the privatePostAuthOrderCancelBulk endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAuthOrderCancelBulk (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAuthOrderCancelBulk",parameters);
+    }
+
     /// <summary>Calls the privatePostAuthOrderPlace endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privatePostAuthOrderPlace (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privatePostAuthOrderPlace",parameters);
+    }
+
+    /// <summary>Calls the privatePostAuthOrderPlaceBulk endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAuthOrderPlaceBulk (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAuthOrderPlaceBulk",parameters);
     }
 
     /// <summary>Calls the privatePostAuthSpotDeposit endpoint.</summary>

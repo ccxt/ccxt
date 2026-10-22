@@ -1215,6 +1215,41 @@ public partial class htx : Exchange
         return await this.callAsync<Dictionary<string, object>> ("spotPrivateGetV2EtpLimit",parameters);
     }
 
+    /// <summary>Calls the spotPrivateGetV2InviteeRebateReferrals endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> spotPrivateGetV2InviteeRebateReferrals (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("spotPrivateGetV2InviteeRebateReferrals",parameters);
+    }
+
+    /// <summary>Calls the spotPrivateGetV2InviteeRebateDetail endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> spotPrivateGetV2InviteeRebateDetail (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("spotPrivateGetV2InviteeRebateDetail",parameters);
+    }
+
+    /// <summary>Calls the spotPrivateGetV2InviteeRebateHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> spotPrivateGetV2InviteeRebateHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("spotPrivateGetV2InviteeRebateHistory",parameters);
+    }
+
+    /// <summary>Calls the spotPrivateGetV2InviteeRebateAllRebateDetail endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> spotPrivateGetV2InviteeRebateAllRebateDetail (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("spotPrivateGetV2InviteeRebateAllRebateDetail",parameters);
+    }
+
+    /// <summary>Calls the spotPrivateGetV2InviteeRebateBatcherRebateDetail endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> spotPrivateGetV2InviteeRebateBatcherRebateDetail (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("spotPrivateGetV2InviteeRebateBatcherRebateDetail",parameters);
+    }
+
     /// <summary>Calls the spotPrivatePostV1AccountTransfer endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> spotPrivatePostV1AccountTransfer (object parameters = null)
@@ -1493,6 +1528,13 @@ public partial class htx : Exchange
     public async Task<Dictionary<string, object>> spotPrivatePostV2EtpBatchCancel (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("spotPrivatePostV2EtpBatchCancel",parameters);
+    }
+
+    /// <summary>Calls the spotPrivatePostV5AccountUniversalTransfer endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> spotPrivatePostV5AccountUniversalTransfer (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("spotPrivatePostV5AccountUniversalTransfer",parameters);
     }
 
     /// <summary>Calls the contractPublicGetApiV1Timestamp endpoint.</summary>
@@ -2354,6 +2396,48 @@ public partial class htx : Exchange
     public async Task<Dictionary<string, object>> contractPrivateGetV5AlgoOrderHistory (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("contractPrivateGetV5AlgoOrderHistory",parameters);
+    }
+
+    /// <summary>Calls the contractPrivateGetApiV6CopyTradingTraderInstruments endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> contractPrivateGetApiV6CopyTradingTraderInstruments (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("contractPrivateGetApiV6CopyTradingTraderInstruments",parameters);
+    }
+
+    /// <summary>Calls the contractPrivateGetApiV6CopyTradingTraderStatistics endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> contractPrivateGetApiV6CopyTradingTraderStatistics (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("contractPrivateGetApiV6CopyTradingTraderStatistics",parameters);
+    }
+
+    /// <summary>Calls the contractPrivateGetApiV6CopyTradingTraderProfitSharingHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> contractPrivateGetApiV6CopyTradingTraderProfitSharingHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("contractPrivateGetApiV6CopyTradingTraderProfitSharingHistory",parameters);
+    }
+
+    /// <summary>Calls the contractPrivateGetApiV6CopyTradingTraderProfitSharingHistorySummary endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> contractPrivateGetApiV6CopyTradingTraderProfitSharingHistorySummary (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("contractPrivateGetApiV6CopyTradingTraderProfitSharingHistorySummary",parameters);
+    }
+
+    /// <summary>Calls the contractPrivateGetApiV6CopyTradingTraderUnrealizedProfitSharingSummary endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> contractPrivateGetApiV6CopyTradingTraderUnrealizedProfitSharingSummary (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("contractPrivateGetApiV6CopyTradingTraderUnrealizedProfitSharingSummary",parameters);
+    }
+
+    /// <summary>Calls the contractPrivateGetApiV6CopyTradingTraderFollowers endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> contractPrivateGetApiV6CopyTradingTraderFollowers (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("contractPrivateGetApiV6CopyTradingTraderFollowers",parameters);
     }
 
     /// <summary>Calls the contractPrivatePostApiV1ContractBalanceValuation endpoint.</summary>
@@ -3229,6 +3313,41 @@ public partial class htx : Exchange
     public async Task<Dictionary<string, object>> contractPrivatePostV5AlgoCancelOrders (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("contractPrivatePostV5AlgoCancelOrders",parameters);
+    }
+
+    /// <summary>Calls the contractPrivatePostApiV6CopyTradingTraderFollower endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> contractPrivatePostApiV6CopyTradingTraderFollower (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("contractPrivatePostApiV6CopyTradingTraderFollower",parameters);
+    }
+
+    /// <summary>Calls the contractPrivatePostApiV6CopyTradingTraderTransfer endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> contractPrivatePostApiV6CopyTradingTraderTransfer (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("contractPrivatePostApiV6CopyTradingTraderTransfer",parameters);
+    }
+
+    /// <summary>Calls the contractPrivatePostApiV6CopyTradingTraderFollowerSettings endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> contractPrivatePostApiV6CopyTradingTraderFollowerSettings (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("contractPrivatePostApiV6CopyTradingTraderFollowerSettings",parameters);
+    }
+
+    /// <summary>Calls the contractPrivatePostApiV6CopyTradingTraderConfig endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> contractPrivatePostApiV6CopyTradingTraderConfig (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("contractPrivatePostApiV6CopyTradingTraderConfig",parameters);
+    }
+
+    /// <summary>Calls the contractPrivatePostApiV6CopyTradingTraderApikey endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> contractPrivatePostApiV6CopyTradingTraderApikey (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("contractPrivatePostApiV6CopyTradingTraderApikey",parameters);
     }
 
 }

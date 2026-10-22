@@ -178,7 +178,7 @@
       "Bash(tsx build/cleanup-old-tags.ts:*)",
       "Bash(tsx examples/ts/benchmark.ts:*)",
       "Bash(tsx ./build/utils/test-freshness.ts:*)",
-      "Bash(tsx ./build/utils/update-static-json:*)",
+      "Bash(tsx ./build/utils/update-static-markets:*)",
       "Bash(go build:*)",
       "Bash(go fmt:*)",
       "Bash(go run:*)",

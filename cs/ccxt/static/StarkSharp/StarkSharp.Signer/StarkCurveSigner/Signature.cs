@@ -1,7 +1,5 @@
 using System;
-using System.IO;
 using System.Globalization;
-using Newtonsoft.Json;
 using StarkSharp.StarkCurve.Extensions;
 using StarkSharp.StarkCurve.Utils;
 using Org.BouncyCastle.Crypto.Digests;
@@ -11,60 +9,71 @@ using BigInt = System.Numerics.BigInteger;
 using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
-using System.Reflection;
 
 namespace StarkSharp.StarkCurve.Signature
 {
-    public class StarkCurveParameters
-    {
-        // Map the properties to the JSON fields. Property names must match the JSON field names.
-        [JsonProperty("FIELD_PRIME")]
-        public BigInt FieldPrime { get; set; }
-
-        [JsonProperty("FIELD_GEN")]
-        public BigInt FieldGen { get; set; }
-
-        [JsonProperty("ALPHA")]
-        public BigInt Alpha { get; set; }
-
-        [JsonProperty("BETA")]
-        public BigInt Beta { get; set; }
-
-        [JsonProperty("EC_ORDER")]
-        public BigInt EcOrder { get; set; }
-
-        [JsonProperty("CONSTANT_POINTS")]
-        public List<List<BigInt>> ConstantPoints { get; set; }
-    }
-
     public static class ECDSA
     {
-        // private const string PedersenHashPointFilename = "StarkSharp\\StarkSharp.Signer\\StarkCurveSigner\\pedersen_params.json"; // Hey, Adjust according to your File Directory
-        // private const string PedersenHashPointFilename = "pedersen_params.json"; // Hey, Adjust according to your File Directory
-        // private static string PedersenHashPointFilename = Path.Combine(Directory.GetCurrentDirectory(), "StarkSharp/StarkSharp.Signer/StarkCurveSigner/pedersen_params.json"); // Hey, Adjust according to your File Directory
-        // private static string PedersenHashPointFilename = "./pedersen_params.json"; // Hey, Adjust according to your File Directory
+        // Stark curve parameters (formerly pedersen_params.json, read from disk at startup):
+        //   y² = x³ + ALPHA·x + BETA over FIELD_PRIME = 2^251 + 17·2^192 + 1.
+        // Static field initializers run in textual order — keep the curve constants above ConstantPoints.
+        public static readonly BigInt FieldPrime = ParseHex("0800000000000011000000000000000000000000000000000000000000000001");
+        public static readonly BigInt FieldGen = 3;
+        public static readonly BigInt Alpha = 1;
+        public static readonly BigInt Beta = ParseHex("06F21413EFBE40DE150E596D72F7A8C5609AD26C15C915C1F4CDFCB99CEE9E89");
+        public static readonly BigInt EcOrder = ParseHex("0800000000000010FFFFFFFFFFFFFFFFB781126DCAE7B2321E66A241ADC64D2F");
 
-        // private static string relativePath = Assembly.GetExecutingAssembly().Location;
+        // The 506-row Pedersen CONSTANT_POINTS table is six seed points, each extended by repeated
+        // point doubling on the curve: { x, y, rowCount }. Rows [0] = SHIFT_POINT, [1] = EC_GEN,
+        // [2..250)+[250..254) = element 0 (low 248 bits + high 4 bits), [254..502)+[502..506) = element 1.
+        // Expanding the seeds reproduces the original JSON table exactly (verified row-for-row).
+        private static readonly string[][] ConstantPointSeeds =
+        {
+            new[] { "049EE3EBA8C1600700EE1B87EB599F16716B0B1022947733551FDE4050CA6804", "03CA0CFE4B3BC6DDF346D49D06EA0ED34E621062C0E056C1D0405D266E10268A", "1" },
+            new[] { "01EF15C18599971B7BECED415A40F0C7DEACFD9B0D1819E03D723D8BC943CFCA", "005668060AA49730B7BE4801DF46EC62DE53ECD11ABE43A32873000C36E8DC1F", "1" },
+            new[] { "0234287DCBAFFE7F969C748655FCA9E58FA8120B6D56EB0C1080D17957EBE47B", "03B056F100F96FB21E889527D41F4E39940135DD7A6C94CC6ED0268EE89E5615", "248" },
+            new[] { "04FA56F376C83DB33F9DAB2656558F3399099EC1DE5E3018B7A6932DBA8AA378", "03FA0984C931C9E38113E0C0E47E4401562761F92A7A23B45168F4E80FF5B54D", "4" },
+            new[] { "04BA4CC166BE8DEC764910F75B45F74B40C690C74709E90F3AA372F0BD2D6997", "0040301CF5C1751F4B971E46C4EDE85FCAC5C59A5CE5AE7C48151F27B24B219C", "248" },
+            new[] { "054302DCB0E6CC1C6E44CCA8F61A63BB2CA65048D53FB325D36FF12C49A58202", "01B77B3E37D13504B348046268D8AE25CE98AD783C25561A879DCC77E99C2426", "4" },
+        };
 
-        // Combine the relative path with the current directory path
-        private static string fullPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "static", "StarkSharp/StarkSharp.Signer/StarkCurveSigner/pedersen_params.json");
-        private static readonly StarkCurveParameters PedersenParams = JsonConvert.DeserializeObject<StarkCurveParameters>(File.ReadAllText(fullPath));
+        public static readonly List<List<BigInt>> ConstantPoints = ExpandConstantPoints();
 
-        // Field parameters.
-        public static readonly BigInt FieldPrime = PedersenParams.FieldPrime;
-        public static readonly BigInt FieldGen = PedersenParams.FieldGen;
-        public static readonly BigInt Alpha = PedersenParams.Alpha;
-        public static readonly BigInt Beta = PedersenParams.Beta;
-        public static readonly BigInt EcOrder = PedersenParams.EcOrder;
-        public static readonly List<List<BigInt>> ConstantPoints = PedersenParams.ConstantPoints;
+        private static BigInt ParseHex(string hex)
+        {
+            // every constant starts with a '0' nibble, so AllowHexSpecifier never yields a negative value
+            return BigInt.Parse(hex, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
+        }
+
+        private static List<List<BigInt>> ExpandConstantPoints()
+        {
+            var points = new List<List<BigInt>>(506);
+            foreach (var seed in ConstantPointSeeds)
+            {
+                BigInt x = ParseHex(seed[0]);
+                BigInt y = ParseHex(seed[1]);
+                int count = int.Parse(seed[2], CultureInfo.InvariantCulture);
+                for (int i = 0; i < count; i++)
+                {
+                    points.Add(new List<BigInt> { x, y });
+                    // affine doubling: λ = (3x² + α) / 2y, x' = λ² − 2x, y' = λ(x − x') − y
+                    BigInt lambda = MathUtils.DivMod(3 * x * x + Alpha, 2 * y, FieldPrime);
+                    BigInt xr = ((lambda * lambda - 2 * x) % FieldPrime + FieldPrime) % FieldPrime;
+                    y = ((lambda * (x - xr) - y) % FieldPrime + FieldPrime) % FieldPrime;
+                    x = xr;
+                }
+            }
+            return points;
+        }
+
         public static MathUtils.ECPoint ShiftPoint => new MathUtils.ECPoint(
-            PedersenParams.ConstantPoints[0][0],
-            PedersenParams.ConstantPoints[0][1]
+            ConstantPoints[0][0],
+            ConstantPoints[0][1]
         );
 
         public static MathUtils.ECPoint EcGen => new MathUtils.ECPoint(
-            PedersenParams.ConstantPoints[1][0],
-            PedersenParams.ConstantPoints[1][1]
+            ConstantPoints[1][0],
+            ConstantPoints[1][1]
         );
         public static MathUtils.ECPoint MinusShiftPoint => new MathUtils.ECPoint(
             ShiftPoint.X,

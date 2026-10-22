@@ -340,11 +340,25 @@ public partial class coinspot : Exchange
         return await this.callAsync<Dictionary<string, object>> ("v2PrivatePostMyBuyNow",parameters);
     }
 
+    /// <summary>Calls the v2PrivatePostMyBuyNowCoinlist endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v2PrivatePostMyBuyNowCoinlist (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v2PrivatePostMyBuyNowCoinlist",parameters);
+    }
+
     /// <summary>Calls the v2PrivatePostMySellNow endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> v2PrivatePostMySellNow (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("v2PrivatePostMySellNow",parameters);
+    }
+
+    /// <summary>Calls the v2PrivatePostMySellNowCoinlist endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v2PrivatePostMySellNowCoinlist (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v2PrivatePostMySellNowCoinlist",parameters);
     }
 
     /// <summary>Calls the v2PrivatePostMySwapNow endpoint.</summary>
@@ -394,6 +408,20 @@ public partial class coinspot : Exchange
     public async Task<Dictionary<string, object>> v2PrivatePostMyCoinWithdrawSend (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("v2PrivatePostMyCoinWithdrawSend",parameters);
+    }
+
+    /// <summary>Calls the v2PrivatePostMyCoinWithdrawSendAsync endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v2PrivatePostMyCoinWithdrawSendAsync (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v2PrivatePostMyCoinWithdrawSendAsync",parameters);
+    }
+
+    /// <summary>Calls the v2PrivatePostMyCoinWithdrawSendStatus endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v2PrivatePostMyCoinWithdrawSendStatus (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v2PrivatePostMyCoinWithdrawSendStatus",parameters);
     }
 
     /// <summary>Calls the v2PrivatePostRoStatus endpoint.</summary>

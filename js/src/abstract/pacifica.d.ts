@@ -1,6 +1,6 @@
 import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
-interface Exchange {
+declare abstract class Exchange extends _Exchange {
     publicGetInfo(params?: {}): Promise<Dict>;
     publicGetInfoFees(params?: {}): Promise<Dict>;
     publicGetInfoPrices(params?: {}): Promise<Dict>;
@@ -25,11 +25,17 @@ interface Exchange {
     publicGetOrders(params?: {}): Promise<Dict>;
     publicGetOrdersHistory(params?: {}): Promise<Dict>;
     publicGetOrdersHistoryById(params?: {}): Promise<Dict>;
+    publicGetOrdersTwap(params?: {}): Promise<Dict>;
+    publicGetOrdersTwapHistory(params?: {}): Promise<Dict>;
+    publicGetOrdersTwapHistoryById(params?: {}): Promise<Dict>;
     publicGetSpotAssets(params?: {}): Promise<Dict>;
     publicGetSpotAssetsBridgeInfo(params?: {}): Promise<Dict>;
     publicGetSpotAssetsBridgeParametersSymbol(params?: {}): Promise<Dict>;
     publicGetLakeList(params?: {}): Promise<Dict>;
     publicGetAccountBuilderCodesApprovals(params?: {}): Promise<List>;
+    publicGetBuilderOverview(params?: {}): Promise<List>;
+    publicGetBuilderTrades(params?: {}): Promise<Dict>;
+    publicGetLeaderboardBuilderCode(params?: {}): Promise<Dict>;
     privatePostAccountLeverage(params?: {}): Promise<Dict>;
     privatePostAccountMargin(params?: {}): Promise<Dict>;
     privatePostAccountWithdraw(params?: {}): Promise<Dict>;
@@ -50,9 +56,20 @@ interface Exchange {
     privatePostOrdersStopCancel(params?: {}): Promise<Dict>;
     privatePostOrdersEdit(params?: {}): Promise<Dict>;
     privatePostOrdersBatch(params?: {}): Promise<Dict>;
+    privatePostOrdersTwapCreate(params?: {}): Promise<Dict>;
+    privatePostOrdersTwapCancel(params?: {}): Promise<Dict>;
     privatePostAccountBuilderCodesApprove(params?: {}): Promise<Dict>;
     privatePostAccountBuilderCodesRevoke(params?: {}): Promise<Dict>;
+    privatePostBuilderUpdateFeeRate(params?: {}): Promise<Dict>;
+    privatePostReferralUserCodeClaim(params?: {}): Promise<Dict>;
     privatePostAgentBind(params?: {}): Promise<Dict>;
+    privatePostAgentList(params?: {}): Promise<Dict>;
+    privatePostAgentRevoke(params?: {}): Promise<Dict>;
+    privatePostAgentRevokeAll(params?: {}): Promise<Dict>;
+    privatePostAgentIpWhitelistList(params?: {}): Promise<Dict>;
+    privatePostAgentIpWhitelistAdd(params?: {}): Promise<Dict>;
+    privatePostAgentIpWhitelistRemove(params?: {}): Promise<Dict>;
+    privatePostAgentIpWhitelistToggle(params?: {}): Promise<Dict>;
     privatePostAccountApiKeysCreate(params?: {}): Promise<Dict>;
     privatePostAccountApiKeysRevoke(params?: {}): Promise<Dict>;
     privatePostAccountApiKeys(params?: {}): Promise<Dict>;
@@ -68,7 +85,5 @@ interface Exchange {
     privatePostLakeRemoveWhitelist(params?: {}): Promise<Dict>;
     privatePostLakeUpdateDepositCap(params?: {}): Promise<Dict>;
     privatePostLakeWithdraw(params?: {}): Promise<Dict>;
-}
-declare abstract class Exchange extends _Exchange {
 }
 export default Exchange;

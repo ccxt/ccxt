@@ -74,9 +74,9 @@ description: "如果您的问题像上面那样简短，我们将不予协助。
 
   ## 你们上传的修复是 TypeScript 版本的，能否也修复 JavaScript / Python / PHP？
 
-  我们的构建系统会自动为我们生成特定于交易所的 JavaScript、Python、PHP、C#、Go 和 Java 代码，这些代码都是从 TypeScript 转译而来的，无需逐一修复每种语言。
+  我们的构建系统会自动为我们生成特定于交易所的 JavaScript、Python、PHP、C#、Go、Java 和 Rust 代码，这些代码都是从 TypeScript 转译而来的，无需逐一修复每种语言。
 
-  因此，如果在 TypeScript 中修复了，那么 JavaScript NPM、Python pip、PHP Composer、C# NuGet、Go 和 Java 中也同样修复了。自动构建通常需要 15-20 分钟。**在新版本发布后**，使用 `npm`、`pip` 或 `composer` 升级您的版本即可。
+  因此，如果在 TypeScript 中修复了，那么 JavaScript NPM、Python pip、PHP Composer、C# NuGet、Go、Java 和 Rust（crates.io）中也同样修复了。自动构建通常需要 15-20 分钟。**在新版本发布后**，使用 `npm`、`pip` 或 `composer` 升级您的版本即可。
 
   更多信息请参阅：
 

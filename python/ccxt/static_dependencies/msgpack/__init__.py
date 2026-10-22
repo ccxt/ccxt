@@ -1,20 +1,14 @@
 from .exceptions import *
 from .ext import ExtType, Timestamp
 
-import os
-
 
 version = (1, 0, 7)
 __version__ = "1.0.7"
 
 
-if os.environ.get("MSGPACK_PUREPYTHON"):
-    from .fallback import Packer, unpackb, Unpacker
-else:
-    try:
-        from ._cmsgpack import Packer, unpackb, Unpacker
-    except ImportError:
-        from .fallback import Packer, unpackb, Unpacker
+# ccxt vendors only the pure-Python implementation (the Cython ._cmsgpack
+# extension is not shipped or built), so import the fallback directly.
+from .fallback import Packer, unpackb, Unpacker
 
 
 def pack(o, stream, **kwargs):

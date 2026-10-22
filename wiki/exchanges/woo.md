@@ -26,6 +26,8 @@
 * [fetchOpenOrders](#fetchopenorders)
 * [fetchClosedOrders](#fetchclosedorders)
 * [fetchOrderBook](#fetchorderbook)
+* [fetchTicker](#fetchticker)
+* [fetchTickers](#fetchtickers)
 * [fetchOHLCV](#fetchohlcv)
 * [fetchOrderTrades](#fetchordertrades)
 * [fetchMyTrades](#fetchmytrades)
@@ -617,6 +619,49 @@ woo.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
+<a name="fetchTicker" id="fetchticker"></a>
+
+### fetchTicker{docsify-ignore}
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market, swap markets only
+
+**Kind**: instance method of [<code>woo</code>](#woo)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**: https://developer.woox.io/api-reference/endpoint/public_data/futures  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+woo.fetchTicker (symbol, params?)
+```
+
+
+<a name="fetchTickers" id="fetchtickers"></a>
+
+### fetchTickers{docsify-ignore}
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market, only swap markets are supported
+
+**Kind**: instance method of [<code>woo</code>](#woo)  
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**: https://developer.woox.io/api-reference/endpoint/public_data/futures  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the ticker for, swap markets only, all swap tickers are returned when not assigned |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.type | <code>string</code> | No | market type, must be 'swap' when no symbols are provided |
+
+
+```javascript
+woo.fetchTickers (symbols?, params?)
+```
+
+
 <a name="fetchOHLCV" id="fetchohlcv"></a>
 
 ### fetchOHLCV{docsify-ignore}
@@ -910,12 +955,12 @@ make a withdrawal
 | code | <code>string</code> | Yes | unified currency code |
 | amount | <code>float</code> | Yes | the amount to withdraw |
 | address | <code>string</code> | Yes | the address to withdraw to |
-| tag | <code>string</code> | Yes |  |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
 
 
 ```javascript
-woo.withdraw (code, amount, address, tag, params?)
+woo.withdraw (code, amount, address, params?)
 ```
 
 

@@ -7,11 +7,12 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-public final class Currencies {
+public final class Currencies extends TypedMap {
     public Map<String, CurrencyInterface> currencies;
 
     @SuppressWarnings("unchecked")
     public Currencies(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.currencies = new LinkedHashMap<>();
         for (Map.Entry<String, Object> entry : data.entrySet()) {

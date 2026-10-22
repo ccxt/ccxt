@@ -11,7 +11,7 @@ import java.util.Map;
 // fields (flat typed access) and adds the prediction identity
 // fields. Identity is the `outcome` handle ("MARKET:LABEL"), no symbol. Mirrors the standalone
 // `PredictionOrderBook` interface in ts/src/base/types.ts.
-public final class PredictionOrderBook {
+public final class PredictionOrderBook extends TypedMap {
     public List<List<Double>> bids;
     public List<List<Double>> asks;
     public Long timestamp;
@@ -24,6 +24,7 @@ public final class PredictionOrderBook {
 
     @SuppressWarnings("unchecked")
     public PredictionOrderBook(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.bids = parseEntries(data.get("bids"));
         this.asks = parseEntries(data.get("asks"));

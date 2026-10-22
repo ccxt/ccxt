@@ -7,6 +7,9 @@
 
 package io.github.ccxt.api;
 import io.github.ccxt.Exchange;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class BitvavoApi extends Exchange
 {
@@ -25,7 +28,7 @@ public class BitvavoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetMarketBook (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetMarketBook (Object... optionalArgs)
     {
         return this.callAsync ("publicGetMarketBook", optionalArgs);
     }
@@ -36,7 +39,7 @@ public class BitvavoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetReportMarketBook (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetReportMarketBook (Object... optionalArgs)
     {
         return this.callAsync ("publicGetReportMarketBook", optionalArgs);
     }
@@ -47,7 +50,7 @@ public class BitvavoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetMarketTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetMarketTrades (Object... optionalArgs)
     {
         return this.callAsync ("publicGetMarketTrades", optionalArgs);
     }
@@ -58,7 +61,7 @@ public class BitvavoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetReportMarketTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetReportMarketTrades (Object... optionalArgs)
     {
         return this.callAsync ("publicGetReportMarketTrades", optionalArgs);
     }
@@ -69,7 +72,7 @@ public class BitvavoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetTickerPrice (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetTickerPrice (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTickerPrice", optionalArgs);
     }
@@ -80,7 +83,7 @@ public class BitvavoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetTickerBook (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetTickerBook (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTickerBook", optionalArgs);
     }
@@ -91,7 +94,7 @@ public class BitvavoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetMarketCandles (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetMarketCandles (Object... optionalArgs)
     {
         return this.callAsync ("publicGetMarketCandles", optionalArgs);
     }
@@ -102,7 +105,7 @@ public class BitvavoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  publicGetTicker24h (Object... optionalArgs)
+    public CompletableFuture<Object>  publicGetTicker24h (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTicker24h", optionalArgs);
     }
@@ -113,7 +116,7 @@ public class BitvavoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetTime (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetTime (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTime", optionalArgs);
     }
@@ -124,7 +127,7 @@ public class BitvavoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetMarkets (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetMarkets (Object... optionalArgs)
     {
         return this.callAsync ("publicGetMarkets", optionalArgs);
     }
@@ -135,7 +138,7 @@ public class BitvavoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetAssets (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetAssets (Object... optionalArgs)
     {
         return this.callAsync ("publicGetAssets", optionalArgs);
     }
@@ -146,7 +149,7 @@ public class BitvavoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateGetOrder", optionalArgs);
     }
@@ -157,7 +160,7 @@ public class BitvavoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetOrdersOpen (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetOrdersOpen (Object... optionalArgs)
     {
         return this.callAsync ("privateGetOrdersOpen", optionalArgs);
     }
@@ -168,7 +171,7 @@ public class BitvavoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetTrades (Object... optionalArgs)
     {
         return this.callAsync ("privateGetTrades", optionalArgs);
     }
@@ -179,7 +182,7 @@ public class BitvavoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetOrders", optionalArgs);
     }
@@ -190,7 +193,7 @@ public class BitvavoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetDeposit (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetDeposit (Object... optionalArgs)
     {
         return this.callAsync ("privateGetDeposit", optionalArgs);
     }
@@ -201,7 +204,7 @@ public class BitvavoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetDepositHistory (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetDepositHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetDepositHistory", optionalArgs);
     }
@@ -212,7 +215,7 @@ public class BitvavoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetWithdrawalHistory (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetWithdrawalHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetWithdrawalHistory", optionalArgs);
     }
@@ -223,7 +226,7 @@ public class BitvavoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetAccount (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetAccount (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAccount", optionalArgs);
     }
@@ -234,7 +237,7 @@ public class BitvavoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetBalance (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetBalance (Object... optionalArgs)
     {
         return this.callAsync ("privateGetBalance", optionalArgs);
     }
@@ -245,7 +248,7 @@ public class BitvavoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetStakingBalance (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetStakingBalance (Object... optionalArgs)
     {
         return this.callAsync ("privateGetStakingBalance", optionalArgs);
     }
@@ -256,7 +259,7 @@ public class BitvavoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAccountFees (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetAccountFees (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAccountFees", optionalArgs);
     }
@@ -267,7 +270,7 @@ public class BitvavoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAccountHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetAccountHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAccountHistory", optionalArgs);
     }
@@ -278,7 +281,7 @@ public class BitvavoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetSubaccounts (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetSubaccounts (Object... optionalArgs)
     {
         return this.callAsync ("privateGetSubaccounts", optionalArgs);
     }
@@ -289,7 +292,7 @@ public class BitvavoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetSubaccountsTransfers (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetSubaccountsTransfers (Object... optionalArgs)
     {
         return this.callAsync ("privateGetSubaccountsTransfers", optionalArgs);
     }
@@ -300,7 +303,7 @@ public class BitvavoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetSubaccountsTransfersTransferId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetSubaccountsTransfersTransferId (Object... optionalArgs)
     {
         return this.callAsync ("privateGetSubaccountsTransfersTransferId", optionalArgs);
     }
@@ -311,7 +314,7 @@ public class BitvavoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetInstitutionalSubaccountsBalance (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetInstitutionalSubaccountsBalance (Object... optionalArgs)
     {
         return this.callAsync ("privateGetInstitutionalSubaccountsBalance", optionalArgs);
     }
@@ -322,7 +325,7 @@ public class BitvavoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetInstitutionalSubaccountsHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetInstitutionalSubaccountsHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetInstitutionalSubaccountsHistory", optionalArgs);
     }
@@ -333,7 +336,7 @@ public class BitvavoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetInstitutionalSubaccountsOrdersOpen (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetInstitutionalSubaccountsOrdersOpen (Object... optionalArgs)
     {
         return this.callAsync ("privateGetInstitutionalSubaccountsOrdersOpen", optionalArgs);
     }
@@ -344,7 +347,7 @@ public class BitvavoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrder", optionalArgs);
     }
@@ -355,7 +358,7 @@ public class BitvavoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCancelOrdersAfter (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostCancelOrdersAfter (Object... optionalArgs)
     {
         return this.callAsync ("privatePostCancelOrdersAfter", optionalArgs);
     }
@@ -366,7 +369,7 @@ public class BitvavoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostWithdrawal", optionalArgs);
     }
@@ -377,7 +380,7 @@ public class BitvavoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCryptoWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostCryptoWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostCryptoWithdrawal", optionalArgs);
     }
@@ -388,7 +391,7 @@ public class BitvavoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSubaccounts (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSubaccounts (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSubaccounts", optionalArgs);
     }
@@ -399,7 +402,7 @@ public class BitvavoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSubaccountsTransfers (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostSubaccountsTransfers (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSubaccountsTransfers", optionalArgs);
     }
@@ -410,7 +413,7 @@ public class BitvavoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePutOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePutOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePutOrder", optionalArgs);
     }
@@ -421,7 +424,7 @@ public class BitvavoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteOrder", optionalArgs);
     }
@@ -432,7 +435,7 @@ public class BitvavoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateDeleteOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateDeleteOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteOrders", optionalArgs);
     }
@@ -443,7 +446,7 @@ public class BitvavoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateDeleteAtomicOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateDeleteAtomicOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteAtomicOrders", optionalArgs);
     }
@@ -454,7 +457,7 @@ public class BitvavoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteInstitutionalSubaccountsOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteInstitutionalSubaccountsOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteInstitutionalSubaccountsOrder", optionalArgs);
     }
@@ -465,7 +468,7 @@ public class BitvavoApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteInstitutionalSubaccountsOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteInstitutionalSubaccountsOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteInstitutionalSubaccountsOrders", optionalArgs);
     }

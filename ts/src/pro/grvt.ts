@@ -6,6 +6,7 @@ import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBy
 import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Ticker, Dict, List, Market, Position, Bool, Tickers } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError } from '../base/errors.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -51,7 +52,7 @@ export default class grvt extends grvtRest {
         });
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: Dict) {
         //
         // confirmation
         //
@@ -118,11 +119,14 @@ export default class grvt extends grvtRest {
             'params': request,
             'id': this.requestId (),
         };
-        const apiPart = publicOrPrivate ? 'publicMarket' : 'privateTrading';
+        let apiPart: Str = 'privateTrading';
+        if (publicOrPrivate) {
+            apiPart = 'publicMarket';
+        }
         return await this.watchMultiple (this.urls['api']['ws'][apiPart], messageHashes, payload, rawHashes);
     }
 
-    override requestId () {
+    override requestId (): number {
         this.lockId ();
         const newValue = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
         this.options['requestId'] = newValue;
@@ -139,13 +143,13 @@ export default class grvt extends grvtRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbol = this.symbol (symbol);
-        const tickers = await this.watchTickers ([ symbol ], this.extend (params, { 'callerMethodName': 'watchTicker' }));
-        return tickers[symbol];
+        const symbolValue: string = this.symbol (symbol);
+        const tickers = await this.watchTickers ([ symbolValue ], this.extend (params, { 'callerMethodName': 'watchTicker' }));
+        return tickers[symbolValue];
     }
 
     /**
@@ -157,41 +161,43 @@ export default class grvt extends grvtRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (symbols === undefined) {
             throw new ArgumentsRequired (this.id + ' watchTickers requires a symbols argument');
         }
-        let channel: Str = undefined;
-        [ channel, params ] = this.handleOptionAndParams (params, 'watchTickers', 'channel', 'v1.ticker.s');
-        let interval = 500;
-        [ interval, params ] = this.handleOptionAndParams (params, 'watchTickers', 'interval', interval);
+        const [ channel, paramsChannel ] = this.handleOptionStringAndParams (params, 'watchTickers', 'channel', 'v1.ticker.s');
+        const interval = 500;
+        const [ intervalOption, paramsInterval ] = this.handleOptionIntegerAndParams (paramsChannel, 'watchTickers', 'interval', interval);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const rawHashes: string[] = [];
         const messageHashes: string[] = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
             const marketId = market['id'];
-            rawHashes.push (marketId + '@' + interval.toString ());
+            rawHashes.push (marketId + '@' + intervalOption.toString ());
             messageHashes.push ('ticker::' + market['symbol']);
         }
-        const request = {
+        const request: Dict = {
             'stream': channel,
             'selectors': rawHashes,
         };
-        const ticker = await this.subscribeMultiple (messageHashes, this.extend (params, request), rawHashes);
+        const ticker = await this.subscribeMultiple (messageHashes, this.extend (paramsInterval, request), rawHashes);
         if (this.newUpdates) {
             const tickers: Dict = {};
-            tickers[ticker['symbol']] = ticker;
+            const tickerSymbol = this.safeString (ticker, 'symbol');
+            if (tickerSymbol !== undefined) {
+                tickers[tickerSymbol] = ticker;
+            }
             return tickers;
         }
-        return this.filterByArray (this.tickers, 'symbol', symbols);
+        return this.filterByArray (this.tickers, 'symbol', symbolsNormalized);
     }
 
-    handleTicker (client: Client, message: any) {
+    handleTicker (client: Client, message: Dict) {
         //
         // v1.ticker.s
         //
@@ -279,7 +285,7 @@ export default class grvt extends grvtRest {
         client.resolve (ticker, 'ticker::' + symbol);
     }
 
-    parseWsTicker (message: any, market: Market = undefined) {
+    parseWsTicker (message: Dict, market: Market = undefined): Ticker {
         // same dict as REST api
         return this.parseTicker (message, market);
     }
@@ -295,7 +301,7 @@ export default class grvt extends grvtRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         return this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
@@ -311,35 +317,36 @@ export default class grvt extends grvtRest {
      * @param {string} [params.limit] 50, 200, 500, 1000 (default 50)
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols);
         const rawHashes: string[] = [];
         const messageHashes: string[] = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
             const marketId = market['id'];
             const limitRaw = this.safeInteger (params, 'limit', 50); // 50, 200, 500, 1000
             rawHashes.push (marketId + '@' + limitRaw.toString ());
             messageHashes.push ('trade::' + market['symbol']);
         }
-        const request = {
+        const request: Dict = {
             'stream': 'v1.trade',
             'selectors': rawHashes,
         };
         const trades = await this.subscribeMultiple (messageHashes, this.extend (params, request), rawHashes);
+        const first = this.safeDict (trades, 0);
+        const tradeSymbol = this.safeString (first, 'symbol');
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            const first = this.safeValue (trades, 0);
-            const tradeSymbol = this.safeString (first, 'symbol');
-            limit = trades.getLimit (tradeSymbol, limit);
+            limitResolved = trades.getLimit (tradeSymbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message: any) {
+    handleTrades (client: Client, message: Dict) {
         //
         //    {
         //        "stream": "v1.trade",
@@ -378,7 +385,7 @@ export default class grvt extends grvtRest {
         client.resolve (stored, 'trade::' + symbol);
     }
 
-    override parseWsTrade (trade: any, market: Market = undefined) {
+    override parseWsTrade (trade: Dict, market: Market = undefined): Trade {
         // same as REST api
         return this.parseTrade (trade, market);
     }
@@ -399,10 +406,10 @@ export default class grvt extends grvtRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbol = this.symbol (symbol);
+        const symbolValue: string = this.symbol (symbol);
         params['callerMethodName'] = 'watchOHLCV';
-        const result = await this.watchOHLCVForSymbols ([ [ symbol, timeframe ] ], since, limit, params);
-        return result[symbol][timeframe];
+        const result = await this.watchOHLCVForSymbols ([ [ symbolValue, timeframe ] ], since, limit, params);
+        return result[symbolValue][timeframe];
     }
 
     /**
@@ -416,14 +423,14 @@ export default class grvt extends grvtRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const rawHashes: string[] = [];
         const messageHashes: string[] = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
-            const data = symbolsAndTimeframes[i];
+            const data = this.safeList (symbolsAndTimeframes, i);
             const symbolString = this.safeString (data, 0);
             const market = this.market (symbolString);
             const marketId = market['id'];
@@ -432,19 +439,20 @@ export default class grvt extends grvtRest {
             rawHashes.push (marketId + '@' + timeframeId + '-TRADE');
             messageHashes.push ('ohlcv::' + market['symbol'] + '::' + unfiedTimeframe);
         }
-        const request = {
+        const request: Dict = {
             'stream': 'v1.candle',
             'selectors': rawHashes,
         };
         const [ symbol, timeframe, stored ] = await this.subscribeMultiple (messageHashes, this.extend (params, request), rawHashes);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = stored.getLimit (symbol, limit);
+            limitResolved = stored.getLimit (symbol, limit);
         }
-        const filtered = this.filterBySinceLimit (stored, since, limit, 0, true);
+        const filtered = this.filterBySinceLimit (stored, since, limitResolved, 0, true);
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
-    handleOHLCV (client: Client, message: any) {
+    handleOHLCV (client: Client, message: Dict) {
         //
         //    {
         //        "stream": "v1.candle",
@@ -475,7 +483,7 @@ export default class grvt extends grvtRest {
         const timeframeId = secondPart.replace ('-TRADE', '');
         const timeframe = this.findTimeframe (timeframeId);
         const messageHash = 'ohlcv::' + symbol + '::' + timeframe;
-        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
         if (!((timeframe as string) in this.ohlcvs[symbol])) {
             const limit = this.handleOption ('watchOHLCV', 'limit', 1000);
             this.ohlcvs[symbol][(timeframe as string)] = new ArrayCacheByTimestamp (limit);
@@ -503,12 +511,12 @@ export default class grvt extends grvtRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbol = this.symbol (symbol);
-        return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
+        const symbolValue: string = this.symbol (symbol);
+        return await this.watchOrderBookForSymbols ([ symbolValue ], limit, params);
     }
 
     /**
@@ -522,42 +530,49 @@ export default class grvt extends grvtRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let channel: Str = undefined;
-        [ channel, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'channel', 'v1.book.d');
+        const [ channel, paramsChannel ] = this.handleOptionStringAndParams (params, 'watchOrderBook', 'channel', 'v1.book.d');
         const isSnapshot = channel === 'v1.book.s';
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
         }
-        if (limit === undefined) {
-            [ limit, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'limit', 100);
+        const [ limitOption, paramsLimitOption ] = this.handleOptionIntegerAndParams (paramsChannel, 'watchOrderBook', 'limit', 100);
+        let limitResolved = limitOption;
+        let paramsLimit: Dict = paramsLimitOption;
+        if (limit !== undefined) {
+            limitResolved = limit;
+            paramsLimit = paramsChannel;
         }
-        let interval = 500;
-        [ interval, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'interval', interval);
-        symbols = this.marketSymbols (symbols);
-        const extraPart = isSnapshot ? (interval.toString () + '-' + limit.toString ()) : interval.toString ();
+        const [ interval, paramsInterval ] = this.handleOptionIntegerAndParams (paramsLimit, 'watchOrderBook', 'interval', 500);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols);
+        let extraPart: Str = undefined;
+        if (isSnapshot) {
+            extraPart = interval.toString () + '-' + limitResolved.toString ();
+        } else {
+            extraPart = interval.toString ();
+        }
         const rawHashes: string[] = [];
         const messageHashes: string[] = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
             const marketId = market['id'];
             rawHashes.push (marketId + '@' + extraPart);
             messageHashes.push ('orderbook::' + market['symbol']);
         }
-        const request = {
+        const request: Dict = {
             'stream': channel,
             'selectors': rawHashes,
         };
-        const orderbook = await this.subscribeMultiple (messageHashes, this.extend (request, params), rawHashes);
+        const orderbook: WsOrderBook = await this.subscribeMultiple (messageHashes, this.extend (request, paramsInterval), rawHashes);
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message: any) {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //    {
         //        "stream": "v1.book.s",
@@ -624,7 +639,7 @@ export default class grvt extends grvtRest {
         client.resolve (orderbook, messageHash);
     }
 
-    async authenticate (params = {}) {
+    async authenticate (params: Dict = {}) {
         this.checkRequiredCredentials ();
         await this.signIn ();
         const wsOptions = this.safeDict (this.options, 'ws', {});
@@ -662,7 +677,7 @@ export default class grvt extends grvtRest {
      * @param {boolean} [params.unifiedMargin] use unified margin account
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -678,18 +693,19 @@ export default class grvt extends grvtRest {
             messageHashes.push ('myTrades');
             rawHashes.push (subAccountId);
         }
-        const request = {
+        const request: Dict = {
             'stream': 'v1.fill',
             'selectors': rawHashes,
         };
         const trades = await this.subscribeMultiple (messageHashes, this.extend (request, params), messageHashes, false);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limitResolved = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
-    handleMyTrade (client: Client, message: any) {
+    handleMyTrade (client: Client, message: Dict) {
         //
         //    {
         //        "stream": "v1.fill",
@@ -736,7 +752,7 @@ export default class grvt extends grvtRest {
         client.resolve (this.myTrades, 'myTrades');
     }
 
-    parseWsMyTrade (trade: any, market: Market = undefined) {
+    parseWsMyTrade (trade: Dict, market: Market = undefined): Trade {
         return this.parseTrade (trade, market);
     }
 
@@ -751,18 +767,18 @@ export default class grvt extends grvtRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Position[]> {
         await this.authenticate ();
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const subAccountId = this.getSubAccountId (params);
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const rawHashes: string[] = [];
         const messageHashes: string[] = [];
-        if (symbols !== undefined) {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
+        if (symbolsNormalized !== undefined) {
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const symbol = symbolsNormalized[i];
                 const market = this.market (symbol);
                 rawHashes.push (subAccountId + '-' + market['id']);
                 messageHashes.push ('positions::' + market['symbol']);
@@ -771,7 +787,7 @@ export default class grvt extends grvtRest {
             messageHashes.push ('positions');
             rawHashes.push (subAccountId);
         }
-        const request = {
+        const request: Dict = {
             'stream': 'v1.position',
             'selectors': rawHashes,
         };
@@ -779,10 +795,10 @@ export default class grvt extends grvtRest {
         if (this.newUpdates) {
             return newPositions;
         }
-        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit (this.positions, symbolsNormalized, since, limit, true);
     }
 
-    handlePosition (client: any, message: any) {
+    handlePosition (client: Client, message: Dict) {
         //
         //    {
         //        "stream": "v1.position",
@@ -824,7 +840,7 @@ export default class grvt extends grvtRest {
         client.resolve (newPositions, 'positions');
     }
 
-    parseWsPosition (position: any, market: Market = undefined) {
+    parseWsPosition (position: any, market: Market = undefined): Position {
         // same as REST api
         return this.parsePosition (position, market);
     }
@@ -840,7 +856,7 @@ export default class grvt extends grvtRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -856,18 +872,19 @@ export default class grvt extends grvtRest {
             messageHashes.push ('order::' + market['symbol']);
             rawHashes.push (subAccountId + '-' + market['id']);
         }
-        const request = {
+        const request: Dict = {
             'stream': 'v1.order',
             'selectors': rawHashes,
         };
         const orders = await this.subscribeMultiple (messageHashes, this.extend (request, params), rawHashes, false);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
+            limitResolved = orders.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limitResolved, true);
     }
 
-    handleOrder (client: Client, message: any) {
+    handleOrder (client: Client, message: Dict) {
         //
         //    {
         //        "stream": "v1.order",
@@ -948,7 +965,7 @@ export default class grvt extends grvtRest {
         return this.parseOrder (order, market);
     }
 
-    handleErrorMessage (client: Client, response: any): Bool {
+    handleErrorMessage (client: Client, response: Dict): Bool {
         //
         //    {
         //        "jsonrpc": "2.0",

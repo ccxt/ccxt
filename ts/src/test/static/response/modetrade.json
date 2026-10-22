@@ -4,6 +4,642 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchTickers": [
+            {
+                "description": "all swap tickers",
+                "method": "fetchTickers",
+                "input": [],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "rows": [
+                            {
+                                "symbol": "PERP_BTC_USDC",
+                                "display_symbol_name": "BTC",
+                                "broker_id": null,
+                                "status": "ACTIVE",
+                                "index_price": 81553.2,
+                                "mark_price": 81531,
+                                "sum_unitary_funding": 27744.3,
+                                "est_funding_rate": 8.367e-05,
+                                "last_funding_rate": 3.94e-05,
+                                "next_funding_time": 1792281600000,
+                                "open_interest": 42.47748,
+                                "is_pretge": false,
+                                "24h_open": 81583.5,
+                                "24h_close": 81524.4,
+                                "24h_high": 81706.7,
+                                "24h_low": 81069.9,
+                                "24h_volume": 65.7906,
+                                "24h_amount": 5357848.258182
+                            },
+                            {
+                                "symbol": "PERP_SOL_USDC",
+                                "display_symbol_name": "SOL",
+                                "broker_id": null,
+                                "status": "ACTIVE",
+                                "index_price": 104.077,
+                                "mark_price": 104.056,
+                                "sum_unitary_funding": 65.2324,
+                                "est_funding_rate": -9.972e-05,
+                                "last_funding_rate": -1.45e-05,
+                                "next_funding_time": 1792281600000,
+                                "open_interest": 13021.92,
+                                "is_pretge": false,
+                                "24h_open": 103.874,
+                                "24h_close": 104.075,
+                                "24h_high": 105.101,
+                                "24h_low": 102.881,
+                                "24h_volume": 65389.24,
+                                "24h_amount": 6804157.03986
+                            },
+                            {
+                                "symbol": "PERP_ETH_USDC",
+                                "display_symbol_name": "ETH",
+                                "broker_id": null,
+                                "status": "ACTIVE",
+                                "index_price": 2418.5,
+                                "mark_price": 2419.21,
+                                "sum_unitary_funding": 1386.27,
+                                "est_funding_rate": 0.0001,
+                                "last_funding_rate": 9.966e-05,
+                                "next_funding_time": 1792281600000,
+                                "open_interest": 10520.8201,
+                                "is_pretge": false,
+                                "24h_open": 2414.25,
+                                "24h_close": 2419.47,
+                                "24h_high": 2439.04,
+                                "24h_low": 2397.02,
+                                "24h_volume": 2866.945,
+                                "24h_amount": 6940248.395125
+                            }
+                        ]
+                    },
+                    "timestamp": 1792270670180
+                },
+                "parsedResponse": {
+                    "BTC/USDC:USDC": {
+                        "symbol": "BTC/USDC:USDC",
+                        "timestamp": 1792270670180,
+                        "datetime": "2026-10-17T20:57:50.180Z",
+                        "high": 81706.7,
+                        "low": 81069.9,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 81437.89930753026,
+                        "open": 81583.5,
+                        "close": 81524.4,
+                        "last": 81524.4,
+                        "previousClose": null,
+                        "change": -59.1,
+                        "percentage": -0.0724411186085421,
+                        "average": 81553.9,
+                        "baseVolume": 65.7906,
+                        "quoteVolume": 5357848.258182,
+                        "indexPrice": 81553.2,
+                        "markPrice": 81531,
+                        "info": {
+                            "timestamp": 1792270670180,
+                            "symbol": "PERP_BTC_USDC",
+                            "display_symbol_name": "BTC",
+                            "broker_id": null,
+                            "status": "ACTIVE",
+                            "index_price": 81553.2,
+                            "mark_price": 81531,
+                            "sum_unitary_funding": 27744.3,
+                            "est_funding_rate": 8.367e-05,
+                            "last_funding_rate": 3.94e-05,
+                            "next_funding_time": 1792281600000,
+                            "open_interest": 42.47748,
+                            "is_pretge": false,
+                            "24h_open": 81583.5,
+                            "24h_close": 81524.4,
+                            "24h_high": 81706.7,
+                            "24h_low": 81069.9,
+                            "24h_volume": 65.7906,
+                            "24h_amount": 5357848.258182
+                        }
+                    },
+                    "ETH/USDC:USDC": {
+                        "symbol": "ETH/USDC:USDC",
+                        "timestamp": 1792270670180,
+                        "datetime": "2026-10-17T20:57:50.180Z",
+                        "high": 2439.04,
+                        "low": 2397.02,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 2420.781840992764,
+                        "open": 2414.25,
+                        "close": 2419.47,
+                        "last": 2419.47,
+                        "previousClose": null,
+                        "change": 5.22,
+                        "percentage": 0.2162162162162162,
+                        "average": 2416.86,
+                        "baseVolume": 2866.945,
+                        "quoteVolume": 6940248.395125,
+                        "indexPrice": 2418.5,
+                        "markPrice": 2419.21,
+                        "info": {
+                            "timestamp": 1792270670180,
+                            "symbol": "PERP_ETH_USDC",
+                            "display_symbol_name": "ETH",
+                            "broker_id": null,
+                            "status": "ACTIVE",
+                            "index_price": 2418.5,
+                            "mark_price": 2419.21,
+                            "sum_unitary_funding": 1386.27,
+                            "est_funding_rate": 0.0001,
+                            "last_funding_rate": 9.966e-05,
+                            "next_funding_time": 1792281600000,
+                            "open_interest": 10520.8201,
+                            "is_pretge": false,
+                            "24h_open": 2414.25,
+                            "24h_close": 2419.47,
+                            "24h_high": 2439.04,
+                            "24h_low": 2397.02,
+                            "24h_volume": 2866.945,
+                            "24h_amount": 6940248.395125
+                        }
+                    }
+                }
+            },
+            {
+                "description": "tickers filtered by symbol",
+                "method": "fetchTickers",
+                "input": [
+                    [
+                        "BTC/USDC:USDC"
+                    ]
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "rows": [
+                            {
+                                "symbol": "PERP_BTC_USDC",
+                                "display_symbol_name": "BTC",
+                                "broker_id": null,
+                                "status": "ACTIVE",
+                                "index_price": 81557.2,
+                                "mark_price": 81537,
+                                "sum_unitary_funding": 27744.3,
+                                "est_funding_rate": 8.36e-05,
+                                "last_funding_rate": 3.94e-05,
+                                "next_funding_time": 1792281600000,
+                                "open_interest": 42.46869,
+                                "is_pretge": false,
+                                "24h_open": 81620.1,
+                                "24h_close": 81534.8,
+                                "24h_high": 81706.7,
+                                "24h_low": 81069.9,
+                                "24h_volume": 65.95584,
+                                "24h_amount": 5371334.394914
+                            },
+                            {
+                                "symbol": "PERP_SOL_USDC",
+                                "display_symbol_name": "SOL",
+                                "broker_id": null,
+                                "status": "ACTIVE",
+                                "index_price": 104.101,
+                                "mark_price": 104.07,
+                                "sum_unitary_funding": 65.2324,
+                                "est_funding_rate": -9.973e-05,
+                                "last_funding_rate": -1.45e-05,
+                                "next_funding_time": 1792281600000,
+                                "open_interest": 13021.92,
+                                "is_pretge": false,
+                                "24h_open": 103.957,
+                                "24h_close": 104.095,
+                                "24h_high": 105.101,
+                                "24h_low": 102.881,
+                                "24h_volume": 65353.39,
+                                "24h_amount": 6800425.93931
+                            },
+                            {
+                                "symbol": "PERP_ETH_USDC",
+                                "display_symbol_name": "ETH",
+                                "broker_id": null,
+                                "status": "ACTIVE",
+                                "index_price": 2418.83,
+                                "mark_price": 2419.47,
+                                "sum_unitary_funding": 1386.27,
+                                "est_funding_rate": 0.0001,
+                                "last_funding_rate": 9.966e-05,
+                                "next_funding_time": 1792281600000,
+                                "open_interest": 10520.3791,
+                                "is_pretge": false,
+                                "24h_open": 2413.67,
+                                "24h_close": 2419.89,
+                                "24h_high": 2439.04,
+                                "24h_low": 2397.02,
+                                "24h_volume": 2865.8382,
+                                "24h_amount": 6937566.923975
+                            }
+                        ]
+                    },
+                    "timestamp": 1792270616433
+                },
+                "parsedResponse": {
+                    "BTC/USDC:USDC": {
+                        "symbol": "BTC/USDC:USDC",
+                        "timestamp": 1792270616433,
+                        "datetime": "2026-10-17T20:56:56.433Z",
+                        "high": 81706.7,
+                        "low": 81069.9,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 81438.34412409879,
+                        "open": 81620.1,
+                        "close": 81534.8,
+                        "last": 81534.8,
+                        "previousClose": null,
+                        "change": -85.3,
+                        "percentage": -0.1045085708054756,
+                        "average": 81577.4,
+                        "baseVolume": 65.95584,
+                        "quoteVolume": 5371334.394914,
+                        "indexPrice": 81557.2,
+                        "markPrice": 81537,
+                        "info": {
+                            "timestamp": 1792270616433,
+                            "symbol": "PERP_BTC_USDC",
+                            "display_symbol_name": "BTC",
+                            "broker_id": null,
+                            "status": "ACTIVE",
+                            "index_price": 81557.2,
+                            "mark_price": 81537,
+                            "sum_unitary_funding": 27744.3,
+                            "est_funding_rate": 8.36e-05,
+                            "last_funding_rate": 3.94e-05,
+                            "next_funding_time": 1792281600000,
+                            "open_interest": 42.46869,
+                            "is_pretge": false,
+                            "24h_open": 81620.1,
+                            "24h_close": 81534.8,
+                            "24h_high": 81706.7,
+                            "24h_low": 81069.9,
+                            "24h_volume": 65.95584,
+                            "24h_amount": 5371334.394914
+                        }
+                    }
+                }
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "single swap ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "symbol": "PERP_BTC_USDC",
+                        "display_symbol_name": "BTC",
+                        "broker_id": null,
+                        "status": "ACTIVE",
+                        "index_price": 81558.5,
+                        "mark_price": 81538.3,
+                        "sum_unitary_funding": 27744.3,
+                        "est_funding_rate": 0.0000836,
+                        "last_funding_rate": 0.0000394,
+                        "next_funding_time": 1792281600000,
+                        "open_interest": 42.46869,
+                        "is_pretge": false,
+                        "24h_open": 81620.1,
+                        "24h_close": 81534.8,
+                        "24h_high": 81706.7,
+                        "24h_low": 81069.9,
+                        "24h_volume": 65.95584,
+                        "24h_amount": 5371334.394914
+                    },
+                    "timestamp": 1792270614894
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDC:USDC",
+                    "timestamp": 1792270614894,
+                    "datetime": "2026-10-17T20:56:54.894Z",
+                    "high": 81706.7,
+                    "low": 81069.9,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": 81438.34412409879,
+                    "open": 81620.1,
+                    "close": 81534.8,
+                    "last": 81534.8,
+                    "previousClose": null,
+                    "change": -85.3,
+                    "percentage": -0.1045085708054756,
+                    "average": 81577.4,
+                    "baseVolume": 65.95584,
+                    "quoteVolume": 5371334.394914,
+                    "indexPrice": 81558.5,
+                    "markPrice": 81538.3,
+                    "info": {
+                        "timestamp": 1792270614894,
+                        "symbol": "PERP_BTC_USDC",
+                        "display_symbol_name": "BTC",
+                        "broker_id": null,
+                        "status": "ACTIVE",
+                        "index_price": 81558.5,
+                        "mark_price": 81538.3,
+                        "sum_unitary_funding": 27744.3,
+                        "est_funding_rate": 0.0000836,
+                        "last_funding_rate": 0.0000394,
+                        "next_funding_time": 1792281600000,
+                        "open_interest": 42.46869,
+                        "is_pretge": false,
+                        "24h_open": 81620.1,
+                        "24h_close": 81534.8,
+                        "24h_high": 81706.7,
+                        "24h_low": 81069.9,
+                        "24h_volume": 65.95584,
+                        "24h_amount": 5371334.394914
+                    }
+                }
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "markets active flag from status",
+                "method": "fetchMarkets",
+                "input": [],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "rows": [
+                            {
+                                "symbol": "PERP_CHUTES_USDC_taoperp",
+                                "display_symbol_name": "CHUTES",
+                                "broker_id": "taoperp",
+                                "quote_min": 0,
+                                "quote_max": 100000,
+                                "quote_tick": 0.001,
+                                "base_min": 0.001,
+                                "base_max": 46969.219,
+                                "base_tick": 0.001,
+                                "min_notional": 10,
+                                "price_range": 0.05,
+                                "price_scope": 0.6,
+                                "std_liquidation_fee": 0.015,
+                                "liquidator_fee": 0.0075,
+                                "claim_insurance_fund_discount": 0.0075,
+                                "funding_period": 8,
+                                "cap_funding": 0.03,
+                                "floor_funding": -0.03,
+                                "interest_rate": 0.0001,
+                                "created_time": 1789664160519,
+                                "updated_time": 1791520020727,
+                                "liquidation_tier": 2,
+                                "cap_ir": 0.0001,
+                                "floor_ir": -0.0001,
+                                "mark_index_price_deviation_floor": 0.9475,
+                                "mark_index_price_deviation_cap": 1.0525,
+                                "global_max_oi_cap": 1000000,
+                                "status": "DELISTING",
+                                "base_mmr": 0.05,
+                                "base_imr": 0.1,
+                                "imr_factor": 2.51757e-05,
+                                "deviation_factor": 1.75,
+                                "is_pretge": false
+                            },
+                            {
+                                "symbol": "PERP_BTC_USDC",
+                                "display_symbol_name": "BTC",
+                                "broker_id": null,
+                                "quote_min": 0,
+                                "quote_max": 200000,
+                                "quote_tick": 0.1,
+                                "base_min": 1e-05,
+                                "base_max": 10,
+                                "base_tick": 1e-05,
+                                "min_notional": 10,
+                                "price_range": 0.01,
+                                "price_scope": 0.6,
+                                "std_liquidation_fee": 0.006,
+                                "liquidator_fee": 0.003,
+                                "claim_insurance_fund_discount": 0.003,
+                                "funding_period": 8,
+                                "cap_funding": 0.003,
+                                "floor_funding": -0.003,
+                                "interest_rate": 0.0001,
+                                "created_time": 1693820915671,
+                                "updated_time": 1780033150795,
+                                "liquidation_tier": 1,
+                                "cap_ir": 0.0004,
+                                "floor_ir": -0.0004,
+                                "mark_index_price_deviation_floor": 0.97,
+                                "mark_index_price_deviation_cap": 1.03,
+                                "global_max_oi_cap": 1000000000,
+                                "status": "ACTIVE",
+                                "base_mmr": 0.006,
+                                "base_imr": 0.01,
+                                "imr_factor": 9.1e-08,
+                                "deviation_factor": 10,
+                                "is_pretge": false
+                            }
+                        ]
+                    },
+                    "timestamp": 1792005756382
+                },
+                "parsedResponse": [
+                    {
+                        "id": "PERP_CHUTES_USDC_taoperp",
+                        "lowercaseId": null,
+                        "symbol": "CHUTES/USDC:USDC",
+                        "base": "CHUTES",
+                        "quote": "USDC",
+                        "settle": "USDC",
+                        "baseId": "CHUTES",
+                        "quoteId": "USDC",
+                        "settleId": "USDC",
+                        "type": "swap",
+                        "spot": false,
+                        "margin": false,
+                        "swap": true,
+                        "future": false,
+                        "option": false,
+                        "index": null,
+                        "active": false,
+                        "contract": true,
+                        "linear": true,
+                        "inverse": false,
+                        "subType": null,
+                        "taker": null,
+                        "maker": null,
+                        "contractSize": 1,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 0.001,
+                            "price": 0.001
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": 0.001,
+                                "max": 46969.219
+                            },
+                            "price": {
+                                "min": 0,
+                                "max": 100000
+                            },
+                            "cost": {
+                                "min": 10,
+                                "max": null
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": 1789664160519,
+                        "info": {
+                            "symbol": "PERP_CHUTES_USDC_taoperp",
+                            "display_symbol_name": "CHUTES",
+                            "broker_id": "taoperp",
+                            "quote_min": 0,
+                            "quote_max": 100000,
+                            "quote_tick": 0.001,
+                            "base_min": 0.001,
+                            "base_max": 46969.219,
+                            "base_tick": 0.001,
+                            "min_notional": 10,
+                            "price_range": 0.05,
+                            "price_scope": 0.6,
+                            "std_liquidation_fee": 0.015,
+                            "liquidator_fee": 0.0075,
+                            "claim_insurance_fund_discount": 0.0075,
+                            "funding_period": 8,
+                            "cap_funding": 0.03,
+                            "floor_funding": -0.03,
+                            "interest_rate": 0.0001,
+                            "created_time": 1789664160519,
+                            "updated_time": 1791520020727,
+                            "liquidation_tier": 2,
+                            "cap_ir": 0.0001,
+                            "floor_ir": -0.0001,
+                            "mark_index_price_deviation_floor": 0.9475,
+                            "mark_index_price_deviation_cap": 1.0525,
+                            "global_max_oi_cap": 1000000,
+                            "status": "DELISTING",
+                            "base_mmr": 0.05,
+                            "base_imr": 0.1,
+                            "imr_factor": 2.51757e-05,
+                            "deviation_factor": 1.75,
+                            "is_pretge": false
+                        }
+                    },
+                    {
+                        "id": "PERP_BTC_USDC",
+                        "lowercaseId": null,
+                        "symbol": "BTC/USDC:USDC",
+                        "base": "BTC",
+                        "quote": "USDC",
+                        "settle": "USDC",
+                        "baseId": "BTC",
+                        "quoteId": "USDC",
+                        "settleId": "USDC",
+                        "type": "swap",
+                        "spot": false,
+                        "margin": false,
+                        "swap": true,
+                        "future": false,
+                        "option": false,
+                        "index": null,
+                        "active": true,
+                        "contract": true,
+                        "linear": true,
+                        "inverse": false,
+                        "subType": null,
+                        "taker": null,
+                        "maker": null,
+                        "contractSize": 1,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 1e-05,
+                            "price": 0.1
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": 1e-05,
+                                "max": 10
+                            },
+                            "price": {
+                                "min": 0,
+                                "max": 200000
+                            },
+                            "cost": {
+                                "min": 10,
+                                "max": null
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": 1693820915671,
+                        "info": {
+                            "symbol": "PERP_BTC_USDC",
+                            "display_symbol_name": "BTC",
+                            "broker_id": null,
+                            "quote_min": 0,
+                            "quote_max": 200000,
+                            "quote_tick": 0.1,
+                            "base_min": 1e-05,
+                            "base_max": 10,
+                            "base_tick": 1e-05,
+                            "min_notional": 10,
+                            "price_range": 0.01,
+                            "price_scope": 0.6,
+                            "std_liquidation_fee": 0.006,
+                            "liquidator_fee": 0.003,
+                            "claim_insurance_fund_discount": 0.003,
+                            "funding_period": 8,
+                            "cap_funding": 0.003,
+                            "floor_funding": -0.003,
+                            "interest_rate": 0.0001,
+                            "created_time": 1693820915671,
+                            "updated_time": 1780033150795,
+                            "liquidation_tier": 1,
+                            "cap_ir": 0.0004,
+                            "floor_ir": -0.0004,
+                            "mark_index_price_deviation_floor": 0.97,
+                            "mark_index_price_deviation_cap": 1.03,
+                            "global_max_oi_cap": 1000000000,
+                            "status": "ACTIVE",
+                            "base_mmr": 0.006,
+                            "base_imr": 0.01,
+                            "imr_factor": 9.1e-08,
+                            "deviation_factor": 10,
+                            "is_pretge": false
+                        }
+                    }
+                ]
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "default",
@@ -1472,14 +2108,282 @@
                         "liquidationPrice": 117335.92899428,
                         "markPrice": 27794.9,
                         "lastPrice": null,
+                        "positionMargin": null,
                         "collateral": null,
                         "marginMode": "cross",
-                        "marginType": null,
                         "side": "short",
                         "percentage": null,
                         "hedged": null,
                         "stopLossPrice": null,
                         "takeProfitPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchLedger": [
+            {
+                "description": "deposit ledger entry from asset history",
+                "method": "fetchLedger",
+                "input": [],
+                "httpResponse": {
+                    "success": true,
+                    "timestamp": 1789221600000,
+                    "data": {
+                        "meta": {
+                            "total": 1,
+                            "records_per_page": 25,
+                            "current_page": 1
+                        },
+                        "rows": [
+                            {
+                                "id": "672517840941546",
+                                "tx_id": "0x40c7d1b86cb4fbe5464f9e4bf12f34c2fe967ea232f61e77cc416d5c98e6ec3c",
+                                "side": "DEPOSIT",
+                                "token": "ETH",
+                                "amount": 0.01,
+                                "fee": 0,
+                                "trans_status": "COMPLETED",
+                                "created_time": 1789221289974,
+                                "updated_time": 1789221576728,
+                                "chain_id": "11155111"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "672517840941546",
+                        "timestamp": 1789221289974,
+                        "datetime": "2026-09-12T13:54:49.974Z",
+                        "direction": "in",
+                        "account": null,
+                        "referenceId": "0x40c7d1b86cb4fbe5464f9e4bf12f34c2fe967ea232f61e77cc416d5c98e6ec3c",
+                        "referenceAccount": null,
+                        "type": "transaction",
+                        "currency": "ETH",
+                        "amount": 0.01,
+                        "before": null,
+                        "after": null,
+                        "status": "ok",
+                        "fee": {
+                            "currency": "ETH",
+                            "cost": 0
+                        },
+                        "info": {
+                            "id": "672517840941546",
+                            "tx_id": "0x40c7d1b86cb4fbe5464f9e4bf12f34c2fe967ea232f61e77cc416d5c98e6ec3c",
+                            "side": "DEPOSIT",
+                            "token": "ETH",
+                            "amount": 0.01,
+                            "fee": 0,
+                            "trans_status": "COMPLETED",
+                            "created_time": 1789221289974,
+                            "updated_time": 1789221576728,
+                            "chain_id": "11155111"
+                        }
+                    }
+                ]
+            },
+            {
+                "description": "failed withdrawal ledger entry",
+                "method": "fetchLedger",
+                "input": [],
+                "httpResponse": {
+                    "success": true,
+                    "timestamp": 1789221600000,
+                    "data": {
+                        "meta": {
+                            "total": 1,
+                            "records_per_page": 25,
+                            "current_page": 1
+                        },
+                        "rows": [
+                            {
+                                "id": "230707030600002",
+                                "tx_id": "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
+                                "side": "WITHDRAW",
+                                "token": "USDC",
+                                "amount": 555,
+                                "fee": 123,
+                                "trans_status": "FAILED",
+                                "created_time": 1688699193034,
+                                "updated_time": 1688699193096,
+                                "chain_id": "986532"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "230707030600002",
+                        "timestamp": 1688699193034,
+                        "datetime": "2023-07-07T03:06:33.034Z",
+                        "direction": "out",
+                        "account": null,
+                        "referenceId": "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
+                        "referenceAccount": null,
+                        "type": "transaction",
+                        "currency": "USDC",
+                        "amount": 555,
+                        "before": null,
+                        "after": null,
+                        "status": "failed",
+                        "fee": {
+                            "currency": "USDC",
+                            "cost": 123
+                        },
+                        "info": {
+                            "id": "230707030600002",
+                            "tx_id": "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
+                            "side": "WITHDRAW",
+                            "token": "USDC",
+                            "amount": 555,
+                            "fee": 123,
+                            "trans_status": "FAILED",
+                            "created_time": 1688699193034,
+                            "updated_time": 1688699193096,
+                            "chain_id": "986532"
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "completed testnet ETH deposit",
+                "method": "fetchDeposits",
+                "input": [],
+                "httpResponse": {
+                    "success": true,
+                    "timestamp": 1789221600000,
+                    "data": {
+                        "meta": {
+                            "total": 1,
+                            "records_per_page": 25,
+                            "current_page": 1
+                        },
+                        "rows": [
+                            {
+                                "id": "672517840941546",
+                                "tx_id": "0x40c7d1b86cb4fbe5464f9e4bf12f34c2fe967ea232f61e77cc416d5c98e6ec3c",
+                                "side": "DEPOSIT",
+                                "token": "ETH",
+                                "amount": 0.01,
+                                "fee": 0,
+                                "trans_status": "COMPLETED",
+                                "created_time": 1789221289974,
+                                "updated_time": 1789221576728,
+                                "chain_id": "11155111"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "672517840941546",
+                            "tx_id": "0x40c7d1b86cb4fbe5464f9e4bf12f34c2fe967ea232f61e77cc416d5c98e6ec3c",
+                            "side": "DEPOSIT",
+                            "token": "ETH",
+                            "amount": 0.01,
+                            "fee": 0,
+                            "trans_status": "COMPLETED",
+                            "created_time": 1789221289974,
+                            "updated_time": 1789221576728,
+                            "chain_id": "11155111"
+                        },
+                        "id": "672517840941546",
+                        "txid": "0x40c7d1b86cb4fbe5464f9e4bf12f34c2fe967ea232f61e77cc416d5c98e6ec3c",
+                        "timestamp": 1789221289974,
+                        "datetime": "2026-09-12T13:54:49.974Z",
+                        "address": null,
+                        "addressFrom": null,
+                        "addressTo": null,
+                        "tag": null,
+                        "tagFrom": null,
+                        "tagTo": null,
+                        "type": "deposit",
+                        "amount": 0.01,
+                        "currency": "ETH",
+                        "status": "ok",
+                        "updated": 1789221576728,
+                        "comment": null,
+                        "internal": null,
+                        "fee": {
+                            "currency": "ETH",
+                            "cost": 0
+                        },
+                        "network": null
+                    }
+                ]
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "failed USDC withdrawal from the documented example",
+                "method": "fetchWithdrawals",
+                "input": [],
+                "httpResponse": {
+                    "success": true,
+                    "timestamp": 1789221600000,
+                    "data": {
+                        "meta": {
+                            "total": 1,
+                            "records_per_page": 25,
+                            "current_page": 1
+                        },
+                        "rows": [
+                            {
+                                "id": "230707030600002",
+                                "tx_id": "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
+                                "side": "WITHDRAW",
+                                "token": "USDC",
+                                "amount": 555,
+                                "fee": 123,
+                                "trans_status": "FAILED",
+                                "created_time": 1688699193034,
+                                "updated_time": 1688699193096,
+                                "chain_id": "986532"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "230707030600002",
+                            "tx_id": "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
+                            "side": "WITHDRAW",
+                            "token": "USDC",
+                            "amount": 555,
+                            "fee": 123,
+                            "trans_status": "FAILED",
+                            "created_time": 1688699193034,
+                            "updated_time": 1688699193096,
+                            "chain_id": "986532"
+                        },
+                        "id": "230707030600002",
+                        "txid": "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
+                        "timestamp": 1688699193034,
+                        "datetime": "2023-07-07T03:06:33.034Z",
+                        "address": null,
+                        "addressFrom": null,
+                        "addressTo": null,
+                        "tag": null,
+                        "tagFrom": null,
+                        "tagTo": null,
+                        "type": "withdrawal",
+                        "amount": 555,
+                        "currency": "USDC",
+                        "status": "failed",
+                        "updated": 1688699193096,
+                        "comment": null,
+                        "internal": null,
+                        "fee": {
+                            "currency": "USDC",
+                            "cost": 123
+                        },
+                        "network": null
                     }
                 ]
             }

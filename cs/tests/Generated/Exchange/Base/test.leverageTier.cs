@@ -9,7 +9,7 @@ public partial class testMainClass : BaseTest
 {
     public static void testLeverageTier(BaseExchange exchange, object skippedProperties, object method, object entry)
     {
-        object format = new Dictionary<string, object>() {
+        Dictionary<string, object> format = new Dictionary<string, object>() {
             { "tier", exchange.parseNumber("1") },
             { "minNotional", exchange.parseNumber("0") },
             { "maxNotional", exchange.parseNumber("5000") },
@@ -17,7 +17,7 @@ public partial class testMainClass : BaseTest
             { "maxLeverage", exchange.parseNumber("25") },
             { "info", new Dictionary<string, object>() {} },
         };
-        object emptyAllowedFor = new List<object>() {"maintenanceMarginRate"};
+        List<object> emptyAllowedFor = new List<object>() {"maintenanceMarginRate"};
         testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         //
         testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, "tier", "0");

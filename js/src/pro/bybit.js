@@ -180,10 +180,11 @@ export default class bybit extends bybitRest {
         return requestId;
     }
     async getUrlByMarketType(symbol = undefined, isPrivate = false, method = undefined, params = {}) {
-        const accessibility = isPrivate ? 'private' : 'public';
-        if (method === undefined) {
-            method = '';
+        let accessibility = 'public';
+        if (isPrivate) {
+            accessibility = 'private';
         }
+        const methodValue = (method === undefined) ? '' : method;
         let isUsdcSettled = undefined;
         let isSpot = undefined;
         let type = undefined;
@@ -192,12 +193,13 @@ export default class bybit extends bybitRest {
         if (symbol !== undefined) {
             market = this.market(symbol);
             isUsdcSettled = market['settle'] === 'USDC';
-            type = market['type'];
+            type = this.safeString(market, 'type');
         }
         else {
-            [type, params] = this.handleMarketTypeAndParams(method, undefined, params);
+            const [marketType, paramsMarketType] = this.handleMarketTypeAndParams(methodValue, undefined, params);
+            type = marketType;
             let defaultSettle = this.safeString(this.options, 'defaultSettle');
-            defaultSettle = this.safeString2(params, 'settle', 'defaultSettle', defaultSettle);
+            defaultSettle = this.safeString2(paramsMarketType, 'settle', 'defaultSettle', defaultSettle);
             isUsdcSettled = (defaultSettle === 'USDC');
         }
         isSpot = (type === 'spot');
@@ -217,8 +219,7 @@ export default class bybit extends bybitRest {
                 url = url[accessibility]['spot'];
             }
             else if ((type === 'swap') || (type === 'future')) {
-                let subType = undefined;
-                [subType, params] = this.handleSubTypeAndParams(method, market, params, 'linear');
+                const subType = this.handleSubTypeAndParams(methodValue, market, params, 'linear')[0];
                 url = url[accessibility][subType];
             }
             else {
@@ -230,8 +231,8 @@ export default class bybit extends bybitRest {
         return url;
     }
     cleanParams(params) {
-        params = this.omit(params, ['type', 'subType', 'settle', 'defaultSettle', 'unifiedMargin']);
-        return params;
+        const paramsOmitted = this.omit(params, ['type', 'subType', 'settle', 'defaultSettle', 'unifiedMargin']);
+        return paramsOmitted;
     }
     /**
      * @method
@@ -252,7 +253,7 @@ export default class bybit extends bybitRest {
      * @param {boolean} [params.isLeverage] *unified spot only* false then spot trading true then margin trading
      * @param {string} [params.tpslMode] *contract only* 'full' or 'partial'
      * @param {string} [params.mmp] *option only* market maker protection
-     * @param {string} [params.triggerDirection] *contract only* the direction for trigger orders, 'above' or 'below'
+     * @param {string} [params.triggerDirection] *contract only* the direction for trigger orders, 'ascending' or 'descending'
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
      * @param {float} [params.stopLossPrice] The price at which a stop loss order is triggered at
      * @param {float} [params.takeProfitPrice] The price at which a take profit order is triggered at
@@ -269,7 +270,7 @@ export default class bybit extends bybitRest {
             await this.loadMarkets();
         }
         const orderRequest = this.createOrderRequest(symbol, type, side, amount, price, params, true);
-        const url = this.urls['api']['ws']['private']['trade'];
+        const url = this.implodeHostname(this.urls['api']['ws']['private']['trade']);
         await this.authenticate(url);
         const requestId = this.requestId().toString();
         const request = {
@@ -315,7 +316,7 @@ export default class bybit extends bybitRest {
             await this.loadMarkets();
         }
         const orderRequest = this.editOrderRequest(id, symbol, type, side, amount, price, params);
-        const url = this.urls['api']['ws']['private']['trade'];
+        const url = this.implodeHostname(this.urls['api']['ws']['private']['trade']);
         await this.authenticate(url);
         const requestId = this.requestId().toString();
         const request = {
@@ -352,7 +353,7 @@ export default class bybit extends bybitRest {
             throw new ArgumentsRequired(this.id + ' cancelOrderWs() requires a symbol argument');
         }
         const orderRequest = this.cancelOrderRequest(id, symbol, params);
-        const url = this.urls['api']['ws']['private']['trade'];
+        const url = this.implodeHostname(this.urls['api']['ws']['private']['trade']);
         await this.authenticate(url);
         const requestId = this.requestId().toString();
         if ('orderFilter' in orderRequest) {
@@ -386,18 +387,18 @@ export default class bybit extends bybitRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
-        const messageHash = 'ticker:' + symbol;
-        const url = await this.getUrlByMarketType(symbol, false, 'watchTicker', params);
-        params = this.cleanParams(params);
-        const options = this.safeValue(this.options, 'watchTicker', {});
+        const symbolValue = market['symbol'];
+        const messageHash = 'ticker:' + symbolValue;
+        const url = await this.getUrlByMarketType(symbolValue, false, 'watchTicker', params);
+        const paramsValue = this.cleanParams(params);
+        const options = this.safeDict(this.options, 'watchTicker', {});
         let topic = this.safeString(options, 'name', 'tickers');
         if ((market['spot'] !== true) && topic !== 'tickers') {
             throw new BadRequest(this.id + ' watchTicker() only supports name tickers for contract markets');
         }
         topic += '.' + market['id'];
         const topics = [topic];
-        return await this.watchTopics(url, [messageHash], topics, params);
+        return await this.watchTopics(url, [messageHash], topics, paramsValue);
     }
     /**
      * @method
@@ -413,26 +414,29 @@ export default class bybit extends bybitRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols, undefined, false);
+        const symbolsValue = this.marketSymbols(symbols, undefined, false);
         const messageHashes = [];
-        const url = await this.getUrlByMarketType(symbols[0], false, 'watchTickers', params);
-        params = this.cleanParams(params);
-        const options = this.safeValue(this.options, 'watchTickers', {});
+        const url = await this.getUrlByMarketType(symbolsValue[0], false, 'watchTickers', params);
+        const paramsValue = this.cleanParams(params);
+        const options = this.safeDict(this.options, 'watchTickers', {});
         const topic = this.safeString(options, 'name', 'tickers');
-        const marketIds = this.marketIds(symbols);
+        const marketIds = this.marketIds(symbolsValue);
         const topics = [];
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             topics.push(topic + '.' + marketId);
-            messageHashes.push('ticker:' + symbols[i]);
+            messageHashes.push('ticker:' + symbolsValue[i]);
         }
-        const ticker = await this.watchTopics(url, messageHashes, topics, params);
+        const ticker = await this.watchTopics(url, messageHashes, topics, paramsValue);
         if (this.newUpdates) {
             const result = {};
-            result[ticker['symbol']] = ticker;
+            const tickerSymbol = this.safeString(ticker, 'symbol');
+            if (tickerSymbol !== undefined) {
+                result[tickerSymbol] = ticker;
+            }
             return result;
         }
-        return this.filterByArray(this.tickers, 'symbol', symbols);
+        return this.filterByArray(this.tickers, 'symbol', symbolsValue);
     }
     /**
      * @method
@@ -448,22 +452,22 @@ export default class bybit extends bybitRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols, undefined, false);
-        const options = this.safeValue(this.options, 'watchTickers', {});
+        const symbolsValue = this.marketSymbols(symbols, undefined, false);
+        const options = this.safeDict(this.options, 'watchTickers', {});
         const topic = this.safeString(options, 'name', 'tickers');
         const messageHashes = [];
         const subMessageHashes = [];
-        const marketIds = this.marketIds(symbols);
+        const marketIds = this.marketIds(symbolsValue);
         const topics = [];
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const symbol = symbols[i];
+            const symbol = symbolsValue[i];
             topics.push(topic + '.' + marketId);
             subMessageHashes.push('ticker:' + symbol);
             messageHashes.push('unsubscribe:ticker:' + symbol);
         }
-        const url = await this.getUrlByMarketType(symbols[0], false, 'watchTickers', params);
-        return await this.unWatchTopics(url, 'ticker', symbols, messageHashes, subMessageHashes, topics, params);
+        const url = await this.getUrlByMarketType(symbolsValue[0], false, 'watchTickers', params);
+        return await this.unWatchTopics(url, 'ticker', symbolsValue, messageHashes, subMessageHashes, topics, params);
     }
     /**
      * @method
@@ -597,19 +601,22 @@ export default class bybit extends bybitRest {
         const updateType = this.safeString(message, 'type', '');
         const data = this.safeDict(message, 'data', {});
         const isSpot = this.safeString(data, 'usdIndexPrice') !== undefined;
-        const type = isSpot ? 'spot' : 'contract';
+        let type = 'contract';
+        if (isSpot) {
+            type = 'spot';
+        }
         let symbol = undefined;
         let parsed = undefined;
         if ((updateType === 'snapshot')) {
             parsed = this.parseTicker(data);
-            symbol = parsed['symbol'];
+            symbol = this.safeString(parsed, 'symbol');
         }
         else if (updateType === 'delta') {
             const topicParts = topic.split('.');
             const topicLength = topicParts.length;
             const marketId = this.safeString(topicParts, topicLength - 1);
             const market = this.safeMarket(marketId, undefined, undefined, type);
-            symbol = market['symbol'];
+            symbol = this.safeString(market, 'symbol');
             // update the info in place
             const ticker = this.safeDict(this.tickers, symbol, {});
             const rawTicker = this.safeDict(ticker, 'info', {});
@@ -639,23 +646,23 @@ export default class bybit extends bybitRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols, undefined, false);
+        const symbolsValue = this.marketSymbols(symbols, undefined, false);
         const messageHashes = [];
-        const url = await this.getUrlByMarketType(symbols[0], false, 'watchBidsAsks', params);
-        params = this.cleanParams(params);
-        const marketIds = this.marketIds(symbols);
+        const url = await this.getUrlByMarketType(symbolsValue[0], false, 'watchBidsAsks', params);
+        const paramsValue = this.cleanParams(params);
+        const marketIds = this.marketIds(symbolsValue);
         const topics = [];
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const topic = 'orderbook.1.' + marketId;
             topics.push(topic);
-            messageHashes.push('bidask:' + symbols[i]);
+            messageHashes.push('bidask:' + symbolsValue[i]);
         }
-        const ticker = await this.watchTopics(url, messageHashes, topics, params);
+        const ticker = await this.watchTopics(url, messageHashes, topics, paramsValue);
         if (this.newUpdates) {
             return ticker;
         }
-        return this.filterByArray(this.bidsasks, 'symbol', symbols);
+        return this.filterByArray(this.bidsasks, 'symbol', symbolsValue);
     }
     parseWsBidAsk(orderbook, market = undefined) {
         const timestamp = this.safeInteger(orderbook, 'timestamp');
@@ -724,10 +731,11 @@ export default class bybit extends bybitRest {
             messageHashes.push('ohlcv::' + symbolString + '::' + unfiedTimeframe);
         }
         const [symbol, timeframe, stored] = await this.watchTopics(url, messageHashes, rawHashes, params);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = stored.getLimit(symbol, limit);
+            limitResolved = stored.getLimit(symbol, limit);
         }
-        const filtered = this.filterBySinceLimit(stored, since, limit, 0, true);
+        const filtered = this.filterBySinceLimit(stored, since, limitResolved, 0, true);
         return this.createOHLCVObject(symbol, timeframe, filtered);
     }
     /**
@@ -815,10 +823,13 @@ export default class bybit extends bybitRest {
         }
         const marketId = this.safeString(topicParts, topicLength - 1);
         const isSpot = client.url.indexOf('spot') > -1;
-        const marketType = isSpot ? 'spot' : 'contract';
+        let marketType = 'contract';
+        if (isSpot) {
+            marketType = 'spot';
+        }
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
-        const ohlcvsByTimeframe = this.safeValue(this.ohlcvs, symbol);
+        const ohlcvsByTimeframe = this.safeDict(this.ohlcvs, symbol);
         if (ohlcvsByTimeframe === undefined) {
             this.ohlcvs[symbol] = {};
         }
@@ -851,8 +862,11 @@ export default class bybit extends bybitRest {
         //         "timestamp": 1670363219614
         //     }
         //
-        const isInverse = (this.safeBool(market, 'inverse') === true);
-        const volumeIndex = isInverse ? 'turnover' : 'volume';
+        const isInverse = this.safeBool(market, 'inverse', false);
+        let volumeIndex = 'volume';
+        if (isInverse) {
+            volumeIndex = 'turnover';
+        }
         return [
             this.safeInteger(ohlcv, 'start'),
             this.safeNumber(ohlcv, 'open'),
@@ -893,17 +907,13 @@ export default class bybit extends bybitRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired(this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
         }
-        symbols = this.marketSymbols(symbols);
-        const url = await this.getUrlByMarketType(symbols[0], false, 'watchOrderBook', params);
-        params = this.cleanParams(params);
-        const market = this.market(symbols[0]);
-        if (limit === undefined) {
-            limit = 50;
-            if (market['option'] === true) {
-                limit = 100;
-            }
-        }
-        else {
+        const symbolsNormalized = this.marketSymbols(symbols);
+        const url = await this.getUrlByMarketType(symbolsNormalized[0], false, 'watchOrderBook', params);
+        const paramsValue = this.cleanParams(params);
+        const market = this.market(symbolsNormalized[0]);
+        const defaultLimit = (market['option'] === true) ? 100 : 50;
+        const limitResolved = (limit === undefined) ? defaultLimit : limit;
+        if (limit !== undefined) {
             const limits = {
                 'spot': [1, 50, 200, 1000],
                 'option': [25, 100],
@@ -916,15 +926,15 @@ export default class bybit extends bybitRest {
         }
         const topics = [];
         const messageHashes = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const marketId = this.marketId(symbol);
-            const topic = 'orderbook.' + limit.toString() + '.' + marketId;
+            const topic = 'orderbook.' + limitResolved.toString() + '.' + marketId;
             topics.push(topic);
             const messageHash = 'orderbook:' + symbol;
             messageHashes.push(messageHash);
         }
-        const orderbook = await this.watchTopics(url, messageHashes, topics, params);
+        const orderbook = await this.watchTopics(url, messageHashes, topics, paramsValue);
         return orderbook.limit();
     }
     /**
@@ -941,22 +951,20 @@ export default class bybit extends bybitRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols, undefined, false);
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
         let channel = 'orderbook.';
         let limit = this.safeInteger(params, 'limit');
-        if (limit !== undefined) {
-            params = this.omit(params, 'limit');
-        }
-        else {
-            const firstMarket = this.market(symbols[0]);
+        const paramsOmitted = (limit !== undefined) ? this.omit(params, 'limit') : params;
+        if (limit === undefined) {
+            const firstMarket = this.market(symbolsNormalized[0]);
             limit = (firstMarket['spot'] === true) ? 50 : 500;
         }
         channel += limit.toString();
         const subMessageHashes = [];
         const messageHashes = [];
         const topics = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market(symbol);
             const marketId = market['id'];
             const topic = channel + '.' + marketId;
@@ -964,8 +972,8 @@ export default class bybit extends bybitRest {
             subMessageHashes.push('orderbook:' + symbol);
             topics.push(topic);
         }
-        const url = await this.getUrlByMarketType(symbols[0], false, 'watchOrderBook', params);
-        return await this.unWatchTopics(url, 'orderbook', symbols, messageHashes, subMessageHashes, topics, params);
+        const url = await this.getUrlByMarketType(symbolsNormalized[0], false, 'watchOrderBook', paramsOmitted);
+        return await this.unWatchTopics(url, 'orderbook', symbolsNormalized, messageHashes, subMessageHashes, topics, paramsOmitted);
     }
     /**
      * @method
@@ -1021,7 +1029,10 @@ export default class bybit extends bybitRest {
         const isSnapshot = (type === 'snapshot');
         const data = this.safeDict(message, 'data', {});
         const marketId = this.safeString(data, 's');
-        const marketType = isSpot ? 'spot' : 'contract';
+        let marketType = 'contract';
+        if (isSpot) {
+            marketType = 'spot';
+        }
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         const timestamp = this.safeInteger(message, 'ts');
@@ -1091,30 +1102,31 @@ export default class bybit extends bybitRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
-        const symbolsLength = symbols.length;
+        const symbolsNormalized = this.marketSymbols(symbols);
+        const symbolsLength = symbolsNormalized.length;
         if (symbolsLength === 0) {
             throw new ArgumentsRequired(this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
         }
-        params = this.cleanParams(params);
-        const url = await this.getUrlByMarketType(symbols[0], false, 'watchTrades', params);
+        const paramsValue = this.cleanParams(params);
+        const url = await this.getUrlByMarketType(symbolsNormalized[0], false, 'watchTrades', paramsValue);
         const topics = [];
         const messageHashes = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market(symbol);
             const topic = 'publicTrade.' + market['id'];
             topics.push(topic);
             const messageHash = 'trade:' + symbol;
             messageHashes.push(messageHash);
         }
-        const trades = await this.watchTopics(url, messageHashes, topics, params);
+        const trades = await this.watchTopics(url, messageHashes, topics, paramsValue);
+        const first = this.safeDict(trades, 0);
+        const tradeSymbol = this.safeString(first, 'symbol');
+        let limitResolved = limit;
         if (this.newUpdates) {
-            const first = this.safeValue(trades, 0);
-            const tradeSymbol = this.safeString(first, 'symbol');
-            limit = trades.getLimit(tradeSymbol, limit);
+            limitResolved = trades.getLimit(tradeSymbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
     }
     /**
      * @method
@@ -1129,13 +1141,13 @@ export default class bybit extends bybitRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols, undefined, false, true);
-        const url = await this.getUrlByMarketType(symbols[0], false, 'unWatchTradesForSymbols', params);
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, false, true);
+        const url = await this.getUrlByMarketType(symbolsNormalized[0], false, 'unWatchTradesForSymbols', params);
         const messageHashes = [];
         const topics = [];
         const subMessageHashes = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market(symbol);
             const topic = 'publicTrade.' + market['id'];
             topics.push(topic);
@@ -1143,7 +1155,7 @@ export default class bybit extends bybitRest {
             messageHashes.push(messageHash);
             subMessageHashes.push('trade:' + symbol);
         }
-        return await this.unWatchTopics(url, 'trades', symbols, messageHashes, subMessageHashes, topics, params);
+        return await this.unWatchTopics(url, 'trades', symbolsNormalized, messageHashes, subMessageHashes, topics, params);
     }
     /**
      * @method
@@ -1182,7 +1194,10 @@ export default class bybit extends bybitRest {
         const trades = data;
         const parts = topic.split('.');
         const isSpot = client.url.indexOf('spot') >= 0;
-        const marketType = (isSpot) ? 'spot' : 'contract';
+        let marketType = 'contract';
+        if (isSpot) {
+            marketType = 'spot';
+        }
         const marketId = this.safeString(parts, 1);
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
@@ -1233,13 +1248,16 @@ export default class bybit extends bybitRest {
         //
         const id = this.safeStringN(trade, ['i', 'T', 'v']);
         const isContract = ('BT' in trade);
-        let marketType = isContract ? 'contract' : 'spot';
+        let marketType = 'spot';
+        if (isContract) {
+            marketType = 'contract';
+        }
         if (market !== undefined) {
-            marketType = market['type'];
+            marketType = this.safeString(market, 'type');
         }
         const marketId = this.safeString(trade, 's');
-        market = this.safeMarket(marketId, market, undefined, marketType);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId, market, undefined, marketType);
+        const symbol = marketResolved['symbol'];
         const timestamp = this.safeInteger2(trade, 't', 'T');
         let side = this.safeStringLower(trade, 'S');
         let takerOrMaker = undefined;
@@ -1268,7 +1286,7 @@ export default class bybit extends bybitRest {
             'amount': amount,
             'cost': undefined,
             'fee': undefined,
-        }, market);
+        }, marketResolved);
     }
     getPrivateType(url) {
         if (url.indexOf('spot') >= 0) {
@@ -1301,28 +1319,28 @@ export default class bybit extends bybitRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
+        const symbolResolved = (symbol !== undefined) ? this.symbol(symbol) : symbol;
         if (symbol !== undefined) {
-            symbol = this.symbol(symbol);
-            messageHash += ':' + symbol;
+            messageHash += ':' + symbolResolved;
         }
-        const url = await this.getUrlByMarketType(symbol, true, method, params);
+        const url = await this.getUrlByMarketType(symbolResolved, true, method, params);
         await this.authenticate(url);
         const topicByMarket = {
             'spot': 'ticketInfo',
             'unified': 'execution',
             'usdc': 'user.openapi.perp.trade',
         };
-        let topic = this.safeValue(topicByMarket, this.getPrivateType(url));
-        let executionFast = false;
-        [executionFast, params] = this.handleOptionAndParams(params, 'watchMyTrades', 'executionFast', false);
+        let topic = this.safeString(topicByMarket, this.getPrivateType(url));
+        const [executionFast, paramsExecutionFast] = this.handleOptionBoolAndParams(params, 'watchMyTrades', 'executionFast', false);
         if (executionFast) {
             topic = 'execution.fast';
         }
-        const trades = await this.watchTopics(url, [messageHash], [topic], params);
+        const trades = await this.watchTopics(url, [messageHash], [topic], paramsExecutionFast);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
+            limitResolved = trades.getLimit(symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true);
     }
     /**
      * @method
@@ -1353,13 +1371,12 @@ export default class bybit extends bybitRest {
             'unified': 'execution',
             'usdc': 'user.openapi.perp.trade',
         };
-        let topic = this.safeValue(topicByMarket, this.getPrivateType(url));
-        let executionFast = false;
-        [executionFast, params] = this.handleOptionAndParams(params, 'watchMyTrades', 'executionFast', false);
+        let topic = this.safeString(topicByMarket, this.getPrivateType(url));
+        const [executionFast, paramsExecutionFast] = this.handleOptionBoolAndParams(params, 'watchMyTrades', 'executionFast', false);
         if (executionFast) {
             topic = 'execution.fast';
         }
-        return await this.unWatchTopics(url, 'myTrades', [], [messageHash], [subHash], [topic], params);
+        return await this.unWatchTopics(url, 'myTrades', [], [messageHash], [subHash], [topic], paramsExecutionFast);
     }
     handleMyTrades(client, message) {
         //
@@ -1449,9 +1466,9 @@ export default class bybit extends bybitRest {
         const topic = this.safeString(message, 'topic', '');
         const spot = topic === 'ticketInfo';
         const executionFast = topic === 'execution.fast';
-        let data = this.safeValue(message, 'data', []);
+        let data = this.safeList(message, 'data', []);
         if (!Array.isArray(data)) {
-            data = this.safeValue(data, 'result', []);
+            data = this.safeList(data, 'result', []);
         }
         if (this.myTrades === undefined) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
@@ -1526,29 +1543,32 @@ export default class bybit extends bybitRest {
         }
         const method = 'watchPositions';
         let messageHash = '';
+        let symbolsNormalized = symbols;
         if ((symbols !== undefined) && !this.isEmpty(symbols)) {
-            symbols = this.marketSymbols(symbols);
-            messageHash = '::' + symbols.join(',');
+            symbolsNormalized = this.marketSymbols(symbols);
         }
-        const firstSymbol = this.safeString(symbols, 0);
+        if ((symbolsNormalized !== undefined) && !this.isEmpty(symbolsNormalized)) {
+            messageHash = '::' + symbolsNormalized.join(',');
+        }
+        const firstSymbol = this.safeString(symbolsNormalized, 0);
         const url = await this.getUrlByMarketType(firstSymbol, true, method, params);
         messageHash = 'positions' + messageHash;
         const client = this.client(url);
         await this.authenticate(url);
-        this.setPositionsCache(client, symbols);
+        this.setPositionsCache(client, symbolsNormalized);
         const cache = this.positions;
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionsSnapshot = this.handleOption('watchPositions', 'awaitPositionsSnapshot', true);
         if ((fetchPositionsSnapshot === true) && (awaitPositionsSnapshot === true) && (cache === undefined)) {
             const snapshot = await client.future('fetchPositionsSnapshot');
-            return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
+            return this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true);
         }
         const topics = ['position'];
         const newPositions = await this.watchTopics(url, [messageHash], topics, params);
         if (this.newUpdates) {
             return newPositions;
         }
-        return this.filterBySymbolsSinceLimit(cache, symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit(cache, symbolsNormalized, since, limit, true);
     }
     setPositionsCache(client, symbols = undefined) {
         if (this.positions !== undefined) {
@@ -1634,7 +1654,7 @@ export default class bybit extends bybitRest {
         }
         const cache = this.positions;
         const newPositions = [];
-        const rawPositions = this.safeValue(message, 'data', []);
+        const rawPositions = this.safeList(message, 'data', []);
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
             const position = this.parsePosition(rawPosition);
@@ -1710,18 +1730,16 @@ export default class bybit extends bybitRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
-        const url = await this.getUrlByMarketType(symbol, false, 'watchLiquidations', params);
-        params = this.cleanParams(params);
-        let method = undefined;
-        [method, params] = this.handleOptionAndParams(params, 'watchLiquidations', 'method', 'allLiquidation');
-        const messageHash = 'liquidations::' + symbol;
+        const symbolValue = market['symbol'];
+        const url = await this.getUrlByMarketType(symbolValue, false, 'watchLiquidations', params);
+        const [method, paramsMethod] = this.handleOptionStringAndParams(this.cleanParams(params), 'watchLiquidations', 'method', 'allLiquidation');
+        const messageHash = 'liquidations::' + symbolValue;
         const topic = method + '.' + market['id'];
-        const newLiquidation = await this.watchTopics(url, [messageHash], [topic], params);
+        const newLiquidation = await this.watchTopics(url, [messageHash], [topic], paramsMethod);
         if (this.newUpdates) {
             return newLiquidation;
         }
-        return this.filterBySymbolsSinceLimit(this.liquidations, [symbol], since, limit, true);
+        return this.filterBySymbolsSinceLimit(this.liquidations, [symbolValue], since, limit, true);
     }
     handleLiquidation(client, message) {
         //
@@ -1756,7 +1774,7 @@ export default class bybit extends bybitRest {
         if (Array.isArray(message['data'])) {
             const rawLiquidations = this.safeList(message, 'data', []);
             for (let i = 0; i < rawLiquidations.length; i++) {
-                const rawLiquidation = rawLiquidations[i];
+                const rawLiquidation = this.safeDict(rawLiquidations, i);
                 const marketId = this.safeString(rawLiquidation, 's');
                 const market = this.safeMarket(marketId, undefined, '', 'contract');
                 const symbol = market['symbol'];
@@ -1806,15 +1824,15 @@ export default class bybit extends bybitRest {
         //     }
         //
         const marketId = this.safeString2(liquidation, 'symbol', 's');
-        market = this.safeMarket(marketId, market, '', 'contract');
+        const marketResolved = this.safeMarket(marketId, market, '', 'contract');
         const timestamp = this.safeInteger2(liquidation, 'updatedTime', 'T');
         return this.safeLiquidation({
             'info': liquidation,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'contracts': this.safeNumber2(liquidation, 'size', 'v'),
-            'contractSize': this.safeNumber(market, 'contractSize'),
+            'contractSize': this.safeNumber(marketResolved, 'contractSize'),
             'price': this.safeNumber2(liquidation, 'price', 'p'),
-            'side': this.safeStringLower(liquidation, 'side', 'S'),
+            'side': this.safeStringLower2(liquidation, 'side', 'S'),
             'baseValue': undefined,
             'quoteValue': undefined,
             'timestamp': timestamp,
@@ -1838,23 +1856,24 @@ export default class bybit extends bybitRest {
         }
         const method = 'watchOrders';
         let messageHash = 'orders';
+        const symbolResolved = (symbol !== undefined) ? this.symbol(symbol) : symbol;
         if (symbol !== undefined) {
-            symbol = this.symbol(symbol);
-            messageHash += ':' + symbol;
+            messageHash += ':' + symbolResolved;
         }
-        const url = await this.getUrlByMarketType(symbol, true, method, params);
+        const url = await this.getUrlByMarketType(symbolResolved, true, method, params);
         await this.authenticate(url);
         const topicsByMarket = {
             'spot': ['order', 'stopOrder'],
             'unified': ['order'],
             'usdc': ['user.openapi.perp.order'],
         };
-        const topics = this.safeValue(topicsByMarket, this.getPrivateType(url));
+        const topics = this.safeList(topicsByMarket, this.getPrivateType(url));
         const orders = await this.watchTopics(url, [messageHash], topics, params);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit(symbol, limit);
+            limitResolved = orders.getLimit(symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
     }
     /**
      * @method
@@ -1883,7 +1902,7 @@ export default class bybit extends bybitRest {
             'unified': ['order'],
             'usdc': ['user.openapi.perp.order'],
         };
-        const topics = this.safeValue(topicsByMarket, this.getPrivateType(url));
+        const topics = this.safeList(topicsByMarket, this.getPrivateType(url));
         return await this.unWatchTopics(url, 'orders', [], [messageHash], [subHash], topics, params);
     }
     handleOrderWs(client, message) {
@@ -2001,8 +2020,8 @@ export default class bybit extends bybitRest {
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         const orders = this.orders;
-        let rawOrders = this.safeValue(message, 'data', []);
-        const first = this.safeValue(rawOrders, 0, {});
+        let rawOrders = this.safeList(message, 'data', []);
+        const first = this.safeDict(rawOrders, 0, {});
         const category = this.safeString(first, 'category');
         const isSpot = category === 'spot';
         if (!isSpot) {
@@ -2045,14 +2064,12 @@ export default class bybit extends bybitRest {
         }
         const method = 'watchBalance';
         let messageHash = 'balances';
-        let type = undefined;
-        [type, params] = this.handleMarketTypeAndParams('watchBalance', undefined, params);
-        let subType = undefined;
-        [subType, params] = this.handleSubTypeAndParams('watchBalance', undefined, params);
+        const [type, paramsMarketType] = this.handleMarketTypeAndParams('watchBalance', undefined, params);
+        const [subType, paramsSubType] = this.handleSubTypeAndParams('watchBalance', undefined, paramsMarketType);
         const unified = await this.isUnifiedEnabled();
         const isUnifiedMargin = this.safeBool(unified, 0, false);
         const isUnifiedAccount = this.safeBool(unified, 1, false);
-        const url = await this.getUrlByMarketType(undefined, true, method, params);
+        const url = await this.getUrlByMarketType(undefined, true, method, paramsSubType);
         await this.authenticate(url);
         const topicByMarket = {
             'spot': 'outboundAccountInfo',
@@ -2090,8 +2107,8 @@ export default class bybit extends bybitRest {
                 }
             }
         }
-        const topics = [this.safeValue(topicByMarket, this.getPrivateType(url))];
-        return await this.watchTopics(url, [messageHash], topics, params);
+        const topics = [this.safeString(topicByMarket, this.getPrivateType(url))];
+        return await this.watchTopics(url, [messageHash], topics, paramsSubType);
     }
     handleBalance(client, message) {
         //
@@ -2240,15 +2257,15 @@ export default class bybit extends bybitRest {
             this.balance = {};
         }
         let messageHash = 'balance';
-        const topic = this.safeValue(message, 'topic');
+        const topic = this.safeString(message, 'topic');
         let info = undefined;
         let rawBalances = [];
         let account = undefined;
         if (topic === 'outboundAccountInfo') {
             account = 'spot';
-            const data = this.safeValue(message, 'data', []);
+            const data = this.safeList(message, 'data', []);
             for (let i = 0; i < data.length; i++) {
-                const B = this.safeValue(data[i], 'B', []);
+                const B = this.safeList(data[i], 'B', []);
                 rawBalances = this.arrayConcat(rawBalances, B);
             }
             info = rawBalances;
@@ -2256,9 +2273,9 @@ export default class bybit extends bybitRest {
         if (topic === 'wallet') {
             const data = this.safeValue(message, 'data', {});
             for (let i = 0; i < data.length; i++) {
-                const result = this.safeValue(data, 0, {});
+                const result = this.safeDict(data, 0, {});
                 account = this.safeStringLower(result, 'accountType');
-                rawBalances = this.arrayConcat(rawBalances, this.safeValue(result, 'coin', []));
+                rawBalances = this.arrayConcat(rawBalances, this.safeList(result, 'coin', []));
             }
             info = data;
         }
@@ -2266,7 +2283,7 @@ export default class bybit extends bybitRest {
             this.parseWsBalance(rawBalances[i], account);
         }
         if (account !== undefined) {
-            if (this.safeValue(this.balance, account) === undefined) {
+            if (this.safeDict(this.balance, account) === undefined) {
                 this.balance[account] = {};
             }
             this.balance[account]['info'] = info;
@@ -2334,7 +2351,7 @@ export default class bybit extends bybitRest {
         // is the consistent total, the spot rows fall back to the wallet balance
         account['total'] = this.safeString2(balance, 'equity', 'walletBalance');
         if (accountType !== undefined) {
-            if (this.safeValue(this.balance, accountType) === undefined) {
+            if (this.safeDict(this.balance, accountType) === undefined) {
                 this.balance[accountType] = {};
             }
             if ((accountType !== undefined) && (code !== undefined)) {
@@ -2348,13 +2365,56 @@ export default class bybit extends bybitRest {
         }
     }
     async watchTopics(url, messageHashes, topics, params = {}) {
-        const request = {
-            'op': 'subscribe',
-            'req_id': this.requestId(),
-            'args': topics,
-        };
-        const message = this.extend(request, params);
-        return await this.watchMultiple(url, messageHashes, message, messageHashes);
+        const client = this.client(url);
+        const newTopics = [];
+        const topicsLength = topics.length;
+        const messageHashesLength = messageHashes.length;
+        if (topicsLength === messageHashesLength) {
+            for (let i = 0; i < topicsLength; i++) {
+                const messageHash = messageHashes[i];
+                if (!(messageHash in client.subscriptions)) {
+                    newTopics.push(topics[i]);
+                }
+            }
+        }
+        else {
+            // watchOrders spot: two topics, one hash. Collect topics already
+            // recorded on any subscription so a later call with a new hash
+            // does not resend already-subscribed topics.
+            const subscribedTopics = {};
+            const subscriptionHashes = Object.keys(client.subscriptions);
+            for (let i = 0; i < subscriptionHashes.length; i++) {
+                const existing = this.safeDict(client.subscriptions, subscriptionHashes[i], {});
+                const recordedTopics = this.safeList(existing, 'topics', []);
+                const recordedLength = recordedTopics.length;
+                for (let j = 0; j < recordedLength; j++) {
+                    subscribedTopics[recordedTopics[j]] = true;
+                }
+            }
+            for (let i = 0; i < topicsLength; i++) {
+                const topic = topics[i];
+                if (!(topic in subscribedTopics)) {
+                    newTopics.push(topic);
+                }
+            }
+        }
+        let message = undefined;
+        let subscription = undefined;
+        const newTopicsLength = newTopics.length;
+        if (newTopicsLength > 0) {
+            const reqId = this.requestId();
+            const request = {
+                'op': 'subscribe',
+                'req_id': reqId,
+                'args': newTopics,
+            };
+            message = this.extend(request, params);
+            subscription = {
+                'id': reqId,
+                'topics': newTopics,
+            };
+        }
+        return await this.watchMultiple(url, messageHashes, message, messageHashes, subscription);
     }
     async unWatchTopics(url, topic, symbols, messageHashes, subMessageHashes, topics, params = {}, subExtension = {}) {
         const reqId = this.requestId();
@@ -2449,10 +2509,10 @@ export default class bybit extends bybitRest {
                 this.throwBroadlyMatchedException(this.exceptions['broad'], msg, feedback);
                 throw new ExchangeError(feedback);
             }
-            const success = this.safeValue(message, 'success');
+            const success = this.safeBool(message, 'success');
             if ((success !== undefined) && (success !== true)) {
                 const ret_msg = this.safeString(message, 'ret_msg');
-                const request = this.safeValue(message, 'request', {});
+                const request = this.safeDict(message, 'request', {});
                 const op = this.safeString(request, 'op');
                 if (op === 'auth') {
                     throw new AuthenticationError('Authentication failed: ' + ret_msg);
@@ -2464,30 +2524,49 @@ export default class bybit extends bybitRest {
             return false;
         }
         catch (error) {
-            const messageHash = this.safeString2(message, 'req_id', 'reqId');
-            if (messageHash !== undefined) {
-                client.reject(error, messageHash);
-            }
-            else if (error instanceof AuthenticationError) {
-                const authenticatedHash = 'authenticated';
-                client.reject(error, authenticatedHash);
-                if (authenticatedHash in client.subscriptions) {
-                    delete client.subscriptions[authenticatedHash];
-                }
-                const op = this.safeString(message, 'op');
-                if ((op !== undefined) && (op !== 'auth')) {
-                    // an operation response that carries no reqId, e.g. bybit
-                    // omits it on some permission rejections of trade ops,
-                    // would leave the awaiting future pending forever, and
-                    // since nothing on this client can proceed without
-                    // authentication, reject everything pending, mirroring the
-                    // behavior of unattributable non auth errors, see
-                    // https://github.com/ccxt/ccxt/issues/29361
-                    client.reject(error);
+            const reqId = this.safeString2(message, 'req_id', 'reqId');
+            let foundSubscription = false;
+            if (reqId !== undefined) {
+                const keys = Object.keys(client.subscriptions);
+                for (let i = 0; i < keys.length; i++) {
+                    const messageHash = keys[i];
+                    if (!(messageHash in client.subscriptions)) {
+                        continue;
+                    }
+                    const subscription = this.safeDict(client.subscriptions, messageHash);
+                    const subId = this.safeString(subscription, 'id');
+                    if (reqId === subId) {
+                        foundSubscription = true;
+                        delete client.subscriptions[messageHash];
+                        client.reject(error, messageHash);
+                    }
                 }
             }
-            else {
-                client.reject(error, messageHash);
+            if (!foundSubscription) {
+                if (reqId !== undefined) {
+                    client.reject(error, reqId);
+                }
+                else if (error instanceof AuthenticationError) {
+                    const authenticatedHash = 'authenticated';
+                    client.reject(error, authenticatedHash);
+                    if (authenticatedHash in client.subscriptions) {
+                        delete client.subscriptions[authenticatedHash];
+                    }
+                    const op = this.safeString(message, 'op');
+                    if ((op !== undefined) && (op !== 'auth')) {
+                        // an operation response that carries no reqId, e.g. bybit
+                        // omits it on some permission rejections of trade ops,
+                        // would leave the awaiting future pending forever, and
+                        // since nothing on this client can proceed without
+                        // authentication, reject everything pending, mirroring the
+                        // behavior of unattributable non auth errors, see
+                        // https://github.com/ccxt/ccxt/issues/29361
+                        client.reject(error);
+                    }
+                }
+                else {
+                    client.reject(error, reqId);
+                }
             }
             return true;
         }
@@ -2619,7 +2698,7 @@ export default class bybit extends bybitRest {
         //        "conn_id": "d266o6hqo29sqmnq4vk0-1yus1"
         //    }
         //
-        const success = this.safeValue(message, 'success');
+        const success = this.safeBool(message, 'success');
         const code = this.safeInteger(message, 'retCode');
         const messageHash = 'authenticated';
         if ((success === true) || (code === 0)) {
@@ -2683,7 +2762,7 @@ export default class bybit extends bybitRest {
                 const subMessageHashes = this.safeList(subscription, 'subMessageHashes', []);
                 for (let j = 0; j < messageHashes.length; j++) {
                     const unsubHash = messageHashes[j];
-                    const subHash = subMessageHashes[j];
+                    const subHash = this.safeString(subMessageHashes, j);
                     const usePrefix = (subHash === 'orders') || (subHash === 'myTrades') || (subHash === 'positions');
                     this.cleanUnsubscription(client, subHash, unsubHash, usePrefix);
                 }

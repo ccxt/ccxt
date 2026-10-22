@@ -326,6 +326,13 @@ public partial class hashkey : Exchange
         return await this.callAsync<List<object>> ("privateGetApiV1AccountWithdrawOrders",parameters);
     }
 
+    /// <summary>Calls the privateGetApiV1AffiliateInviteeInfo endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetApiV1AffiliateInviteeInfo (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateGetApiV1AffiliateInviteeInfo",parameters);
+    }
+
     /// <summary>Calls the privatePostApiV1UserDataStream endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privatePostApiV1UserDataStream (object parameters = null)
@@ -452,6 +459,13 @@ public partial class hashkey : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateDeleteApiV1SpotCancelOrderByIds",parameters);
     }
 
+    /// <summary>Calls the privateDeleteApiV1SpotCancelAllOpenOrders endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateDeleteApiV1SpotCancelAllOpenOrders (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateDeleteApiV1SpotCancelAllOpenOrders",parameters);
+    }
+
     /// <summary>Calls the privateDeleteApiV1FuturesOrder endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateDeleteApiV1FuturesOrder (object parameters = null)
@@ -471,6 +485,13 @@ public partial class hashkey : Exchange
     public async Task<Dictionary<string, object>> privateDeleteApiV1FuturesCancelOrderByIds (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privateDeleteApiV1FuturesCancelOrderByIds",parameters);
+    }
+
+    /// <summary>Calls the privateDeleteApiV1FuturesCancelAllOpenOrders endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateDeleteApiV1FuturesCancelAllOpenOrders (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateDeleteApiV1FuturesCancelAllOpenOrders",parameters);
     }
 
     /// <summary>Calls the privateDeleteApiV1UserDataStream endpoint.</summary>

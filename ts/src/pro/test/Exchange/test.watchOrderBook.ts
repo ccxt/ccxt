@@ -65,6 +65,4 @@ async function testWatchOrderBook (exchange: Exchange, skippedProperties: object
 //     return [ result , skippedProperties ];
 // }
 
-
-
 export default testWatchOrderBook;

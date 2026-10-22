@@ -1,6 +1,6 @@
 import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
-interface Exchange {
+declare abstract class Exchange extends _Exchange {
     commonGetApiV1Time(params?: {}): Promise<Dict>;
     commonGetApiV1Ping(params?: {}): Promise<Dict>;
     commonGetApiV1ExchangeInfo(params?: {}): Promise<Dict>;
@@ -8,9 +8,9 @@ interface Exchange {
     commonGetQuoteV1DepthMerged(params?: {}): Promise<Dict>;
     commonGetQuoteV1Trades(params?: {}): Promise<List>;
     commonGetQuoteV1Klines(params?: {}): Promise<List>;
-    commonGetQuoteV1IndexKlines(params?: {}): Promise<List>;
+    commonGetQuoteV1IndexKlines(params?: {}): Promise<Dict>;
     commonGetQuoteV1IndexPriceComponents(params?: {}): Promise<Dict>;
-    commonGetQuoteV1MarkPriceKlines(params?: {}): Promise<List>;
+    commonGetQuoteV1MarkPriceKlines(params?: {}): Promise<Dict>;
     commonGetQuoteV1MarkPrice(params?: {}): Promise<Dict>;
     commonGetQuoteV1Index(params?: {}): Promise<Dict>;
     commonGetQuoteV1Ticker24hr(params?: {}): Promise<List>;
@@ -60,6 +60,15 @@ interface Exchange {
     privateGetApiV1AgentUserExport(params?: {}): Promise<Dict>;
     privateGetApiV1AgentExportList(params?: {}): Promise<Dict>;
     privateGetApiV1AgentExportUrl(params?: {}): Promise<Dict>;
+    privateGetApiV2AccountBalanceFlow(params?: {}): Promise<List>;
+    privateGetApiV2FuturesOrder(params?: {}): Promise<Dict>;
+    privateGetApiV2FuturesOpenOrders(params?: {}): Promise<List>;
+    privateGetApiV2FuturesHistoryOrders(params?: {}): Promise<List>;
+    privateGetApiV2FuturesUserTrades(params?: {}): Promise<List>;
+    privateGetApiV2FuturesAlgoOrder(params?: {}): Promise<Dict>;
+    privateGetApiV2FuturesOpenAlgoOrders(params?: {}): Promise<List>;
+    privateGetApiV2FuturesHistoryAlgoOrders(params?: {}): Promise<List>;
+    privateGetApiV2FuturesVoucherList(params?: {}): Promise<Dict>;
     privatePostApiV1SpotOrderTest(params?: {}): Promise<Dict>;
     privatePostApiV1SpotOrder(params?: {}): Promise<Dict>;
     privatePostApiV1FuturesOrder(params?: {}): Promise<Dict>;
@@ -88,7 +97,5 @@ interface Exchange {
     privateDeleteApiV1ListenKey(params?: {}): Promise<Dict>;
     privatePutApiV1UserDataStream(params?: {}): Promise<Dict>;
     privatePutApiV1ListenKey(params?: {}): Promise<Dict>;
-}
-declare abstract class Exchange extends _Exchange {
 }
 export default Exchange;

@@ -7,5 +7,194 @@
 // -------------------------------------------------------------------------------
 import { Exchange as _Exchange } from '../base/Exchange.js';
 class Exchange extends _Exchange {
+    zendeskGet201893608(params = {}) {
+        return this.request('201893608', ['zendesk'], 'GET', params, { 'cost': 1 });
+    }
+    zendeskGet360000292886(params = {}) {
+        return this.request('360000292886', ['zendesk'], 'GET', params, { 'cost': 1 });
+    }
+    publicGetTime(params = {}) {
+        return this.request('Time', ['public'], 'GET', params, { 'cost': 1 });
+    }
+    publicGetSystemStatus(params = {}) {
+        return this.request('SystemStatus', ['public'], 'GET', params, { 'cost': 1 });
+    }
+    publicGetMaintenanceSchedule(params = {}) {
+        return this.request('MaintenanceSchedule', ['public'], 'GET', params, { 'cost': 1 });
+    }
+    publicGetAssets(params = {}) {
+        return this.request('Assets', ['public'], 'GET', params, { 'cost': 1 });
+    }
+    publicGetAssetPairs(params = {}) {
+        return this.request('AssetPairs', ['public'], 'GET', params, { 'cost': 1 });
+    }
+    publicGetTicker(params = {}) {
+        return this.request('Ticker', ['public'], 'GET', params, { 'cost': 1 });
+    }
+    publicGetOHLC(params = {}) {
+        return this.request('OHLC', ['public'], 'GET', params, { 'cost': 1.2 });
+    }
+    publicGetDepth(params = {}) {
+        return this.request('Depth', ['public'], 'GET', params, { 'cost': 1.2 });
+    }
+    publicGetGroupedBook(params = {}) {
+        return this.request('GroupedBook', ['public'], 'GET', params, { 'cost': 1.2 });
+    }
+    publicGetTrades(params = {}) {
+        return this.request('Trades', ['public'], 'GET', params, { 'cost': 1.2 });
+    }
+    publicGetSpread(params = {}) {
+        return this.request('Spread', ['public'], 'GET', params, { 'cost': 1 });
+    }
+    publicGetPreTrade(params = {}) {
+        return this.request('PreTrade', ['public'], 'GET', params, { 'cost': 1 });
+    }
+    publicGetPostTrade(params = {}) {
+        return this.request('PostTrade', ['public'], 'GET', params, { 'cost': 1 });
+    }
+    privatePostLevel3(params = {}) {
+        return this.request('Level3', ['private'], 'POST', params, { 'cost': 1.2 });
+    }
+    privatePostBalance(params = {}) {
+        return this.request('Balance', ['private'], 'POST', params, { 'cost': 3 });
+    }
+    privatePostBalanceEx(params = {}) {
+        return this.request('BalanceEx', ['private'], 'POST', params, { 'cost': 3 });
+    }
+    privatePostCreditLines(params = {}) {
+        return this.request('CreditLines', ['private'], 'POST', params, { 'cost': 3 });
+    }
+    privatePostTradeBalance(params = {}) {
+        return this.request('TradeBalance', ['private'], 'POST', params, { 'cost': 3 });
+    }
+    privatePostOpenOrders(params = {}) {
+        return this.request('OpenOrders', ['private'], 'POST', params, { 'cost': 3 });
+    }
+    privatePostClosedOrders(params = {}) {
+        return this.request('ClosedOrders', ['private'], 'POST', params, { 'cost': 3 });
+    }
+    privatePostQueryOrders(params = {}) {
+        return this.request('QueryOrders', ['private'], 'POST', params, { 'cost': 3 });
+    }
+    privatePostOrderAmends(params = {}) {
+        return this.request('OrderAmends', ['private'], 'POST', params, { 'cost': 3 });
+    }
+    privatePostTradesHistory(params = {}) {
+        return this.request('TradesHistory', ['private'], 'POST', params, { 'cost': 6 });
+    }
+    privatePostQueryTrades(params = {}) {
+        return this.request('QueryTrades', ['private'], 'POST', params, { 'cost': 3 });
+    }
+    privatePostOpenPositions(params = {}) {
+        return this.request('OpenPositions', ['private'], 'POST', params, { 'cost': 3 });
+    }
+    privatePostLedgers(params = {}) {
+        return this.request('Ledgers', ['private'], 'POST', params, { 'cost': 6 });
+    }
+    privatePostQueryLedgers(params = {}) {
+        return this.request('QueryLedgers', ['private'], 'POST', params, { 'cost': 3 });
+    }
+    privatePostTradeVolume(params = {}) {
+        return this.request('TradeVolume', ['private'], 'POST', params, { 'cost': 3 });
+    }
+    privatePostAddExport(params = {}) {
+        return this.request('AddExport', ['private'], 'POST', params, { 'cost': 3 });
+    }
+    privatePostExportStatus(params = {}) {
+        return this.request('ExportStatus', ['private'], 'POST', params, { 'cost': 3 });
+    }
+    privatePostRetrieveExport(params = {}) {
+        return this.request('RetrieveExport', ['private'], 'POST', params, { 'cost': 3 });
+    }
+    privatePostRemoveExport(params = {}) {
+        return this.request('RemoveExport', ['private'], 'POST', params, { 'cost': 3 });
+    }
+    privatePostGetApiKeyInfo(params = {}) {
+        return this.request('GetApiKeyInfo', ['private'], 'POST', params, { 'cost': 3 });
+    }
+    privatePostListWalletAccounts(params = {}) {
+        return this.request('ListWalletAccounts', ['private'], 'POST', params, { 'cost': 3 });
+    }
+    privatePostAddOrder(params = {}) {
+        return this.request('AddOrder', ['private'], 'POST', params, { 'cost': 0 });
+    }
+    privatePostAmendOrder(params = {}) {
+        return this.request('AmendOrder', ['private'], 'POST', params, { 'cost': 0 });
+    }
+    privatePostCancelOrder(params = {}) {
+        return this.request('CancelOrder', ['private'], 'POST', params, { 'cost': 0 });
+    }
+    privatePostCancelAll(params = {}) {
+        return this.request('CancelAll', ['private'], 'POST', params, { 'cost': 3 });
+    }
+    privatePostCancelAllOrdersAfter(params = {}) {
+        return this.request('CancelAllOrdersAfter', ['private'], 'POST', params, { 'cost': 3 });
+    }
+    privatePostGetWebSocketsToken(params = {}) {
+        return this.request('GetWebSocketsToken', ['private'], 'POST', params, { 'cost': 3 });
+    }
+    privatePostAddOrderBatch(params = {}) {
+        return this.request('AddOrderBatch', ['private'], 'POST', params, { 'cost': 0 });
+    }
+    privatePostCancelOrderBatch(params = {}) {
+        return this.request('CancelOrderBatch', ['private'], 'POST', params, { 'cost': 0 });
+    }
+    privatePostEditOrder(params = {}) {
+        return this.request('EditOrder', ['private'], 'POST', params, { 'cost': 0 });
+    }
+    privatePostDepositMethods(params = {}) {
+        return this.request('DepositMethods', ['private'], 'POST', params, { 'cost': 3 });
+    }
+    privatePostDepositAddresses(params = {}) {
+        return this.request('DepositAddresses', ['private'], 'POST', params, { 'cost': 3 });
+    }
+    privatePostDepositStatus(params = {}) {
+        return this.request('DepositStatus', ['private'], 'POST', params, { 'cost': 3 });
+    }
+    privatePostWithdrawMethods(params = {}) {
+        return this.request('WithdrawMethods', ['private'], 'POST', params, { 'cost': 3 });
+    }
+    privatePostWithdrawAddresses(params = {}) {
+        return this.request('WithdrawAddresses', ['private'], 'POST', params, { 'cost': 3 });
+    }
+    privatePostWithdrawInfo(params = {}) {
+        return this.request('WithdrawInfo', ['private'], 'POST', params, { 'cost': 3 });
+    }
+    privatePostWithdraw(params = {}) {
+        return this.request('Withdraw', ['private'], 'POST', params, { 'cost': 3 });
+    }
+    privatePostWithdrawStatus(params = {}) {
+        return this.request('WithdrawStatus', ['private'], 'POST', params, { 'cost': 3 });
+    }
+    privatePostWithdrawCancel(params = {}) {
+        return this.request('WithdrawCancel', ['private'], 'POST', params, { 'cost': 3 });
+    }
+    privatePostWalletTransfer(params = {}) {
+        return this.request('WalletTransfer', ['private'], 'POST', params, { 'cost': 3 });
+    }
+    privatePostCreateSubaccount(params = {}) {
+        return this.request('CreateSubaccount', ['private'], 'POST', params, { 'cost': 3 });
+    }
+    privatePostAccountTransfer(params = {}) {
+        return this.request('AccountTransfer', ['private'], 'POST', params, { 'cost': 3 });
+    }
+    privatePostEarnAllocate(params = {}) {
+        return this.request('Earn/Allocate', ['private'], 'POST', params, { 'cost': 3 });
+    }
+    privatePostEarnDeallocate(params = {}) {
+        return this.request('Earn/Deallocate', ['private'], 'POST', params, { 'cost': 3 });
+    }
+    privatePostEarnAllocateStatus(params = {}) {
+        return this.request('Earn/AllocateStatus', ['private'], 'POST', params, { 'cost': 3 });
+    }
+    privatePostEarnDeallocateStatus(params = {}) {
+        return this.request('Earn/DeallocateStatus', ['private'], 'POST', params, { 'cost': 3 });
+    }
+    privatePostEarnStrategies(params = {}) {
+        return this.request('Earn/Strategies', ['private'], 'POST', params, { 'cost': 3 });
+    }
+    privatePostEarnAllocations(params = {}) {
+        return this.request('Earn/Allocations', ['private'], 'POST', params, { 'cost': 3 });
+    }
 }
 export default Exchange;

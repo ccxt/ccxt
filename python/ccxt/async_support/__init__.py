@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.75'
+__version__ = '4.5.89'
 
 # -----------------------------------------------------------------------------
 
@@ -82,7 +82,6 @@ from ccxt.async_support.bitfinex import bitfinex                                
 from ccxt.async_support.bitflyer import bitflyer                                # noqa: F401
 from ccxt.async_support.bitget import bitget                                    # noqa: F401
 from ccxt.async_support.bithumb import bithumb                                  # noqa: F401
-from ccxt.async_support.bitmex import bitmex                                    # noqa: F401
 from ccxt.async_support.bitopro import bitopro                                  # noqa: F401
 from ccxt.async_support.bitrue import bitrue                                    # noqa: F401
 from ccxt.async_support.bitso import bitso                                      # noqa: F401
@@ -99,13 +98,13 @@ from ccxt.async_support.btse import btse                                        
 from ccxt.async_support.bullish import bullish                                  # noqa: F401
 from ccxt.async_support.bybit import bybit                                      # noqa: F401
 from ccxt.async_support.bybiteu import bybiteu                                  # noqa: F401
+from ccxt.async_support.bybitid import bybitid                                  # noqa: F401
 from ccxt.async_support.bydfi import bydfi                                      # noqa: F401
 from ccxt.async_support.cex import cex                                          # noqa: F401
 from ccxt.async_support.coinbase import coinbase                                # noqa: F401
 from ccxt.async_support.coinbaseexchange import coinbaseexchange                # noqa: F401
 from ccxt.async_support.coinbaseinternational import coinbaseinternational      # noqa: F401
 from ccxt.async_support.coincheck import coincheck                              # noqa: F401
-from ccxt.async_support.coinex import coinex                                    # noqa: F401
 from ccxt.async_support.coinmate import coinmate                                # noqa: F401
 from ccxt.async_support.coinone import coinone                                  # noqa: F401
 from ccxt.async_support.coinsph import coinsph                                  # noqa: F401
@@ -157,6 +156,8 @@ from ccxt.async_support.paradex import paradex                                  
 from ccxt.async_support.paymium import paymium                                  # noqa: F401
 from ccxt.async_support.phemex import phemex                                    # noqa: F401
 from ccxt.async_support.poloniex import poloniex                                # noqa: F401
+from ccxt.async_support.polymarket import polymarket                            # noqa: F401
+from ccxt.async_support.revolutx import revolutx                                # noqa: F401
 from ccxt.async_support.tokocrypto import tokocrypto                            # noqa: F401
 from ccxt.async_support.toobit import toobit                                    # noqa: F401
 from ccxt.async_support.upbit import upbit                                      # noqa: F401
@@ -187,7 +188,6 @@ exchanges = [
     'bitflyer',
     'bitget',
     'bithumb',
-    'bitmex',
     'bitopro',
     'bitrue',
     'bitso',
@@ -204,13 +204,13 @@ exchanges = [
     'bullish',
     'bybit',
     'bybiteu',
+    'bybitid',
     'bydfi',
     'cex',
     'coinbase',
     'coinbaseexchange',
     'coinbaseinternational',
     'coincheck',
-    'coinex',
     'coinmate',
     'coinone',
     'coinsph',
@@ -262,6 +262,8 @@ exchanges = [
     'paymium',
     'phemex',
     'poloniex',
+    'polymarket',
+    'revolutx',
     'tokocrypto',
     'toobit',
     'upbit',

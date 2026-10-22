@@ -12,5 +12,6 @@ func TestNumberToBE() {
 		"id": "sampleexchange",
 	}, map[string]any{}, exchange)
 	//
+
 	exchange.Describe() // avoid unused var
 }

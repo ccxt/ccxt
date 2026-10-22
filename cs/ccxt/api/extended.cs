@@ -81,6 +81,20 @@ public partial class extended : Exchange
         return await this.callAsync<Dictionary<string, object>> ("v1PublicGetInfoBuilderDashboard",parameters);
     }
 
+    /// <summary>Calls the v1PublicGetInterestInfoRateCurves endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PublicGetInterestInfoRateCurves (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PublicGetInterestInfoRateCurves",parameters);
+    }
+
+    /// <summary>Calls the v1PublicGetInterestInfoLatestRateCurves endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PublicGetInterestInfoLatestRateCurves (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PublicGetInterestInfoLatestRateCurves",parameters);
+    }
+
     /// <summary>Calls the v1PrivateGetUserAccounts endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> v1PrivateGetUserAccounts (object parameters = null)
@@ -263,6 +277,83 @@ public partial class extended : Exchange
         return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetPortfolioChartsPnl",parameters);
     }
 
+    /// <summary>Calls the v1PrivateGetPortfolioChartsPnlPercentage endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivateGetPortfolioChartsPnlPercentage (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetPortfolioChartsPnlPercentage",parameters);
+    }
+
+    /// <summary>Calls the v1PrivateGetPortfolioChartsPnlCumulative endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivateGetPortfolioChartsPnlCumulative (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetPortfolioChartsPnlCumulative",parameters);
+    }
+
+    /// <summary>Calls the v1PrivateGetPortfolioChartsPnlCumulativePercentage endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivateGetPortfolioChartsPnlCumulativePercentage (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetPortfolioChartsPnlCumulativePercentage",parameters);
+    }
+
+    /// <summary>Calls the v1PrivateGetPortfolioChartsVaultEquities endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivateGetPortfolioChartsVaultEquities (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetPortfolioChartsVaultEquities",parameters);
+    }
+
+    /// <summary>Calls the v1PrivateGetPortfolioChartsMaxDrawdown endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivateGetPortfolioChartsMaxDrawdown (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetPortfolioChartsMaxDrawdown",parameters);
+    }
+
+    /// <summary>Calls the v1PrivateGetPortfolioChartsFunding endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivateGetPortfolioChartsFunding (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetPortfolioChartsFunding",parameters);
+    }
+
+    /// <summary>Calls the v1PrivateGetPortfolioAccountsSummary endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivateGetPortfolioAccountsSummary (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetPortfolioAccountsSummary",parameters);
+    }
+
+    /// <summary>Calls the v1PrivateGetPortfolioAccountsHealth endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivateGetPortfolioAccountsHealth (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetPortfolioAccountsHealth",parameters);
+    }
+
+    /// <summary>Calls the v1PrivateGetPortfolioAccountsPerformance endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivateGetPortfolioAccountsPerformance (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetPortfolioAccountsPerformance",parameters);
+    }
+
+    /// <summary>Calls the v1PrivateGetPortfolioFundingStats endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivateGetPortfolioFundingStats (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetPortfolioFundingStats",parameters);
+    }
+
+    /// <summary>Calls the v1PrivateGetPortfolioFundingHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivateGetPortfolioFundingHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetPortfolioFundingHistory",parameters);
+    }
+
     /// <summary>Calls the v1PrivateGetVaultPublicPerformance endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> v1PrivateGetVaultPublicPerformance (object parameters = null)
@@ -284,11 +375,46 @@ public partial class extended : Exchange
         return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetBuilderTrades",parameters);
     }
 
+    /// <summary>Calls the v1PrivateGetInterestKeyMetrics endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivateGetInterestKeyMetrics (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetInterestKeyMetrics",parameters);
+    }
+
+    /// <summary>Calls the v1PrivateGetInterestDailyMetrics endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivateGetInterestDailyMetrics (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetInterestDailyMetrics",parameters);
+    }
+
+    /// <summary>Calls the v1PrivateGetInterestPaymentChart endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivateGetInterestPaymentChart (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetInterestPaymentChart",parameters);
+    }
+
+    /// <summary>Calls the v1PrivateGetInterestPayments endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivateGetInterestPayments (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetInterestPayments",parameters);
+    }
+
     /// <summary>Calls the v1PrivatePostUserOrder endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> v1PrivatePostUserOrder (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("v1PrivatePostUserOrder",parameters);
+    }
+
+    /// <summary>Calls the v1PrivatePostUserOrderRfq endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivatePostUserOrderRfq (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivatePostUserOrderRfq",parameters);
     }
 
     /// <summary>Calls the v1PrivatePostUserOrderMassCancel endpoint.</summary>

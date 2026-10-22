@@ -74,9 +74,9 @@ description: "Se a sua pergunta for formulada de forma resumida como acima, não
 
   ## Ei! A correção que você enviou está em TypeScript, você também vai corrigir JavaScript / Python / PHP, por favor?
 
-  Nosso sistema de build gera código JavaScript, Python, PHP, C#, Go e Java específico de exchange para nós automaticamente, então é transpilado a partir de TypeScript, e não há necessidade de corrigir todos os idiomas separadamente um por um.
+  Nosso sistema de build gera código JavaScript, Python, PHP, C#, Go, Java e Rust específico de exchange para nós automaticamente, então é transpilado a partir de TypeScript, e não há necessidade de corrigir todos os idiomas separadamente um por um.
 
-  Portanto, se estiver corrigido em TypeScript, também estará corrigido em JavaScript NPM, Python pip, PHP Composer, C# NuGet, Go e Java. A build automática geralmente leva 15-20 minutos. Basta atualizar sua versão com `npm`, `pip` ou `composer` **após a chegada da nova versão** e tudo ficará bem.
+  Portanto, se estiver corrigido em TypeScript, também estará corrigido em JavaScript NPM, Python pip, PHP Composer, C# NuGet, Go, Java e Rust (crates.io). A build automática geralmente leva 15-20 minutos. Basta atualizar sua versão com `npm`, `pip` ou `composer` **após a chegada da nova versão** e tudo ficará bem.
 
   Mais sobre isso aqui:
 

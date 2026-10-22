@@ -8,7 +8,7 @@ description: Official CCXT MCP (Model Context Protocol) server — connect an AI
 `ccxt-mcp` is the official CCXT Model Context Protocol server. It runs **locally over stdio** and lets an AI agent (Claude Desktop/Code, Cursor, VS Code, Windsurf, …) use the unified CCXT API across 100+ crypto exchanges and prediction markets.
 
 - npm: `ccxt-mcp` · runs via `npx -y ccxt-mcp` · source: https://github.com/ccxt/ccxt/tree/master/mcp
-- Full docs: https://docs.ccxt.com/#/mcp
+- Full docs: https://docs.ccxt.com/docs/mcp
 
 Key property: **your API keys stay on your machine and the model never sees them.** Tools reference accounts by a name you choose; credentials are never tool parameters and never appear in results.
 

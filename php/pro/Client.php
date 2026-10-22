@@ -387,6 +387,16 @@ class Client {
             $this->lastPong = isset($this->lastPong) ? $this->lastPong : $now;
             if (($this->lastPong + $this->keepAlive * $this->maxPingPongMisses) < $now) {
                 $this->on_error(new RequestTimeout('Connection to ' . $this->url . ' timed out due to a ping-pong keepalive missing on time'));
+                // on_error rejects the pending futures and the exchange drops
+                // this client from its registry, but the socket itself is
+                // still open: nothing above tears it down, and the server
+                // never asked for a close. left alone it keeps receiving
+                // frames and dispatching them into the exchange caches next
+                // to the replacement connection the next watch call opens.
+                // close the transport here so the timeout ends the connection
+                // and not only the futures waiting on it, mirroring
+                // ts/src/base/ws/Client.ts onPingInterval (ccxt/ccxt#30293)
+                $this->close();
             } else {
                 if ($this->ping) {
                     try {

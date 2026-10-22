@@ -1,70 +1,94 @@
 import Exchange from './abstract/coinbaseinternational.js';
-import type { Int, Num, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, Currency, CurrencyInterface, TransferEntry, Position, FundingRateHistory, Currencies, Dict, NullableDict, int, OHLCV, DepositAddress, MarginModification } from './base/types.js';
+import type { Int, Num, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, MarketInterface, Currency, CurrencyInterface, TransferEntry, Position, FundingRateHistory, Currencies, Dict, int, OHLCV, Leverage } from './base/types.js';
 /**
  * @class coinbaseinternational
  * @augments Exchange
  */
 export default class coinbaseinternational extends Exchange {
     describe(): any;
-    handlePortfolioAndParams(methodName: string, params?: {}): Promise<[Str, Dict]>;
-    handleNetworkIdAndParams(currencyCode: string, methodName: string, params?: {}): Promise<[Str, Dict]>;
     /**
      * @method
-     * @name coinbaseinternational#fetchAccounts
-     * @description fetch all the accounts associated with a profile
-     * @see https://docs.cloud.coinbase.com/intx/reference/getportfolios
+     * @name coinbaseinternational#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://docs.cdp.coinbase.com/api-reference/supporting/public-get_time
+     * @see https://docs.deribit.com/api-reference/supporting/public-get_time
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    fetchAccounts(params?: {}): Promise<import("./base/types.js").Account[]>;
-    parseAccount(account: any): {
-        id: Str;
-        type: undefined;
-        code: undefined;
-        info: any;
-    };
+    fetchTime(params?: {}): Promise<Int>;
+    /**
+     * @method
+     * @name coinbaseinternational#fetchMarkets
+     * @description retrieves data on all markets for coinbaseinternational
+     * @see https://docs.cdp.coinbase.com/api-reference/market-data/public-get_instruments
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_instruments
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {string} [params.currency] settlement currency filter, defaults to any on Deribit
+     * @returns {object[]} an array of objects representing market data
+     */
+    fetchMarkets(params?: {}): Promise<Market[]>;
+    parseMarket(market: Dict): Market;
+    /**
+     * @method
+     * @name coinbaseinternational#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://docs.cdp.coinbase.com/api-reference/market-data/public-get_currencies
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_currencies
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} an associative dictionary of currencies
+     */
+    fetchCurrencies(params?: {}): Promise<Currencies>;
+    parseCurrency(currency: Dict): CurrencyInterface;
     /**
      * @method
      * @name coinbaseinternational#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://docs.cdp.coinbase.com/intx/reference/getinstrumentcandles
+     * @see https://docs.cdp.coinbase.com/api-reference/market-data/public-get_tradingview_chart_data
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_tradingview_chart_data
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch, default 100 max 10000
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     /**
      * @method
      * @name coinbaseinternational#fetchFundingRateHistory
      * @description fetches historical funding rate prices
-     * @see https://docs.cloud.coinbase.com/intx/reference/getinstrumentfunding
+     * @see https://docs.cdp.coinbase.com/api-reference/market-data/public-get_funding_rate_history
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_funding_rate_history
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {int} [params.until] timestamp in ms of the latest funding rate
+     * @param {boolean} [params.paginate] native Deribit automatic pagination is not supported
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
+    fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingRateHistory[]>;
     parseFundingRateHistory(info: any, market?: Market): FundingRateHistory;
     parseFundingRate(contract: any, market?: Market): {
         info: any;
         symbol: string;
-        markPrice: Num;
-        indexPrice: undefined;
+        markPrice: undefined;
+        indexPrice: Num;
         interestRate: undefined;
         estimatedSettlePrice: undefined;
-        timestamp: number | undefined;
-        datetime: Str;
+        timestamp: Int;
+        datetime: string | undefined;
         fundingRate: Num;
-        fundingTimestamp: number | undefined;
-        fundingDatetime: Str;
+        fundingTimestamp: Int;
+        fundingDatetime: string | undefined;
         nextFundingRate: undefined;
         nextFundingTimestamp: undefined;
         nextFundingDatetime: undefined;
@@ -74,189 +98,13 @@ export default class coinbaseinternational extends Exchange {
     };
     /**
      * @method
-     * @name coinbaseinternational#fetchFundingHistory
-     * @description fetch the history of funding payments paid and received on this account
-     * @see https://docs.cdp.coinbase.com/intx/reference/gettransfers
-     * @param {string} [symbol] unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch funding history for
-     * @param {int} [limit] the maximum number of funding history structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
-     */
-    fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").FundingHistory[]>;
-    parseIncome(income: any, market?: Market): {
-        info: any;
-        symbol: string;
-        code: Str;
-        timestamp: number | undefined;
-        datetime: string | undefined;
-        id: Str;
-        amount: Num;
-        rate: undefined;
-    };
-    /**
-     * @method
-     * @name coinbaseinternational#fetchTransfers
-     * @description fetch a history of internal transfers made on an account
-     * @see https://docs.cdp.coinbase.com/intx/reference/gettransfers
-     * @param {string} code unified currency code of the currency transferred
-     * @param {int} [since] the earliest time in ms to fetch transfers for
-     * @param {int} [limit] the maximum number of  transfers structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
-     */
-    fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<TransferEntry[]>;
-    parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
-    parseTransferStatus(status: Str): Str;
-    /**
-     * @method
-     * @name coinbaseinternational#createDepositAddress
-     * @description create a currency deposit address
-     * @see https://docs.cloud.coinbase.com/intx/reference/createaddress
-     * @see https://docs.cloud.coinbase.com/intx/reference/createcounterpartyid
-     * @param {string} code unified currency code of the currency for the deposit address
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.network_arn_id] Identifies the blockchain network (e.g., networks/ethereum-mainnet/assets/313ef8a9-ae5a-5f2f-8a56-572c0e2a4d5a) if not provided will pick default
-     * @param {string} [params.network] unified network code to identify the blockchain network
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
-     */
-    createDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
-    findDefaultNetwork(networks: any): any;
-    loadCurrencyNetworks(code: any, params?: {}): Promise<boolean>;
-    parseNetworks(networks: any, params?: {}): Dict;
-    parseNetwork(network: any, params?: {}): {
-        info: any;
-        id: Str;
-        name: Str;
-        network: Str;
-        active: boolean | undefined;
-        deposit: boolean | undefined;
-        withdraw: boolean | undefined;
-        fee: Num;
-        precision: Num;
-        limits: {
-            withdraw: {
-                min: Num;
-                max: Num;
-            };
-            deposit: {
-                min: Num;
-                max: Num;
-            };
-        };
-    };
-    /**
-     * @method
-     * @name coinbaseinternational#setMargin
-     * @description Either adds or reduces margin in order to set the margin to a specific value
-     * @see https://docs.cloud.coinbase.com/intx/reference/setportfoliomarginoverride
-     * @param {string} symbol unified market symbol of the market to set margin in
-     * @param {float} amount the amount to set the margin to
-     * @param {object} [params] parameters specific to the exchange API endpoint
-     * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
-     */
-    setMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
-    /**
-     * @method
-     * @name coinbaseinternational#fetchDepositsWithdrawals
-     * @description fetch history of deposits and withdrawals
-     * @see https://docs.cloud.coinbase.com/intx/reference/gettransfers
-     * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
-     * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
-     * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.portfolios] Identifies the portfolios by UUID (e.g., 892e8c7c-e979-4cad-b61b-55a197932cf1) or portfolio ID (e.g., 5189861793641175). Can provide single or multiple portfolios to filter by or fetches transfers for all portfolios if none are provided.
-     * @param {int} [params.until] Only find transfers updated before this time. Use timestamp format
-     * @param {string} [params.status] The current status of transfer. Possible values: [PROCESSED, NEW, FAILED, STARTED]
-     * @param {string} [params.type] The type of transfer Possible values: [DEPOSIT, WITHDRAW, REBATE, STIPEND, INTERNAL, FUNDING]
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
-     */
-    fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    /**
-     * @method
-     * @name coinbaseinternational#fetchPosition
-     * @see https://docs.cloud.coinbase.com/intx/reference/getportfolioposition
-     * @description fetch data on an open position
-     * @param {string} symbol unified market symbol of the market the position is held in
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
-     */
-    fetchPosition(symbol: string, params?: {}): Promise<Position>;
-    parsePosition(position: Dict, market?: Market): Position;
-    /**
-     * @method
-     * @name coinbaseinternational#fetchPositions
-     * @see https://docs.cloud.coinbase.com/intx/reference/getportfoliopositions
-     * @description fetch all open positions
-     * @param {string[]} [symbols] list of unified market symbols
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
-     */
-    fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
-    /**
-     * @method
-     * @name coinbaseinternational#fetchWithdrawals
-     * @description fetch all withdrawals made from an account
-     * @see https://docs.cloud.coinbase.com/intx/reference/gettransfers
-     * @param {string} code unified currency code
-     * @param {int} [since] the earliest time in ms to fetch withdrawals for
-     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.portfolios] Identifies the portfolios by UUID (e.g., 892e8c7c-e979-4cad-b61b-55a197932cf1) or portfolio ID (e.g., 5189861793641175). Can provide single or multiple portfolios to filter by or fetches transfers for all portfolios if none are provided.
-     * @param {int} [params.until] Only find transfers updated before this time. Use timestamp format
-     * @param {string} [params.status] The current status of transfer. Possible values: [PROCESSED, NEW, FAILED, STARTED]
-     * @param {string} [params.type] The type of transfer Possible values: [DEPOSIT, WITHDRAW, REBATE, STIPEND, INTERNAL, FUNDING]
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
-     */
-    fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
-    /**
-     * @method
-     * @name coinbaseinternational#fetchDeposits
-     * @description fetch all deposits made to an account
-     * @param {string} code unified currency code
-     * @param {int} [since] the earliest time in ms to fetch deposits for
-     * @param {int} [limit] the maximum number of deposits structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.portfolios] Identifies the portfolios by UUID (e.g., 892e8c7c-e979-4cad-b61b-55a197932cf1) or portfolio ID (e.g., 5189861793641175). Can provide single or multiple portfolios to filter by or fetches transfers for all portfolios if none are provided.
-     * @param {int} [params.until] Only find transfers updated before this time. Use timestamp format
-     * @param {string} [params.status] The current status of transfer. Possible values: [PROCESSED, NEW, FAILED, STARTED]
-     * @param {string} [params.type] The type of transfer Possible values: [DEPOSIT, WITHDRAW, REBATE, STIPEND, INTERNAL, FUNDING]
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
-     */
-    fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
-    parseTransactionStatus(status: Str): Str;
-    parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    parseTrade(trade: Dict, market?: Market): Trade;
-    /**
-     * @method
-     * @name coinbaseinternational#fetchMarkets
-     * @see https://docs.cloud.coinbase.com/intx/reference/getinstruments
-     * @description retrieves data on all markets for coinbaseinternational
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} an array of objects representing market data
-     */
-    fetchMarkets(params?: {}): Promise<Market[]>;
-    parseMarket(market: Dict): Market;
-    /**
-     * @method
-     * @name coinbaseinternational#fetchCurrencies
-     * @description fetches all available currencies on an exchange
-     * @see https://docs.cloud.coinbase.com/intx/reference/getassets
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an associative dictionary of currencies
-     */
-    fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrency(currency: Dict): CurrencyInterface;
-    /**
-     * @method
      * @name coinbaseinternational#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @see https://docs.cloud.coinbase.com/intx/reference/getinstruments
+     * @see https://docs.cdp.coinbase.com/api-reference/market-data/public-ticker
+     * @see https://docs.deribit.com/api-reference/market-data/public-ticker
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
@@ -264,48 +112,161 @@ export default class coinbaseinternational extends Exchange {
      * @method
      * @name coinbaseinternational#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://docs.cloud.coinbase.com/intx/reference/getinstrumentquote
+     * @see https://docs.cdp.coinbase.com/api-reference/market-data/public-ticker
+     * @see https://docs.deribit.com/api-reference/market-data/public-ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     parseTicker(ticker: object, market?: Market): Ticker;
     /**
      * @method
+     * @name coinbaseinternational#fetchOrderBook
+     * @description fetches a market order book
+     * @see https://docs.cdp.coinbase.com/api-reference/market-data/public-get_order_book
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_order_book
+     * @param {string} symbol unified market symbol
+     * @param {int} [limit] the maximum number of bids and asks to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+     */
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
+    /**
+     * @method
      * @name coinbaseinternational#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://docs.cloud.coinbase.com/intx/reference/getportfoliobalances
+     * @see https://docs.cdp.coinbase.com/api-reference/account-management/private-get_account_summaries
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_account_summaries
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_account_summary
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.v3] default false, set true to use v3 api endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {string} [params.code] unified currency code for a native Deribit single account summary
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     fetchBalance(params?: {}): Promise<Balances>;
     parseBalance(response: any): Balances;
     /**
      * @method
-     * @name coinbaseinternational#transfer
-     * @description Transfer an amount of asset from one portfolio to another.
-     * @see https://docs.cloud.coinbase.com/intx/reference/createportfolioassettransfer
-     * @param {string} code unified currency code
-     * @param {float} amount amount to transfer
-     * @param {string} fromAccount account to transfer from
-     * @param {string} toAccount account to transfer to
+     * @name coinbaseinternational#fetchTransfers
+     * @description fetch a history of internal transfers made on an account
+     * @see https://docs.cdp.coinbase.com/api-reference/account-management/private-get_transaction_log
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_transaction_log
+     * @param {string} code unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of transfers structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {int} [params.until] timestamp in ms of the latest transfer to fetch
+     * @param {string} [params.continuation] continuation token for pagination
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
+    fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<TransferEntry[]>;
+    parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
+    /**
+     * @method
+     * @name coinbaseinternational#fetchPosition
+     * @description fetch data on an open position
+     * @see https://docs.cdp.coinbase.com/api-reference/account-management/private-get_position
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_position
+     * @param {string} symbol unified market symbol of the market the position is held in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    fetchPosition(symbol: string, params?: Dict): Promise<Position>;
+    parsePosition(position: Dict, market?: Market): Position;
+    /**
+     * @method
+     * @name coinbaseinternational#fetchPositions
+     * @description fetch all open positions
+     * @see https://docs.cdp.coinbase.com/api-reference/account-management/private-get_positions
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_positions
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {string} [params.currency] settlement currency filter
+     * @param {string} [params.kind] instrument kind filter
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    fetchPositions(symbols?: Strings, params?: Dict): Promise<Position[]>;
+    /**
+     * @method
+     * @name coinbaseinternational#fetchDepositsWithdrawals
+     * @description fetch history of deposits and withdrawals
+     * @see https://docs.cdp.coinbase.com/api-reference/account-management/private-get_transaction_log
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_transaction_log
+     * @param {string} code unified currency code
+     * @param {int} [since] timestamp in ms of the earliest transaction to fetch
+     * @param {int} [limit] the maximum number of transactions to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {int} [params.until] timestamp in ms of the latest transaction to fetch
+     * @param {string} [params.query] transaction-log query filter
+     * @param {string} [params.continuation] continuation token for pagination
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    /**
+     * @method
+     * @name coinbaseinternational#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://docs.cdp.coinbase.com/api-reference/account-management/private-get_transaction_log
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_transaction_log
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {int} [params.until] timestamp in ms of the latest transaction to fetch
+     * @param {string} [params.continuation] continuation token for pagination
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
+    /**
+     * @method
+     * @name coinbaseinternational#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://docs.cdp.coinbase.com/api-reference/account-management/private-get_transaction_log
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_transaction_log
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {int} [params.until] timestamp in ms of the latest transaction to fetch
+     * @param {string} [params.continuation] continuation token for pagination
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
+    parseTransaction(transaction: Dict, currency?: Currency): Transaction;
+    /**
+     * @ignore
+     * @method
+     * @name coinbaseinternational#getOrderAmount
+     * @description converts unified native Deribit contract quantities to exchange amount units
+     * @param {object} market unified market
+     * @param {float} amount unified order quantity
+     * @returns {string} precision-formatted exchange order amount
+     */
+    getOrderAmount(market: MarketInterface, amount: Num): Str;
     /**
      * @method
      * @name coinbaseinternational#createOrder
      * @description create a trade order
-     * @see https://docs.cloud.coinbase.com/intx/reference/createorder
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-buy
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-sell
+     * @see https://docs.deribit.com/api-reference/trading/private-buy
+     * @see https://docs.deribit.com/api-reference/trading/private-sell
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
-     * @param {float} amount how much you want to trade in units of the base currency, quote currency for 'market' 'buy' orders
+     * @param {float} amount number of contracts for native Deribit derivatives, otherwise the exchange order amount (base currency for spot)
      * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @param {float} [params.stopPrice] alias for triggerPrice
      * @param {float} [params.triggerPrice] price to trigger stop orders
      * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
@@ -315,108 +276,208 @@ export default class coinbaseinternational extends Exchange {
      * @param {string} [params.stp_mode] Possible values: [NONE, AGGRESSING, BOTH] Specifies the behavior for self match handling. None disables the functionality, new cancels the newest order, and both cancels both orders.
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
     parseOrder(order: Dict, market?: Market): Order;
+    parseTimeInForce(timeInForce: Str): Str;
     parseOrderStatus(status: Str): Str;
     parseOrderType(type: Str): Str;
     /**
      * @method
      * @name coinbaseinternational#cancelOrder
      * @description cancels an open order
-     * @see https://docs.cloud.coinbase.com/intx/reference/cancelorder
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-cancel
+     * @see https://docs.deribit.com/api-reference/trading/private-cancel
      * @param {string} id order id
      * @param {string} symbol not used by cancelOrder()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    cancelOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name coinbaseinternational#cancelAllOrders
      * @description cancel all open orders
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-cancel_all
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-cancel_all_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-cancel_all
+     * @see https://docs.deribit.com/api-reference/trading/private-cancel_all_by_instrument
      * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
+    cancelAllOrders(symbol?: Str, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name coinbaseinternational#editOrder
      * @description edit a trade order
-     * @see https://docs.cloud.coinbase.com/intx/reference/modifyorder
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-edit
+     * @see https://docs.deribit.com/api-reference/trading/private-edit
      * @param {string} id cancel order id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
-     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} amount number of contracts for native Deribit derivatives, otherwise the exchange order amount (base currency for spot)
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} params.clientOrderId client order id
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {float} [params.triggerPrice] price to trigger stop orders
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name coinbaseinternational#fetchOrder
      * @description fetches information on an order made by the user
-     * @see https://docs.cloud.coinbase.com/intx/reference/modifyorder
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-get_order_state
+     * @see https://docs.deribit.com/api-reference/trading/private-get_order_state
      * @param {string} id the order id
      * @param {string} symbol unified market symbol that the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    fetchOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name coinbaseinternational#fetchOpenOrders
      * @description fetches information on all currently open orders
-     * @see https://docs.cloud.coinbase.com/intx/reference/getorders
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-get_open_orders_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-get_open_orders_by_instrument
      * @param {string} symbol unified market symbol of the orders
      * @param {int} [since] timestamp in ms of the earliest order, default is undefined
      * @param {int} [limit] the maximum number of open order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {boolean} [params.paginate] native Deribit pagination is not supported
      * @param {int} [params.offset] offset
      * @param {string} [params.event_type] The most recent type of event that happened to the order. Allowed values: NEW, TRADE, REPLACED
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name coinbaseinternational#fetchMyTrades
      * @description fetch all trades made by the user
-     * @see https://docs.cloud.coinbase.com/intx/reference/getmultiportfoliofills
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-get_user_trades_by-instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_instrument_and_time
      * @param {string} symbol unified market symbol of the trades
      * @param {int} [since] timestamp in ms of the earliest order, default is undefined
      * @param {int} [limit] the maximum number of trade structures to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] the latest time in ms to fetch trades for
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {boolean} [params.historical] native Deribit indexed history, excludes recent trades
+     * @param {int} [params.until] native Deribit latest time in ms to fetch trades for
+     * @param {boolean} [params.paginate] native Deribit automatic pagination is not supported
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
+    parseTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method
-     * @name coinbaseinternational#withdraw
-     * @description make a withdrawal
-     * @see https://docs.cloud.coinbase.com/intx/reference/withdraw
-     * @see https://docs.cloud.coinbase.com/intx/reference/counterpartywithdraw
-     * @param {string} code unified currency code
-     * @param {float} amount the amount to withdraw
-     * @param {string} address the address to withdraw to
-     * @param {string} [tag] an optional tag for the withdrawal
+     * @name coinbaseinternational#fetchLeverage
+     * @description fetch the set leverage for a market
+     * @see https://docs.cdp.coinbase.com/api-reference/account-management/private-get_leverage
+     * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.add_network_fee_to_total] if true, deducts network fee from the portfolio, otherwise deduct fee from the withdrawal
-     * @param {string} [params.network_arn_id] Identifies the blockchain network (e.g., networks/ethereum-mainnet/assets/313ef8a9-ae5a-5f2f-8a56-572c0e2a4d5a)
-     * @param {string} [params.nonce] a unique integer representing the withdrawal request
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route; native route throws NotSupported; get_leverage is gateway-only
+     * @param {boolean} [params.isolated] set to true for isolated margin
+     * @param {int} [params.subaccount_id] The user id for the subaccount, available to retail broker callers, defaults to the authenticated account
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
-    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
-        url: string;
-        method: string;
-        body: Str;
-        headers: NullableDict;
-    };
+    fetchLeverage(symbol: string, params?: Dict): Promise<Leverage>;
+    parseLeverage(leverage: Dict, market?: Market): Leverage;
+    /**
+     * @method
+     * @name coinbaseinternational#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-set_leverage
+     * @param {int} leverage the rate of leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route; native route throws NotSupported; set_leverage is gateway-only
+     * @param {boolean} [params.isolated] set to true for isolated margin
+     * @param {int} [params.subaccount_id] The user id for the subaccount, available to retail broker callers, defaults to the authenticated account
+     * @returns {object} response from the exchange
+     */
+    setLeverage(leverage: int, symbol?: Str, params?: Dict): Promise<Dict>;
+    /**
+     * @ignore
+     * @method
+     * @description signs a short-lived CDP JWT that public/auth exchanges for a gateway access token
+     * @see https://docs.cdp.coinbase.com/api-reference/v2/authentication
+     * @see https://docs.cdp.coinbase.com/get-started/authentication/jwt-authentication
+     * @see https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
+     * @see https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication#generating-a-jwt
+     * @see https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/access-and-refresh-tokens
+     * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/rest-api/authentication/post-publicauth
+     * @see https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/guides/derivatives/technical#authentication
+     * @see https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/guides/derivatives/deribit-partners#authentication
+     * @see https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/guides/derivatives/intx-partners#authentication
+     * @param {int} seconds current timestamp in seconds
+     * @param {string} [method] request method
+     * @param {string} [url] request URL
+     * @param {boolean} [useEddsa] true for Ed25519 keys, false for ECDSA PEM keys
+     * @returns {string} signed JWT
+     */
+    createAuthToken(seconds: Int, method?: Str, url?: Str, useEddsa?: boolean): string;
+    /**
+     * @ignore
+     * @method
+     * @description exchanges a CDP JWT for a Deribit gateway access token
+     * @see https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/guides/derivatives/technical#authentication
+     * @see https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/guides/derivatives/overview
+     * @see https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/access-and-refresh-tokens
+     * @see https://docs.cdp.coinbase.com/api-reference/v2/authentication#generate-bearer-token
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.forceRefresh] ignore the cached token and request a new one
+     * @returns {string} a Deribit gateway access token
+     */
+    authenticateV2(params?: {}): Promise<Str>;
+    /**
+     * @ignore
+     * @method
+     * @description the cached gateway access token, options.v2AccessToken takes precedence over exchange.token
+     * @returns {string|undefined} the access token
+     */
+    getV2AccessToken(): Str;
+    sign(path: string, api?: string[] | string, method?: string, params?: Dict): Dict;
+    /**
+     * @ignore
+     * @method
+     * @description whether the configured secret is an Ed25519 (EdDSA) CDP key rather than an ECDSA PEM key
+     * @returns {boolean} true for Ed25519 keys
+     */
+    isEddsaSecret(): boolean;
+    /**
+     * @ignore
+     * @method
+     * @name coinbaseinternational#handleRouteAndParams
+     * @description selects a backend before market loading or authentication and removes routing parameters
+     * @param {string} methodName unified REST or Pro method name
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} cleaned parameters; options.route persists the selection for nested calls and Pro
+     */
+    handleRouteAndParams(methodName: string, params?: Dict): Dict;
+    /**
+     * @ignore
+     * @method
+     * @name coinbaseinternational#isNativeDeribitCredentials
+     * @description reads the selected backend or resolves the configured automatic or explicit route
+     * @returns {boolean} true for the native Deribit route
+     */
+    isNativeDeribitCredentials(): boolean;
+    /**
+     * @ignore
+     * @method
+     * @name coinbaseinternational#resolveRoute
+     * @description resolves a backend override or conservatively detects the known native Deribit credential format
+     * @param {string} [route] auto (default), deribit, or coinbase
+     * @returns {boolean} true for native Deribit, false for Coinbase
+     */
+    resolveRoute(route?: any): boolean;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

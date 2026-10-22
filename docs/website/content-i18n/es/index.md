@@ -1,6 +1,6 @@
 ---
 title: "Documentación de CCXT"
-description: "CCXT — una API unificada para más de 100 exchanges de criptomonedas en JavaScript, Python, PHP, C#, Go y Java."
+description: "CCXT — una API unificada para más de 100 exchanges de criptomonedas en JavaScript, Python, PHP, C#, Go, Java y Rust."
 ---
 
 ¡Bienvenido al wiki de ccxt!
@@ -21,6 +21,7 @@ description: "CCXT — una API unificada para más de 100 exchanges de criptomon
   - [C#](/docs/install#netc)
   - [Go](/docs/install#go)
   - [Java](/docs/install#java)
+  - [Rust](/docs/install#rust)
   - [Navegadores Web](/docs/install#web-browsers)
   - [Docker](/docs/install#docker)
   - [Proxy](/docs/install#proxy)

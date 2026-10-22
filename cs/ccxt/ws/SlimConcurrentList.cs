@@ -396,6 +396,33 @@ public class SlimConcurrentList<T> : IList<T>, ICollection<T>, IReadOnlyList<T>,
         }
     }
 
+    /// <summary>Appends a range of items under a single write lock; adding them
+    /// one by one costs one lock acquisition each, dominating bulk copies.</summary>
+    /// <param name="items">the items to append; enumerated before the lock is taken</param>
+    public void AddRange(IEnumerable<T> items)
+    {
+        if (items == null)
+        {
+            return;
+        }
+        // materialise first so we never enumerate a foreign collection, which may
+        // take its own lock, while holding this one
+        var buffer = new List<T>(items);
+        if (buffer.Count == 0)
+        {
+            return;
+        }
+        try
+        {
+            _lock.EnterWriteLock();
+            _list.AddRange(buffer);
+        }
+        finally
+        {
+            _lock.ExitWriteLock();
+        }
+    }
+
     /// <summary>
     /// Performs a bisect-left binary search over the list, taking the read lock
     /// ONCE for the whole probe sequence instead of one acquire/release pair per

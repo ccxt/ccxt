@@ -24,7 +24,7 @@ func TestGroupBy() {
 	}, map[string]any{
 		"foo": "c",
 	}}
-	var currentValue any = exchange.GroupBy(sampleArray, "foo")
+	var currentValue map[string]any = exchange.GroupBy(sampleArray, "foo")
 	var storedValue map[string]any = map[string]any{
 		"a": []any{map[string]any{
 			"foo": "a",

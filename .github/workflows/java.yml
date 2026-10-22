@@ -75,6 +75,8 @@ jobs:
     - name: Transpile prediction to Java
       if: env.prediction_modified == 'true'
       run: npm run transpile-prediction-java
+    - name: Check virtual-thread pinning guard
+      run: npm run check-java-pinning
     - name: Build Project
       run: npm run buildJava
     - name: Run Base Tests

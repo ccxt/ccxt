@@ -25,6 +25,13 @@ public partial class bit2c : Exchange
         return await this.callAsync<Dictionary<string, object>> ("publicGetExchangesPairOrderbook",parameters);
     }
 
+    /// <summary>Calls the publicGetExchangesPairOrderbookTop endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetExchangesPairOrderbookTop (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetExchangesPairOrderbookTop",parameters);
+    }
+
     /// <summary>Calls the publicGetExchangesPairTrades endpoint.</summary>
     /// <returns>a JSON array</returns>
     public async Task<List<object>> publicGetExchangesPairTrades (object parameters = null)
@@ -51,6 +58,13 @@ public partial class bit2c : Exchange
     public async Task<Dictionary<string, object>> privatePostFundsAddCoinFundsRequest (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privatePostFundsAddCoinFundsRequest",parameters);
+    }
+
+    /// <summary>Calls the privatePostFundsWithdrawCoin endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostFundsWithdrawCoin (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostFundsWithdrawCoin",parameters);
     }
 
     /// <summary>Calls the privatePostOrderAddFund endpoint.</summary>
@@ -170,6 +184,13 @@ public partial class bit2c : Exchange
     public async Task<List<object>> privateGetOrderOrderHistory (object parameters = null)
     {
         return await this.callAsync<List<object>> ("privateGetOrderOrderHistory",parameters);
+    }
+
+    /// <summary>Calls the privateGetOrderHistoryByOrderId endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetOrderHistoryByOrderId (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateGetOrderHistoryByOrderId",parameters);
     }
 
 }

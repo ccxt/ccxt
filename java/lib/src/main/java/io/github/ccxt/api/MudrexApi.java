@@ -7,6 +7,8 @@
 
 package io.github.ccxt.api;
 import io.github.ccxt.Exchange;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class MudrexApi extends Exchange
 {
@@ -25,7 +27,7 @@ public class MudrexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  marketGetPriceKline (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  marketGetPriceKline (Object... optionalArgs)
     {
         return this.callAsync ("marketGetPriceKline", optionalArgs);
     }
@@ -36,7 +38,7 @@ public class MudrexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  marketGetPriceMarkKline (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  marketGetPriceMarkKline (Object... optionalArgs)
     {
         return this.callAsync ("marketGetPriceMarkKline", optionalArgs);
     }
@@ -47,7 +49,7 @@ public class MudrexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetFutures (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetFutures (Object... optionalArgs)
     {
         return this.callAsync ("privateGetFutures", optionalArgs);
     }
@@ -58,7 +60,7 @@ public class MudrexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetFuturesAssetId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetFuturesAssetId (Object... optionalArgs)
     {
         return this.callAsync ("privateGetFuturesAssetId", optionalArgs);
     }
@@ -69,7 +71,7 @@ public class MudrexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetWalletFunds (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetWalletFunds (Object... optionalArgs)
     {
         return this.callAsync ("privateGetWalletFunds", optionalArgs);
     }
@@ -80,9 +82,20 @@ public class MudrexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetFuturesFunds (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetFuturesFunds (Object... optionalArgs)
     {
         return this.callAsync ("privateGetFuturesFunds", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetFuturesTransactions endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privateGetFuturesTransactions (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetFuturesTransactions", optionalArgs);
     }
 
     /**
@@ -91,7 +104,7 @@ public class MudrexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetFuturesOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetFuturesOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetFuturesOrders", optionalArgs);
     }
@@ -102,7 +115,7 @@ public class MudrexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetFuturesOrdersHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetFuturesOrdersHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetFuturesOrdersHistory", optionalArgs);
     }
@@ -113,7 +126,7 @@ public class MudrexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetFuturesOrdersOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetFuturesOrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateGetFuturesOrdersOrderId", optionalArgs);
     }
@@ -124,7 +137,7 @@ public class MudrexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetFuturesPositions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetFuturesPositions (Object... optionalArgs)
     {
         return this.callAsync ("privateGetFuturesPositions", optionalArgs);
     }
@@ -135,7 +148,7 @@ public class MudrexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetFuturesPositionsHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetFuturesPositionsHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetFuturesPositionsHistory", optionalArgs);
     }
@@ -146,7 +159,7 @@ public class MudrexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetFuturesFeeHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetFuturesFeeHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetFuturesFeeHistory", optionalArgs);
     }
@@ -157,7 +170,7 @@ public class MudrexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetFuturesAssetIdLeverage (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetFuturesAssetIdLeverage (Object... optionalArgs)
     {
         return this.callAsync ("privateGetFuturesAssetIdLeverage", optionalArgs);
     }
@@ -168,7 +181,7 @@ public class MudrexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetFuturesPositionsPositionIdLiqPrice (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetFuturesPositionsPositionIdLiqPrice (Object... optionalArgs)
     {
         return this.callAsync ("privateGetFuturesPositionsPositionIdLiqPrice", optionalArgs);
     }
@@ -179,7 +192,7 @@ public class MudrexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostWalletFuturesTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostWalletFuturesTransfer (Object... optionalArgs)
     {
         return this.callAsync ("privatePostWalletFuturesTransfer", optionalArgs);
     }
@@ -190,7 +203,7 @@ public class MudrexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostFuturesTransfersInr (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostFuturesTransfersInr (Object... optionalArgs)
     {
         return this.callAsync ("privatePostFuturesTransfersInr", optionalArgs);
     }
@@ -201,7 +214,7 @@ public class MudrexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostFuturesAssetIdOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostFuturesAssetIdOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostFuturesAssetIdOrder", optionalArgs);
     }
@@ -212,7 +225,7 @@ public class MudrexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostFuturesPositionsPositionIdClose (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostFuturesPositionsPositionIdClose (Object... optionalArgs)
     {
         return this.callAsync ("privatePostFuturesPositionsPositionIdClose", optionalArgs);
     }
@@ -223,7 +236,7 @@ public class MudrexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostFuturesPositionsPositionIdClosePartial (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostFuturesPositionsPositionIdClosePartial (Object... optionalArgs)
     {
         return this.callAsync ("privatePostFuturesPositionsPositionIdClosePartial", optionalArgs);
     }
@@ -234,7 +247,7 @@ public class MudrexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostFuturesPositionsPositionIdReverse (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostFuturesPositionsPositionIdReverse (Object... optionalArgs)
     {
         return this.callAsync ("privatePostFuturesPositionsPositionIdReverse", optionalArgs);
     }
@@ -245,7 +258,7 @@ public class MudrexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostFuturesPositionsPositionIdAddMargin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostFuturesPositionsPositionIdAddMargin (Object... optionalArgs)
     {
         return this.callAsync ("privatePostFuturesPositionsPositionIdAddMargin", optionalArgs);
     }
@@ -256,7 +269,7 @@ public class MudrexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostFuturesPositionsPositionIdRiskorder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostFuturesPositionsPositionIdRiskorder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostFuturesPositionsPositionIdRiskorder", optionalArgs);
     }
@@ -267,7 +280,7 @@ public class MudrexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostFuturesAssetIdLeverage (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostFuturesAssetIdLeverage (Object... optionalArgs)
     {
         return this.callAsync ("privatePostFuturesAssetIdLeverage", optionalArgs);
     }
@@ -278,7 +291,7 @@ public class MudrexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePatchFuturesOrdersOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePatchFuturesOrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privatePatchFuturesOrdersOrderId", optionalArgs);
     }
@@ -289,7 +302,7 @@ public class MudrexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePatchFuturesPositionsPositionIdRiskorder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePatchFuturesPositionsPositionIdRiskorder (Object... optionalArgs)
     {
         return this.callAsync ("privatePatchFuturesPositionsPositionIdRiskorder", optionalArgs);
     }
@@ -300,7 +313,7 @@ public class MudrexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteFuturesOrdersOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteFuturesOrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteFuturesOrdersOrderId", optionalArgs);
     }

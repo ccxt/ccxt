@@ -473,6 +473,13 @@ public partial class bittrade : Exchange
         return await this.callAsync<Dictionary<string, object>> ("publicGetSettingsCurrencys",parameters);
     }
 
+    /// <summary>Calls the publicGetRetailMaintainTime endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetRetailMaintainTime (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetRetailMaintainTime",parameters);
+    }
+
     /// <summary>Calls the privateGetAccountAccounts endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateGetAccountAccounts (object parameters = null)
@@ -641,6 +648,13 @@ public partial class bittrade : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateGetStableCoinQuote",parameters);
     }
 
+    /// <summary>Calls the privateGetRetailOrderList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetRetailOrderList (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetRetailOrderList",parameters);
+    }
+
     /// <summary>Calls the privatePostAccountTransfer endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privatePostAccountTransfer (object parameters = null)
@@ -779,6 +793,13 @@ public partial class bittrade : Exchange
     public async Task<Dictionary<string, object>> privatePostSubuserTransfer (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privatePostSubuserTransfer",parameters);
+    }
+
+    /// <summary>Calls the privatePostRetailOrderPlace endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostRetailOrderPlace (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostRetailOrderPlace",parameters);
     }
 
 }
