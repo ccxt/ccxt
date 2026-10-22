@@ -9867,7 +9867,8 @@ function x22MapRewrite (helper: string, args: string[], statement: boolean, decl
         const [ t, k ] = args;
         const fieldMap = /^this\.([A-Za-z_]\w*)$/.exec (t);
         // GetValue does not synchronize: a plain get on a declared-Map base field is the same read
-        const mapRecv = (ident (t) && isMap (declaredType (t))) || (fieldMap !== null && j39MapFields ().has (fieldMap[1]));
+        // markets_by_id is volatile and reset to null by other threads: the guard's double read could NPE, keep the helper
+        const mapRecv = (ident (t) && isMap (declaredType (t))) || (fieldMap !== null && fieldMap[1] !== 'markets_by_id' && j39MapFields ().has (fieldMap[1]));
         if (mapRecv && stringKey (k)) {
             const recvNonNull = ident (t) && fresh (t);
             // HashMap.get(null) answers null; a possibly-concurrent map throws, so guard an identifier key
