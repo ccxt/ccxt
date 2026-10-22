@@ -313,7 +313,7 @@ public partial class onetrading : ccxt.onetrading
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolResolved, limit));
         }
         trades = this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved);
-        int numTrades = getArrayLength(trades);
+        int numTrades = (((object)(trades)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
         if ((numTrades == 0))
         {
             return await this.WatchMyTrades(symbolResolved,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limitResolved), parameters);
@@ -447,7 +447,7 @@ public partial class onetrading : ccxt.onetrading
         //       [ 'SELL', "0.053698", "0" ]
         //    ]
         //
-        for (int i = 0; i < getArrayLength(deltas); i++)
+        for (int i = 0; i < (((object)(deltas)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             this.handleBookDelta(orderbook, getValue(deltas, i));
         }
@@ -499,7 +499,7 @@ public partial class onetrading : ccxt.onetrading
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limit));
         }
         orders = this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved);
-        int numOrders = getArrayLength(orders);
+        int numOrders = (((object)(orders)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
         if ((numOrders == 0))
         {
             return await this.WatchOrders(symbolResolved,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limitResolved), parameters);
@@ -1176,7 +1176,7 @@ public partial class onetrading : ccxt.onetrading
         List<object> marketIds = new List<object>(subscription.Keys);
         for (int i = 0; i < marketIds.Count; i++)
         {
-            List<object> marketIdtimeframes = new List<object>(((IDictionary<string,object>)getValue(subscription, marketIds[i])).Keys);
+            List<object> marketIdtimeframes = new List<object>(((IDictionary<string,object>)(subscription != null && marketIds[i] != null && subscription.ContainsKey((string)marketIds[i]) ? subscription[(string)marketIds[i]] : null)).Keys);
             for (int ii = 0; ii < marketIdtimeframes.Count; ii++)
             {
                 IDictionary<string, object> marketTimeframeId = this.safeDict(timeframes, timeframeVar);
@@ -1273,7 +1273,7 @@ public partial class onetrading : ccxt.onetrading
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            if (isEqual(getValue(getValue(timeframesResolved, key), "unit"), getValue(timeframe, "unit")) && isEqual(getValue(getValue(timeframesResolved, key), "period"), getValue(timeframe, "period")))
+            if (((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))(getValue(getValue(timeframesResolved, key), "unit"), getValue(timeframe, "unit")) && ((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))(getValue(getValue(timeframesResolved, key), "period"), getValue(timeframe, "period")))
             {
                 return key;
             }

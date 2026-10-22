@@ -967,19 +967,21 @@ public partial class bitopro : Exchange
         };
         // we need to have a limit argument because "to" and "from" are required
         // supports slightly more than 75k candles atm, but limit here to avoid errors
-        object limitResolved = ((limit == null)) ? 500 : mathMin(limit, 75000);
+        Int64? limitResolved = this.parseToInt(((limit == null)) ? 500 : (((((object)(limit)) is var c31v0) && (((object)(75000)) is var c31v1)) ? (((c31v0 == null) || (c31v1 == null)) ? null : ((Convert.ToDouble(c31v0) < Convert.ToDouble(c31v1)) ? c31v0 : c31v1)) : null));
         int timeframeInSeconds = this.parseTimeframe(timeframeVar);
-        object alignedSince = null;
+        Int64? alignedSince = null;
         if ((since == null))
         {
-            request["to"] = this.seconds();
-            request["from"] = subtract((request != null && request.ContainsKey("to") ? request["to"] : null), (multiply(limitResolved, timeframeInSeconds)));
+            Int64 toSeconds = this.seconds();
+            request["to"] = toSeconds;
+            request["from"] = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(toSeconds, ((limitResolved * timeframeInSeconds)));
         } else
         {
             Int64 timeframeInMilliseconds = (timeframeInSeconds * 1000L);
-            alignedSince = multiply((Math.Floor(Double.Parse((((double?)since / timeframeInMilliseconds)).ToString()))), timeframeInMilliseconds);
-            request["from"] = (Math.Floor(Double.Parse((((double?)since / 1000)).ToString())));
-            request["to"] = this.sum((request != null && request.ContainsKey("from") ? request["from"] : null), multiply(limitResolved, timeframeInSeconds));
+            alignedSince = (this.parseToInt((Math.Floor(Double.Parse((((double?)since / timeframeInMilliseconds)).ToString())))) * timeframeInMilliseconds);
+            double fromSeconds = (Math.Floor(Double.Parse((((double?)since / 1000)).ToString())));
+            request["from"] = fromSeconds;
+            request["to"] = this.sum(fromSeconds, (limitResolved * timeframeInSeconds));
         }
         Dictionary<string, object> response = await this.publicGetTradingHistoryPair(this.extend(request, parameters));
         List<object> data = this.safeList(response, "data", new List<object>() {});
@@ -998,10 +1000,10 @@ public partial class bitopro : Exchange
         //     }
         //
         IList<object> sparse = this.parseOHLCVs(data, market,timeframeVar, since, limitResolved);
-        return ccxt.BaseExchange.ToOHLCVList(this.insertMissingCandles(sparse, timeframeInSeconds, alignedSince, limitResolved));
+        return ccxt.BaseExchange.ToOHLCVList(this.insertMissingCandles(sparse, (timeframeInSeconds * 1000L), alignedSince, limitResolved));
     }
 
-    public virtual object insertMissingCandles(IList<object> candles, object distance, object since, object limit)
+    public virtual object insertMissingCandles(IList<object> candles, object distanceInMs, object since, object limit)
     {
         // the exchange doesn't send zero volume candles so we emulate them instead
         // otherwise sending a limit arg leads to unexpected results
@@ -1023,10 +1025,10 @@ public partial class bitopro : Exchange
         object i = 0;
         int candleLength = candles?.Count ?? 0;
         object resultLength = 0;
-        while ((isLessThan(resultLength, limit)) && (isLessThan(i, candleLength)))
+        while ((((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } bool c32Int(object v) { Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } bool c32Eq(object x, object y) { if (x == null && y == null) return true; if (x == null || y == null) return false; try { if (x.GetType() != y.GetType() && (!Double.TryParse(x.ToString(), out _) || !Double.TryParse(y.ToString(), out _))) return false; if (c32Int(x) && c32Int(y)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(decimal) || y.GetType() == typeof(decimal)) return Convert.ToDecimal(x) == Convert.ToDecimal(y); if (x.GetType() == typeof(int)) return (int)x == (int)y; if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) == Convert.ToDouble(y); if (x.GetType() == typeof(Single) || y.GetType() == typeof(Single)) return Convert.ToSingle(x) == Convert.ToSingle(y); if (x.GetType() == typeof(string)) return ((string)x) == ((string)y); if (x.GetType() == typeof(bool)) return ((bool)x) == ((bool)y); return false; } catch { return false; } } return !c32Gt(c32a, c32b) && !c32Eq(c32a, c32b); }))(resultLength, limit)) && (((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } bool c32Int(object v) { Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } bool c32Eq(object x, object y) { if (x == null && y == null) return true; if (x == null || y == null) return false; try { if (x.GetType() != y.GetType() && (!Double.TryParse(x.ToString(), out _) || !Double.TryParse(y.ToString(), out _))) return false; if (c32Int(x) && c32Int(y)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(decimal) || y.GetType() == typeof(decimal)) return Convert.ToDecimal(x) == Convert.ToDecimal(y); if (x.GetType() == typeof(int)) return (int)x == (int)y; if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) == Convert.ToDouble(y); if (x.GetType() == typeof(Single) || y.GetType() == typeof(Single)) return Convert.ToSingle(x) == Convert.ToSingle(y); if (x.GetType() == typeof(string)) return ((string)x) == ((string)y); if (x.GetType() == typeof(bool)) return ((bool)x) == ((bool)y); return false; } catch { return false; } } return !c32Gt(c32a, c32b) && !c32Eq(c32a, c32b); }))(i, candleLength)))
         {
             object candle = getValue(candles, i);
-            if (isEqual(getValue(candle, 0), timestamp))
+            if (((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))(getValue(candle, 0), timestamp))
             {
                 result.Add(candle);
                 i = this.sum(i, 1);
@@ -1041,9 +1043,9 @@ public partial class bitopro : Exchange
                 copy[Convert.ToInt32(5)] = this.parseNumber("0");
                 result.Add(copy);
             }
-            timestamp = this.sum(timestamp, multiply(distance, 1000));
+            timestamp = this.sum(timestamp, distanceInMs);
             resultLength = (result?.Count ?? 0);
-            copyFrom = getValue(result, subtract(resultLength, 1));
+            copyFrom = getValue(result, ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(resultLength, 1));
         }
         return result;
     }
@@ -1062,7 +1064,7 @@ public partial class bitopro : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (int i = 0; i < getArrayLength(response); i++)
+        for (int i = 0; i < (((object)(response)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             IDictionary<string, object> balance = this.safeDict(response, i);
             string? currencyId = this.safeString(balance, "currency");
@@ -1345,7 +1347,7 @@ public partial class bitopro : Exchange
         {
             string? marketId = ((string)dataKeys[i]);
             object orderIds = (data != null && marketId != null && data.ContainsKey(marketId) ? data[marketId] : null);
-            for (int j = 0; j < getArrayLength(orderIds); j++)
+            for (int j = 0; j < (((object)(orderIds)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); j++)
             {
                 orders.Add(ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
                     { "info", getValue(orderIds, j) },
@@ -2128,7 +2130,8 @@ public partial class bitopro : Exchange
         {
             return null;  // fallback to the default error handler
         }
-        if (isGreaterThanOrEqual(code, 200) && isLessThan(code, 300))
+        Int64? statusCode = this.parseToInt(code);
+        if ((statusCode >= 200) && ((statusCode == null || statusCode < 300)))
         {
             return null;
         }

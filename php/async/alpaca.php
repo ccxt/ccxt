@@ -823,8 +823,8 @@ class alpaca extends Exchange {
         $paginate = false;
         $query = null;
         list($paginate, $query) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
-        $paginationCalls = 10;
-        list($paginationCalls, $query) = $this->handle_option_integer_and_params($query, 'fetchOHLCV', 'paginationCalls', 10);
+        list($paginationCalls, $queryPagination) = $this->handle_option_integer_and_params($query, 'fetchOHLCV', 'paginationCalls', 10);
+        $query = $queryPagination;
         $request = array(
             'symbols' => $marketId,
             'loc' => $loc,
@@ -1634,7 +1634,7 @@ class alpaca extends Exchange {
         ), $marketResolved);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'pending_new' => 'open',
             'accepted' => 'open',
@@ -1658,7 +1658,7 @@ class alpaca extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_time_in_force(?string $timeInForce) {
+    public function parse_time_in_force(?string $timeInForce): ?string {
         $timeInForces = array(
             'day' => 'Day', // equities-only value kept as-is deliberately: crypto orders reject it with 42210000, verified live 2026-09-13, and the unified set has no day spelling either way
             'gtc' => 'GTC',
@@ -1903,11 +1903,11 @@ class alpaca extends Exchange {
         $this->options['sandboxMode'] = $enable;
     }
 
-    public function fetch_transactions_helper(string $type, ?string $code, mixed $since, mixed $limit, mixed $params): PromiseInterface {
+    public function fetch_transactions_helper(string $type, ?string $code, ?int $since, ?int $limit, mixed $params): PromiseInterface {
         return Async\async(self::do_fetch_transactions_helper(...))($type, $code, $since, $limit, $params);
     }
 
-    private function do_fetch_transactions_helper(string $type, ?string $code, mixed $since, mixed $limit, mixed $params) {
+    private function do_fetch_transactions_helper(string $type, ?string $code, ?int $since, ?int $limit, mixed $params) {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -2161,7 +2161,7 @@ class alpaca extends Exchange {
         );
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             // crypto wallets api
             'PROCESSING' => 'pending',
@@ -2373,7 +2373,8 @@ class alpaca extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             $codeAsString = (string) $code;
-            if (($code < 400) || !(is_array($this->httpExceptions) && array_key_exists($codeAsString ?? '', $this->httpExceptions))) {
+            $statusCode = $this->parse_to_int($code);
+            if (($statusCode < 400) || !(is_array($this->httpExceptions) && array_key_exists($codeAsString ?? '', $this->httpExceptions))) {
                 // an error envelope must always throw — also for statuses the http-status handler has no entry for
                 throw new ExchangeError($feedback);
             }

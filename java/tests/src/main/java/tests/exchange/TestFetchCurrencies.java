@@ -25,7 +25,7 @@ public class TestFetchCurrencies extends BaseTest {
         String method = "fetchCurrencies";
         Object currencies = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchCurrencies", new Object[]{new HashMap<String, Object>() {{}}})).join();
         // todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
-        Object numInactiveCurrencies = 0;
+        long numInactiveCurrencies = 0;
         Object maxInactiveCurrenciesPercentage = exchange.safeInteger(skippedProperties, "maxInactiveCurrenciesPercentage", 50); // no more than X% currencies should be inactive
         List<String> requiredActiveCurrencies = new ArrayList<String>(Arrays.asList("BTC", "ETH", "USDT", "USDC"));
         Object features = exchange.features;
@@ -52,7 +52,7 @@ public class TestFetchCurrencies extends BaseTest {
                 Object active = exchange.safeBool(currency, "active", (Object) null);
                 if (java.util.Objects.equals(active, false))
                 {
-                    numInactiveCurrencies = Helpers.add(numInactiveCurrencies, 1);
+                    numInactiveCurrencies = (numInactiveCurrencies + 1L);
                 }
                 // ensure that major currencies are active and enabled for deposit and withdrawal
                 String code = exchange.safeString(currency, "code");
@@ -66,7 +66,7 @@ public class TestFetchCurrencies extends BaseTest {
                 }
             }
             // check at least X% of currencies are active
-            Object inactiveCurrenciesPercentage = Helpers.multiply((Helpers.divide(numInactiveCurrencies, currenciesLength)), 100);
+            Object inactiveCurrenciesPercentage = Helpers.multiply(((((double) numInactiveCurrencies) / ((double) currenciesLength))), 100);
             Assert(Boolean.TRUE.equals(skipActive) || (Helpers.isLessThan(inactiveCurrenciesPercentage, maxInactiveCurrenciesPercentage)), (((("Percentage of inactive currencies is too high at " + String.valueOf(inactiveCurrenciesPercentage)) + "% that is more than the allowed maximum of ") + String.valueOf(maxInactiveCurrenciesPercentage)) + "%"));
             detectCurrencyConflicts(exchange, currencies);
         }

@@ -1421,17 +1421,22 @@ class bullish extends Exchange {
             '_pageSize' => $maxLimit,
         );
         list($requestUntil, $paramsUntil) = $this->handle_until_option('createdAtDatetime[lte]', $request, $paramsPaginate);
-        $until = $this->safe_integer($requestUntil, 'createdAtDatetime[lte]');
+        $untilParam = $this->safe_integer($requestUntil, 'createdAtDatetime[lte]');
+        $until = null;
+        if ($untilParam !== null) {
+            $until = $untilParam;
+        }
         $duration = $this->parse_timeframe($timeframe);
-        $maxDelta = 1000 * $duration * $maxLimit;
+        $maxDelta = $duration * $maxLimit * 1000;
         $startTime = $since;
         // both of since and until are required
-        if ($startTime === null && $until === null) {
-            $until = $this->milliseconds();
-            $startTime = $until - $maxDelta;
-        } elseif ($startTime === null) {
-            $startTime = $until - $maxDelta;
-        } elseif ($until === null) {
+        if ($since === null && $untilParam === null) {
+            $now = $this->milliseconds();
+            $until = $now;
+            $startTime = $now - $maxDelta;
+        } elseif (($since === null) && ($untilParam !== null)) {
+            $startTime = $untilParam - $maxDelta;
+        } elseif ($untilParam === null) {
             $until = $this->sum($startTime, $maxDelta);
         }
         $requestUntil['createdAtDatetime[gte]'] = $this->iso8601($startTime);
@@ -1637,23 +1642,29 @@ class bullish extends Exchange {
     }
 
     public function handle_since_and_until(?int $since = null, $params = array(), ?string $sinceKey = 'createdAtDatetime[gte]', ?string $untilKey = 'createdAtDatetime[lte]'): array {
-        $until = $this->safe_integer($params, 'until');
-        $sinceFromUntil = ($since === null) && ($until !== null);
+        $untilParam = $this->safe_integer($params, 'until');
+        $until = null;
+        if ($untilParam !== null) {
+            $until = $untilParam;
+        }
+        $sinceFromUntil = ($since === null) && ($untilParam !== null);
         $paramsResult = $params;
         if ($sinceFromUntil) {
             $paramsResult = $this->omit($params, 'until');
         }
-        if (($since !== null) || ($until !== null)) {
+        if (($since !== null) || ($untilParam !== null)) {
             $timeDelta = 7 * 24 * 60 * 60 * 1000; // 7 days
             $sinceResolved = $since;
-            if ($since === null) {
-                $sinceResolved = $until - $timeDelta;
+            if (($since === null) && ($untilParam !== null)) {
+                $sinceResolved = $untilParam - $timeDelta;
             }
-            if (($since !== null) && ($until === null)) {
-                $until = $this->sum($since, $timeDelta);
+            if (($since !== null) && ($untilParam === null)) {
                 $now = $this->milliseconds();
-                if ($until > $now) {
+                $latestSince = $now - $timeDelta;
+                if ($since > $latestSince) {
                     $until = $now;
+                } else {
+                    $until = $this->sum($since, $timeDelta);
                 }
             }
             $sinceDate = $this->iso8601($sinceResolved);
@@ -1666,6 +1677,9 @@ class bullish extends Exchange {
 
     public function get_closest_limit(?int $limit): ?int {
         $pageSize = 5;
+        if ($limit === null) {
+            return $pageSize;
+        }
         if (($limit > 5) && ($limit < 26)) {
             $pageSize = 25;
         } elseif (($limit > 25) && ($limit < 51)) {
@@ -2129,7 +2143,7 @@ class bullish extends Exchange {
         ), $marketResolved);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'OPEN' => 'open',
             'CLOSED' => 'closed',
@@ -2139,7 +2153,7 @@ class bullish extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_type(?string $type) {
+    public function parse_order_type(?string $type): ?string {
         $types = array(
             'LMT' => 'limit',
             'MKT' => 'market',
@@ -2344,7 +2358,7 @@ class bullish extends Exchange {
         );
     }
 
-    public function parse_transaction_type(?string $type) {
+    public function parse_transaction_type(?string $type): ?string {
         $types = array(
             'DEPOSIT' => 'deposit',
             'WITHDRAW' => 'withdrawal',
@@ -2352,7 +2366,7 @@ class bullish extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'COMPLETE' => 'ok',
             'FAILED' => 'failed',
@@ -2367,9 +2381,8 @@ class bullish extends Exchange {
     }
 
     private function do_load_account($params = array()) {
-        $tradingAccountId = null;
-        $paramsTradingAccountId = null;
-        list($tradingAccountId, $paramsTradingAccountId) = $this->handle_option_string_and_params($params, 'loadAccount', 'tradingAccountId');
+        list($tradingAccountIdOption, $paramsTradingAccountId) = $this->handle_option_string_and_params($params, 'loadAccount', 'tradingAccountId');
+        $tradingAccountId = $tradingAccountIdOption;
         if ($tradingAccountId === null) {
             $response = Async\await($this->privateGetV1AccountsTradingAccounts($paramsTradingAccountId));
             $accounts = $this->to_array($response);
@@ -2528,9 +2541,10 @@ class bullish extends Exchange {
         $safeResponse = $this->to_array($response);
         $length = count($safeResponse);
         $data = $this->safe_dict($safeResponse, 0, array());
-        $network = null;
-        $network = $this->handle_network_code_and_params($params)[0];
-        $networkDefinedByUser = $network !== null;
+        $networkAndParams = $this->handle_network_code_and_params($params);
+        $networkParam = $networkAndParams[0];
+        $networkDefinedByUser = $networkParam !== null;
+        $network = $networkParam;
         if (($length > 1) || ($networkDefinedByUser)) {
             // some currencies have multiple networks
             if ($network === null) {
@@ -2748,7 +2762,7 @@ class bullish extends Exchange {
         ));
     }
 
-    public function parse_position_side(?string $side) {
+    public function parse_position_side(?string $side): ?string {
         $sides = array(
             'BUY' => 'long',
             'SELL' => 'short',
@@ -2908,7 +2922,7 @@ class bullish extends Exchange {
         );
     }
 
-    public function parse_transfer_status(?string $status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             'CLOSED' => 'ok',
             'OPEN' => 'pending',
@@ -2948,7 +2962,7 @@ class bullish extends Exchange {
         list($requestUntil, $paramsUntil) = $this->handle_until_option('createdAtDatetime[lte]', $request, $params);
         $until = $this->safe_integer($requestUntil, 'createdAtDatetime[lte]');
         // current endpoint requires both since and until parameters
-        if ($startTimestamp === null) {
+        if ($since === null) {
             $startTimestamp = $now - 1000 * 60 * 60 * 24 * 90; // Only the last 90 days of data is available for querying
         }
         if ($until === null) {
@@ -2995,7 +3009,7 @@ class bullish extends Exchange {
         );
     }
 
-    public function get_timestamp() {
+    public function get_timestamp(): float {
         return $this->milliseconds() - $this->safe_integer($this->options, 'timeDifference', 0);
     }
 

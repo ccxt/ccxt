@@ -575,8 +575,9 @@ class nado extends Exchange {
             );
             $placeOrder['trigger'] = $trigger;
         }
-        $appendix = $this->safe_string($paramsRecvWindow, 'appendix');
-        if ($appendix === null) {
+        $rawAppendix = $this->safe_string($paramsRecvWindow, 'appendix');
+        $appendix = $rawAppendix;
+        if ($rawAppendix === null) {
             $appendix = $this->create_order_appendix($isTriggerOrder, $paramsRecvWindow);
         }
         $order['appendix'] = $appendix;
@@ -686,8 +687,9 @@ class nado extends Exchange {
         list($recvWindow, $paramsRecvWindow) = $this->handle_option_integer_and_params($paramsExpiration, 'editOrder', 'recvWindow', 5000);
         $cancelNonce = $this->create_order_nonce($recvWindow);
         $orderNonce = Precise::string_add($cancelNonce, '1');
-        $appendix = $this->safe_string($paramsRecvWindow, 'appendix');
-        if ($appendix === null) {
+        $rawAppendix = $this->safe_string($paramsRecvWindow, 'appendix');
+        $appendix = $rawAppendix;
+        if ($rawAppendix === null) {
             $appendix = $this->create_order_appendix(false, $paramsRecvWindow);
         }
         $requestId = $this->safe_integer($paramsRecvWindow, 'id');
@@ -1545,6 +1547,12 @@ class nado extends Exchange {
             $currency = $this->currency($code);
         }
         list($subaccount, $paramsSubaccount) = $this->handle_option_string_and_params($params, $methodName, 'subaccount', 'default');
+        $limitRequest = array(
+            'raw' => 100,
+        );
+        if ($limit !== null) {
+            $limitRequest['raw'] = min($limit, 500);
+        }
         $eventsRequest = array(
             'subaccounts' => array(
                 $this->create_subaccount($this->walletAddress, $subaccount),
@@ -1552,9 +1560,7 @@ class nado extends Exchange {
             'event_types' => array(
                 $eventType,
             ),
-            'limit' => array(
-                'raw' => ($limit === null) ? 100 : min($limit, 500),
-            ),
+            'limit' => $limitRequest,
         );
         if ($currency !== null) {
             $eventsRequest['product_ids'] = array(
@@ -2099,14 +2105,18 @@ class nado extends Exchange {
             throw new BadSymbol($this->id . ' fetchFundingHistory() supports swap contracts only');
         }
         list($subaccount, $paramsSubaccount) = $this->handle_option_string_and_params($params, 'fetchFundingHistory', 'subaccount', 'default');
-        $request = array(
-            'interest_and_funding' => array(
-                'subaccount' => $this->create_subaccount($this->walletAddress, $subaccount),
-                'product_ids' => array(
-                    $this->parse_to_int($market['id']),
-                ),
-                'limit' => ($limit === null) ? 100 : min($limit, 100),
+        $fundingRequest = array(
+            'subaccount' => $this->create_subaccount($this->walletAddress, $subaccount),
+            'product_ids' => array(
+                $this->parse_to_int($market['id']),
             ),
+            'limit' => 100,
+        );
+        if ($limit !== null) {
+            $fundingRequest['limit'] = min($limit, 100);
+        }
+        $request = array(
+            'interest_and_funding' => $fundingRequest,
         );
         $response = Async\await($this->archivePost($this->deep_extend($request, $paramsSubaccount)));
         //
@@ -2497,10 +2507,13 @@ class nado extends Exchange {
                 $side = 'buy';
             }
         }
-        $price = $this->safe_string($trade, 'price');
-        if ($price === null) {
-            $parsedPrice = $this->parse_x18($this->safe_string($order, 'priceX18'));
-            $price = ($parsedPrice === null) ? null : $this->number_to_string($parsedPrice);
+        $tradePrice = $this->safe_string($trade, 'price');
+        $price = $tradePrice;
+        if ($tradePrice === null) {
+            $orderPriceX18 = $this->safe_string($order, 'priceX18');
+            if ($orderPriceX18 !== null) {
+                $price = $this->number_to_string($this->parse_x18($orderPriceX18));
+            }
         }
         $takerOrMaker = null;
         $isTaker = $this->safe_bool($trade, 'is_taker');
@@ -3082,8 +3095,9 @@ class nado extends Exchange {
                     $status = 'canceled';
                 }
             } else {
-                $status = $this->safe_string($order, 'status', 'rejected');
-                if (($status === 'success') || (mb_strpos($status, 'waiting') !== false)) {
+                $rawStatus = $this->safe_string($order, 'status', 'rejected');
+                $status = $rawStatus;
+                if (($rawStatus === 'success') || (mb_strpos($rawStatus, 'waiting') !== false)) {
                     $status = 'open';
                 }
             }
@@ -3116,7 +3130,7 @@ class nado extends Exchange {
         ), $marketResolved);
     }
 
-    public function parse_order_time_in_force(?string $timeInForce) {
+    public function parse_order_time_in_force(?string $timeInForce): ?string {
         $timeInForces = array(
             'default' => 'GTC',
             'ioc' => 'IOC',
@@ -3187,7 +3201,7 @@ class nado extends Exchange {
         return $appendix;
     }
 
-    public function create_subaccount(?string $walletAddress, ?string $subaccount = 'default') {
+    public function create_subaccount(?string $walletAddress, ?string $subaccount = 'default'): string {
         if ($walletAddress === null) {
             throw new ArgumentsRequired($this->id . ' createSubaccount() requires walletAddress');
         }
@@ -3218,7 +3232,7 @@ class nado extends Exchange {
         return $this->safe_dict($this->options, 'gatewayContracts', array());
     }
 
-    public function order_verifying_contract(?int $productId) {
+    public function order_verifying_contract(?int $productId): string {
         return '0x' . $this->pad_hex($this->int_to_base16($productId), 40);
     }
 
@@ -3227,17 +3241,13 @@ class nado extends Exchange {
             throw new ArgumentsRequired($this->id . ' padHex() requires length');
         }
         $zeros = '00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
-        $padded = null;
         if ($left) {
-            $padded = ($zeros . $value);
-        } else {
-            $padded = ($value . $zeros);
+            $paddedLeft = $zeros . $value;
+            $start = strlen($paddedLeft) - $this->parse_to_int($length);
+            return mb_substr($paddedLeft, $start, strlen($paddedLeft) - $start);
         }
-        if ($left) {
-            $start = strlen($padded) - $length;
-            return mb_substr($padded, $start, strlen($padded) - $start);
-        }
-        return mb_substr($padded, 0, $length - 0);
+        $paddedRight = $value . $zeros;
+        return mb_substr($paddedRight, 0, $length - 0);
     }
 
     public function sign_order(array $order, ?int $productId, ?string $chainId): string {
@@ -3319,7 +3329,7 @@ class nado extends Exchange {
         return $this->sign_hash($hash, $this->privateKey);
     }
 
-    public function sign_hash(string $hash, ?string $privateKey) {
+    public function sign_hash(string $hash, ?string $privateKey): string {
         if ($privateKey === null) {
             throw new ArgumentsRequired($this->id . ' signHash() requires privateKey');
         }
@@ -3330,7 +3340,7 @@ class nado extends Exchange {
         return '0x' . $this->pad_hex($r, 64) . $this->pad_hex($s, 64) . $v;
     }
 
-    public function remove_market_suffix(?string $marketId) {
+    public function remove_market_suffix(?string $marketId): ?string {
         if ($marketId === null) {
             return null;
         }
@@ -3347,10 +3357,8 @@ class nado extends Exchange {
         if ($baseApiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
-        $url = $baseApiUrl;
-        if ($path !== '') {
-            $url .= '/' . $this->implode_params($path, $params);
-        }
+        $pathSuffix = ($path !== '') ? ('/' . $this->implode_params($path, $params)) : '';
+        $url = $baseApiUrl . $pathSuffix;
         $query = $this->omit($params, $this->extract_params($path));
         $headersValue = array();
         if (($endpoint === 'gateway') || ($endpoint === 'archive')) {

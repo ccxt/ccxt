@@ -439,19 +439,10 @@ class lighter extends lighter$1["default"] {
         }
     }
     getLighterPrivateKey(strAccountIndex, strApiKeyIndex) {
-        if (!('auths' in this.options)) {
-            return undefined;
-        }
-        if (!(strAccountIndex in this.options['auths'])) {
-            return undefined;
-        }
-        if (!(strApiKeyIndex in this.options['auths'][strAccountIndex])) {
-            return undefined;
-        }
-        if (!('lighterPrivateKey' in this.options['auths'][strAccountIndex][strApiKeyIndex])) {
-            return undefined;
-        }
-        return this.options['auths'][strAccountIndex][strApiKeyIndex]['lighterPrivateKey'];
+        const auths = this.safeDict(this.options, 'auths');
+        const accountAuths = this.safeDict(auths, strAccountIndex);
+        const apiKeyAuths = this.safeDict(accountAuths, strApiKeyIndex);
+        return this.safeString(apiKeyAuths, 'lighterPrivateKey');
     }
     /**
      * @method
@@ -481,13 +472,14 @@ class lighter extends lighter$1["default"] {
     }
     handleApiKeyIndex(params, methodName1, optionName1, optionName2, defaultValue = undefined) {
         const [apiKeyIndexOption, paramsApiKeyIndex] = this.handleOptionAndParams2(params, methodName1, optionName1, optionName2, defaultValue);
-        let apiKeyIndex = apiKeyIndexOption;
-        if ((apiKeyIndex === undefined) || (apiKeyIndex < 4) || (apiKeyIndex > 254)) {
-            // apiKeyIndex = this.randNumber (2);
-            apiKeyIndex = 254;
-            this.options['apiKeyIndex'] = apiKeyIndex; // default to a value to avoid overriding other keys
+        const apiKeyIndex = this.safeInteger([apiKeyIndexOption], 0);
+        if ((apiKeyIndex !== undefined) && (apiKeyIndex >= 4) && (apiKeyIndex <= 254)) {
+            return [this.parseToInt(apiKeyIndex), paramsApiKeyIndex];
         }
-        return [this.parseToInt(apiKeyIndex), paramsApiKeyIndex];
+        // apiKeyIndex = this.randNumber (2);
+        const defaultApiKeyIndex = 254;
+        this.options['apiKeyIndex'] = defaultApiKeyIndex; // default to a value to avoid overriding other keys
+        return [defaultApiKeyIndex, paramsApiKeyIndex];
     }
     async handleAccountIndex(params, methodName1, optionName1, optionName2, defaultValue = undefined) {
         const [accountIndexOption, paramsAccountIndex] = this.handleOptionAndParams2(params, methodName1, optionName1, optionName2, defaultValue);
@@ -574,11 +566,9 @@ class lighter extends lighter$1["default"] {
         const accountAuths = this.safeDict(auths, accountIndex);
         const cachedAuth = this.safeDict(accountAuths, apiKeyIndex);
         const cachedDeadline = this.safeInteger(cachedAuth, 'deadline');
-        if (cachedDeadline !== undefined) {
-            const minimumDeadline = this.seconds() + this.safeInteger(this.options, 'authDeadlineMinimumRemaining', 60);
-            if (cachedDeadline >= minimumDeadline) {
-                return this.safeString(cachedAuth, 'token');
-            }
+        const minimumRemaining = this.safeInteger(this.options, 'authDeadlineMinimumRemaining', 60);
+        if ((cachedDeadline !== undefined) && (minimumRemaining !== undefined) && (cachedDeadline - minimumRemaining >= this.seconds())) {
+            return this.safeString(cachedAuth, 'token');
         }
         const deadline = this.seconds() + this.safeInteger(this.options, 'authDeadlineExpiry', 28800);
         const request = {
@@ -795,8 +785,8 @@ class lighter extends lighter$1["default"] {
         request['api_key_index'] = apiKeyIndex;
         request['account_index'] = this.parseToInt(accountIndex);
         const triggerPrice = this.safeString2(paramsOrderExpiry, 'triggerPrice', 'stopPrice');
-        const stopLossPrice = this.safeValue(paramsOrderExpiry, 'stopLossPrice', triggerPrice);
-        const takeProfitPrice = this.safeValue(paramsOrderExpiry, 'takeProfitPrice');
+        const stopLossPrice = this.safeString(paramsOrderExpiry, 'stopLossPrice', triggerPrice);
+        const takeProfitPrice = this.safeString(paramsOrderExpiry, 'takeProfitPrice');
         const stopLoss = this.safeDict(paramsOrderExpiry, 'stopLoss');
         const takeProfit = this.safeDict(paramsOrderExpiry, 'takeProfit');
         const hasStopLoss = (stopLoss !== undefined);
@@ -1253,9 +1243,10 @@ class lighter extends lighter$1["default"] {
             if (type === 'perp') {
                 type = 'swap';
             }
-            let baseId = this.safeString(market, 'symbol');
-            if (baseId !== undefined && baseId.indexOf('/') !== -1) {
-                baseId = baseId.split('/')[0];
+            const marketSymbol = this.safeString(market, 'symbol');
+            let baseId = marketSymbol;
+            if (marketSymbol !== undefined && marketSymbol.indexOf('/') !== -1) {
+                baseId = marketSymbol.split('/')[0];
             }
             const quoteId = 'USDC';
             const settleId = (type === 'swap') ? 'USDC' : undefined;
@@ -1707,13 +1698,16 @@ class lighter extends lighter$1["default"] {
             }
         }
         else {
-            endTs = (until !== undefined) ? until : now;
-            const defaultLimit = 100;
-            if (limit !== undefined) {
-                startTs = endTs - this.parseTimeframe(timeframe) * 1000 * limit;
+            const count = this.safeInteger({ 'limit': limit }, 'limit', 100);
+            const timeframeMs = this.parseTimeframe(timeframe) * 1000;
+            const span = timeframeMs * count;
+            if (until !== undefined) {
+                endTs = until;
+                startTs = until - span;
             }
             else {
-                startTs = endTs - this.parseTimeframe(timeframe) * 1000 * defaultLimit;
+                endTs = now;
+                startTs = now - span;
             }
         }
         const request = {
@@ -2369,16 +2363,14 @@ class lighter extends lighter$1["default"] {
         const marketId = this.safeString(order, 'market_index');
         const marketResolved = this.safeMarket(marketId, market);
         const timestamp = this.safeTimestamp(order, 'timestamp');
-        let isAsk = this.safeBool(order, 'is_ask');
-        if (isAsk === undefined) {
-            const isAskAsInteger = this.safeInteger(order, 'is_ask');
-            if (isAskAsInteger !== undefined) {
-                isAsk = isAskAsInteger === 1;
-            }
-        }
+        const isAsk = this.safeBool(order, 'is_ask');
+        const isAskAsInteger = this.safeInteger(order, 'is_ask');
         let side = undefined;
         if (isAsk !== undefined) {
-            side = isAsk ? 'sell' : 'buy';
+            side = (isAsk === true) ? 'sell' : 'buy';
+        }
+        else if (isAskAsInteger !== undefined) {
+            side = (isAskAsInteger === 1) ? 'sell' : 'buy';
         }
         let type = this.safeString(order, 'type');
         if (type === undefined) {
@@ -2397,20 +2389,13 @@ class lighter extends lighter$1["default"] {
             }
         }
         // Try to parse to integer first, because parsing an integer to a string wouldn't result in undefined
-        let tif = undefined;
         const tifAsInteger = this.safeInteger(order, 'time_in_force');
-        if (tifAsInteger !== undefined) {
-            tif = this.parseOrderTimeInForceInteger(tifAsInteger);
-        }
-        else {
-            tif = this.safeString(order, 'time_in_force');
-        }
-        let reduceOnly = this.safeBool(order, 'reduce_only');
-        if (reduceOnly === undefined) {
-            const reduceOnlyAsInteger = this.safeInteger(order, 'reduce_only');
-            if (reduceOnlyAsInteger !== undefined) {
-                reduceOnly = reduceOnlyAsInteger === 1;
-            }
+        const tif = (tifAsInteger !== undefined) ? this.parseOrderTimeInForceInteger(tifAsInteger) : this.safeString(order, 'time_in_force');
+        const reduceOnlyAsBool = this.safeBool(order, 'reduce_only');
+        const reduceOnlyAsInteger = this.safeInteger(order, 'reduce_only');
+        let reduceOnly = reduceOnlyAsBool;
+        if ((reduceOnlyAsBool === undefined) && (reduceOnlyAsInteger !== undefined)) {
+            reduceOnly = (reduceOnlyAsInteger === 1);
         }
         const status = this.safeString(order, 'status');
         return this.safeOrder({
@@ -3091,7 +3076,7 @@ class lighter extends lighter$1["default"] {
         }
         let takerOrMaker = undefined;
         if (side !== undefined && isMakerAsk !== undefined) {
-            const isMaker = (side === 'sell') ? isMakerAsk : !isMakerAsk;
+            const isMaker = (side === 'sell') ? (isMakerAsk === true) : (isMakerAsk === false);
             takerOrMaker = isMaker ? 'maker' : 'taker';
         }
         return this.safeTrade({

@@ -162,7 +162,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         return BaseExchange.supplyAsync(() -> {
 
             (this.preLoadLighterLibrary(new HashMap<String, Object>() {{}})).join();
-            Helpers.addElementToObject(parameters, "auth", this.createAuth(parameters));
+            { Map<Object, Object> j39v1 = (Map<Object, Object>) (Map<?, ?>) (parameters); Object j39v2 = "auth"; Object j39v3 = this.createAuth(parameters); if (j39v1 == null) { if (j39v2 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v1) { if (j39v3 == null && j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); } else { j39v1.put(j39v2, j39v3); } } }
             return (this.subscribePublic(messageHash, parameters)).join();
         });
 
@@ -177,7 +177,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
 
     public void handleDeltas(Object bookside, Object deltas)
     {
-        for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
+        for (var i = 0; i < (switch ((Object)(deltas)) { case null -> 0; case List<?> j39v5 -> j39v5.size(); case String j39v6 -> j39v6.length(); case Object j39v7 -> j39v7.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v7) : 0; }); i++)
         {
             this.handleDelta(bookside, Helpers.GetValue(deltas, i));
         }
@@ -601,7 +601,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.unWatchTicker(symbol, Helpers.toMapArg(parameters))).join();
+            return (this.unWatchTicker(symbol, ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })))).join();
         });
 
     }
@@ -624,7 +624,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.unWatchTickers(symbols, Helpers.toMapArg(parameters))).join();
+            return (this.unWatchTickers(symbols, ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })))).join();
         });
 
     }
@@ -862,13 +862,13 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         String takerOrMaker = null;
         if (!java.util.Objects.equals(accountIndex, null))
         {
-            if ((bidAccountId != null && accountIndex != null && bidAccountId == accountIndex))
+            if (java.util.Objects.equals(bidAccountId, accountIndex))
             {
                 // Own trades should use the account's order side
                 side = "buy";
                 order = this.safeString(trade, "bid_id");
                 takerOrMaker = (((java.util.Objects.equals(isMakerAsk, true)))) ? "taker" : "maker";
-            } else if ((askAccountId != null && accountIndex != null && askAccountId == accountIndex))
+            } else if (java.util.Objects.equals(askAccountId, accountIndex))
             {
                 side = "sell";
                 order = this.safeString(trade, "ask_id");
@@ -1017,7 +1017,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             List<Object> accountIndexparamsAccountIndexVariable = (List<Object>) (this.handleAccountIndex(parameters, "watchMyTrades", "accountIndex", "account_index", (Object) null)).join();
             Long accountIndex = (Long) ((List<Object>) accountIndexparamsAccountIndexVariable).get(0);
             var paramsAccountIndex = ((List<Object>) accountIndexparamsAccountIndexVariable).get(1);
-            Object messageHash = this.getMessageHash("myTrades", (String) null, (String) null);
+            String messageHash = this.getMessageHash("myTrades", (String) null, (String) null);
             String symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -1354,8 +1354,8 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             balance.put("USDC", account);
         }
         Long timestamp = this.safeInteger(message, "timestamp");
-        Helpers.addElementToObject(balance, "timestamp", timestamp);
-        Helpers.addElementToObject(balance, "datetime", this.iso8601(timestamp));
+        { Map<Object, Object> j39v13 = (Map<Object, Object>) (Map<?, ?>) (balance); Object j39v14 = "timestamp"; Object j39v15 = timestamp; if (j39v13 == null) { if (j39v14 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v13) { if (j39v15 == null && j39v13 instanceof java.util.concurrent.ConcurrentHashMap) { j39v13.remove(j39v14); } else { j39v13.put(j39v14, j39v15); } } }
+        { Map<Object, Object> j39v10 = (Map<Object, Object>) (Map<?, ?>) (balance); Object j39v11 = "datetime"; Object j39v12 = this.iso8601(timestamp); if (j39v10 == null) { if (j39v11 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v10) { if (j39v12 == null && j39v10 instanceof java.util.concurrent.ConcurrentHashMap) { j39v10.remove(j39v11); } else { j39v10.put(j39v11, j39v12); } } }
         Helpers.addElementToObject(this.balance, type, this.safeBalance(balance));
         String messageHash = this.getMessageHash("balances", (String) null, type);
         client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), messageHash);
@@ -1722,7 +1722,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             Boolean handled = false;
             if (!java.util.Objects.equals(id, null))
             {
-                List<Object> subscriptionKeys = Helpers.objectKeys(client.subscriptions);
+                List<Object> subscriptionKeys = ((List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v18 -> { synchronized (j39v18) { yield new ArrayList<Object>(j39v18.keySet()); } } case null, default -> new ArrayList<Object>(); });
                 for (var i = 0; i < ((List<?>)subscriptionKeys).size(); i++)
                 {
                     Object subscriptionHash = (subscriptionKeys == null || i < 0 || i >= subscriptionKeys.size() ? null : subscriptionKeys.get(i));
@@ -1886,7 +1886,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             // it here would make the next watchTicker re-subscribe a channel the venue still
             // considers subscribed, and its "30003 Already Subscribed" frame carries no id,
             // so handleErrorMessage rejects every future on the socket
-            List<Object> subscriptionHashes = Helpers.objectKeys(client.subscriptions);
+            List<Object> subscriptionHashes = ((List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v19 -> { synchronized (j39v19) { yield new ArrayList<Object>(j39v19.keySet()); } } case null, default -> new ArrayList<Object>(); });
             for (var i = 0; i < ((List<?>)subscriptionHashes).size(); i++)
             {
                 Object subscriptionHash = (subscriptionHashes == null || i < 0 || i >= subscriptionHashes.size() ? null : subscriptionHashes.get(i));

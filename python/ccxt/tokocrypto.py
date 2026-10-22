@@ -1582,7 +1582,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                 result[code] = account
         return self.safe_balance(result)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             '-2': 'open',
             '0': 'open',  # NEW
@@ -1803,7 +1803,9 @@ class tokocrypto(Exchange, ImplicitAPI):
         # only supported for spot/margin api
         typeResolved = 'LIMIT_MAKER' if (postOnly) else type
         # post only is expressed by the order type here, not by a time force
-        timeInForceResolved = None if (postOnly) else requestedTimeInForce
+        timeInForceResolved = requestedTimeInForce
+        if postOnly:
+            timeInForceResolved = None
         initialUppercaseType = typeResolved.upper()
         uppercaseType = initialUppercaseType
         triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
@@ -2683,10 +2685,11 @@ class tokocrypto(Exchange, ImplicitAPI):
         elif ('noPoolId' in config) and not ('poolId' in params):
             return config['noPoolId']
         elif ('byLimit' in config) and ('limit' in params):
-            limit = params['limit']
+            limit = self.safe_integer(params, 'limit')
             byLimit = self.safe_list(config, 'byLimit', [])
             for i in range(0, len(byLimit)):
                 entry = byLimit[i]
-                if limit <= entry[0]:
+                entryLimit = self.safe_integer(entry, 0)
+                if (limit is not None) and (entryLimit is not None) and (limit <= entryLimit):
                     return entry[1]
         return self.safe_integer(config, 'cost', 1)

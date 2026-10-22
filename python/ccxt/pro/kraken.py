@@ -992,14 +992,11 @@ class kraken(ccxt.async_support.kraken):
 
     def format_number(self, data: str) -> str:
         parts = data.split('.')
-        integer = self.safe_string(parts, 0)
+        integer = self.safe_string(parts, 0, '')
         decimals = self.safe_string(parts, 1, '')
         joinedResult = integer + decimals
-        i = 0
-        while(joinedResult[i] == '0'):
-            i += 1
-        if i > 0:
-            joinedResult = joinedResult[i:]
+        while((len(joinedResult) > 0) and (joinedResult[0] == '0')):
+            joinedResult = joinedResult[1:]
         return joinedResult
 
     def handle_system_status(self, client: Client, message: dict) -> dict:
@@ -1038,8 +1035,9 @@ class kraken(ccxt.async_support.kraken):
         subscription = self.safe_value(client.subscriptions, authenticated)
         now = self.seconds()
         start = self.safe_integer(subscription, 'start')
-        expires = self.safe_integer(subscription, 'expires')
-        if (subscription is None) or ((subscription is not None) and (start + expires) <= now):
+        expires = self.safe_integer(subscription, 'expires', -1)
+        expired = (start is not None) and (expires >= 0) and (start <= (now - expires))
+        if (subscription is None) or expired:
             # single-flight leader election, see
             # https://github.com/ccxt/ccxt/issues/29393: the staleness gate
             # above is followed by an awaited privatePostGetWebSocketsToken (),
@@ -1307,8 +1305,9 @@ class kraken(ccxt.async_support.kraken):
                 if length == limit and (previousOrder is None):
                     first = stored[0]
                     symbolsByOrderId = self.safe_dict(self.options, 'symbolsByOrderId', {})
-                    if first['id'] in symbolsByOrderId:
-                        del symbolsByOrderId[first['id']]
+                    firstId = self.safe_string(first, 'id')
+                    if (firstId is not None) and (firstId in symbolsByOrderId):
+                        del symbolsByOrderId[firstId]
                 stored.append(newOrder)
                 if symbol is not None:
                     symbols[symbol] = True

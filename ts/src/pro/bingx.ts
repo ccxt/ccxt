@@ -1320,7 +1320,7 @@ export default class bingx extends bingxRest {
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             const contracts = this.safeNumber (position, 'contracts', 0);
-            if ((contracts as number) > 0) {
+            if ((contracts !== undefined) && (contracts > 0)) {
                 cache.append (position);
             }
         }
@@ -1506,7 +1506,7 @@ export default class bingx extends bingxRest {
         const time = this.milliseconds ();
         const lastAuthenticatedTime = this.safeInteger (this.options, 'lastAuthenticatedTime', 0);
         const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 3600000); // 1 hour
-        if (time - lastAuthenticatedTime > listenKeyRefreshRate) {
+        if ((listenKeyRefreshRate !== undefined) && (time - lastAuthenticatedTime > listenKeyRefreshRate)) {
             // single-flight leader election on a never-dialed client, see
             // https://github.com/ccxt/ccxt/issues/29393: racing fetches mint
             // different keys and the key rides the private url, so losers

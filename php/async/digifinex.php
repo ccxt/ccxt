@@ -696,7 +696,8 @@ class digifinex extends Exchange {
             // const status = this.safeString (market, 'status');
             // const active = (status === 'TRADING');
             //
-            $isAllowed = $this->safe_integer($market, 'is_allow', 1);
+            $isAllowedRaw = $this->safe_integer($market, 'is_allow', 1);
+            $isTradingSwap = false;
             $type = ($defaultType === 'margin') ? 'margin' : 'spot';
             $spot = $settle === null;
             $swap = !$spot;
@@ -711,10 +712,10 @@ class digifinex extends Exchange {
                 $isLinear = ($isInverse !== true) ? true : false;
                 $isTrading = $this->safe_bool($market, 'isTrading');
                 if ($isTrading === true) {
-                    $isAllowed = 1;
+                    $isTradingSwap = true;
                 }
             }
-            $isActive = ($isAllowed !== 0);
+            $isActive = $isTradingSwap || ($isAllowedRaw !== 0);
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -1547,7 +1548,11 @@ class digifinex extends Exchange {
         $market = $this->market($symbol);
         $request = array();
         if ($limit !== null) {
-            $request['limit'] = ($market['swap'] === true) ? min($limit, 100) : $limit;
+            if ($market['swap'] === true) {
+                $request['limit'] = min($limit, 100);
+            } else {
+                $request['limit'] = $limit;
+            }
         }
         $response = null;
         if ($market['swap'] === true) {
@@ -1670,24 +1675,18 @@ class digifinex extends Exchange {
             $until = $this->safe_integer($params, 'until');
             $request['symbol'] = $market['id'];
             $request['period'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-            $startTime = $since;
             $duration = $this->parse_timeframe($timeframe);
-            if ($startTime === null) {
-                if (($limit !== null) || ($until !== null)) {
-                    $endTime = ($until !== null) ? $until : $this->milliseconds();
-                    $startLimit = ($limit !== null) ? $limit : 200;
-                    $startTime = $endTime - ($startLimit * $duration * 1000);
-                }
-            }
-            if ($startTime !== null) {
-                $startTime = $this->parse_to_int($startTime / 1000);
+            if (($since !== null) || ($limit !== null) || ($until !== null)) {
+                $endTime = ($until !== null) ? $until : $this->milliseconds();
+                $startLimit = ($limit !== null) ? $limit : 200;
+                $startTime = ($since !== null) ? $this->parse_to_int($since / 1000) : $this->parse_to_int(($endTime - ($startLimit * $duration * 1000)) / 1000);
                 $request['start_time'] = $startTime;
                 if (($limit !== null) || ($until !== null)) {
                     if ($until !== null) {
                         $endByUntil = $this->parse_to_int($until / 1000);
                         if ($limit !== null) {
-                            $endByLimit = $this->sum($startTime, $limit * $duration);
-                            $request['end_time'] = min($endByLimit, $endByUntil);
+                            $endByLimit = $this->parse_to_int($this->sum($startTime, $limit * $duration));
+                            $request['end_time'] = ($endByLimit < $endByUntil) ? $endByLimit : $endByUntil;
                         } else {
                             $request['end_time'] = $endByUntil;
                         }
@@ -1940,7 +1939,7 @@ class digifinex extends Exchange {
         }
         $request[$marketIdRequest] = $market['id'];
         $postOnly = $this->is_post_only($isMarketOrder, false, $paramsMarginMode);
-        $postOnlyParsed = null;
+        $postOnlyParsed = 0;
         $paramsRequest = null;
         if ($swap) {
             $reduceOnly = $this->safe_bool($paramsMarginMode, 'reduceOnly', false);
@@ -2014,7 +2013,7 @@ class digifinex extends Exchange {
             $request['amount'] = $quantity;
         }
         if ($postOnly) {
-            if (($postOnlyParsed !== null) && ($postOnlyParsed !== 0)) {
+            if ($postOnlyParsed !== 0) {
                 $request['post_only'] = $postOnlyParsed;
             } else {
                 $request['post_only'] = $postOnly;
@@ -2329,7 +2328,7 @@ class digifinex extends Exchange {
         return $this->parse_cancel_orders($response, $symbolsById);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             '-1' => 'canceled', // swap
             '0' => 'open',
@@ -2411,6 +2410,7 @@ class digifinex extends Exchange {
         $type = null;
         $reduceOnly = null;
         $side = $this->safe_string($order, 'type');
+        $sideRaw = $this->safe_string($order, 'type');
         $marketId = $this->safe_string_2($order, 'symbol', 'instrument_id');
         $symbol = $this->safe_symbol($marketId, $market);
         $marketResolved = $this->market($symbol);
@@ -2431,16 +2431,16 @@ class digifinex extends Exchange {
                 }
             }
             // 1 open long, 2 open short, 3 close long, 4 close short
-            if ($side === '1') {
+            if ($sideRaw === '1') {
                 $side = 'buy';
                 $reduceOnly = false;
-            } elseif ($side === '2') {
+            } elseif ($sideRaw === '2') {
                 $side = 'sell';
                 $reduceOnly = false;
-            } elseif ($side === '3') {
+            } elseif ($sideRaw === '3') {
                 $side = 'sell';
                 $reduceOnly = true;
-            } elseif ($side === '4') {
+            } elseif ($sideRaw === '4') {
                 $side = 'buy';
                 $reduceOnly = true;
             }
@@ -2449,8 +2449,8 @@ class digifinex extends Exchange {
         } else {
             $timestamp = $this->safe_timestamp($order, 'created_date');
             $lastTradeTimestamp = $this->safe_timestamp($order, 'finished_date');
-            if ($side !== null) {
-                $parts = explode('_', $side);
+            if ($sideRaw !== null) {
+                $parts = explode('_', $sideRaw);
                 $numParts = count($parts);
                 if ($numParts > 1) {
                     $side = $parts[0];
@@ -2933,7 +2933,7 @@ class digifinex extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function parse_ledger_entry_type(?string $type) {
+    public function parse_ledger_entry_type(?string $type): ?string {
         $types = array();
         return $this->safe_string($types, $type, $type);
     }
@@ -3245,7 +3245,7 @@ class digifinex extends Exchange {
         return Async\await($this->fetch_transactions_by_type('withdrawal', $code, $since, $limit, $params));
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         // deposit state includes: 1 (in deposit), 2 (to be confirmed), 3 (successfully deposited), 4 (stopped)
         // withdrawal state includes: 1 (application in progress), 2 (to be confirmed), 3 (completed), 4 (rejected)
         $statuses = array(
@@ -4723,11 +4723,11 @@ class digifinex extends Exchange {
         return Async\await($this->modify_margin_helper($symbol, $amount, 2, $params));
     }
 
-    public function modify_margin_helper(string $symbol, ?float $amount, mixed $type, $params = array()): PromiseInterface {
+    public function modify_margin_helper(string $symbol, ?float $amount, ?int $type, $params = array()): PromiseInterface {
         return Async\async(self::do_modify_margin_helper(...))($symbol, $amount, $type, $params);
     }
 
-    private function do_modify_margin_helper(string $symbol, ?float $amount, mixed $type, $params = array()) {
+    private function do_modify_margin_helper(string $symbol, ?float $amount, ?int $type, $params = array()) {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -4907,7 +4907,7 @@ class digifinex extends Exchange {
         }
         $url = $apiUrl . $payload;
         $query = $this->omit($params, $this->extract_params($path));
-        $urlencoded = null;
+        $urlencoded = '';
         if ($signed && ($pathPart === '/swap/v2') && ($method === 'POST')) {
             $urlencoded = json_encode($params);
         } else {
@@ -4920,7 +4920,7 @@ class digifinex extends Exchange {
                 $nonce = (string) $this->milliseconds();
                 $auth = $nonce . $method . $payload;
                 if ($method === 'GET') {
-                    if (($urlencoded !== null) && ($urlencoded !== '')) {
+                    if (($urlencoded !== '')) {
                         $auth .= '?' . $urlencoded;
                     }
                 } elseif ($method === 'POST') {
@@ -4932,11 +4932,11 @@ class digifinex extends Exchange {
             }
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
             if ($method === 'GET') {
-                if (($urlencoded !== null) && ($urlencoded !== '')) {
+                if (($urlencoded !== '')) {
                     $url .= '?' . $urlencoded;
                 }
             }
-            $hasPostBody = ($method === 'POST') && ($urlencoded !== null) && ($urlencoded !== '');
+            $hasPostBody = ($method === 'POST') && ($urlencoded !== '');
             $requestBody = null;
             if ($hasPostBody) {
                 $requestBody = $urlencoded;
@@ -4948,7 +4948,7 @@ class digifinex extends Exchange {
             );
             return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $privateHeaders );
         } else {
-            if (($urlencoded !== null) && ($urlencoded !== '')) {
+            if (($urlencoded !== '')) {
                 $url .= '?' . $urlencoded;
             }
         }

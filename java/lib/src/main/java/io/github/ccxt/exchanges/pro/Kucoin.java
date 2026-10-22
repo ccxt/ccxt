@@ -117,17 +117,17 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         }});
     }
 
-    public CompletableFuture<Object> negotiate(Object privateChannel, Object isFuturesMethod, Map<String, Object> parameters)
+    public CompletableFuture<Object> negotiate(Boolean privateChannel, Object isFuturesMethod, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
             String connectId = "public";
-            if (Helpers.isTrue(privateChannel))
+            if (Boolean.TRUE.equals(privateChannel))
             {
                 connectId = "private";
             }
-            if (Helpers.isTrue(java.util.Objects.requireNonNullElse(isFuturesMethod, false)))
+            if ((switch ((Object) (java.util.Objects.requireNonNullElse(isFuturesMethod, false))) { case null -> false; case Boolean hx4J40v2 -> hx4J40v2.booleanValue(); case Long hx4J40v2 -> hx4J40v2 != 0L; case Integer hx4J40v2 -> hx4J40v2 != 0; case Double hx4J40v2 -> hx4J40v2 != 0.0; case String hx4J40v2 -> !hx4J40v2.isEmpty(); case List<?> hx4J40v2 -> !hx4J40v2.isEmpty(); case Map<?, ?> hx4J40v2 -> true; default -> false; }))
             {
                 connectId = (connectId + "Futures");
             }
@@ -141,7 +141,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             // so that multiple calls don't asynchronously
             // fetch different urls and overwrite each other
             urls.put(connectId, this.spawnWithResult("negotiateHelper", privateChannel, connectId, parameters));
-            Helpers.addElementToObject(this.options, "urls", urls);
+            { Map<Object, Object> j39v1 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v2 = "urls"; Object j39v3 = urls; if (j39v1 == null) { if (j39v2 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v1) { if (j39v3 == null && j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); } else { j39v1.put(j39v2, j39v3); } } }
             future = (urls == null || connectId == null ? null : urls.get(connectId));
             return ((io.github.ccxt.ws.Future)future).getFuture().join();
         });
@@ -200,12 +200,12 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
 
     public Long requestId()
     {
-        Object requestId;
+        Long requestId;
         synchronized (this) {
-        requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
-        Helpers.addElementToObject(this.options, "requestId", requestId);
+        requestId = (Long) this.sum(this.safeInteger(this.options, "requestId", 0), 1);
+        { Map<Object, Object> j39v4 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v5 = "requestId"; Object j39v6 = requestId; if (j39v4 == null) { if (j39v5 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v4) { if (j39v6 == null && j39v4 instanceof java.util.concurrent.ConcurrentHashMap) { j39v4.remove(j39v5); } else { j39v4.put(j39v5, j39v6); } } }
         }
-        return Helpers.toLongOrNull(requestId);
+        return requestId;
     }
 
     public CompletableFuture<Object> subscribe(Object url, Object messageHash, Object subscriptionHash, Map<String, Object> parameters, Object subscription)
@@ -325,10 +325,9 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             this.checkRequiredCredentials(true);
             String utaToken = this.safeString(this.options, "utaToken");
             Long lastUpdate = this.safeInteger(this.options, "utaTokenLastUpdate", 0);
-            Object refreshInterval = (((1000L * 60L) * 60L) * 24L); // 24 hours
-            refreshInterval = this.safeInteger(this.options, "utaTokenRefreshInterval", refreshInterval);
+            Long refreshInterval = this.safeInteger(this.options, "utaTokenRefreshInterval", 86400000); // 24 hours
             Long now = this.milliseconds();
-            Boolean expired = Helpers.isGreaterThanOrEqual(((now - lastUpdate)), refreshInterval);
+            Boolean expired = (refreshInterval == null || ((now - lastUpdate)) >= refreshInterval);
             String messageHash = "utaToken";
             String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "private");
             Client client = this.client(url);
@@ -349,12 +348,12 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                         }})).join();
                         Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                         String utaTokenString = this.safeString(data, "token");
-                        Helpers.addElementToObject(this.options, "utaTokenLastUpdate", now);
-                        Helpers.addElementToObject(this.options, "utaToken", utaTokenString);
+                        { Map<Object, Object> j39v13 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v14 = "utaTokenLastUpdate"; Object j39v15 = now; if (j39v13 == null) { if (j39v14 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v13) { if (j39v15 == null && j39v13 instanceof java.util.concurrent.ConcurrentHashMap) { j39v13.remove(j39v14); } else { j39v13.put(j39v14, j39v15); } } }
+                        { Map<Object, Object> j39v10 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v11 = "utaToken"; Object j39v12 = utaTokenString; if (j39v10 == null) { if (j39v11 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v10) { if (j39v12 == null && j39v10 instanceof java.util.concurrent.ConcurrentHashMap) { j39v10.remove(j39v11); } else { j39v10.put(j39v11, j39v12); } } }
                         client.resolve(utaTokenString, messageHash);
                     } catch(Exception e)
                     {
-                        Helpers.addElementToObject(this.options, "utaToken", null);
+                        { Map<Object, Object> j39v7 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v8 = "utaToken"; Object j39v9 = null; if (j39v7 == null) { if (j39v8 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v7) { if (j39v9 == null && j39v7 instanceof java.util.concurrent.ConcurrentHashMap) { j39v7.remove(j39v8); } else { j39v7.put(j39v8, j39v9); } } }
                         client.reject(e, messageHash);
                     }
                 }
@@ -364,12 +363,12 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
 
     }
 
-    public CompletableFuture<Object> unSubscribe(Object url, Object messageHash, Object topic, Object subscriptionHash, Object parameters, Object subscription)
+    public CompletableFuture<Object> unSubscribe(Object url, Object messageHash, Object topic, Object subscriptionHash, Map<String, Object> parameters, Object subscription)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.unSubscribeMultiple(url, new ArrayList<Object>(Arrays.asList(messageHash)), topic, new ArrayList<Object>(Arrays.asList(subscriptionHash)), Helpers.toMapArg(parameters), subscription)).join();
+            return (this.unSubscribeMultiple(url, new ArrayList<Object>(Arrays.asList(messageHash)), topic, new ArrayList<Object>(Arrays.asList(subscriptionHash)), parameters, subscription)).join();
         });
 
     }
@@ -471,9 +470,9 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             String spotMethod = spotMethodparamsSpotMethodVariable.first();
             Map<String, Object> paramsSpotMethod = spotMethodparamsSpotMethodVariable.second();
             String method = (((java.util.Objects.equals(isFuturesMethod, true)))) ? "/contractMarket/ticker" : spotMethod;
-            Object query = (((java.util.Objects.equals(isFuturesMethod, true)))) ? paramsUta : paramsSpotMethod;
+            Map<String, Object> query = (((java.util.Objects.equals(isFuturesMethod, true)))) ? paramsUta : paramsSpotMethod;
             String topic = ((method + ":") + market.get("id"));
-            return (this.subscribe(url, messageHash, topic, Helpers.toMapArg(query), (Object) null)).join();
+            return (this.subscribe(url, messageHash, topic, query, (Object) null)).join();
         }).thenApply(Ticker::new);
 
     }
@@ -525,7 +524,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 String spotMethod = spotMethodparamsSpotMethodVariable.first();
                 Map<String, Object> paramsSpotMethod = spotMethodparamsSpotMethodVariable.second();
                 String method = (((java.util.Objects.equals(isFuturesMethod, true)))) ? "/contractMarket/ticker" : spotMethod;
-                Object query = (((java.util.Objects.equals(isFuturesMethod, true)))) ? paramsUta : paramsSpotMethod;
+                Map<String, Object> query = (((java.util.Objects.equals(isFuturesMethod, true)))) ? paramsUta : paramsSpotMethod;
                 String topic = ((method + ":") + market.get("id"));
                 String messageHash = ("unsubscribe:" + subMessageHash);
                 subscription.put("messageHashes", new ArrayList<Object>(Arrays.asList(messageHash, topic)));
@@ -791,9 +790,9 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 market = this.safeMarket(marketId, market, "-", (String) null);
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-            Object rawTicker = this.safeDict(data, "data", data);
-            Object ticker = this.parseSpotOrUtaTicker((Map<String, Object>) (rawTicker), market);
-            Object symbol = ((Map<String, Object>)ticker).get("symbol");
+            Map<String, Object> rawTicker = (Map<String, Object>) this.safeDict(data, "data", data);
+            Map<String, Object> ticker = (Map<String, Object>) this.parseSpotOrUtaTicker((Map<String, Object>) (rawTicker), market);
+            Object symbol = ticker.get("symbol");
             Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
             String messageHash = ("ticker:" + symbol);
             client.resolve(ticker, messageHash);
@@ -876,7 +875,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "d", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "s");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        Object ticker = this.parseWsUtaTicker((Map<String, Object>) (data), market);
+        Map<String, Object> ticker = (Map<String, Object>) this.parseWsUtaTicker((Map<String, Object>) (data), market);
         Helpers.addElementToObject(this.tickers, market.get("symbol"), ticker);
         String messageHash = ("uta:ticker:" + market.get("symbol"));
         client.resolve(ticker, messageHash);
@@ -1027,8 +1026,8 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         //   }
         // }
         //
-        Object parsedTicker = this.parseWsBidAsk((Map<String, Object>) (message), (Map<String, Object>) null);
-        Object symbol = ((Map<String, Object>)parsedTicker).get("symbol");
+        Map<String, Object> parsedTicker = (Map<String, Object>) this.parseWsBidAsk((Map<String, Object>) (message), (Map<String, Object>) null);
+        Object symbol = parsedTicker.get("symbol");
         Helpers.addElementToObject(this.bidsasks, ((String)symbol), parsedTicker);
         String messageHash = ("bidask@" + symbol);
         client.resolve(parsedTicker, messageHash);
@@ -1167,7 +1166,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Boolean uta = false;
             Pair<Boolean, Map<String, Object>> utaOptionparamsUtaVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "unWatchOHLCV", "uta", uta);
             Boolean utaOption = utaOptionparamsUtaVariable.first();
-            var paramsUta = ((List<Object>) utaOptionparamsUtaVariable).get(1);
+            Map<String, Object> paramsUta = utaOptionparamsUtaVariable.second();
             String period = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             List<Object> symbolAndTimeframe = new ArrayList<Object>(Arrays.asList(symbolValue, java.util.Objects.requireNonNullElse(timeframe, "1m")));
             Map<String, Object> subscription = new HashMap<String, Object>() {{
@@ -1624,17 +1623,19 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         //
         String marketId = this.safeString(trade, "s");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        Object timestamp = this.safeIntegerProduct2(trade, "M", "E", 0.000001);
+        Long timestamp = (Long) this.safeIntegerProduct2(trade, "M", "E", 0.000001);
         Map<String, Object> fee = null;
         String feeCost = this.safeString(trade, "f");
         if (!java.util.Objects.equals(feeCost, null))
         {
             String feeCurrencyId = this.safeString(trade, "fC");
             String feeCurrencyCode = this.safeCurrencyCode((String) (feeCurrencyId), (Map<String, Object>) null);
-            fee = Helpers.newMap(
-                "cost", feeCost,
-                "currency", feeCurrencyCode
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("cost", feeCost);
+                hx4NewMap0.put("currency", feeCurrencyCode);
+                fee = hx4NewMap0;
+            }
         }
         HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
         mapLiteral3.put("info", trade);
@@ -1849,11 +1850,13 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Map<String, Object> subscription = new HashMap<String, Object>() {{}};
             if ((java.util.Objects.equals(method, "/market/level2")) || (java.util.Objects.equals(method, "/contractMarket/level2")))
             {
-                subscription = Helpers.newMap(
-                    "method", "handleOrderBookSubscription",
-                    "symbols", symbolsNormalized,
-                    "limit", limit
-                );
+                {
+                    HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
+                    hx4NewMap1.put("method", "handleOrderBookSubscription");
+                    hx4NewMap1.put("symbols", symbolsNormalized);
+                    hx4NewMap1.put("limit", limit);
+                    subscription = hx4NewMap1;
+                }
             }
             io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribeMultiple(url, messageHashes, topic, subscriptionHashes, paramsMethod, subscription)).join();
             return orderbook.limit();
@@ -2002,7 +2005,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             } else
             {
                 io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
-                Helpers.callDynamically(orderbook, "reset", new Object[]{});
+                orderbook.reset(null);
             }
             Helpers.addElementToObject(((Map<?, ?>)this.orderbooks).get(symbol), "symbol", symbol);
         } else
@@ -2013,16 +2016,16 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             }
             io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
             Long nonce = this.safeInteger(orderbook, "nonce");
-            Long deltaEnd = this.safeInteger2(data, "sequenceEnd", "timestamp");
+            Long deltaEnd = (Long) this.safeInteger2(data, "sequenceEnd", "timestamp");
             if (java.util.Objects.equals(nonce, null))
             {
                 Object cacheLength = ((List<?>)((List<Object>)(orderbook == null ? null : orderbook.get("cache")))).size();
-                List<Object> subscriptions = Helpers.objectKeys(client.subscriptions);
+                List<Object> subscriptions = ((List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v21 -> { synchronized (j39v21) { yield new ArrayList<Object>(j39v21.keySet()); } } case null, default -> new ArrayList<Object>(); });
                 Object subscription = null;
                 for (var i = 0; i < ((List<?>)subscriptions).size(); i++)
                 {
                     Object key = (subscriptions == null || i < 0 || i >= subscriptions.size() ? null : subscriptions.get(i));
-                    if ((Helpers.getIndexOf(key, ((String)topicSymbol)) >= 0) && (Helpers.getIndexOf(key, ((String)topicChannel)) >= 0))
+                    if ((((java.util.function.ToIntBiFunction<Object, Object>) (hx4J41s, hx4J41t) -> (hx4J41s instanceof List<?> hx4J41l) ? hx4J41l.indexOf(hx4J41t) : (hx4J41s instanceof String hx4J41x && hx4J41t instanceof String hx4J41y) ? hx4J41x.indexOf(hx4J41y) : -1).applyAsInt(key, ((String)topicSymbol)) >= 0) && (((java.util.function.ToIntBiFunction<Object, Object>) (hx4J41s, hx4J41t) -> (hx4J41s instanceof List<?> hx4J41l) ? hx4J41l.indexOf(hx4J41t) : (hx4J41s instanceof String hx4J41x && hx4J41t instanceof String hx4J41y) ? hx4J41x.indexOf(hx4J41y) : -1).applyAsInt(key, ((String)topicChannel)) >= 0))
                     {
                         subscription = Helpers.GetValue(client.subscriptions, key);
                         break;
@@ -2030,13 +2033,13 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 }
                 Long limit = this.safeInteger(subscription, "limit");
                 Object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 5);
-                if (Helpers.isEqual(cacheLength, snapshotDelay))
+                if (((java.util.function.BiPredicate<Object, Object>) (hx4J40v1A, hx4J40v1B) -> { try { if (hx4J40v1A == null && hx4J40v1B == null) { return true; } if (hx4J40v1A == null || hx4J40v1B == null) { return false; } java.util.function.Predicate<Object> hx4J40v1N = hx4J40v1o -> { try { Double.parseDouble(String.valueOf(hx4J40v1o)); return true; } catch (Exception hx4J40v1e) { return false; } }; if (!hx4J40v1A.getClass().equals(hx4J40v1B.getClass()) && !(hx4J40v1N.test(hx4J40v1A) && hx4J40v1N.test(hx4J40v1B))) { return false; } java.util.function.Predicate<Object> hx4J40v1I = hx4J40v1o -> hx4J40v1o instanceof Byte || hx4J40v1o instanceof Short || hx4J40v1o instanceof Integer || hx4J40v1o instanceof Long || hx4J40v1o instanceof java.util.concurrent.atomic.AtomicInteger || hx4J40v1o instanceof java.util.concurrent.atomic.AtomicLong || ((hx4J40v1o instanceof Float || hx4J40v1o instanceof Double || hx4J40v1o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(hx4J40v1o)).stripTrailingZeros().scale() <= 0); java.util.function.ToDoubleFunction<Object> hx4J40v1D = hx4J40v1o -> { if (hx4J40v1o instanceof Double || hx4J40v1o instanceof Float || hx4J40v1o instanceof Long || hx4J40v1o instanceof Integer || hx4J40v1o instanceof java.math.BigDecimal) { return ((Number) hx4J40v1o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v1o)); } catch (NumberFormatException hx4J40v1e) { return 0.0; } }; if (hx4J40v1I.test(hx4J40v1A) && hx4J40v1I.test(hx4J40v1B)) { java.util.function.ToLongFunction<Object> hx4J40v1L = hx4J40v1o -> hx4J40v1o instanceof Long || hx4J40v1o instanceof Integer || hx4J40v1o instanceof Double || hx4J40v1o instanceof Float || hx4J40v1o instanceof java.math.BigDecimal ? ((Number) hx4J40v1o).longValue() : Long.parseLong(String.valueOf(hx4J40v1o)); return hx4J40v1L.applyAsLong(hx4J40v1A) == hx4J40v1L.applyAsLong(hx4J40v1B); } if (hx4J40v1A instanceof Double || hx4J40v1B instanceof Double) { return hx4J40v1D.applyAsDouble(hx4J40v1A) == hx4J40v1D.applyAsDouble(hx4J40v1B); } if (hx4J40v1A instanceof Float || hx4J40v1B instanceof Float) { java.util.function.Function<Object, Float> hx4J40v1F = hx4J40v1o -> hx4J40v1o instanceof Float || hx4J40v1o instanceof Double || hx4J40v1o instanceof Long || hx4J40v1o instanceof Integer || hx4J40v1o instanceof java.math.BigDecimal ? ((Number) hx4J40v1o).floatValue() : Float.parseFloat(String.valueOf(hx4J40v1o)); return hx4J40v1F.apply(hx4J40v1A).floatValue() == hx4J40v1F.apply(hx4J40v1B).floatValue(); } if (hx4J40v1A instanceof String && hx4J40v1B instanceof String) { return hx4J40v1A.equals(hx4J40v1B); } if (hx4J40v1A instanceof Boolean && hx4J40v1B instanceof Boolean) { return hx4J40v1A.equals(hx4J40v1B); } if (hx4J40v1N.test(hx4J40v1A) && hx4J40v1N.test(hx4J40v1B)) { return new java.math.BigDecimal(String.valueOf(hx4J40v1A)).compareTo(new java.math.BigDecimal(String.valueOf(hx4J40v1B))) == 0; } return false; } catch (Exception hx4J40v1e) { return false; } }).test(cacheLength, snapshotDelay))
                 {
                     this.spawn(() -> { try { this.loadOrderBook(client, messageHash, symbol, limit, new HashMap<String, Object>() {{}}); } catch(Exception _e) { throw new RuntimeException(_e); } });
                 }
                 ((List<Object>)(List<Object>)(((List<Object>)(orderbook == null ? null : orderbook.get("cache"))))).add(data);
                 return;
-            } else if ((deltaEnd == null || (nonce != null && nonce >= deltaEnd)))
+            } else if ((!java.util.Objects.equals(deltaEnd, null)) && ((deltaEnd == null || (nonce != null && nonce >= deltaEnd))))
             {
                 return;
             }
@@ -2096,13 +2099,13 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 Map<String, Object> utaParams = new HashMap<String, Object>() {{
                     put( "uta", true );
                 }};
-                if (Helpers.isEqual(cacheLength, snapshotDelay))
+                if (((java.util.function.BiPredicate<Object, Object>) (hx4J40v0A, hx4J40v0B) -> { try { if (hx4J40v0A == null && hx4J40v0B == null) { return true; } if (hx4J40v0A == null || hx4J40v0B == null) { return false; } java.util.function.Predicate<Object> hx4J40v0N = hx4J40v0o -> { try { Double.parseDouble(String.valueOf(hx4J40v0o)); return true; } catch (Exception hx4J40v0e) { return false; } }; if (!hx4J40v0A.getClass().equals(hx4J40v0B.getClass()) && !(hx4J40v0N.test(hx4J40v0A) && hx4J40v0N.test(hx4J40v0B))) { return false; } java.util.function.Predicate<Object> hx4J40v0I = hx4J40v0o -> hx4J40v0o instanceof Byte || hx4J40v0o instanceof Short || hx4J40v0o instanceof Integer || hx4J40v0o instanceof Long || hx4J40v0o instanceof java.util.concurrent.atomic.AtomicInteger || hx4J40v0o instanceof java.util.concurrent.atomic.AtomicLong || ((hx4J40v0o instanceof Float || hx4J40v0o instanceof Double || hx4J40v0o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(hx4J40v0o)).stripTrailingZeros().scale() <= 0); java.util.function.ToDoubleFunction<Object> hx4J40v0D = hx4J40v0o -> { if (hx4J40v0o instanceof Double || hx4J40v0o instanceof Float || hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof java.math.BigDecimal) { return ((Number) hx4J40v0o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v0o)); } catch (NumberFormatException hx4J40v0e) { return 0.0; } }; if (hx4J40v0I.test(hx4J40v0A) && hx4J40v0I.test(hx4J40v0B)) { java.util.function.ToLongFunction<Object> hx4J40v0L = hx4J40v0o -> hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof Double || hx4J40v0o instanceof Float || hx4J40v0o instanceof java.math.BigDecimal ? ((Number) hx4J40v0o).longValue() : Long.parseLong(String.valueOf(hx4J40v0o)); return hx4J40v0L.applyAsLong(hx4J40v0A) == hx4J40v0L.applyAsLong(hx4J40v0B); } if (hx4J40v0A instanceof Double || hx4J40v0B instanceof Double) { return hx4J40v0D.applyAsDouble(hx4J40v0A) == hx4J40v0D.applyAsDouble(hx4J40v0B); } if (hx4J40v0A instanceof Float || hx4J40v0B instanceof Float) { java.util.function.Function<Object, Float> hx4J40v0F = hx4J40v0o -> hx4J40v0o instanceof Float || hx4J40v0o instanceof Double || hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof java.math.BigDecimal ? ((Number) hx4J40v0o).floatValue() : Float.parseFloat(String.valueOf(hx4J40v0o)); return hx4J40v0F.apply(hx4J40v0A).floatValue() == hx4J40v0F.apply(hx4J40v0B).floatValue(); } if (hx4J40v0A instanceof String && hx4J40v0B instanceof String) { return hx4J40v0A.equals(hx4J40v0B); } if (hx4J40v0A instanceof Boolean && hx4J40v0B instanceof Boolean) { return hx4J40v0A.equals(hx4J40v0B); } if (hx4J40v0N.test(hx4J40v0A) && hx4J40v0N.test(hx4J40v0B)) { return new java.math.BigDecimal(String.valueOf(hx4J40v0A)).compareTo(new java.math.BigDecimal(String.valueOf(hx4J40v0B))) == 0; } return false; } catch (Exception hx4J40v0e) { return false; } }).test(cacheLength, snapshotDelay))
                 {
                     this.spawn(() -> { try { this.loadOrderBook(client, messageHash, symbol, limit, utaParams); } catch(Exception _e) { throw new RuntimeException(_e); } });
                 }
                 ((List<Object>)(List<Object>)(((List<Object>)(orderbook == null ? null : orderbook.get("cache"))))).add(data);
                 return;
-            } else if ((deltaEnd == null || (nonce != null && nonce >= deltaEnd)))
+            } else if ((!java.util.Objects.equals(deltaEnd, null)) && ((deltaEnd == null || (nonce != null && nonce >= deltaEnd))))
             {
                 return;
             }
@@ -2120,11 +2123,11 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         {
             return -1;
         }
-        if (Helpers.isLessThan(nonce, Helpers.subtract(firstDeltaStart, 1)))
+        if (((nonce == null || nonce < (firstDeltaStart - 1L))))
         {
             return -1;
         }
-        for (var i = 0; i < Helpers.getArrayLength(cache); i++)
+        for (var i = 0; i < (switch ((Object)(cache)) { case null -> 0; case List<?> j39v25 -> j39v25.size(); case String j39v26 -> j39v26.length(); case Object j39v27 -> j39v27.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v27) : 0; }); i++)
         {
             Map<String, Object> delta = (Map<String, Object>) this.safeDict(cache, i, (Object) null);
             Long deltaStart = this.safeIntegerN(delta, new ArrayList<Object>(Arrays.asList("sequenceStart", "sequence", "O")));
@@ -2133,12 +2136,12 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             {
                 continue;
             }
-            if ((Helpers.isGreaterThanOrEqual(nonce, Helpers.subtract(deltaStart, 1))) && ((deltaEnd != null && (nonce == null || nonce < deltaEnd))))
+            if ((((nonce != null && nonce >= (deltaStart - 1L)))) && ((deltaEnd != null && (nonce == null || nonce < deltaEnd))))
             {
                 return i;
             }
         }
-        return Helpers.getArrayLength(cache);
+        return (switch ((Object)(cache)) { case null -> 0; case List<?> j39v22 -> j39v22.size(); case String j39v23 -> j39v23.length(); case Object j39v24 -> j39v24.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v24) : 0; });
     }
 
     public void handleBookDelta(Object orderbook, Object delta)
@@ -2213,18 +2216,18 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
             Long storedLimit = this.safeInteger(limits, symbol);
             // reuse the existing book so user-held references keep updating; rebuild only if depth changed
-            if (!((symbol != null && ((Map<?, ?>)this.orderbooks).containsKey(symbol))) || ((storedLimit == null || limit == null || storedLimit != limit)))
+            if (!((symbol != null && ((Map<?, ?>)this.orderbooks).containsKey(symbol))) || (!java.util.Objects.equals(storedLimit, limit)))
             {
                 Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
             } else
             {
                 io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (symbol == null ? null : ((Map<?, ?>)this.orderbooks).get(symbol));
                 orderbook.put("nonce", null);
-                Helpers.addElementToObject(orderbook, "cache", new ArrayList<Object>(Arrays.asList()));
+                orderbook.put("cache", new ArrayList<Object>(Arrays.asList()));
             }
-            Helpers.addElementToObject(limits, symbol, limit);
+            { Map<Object, Object> j39v33 = (Map<Object, Object>) (Map<?, ?>) (limits); Object j39v34 = symbol; Object j39v35 = limit; if (j39v33 == null) { if (j39v34 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v33) { if (j39v35 == null && j39v33 instanceof java.util.concurrent.ConcurrentHashMap) { j39v33.remove(j39v34); } else { j39v33.put(j39v34, j39v35); } } }
         }
-        Helpers.addElementToObject(this.options, "orderBookLimits", limits);
+        { Map<Object, Object> j39v30 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v31 = "orderBookLimits"; Object j39v32 = limits; if (j39v30 == null) { if (j39v31 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v30) { if (j39v32 == null && j39v30 instanceof java.util.concurrent.ConcurrentHashMap) { j39v30.remove(j39v31); } else { j39v30.put(j39v31, j39v32); } } }
     }
 
     public void handleSubscriptionStatus(Client client, Map<String, Object> message)
@@ -2349,7 +2352,11 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             {
                 market = this.market(symbol);
             }
-            Object symbolResolved = (((!java.util.Objects.equals(market, null)))) ? this.safeString(market, "symbol") : symbol;
+            String symbolResolved = symbol;
+            if (!java.util.Objects.equals(market, null))
+            {
+                symbolResolved = this.safeString(market, "symbol");
+            }
             String messageHash = "orders";
             if (!java.util.Objects.equals(symbolResolved, null))
             {
@@ -2367,7 +2374,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 {
                     channel = (channel + "All");
                 }
-                orders = (this.subscribePrivateUta(new ArrayList<Object>(Arrays.asList(messageHash)), messageHash, channel, Helpers.toStringArg(symbolResolved), paramsExtended, (Object) null)).join();
+                orders = (this.subscribePrivateUta(new ArrayList<Object>(Arrays.asList(messageHash)), messageHash, channel, symbolResolved, paramsExtended, (Object) null)).join();
             } else
             {
                 Boolean trigger = (Boolean) this.safeBool2(paramsUta, "stop", "trigger", (Object) null);
@@ -2388,7 +2395,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 }
                 if (java.util.Objects.equals(symbolResolved, null))
                 {
-                    Object suffix = this.getOrdersMessageHashSuffix(topic);
+                    String suffix = this.getOrdersMessageHashSuffix(topic);
                     messageHash = (messageHash + suffix);
                 }
                 Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2401,12 +2408,12 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
+            return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
-    public Object getOrdersMessageHashSuffix(String topic)
+    public String getOrdersMessageHashSuffix(String topic)
     {
         String suffix = "-spot";
         if (java.util.Objects.equals(topic, "/spotMarket/advancedOrders"))
@@ -2713,7 +2720,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         cachedOrders.append(parsed);
         String messageHash = "orders";
         String topic = this.safeString(message, "topic");
-        Object suffix = this.getOrdersMessageHashSuffix((String) (topic));
+        String suffix = this.getOrdersMessageHashSuffix((String) (topic));
         String typeSpecificMessageHash = (messageHash + suffix);
         client.resolve(cachedOrders, typeSpecificMessageHash);
         String symbolSpecificMessageHash = ((messageHash + ":") + symbol);
@@ -2814,7 +2821,11 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             {
                 market = this.market(symbol);
             }
-            String symbolResolved = (((!java.util.Objects.equals(market, null)))) ? this.safeString(market, "symbol") : symbol;
+            String symbolResolved = symbol;
+            if (!java.util.Objects.equals(market, null))
+            {
+                symbolResolved = this.safeString(market, "symbol");
+            }
             if (!java.util.Objects.equals(market, null))
             {
                 messageHash = ((messageHash + ":") + market.get("symbol"));
@@ -2875,7 +2886,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
     public String getMyTradesMessageHashSuffix(Object topic)
     {
         String suffix = "-spot";
-        if (Helpers.getIndexOf(topic, "contractMarket") >= 0)
+        if (((java.util.function.ToIntBiFunction<Object, Object>) (hx4J41s, hx4J41t) -> (hx4J41s instanceof List<?> hx4J41l) ? hx4J41l.indexOf(hx4J41t) : (hx4J41s instanceof String hx4J41x && hx4J41t instanceof String hx4J41y) ? hx4J41x.indexOf(hx4J41y) : -1).applyAsInt(topic, "contractMarket") >= 0)
         {
             suffix = "-contract";
         }
@@ -3024,7 +3035,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             amount = this.safeString(trade, "size");
         }
         String order = this.safeString(trade, "orderId");
-        Object timestamp = this.safeIntegerProduct2(trade, "ts", "time", 0.000001);
+        Long timestamp = (Long) this.safeIntegerProduct2(trade, "ts", "time", 0.000001);
         String feeCurrency = (String) marketResolved.get("quote");
         String feeRate = this.safeString(trade, "feeRate");
         String feeCost = this.safeString(trade, "fee");
@@ -3089,7 +3100,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String uniformType = this.safeString(accountsByType, type, type);
             Boolean isClassicFuturesMethod = (java.util.Objects.equals(uniformType, "contract"));
-            Object subscriptionHash = "/account/balance";
+            String subscriptionHash = "/account/balance";
             if (Boolean.TRUE.equals(isClassicFuturesMethod))
             {
                 subscriptionHash = "/contractAccount/wallet";
@@ -3167,11 +3178,11 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         return BaseExchange.supplyAsync(() -> {
 
             Boolean uta = (java.util.Objects.equals(type, "unified"));
-            Object parameters = Helpers.newMap(
-                "type", type,
-                "uta", uta
-            );
-            Balances response = (this.fetchBalance(Helpers.toMapArg(parameters))).join();
+            Map<String, Object> parameters = (switch (0) { default -> { HashMap<String, Object> j39v37 = new HashMap<String, Object>();
+                j39v37.put("type", type);
+                j39v37.put("uta", uta);
+                yield j39v37; } });
+            Balances response = (this.fetchBalance(parameters)).join();
             Helpers.addElementToObject(this.balance, type, this.extend(response, this.safeDict(this.balance, type, new HashMap<String, Object>() {{}})));
             // don't remove the future from the .futures cache
             if (((Map<?, ?>)client.futures).containsKey(messageHash))
@@ -3500,7 +3511,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             {
                 Position position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
                 Double contracts = this.safeNumber(position, "contracts", 0);
-                if ((contracts != null && contracts > 0))
+                if ((!java.util.Objects.equals(contracts, null)) && ((contracts != null && contracts > 0)))
                 {
                     cache.append(position);
                 }

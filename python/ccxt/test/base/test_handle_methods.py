@@ -75,6 +75,8 @@ def helper_test_handle_typed_options():
             'marginMode': 'isolated',
             'fetchX': {
                 'uta': True,
+                'boolString': 'false',
+                'boolNumber': 1,
             },
         },
     })
@@ -89,7 +91,21 @@ def helper_test_handle_typed_options():
     }, 'fetchX', 'absentKey', 'fallback')
     assert from_params == 'p'
     assert not ('absentKey' in params4)
-    # a wrong-typed option is covered per language in language_specific (it throws only in C#, Java and Go)
+    # "true"/"false" strings and 1/0 numbers read as booleans; any other present non-boolean throws
+    [bool_string, params5] = exchange.handle_option_bool_and_params({}, 'fetchX', 'boolString', True)
+    assert bool_string is False
+    [bool_number, params6] = exchange.handle_option_bool_and_params({
+        'boolNumber': 1,
+    }, 'fetchX', 'boolNumber', False)
+    assert bool_number
+    assert not ('boolNumber' in params6)
+    caught = False
+    try:
+        exchange.check_option_bool('fetchX', 'wrongBool', 'yes')
+    except Exception as error:
+        caught = True
+    assert caught, 'a non-boolean option should have thrown'
+    assert params5 is not None
     assert params1 is not None or params2 is not None or params3 is not None
 
 

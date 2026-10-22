@@ -136,11 +136,11 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         }
         Object instTypeDefault = ((List<Object>)productTypeAndParams).get(0);
         Object paramsProductType = ((List<Object>)productTypeAndParams).get(1);
-        Pair<String, Map<String, Object>> instTypeOptionparamsInstTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsProductType), (String) (methodName), "instType", Helpers.toStringArg(instTypeDefault));
+        Pair<String, Map<String, Object>> instTypeOptionparamsInstTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsProductType), (String) (methodName), "instType", java.util.Objects.toString(instTypeDefault, null));
         String instTypeOption = instTypeOptionparamsInstTypeVariable.first();
         Map<String, Object> paramsInstType = instTypeOptionparamsInstTypeVariable.second();
         Object instType = instTypeOption;
-        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(uta, false)) && (!java.util.Objects.equals(instTypeOption, null)))
+        if ((switch ((Object) (java.util.Objects.requireNonNullElse(uta, false))) { case null -> false; case Boolean hx4J40v15 -> hx4J40v15.booleanValue(); case Long hx4J40v15 -> hx4J40v15 != 0L; case Integer hx4J40v15 -> hx4J40v15 != 0; case Double hx4J40v15 -> hx4J40v15 != 0.0; case String hx4J40v15 -> !hx4J40v15.isEmpty(); case List<?> hx4J40v15 -> !hx4J40v15.isEmpty(); case Map<?, ?> hx4J40v15 -> true; default -> false; }) && (!java.util.Objects.equals(instTypeOption, null)))
         {
             instType = ((String)instTypeOption).toLowerCase();
         }
@@ -212,7 +212,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.unWatchChannel(symbol, "ticker", "ticker", "watchTicker", Helpers.toMapArg(parameters))).join();
+            return (this.unWatchChannel(symbol, "ticker", "ticker", "watchTicker", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v14 -> (Map<String, Object>) hx4J40v14; case Object hx4J40v14 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v14.getClass().getName()); })))).join();
         });
 
     }
@@ -567,8 +567,8 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
 
     public void handleBidAsk(Client client, Map<String, Object> message)
     {
-        Object ticker = this.parseWsBidAsk((Map<String, Object>) (message), (Map<String, Object>) null);
-        String symbol = (String) ((Map<String, Object>)ticker).get("symbol");
+        Map<String, Object> ticker = (Map<String, Object>) this.parseWsBidAsk((Map<String, Object>) (message), (Map<String, Object>) null);
+        String symbol = (String) ticker.get("symbol");
         if (!java.util.Objects.equals(symbol, null))
         {
             Helpers.addElementToObject(this.bidsasks, symbol, ticker);
@@ -734,7 +734,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 args.put("topic", channel);
                 args.put("symbol", market.get("id"));
                 args.put("interval", interval);
-                messageHash = Helpers.add(channel, symbol);
+                messageHash = ((java.util.function.BinaryOperator<Object>) (hx4J40v13A, hx4J40v13B) -> { Object hx4J40v13P = hx4J40v13A instanceof Integer hx4J40v13i ? (Object) Long.valueOf(hx4J40v13i.longValue()) : hx4J40v13A; Object hx4J40v13Q = hx4J40v13B instanceof Integer hx4J40v13i ? (Object) Long.valueOf(hx4J40v13i.longValue()) : hx4J40v13B; if (hx4J40v13P instanceof Long hx4J40v13l && hx4J40v13Q instanceof Long hx4J40v13r) { return hx4J40v13l + hx4J40v13r; } if (hx4J40v13P instanceof Double || hx4J40v13Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v13D = hx4J40v13o -> { if (hx4J40v13o instanceof Double || hx4J40v13o instanceof Float || hx4J40v13o instanceof Long || hx4J40v13o instanceof Integer || hx4J40v13o instanceof java.math.BigDecimal) { return ((Number) hx4J40v13o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v13o)); } catch (NumberFormatException hx4J40v13e) { return 0.0; } }; return hx4J40v13D.applyAsDouble(hx4J40v13P) + hx4J40v13D.applyAsDouble(hx4J40v13Q); } if (hx4J40v13P instanceof String || hx4J40v13Q instanceof String) { return String.valueOf(hx4J40v13P) + String.valueOf(hx4J40v13Q); } return null; }).apply(channel, symbol);
             } else
             {
                 channel = ("candle" + interval);
@@ -844,7 +844,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object parsed = this.parseWsOHLCV((data == null || i < 0 || i >= data.size() ? null : data.get(i)), market);
+            List<Object> parsed = (List<Object>) this.parseWsOHLCV((data == null || i < 0 || i >= data.size() ? null : data.get(i)), market);
             stored.append(parsed);
         }
         String messageHash = null;
@@ -1020,7 +1020,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 return (this.unWatchPrivate(uta, messageHash, args, paramsRequest)).join();
             }
-            return (this.unWatchPublic(uta, messageHash, (Map<String, Object>) (args), Helpers.toMapArg(paramsRequest))).join();
+            return (this.unWatchPublic(uta, messageHash, (Map<String, Object>) (args), ((Map<String, Object>) (switch ((Object) (paramsRequest)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v12 -> (Map<String, Object>) hx4J40v12; case Object hx4J40v12 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v12.getClass().getName()); })))).join();
         });
 
     }
@@ -1072,12 +1072,12 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             }
             List<Object> topics = new ArrayList<Object>(Arrays.asList());
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-            Object paramsCursor = paramsUta;
+            Map<String, Object> paramsCursor = paramsUta;
             for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 Map<String, Object> market = this.market(symbol);
-                var instTypeparamsInstTypeVariable = this.getInstType("watchOrderBookForSymbols", (Map<String, Object>) (market), isStockOrUta, Helpers.toMapArg(paramsCursor));
+                var instTypeparamsInstTypeVariable = this.getInstType("watchOrderBookForSymbols", (Map<String, Object>) (market), isStockOrUta, paramsCursor);
                 String instType = (String) ((List<Object>) instTypeparamsInstTypeVariable).get(0);
                 Map<String, Object> paramsInstType = (Map<String, Object>) ((List<Object>) instTypeparamsInstTypeVariable).get(1);
                 paramsCursor = paramsInstType;
@@ -1103,7 +1103,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 ((Map<String, Object>)paramsCursor).put("uta", true);
             }
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublicMultiple(isStockOrUta, messageHashes, topics, Helpers.toMapArg(paramsCursor))).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublicMultiple(isStockOrUta, messageHashes, topics, paramsCursor)).join();
             if (Boolean.TRUE.equals(incrementalFeed))
             {
                 return orderbook.limit();
@@ -1232,7 +1232,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 }
                 String payload = String.join(":", (List<String>)payloadArray);
                 Object calculatedChecksum = this.crc32(payload, true);
-                if (!Helpers.isEqual(calculatedChecksum, responseChecksum))
+                if (!((java.util.function.BiPredicate<Object, Object>) (hx4J40v11A, hx4J40v11B) -> { try { if (hx4J40v11A == null && hx4J40v11B == null) { return true; } if (hx4J40v11A == null || hx4J40v11B == null) { return false; } java.util.function.Predicate<Object> hx4J40v11N = hx4J40v11o -> { try { Double.parseDouble(String.valueOf(hx4J40v11o)); return true; } catch (Exception hx4J40v11e) { return false; } }; if (!hx4J40v11A.getClass().equals(hx4J40v11B.getClass()) && !(hx4J40v11N.test(hx4J40v11A) && hx4J40v11N.test(hx4J40v11B))) { return false; } java.util.function.Predicate<Object> hx4J40v11I = hx4J40v11o -> hx4J40v11o instanceof Byte || hx4J40v11o instanceof Short || hx4J40v11o instanceof Integer || hx4J40v11o instanceof Long || hx4J40v11o instanceof java.util.concurrent.atomic.AtomicInteger || hx4J40v11o instanceof java.util.concurrent.atomic.AtomicLong || ((hx4J40v11o instanceof Float || hx4J40v11o instanceof Double || hx4J40v11o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(hx4J40v11o)).stripTrailingZeros().scale() <= 0); java.util.function.ToDoubleFunction<Object> hx4J40v11D = hx4J40v11o -> { if (hx4J40v11o instanceof Double || hx4J40v11o instanceof Float || hx4J40v11o instanceof Long || hx4J40v11o instanceof Integer || hx4J40v11o instanceof java.math.BigDecimal) { return ((Number) hx4J40v11o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v11o)); } catch (NumberFormatException hx4J40v11e) { return 0.0; } }; if (hx4J40v11I.test(hx4J40v11A) && hx4J40v11I.test(hx4J40v11B)) { java.util.function.ToLongFunction<Object> hx4J40v11L = hx4J40v11o -> hx4J40v11o instanceof Long || hx4J40v11o instanceof Integer || hx4J40v11o instanceof Double || hx4J40v11o instanceof Float || hx4J40v11o instanceof java.math.BigDecimal ? ((Number) hx4J40v11o).longValue() : Long.parseLong(String.valueOf(hx4J40v11o)); return hx4J40v11L.applyAsLong(hx4J40v11A) == hx4J40v11L.applyAsLong(hx4J40v11B); } if (hx4J40v11A instanceof Double || hx4J40v11B instanceof Double) { return hx4J40v11D.applyAsDouble(hx4J40v11A) == hx4J40v11D.applyAsDouble(hx4J40v11B); } if (hx4J40v11A instanceof Float || hx4J40v11B instanceof Float) { java.util.function.Function<Object, Float> hx4J40v11F = hx4J40v11o -> hx4J40v11o instanceof Float || hx4J40v11o instanceof Double || hx4J40v11o instanceof Long || hx4J40v11o instanceof Integer || hx4J40v11o instanceof java.math.BigDecimal ? ((Number) hx4J40v11o).floatValue() : Float.parseFloat(String.valueOf(hx4J40v11o)); return hx4J40v11F.apply(hx4J40v11A).floatValue() == hx4J40v11F.apply(hx4J40v11B).floatValue(); } if (hx4J40v11A instanceof String && hx4J40v11B instanceof String) { return hx4J40v11A.equals(hx4J40v11B); } if (hx4J40v11A instanceof Boolean && hx4J40v11B instanceof Boolean) { return hx4J40v11A.equals(hx4J40v11B); } if (hx4J40v11N.test(hx4J40v11A) && hx4J40v11N.test(hx4J40v11B)) { return new java.math.BigDecimal(String.valueOf(hx4J40v11A)).compareTo(new java.math.BigDecimal(String.valueOf(hx4J40v11B))) == 0; } return false; } catch (Exception hx4J40v11e) { return false; } }).test(calculatedChecksum, responseChecksum))
                 {
                     this.spawn(() -> { try { this.handleCheckSumError(client, symbol, messageHash); } catch(Exception _e) { throw new RuntimeException(_e); } });
                     return;
@@ -1289,7 +1289,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
 
     public void handleDeltas(Object bookside, Object deltas)
     {
-        for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
+        for (var i = 0; i < (switch ((Object)(deltas)) { case null -> 0; case List<?> j39v10 -> j39v10.size(); case String j39v11 -> j39v11.length(); case Object j39v12 -> j39v12.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v12) : 0; }); i++)
         {
             this.handleDelta(bookside, Helpers.GetValue(deltas, i));
         }
@@ -1351,14 +1351,14 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             Pair<Boolean, Map<String, Object>> utaparamsUtaVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchTradesForSymbols", "uta", false);
             var uta = ((List<Object>) utaparamsUtaVariable).get(0);
             Map<String, Object> paramsUta = utaparamsUtaVariable.second();
-            Object paramsCursor = paramsUta;
+            Map<String, Object> paramsCursor = paramsUta;
             List<Object> topics = new ArrayList<Object>(Arrays.asList());
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 Map<String, Object> market = this.market(symbol);
-                var instTypeparamsInstTypeVariable = this.getInstType("watchTradesForSymbols", (Map<String, Object>) (market), uta, Helpers.toMapArg(paramsCursor));
+                var instTypeparamsInstTypeVariable = this.getInstType("watchTradesForSymbols", (Map<String, Object>) (market), uta, paramsCursor);
                 String instType = (String) ((List<Object>) instTypeparamsInstTypeVariable).get(0);
                 Map<String, Object> paramsInstType = (Map<String, Object>) ((List<Object>) instTypeparamsInstTypeVariable).get(1);
                 paramsCursor = paramsInstType;
@@ -1380,14 +1380,14 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 ((List<Object>)topics).add(args);
                 messageHashes.add(("trade:" + symbol));
             }
-            Object paramsRequest = paramsCursor;
+            Map<String, Object> paramsRequest = paramsCursor;
             if (Boolean.TRUE.equals(uta))
             {
                 paramsRequest = this.extend(paramsCursor, new HashMap<String, Object>() {{
                     put( "uta", true );
                 }});
             }
-            List<Object> trades = (List<Object>) (this.watchPublicMultiple(uta, messageHashes, topics, Helpers.toMapArg(paramsRequest))).join();
+            List<Object> trades = (List<Object>) (this.watchPublicMultiple(uta, messageHashes, topics, paramsRequest)).join();
             Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
             String tradeSymbol = this.safeString(first, "symbol");
             Long limitResolved = limit;
@@ -1619,10 +1619,12 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         {
             String feeCurrencyId = this.safeString(first, "feeCoin");
             String feeCurrencyCode = this.safeCurrencyCode((String) (feeCurrencyId), (Map<String, Object>) null);
-            fee = Helpers.newMap(
-                "cost", Precise.stringAbs(this.safeString2(first, "totalFee", "fee")),
-                "currency", feeCurrencyCode
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("cost", Precise.stringAbs(this.safeString2(first, "totalFee", "fee")));
+                hx4NewMap0.put("currency", feeCurrencyCode);
+                fee = hx4NewMap0;
+            }
         }
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
         mapLiteral1.put("info", trade);
@@ -1713,7 +1715,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 args.put("instId", "default");
             }
-            List<Object> newPositions = (List<Object>) (this.watchPrivate(uta, messageHash, subscriptionHash, (Map<String, Object>) (args), Helpers.toMapArg(paramsRequest))).join();
+            List<Object> newPositions = (List<Object>) (this.watchPrivate(uta, messageHash, subscriptionHash, (Map<String, Object>) (args), ((Map<String, Object>) (switch ((Object) (paramsRequest)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v10 -> (Map<String, Object>) hx4J40v10; case Object hx4J40v10 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v10.getClass().getName()); })))).join();
             if (this.newUpdates)
             {
                 return newPositions;
@@ -1808,7 +1810,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             this.positions = new HashMap<String, Object>() {{}};
         }
         String action = this.safeString(message, "action");
-        if (!(Helpers.inOp(this.positions, instType)) || (java.util.Objects.equals(action, "snapshot")))
+        if (!((switch ((Object)(this.positions)) { case List<?> j39v15 -> ((Object)(instType)) != null && j39v15.contains(instType); case Map<?, ?> j39v14 -> ((Object)(instType)) instanceof String && j39v14.containsKey(instType); case null, default -> false; })) || (java.util.Objects.equals(action, "snapshot")))
         {
             Helpers.addElementToObject(this.positions, instType, new ArrayCache.ArrayCacheBySymbolBySide());
         }
@@ -1824,10 +1826,10 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             ((List<Object>)newPositions).add(position);
             ((io.github.ccxt.ws.ArrayCache) cache).append(position);
         }
-        Object messageHashes = this.findMessageHashes(client, (instType + ":positions::"));
+        List<Object> messageHashes = (List<Object>) this.findMessageHashes(client, (instType + ":positions::"));
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
-            Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
+            Object messageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = (String) (parts == null || 1 >= parts.size() ? null : parts.get(1));
             List<Object> symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
@@ -2048,7 +2050,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 channel = "orders-algo";
             }
-            Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("watchOrders", Helpers.toMapArg(paramsInstType), (String) null);
+            Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("watchOrders", ((Map<String, Object>) (switch ((Object) (paramsInstType)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v9 -> (Map<String, Object>) hx4J40v9; case Object hx4J40v9 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v9.getClass().getName()); })), (String) null);
             String marginMode = marginModeparamsMarginModeVariable.first();
             Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
             if (!java.util.Objects.equals(marginMode, null))
@@ -2452,10 +2454,12 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         if (!java.util.Objects.equals(feeAmount, null))
         {
             String feeCurrency = this.safeString(fee, "feeCoin");
-            feeObject = Helpers.newMap(
-                "cost", this.parseNumber(Precise.stringAbs(feeAmount)),
-                "currency", this.safeCurrencyCode((String) (feeCurrency), (Map<String, Object>) null)
-            );
+            {
+                HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
+                hx4NewMap1.put("cost", this.parseNumber(Precise.stringAbs(feeAmount)));
+                hx4NewMap1.put("currency", this.safeCurrencyCode((String) (feeCurrency), (Map<String, Object>) null));
+                feeObject = hx4NewMap1;
+            }
         }
         Double triggerPrice = this.safeNumber(order, "triggerPrice", (Object) null);
         Boolean isTriggerOrder = (!java.util.Objects.equals(triggerPrice, null));
@@ -2629,7 +2633,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 args.put("instId", "default");
             }
-            List<Object> trades = (List<Object>) (this.watchPrivate(uta, messageHash, subscriptionHash, (Map<String, Object>) (args), Helpers.toMapArg(paramsRequest))).join();
+            List<Object> trades = (List<Object>) (this.watchPrivate(uta, messageHash, subscriptionHash, (Map<String, Object>) (args), ((Map<String, Object>) (switch ((Object) (paramsRequest)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v8 -> (Map<String, Object>) hx4J40v8; case Object hx4J40v8 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v8.getClass().getName()); })))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -2873,7 +2877,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 args.put("coin", "default");
             }
-            String instTypeLower = (((java.util.Objects.equals(instType, null)))) ? "" : ((String)instType).toLowerCase();
+            String instTypeLower = this.safeStringLower(args, "instType", "");
             String messageHash = ("balance:" + instTypeLower);
             return (this.watchPrivate(isStockOrUta, messageHash, messageHash, (Map<String, Object>) (args), paramsRequest)).join();
         }).thenApply(Balances::new);
@@ -3045,14 +3049,14 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object url = ((Helpers.isTrue((uta)))) ? Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "utaPublic") : Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
+            Object url = (((switch ((Object) ((uta))) { case null -> false; case Boolean hx4J40v7 -> hx4J40v7.booleanValue(); case Long hx4J40v7 -> hx4J40v7 != 0L; case Integer hx4J40v7 -> hx4J40v7 != 0; case Double hx4J40v7 -> hx4J40v7 != 0.0; case String hx4J40v7 -> !hx4J40v7.isEmpty(); case List<?> hx4J40v7 -> !hx4J40v7.isEmpty(); case Map<?, ?> hx4J40v7 -> true; default -> false; }))) ? Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "utaPublic") : Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
             Boolean sandboxMode = (Boolean) this.safeBool2(this.options, "sandboxMode", "sandbox", false);
             if (Boolean.TRUE.equals(sandboxMode))
             {
                 String instType = this.safeString(args, "instType");
                 if ((!java.util.Objects.equals(instType, "SCOIN-FUTURES")) && (!java.util.Objects.equals(instType, "SUSDT-FUTURES")) && (!java.util.Objects.equals(instType, "SUSDC-FUTURES")))
                 {
-                    if (Helpers.isTrue(uta))
+                    if ((switch ((Object) (uta)) { case null -> false; case Boolean hx4J40v6 -> hx4J40v6.booleanValue(); case Long hx4J40v6 -> hx4J40v6 != 0L; case Integer hx4J40v6 -> hx4J40v6 != 0; case Double hx4J40v6 -> hx4J40v6 != 0.0; case String hx4J40v6 -> !hx4J40v6.isEmpty(); case List<?> hx4J40v6 -> !hx4J40v6.isEmpty(); case Map<?, ?> hx4J40v6 -> true; default -> false; }))
                     {
                         url = Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("demo"), "utaPublic");
                     } else
@@ -3076,14 +3080,14 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object url = ((Helpers.isTrue((uta)))) ? Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "utaPublic") : Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
+            Object url = (((switch ((Object) ((uta))) { case null -> false; case Boolean hx4J40v5 -> hx4J40v5.booleanValue(); case Long hx4J40v5 -> hx4J40v5 != 0L; case Integer hx4J40v5 -> hx4J40v5 != 0; case Double hx4J40v5 -> hx4J40v5 != 0.0; case String hx4J40v5 -> !hx4J40v5.isEmpty(); case List<?> hx4J40v5 -> !hx4J40v5.isEmpty(); case Map<?, ?> hx4J40v5 -> true; default -> false; }))) ? Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "utaPublic") : Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
             Boolean sandboxMode = (Boolean) this.safeBool2(this.options, "sandboxMode", "sandbox", false);
             if (Boolean.TRUE.equals(sandboxMode))
             {
                 String instType = this.safeString(args, "instType");
                 if ((!java.util.Objects.equals(instType, "SCOIN-FUTURES")) && (!java.util.Objects.equals(instType, "SUSDT-FUTURES")) && (!java.util.Objects.equals(instType, "SUSDC-FUTURES")))
                 {
-                    if (Helpers.isTrue(uta))
+                    if ((switch ((Object) (uta)) { case null -> false; case Boolean hx4J40v4 -> hx4J40v4.booleanValue(); case Long hx4J40v4 -> hx4J40v4 != 0L; case Integer hx4J40v4 -> hx4J40v4 != 0; case Double hx4J40v4 -> hx4J40v4 != 0.0; case String hx4J40v4 -> !hx4J40v4.isEmpty(); case List<?> hx4J40v4 -> !hx4J40v4.isEmpty(); case Map<?, ?> hx4J40v4 -> true; default -> false; }))
                     {
                         url = Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("demo"), "utaPublic");
                     } else
@@ -3142,7 +3146,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object url = ((Helpers.isTrue((uta)))) ? Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "utaPublic") : Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
+            Object url = (((switch ((Object) ((uta))) { case null -> false; case Boolean hx4J40v3 -> hx4J40v3.booleanValue(); case Long hx4J40v3 -> hx4J40v3 != 0L; case Integer hx4J40v3 -> hx4J40v3 != 0; case Double hx4J40v3 -> hx4J40v3 != 0.0; case String hx4J40v3 -> !hx4J40v3.isEmpty(); case List<?> hx4J40v3 -> !hx4J40v3.isEmpty(); case Map<?, ?> hx4J40v3 -> true; default -> false; }))) ? Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "utaPublic") : Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
             Boolean sandboxMode = (Boolean) this.safeBool2(this.options, "sandboxMode", "sandbox", false);
             if (Boolean.TRUE.equals(sandboxMode))
             {
@@ -3150,7 +3154,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 String instType = this.safeString(argsArrayFirst, "instType");
                 if ((!java.util.Objects.equals(instType, "SCOIN-FUTURES")) && (!java.util.Objects.equals(instType, "SUSDT-FUTURES")) && (!java.util.Objects.equals(instType, "SUSDC-FUTURES")))
                 {
-                    url = ((Helpers.isTrue((uta)))) ? Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("demo"), "utaPublic") : Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("demo"), "public");
+                    url = (((switch ((Object) ((uta))) { case null -> false; case Boolean hx4J40v2 -> hx4J40v2.booleanValue(); case Long hx4J40v2 -> hx4J40v2 != 0L; case Integer hx4J40v2 -> hx4J40v2 != 0; case Double hx4J40v2 -> hx4J40v2 != 0.0; case String hx4J40v2 -> !hx4J40v2.isEmpty(); case List<?> hx4J40v2 -> !hx4J40v2.isEmpty(); case Map<?, ?> hx4J40v2 -> true; default -> false; }))) ? Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("demo"), "utaPublic") : Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("demo"), "public");
                 }
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3201,14 +3205,14 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object url = ((Helpers.isTrue((uta)))) ? Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "utaPrivate") : Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "private");
+            Object url = (((switch ((Object) ((uta))) { case null -> false; case Boolean hx4J40v1 -> hx4J40v1.booleanValue(); case Long hx4J40v1 -> hx4J40v1 != 0L; case Integer hx4J40v1 -> hx4J40v1 != 0; case Double hx4J40v1 -> hx4J40v1 != 0.0; case String hx4J40v1 -> !hx4J40v1.isEmpty(); case List<?> hx4J40v1 -> !hx4J40v1.isEmpty(); case Map<?, ?> hx4J40v1 -> true; default -> false; }))) ? Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "utaPrivate") : Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "private");
             Boolean sandboxMode = (Boolean) this.safeBool2(this.options, "sandboxMode", "sandbox", false);
             if (Boolean.TRUE.equals(sandboxMode))
             {
                 String instType = this.safeString(args, "instType");
                 if ((!java.util.Objects.equals(instType, "SCOIN-FUTURES")) && (!java.util.Objects.equals(instType, "SUSDT-FUTURES")) && (!java.util.Objects.equals(instType, "SUSDC-FUTURES")))
                 {
-                    if (Helpers.isTrue(uta))
+                    if ((switch ((Object) (uta)) { case null -> false; case Boolean hx4J40v0 -> hx4J40v0.booleanValue(); case Long hx4J40v0 -> hx4J40v0 != 0L; case Integer hx4J40v0 -> hx4J40v0 != 0; case Double hx4J40v0 -> hx4J40v0 != 0.0; case String hx4J40v0 -> !hx4J40v0.isEmpty(); case List<?> hx4J40v0 -> !hx4J40v0.isEmpty(); case Map<?, ?> hx4J40v0 -> true; default -> false; }))
                     {
                         url = Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("demo"), "utaPrivate");
                     } else
@@ -3260,7 +3264,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             return false;
         } catch(Exception e)
         {
-            if (Helpers.isInstance(e, AuthenticationError.class))
+            if ((switch ((Object) (e)) { case null -> false; case Throwable hx4J44v0 -> { Throwable hx4J44v0u = hx4J44v0; while ((hx4J44v0u instanceof java.util.concurrent.CompletionException || hx4J44v0u instanceof java.util.concurrent.ExecutionException) && hx4J44v0u.getCause() != null) { hx4J44v0u = hx4J44v0u.getCause(); } yield AuthenticationError.class.isInstance(hx4J44v0u); } case Object hx4J44v0 -> AuthenticationError.class.isInstance(hx4J44v0); }))
             {
                 String messageHash = "authenticated";
                 client.reject(e, messageHash);

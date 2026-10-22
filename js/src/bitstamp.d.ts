@@ -15,37 +15,7 @@ export default class bitstamp extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: Dict): Promise<Market[]>;
-    constructCurrencyObject(id: any, code: any, name: any, precision: any, minCost: any, originalPayload: any): {
-        id: any;
-        code: any;
-        info: any;
-        type: string;
-        name: any;
-        active: boolean;
-        deposit: undefined;
-        withdraw: undefined;
-        fee: Num;
-        precision: number;
-        limits: {
-            amount: {
-                min: number;
-                max: undefined;
-            };
-            price: {
-                min: number;
-                max: undefined;
-            };
-            cost: {
-                min: any;
-                max: undefined;
-            };
-            withdraw: {
-                min: undefined;
-                max: undefined;
-            };
-        };
-        networks: {};
-    };
+    constructCurrencyObject(id: Str, code: Str, name: Str, precision: Int, minCost: Num, originalPayload: Dict): Dict;
     fetchMarketsFromCache(params?: Dict): Promise<Dict[]>;
     /**
      * @method
@@ -89,7 +59,7 @@ export default class bitstamp extends Exchange {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     fetchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
-    getCurrencyIdFromTransaction(transaction: Dict): string | undefined;
+    getCurrencyIdFromTransaction(transaction: Dict): Str;
     getMarketFromTrade(trade: Dict): Market;
     parseTrade(trade: Dict, market?: Market): Trade;
     /**

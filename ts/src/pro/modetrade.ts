@@ -1318,7 +1318,7 @@ export default class modetrade extends modetradeRest {
         client.resolve (this.balance, 'balance');
     }
 
-    handleErrorMessage (client: Client, message: Dict): Bool {
+    handleErrorMessage (client: Client, message: Dict): boolean {
         //
         // {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
         //
@@ -1351,7 +1351,7 @@ export default class modetrade extends modetradeRest {
     }
 
     override handleMessage (client: Client, message: Dict) {
-        if (this.handleErrorMessage (client, message) === true) {
+        if (this.handleErrorMessage (client, message)) {
             return;
         }
         const methods: Dict = {

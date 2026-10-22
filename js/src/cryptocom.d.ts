@@ -238,7 +238,7 @@ export default class cryptocom extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
-    parseAddress(addressString: any): Str[];
+    parseAddress(addressString: Str): [Str, Str];
     /**
      * @method
      * @name cryptocom#withdraw

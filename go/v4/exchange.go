@@ -772,8 +772,22 @@ func (this *BaseExchange) CheckOptionBool(methodName any, optionName any, value 
 	if value = derefScalar(value); value == nil {
 		return nil
 	}
-	if b, ok := value.(bool); ok {
-		return &b
+	t, f := true, false
+	switch v := value.(type) {
+	case bool:
+		return &v
+	case string:
+		if v == "true" {
+			return &t
+		} else if v == "false" {
+			return &f
+		}
+	case int, int64, float64:
+		if n := ToFloat64(v); n == 1 {
+			return &t
+		} else if n == 0 {
+			return &f
+		}
 	}
 	panic(BadRequest(this.Id + " " + optionMethodLabel(methodName) + " option " + ToString(optionName) + " must be a boolean"))
 }

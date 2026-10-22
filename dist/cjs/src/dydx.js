@@ -1310,8 +1310,8 @@ class dydx extends dydx$1["default"] {
         const subaccountId = 0;
         const [subaccountIdOption, paramsSubAccountId] = this.handleOptionIntegerAndParams(params, 'createOrder', 'subAccountId', subaccountId);
         const triggerPrice = this.safeString2(paramsSubAccountId, 'triggerPrice', 'stopPrice');
-        const stopLossPrice = this.safeValue(paramsSubAccountId, 'stopLossPrice', triggerPrice);
-        const takeProfitPrice = this.safeValue(paramsSubAccountId, 'takeProfitPrice');
+        const stopLossPrice = this.safeString(paramsSubAccountId, 'stopLossPrice', triggerPrice);
+        const takeProfitPrice = this.safeString(paramsSubAccountId, 'takeProfitPrice');
         const isConditional = triggerPrice !== undefined || stopLossPrice !== undefined || takeProfitPrice !== undefined;
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringUpper(paramsSubAccountId, 'timeInForce', 'GTT');
@@ -1563,7 +1563,8 @@ class dydx extends dydx$1["default"] {
         if (idString.indexOf('-') > -1) {
             throw new errors.NotSupported(this.id + ' cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.');
         }
-        let goodTillBlock = this.safeInteger(paramsOmitted, 'goodTillBlock');
+        const goodTillBlockOption = this.safeInteger(paramsOmitted, 'goodTillBlock');
+        let goodTillBlock = goodTillBlockOption;
         const goodTillBlockTimeInSeconds = 2592000;
         const [goodTillBlockTimeInSecondsOption, paramsGoodTillBlockTimeInSeconds] = this.handleOptionIntegerAndParams(paramsOmitted, 'cancelOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds); // default is 30 days
         let goodTillBlockTime = undefined;
@@ -1578,7 +1579,7 @@ class dydx extends dydx$1["default"] {
             if (goodTillBlockTimeInSecondsOption === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' goodTillBlockTimeInSeconds is required in params for long term or conditional order.');
             }
-            if (goodTillBlock !== undefined && goodTillBlock > 0) {
+            if (goodTillBlockOption !== undefined && goodTillBlockOption > 0) {
                 throw new errors.InvalidOrder(this.id + ' goodTillBlock should be 0 for long term or conditional order.');
             }
             goodTillBlockTime = this.seconds() + goodTillBlockTimeInSecondsOption;
@@ -2506,7 +2507,7 @@ class dydx extends dydx$1["default"] {
             errorCode = this.safeString(response, 'code');
         }
         if ((errorCode !== undefined) && (errorCode !== '')) {
-            const errorCodeNum = this.parseToNumeric(errorCode);
+            const errorCodeNum = this.parseToInt(errorCode);
             if (errorCodeNum > 0) {
                 const feedback = this.id + ' ' + this.json(response);
                 this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);

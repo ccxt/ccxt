@@ -1396,8 +1396,8 @@ export default class bingx extends Exchange {
         };
         let response: Dict;
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTrades', market, params);
+        const maxLimit = (marketType === 'spot') ? 500 : 1000;
         if (limit !== undefined) {
-            const maxLimit = (marketType === 'spot') ? 500 : 1000;
             request['limit'] = Math.min (limit, maxLimit);
         }
         if (marketType === 'spot') {
@@ -3355,7 +3355,9 @@ export default class bingx extends Exchange {
             if (((typeValue === 'LIMIT') || (typeValue === 'TRIGGER_LIMIT') || (typeValue === 'STOP') || (typeValue === 'TAKE_PROFIT')) && !isTrailing) {
                 request['price'] = this.parseToNumeric (this.priceToPrecision (symbol, price));
             }
-            let reduceOnly = this.safeBool (paramsTakeProfit, 'reduceOnly', false);
+            const reduceOnlyParam = this.safeBool (paramsTakeProfit, 'reduceOnly', false);
+            // stop loss / take profit price orders are always reduce only
+            const reduceOnly = (reduceOnlyParam === true) || (!isTriggerOrder && (isStopLossPriceOrder || isTakeProfitPriceOrder));
             if (isTriggerOrder) {
                 request['stopPrice'] = this.parseToNumeric (this.priceToPrecision (symbol, triggerPrice));
                 if (isMarketOrder || (typeValue === 'TRIGGER_MARKET')) {
@@ -3365,7 +3367,6 @@ export default class bingx extends Exchange {
                 }
             } else if (isStopLossPriceOrder || isTakeProfitPriceOrder) {
                 // This can be used to set the stop loss and take profit, but the position needs to be opened first
-                reduceOnly = true;
                 if (isStopLossPriceOrder) {
                     request['stopPrice'] = this.parseToNumeric (this.priceToPrecision (symbol, stopLossPrice));
                     if (isMarketOrder || (typeValue === 'STOP_MARKET')) {
@@ -3749,7 +3750,7 @@ export default class bingx extends Exchange {
         return this.safeString (sides, side, side);
     }
 
-    parseOrderType (type: Str) {
+    parseOrderType (type: Str): Str {
         const types: Dict = {
             'trigger_market': 'market',
             'trigger_limit': 'limit',
@@ -4068,17 +4069,18 @@ export default class bingx extends Exchange {
         }
         const lastTradeTimestamp = this.safeInteger2 (orderData, 'updateTime', 'T');
         const statusId = this.safeStringUpperN (orderData, [ 'status', 'X', 'orderStatus' ]);
-        let feeCurrencyCode = this.safeString2 (orderData, 'feeAsset', 'N');
+        let feeCurrencyCode: Str = this.safeString2 (orderData, 'feeAsset', 'N');
         const feeCost = this.safeStringN (orderData, [ 'fee', 'commission', 'n' ]);
         if ((feeCurrencyCode === undefined)) {
             if (marketResolved['spot'] === true) {
                 if (side === 'buy') {
-                    feeCurrencyCode = marketResolved['base'];
+                    feeCurrencyCode = this.safeString (marketResolved, 'base');
                 } else {
-                    feeCurrencyCode = marketResolved['quote'];
+                    feeCurrencyCode = this.safeString (marketResolved, 'quote');
                 }
             } else {
-                feeCurrencyCode = (marketResolved['inverse'] === true) ? marketResolved['settle'] : marketResolved['quote'];
+                const feeKey = (marketResolved['inverse'] === true) ? 'settle' : 'quote';
+                feeCurrencyCode = this.safeString (marketResolved, feeKey);
             }
         }
         let stopLoss = this.safeValue (orderData, 'stopLoss');
@@ -4153,7 +4155,7 @@ export default class bingx extends Exchange {
         }, marketResolved);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'NEW': 'open',
             'PENDING': 'open',
@@ -5626,16 +5628,17 @@ export default class bingx extends Exchange {
         const currencyId = this.safeString (depositAddress, 'coin');
         const currencyResolved: Currency = this.safeCurrency (currencyId, currency);
         const code = currencyResolved['code'];
-        let address = this.safeString2 (depositAddress, 'addressWithPrefix', 'address');
+        const rawAddress = this.safeString2 (depositAddress, 'addressWithPrefix', 'address');
         const networkId = this.safeString (depositAddress, 'network');
         const networkCode = this.networkIdToCode (networkId, code);
         // despite its name the addressWithPrefix field sometimes arrives without
         // the 0x prefix on the evm networks, see https://github.com/ccxt/ccxt/issues/24331
-        if (address !== undefined) {
-            const isPrefixed = address.startsWith ('0x') || address.startsWith ('0X');
+        let address: Str = rawAddress;
+        if (rawAddress !== undefined) {
+            const isPrefixed = rawAddress.startsWith ('0x') || rawAddress.startsWith ('0X');
             const evmNetworks = [ 'BEP20', 'ERC20', 'HECO', 'MATIC', 'POLYGON', 'ARBITRUM', 'OPTIMISM', 'AVAXC', 'BASE', 'FTM', 'LINEA', 'ZKSYNC', 'OPBNB' ];
             if (!isPrefixed && this.inArray (networkCode, evmNetworks)) {
-                address = '0x' + address;
+                address = '0x' + rawAddress;
             }
         }
         this.checkAddress (address);
@@ -5857,7 +5860,7 @@ export default class bingx extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str, type: Str = undefined) {
+    parseTransactionStatus (status: Str, type: Str = undefined): Str {
         const statusesByType: Dict = {
             'deposit': {
                 '0': 'pending',

@@ -198,7 +198,7 @@ public partial class opinion : PredictionExchange
     public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object rest = this.omit(parameters, new List<object>() {"limit"});
+        IDictionary<string, object> rest = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"limit"}));
         Int64? userLimit = this.safeInteger(parameters, "limit");
         Int64? pageLimit = this.safeInteger(this.options, "marketsPageLimit", 20);
         Int64? maxPages = this.safeInteger(this.options, "maxMarketsPages", 50);
@@ -207,9 +207,9 @@ public partial class opinion : PredictionExchange
         // so the cache gets the base indexing (id + handle + slug) instead of a raw assignment
         Dictionary<string, object> seenEvents = new Dictionary<string, object>() {};
         List<object> eventsList = new List<object>() {};
-        object page = 1;
-        object fetchedRawCount = 0;
-        while (true)
+        // every raw (unflattened) row fetched so far, so its length is the raw fetched count
+        List<object> fetchedRawRows = new List<object>() {};
+        for (int page = 1; (page <= maxPages); page++)
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "marketType", 2 },
@@ -220,7 +220,6 @@ public partial class opinion : PredictionExchange
             IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
             List<object> rawMarkets = this.safeList(result, "list", new List<object>() {});
             int rawMarketsLength = rawMarkets.Count;
-            fetchedRawCount = this.sum(fetchedRawCount, rawMarketsLength);
             // categorical parents expand into several flatMarkets entries each, so the raw,
             // unflattened row count in 'total' must be compared against fetchedRawCount, not
             // flatMarkets.length - otherwise expansion makes the comparison meaningless
@@ -228,15 +227,16 @@ public partial class opinion : PredictionExchange
             for (int i = 0; i < rawMarketsLength; i++)
             {
                 object raw = (rawMarkets != null && i < rawMarkets.Count ? rawMarkets[i] : null);
+                fetchedRawRows.Add(raw);
                 Int64? marketType = this.safeInteger(raw, "marketType");
                 if ((marketType == 1))
                 {
                     Dictionary<string, object> eventVar = this.parseEvent(raw);
-                    object childMarkets = (eventVar != null && eventVar.ContainsKey("markets") ? eventVar["markets"] : null);
-                    int childMarketsLength = getArrayLength(childMarkets);
+                    List<object> childMarkets = this.safeList(eventVar, "markets", new List<object>() {});
+                    int childMarketsLength = childMarkets.Count;
                     for (int ci = 0; ci < childMarketsLength; ci++)
                     {
-                        flatMarkets.Add(getValue(childMarkets, ci));
+                        flatMarkets.Add((childMarkets != null && ci < childMarkets.Count ? childMarkets[ci] : null));
                     }
                     string? eventKey = this.safeString(eventVar, "event");
                     if (((eventKey != null)) && (eventKey != "") && !(((eventKey != null) && seenEvents.ContainsKey(eventKey))))
@@ -250,11 +250,11 @@ public partial class opinion : PredictionExchange
                 }
             }
             int collectedLength = (flatMarkets?.Count ?? 0);
-            if (((rawMarketsLength < pageLimit)) || (isGreaterThanOrEqual(page, maxPages)) || (((total != null)) && (isGreaterThanOrEqual(fetchedRawCount, total))) || (((userLimit != null)) && ((userLimit == null || collectedLength >= userLimit))))
+            int fetchedRawCount = (fetchedRawRows?.Count ?? 0);
+            if (((rawMarketsLength < pageLimit)) || ((maxPages == null || page >= maxPages)) || (((total != null)) && ((total == null || fetchedRawCount >= total))) || (((userLimit != null)) && ((userLimit == null || collectedLength >= userLimit))))
             {
                 break;
             }
-            page = this.sum(page, 1);
         }
         this.setEvents(eventsList);
         int flatMarketsLength = (flatMarkets?.Count ?? 0);
@@ -277,7 +277,7 @@ public partial class opinion : PredictionExchange
      */
     public async override Task<Dictionary<string, object>> FetchOutcome(object outcomeSymbol)
     {
-        if (isEqual(this.outcomeSearchQuery(outcomeSymbol), null))
+        if ((this.outcomeSearchQuery(outcomeSymbol) == null))
         {
             await this.loadOutcomes();
             if (this.hasOutcome(outcomeSymbol))
@@ -459,7 +459,7 @@ public partial class opinion : PredictionExchange
         string? slug = this.safeString(parameters, "slug");
         if (((eventId != null)) || ((slug != null)))
         {
-            object singleRest = this.omit(parameters, new List<object>() {"eventId", "slug", "query", "queries", "tags", "status", "sort", "searchIn", "limit"});
+            IDictionary<string, object> singleRest = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"eventId", "slug", "query", "queries", "tags", "status", "sort", "searchIn", "limit"}));
             Dictionary<string, object> singleResponse = null;
             if ((slug != null))
             {
@@ -478,30 +478,20 @@ public partial class opinion : PredictionExchange
             this.indexEventOutcomes(single);
             return ccxt.BaseExchange.ToPredictionEventList(this.applyEventFetchParams(new List<object>() {single}, parameters, queries));
         }
-        object rest = this.omit(parameters, new List<object>() {"query", "queries", "tags", "status", "sort", "searchIn", "limit"});
-        Int64? pageLimit = this.safeInteger(this.options, "defaultFetchEventsLimit", 20);
-        Int64? userLimit = this.safeInteger(parameters, "limit");
+        IDictionary<string, object> rest = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"query", "queries", "tags", "status", "sort", "searchIn", "limit"}));
+        Int64? pageLimit = this.parseToInt(this.safeInteger(this.options, "defaultFetchEventsLimit", 20));
         // bound how many events are actually FETCHED: the user limit when given, otherwise
         // options.maxFetchEventsResults - the scope filters keep the listing narrow, but a broad
         // label can still hold more than one page
-        Int64? fetchCap = this.safeInteger(this.options, "maxFetchEventsResults", 100);
-        if ((userLimit != null))
-        {
-            fetchCap = userLimit;
-        }
+        Int64? fetchCap = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "maxFetchEventsResults", 100));
         Int64? maxPages = this.safeInteger(this.options, "maxEventsPages", 50);
         List<object> rawEvents = new List<object>() {};
-        object page = 1;
-        object fetchedRawCount = 0;
-        while (true)
+        for (int page = 1; (page <= maxPages); page++)
         {
-            object reqLimit = pageLimit;
-            object remaining = subtract(fetchCap, fetchedRawCount);
-            if (isLessThan(remaining, reqLimit))
-            {
-                reqLimit = remaining;
-            }
-            if (isLessThanOrEqual(reqLimit, 0))
+            int fetchedSoFar = (rawEvents?.Count ?? 0);
+            Int64? remaining = this.parseToInt((fetchCap - fetchedSoFar));
+            Int64? reqLimit = ((pageLimit != null && (remaining == null || remaining < pageLimit))) ? remaining : pageLimit;
+            if ((reqLimit == null || reqLimit <= 0))
             {
                 break;
             }
@@ -514,17 +504,17 @@ public partial class opinion : PredictionExchange
             IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
             List<object> pageEvents = this.safeList(result, "list", new List<object>() {});
             int pageEventsLength = pageEvents.Count;
-            fetchedRawCount = this.sum(fetchedRawCount, pageEventsLength);
             for (int i = 0; i < pageEventsLength; i++)
             {
                 rawEvents.Add((pageEvents != null && i < pageEvents.Count ? pageEvents[i] : null));
             }
+            // rawEvents holds every row fetched so far, so its length is the raw fetched count
+            int fetchedRawCount = (rawEvents?.Count ?? 0);
             Int64? total = this.safeInteger(result, "total");
-            if ((isLessThan(pageEventsLength, reqLimit)) || (isGreaterThanOrEqual(page, maxPages)) || (((total != null)) && (isGreaterThanOrEqual(fetchedRawCount, total))) || (isGreaterThanOrEqual(fetchedRawCount, fetchCap)))
+            if (((pageEventsLength < reqLimit)) || ((maxPages == null || page >= maxPages)) || (((total != null)) && ((total == null || fetchedRawCount >= total))) || ((fetchCap == null || fetchedRawCount >= fetchCap)))
             {
                 break;
             }
-            page = this.sum(page, 1);
         }
         int rawEventsLength = (rawEvents?.Count ?? 0);
         List<object> parsedEvents = new List<object>() {};
@@ -858,8 +848,8 @@ public partial class opinion : PredictionExchange
         {
             IDictionary<string, object> outcomeObj = this.outcome((outcomes != null && i < outcomes.Count ? outcomes[i] : null));
             Int64 priceIndex = (i * 2L);
-            object priceResponse = getValue(responses, priceIndex);
-            object bookResponse = getValue(responses, this.sum(priceIndex, 1));
+            object priceResponse = (responses != null && priceIndex < responses.Count ? responses[(int)priceIndex] : null);
+            object bookResponse = (responses != null && (priceIndex + 1) < responses.Count ? responses[(int)(priceIndex + 1)] : null);
             Dictionary<string, object> response = new Dictionary<string, object>() {
                 { "price", priceResponse },
                 { "book", bookResponse },
@@ -1111,9 +1101,13 @@ public partial class opinion : PredictionExchange
     public virtual Dictionary<string, object> opinionOrderRawAmounts(bool isMarket, string? side, double? amount, double? price, object decimals)
     {
         string decimalsStr = "1";
-        for (int i = 0; isLessThan(i, decimals); i++)
+        if (!(decimals == null))
         {
-            decimalsStr = (decimalsStr + "0");
+            Int64? decimalsCount = this.parseToInt(decimals);
+            for (int i = 0; (i < decimalsCount); i++)
+            {
+                decimalsStr = (decimalsStr + "0");
+            }
         }
         string? amountStr = this.numberToString(amount);
         if (isMarket && ((side == "BUY")))
@@ -1210,7 +1204,7 @@ public partial class opinion : PredictionExchange
         int sideInt = (sideStr == "BUY") ? 0 : 1;
         string? salt = this.numberToString(this.milliseconds());
         bool? postOnly = this.safeBool(parameters, "postOnly", false);
-        object rest = this.omit(parameters, new List<object>() {"postOnly"});
+        IDictionary<string, object> rest = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"postOnly"}));
         string? maker = await this.loadMultiSignAddress();
         // Ethereum addresses are case-insensitive - a checksummed multiSignAddress compared
         // against a differently-cased walletAddress with strict equality would pick the wrong
@@ -1742,9 +1736,9 @@ public partial class opinion : PredictionExchange
         });
     }
 
-    public virtual object hashMessage(object message)
+    public virtual string? hashMessage(object message)
     {
-        return ("0x" + (this.hash(message, keccak, "hex")));
+        return ((string?)((object)(("0x" + (this.hash(message, keccak, "hex"))))));
     }
 
     public virtual Dictionary<string, object> signHash(object hash, object privateKey)
@@ -2004,10 +1998,10 @@ public partial class opinion : PredictionExchange
         {
             IDictionary<string, object> market = this.safeDict(this.markets, (marketKeys != null && i < marketKeys.Count ? marketKeys[i] : null));
             IDictionary<string, object> info = this.safeDict(market, "info", new Dictionary<string, object>() {});
-            if (isEqual(this.safeInteger(info, "marketId"), marketId))
+            if (((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))(this.safeInteger(info, "marketId"), marketId))
             {
                 List<object> outcomes = this.safeList(market, "outcomes", new List<object>() {});
-                int index = (isEqual(outcomeSide, 2)) ? 1 : 0;
+                int index = ((((object)(outcomeSide)) switch { Int64 c33l => c33l == 2, int c33i => c33i == 2, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 2, decimal c33m => c33m == 2, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 2, uint c33u => (Int64)c33u == 2, short c33h => (Int64)c33h == 2, ushort c33v => (Int64)c33v == 2, byte c33y => (Int64)c33y == 2, sbyte c33e => (Int64)c33e == 2, ulong c33z => c33z == 2UL, _ => false })) ? 1 : 0;
                 return this.safeDict(outcomes, index);
             }
         }
@@ -2037,7 +2031,7 @@ public partial class opinion : PredictionExchange
         string? url = this.opinionWsUrl();
         var client = this.client(url);
         string subscriptionKey = ((channel + ":") + this.numberToString(marketId));
-        bool isNewSubscription = isEqual(this.safeValue(client.subscriptions, subscriptionKey), null);
+        bool isNewSubscription = (this.safeValue(client.subscriptions, subscriptionKey) == null);
         if (isNewSubscription)
         {
             await this.seedOrderBook(outcome, sym, limit);
@@ -2086,14 +2080,14 @@ public partial class opinion : PredictionExchange
         {
             return;
         }
-        if (isEqual(this.safeOrderBook(this.orderbooks, sym), null))
+        if ((this.safeOrderBook(this.orderbooks, sym) == null))
         {
             // the delta belongs to the market's other token, whose book is not being watched
             return;
         }
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, sym);
         string? sideStr = this.safeString(message, "side");
-        object bookSide = (sideStr == "bids") ? getValue(orderbook, "bids") : getValue(orderbook, "asks");
+        object bookSide = (sideStr == "bids") ? (orderbook != null && orderbook.ContainsKey("bids") ? orderbook["bids"] : null) : (orderbook != null && orderbook.ContainsKey("asks") ? orderbook["asks"] : null);
         double? price = this.safeNumber(message, "price");
         double? size = this.safeNumber(message, "size");
         (bookSide as IOrderBookSide).storeArray(new List<object>() {price, size});
@@ -2222,7 +2216,7 @@ public partial class opinion : PredictionExchange
         {
             this.trades = this.createSafeDictionary();
         }
-        if (isEqual(this.safeValue(this.trades, sym), null))
+        if ((this.safeValue(this.trades, sym) == null))
         {
             Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.trades[(string)sym] = new ArrayCache(tradesLimit);
@@ -2270,23 +2264,23 @@ public partial class opinion : PredictionExchange
     public virtual string? parseWsOrderStatus(object status)
     {
         // per the venue docs: 1 pending, 2 finished, 3 canceled, 4 expired, 5 failed
-        if (isEqual(status, 1))
+        if ((((object)(status)) switch { Int64 c33l => c33l == 1, int c33i => c33i == 1, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 1, decimal c33m => c33m == 1, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 1, uint c33u => (Int64)c33u == 1, short c33h => (Int64)c33h == 1, ushort c33v => (Int64)c33v == 1, byte c33y => (Int64)c33y == 1, sbyte c33e => (Int64)c33e == 1, ulong c33z => c33z == 1UL, _ => false }))
         {
             return "open";
         }
-        if (isEqual(status, 2))
+        if ((((object)(status)) switch { Int64 c33l => c33l == 2, int c33i => c33i == 2, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 2, decimal c33m => c33m == 2, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 2, uint c33u => (Int64)c33u == 2, short c33h => (Int64)c33h == 2, ushort c33v => (Int64)c33v == 2, byte c33y => (Int64)c33y == 2, sbyte c33e => (Int64)c33e == 2, ulong c33z => c33z == 2UL, _ => false }))
         {
             return "closed";
         }
-        if (isEqual(status, 3))
+        if ((((object)(status)) switch { Int64 c33l => c33l == 3, int c33i => c33i == 3, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 3, decimal c33m => c33m == 3, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 3, uint c33u => (Int64)c33u == 3, short c33h => (Int64)c33h == 3, ushort c33v => (Int64)c33v == 3, byte c33y => (Int64)c33y == 3, sbyte c33e => (Int64)c33e == 3, ulong c33z => c33z == 3UL, _ => false }))
         {
             return "canceled";
         }
-        if (isEqual(status, 4))
+        if ((((object)(status)) switch { Int64 c33l => c33l == 4, int c33i => c33i == 4, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 4, decimal c33m => c33m == 4, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 4, uint c33u => (Int64)c33u == 4, short c33h => (Int64)c33h == 4, ushort c33v => (Int64)c33v == 4, byte c33y => (Int64)c33y == 4, sbyte c33e => (Int64)c33e == 4, ulong c33z => c33z == 4UL, _ => false }))
         {
             return "expired";
         }
-        if (isEqual(status, 5))
+        if ((((object)(status)) switch { Int64 c33l => c33l == 5, int c33i => c33i == 5, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 5, decimal c33m => c33m == 5, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 5, uint c33u => (Int64)c33u == 5, short c33h => (Int64)c33h == 5, ushort c33v => (Int64)c33v == 5, byte c33y => (Int64)c33y == 5, sbyte c33e => (Int64)c33e == 5, ulong c33z => c33z == 5UL, _ => false }))
         {
             return "rejected";
         }

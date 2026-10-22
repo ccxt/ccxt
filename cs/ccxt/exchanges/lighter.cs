@@ -500,7 +500,7 @@ public partial class lighter : Exchange
             ((IDictionary<string,object>)getValue(getValue((this.options.ContainsKey("auths") ? this.options["auths"] : null), accountIndex), apiKeyIndex))["signer"] = signer;
             return signer;
         }
-        bool privateKeyIsSet = ((this.privateKey != null)) && (!isEqual(this.privateKey, ""));
+        bool privateKeyIsSet = ((this.privateKey != null)) && (!(this.privateKey == ""));
         if (privateKeyIsSet && ((apiKeyIndex != null)) && ((accountIndex != null)))
         {
             if (this.privateKey.Length > 66)
@@ -523,11 +523,11 @@ public partial class lighter : Exchange
         {
             this.options["auths"] = new Dictionary<string, object>() {};
         }
-        if (!(inOp((this.options.ContainsKey("auths") ? this.options["auths"] : null), strAccountIndex)))
+        if (!(((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))((this.options.ContainsKey("auths") ? this.options["auths"] : null), strAccountIndex)))
         {
             ((IDictionary<string,object>)(this.options.ContainsKey("auths") ? this.options["auths"] : null))[(string)strAccountIndex] = new Dictionary<string, object>() {};
         }
-        if (!(inOp(getValue((this.options.ContainsKey("auths") ? this.options["auths"] : null), strAccountIndex), strApiKeyIndex)))
+        if (!(((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))(getValue((this.options.ContainsKey("auths") ? this.options["auths"] : null), strAccountIndex), strApiKeyIndex)))
         {
             ((IDictionary<string,object>)getValue((this.options.ContainsKey("auths") ? this.options["auths"] : null), strAccountIndex))[(string)strApiKeyIndex] = new Dictionary<string, object>() {
                 { "signer", null },
@@ -540,23 +540,10 @@ public partial class lighter : Exchange
 
     public virtual object getLighterPrivateKey(string? strAccountIndex, string? strApiKeyIndex)
     {
-        if (!(this.options.ContainsKey("auths")))
-        {
-            return null;
-        }
-        if (!(inOp(this.options["auths"], strAccountIndex)))
-        {
-            return null;
-        }
-        if (!(inOp(getValue(this.options["auths"], strAccountIndex), strApiKeyIndex)))
-        {
-            return null;
-        }
-        if (!(inOp(getValue(getValue(this.options["auths"], strAccountIndex), strApiKeyIndex), "lighterPrivateKey")))
-        {
-            return null;
-        }
-        return getValue(getValue(getValue(this.options["auths"], strAccountIndex), strApiKeyIndex), "lighterPrivateKey");
+        IDictionary<string, object> auths = this.safeDict(this.options, "auths");
+        IDictionary<string, object> accountAuths = this.safeDict(auths, strAccountIndex);
+        IDictionary<string, object> apiKeyAuths = this.safeDict(accountAuths, strApiKeyIndex);
+        return this.safeString(apiKeyAuths, "lighterPrivateKey");
     }
 
     /**
@@ -597,14 +584,15 @@ public partial class lighter : Exchange
         IList<object> apiKeyIndexOptionparamsApiKeyIndexVariable = (IList<object>)this.handleOptionAndParams2(parameters, methodName1, optionName1, optionName2, defaultValue);
         var apiKeyIndexOption = apiKeyIndexOptionparamsApiKeyIndexVariable[0];
         var paramsApiKeyIndex = apiKeyIndexOptionparamsApiKeyIndexVariable[1];
-        object apiKeyIndex = apiKeyIndexOption;
-        if (((apiKeyIndex == null)) || (isLessThan(apiKeyIndex, 4)) || (isGreaterThan(apiKeyIndex, 254)))
+        Int64? apiKeyIndex = this.safeInteger(new List<object>() {apiKeyIndexOption}, 0);
+        if (((apiKeyIndex != null)) && ((apiKeyIndex >= 4)) && ((apiKeyIndex == null || apiKeyIndex <= 254)))
         {
-            // apiKeyIndex = this.randNumber (2);
-            apiKeyIndex = 254;
-            this.options["apiKeyIndex"] = apiKeyIndex; // default to a value to avoid overriding other keys
+            return new List<object> {this.parseToInt(apiKeyIndex), paramsApiKeyIndex};
         }
-        return new List<object> {this.parseToInt(apiKeyIndex), paramsApiKeyIndex};
+        // apiKeyIndex = this.randNumber (2);
+        int defaultApiKeyIndex = 254;
+        this.options["apiKeyIndex"] = defaultApiKeyIndex; // default to a value to avoid overriding other keys
+        return new List<object>() {defaultApiKeyIndex, paramsApiKeyIndex};
     }
 
     public async virtual Task<object> handleAccountIndex(object parameters, string? methodName1, string optionName1, string optionName2, object defaultValue = null)
@@ -662,7 +650,7 @@ public partial class lighter : Exchange
                 {
                     throw new ArgumentsRequired ((string)(((((((this.id + " ") + methodName1) + "() requires an ") + optionName1) + " or ") + optionName2) + " parameter")) ;
                 }
-                accountIndex = GetValue(account, "index");
+                accountIndex = (account != null && account.ContainsKey("index") ? account["index"] : null);
                 this.options["accountIndex"] = accountIndex;
             }
         }
@@ -717,15 +705,12 @@ public partial class lighter : Exchange
         IDictionary<string, object> accountAuths = this.safeDict(auths, accountIndex);
         IDictionary<string, object> cachedAuth = this.safeDict(accountAuths, apiKeyIndex);
         Int64? cachedDeadline = this.safeInteger(cachedAuth, "deadline");
-        if ((cachedDeadline != null))
+        Int64? minimumRemaining = this.safeInteger(this.options, "authDeadlineMinimumRemaining", 60);
+        if (((cachedDeadline != null)) && ((minimumRemaining != null)) && (((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } bool c32Int(object v) { Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } bool c32Eq(object x, object y) { if (x == null && y == null) return true; if (x == null || y == null) return false; try { if (x.GetType() != y.GetType() && (!Double.TryParse(x.ToString(), out _) || !Double.TryParse(y.ToString(), out _))) return false; if (c32Int(x) && c32Int(y)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(decimal) || y.GetType() == typeof(decimal)) return Convert.ToDecimal(x) == Convert.ToDecimal(y); if (x.GetType() == typeof(int)) return (int)x == (int)y; if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) == Convert.ToDouble(y); if (x.GetType() == typeof(Single) || y.GetType() == typeof(Single)) return Convert.ToSingle(x) == Convert.ToSingle(y); if (x.GetType() == typeof(string)) return ((string)x) == ((string)y); if (x.GetType() == typeof(bool)) return ((bool)x) == ((bool)y); return false; } catch { return false; } } return c32Gt(c32a, c32b) || c32Eq(c32a, c32b); }))((cachedDeadline - minimumRemaining), this.seconds())))
         {
-            object minimumDeadline = add(this.seconds(), this.safeInteger(this.options, "authDeadlineMinimumRemaining", 60));
-            if (isGreaterThanOrEqual(cachedDeadline, minimumDeadline))
-            {
-                return this.safeString(cachedAuth, "token");
-            }
+            return this.safeString(cachedAuth, "token");
         }
-        object deadline = add(this.seconds(), this.safeInteger(this.options, "authDeadlineExpiry", 28800));
+        object deadline = (this.seconds() + this.safeInteger(this.options, "authDeadlineExpiry", 28800));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "deadline", deadline },
             { "api_key_index", this.parseToInt(apiKeyIndex) },
@@ -737,7 +722,7 @@ public partial class lighter : Exchange
         return ((string?)((object)(token)));
     }
 
-    public virtual string? pow(object n, object m)
+    public virtual string? pow(string? n, object m)
     {
         string? r = Precise.stringMul(n, "1");
         Int64? c = this.parseToInt(m);
@@ -760,20 +745,20 @@ public partial class lighter : Exchange
         return r;
     }
 
-    public virtual object hashMessage(object message)
+    public virtual string? hashMessage(object message)
     {
         string? binaryMessage = this.encode(message);
         object binaryMessageLength = this.binaryLength(binaryMessage);
         byte[] x19 = this.base16ToBinary("19");
         byte[] newline = this.base16ToBinary("0a");
         byte[] prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
-        return ("0x" + (this.hash(this.binaryConcat(prefix, binaryMessage), keccak, "hex")));
+        return ((string?)((object)(("0x" + (this.hash(this.binaryConcat(prefix, binaryMessage), keccak, "hex"))))));
     }
 
     public virtual string signHash(object hash, object privateKey)
     {
         this.checkRequiredCredentials();
-        Dictionary<string, object> signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
+        Dictionary<string, object> signature = ecdsa(((hash == null) ? null : ((string)hash).Substring(Math.Max(((string)hash).Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
         string? r = ((string)(signature != null && signature.ContainsKey("r") ? signature["r"] : null));
         string? s = ((string)(signature != null && signature.ContainsKey("s") ? signature["s"] : null));
         string v = this.intToBase16(this.sum(27, (signature != null && signature.ContainsKey("v") ? signature["v"] : null)));
@@ -782,7 +767,7 @@ public partial class lighter : Exchange
 
     public virtual string? signL1AndPrepareTxInfo(object txInfo, object message, object privateKey)
     {
-        object hashMessage = this.hashMessage(message);
+        string? hashMessage = this.hashMessage(message);
         string signature = this.signHash(hashMessage, privateKey);
         object decTxInfo = this.parseJson(txInfo);
         ((IDictionary<string,object>)decTxInfo)["L1Sig"] = signature;
@@ -999,8 +984,8 @@ public partial class lighter : Exchange
         request["api_key_index"] = apiKeyIndex;
         request["account_index"] = this.parseToInt(accountIndex);
         string? triggerPrice = this.safeString2(paramsOrderExpiry, "triggerPrice", "stopPrice");
-        object stopLossPrice = this.safeValue(paramsOrderExpiry, "stopLossPrice", triggerPrice);
-        object takeProfitPrice = this.safeValue(paramsOrderExpiry, "takeProfitPrice");
+        string? stopLossPrice = this.safeString(paramsOrderExpiry, "stopLossPrice", triggerPrice);
+        string? takeProfitPrice = this.safeString(paramsOrderExpiry, "takeProfitPrice");
         IDictionary<string, object> stopLoss = this.safeDict(paramsOrderExpiry, "stopLoss");
         IDictionary<string, object> takeProfit = this.safeDict(paramsOrderExpiry, "takeProfit");
         bool hasStopLoss = ((stopLoss != null));
@@ -1220,7 +1205,7 @@ public partial class lighter : Exchange
             order = (orderRequests != null && 0 < orderRequests.Count ? orderRequests[0] : null);
         }
         // the nonce could be updated
-        if (isEqual(this.safeInteger(order, "nonce"), null))
+        if ((this.safeInteger(order, "nonce") == null))
         {
             ((IDictionary<string,object>)order)["nonce"] = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex));
         }
@@ -1523,10 +1508,11 @@ public partial class lighter : Exchange
             {
                 type = "swap";
             }
-            object baseId = this.safeString(market, "symbol");
-            if ((baseId != null) && (((string)baseId).IndexOf("/", StringComparison.Ordinal) != -1))
+            string? marketSymbol = this.safeString(market, "symbol");
+            object baseId = marketSymbol;
+            if ((marketSymbol != null) && (marketSymbol.IndexOf("/", StringComparison.Ordinal) != -1))
             {
-                baseId = getValue(((string)baseId).Split(new [] {"/"}, StringSplitOptions.None).ToList<object>(), 0);
+                baseId = getValue(marketSymbol.Split(new [] {"/"}, StringSplitOptions.None).ToList<object>(), 0);
             }
             string quoteId = "USDC";
             string? settleId = (type == "swap") ? "USDC" : null;
@@ -1988,7 +1974,7 @@ public partial class lighter : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Int64? until = this.safeInteger(parameters, "until");
-        object paramsOmitted = this.omit(parameters, new List<object>() {"until"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"until"}));
         Int64 now = this.milliseconds();
         object startTs = null;
         object endTs = null;
@@ -2008,14 +1994,19 @@ public partial class lighter : Exchange
             }
         } else
         {
-            endTs = ((until != null)) ? until : now;
-            int defaultLimit = 100;
-            if ((limit != null))
+            Int64? count = this.safeInteger(new Dictionary<string, object>() {
+                { "limit", limit },
+            }, "limit", 100);
+            Int64 timeframeMs = (this.parseTimeframe(timeframeVar) * 1000L);
+            Int64? span = (timeframeMs * count);
+            if ((until != null))
             {
-                startTs = subtract(endTs, ((this.parseTimeframe(timeframeVar) * 1000L) * limit));
+                endTs = until;
+                startTs = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(until, span);
             } else
             {
-                startTs = subtract(endTs, ((this.parseTimeframe(timeframeVar) * 1000L) * defaultLimit));
+                endTs = now;
+                startTs = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(now, span);
             }
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -2739,18 +2730,14 @@ public partial class lighter : Exchange
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeTimestamp(order, "timestamp");
         bool? isAsk = this.safeBool(order, "is_ask");
-        if ((isAsk == null))
-        {
-            Int64? isAskAsInteger = this.safeInteger(order, "is_ask");
-            if ((isAskAsInteger != null))
-            {
-                isAsk = (isAskAsInteger == 1);
-            }
-        }
+        Int64? isAskAsInteger = this.safeInteger(order, "is_ask");
         string? side = null;
         if ((isAsk != null))
         {
-            side = isAsk == true ? "sell" : "buy";
+            side = ((isAsk == true)) ? "sell" : "buy";
+        } else if ((isAskAsInteger != null))
+        {
+            side = ((isAskAsInteger == 1)) ? "sell" : "buy";
         }
         string? type = this.safeString(order, "type");
         if ((type == null))
@@ -2773,23 +2760,14 @@ public partial class lighter : Exchange
             }
         }
         // Try to parse to integer first, because parsing an integer to a string wouldn't result in undefined
-        string? tif = null;
         Int64? tifAsInteger = this.safeInteger(order, "time_in_force");
-        if ((tifAsInteger != null))
+        string? tif = ((tifAsInteger != null)) ? this.parseOrderTimeInForceInteger(tifAsInteger) : this.safeString(order, "time_in_force");
+        bool? reduceOnlyAsBool = this.safeBool(order, "reduce_only");
+        Int64? reduceOnlyAsInteger = this.safeInteger(order, "reduce_only");
+        bool? reduceOnly = reduceOnlyAsBool;
+        if (((reduceOnlyAsBool == null)) && ((reduceOnlyAsInteger != null)))
         {
-            tif = this.parseOrderTimeInForceInteger(tifAsInteger);
-        } else
-        {
-            tif = this.safeString(order, "time_in_force");
-        }
-        bool? reduceOnly = this.safeBool(order, "reduce_only");
-        if ((reduceOnly == null))
-        {
-            Int64? reduceOnlyAsInteger = this.safeInteger(order, "reduce_only");
-            if ((reduceOnlyAsInteger != null))
-            {
-                reduceOnly = (reduceOnlyAsInteger == 1);
-            }
+            reduceOnly = ((reduceOnlyAsInteger == 1));
         }
         string? status = this.safeString(order, "status");
         return this.safeOrder(new Dictionary<string, object>() {
@@ -3583,8 +3561,8 @@ public partial class lighter : Exchange
         string? takerOrMaker = null;
         if ((side != null) && (isMakerAsk != null))
         {
-            bool? isMaker = (side == "sell") ? isMakerAsk : isMakerAsk != true;
-            takerOrMaker = isMaker == true ? "maker" : "taker";
+            bool isMaker = (side == "sell") ? ((isMakerAsk == true)) : ((isMakerAsk == false));
+            takerOrMaker = isMaker ? "maker" : "taker";
         }
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
@@ -3689,7 +3667,7 @@ public partial class lighter : Exchange
         Int64 nonce = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex, paramsAccountIndex));
         Dictionary<string, object> signRaw = new Dictionary<string, object>() {
             { "market_index", this.parseToInt((market.ContainsKey("id") ? market["id"] : null)) },
-            { "initial_margin_fraction", this.parseToInt(divide(10000, leverage)) },
+            { "initial_margin_fraction", this.parseToInt((((((object)(10000)) is var c31v0) && (((object)(leverage)) is var c31v1)) ? (((c31v0 == null) || (c31v1 == null)) ? null : (object)(Convert.ToDouble(c31v0) / Convert.ToDouble(c31v1))) : null)) },
             { "margin_mode", ((marginMode == "cross")) ? 0 : 1 },
             { "nonce", nonce },
             { "api_key_index", apiKeyIndex },

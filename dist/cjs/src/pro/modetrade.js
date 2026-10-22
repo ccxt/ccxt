@@ -1321,7 +1321,7 @@ class modetrade extends modetrade$1["default"] {
         }
     }
     handleMessage(client, message) {
-        if (this.handleErrorMessage(client, message) === true) {
+        if (this.handleErrorMessage(client, message)) {
             return;
         }
         const methods = {

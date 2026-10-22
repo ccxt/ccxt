@@ -1611,7 +1611,7 @@ class tokocrypto extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             '-2' => 'open',
             '0' => 'open', // NEW
@@ -1838,7 +1838,10 @@ class tokocrypto extends Exchange {
         // only supported for spot/margin api
         $typeResolved = ($postOnly) ? 'LIMIT_MAKER' : $type;
         // post only is expressed by the order type here, not by a time force
-        $timeInForceResolved = ($postOnly) ? null : $requestedTimeInForce;
+        $timeInForceResolved = $requestedTimeInForce;
+        if ($postOnly) {
+            $timeInForceResolved = null;
+        }
         $initialUppercaseType = strtoupper($typeResolved);
         $uppercaseType = $initialUppercaseType;
         $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
@@ -2813,11 +2816,12 @@ class tokocrypto extends Exchange {
         } elseif ((is_array($config) && array_key_exists('noPoolId' ?? '', $config)) && !(is_array($params) && array_key_exists('poolId' ?? '', $params))) {
             return $config['noPoolId'];
         } elseif ((is_array($config) && array_key_exists('byLimit' ?? '', $config)) && (is_array($params) && array_key_exists('limit' ?? '', $params))) {
-            $limit = $params['limit'];
+            $limit = $this->safe_integer($params, 'limit');
             $byLimit = $this->safe_list($config, 'byLimit', array());
             for ($i = 0; $i < count($byLimit); $i++) {
                 $entry = $byLimit[$i];
-                if ($limit <= $entry[0]) {
+                $entryLimit = $this->safe_integer($entry, 0);
+                if (($limit !== null) && ($entryLimit !== null) && ($limit <= $entryLimit)) {
                     return $entry[1];
                 }
             }

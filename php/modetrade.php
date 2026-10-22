@@ -812,10 +812,6 @@ class modetrade extends Exchange {
         $amount = $this->safe_string($trade, 'executed_quantity');
         $order_id = $this->safe_string($trade, 'order_id');
         $fee = $this->parse_token_and_fee_temp($trade, 'fee_asset', 'fee');
-        $feeCost = $this->safe_string($fee, 'cost');
-        if (($feeCost !== null) && ($fee !== null)) {
-            $fee['cost'] = $feeCost;
-        }
         $cost = Precise::string_mul($price, $amount);
         $side = $this->safe_string_lower($trade, 'side');
         $id = $this->safe_string($trade, 'id');
@@ -904,7 +900,7 @@ class modetrade extends Exchange {
         $fundingTimeString = $this->safe_string($fundingRate, 'last_funding_rate_timestamp');
         $nextFundingTimeString = $this->safe_string($fundingRate, 'next_funding_time');
         $millisecondsInterval = Precise::string_sub($nextFundingTimeString, $fundingTimeString);
-        $fundingSymbol = ($marketValue !== null) ? $marketValue['symbol'] : null;
+        $fundingSymbol = $this->safe_string($marketValue, 'symbol');
         return array(
             'info' => $fundingRate,
             'symbol' => $fundingSymbol,
@@ -1608,7 +1604,7 @@ class modetrade extends Exchange {
         ), $marketResolved);
     }
 
-    public function parse_time_in_force(?string $timeInForce) {
+    public function parse_time_in_force(?string $timeInForce): ?string {
         $timeInForces = array(
             'ioc' => 'IOC',
             'fok' => 'FOK',
@@ -1620,7 +1616,7 @@ class modetrade extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         if ($status !== null) {
             $statuses = array(
                 'NEW' => 'open',
@@ -1641,7 +1637,7 @@ class modetrade extends Exchange {
         return null;
     }
 
-    public function parse_order_type(?string $type) {
+    public function parse_order_type(?string $type): ?string {
         $types = array(
             'LIMIT' => 'limit',
             'MARKET' => 'market',
@@ -1688,7 +1684,8 @@ class modetrade extends Exchange {
         $hasStopLoss = $stopLoss !== null;
         $hasTakeProfit = $takeProfit !== null;
         $algoType = $this->safe_string($params, 'algoType');
-        $isConditional = $triggerPrice !== null || $hasStopLoss || $hasTakeProfit || ($this->safe_value($params, 'childOrders') !== null);
+        $paramsChildOrders = $this->safe_value($params, 'childOrders');
+        $isConditional = $triggerPrice !== null || $hasStopLoss || $hasTakeProfit || ($paramsChildOrders !== null);
         $isMarket = $orderType === 'MARKET';
         $timeInForce = $this->safe_string_lower($params, 'timeInForce');
         $postOnly = $this->is_post_only($isMarket, null, $params);
@@ -1807,7 +1804,8 @@ class modetrade extends Exchange {
         $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
         $stopLoss = $this->safe_value($params, 'stopLoss');
         $takeProfit = $this->safe_value($params, 'takeProfit');
-        $isConditional = $triggerPrice !== null || $stopLoss !== null || $takeProfit !== null || ($this->safe_value($params, 'childOrders') !== null);
+        $childOrders = $this->safe_value($params, 'childOrders');
+        $isConditional = $triggerPrice !== null || $stopLoss !== null || $takeProfit !== null || ($childOrders !== null);
         if ($isConditional) {
             $response = $this->v1PrivatePostAlgoOrder($request);
             //
@@ -1875,7 +1873,8 @@ class modetrade extends Exchange {
             $triggerPrice = $this->safe_string_2($orderParams, 'triggerPrice', 'stopPrice');
             $stopLoss = $this->safe_dict($orderParams, 'stopLoss');
             $takeProfit = $this->safe_dict($orderParams, 'takeProfit');
-            $isConditional = $triggerPrice !== null || $stopLoss !== null || $takeProfit !== null || ($this->safe_value($orderParams, 'childOrders') !== null);
+            $childOrders = $this->safe_value($orderParams, 'childOrders');
+            $isConditional = $triggerPrice !== null || $stopLoss !== null || $takeProfit !== null || ($childOrders !== null);
             if ($isConditional) {
                 throw new NotSupported($this->id . ' createOrders() only support non-stop order');
             }
@@ -1938,7 +1937,8 @@ class modetrade extends Exchange {
         if ($triggerPrice !== null) {
             $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
         }
-        $isConditional = ($triggerPrice !== null) || ($this->safe_value($params, 'childOrders') !== null);
+        $childOrders = $this->safe_value($params, 'childOrders');
+        $isConditional = ($triggerPrice !== null) || ($childOrders !== null);
         $orderQtyKey = 'order_quantity';
         if ($isConditional) {
             $orderQtyKey = 'quantity';
@@ -2735,7 +2735,7 @@ class modetrade extends Exchange {
         );
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'NEW' => 'pending',
             'CONFIRMING' => 'pending',

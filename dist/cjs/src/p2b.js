@@ -1122,19 +1122,30 @@ class p2b extends p2b$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let until = this.safeInteger(params, 'until');
+        const untilParam = this.safeInteger(params, 'until');
         const paramsOmitted = this.omit(params, 'until');
-        if (until === undefined) {
-            if (since === undefined) {
-                until = this.milliseconds();
+        let until = undefined;
+        let sinceResolved = 0;
+        if (untilParam !== undefined) {
+            until = untilParam;
+            if (since !== undefined) {
+                if ((untilParam - since) > 86400000) {
+                    throw new errors.BadRequest(this.id + ' fetchMyTrades () the time between since and params["until"] cannot be greater than 24 hours');
+                }
+                sinceResolved = since;
             }
             else {
-                until = since + 86400000;
+                sinceResolved = untilParam - 86400000;
             }
         }
-        const sinceResolved = (since === undefined) ? (until - 86400000) : since;
-        if ((until - sinceResolved) > 86400000) {
-            throw new errors.BadRequest(this.id + ' fetchMyTrades () the time between since and params["until"] cannot be greater than 24 hours');
+        else if (since !== undefined) {
+            until = since + 86400000;
+            sinceResolved = since;
+        }
+        else {
+            const now = this.milliseconds();
+            until = now;
+            sinceResolved = now - 86400000;
         }
         const market = this.market(symbol);
         const sinceSec = this.parseToInt(sinceResolved / 1000);
@@ -1197,23 +1208,34 @@ class p2b extends p2b$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let until = this.safeInteger(params, 'until');
+        const untilParam = this.safeInteger(params, 'until');
         const paramsOmitted = this.omit(params, 'until');
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        if (until === undefined) {
-            if (since === undefined) {
-                until = this.milliseconds();
+        let until = undefined;
+        let sinceResolved = 0;
+        if (untilParam !== undefined) {
+            until = untilParam;
+            if (since !== undefined) {
+                if ((untilParam - since) > 86400000) {
+                    throw new errors.BadRequest(this.id + ' fetchClosedOrders () the time between since and params["until"] cannot be greater than 24 hours');
+                }
+                sinceResolved = since;
             }
             else {
-                until = since + 86400000;
+                sinceResolved = untilParam - 86400000;
             }
         }
-        const sinceResolved = (since === undefined) ? (until - 86400000) : since;
-        if ((until - sinceResolved) > 86400000) {
-            throw new errors.BadRequest(this.id + ' fetchClosedOrders () the time between since and params["until"] cannot be greater than 24 hours');
+        else if (since !== undefined) {
+            until = since + 86400000;
+            sinceResolved = since;
+        }
+        else {
+            const now = this.milliseconds();
+            until = now;
+            sinceResolved = now - 86400000;
         }
         const sinceSec = this.parseToInt(sinceResolved / 1000);
         const untilSec = this.parseToInt(until / 1000);
@@ -1379,7 +1401,8 @@ class p2b extends p2b$1["default"] {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
             const codeAsString = code.toString();
-            if ((code < 400) || !(codeAsString in this.httpExceptions)) {
+            const statusCode = this.parseToInt(code);
+            if ((statusCode < 400) || !(codeAsString in this.httpExceptions)) {
                 // an error envelope must always throw — also for statuses the http-status handler has no entry for
                 throw new errors.ExchangeError(feedback);
             }

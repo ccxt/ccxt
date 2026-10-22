@@ -99,7 +99,7 @@ public partial class bitget : ccxt.bitget
     {
         uta ??= false;
         parameters ??= new Dictionary<string, object>();
-        bool useProductType = ((market == null)) || (isEqual((market != null && market.ContainsKey("swap") ? market["swap"] : null), true)) || (isEqual((market != null && market.ContainsKey("future") ? market["future"] : null), true));
+        bool useProductType = ((market == null)) || (((market != null && market.ContainsKey("swap") ? market["swap"] : null) is true)) || (((market != null && market.ContainsKey("future") ? market["future"] : null) is true));
         List<object> productTypeAndParams = new List<object>() {null, new Dictionary<string, object>() {}};
         if (useProductType)
         {
@@ -1155,13 +1155,13 @@ public partial class bitget : ccxt.bitget
                 {
                     if (i < bidsLength)
                     {
-                        payloadArray.Add(getValue(getValue(getValue(storedBids, i), 2), 0));
-                        payloadArray.Add(getValue(getValue(getValue(storedBids, i), 2), 1));
+                        payloadArray.Add(getValue(getValue((storedBids != null && i < storedBids.Count ? storedBids[i] : null), 2), 0));
+                        payloadArray.Add(getValue(getValue((storedBids != null && i < storedBids.Count ? storedBids[i] : null), 2), 1));
                     }
                     if (i < asksLength)
                     {
-                        payloadArray.Add(getValue(getValue(getValue(storedAsks, i), 2), 0));
-                        payloadArray.Add(getValue(getValue(getValue(storedAsks, i), 2), 1));
+                        payloadArray.Add(getValue(getValue((storedAsks != null && i < storedAsks.Count ? storedAsks[i] : null), 2), 0));
+                        payloadArray.Add(getValue(getValue((storedAsks != null && i < storedAsks.Count ? storedAsks[i] : null), 2), 1));
                     }
                 }
                 string payload = String.Join(":", payloadArray.ToArray());
@@ -1318,7 +1318,7 @@ public partial class bitget : ccxt.bitget
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit));
         }
         IList<object> result = this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
-        if (isEqual(this.handleOption("watchTrades", "ignoreDuplicates", true), true))
+        if ((this.handleOption("watchTrades", "ignoreDuplicates", true) is true))
         {
             object filtered = this.removeRepeatedTradesFromArray(result);
             filtered = this.sortBy(filtered, "timestamp");
@@ -1411,7 +1411,7 @@ public partial class bitget : ccxt.bitget
         for (Int64 i = 0; i < length; i++)
         {
             Int64 index = ((length - i) - 1);
-            IDictionary<string, object> rawTrade = ((IDictionary<string, object>)getValue(data, index));
+            IDictionary<string, object> rawTrade = ((IDictionary<string, object>)(data != null && index < data.Count ? data[(int)index] : null));
             ccxt.Trade parsed = this.parseWsTrade(rawTrade, market);
             stored.append(ccxt.BaseExchange.FromTrade(parsed));
         }
@@ -1721,7 +1721,7 @@ public partial class bitget : ccxt.bitget
             this.positions = new Dictionary<string, object>() {};
         }
         string? action = this.safeString(message, "action");
-        if (!(inOp(this.positions, instType)) || (action == "snapshot"))
+        if (!(((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))(this.positions, instType)) || (action == "snapshot"))
         {
             ((IDictionary<string,object>)this.positions)[instType] = new ArrayCacheBySymbolBySide();
         }
@@ -1889,7 +1889,7 @@ public partial class bitget : ccxt.bitget
         string? marketId = null;
         var isTriggerparamsTriggerVariable = this.isTriggerOrder(parameters);
         bool? isTrigger = (bool?)((IList<object>) isTriggerparamsTriggerVariable)[0];
-        var paramsTrigger = ((IList<object>) isTriggerparamsTriggerVariable)[1];
+        IDictionary<string, object> paramsTrigger = ((IDictionary<string, object>)((IList<object>) isTriggerparamsTriggerVariable)[1]);
         string messageHash = "order";
         if ((isTrigger == true))
         {
@@ -1906,7 +1906,7 @@ public partial class bitget : ccxt.bitget
         }
         (bool?, object) utaparamsUtaVariable = this.handleOptionBoolAndParams(paramsTrigger, "watchOrders", "uta", false);
         bool? uta = utaparamsUtaVariable.Item1;
-        object paramsUta = utaparamsUtaVariable.Item2;
+        IDictionary<string, object> paramsUta = ((IDictionary<string, object>)utaparamsUtaVariable.Item2);
         string? productType = this.safeString(paramsUta, "productType");
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchOrders", market, paramsUta);
         string? type = (string)typeparamsMarketTypeVariable[0];
@@ -2779,7 +2779,7 @@ public partial class bitget : ccxt.bitget
         {
             args["coin"] = "default";
         }
-        string instTypeLower = ((instType == null)) ? "" : instType.ToLower();
+        string? instTypeLower = this.safeStringLower(args, "instType", "");
         string messageHash = ("balance:" + instTypeLower);
         return ccxt.BaseExchange.ToBalances(await this.watchPrivate(isStockOrUta, messageHash, messageHash, args, paramsRequest));
     }
@@ -2923,7 +2923,7 @@ public partial class bitget : ccxt.bitget
                     ((IDictionary<string,object>)account)["debt"] = Precise.stringAdd(borrow, interest);
                 }
                 string freeQuery = "available";
-                if (inOp(rawBalance, "maxTransferOut"))
+                if ((((object)(rawBalance)) switch { null => false, IList<object> c33a => c33a.Contains("maxTransferOut"), IList<string> c33t => c33t.Contains("maxTransferOut"), List<Int64> c33g => c33g.Contains((Int64)(object)"maxTransferOut"), IDictionary<string, object> c33d => c33d.ContainsKey("maxTransferOut"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("maxTransferOut"), _ => false }))
                 {
                     freeQuery = "maxTransferOut";
                 }
@@ -2947,14 +2947,14 @@ public partial class bitget : ccxt.bitget
     public async virtual Task<object> watchPublic(object uta, object messageHash, IDictionary<string, object> args, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object url = isTrue((uta)) ? getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "utaPublic") : getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public");
+        object url = (((object)((uta))) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }) ? getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "utaPublic") : getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public");
         bool? sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
         if ((sandboxMode == true))
         {
             string? instType = this.safeString(args, "instType");
             if ((instType != "SCOIN-FUTURES") && (instType != "SUSDT-FUTURES") && (instType != "SUSDC-FUTURES"))
             {
-                if (isTrue(uta))
+                if ((((object)(uta)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
                 {
                     url = getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "demo"), "utaPublic");
                 } else
@@ -2974,14 +2974,14 @@ public partial class bitget : ccxt.bitget
     public async virtual Task<object> unWatchPublic(object uta, object messageHash, IDictionary<string, object> args, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object url = isTrue((uta)) ? getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "utaPublic") : getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public");
+        object url = (((object)((uta))) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }) ? getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "utaPublic") : getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public");
         bool? sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
         if ((sandboxMode == true))
         {
             string? instType = this.safeString(args, "instType");
             if ((instType != "SCOIN-FUTURES") && (instType != "SUSDT-FUTURES") && (instType != "SUSDC-FUTURES"))
             {
-                if (isTrue(uta))
+                if ((((object)(uta)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
                 {
                     url = getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "demo"), "utaPublic");
                 } else
@@ -3032,7 +3032,7 @@ public partial class bitget : ccxt.bitget
     public async virtual Task<object> watchPublicMultiple(object uta, object messageHashes, object argsArray, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object url = isTrue((uta)) ? getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "utaPublic") : getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public");
+        object url = (((object)((uta))) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }) ? getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "utaPublic") : getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public");
         bool? sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
         if ((sandboxMode == true))
         {
@@ -3040,7 +3040,7 @@ public partial class bitget : ccxt.bitget
             string? instType = this.safeString(argsArrayFirst, "instType");
             if ((instType != "SCOIN-FUTURES") && (instType != "SUSDT-FUTURES") && (instType != "SUSDC-FUTURES"))
             {
-                url = isTrue((uta)) ? getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "demo"), "utaPublic") : getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "demo"), "public");
+                url = (((object)((uta))) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }) ? getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "demo"), "utaPublic") : getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "demo"), "public");
             }
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -3084,14 +3084,14 @@ public partial class bitget : ccxt.bitget
     public async virtual Task<object> watchPrivate(object uta, object messageHash, object subscriptionHash, IDictionary<string, object> args, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object url = isTrue((uta)) ? getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "utaPrivate") : getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private");
+        object url = (((object)((uta))) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }) ? getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "utaPrivate") : getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private");
         bool? sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
         if ((sandboxMode == true))
         {
             string? instType = this.safeString(args, "instType");
             if ((instType != "SCOIN-FUTURES") && (instType != "SUSDT-FUTURES") && (instType != "SUSDC-FUTURES"))
             {
-                if (isTrue(uta))
+                if ((((object)(uta)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
                 {
                     url = getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "demo"), "utaPrivate");
                 } else
@@ -3248,7 +3248,7 @@ public partial class bitget : ccxt.bitget
             }
             return;
         }
-        if (isEqual(this.handleErrorMessage(client, message), true))
+        if ((this.handleErrorMessage(client, message) == true))
         {
             return;
         }
@@ -3491,7 +3491,7 @@ public partial class bitget : ccxt.bitget
         }
         if ((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol)))
         {
-            if (((timeframe != null)) && (inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe)))
+            if (((timeframe != null)) && (((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe)))
             {
                 ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)).Remove(timeframe);
             }

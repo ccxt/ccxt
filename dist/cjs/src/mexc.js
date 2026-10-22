@@ -1877,19 +1877,24 @@ class mexc extends mexc$1["default"] {
         if (omitUntil) {
             paramsUntil = this.omit(paramsPaginate, ['until']);
         }
-        let start = since;
-        if (omitUntil) {
-            const usedLimit = (limit !== undefined && limit !== null && limit !== 0) ? limit : maxLimit;
-            start = until - (usedLimit * duration);
-        }
         if (market['spot'] === true) {
-            if (start !== undefined) {
-                request['startTime'] = start;
-                if (until === undefined) {
-                    // we have to calculate it assuming we can get at most 2000 entries per request
-                    const end = this.sum(since, maxLimit * duration);
-                    const now = this.milliseconds();
-                    request['endTime'] = Math.min(end, now);
+            if (since !== undefined) {
+                request['startTime'] = since;
+            }
+            if ((since !== undefined) && (until === undefined)) {
+                // we have to calculate it assuming we can get at most 2000 entries per request
+                const spotWindow = 500 * duration; // maxLimit is 500 for spot
+                const now = this.milliseconds();
+                const latestStart = now - spotWindow;
+                request['endTime'] = (since < latestStart) ? this.sum(since, spotWindow) : now;
+            }
+            if (omitUntil && (until !== undefined)) {
+                if (limit !== undefined && limit !== null && limit !== 0) {
+                    request['startTime'] = until - (limit * duration);
+                }
+                else {
+                    const spotWindow = 500 * duration; // maxLimit is 500 for spot
+                    request['startTime'] = until - spotWindow;
                 }
             }
             if (limit !== undefined) {
@@ -1922,7 +1927,13 @@ class mexc extends mexc$1["default"] {
             if (until !== undefined) {
                 request['end'] = this.parseToInt(until / 1000);
                 if (since === undefined) {
-                    request['start'] = this.parseToInt(start / 1000);
+                    if (limit !== undefined && limit !== null && limit !== 0) {
+                        request['start'] = this.parseToInt((until - (limit * duration)) / 1000);
+                    }
+                    else {
+                        const swapWindow = 2000 * duration; // maxLimit is 2000 for swap
+                        request['start'] = this.parseToInt((until - swapWindow) / 1000);
+                    }
                 }
             }
             const priceType = this.safeString(paramsUntil, 'price', 'default');
@@ -2556,20 +2567,17 @@ class mexc extends mexc$1["default"] {
             await this.loadMarkets();
         }
         const symbol = market['symbol'];
-        let openType = undefined;
+        let openType = this.safeInteger(params, 'openType', 2); // defaulting to cross margin
         if (marginMode !== undefined) {
             if (marginMode === 'cross') {
-                openType = 2;
+                openType = this.parseToInt(2);
             }
             else if (marginMode === 'isolated') {
-                openType = 1;
+                openType = this.parseToInt(1);
             }
             else {
                 throw new errors.ArgumentsRequired(this.id + ' createSwapOrder() marginMode parameter should be either "cross" or "isolated"');
             }
-        }
-        else {
-            openType = this.safeInteger(params, 'openType', 2); // defaulting to cross margin
         }
         if ((type !== 'limit') && (type !== 'market') && (type !== 1) && (type !== 2) && (type !== 3) && (type !== 4) && (type !== 5) && (type !== 6)) {
             throw new errors.InvalidOrder(this.id + ' createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price');
@@ -2993,7 +3001,7 @@ class mexc extends mexc$1["default"] {
                     request['end_time'] = this.sum(since, maxTimeTillEnd);
                 }
                 else {
-                    if ((end - since) > maxTimeTillEnd) {
+                    if ((maxTimeTillEnd !== undefined) && ((end - since) > maxTimeTillEnd)) {
                         throw new errors.BadRequest(this.id + ' end is invalid, i.e. exceeds allowed 90 days.');
                     }
                     else {
@@ -3006,7 +3014,7 @@ class mexc extends mexc$1["default"] {
                 if (maxTimeTillEnd === undefined) {
                     throw new errors.ExchangeError(this.id + ' fetchOrders() requires a numeric options["maxTimeTillEnd"]');
                 }
-                request['start_time'] = this.sum(until, maxTimeTillEnd * -1);
+                request['start_time'] = until - maxTimeTillEnd;
                 request['end_time'] = until;
             }
             if (limit !== undefined) {
@@ -6401,7 +6409,9 @@ class mexc extends mexc$1["default"] {
                 };
             }
             if ((method === 'POST') || (method === 'PUT') || (method === 'DELETE')) {
-                requestHeaders = (requestHeaders === undefined) ? {} : requestHeaders;
+                if (requestHeaders === undefined) {
+                    requestHeaders = {};
+                }
                 requestHeaders['Content-Type'] = 'application/json';
             }
         }

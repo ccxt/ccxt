@@ -1548,11 +1548,8 @@ class okx extends \ccxt\async\okx {
         $seqId = $this->safe_integer($message, 'seqId');
         $prevSeqId = $this->safe_integer($message, 'prevSeqId');
         $nonce = $orderbook['nonce'];
-        $error = null;
         if ($prevSeqId !== null && $prevSeqId !== -1 && $nonce !== $prevSeqId) {
             $error = new InvalidNonce($this->id . ' watchOrderBook received invalid nonce');
-        }
-        if ($error !== null) {
             unset($client->subscriptions[$messageHash]);
             if ($symbol !== null) {
                 unset($this->orderbooks[$symbol]);

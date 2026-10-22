@@ -1033,7 +1033,7 @@ public class Cex extends CexApi
 
     }
 
-    public Object parseTradingFees(Map<String, Object> response, Object useKeyAsId)
+    public Object parseTradingFees(Map<String, Object> response, Boolean useKeyAsId)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         List<String> keys = new ArrayList<String>(response.keySet());
@@ -1041,11 +1041,11 @@ public class Cex extends CexApi
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object market = null;
-            if (Helpers.isTrue(java.util.Objects.requireNonNullElse(useKeyAsId, false)))
+            if (java.util.Objects.requireNonNullElse(useKeyAsId, false))
             {
                 market = this.safeMarket(key, (Map<String, Object>) null, (String) null, (String) null);
             }
-            Map<String, Object> parsed = this.parseTradingFee((Map<String, Object>) ((response == null || key == null ? null : response.get(key))), Helpers.toMapArg(market));
+            Map<String, Object> parsed = this.parseTradingFee((Map<String, Object>) ((response == null || key == null ? null : response.get(key))), ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
             String parsedSymbol = this.safeString(parsed, "symbol");
             if (!java.util.Objects.equals(parsedSymbol, null))
             {
@@ -1193,7 +1193,7 @@ public class Cex extends CexApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        List<Object> keys = Helpers.objectKeys(response);
+        List<Object> keys = ((List<Object>) switch ((Object)(response)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
@@ -1373,7 +1373,7 @@ public class Cex extends CexApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "orderId", Helpers.parseInt(id) );
+                put( "orderId", ((Long) (switch ((Object) (id)) { case null -> (Long) null; case Long hx4J42v2 -> hx4J42v2; case Integer hx4J42v2 -> Long.valueOf(hx4J42v2.longValue()); case Double hx4J42v2 -> Long.valueOf(hx4J42v2.longValue()); case Float hx4J42v2 -> Long.valueOf(hx4J42v2.longValue()); case java.math.BigDecimal hx4J42v2 -> Long.valueOf(hx4J42v2.longValue()); case Object hx4J42v2 -> { try { yield Long.valueOf(Long.parseLong(String.valueOf(hx4J42v2))); } catch (Exception hx4J42v2e) { yield (Long) null; } } })) );
             }};
             List<Order> result = (this.fetchOpenOrders(symbol, (Long) null, (Long) null, this.extend(request, parameters))).join();
             Map<String, Object> order = (Map<String, Object>) this.safeDict(result, 0, (Object) null);
@@ -1402,7 +1402,7 @@ public class Cex extends CexApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "orderId", Helpers.parseInt(id) );
+                put( "orderId", ((Long) (switch ((Object) (id)) { case null -> (Long) null; case Long hx4J42v1 -> hx4J42v1; case Integer hx4J42v1 -> Long.valueOf(hx4J42v1.longValue()); case Double hx4J42v1 -> Long.valueOf(hx4J42v1.longValue()); case Float hx4J42v1 -> Long.valueOf(hx4J42v1.longValue()); case java.math.BigDecimal hx4J42v1 -> Long.valueOf(hx4J42v1.longValue()); case Object hx4J42v1 -> { try { yield Long.valueOf(Long.parseLong(String.valueOf(hx4J42v1))); } catch (Exception hx4J42v1e) { yield (Long) null; } } })) );
             }};
             List<Order> result = (this.fetchClosedOrders(symbol, (Long) null, (Long) null, this.extend(request, parameters))).join();
             Map<String, Object> order = (Map<String, Object>) this.safeDict(result, 0, (Object) null);
@@ -1643,7 +1643,7 @@ public class Cex extends CexApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "orderId", Helpers.parseInt(id) );
+                put( "orderId", ((Long) (switch ((Object) (id)) { case null -> (Long) null; case Long hx4J42v0 -> hx4J42v0; case Integer hx4J42v0 -> Long.valueOf(hx4J42v0.longValue()); case Double hx4J42v0 -> Long.valueOf(hx4J42v0.longValue()); case Float hx4J42v0 -> Long.valueOf(hx4J42v0.longValue()); case java.math.BigDecimal hx4J42v0 -> Long.valueOf(hx4J42v0.longValue()); case Object hx4J42v0 -> { try { yield Long.valueOf(Long.parseLong(String.valueOf(hx4J42v0))); } catch (Exception hx4J42v0e) { yield (Long) null; } } })) );
                 put( "cancelRequestId", ("c_" + String.valueOf((Cex.this.milliseconds()))) );
                 put( "timestamp", Cex.this.milliseconds() );
             }};
@@ -2167,7 +2167,7 @@ public class Cex extends CexApi
         {
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
-                if (Helpers.objectKeys(query).size() > 0)
+                if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
                 {
                     url = (url + ("?" + this.urlencode(query)));
                 }

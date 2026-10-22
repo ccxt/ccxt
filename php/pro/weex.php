@@ -1928,11 +1928,11 @@ class weex extends \ccxt\async\weex {
         }
     }
 
-    public function load_positions_snapshot(Client $client, string $messageHash, mixed $params) {
+    public function load_positions_snapshot(Client $client, string $messageHash, array $params) {
         return Async\async(self::do_load_positions_snapshot(...))($client, $messageHash, $params);
     }
 
-    private function do_load_positions_snapshot(Client $client, string $messageHash, mixed $params) {
+    private function do_load_positions_snapshot(Client $client, string $messageHash, array $params) {
         $positions = Async\await($this->fetch_positions(null, $params));
         $this->positions = new ArrayCacheBySymbolById();
         $cache = $this->positions;

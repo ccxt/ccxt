@@ -1488,7 +1488,7 @@ export default class bybit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} [enableUnifiedMargin, enableUnifiedAccount]
      */
-    async isUnifiedEnabled (params: Dict = {}): Promise<any[]> {
+    async isUnifiedEnabled (params: Dict = {}): Promise<[boolean, boolean]> {
         // The API key of user id must own one of permissions will be allowed to call following API endpoints:
         // SUB UID: "Account Transfer"
         // MASTER UID: "Account Transfer", "Subaccount Transfer", "Withdrawal"
@@ -1696,11 +1696,11 @@ export default class bybit extends Exchange {
         return [ subType, paramsSubType ];
     }
 
-    getAmount (symbol: Str, amount: number | undefined) {
+    getAmount (symbol: Str, amount: number | undefined): Str {
         // some markets like options might not have the precision available
         // and we shouldn't crash in those cases
         const market = this.market (symbol);
-        const emptyPrecisionAmount = (market['precision']['amount'] === undefined);
+        const emptyPrecisionAmount = (this.safeNumber (market['precision'], 'amount') === undefined);
         const amountString = this.numberToString (amount);
         if (!emptyPrecisionAmount && (amountString !== '0')) {
             return this.amountToPrecision (symbol, amount);
@@ -1713,16 +1713,16 @@ export default class bybit extends Exchange {
             return price;
         }
         const market = this.market (symbol);
-        const emptyPrecisionPrice = (market['precision']['price'] === undefined);
+        const emptyPrecisionPrice = (this.safeNumber (market['precision'], 'price') === undefined);
         if (!emptyPrecisionPrice) {
             return this.priceToPrecision (symbol, price);
         }
         return price;
     }
 
-    getCost (symbol: Str, cost: Str) {
+    getCost (symbol: Str, cost: Str): Str {
         const market = this.market (symbol);
-        const emptyPrecisionPrice = (market['precision']['price'] === undefined);
+        const emptyPrecisionPrice = (this.safeNumber (market['precision'], 'price') === undefined);
         if (!emptyPrecisionPrice) {
             return this.costToPrecision (symbol, cost);
         }
@@ -2242,12 +2242,12 @@ export default class bybit extends Exchange {
             } else if (future) {
                 type = 'future';
             }
-            let expiry: Str | number = undefined;
+            let expiry: Int = undefined;
             // some swaps have deliveryTime meaning delisting time
             if (!swap) {
-                expiry = this.omitZero (this.safeString (market, 'deliveryTime'));
-                if (expiry !== undefined) {
-                    expiry = parseInt (expiry);
+                const deliveryTime = this.omitZero (this.safeString (market, 'deliveryTime'));
+                if (deliveryTime !== undefined) {
+                    expiry = this.parseToInt (deliveryTime);
                 }
             }
             const expiryDatetime = this.iso8601 (expiry);
@@ -2688,7 +2688,7 @@ export default class bybit extends Exchange {
                 const symbol = symbols[i];
                 // using safeMarket here because if the user provides for instance BTCUSDT and "type": "spot" in params we should
                 // infer the market type from the type provided and not from the conflicting id (BTCUSDT might be swap or spot)
-                const isExchangeSpecificSymbol = (symbol.indexOf ('/') === -1);
+                const isExchangeSpecificSymbol = (symbol.indexOf ('/') < 0);
                 if (isExchangeSpecificSymbol) {
                     market = this.safeMarket (symbol, undefined, undefined, defaultType);
                 } else {
@@ -2696,11 +2696,12 @@ export default class bybit extends Exchange {
                 }
                 if (currentType === undefined) {
                     currentType = this.safeString (market, 'type');
-                } else if (market['type'] !== currentType) {
+                } else if (this.safeString (market, 'type') !== currentType) {
                     throw new BadRequest (this.id + ' fetchTickers can only accept a list of symbols of the same type');
                 }
                 if (market['option'] === true) {
-                    if (code !== undefined && code !== market['base']) {
+                    const marketBase = this.safeString (market, 'base');
+                    if (code !== undefined && code !== marketBase) {
                         throw new BadRequest (this.id + ' fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://bybit-exchange.github.io/docs/v5/market/tickers');
                     }
                     if (code === undefined) {
@@ -3127,7 +3128,11 @@ export default class bybit extends Exchange {
                 if (fundingTimeFrameMins !== undefined) {
                     fundingInterval = fundingTimeFrameMins * 60 * 1000;
                 }
-                request['endTime'] = this.sum (since, limitResolved * fundingInterval);
+                if (limit === undefined) {
+                    request['endTime'] = this.sum (since, 200 * fundingInterval);
+                } else {
+                    request['endTime'] = this.sum (since, limit * fundingInterval);
+                }
             }
         }
         const response = await this.publicGetV5MarketFundingHistory (this.extend (request, paramsOmitted));
@@ -3728,10 +3733,9 @@ export default class bybit extends Exchange {
         const request: Dict = {};
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         const isUnifiedAccount = (enableUnifiedMargin === true) || (enableUnifiedAccount === true);
-        let type: Str = undefined;
-        let paramsMarketType = undefined;
         // don't use getBybitType here
-        [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        let type: Str = marketType;
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchBalance', undefined, paramsMarketType);
         if ((type === 'swap') || (type === 'future')) {
             type = subType;
@@ -3878,7 +3882,7 @@ export default class bybit extends Exchange {
         return this.parseBalance (response);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             // v3 spot
             'NEW': 'open',
@@ -3907,7 +3911,7 @@ export default class bybit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTimeInForce (timeInForce: Str) {
+    parseTimeInForce (timeInForce: Str): Str {
         const timeInForces: Dict = {
             'GoodTillCancel': 'GTC',
             'ImmediateOrCancel': 'IOC',
@@ -4819,7 +4823,7 @@ export default class bybit extends Exchange {
             await this.loadMarkets ();
         }
         const ordersRequests: List = [];
-        let orderSymbols: List = [];
+        const orderSymbols: List = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = this.safeDict (orders, i);
             const symbol = this.safeString (rawOrder, 'symbol');
@@ -4834,8 +4838,8 @@ export default class bybit extends Exchange {
             delete orderRequest['category'];
             ordersRequests.push (orderRequest);
         }
-        orderSymbols = this.marketSymbols (orderSymbols, undefined, false, true, true);
-        const market = this.market (orderSymbols[0]);
+        const symbols = this.marketSymbols (orderSymbols, undefined, false, true, true);
+        const market = this.market (symbols[0]);
         const unifiedMarginStatus = this.safeInteger (this.options, 'unifiedMarginStatus', 6);
         const [ category, paramsValue ] = this.getBybitType ('editOrders', market, params);
         if ((category === 'inverse') && (unifiedMarginStatus < 5)) {
@@ -6231,7 +6235,7 @@ export default class bybit extends Exchange {
         return this.parseTransactions (data, currency, since, limit);
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             // v3 deposit status
             '0': 'unknown',
@@ -6600,7 +6604,7 @@ export default class bybit extends Exchange {
         }, currencyResolved) as LedgerEntry;
     }
 
-    parseLedgerEntryType (type: Str) {
+    parseLedgerEntryType (type: Str): Str {
         const types: Dict = {
             'Deposit': 'transaction',
             'Withdraw': 'transaction',
@@ -7056,7 +7060,8 @@ export default class bybit extends Exchange {
         const liquidationPrice = this.omitZero (this.safeString (position, 'liqPrice'));
         const leverage = this.safeString (position, 'leverage');
         if (liquidationPrice !== undefined) {
-            if (marketResolved['settle'] === 'USDC') {
+            const settle = this.safeString (marketResolved, 'settle');
+            if (settle === 'USDC') {
                 //  (Entry price - Liq price) * Contracts + Maintenance Margin + (unrealised pnl) = Collateral
                 const useMarkPrice = this.safeBool (this.options, 'useMarkPriceForPositionCollateral', false);
                 let price: Str = entryPrice;
@@ -7209,7 +7214,8 @@ export default class bybit extends Exchange {
                 throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol parameter for non unified account');
             }
             market = this.market (symbol);
-            const isUsdcSettled = market['settle'] === 'USDC';
+            const marketSettle = this.safeString (market, 'settle');
+            const isUsdcSettled = marketSettle === 'USDC';
             if (isUsdcSettled) {
                 if ((marginMode !== 'cross') && (marginMode !== 'portfolio')) {
                     throw new NotSupported (this.id + ' setMarginMode() for usdc market marginMode must be either [cross, portfolio]');
@@ -7391,8 +7397,11 @@ export default class bybit extends Exchange {
         } else if (since !== undefined) {
             // the endpoint walks backwards from endTime and ignores a lone startTime
             const duration = this.parseTimeframe (timeframe);
-            const requestedLimit = (limit === undefined) ? 50 : limit; // exchange default
-            request['endTime'] = this.sum (since, duration * requestedLimit * 1000);
+            if (limit === undefined) {
+                request['endTime'] = this.sum (since, duration * 50 * 1000); // exchange default
+            } else {
+                request['endTime'] = this.sum (since, duration * limit * 1000);
+            }
         }
         if (limit !== undefined) {
             request['limit'] = limit;

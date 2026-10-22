@@ -186,8 +186,7 @@ class poloniex extends \ccxt\async\poloniex {
             if ($symbols === null) {
                 throw new ArgumentsRequired($this->id . ' subscribe() symbols is required');
             }
-            $ids = $this->market_ids($symbols);
-            $marketIds = ($ids === null) ? array() : $ids;
+            $marketIds = $this->market_ids($symbols);
         }
         $symbolsSuffix = ($symbols === null) ? '' : implode(',', $symbols);
         $symbolsHash = null;
@@ -762,8 +761,8 @@ class poloniex extends \ccxt\async\poloniex {
         //        ]
         //    }
         //
-        $data = $this->safe_value($message, 'data');
-        $data = $this->safe_value($data, 0);
+        $dataList = $this->safe_list($message, 'data');
+        $data = $this->safe_dict($dataList, 0);
         $channel = $this->safe_string($message, 'channel');
         $marketId = $this->safe_string($data, 'symbol');
         $symbol = $this->safe_symbol($marketId);

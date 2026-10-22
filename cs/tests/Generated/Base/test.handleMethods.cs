@@ -81,6 +81,8 @@ public partial class BaseTest
                     { "marginMode", "isolated" },
                     { "fetchX", new Dictionary<string, object>() {
                         { "uta", true },
+                        { "boolString", "false" },
+                        { "boolNumber", 1 },
                     } },
                 } },
             });
@@ -103,7 +105,28 @@ public partial class BaseTest
             object params4 = fromParamsparams4Variable.Item2;
             Assert(isEqual(fromParams, "p"));
             Assert(!(inOp(params4, "absentKey")));
-            // a wrong-typed option is covered per language in language_specific (it throws only in C#, Java and Go)
+            // "true"/"false" strings and 1/0 numbers read as booleans; any other present non-boolean throws
+            (bool?, object) boolStringparams5Variable = exchange.handleOptionBoolAndParams(new Dictionary<string, object>() {}, "fetchX", "boolString", true);
+            object boolString = boolStringparams5Variable.Item1;
+            object params5 = boolStringparams5Variable.Item2;
+            Assert(isEqual(boolString, false));
+            (bool?, object) boolNumberparams6Variable = exchange.handleOptionBoolAndParams(new Dictionary<string, object>() {
+            { "boolNumber", 1 },
+        }, "fetchX", "boolNumber", false);
+            object boolNumber = boolNumberparams6Variable.Item1;
+            object params6 = boolNumberparams6Variable.Item2;
+            Assert(isEqual(boolNumber, true));
+            Assert(!(inOp(params6, "boolNumber")));
+            bool caught = false;
+            try
+            {
+                exchange.checkOptionBool("fetchX", "wrongBool", "yes");
+            } catch(Exception error)
+            {
+                caught = true;
+            }
+            Assert(caught, "a non-boolean option should have thrown");
+            Assert((params5 != null));
             Assert((params1 != null) || (params2 != null) || (params3 != null));
         }
         public void testHandleMethods()

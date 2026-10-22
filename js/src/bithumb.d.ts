@@ -424,7 +424,7 @@ export default class bithumb extends Exchange {
      */
     fetchDepositAddresses(codes?: Strings, params?: Dict): Promise<DepositAddress[]>;
     parseDepositAddress(response: Dict, currency?: Currency): DepositAddress;
-    fixCommaNumber(numberStr: Str): string | undefined;
+    fixCommaNumber(numberStr: Str): Str;
     nonce(): number;
     urlencodeWithArrayBrackets(query: Dict): string;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;

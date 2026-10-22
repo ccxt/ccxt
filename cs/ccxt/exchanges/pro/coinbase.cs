@@ -99,7 +99,7 @@ public partial class coinbase : ccxt.coinbase
             { "product_ids", productIds },
             { "channel", name },
         };
-        if (isTrue(isPrivate))
+        if ((((object)(isPrivate)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
         {
             subscribe = this.extend(subscribe, this.createWSAuth(name, productIds));
         }
@@ -166,7 +166,7 @@ public partial class coinbase : ccxt.coinbase
             { "unsubscribe", true },
             { "symbols", new List<object>() {symbol} },
         };
-        if (isTrue(isPrivate))
+        if ((((object)(isPrivate)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
         {
             message = this.extend(message, this.createWSAuth(name, productIds));
         }
@@ -212,7 +212,7 @@ public partial class coinbase : ccxt.coinbase
             { "product_ids", productIds },
             { "channel", name },
         };
-        if (isTrue(isPrivate))
+        if ((((object)(isPrivate)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
         {
             subscribe = this.extend(subscribe, this.createWSAuth(name, productIds));
         }
@@ -262,7 +262,7 @@ public partial class coinbase : ccxt.coinbase
             { "product_ids", productIds },
             { "channel", name },
         };
-        if (isTrue(isPrivate))
+        if ((((object)(isPrivate)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
         {
             message = this.extend(message, this.createWSAuth(name, productIds));
         }
@@ -301,7 +301,8 @@ public partial class coinbase : ccxt.coinbase
             string? currentToken = this.safeString(this.options, "wsToken");
             Int64? tokenTimestamp = this.safeInteger(this.options, "wsTokenTimestamp", 0);
             Int64 seconds = this.seconds();
-            if ((currentToken == null) || isLessThan((tokenTimestamp + 120), seconds))
+            Int64? tokenExpiry = (tokenTimestamp + 120);
+            if ((currentToken == null) || ((tokenExpiry == null || tokenExpiry < seconds)))
             {
                 // we should generate new token
                 string token = this.createAuthToken(seconds);
@@ -852,7 +853,7 @@ public partial class coinbase : ccxt.coinbase
             int tradesLength = currentTrades.Count;
             for (Int64 j = 0; j < tradesLength; j++)
             {
-                object item = getValue(currentTrades, ((tradesLength - j) - 1));
+                object item = (currentTrades != null && ((tradesLength - j) - 1) < currentTrades.Count ? currentTrades[(int)((tradesLength - j) - 1)] : null);
                 tradesArray.append(ccxt.BaseExchange.FromTrade(this.parseTrade(item)));
             }
         }

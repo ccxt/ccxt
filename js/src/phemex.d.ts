@@ -40,10 +40,10 @@ export default class phemex extends Exchange {
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
-    toEn(n: any, scale: Int): number | undefined;
+    toEn(n: any, scale: Int): Num;
     toEv(amount: any, market?: Dictionary<any> | undefined): any;
     toEp(price: any, market?: Market): any;
-    fromEn(en: any, scale: any): string | undefined;
+    fromEn(en: any, scale: any): Str;
     fromEp(ep: any, market?: Market): any;
     fromEv(ev: any, market?: Market): any;
     fromEr(er: any, market?: Market): any;

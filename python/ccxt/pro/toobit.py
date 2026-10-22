@@ -966,11 +966,11 @@ class toobit(ccxt.async_support.toobit):
         messageHash = ''
         symbolsNormalized = symbols
         if not self.is_empty(symbols):
-            symbolsNormalized = self.market_symbols(symbols)
-        if not self.is_empty(symbols):
-            if symbolsNormalized is None:
+            marketSymbols = self.market_symbols(symbols)
+            if marketSymbols is None:
                 raise ArgumentsRequired(self.id + ' watchPositions() symbols is required')
-            messageHash = '::' + ','.join(symbolsNormalized)
+            symbolsNormalized = marketSymbols
+            messageHash = '::' + ','.join(marketSymbols)
         messageHash = type + ':positions' + messageHash
         url = self.get_user_stream_url()
         client = self.client(url)

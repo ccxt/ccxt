@@ -465,7 +465,7 @@ class whitebit extends whitebit$1["default"] {
         //       "id": null
         //   }
         //
-        const trade = this.safeValue(message, 'params');
+        const trade = this.safeList(message, 'params', []);
         if (this.myTrades === undefined) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
             this.myTrades = new Cache.ArrayCache(limit);

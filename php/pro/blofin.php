@@ -552,9 +552,6 @@ class blofin extends \ccxt\async\blofin {
         //     }
         //
         $marketType = 'swap'; // for now
-        if (!(is_array($this->balance) && array_key_exists($marketType ?? '', $this->balance))) {
-            $this->balance[$marketType] = array();
-        }
         $this->balance[$marketType] = $this->parse_ws_balance($message);
         $messageHash = $marketType . ':balance';
         $client->resolve($this->balance[$marketType], $messageHash);
@@ -839,7 +836,7 @@ class blofin extends \ccxt\async\blofin {
         return Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $paramsMarketType), $messageHashes));
     }
 
-    public function get_subscription_request(mixed $args) {
+    public function get_subscription_request(array $args): array {
         return array(
             'op' => 'subscribe',
             'args' => $args,

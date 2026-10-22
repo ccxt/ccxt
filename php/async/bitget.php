@@ -2189,7 +2189,7 @@ class bitget extends Exchange {
         $promises = array();
         $fetchMargins = false;
         for ($i = 0; $i < count($types); $i++) {
-            $type = $types[$i];
+            $type = $this->safe_string($types, $i);
             if (($type === 'swap') || ($type === 'future')) {
                 $subTypes = array( 'USDT-FUTURES', 'COIN-FUTURES', 'USDC-FUTURES', 'SUSDT-FUTURES', 'SCOIN-FUTURES', 'SUSDC-FUTURES' );
                 for ($j = 0; $j < count($subTypes); $j++) {
@@ -2352,8 +2352,9 @@ class bitget extends Exchange {
                     $symbol = $symbol . ':' . $settle;
                 } elseif ($symbolType === 'delivery') {
                     $expiry = $this->safe_integer($market, 'deliveryTime');
-                    $expiryDatetime = $this->iso8601($expiry);
-                    $expiryParts = explode('-', $expiryDatetime);
+                    $expiryIso = $this->iso8601($expiry);
+                    $expiryDatetime = $expiryIso;
+                    $expiryParts = explode('-', $expiryIso);
                     $yearPart = $this->safe_string($expiryParts, 0, '');
                     $dayPart = $this->safe_string($expiryParts, 2, '');
                     $year = mb_substr($yearPart, 2, 4 - 2);
@@ -2580,7 +2581,6 @@ class bitget extends Exchange {
             $isRealityValue = $this->safe_string_lower($market, 'isReality', '');
             $isReality = ($isRealityValue === 'yes');
             $settleId = null;
-            $settle = null;
             if ($category === 'USDT-FUTURES') {
                 $settleId = 'USDT';
             } elseif ($category === 'USDC-FUTURES') {
@@ -2588,9 +2588,7 @@ class bitget extends Exchange {
             } elseif ($category === 'COIN-FUTURES') {
                 $settleId = $base;
             }
-            if ($settleId !== null) {
-                $settle = $this->safe_currency_code($settleId);
-            }
+            $settle = $this->safe_currency_code($settleId);
             $symbol = $base . '/' . $quote;
             $type = null;
             $swap = false;
@@ -2631,8 +2629,9 @@ class bitget extends Exchange {
                     $symbol = $symbol . ':' . $settle;
                 } elseif ($symbolType === 'delivery') {
                     $expiry = $this->safe_integer($market, 'deliveryTime');
-                    $expiryDatetime = $this->iso8601($expiry);
-                    $expiryParts = explode('-', $expiryDatetime);
+                    $expiryIso = $this->iso8601($expiry);
+                    $expiryDatetime = $expiryIso;
+                    $expiryParts = explode('-', $expiryIso);
                     $yearPart = $this->safe_string($expiryParts, 0, '');
                     $dayPart = $this->safe_string($expiryParts, 2, '');
                     $year = mb_substr($yearPart, 2, 4 - 2);
@@ -3092,7 +3091,10 @@ class bitget extends Exchange {
             }
             return Async\await($this->fetch_paginated_call_cursor('fetchDeposits', null, $since, $limit, $paramsPaginate, 'idLessThan', 'idLessThan', null, 100));
         }
-        $defaultWindow = ($uta === true) ? 2592000000 : 7776000000; // uta allows a window of 30 days at most, else 90 days
+        $defaultWindow = 7776000000; // uta allows a window of 30 days at most, else 90 days
+        if ($uta === true) {
+            $defaultWindow = 2592000000;
+        }
         $sinceResolved = ($since === null) ? $this->milliseconds() - $defaultWindow : $since;
         $request = array(
             'startTime' => $sinceResolved,
@@ -3300,7 +3302,10 @@ class bitget extends Exchange {
         if ($code !== null) {
             $currency = $this->currency($code);
         }
-        $defaultWindow = ($uta === true) ? 2592000000 : 7776000000; // uta allows a window of 30 days at most, else 90 days
+        $defaultWindow = 7776000000; // uta allows a window of 30 days at most, else 90 days
+        if ($uta === true) {
+            $defaultWindow = 2592000000;
+        }
         $sinceResolved = ($since === null) ? $this->milliseconds() - $defaultWindow : $since;
         $request = array(
             'startTime' => $sinceResolved,
@@ -3495,7 +3500,7 @@ class bitget extends Exchange {
         );
     }
 
-    public function parse_transaction_type(?string $type) {
+    public function parse_transaction_type(?string $type): ?string {
         // the wire says withdraw, and a unified transaction says withdrawal
         $types = array(
             'withdraw' => 'withdrawal',
@@ -3503,7 +3508,7 @@ class bitget extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'success' => 'ok',
             'Pending' => 'pending',
@@ -4911,8 +4916,6 @@ class bitget extends Exchange {
         $duration = $this->parse_timeframe($timeframe) * 1000;
         $until = $this->safe_integer($paramsStock, 'until');
         $limitDefined = $limit !== null;
-        $sinceDefined = $since !== null;
-        $untilDefined = $until !== null;
         $paramsOmitted = $this->omit($paramsStock, array( 'until' ));
         // retrievable periods listed here:
         // - https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
@@ -4923,57 +4926,62 @@ class bitget extends Exchange {
         }
         $ohlcOptions = $this->safe_dict($this->options['fetchOHLCV'], $key, array());
         $maxLimitPerTimeframe = $this->safe_dict($ohlcOptions, 'maxLimitPerTimeframe', array());
-        $maxLimitForThisTimeframe = $this->safe_integer($maxLimitPerTimeframe, $timeframe, $limit);
+        $timeframeLimitValue = $this->safe_integer($maxLimitPerTimeframe, $timeframe);
+        // the per-timeframe cap only applies to a user-supplied limit
+        $timeframeLimit = ($timeframeLimitValue === null) ? $maxLimitForRecentEndpoint : $timeframeLimitValue;
+        $requestedLimit = ($limit === null) ? $defaultLimit : $limit;
+        $limitCapped = ($requestedLimit > $maxLimitForRecentEndpoint) ? $maxLimitForRecentEndpoint : $requestedLimit;
+        // the per-timeframe cap only applies to a user-supplied limit
+        $recentLimit = (($limit !== null) && ($limitCapped > $timeframeLimit)) ? $timeframeLimit : $limitCapped;
+        $limitResolved = $recentLimit;
+        $recentDuration = $recentLimit * $duration;
         $recentEndpointDaysMap = $this->safe_dict($this->options['fetchOHLCV'], 'maxRecentDaysPerTimeframe', array());
         $recentEndpointAvailableDays = $this->safe_integer($recentEndpointDaysMap, $timeframe);
-        $recentEndpointBoundaryTs = $now - ($recentEndpointAvailableDays - 1) * $msInDay;
-        $limitResolved = $defaultLimit;
-        if ($limitDefined) {
-            $limitCapped = min($limit, $maxLimitForRecentEndpoint);
-            $limitResolved = min($limitCapped, $maxLimitForThisTimeframe);
-        }
-        $limitMultipliedDuration = $limitResolved * $duration;
+        $historicalEndpointNeeded = ($useHistoryEndpoint === true);
         // exchange aligns from endTime, so it's important, not startTime
         // startTime is supported only on "recent" endpoint, not on "historical" endpoint
         $calculatedStartTime = null;
         $calculatedEndTime = null;
-        if ($sinceDefined) {
+        if ($since !== null) {
             $calculatedStartTime = $since;
             $request['startTime'] = $since;
-            if (!$untilDefined) {
-                $calculatedEndTime = $this->sum($calculatedStartTime, $limitMultipliedDuration);
-                if ($calculatedEndTime > $now) {
+            if ($until === null) {
+                $calculatedEndTime = $this->sum($since, $recentDuration);
+                if ($since > $now - $recentDuration) {
                     $calculatedEndTime = $now;
                 }
                 $request['endTime'] = $calculatedEndTime;
             }
-        }
-        if ($untilDefined) {
-            $calculatedEndTime = $until;
-            if ($calculatedEndTime > $now) {
-                $calculatedEndTime = $now;
+            if (($recentEndpointAvailableDays !== null) && ($since <= $now - ($recentEndpointAvailableDays - 1) * $msInDay)) {
+                $historicalEndpointNeeded = true;
             }
-            $request['endTime'] = $calculatedEndTime;
-            if (!$sinceDefined) {
-                $calculatedStartTime = $calculatedEndTime - $limitMultipliedDuration;
+        }
+        if ($until !== null) {
+            $untilEndTime = ($until > $now) ? $now : $until;
+            $calculatedEndTime = $untilEndTime;
+            $request['endTime'] = $untilEndTime;
+            if ($since === null) {
+                $untilStartTime = $untilEndTime - $recentDuration;
+                $calculatedStartTime = $untilStartTime;
                 // we do not need to set "startTime" here
+                if (($recentEndpointAvailableDays !== null) && ($untilStartTime <= $now - ($recentEndpointAvailableDays - 1) * $msInDay)) {
+                    $historicalEndpointNeeded = true;
+                }
             }
         }
-        // if historical endpoint is needed, we should re-set the variables
-        $historicalEndpointNeeded = false;
-        if (($calculatedStartTime !== null && $calculatedStartTime <= $recentEndpointBoundaryTs) || ($useHistoryEndpoint)) {
-            $historicalEndpointNeeded = true;
+        if ($historicalEndpointNeeded) {
             // only for "historical-candles" - ensure we use correct max limit
-            $limitResolved = min($limitResolved, $maxLimitForHistoryEndpoint);
-            $limitMultipliedDuration = $limitResolved * $duration;
-            $calculatedStartTime = $calculatedEndTime - $limitMultipliedDuration;
+            $historicalLimit = ($recentLimit > $maxLimitForHistoryEndpoint) ? $maxLimitForHistoryEndpoint : $recentLimit;
+            $limitResolved = $historicalLimit;
+            $historicalDuration = $historicalLimit * $duration;
+            $calculatedStartTime = $calculatedEndTime - $historicalDuration;
             $request['startTime'] = $calculatedStartTime;
             // for contract, maximum 90 days allowed between start-end times
             if ($market['spot'] !== true) {
-                $maxDistanceDaysForContracts = 90;
-                // only correct if request is larger
-                if ($calculatedEndTime - $calculatedStartTime > $maxDistanceDaysForContracts * $msInDay) {
-                    $calculatedEndTime = $this->sum($calculatedStartTime, $maxDistanceDaysForContracts * $msInDay);
+                $maxDistanceForContracts = 90 * $msInDay;
+                // endTime - startTime is historicalDuration here; an undefined endTime never passed this check
+                if (($calculatedEndTime !== null) && ($historicalDuration > $maxDistanceForContracts)) {
+                    $calculatedEndTime = $this->sum($calculatedStartTime, $maxDistanceForContracts);
                     $request['endTime'] = $calculatedEndTime;
                 }
             }
@@ -5376,7 +5384,7 @@ class bitget extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'new' => 'open',
             'init' => 'open',
@@ -6084,7 +6092,7 @@ class bitget extends Exchange {
         //     throw new ExchangeError (this.id + ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent');
         // }
         //
-        if ($this->sum($isTriggerOrder, $isStopLossTriggerOrder, $isTakeProfitTriggerOrder, $isTrailingPercentOrder) > 1) {
+        if (($isTriggerOrder && ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder || $isTrailingPercentOrder)) || ($isStopLossTriggerOrder && ($isTakeProfitTriggerOrder || $isTrailingPercentOrder)) || ($isTakeProfitTriggerOrder && $isTrailingPercentOrder)) {
             throw new ExchangeError($this->id . ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent');
         }
         if ($type === 'limit') {
@@ -6294,7 +6302,7 @@ class bitget extends Exchange {
             Async\await($this->load_markets());
         }
         $ordersRequests = array();
-        $symbol = null;
+        $symbol = $this->safe_string($this->safe_dict($orders, 0), 'symbol');
         $marginMode = null;
         for ($i = 0; $i < count($orders); $i++) {
             $rawOrder = $this->safe_dict($orders, $i);
@@ -6373,7 +6381,7 @@ class bitget extends Exchange {
             return Async\await($this->create_uta_orders($orders, $paramsUTA));
         }
         $ordersRequests = array();
-        $symbol = null;
+        $symbol = $this->safe_string($this->safe_dict($orders, 0), 'symbol');
         $marginMode = null;
         for ($i = 0; $i < count($orders); $i++) {
             $rawOrder = $this->safe_dict($orders, $i);
@@ -6534,7 +6542,7 @@ class bitget extends Exchange {
         // if (multipleTriggers) {
         //     throw new ExchangeError (this.id + ' editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent');
         // }
-        if ($this->sum($isTriggerOrder, $isStopLossOrder, $isTakeProfitOrder, $isTrailingPercentOrder) > 1) {
+        if (($isTriggerOrder && ($isStopLossOrder || $isTakeProfitOrder || $isTrailingPercentOrder)) || ($isStopLossOrder && ($isTakeProfitOrder || $isTrailingPercentOrder)) || ($isTakeProfitOrder && $isTrailingPercentOrder)) {
             throw new ExchangeError($this->id . ' editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent');
         }
         $paramsOmitted = $this->omit($params, array( 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'clientOrderId', 'trailingTriggerPrice', 'trailingPercent' ));
@@ -9174,7 +9182,7 @@ class bitget extends Exchange {
         } elseif ($method === 'privateMixGetV2MixPositionAllPosition') {
             $marginCoin = $this->safe_string($paramsPaginate, 'marginCoin', 'USDT');
             if ($market !== null) {
-                $marginCoin = $market['settleId'];
+                $marginCoin = $this->safe_string($market, 'settleId');
             } elseif ($productType === 'USDT-FUTURES') {
                 $marginCoin = 'USDT';
             } elseif ($productType === 'USDC-FUTURES') {
@@ -10075,7 +10083,7 @@ class bitget extends Exchange {
         return $this->parse_funding_histories($bills, $market, $since, $limit);
     }
 
-    public function parse_funding_history(?array $contract, ?array $market = null) {
+    public function parse_funding_history(?array $contract, ?array $market = null): array {
         //
         //     {
         //         "billId": "1111499428100472833",

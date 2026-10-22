@@ -3389,7 +3389,7 @@ class kucoin extends kucoin$1["default"] {
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
         };
         const duration = this.parseTimeframe(timeframe) * 1000;
-        let endAt = this.milliseconds(); // required param
+        const now = this.milliseconds(); // required param
         const denominator = 1000;
         // For each query, the system would return at most 1500 pieces of data.
         // To obtain more data, please page the data by time.
@@ -3397,14 +3397,14 @@ class kucoin extends kucoin$1["default"] {
         const limitResolved = (since !== undefined) ? windowLimit : limit;
         let sinceResolved = since;
         if ((since === undefined) && (limit !== undefined)) {
-            sinceResolved = endAt - limit * duration;
+            sinceResolved = now - limit * duration;
         }
+        const endAt = (since !== undefined) ? this.parseToInt(this.sum(since, windowLimit * duration)) : now;
         if (since !== undefined) {
             request['startAt'] = this.parseToInt(Math.floor(since / denominator));
-            endAt = this.sum(since, windowLimit * duration);
         }
         else if (limit !== undefined) {
-            request['startAt'] = this.parseToInt(Math.floor((endAt - limit * duration) / denominator));
+            request['startAt'] = this.parseToInt(Math.floor((now - limit * duration) / denominator));
         }
         request['endAt'] = this.parseToInt(Math.floor(endAt / denominator));
         const [type, paramsMarketType] = this.handleMarketTypeAndParams('fetchOHLCV', market, paramsPaginate);
@@ -3475,7 +3475,7 @@ class kucoin extends kucoin$1["default"] {
             'type': this.safeString(this.timeframes, timeframe, timeframe),
         };
         const duration = this.parseTimeframe(timeframe) * 1000;
-        let endAt = this.milliseconds(); // required param
+        const now = this.milliseconds(); // required param
         const denominator = 1000;
         // For each query, the system would return at most 1500 pieces of data.
         // To obtain more data, please page the data by time.
@@ -3483,14 +3483,14 @@ class kucoin extends kucoin$1["default"] {
         const limitResolved = (since !== undefined) ? windowLimit : limit;
         let sinceResolved = since;
         if ((since === undefined) && (limit !== undefined)) {
-            sinceResolved = endAt - limit * duration;
+            sinceResolved = now - limit * duration;
         }
+        const endAt = (since !== undefined) ? this.parseToInt(this.sum(since, windowLimit * duration)) : now;
         if (since !== undefined) {
             request['startAt'] = this.parseToInt(Math.floor(since / denominator));
-            endAt = this.sum(since, windowLimit * duration);
         }
         else if (limit !== undefined) {
-            request['startAt'] = this.parseToInt(Math.floor((endAt - limit * duration) / denominator));
+            request['startAt'] = this.parseToInt(Math.floor((now - limit * duration) / denominator));
         }
         request['endAt'] = this.parseToInt(Math.floor(endAt / denominator));
         const response = await this.publicGetMarketCandles(this.extend(request, paramsPaginate));
@@ -3543,15 +3543,16 @@ class kucoin extends kucoin$1["default"] {
             request['granularity'] = timeframe;
         }
         const duration = this.parseTimeframe(timeframe) * 1000;
-        let endAt = this.milliseconds(); // required param
+        const now = this.milliseconds(); // required param
         // For each query, the system would return at most 200 pieces of data.
         // To obtain more data, please page the data by time.
         const windowLimit = (limit === undefined) ? this.safeInteger(this.options, 'fetchOHLCVLimit', maxLimit) : limit;
         const limitResolved = (since !== undefined) ? windowLimit : limit;
         let sinceResolved = since;
         if ((since === undefined) && (limit !== undefined)) {
-            sinceResolved = endAt - limit * duration;
+            sinceResolved = now - limit * duration;
         }
+        let endAt = now;
         if (since !== undefined) {
             request['from'] = since;
             endAt = this.sum(since, windowLimit * duration);
@@ -7387,16 +7388,15 @@ class kucoin extends kucoin$1["default"] {
         const id = this.safeString2(trade, 'tradeId', 'id');
         const orderId = this.safeString(trade, 'orderId');
         const takerOrMaker = this.safeString(trade, 'liquidity');
-        let timestamp = this.safeInteger2(trade, 'time', 'ts');
-        if (timestamp !== undefined) {
-            timestamp = this.parseToInt(timestamp / 1000000);
+        const nanoseconds = this.safeInteger2(trade, 'time', 'ts');
+        const createdAt = this.safeInteger(trade, 'createdAt');
+        // if it's a historical v1 trade, the exchange returns timestamp in seconds
+        let timestamp = createdAt;
+        if (('dealValue' in trade) && (createdAt !== undefined)) {
+            timestamp = createdAt * 1000;
         }
-        else {
-            timestamp = this.safeInteger(trade, 'createdAt');
-            // if it's a historical v1 trade, the exchange returns timestamp in seconds
-            if (('dealValue' in trade) && (timestamp !== undefined)) {
-                timestamp = timestamp * 1000;
-            }
+        if (nanoseconds !== undefined) {
+            timestamp = this.parseToInt(nanoseconds / 1000000);
         }
         const priceString = this.safeString2(trade, 'price', 'dealPrice');
         const amountString = this.safeString2(trade, 'size', 'amount');
@@ -7517,16 +7517,15 @@ class kucoin extends kucoin$1["default"] {
         const id = this.safeString2(trade, 'tradeId', 'id');
         const orderId = this.safeString(trade, 'orderId');
         const takerOrMaker = this.safeString(trade, 'liquidity');
-        let timestamp = this.safeInteger(trade, 'ts');
-        if (timestamp !== undefined) {
-            timestamp = this.parseToInt(timestamp / 1000000);
+        const nanoseconds = this.safeInteger(trade, 'ts');
+        const createdAt = this.safeInteger(trade, 'createdAt');
+        // if it's a historical v1 trade, the exchange returns timestamp in seconds
+        let timestamp = createdAt;
+        if (('dealValue' in trade) && (createdAt !== undefined)) {
+            timestamp = createdAt * 1000;
         }
-        else {
-            timestamp = this.safeInteger(trade, 'createdAt');
-            // if it's a historical v1 trade, the exchange returns timestamp in seconds
-            if (('dealValue' in trade) && (timestamp !== undefined)) {
-                timestamp = timestamp * 1000;
-            }
+        if (nanoseconds !== undefined) {
+            timestamp = this.parseToInt(nanoseconds / 1000000);
         }
         const priceString = this.safeString2(trade, 'price', 'dealPrice');
         const amountString = this.safeString2(trade, 'size', 'amount');
@@ -7865,19 +7864,17 @@ class kucoin extends kucoin$1["default"] {
                 'currency': code,
             };
         }
-        let timestamp = this.safeInteger2(transaction, 'createdAt', 'createAt');
-        let updated = this.safeInteger(transaction, 'updatedAt');
+        const createdAt = this.safeInteger2(transaction, 'createdAt', 'createAt');
+        const updatedAt = this.safeInteger(transaction, 'updatedAt');
         const isV1 = !('createdAt' in transaction);
         // if it's a v1 structure
         if (isV1) {
             type = ('address' in transaction) ? 'withdrawal' : 'deposit';
-            if (timestamp !== undefined) {
-                timestamp = timestamp * 1000;
-            }
-            if (updated !== undefined) {
-                updated = updated * 1000;
-            }
         }
+        const createdAtMs = (createdAt === undefined) ? undefined : createdAt * 1000;
+        const updatedAtMs = (updatedAt === undefined) ? undefined : updatedAt * 1000;
+        const timestamp = isV1 ? createdAtMs : createdAt;
+        const updated = isV1 ? updatedAtMs : updatedAt;
         const internal = this.safeBool(transaction, 'isInner');
         const tag = this.safeString(transaction, 'memo');
         const chainId = this.safeString(transaction, 'chain');
@@ -8381,7 +8378,7 @@ class kucoin extends kucoin$1["default"] {
         };
         if (isolated) {
             const data = this.safeDict(response, 'data', {});
-            const assets = this.safeValue(data, 'assets', data);
+            const assets = this.safeList(data, 'assets', []);
             for (let i = 0; i < assets.length; i++) {
                 const entry = this.safeDict(assets, i);
                 const base = this.safeDict(entry, 'baseAsset', {});

@@ -974,8 +974,11 @@ export default class grvt extends Exchange {
         const request = {
             'instrument': this.marketId(symbol),
         };
-        const limitResolved = (limit === undefined) ? 100 : limit;
-        if (limitResolved <= 500) {
+        let limitResolved = 100;
+        if (limit !== undefined) {
+            limitResolved = limit;
+        }
+        if (limit === undefined || limit <= 500) {
             request['depth'] = this.findNearestCeiling([10, 50, 100, 500], limitResolved);
         }
         const response = await this.publicMarketPostFullV1Book(this.extend(request, params));
@@ -1638,19 +1641,17 @@ export default class grvt extends Exchange {
         let addressTo = this.safeString(transaction, 'to_account_id');
         const currencyId = this.safeString(transaction, 'currency');
         const code = this.safeCurrencyCode(currencyId, currency);
-        if ('transfer_metadata' in transaction) {
-            const metaData = this.omitZero(this.safeString(transaction, 'transfer_metadata'));
-            if (metaData !== undefined) {
-                const parsedMeta = this.parseJson(metaData);
-                direction = this.safeStringLower(parsedMeta, 'direction');
-                txId = this.safeString(parsedMeta, 'provider_tx_id');
-                networkCode = this.networkIdToCode(this.safeString(parsedMeta, 'chainid'), code);
-                if (direction === 'withdrawal') {
-                    addressTo = this.safeString(parsedMeta, 'endpoint');
-                }
-                else if (direction === 'deposit') {
-                    addressFrom = this.safeString(parsedMeta, 'endpoint');
-                }
+        const metaData = this.omitZero(this.safeString(transaction, 'transfer_metadata'));
+        if (metaData !== undefined) {
+            const parsedMeta = this.parseJson(metaData);
+            direction = this.safeStringLower(parsedMeta, 'direction');
+            txId = this.safeString(parsedMeta, 'provider_tx_id');
+            networkCode = this.networkIdToCode(this.safeString(parsedMeta, 'chainid'), code);
+            if (direction === 'withdrawal') {
+                addressTo = this.safeString(parsedMeta, 'endpoint');
+            }
+            else if (direction === 'deposit') {
+                addressFrom = this.safeString(parsedMeta, 'endpoint');
             }
         }
         const timestamp = this.safeIntegerProduct2(transaction, 'event_time', 'initiated_time', 0.000001);
@@ -2197,36 +2198,38 @@ export default class grvt extends Exchange {
         return parseInt(x);
     }
     eipMessageForOrder(order, structureType) {
-        const priceMultiplier = '1000000000';
+        const priceMultiplier = 1000000000;
         const orderLegs = this.safeList(order, 'legs', []);
         const legs = [];
         for (let i = 0; i < orderLegs.length; i++) {
             const leg = orderLegs[i];
             const market = this.market(leg['instrument']);
-            const bigInt10 = this.convertToBigIntCustom('10');
             const precisionValue = this.precisionFromString(this.safeString(market['precision'], 'base'));
-            const precisionValueStr = precisionValue.toString();
-            const sizeMultiplier = Math.pow(bigInt10, this.convertToBigIntCustom(precisionValueStr));
-            const size = leg['size'];
+            const sizeMultiplier = Math.pow(10, precisionValue);
+            const size = this.safeString(leg, 'size');
+            if (size === undefined) {
+                throw new ArgumentsRequired(this.id + ' order leg requires a size');
+            }
             const sizeParts = size.split('.');
             const sizeDec = this.safeString(sizeParts, 1, '');
             const sizeDecLength = sizeDec.length + 0; // php tr
-            const sizeDecLengthStr = sizeDecLength.toString();
-            const sizeInteger = this.convertToBigIntCustom(size.replace('.', '')) * sizeMultiplier / (Math.pow(bigInt10, this.convertToBigIntCustom(sizeDecLengthStr)));
+            const sizeDigits = parseInt(size.replace('.', ''));
+            let denominator = Math.pow(10, sizeDecLength);
+            const sizeInteger = sizeDigits * sizeMultiplier / denominator;
             const legOrder = {
                 'assetID': market['info']['instrument_hash'],
                 'contractSize': this.parseToInt(sizeInteger),
                 'isBuyingContract': leg['is_buying_asset'],
             };
             const limitPrice = this.safeString(leg, 'limit_price');
-            if (this.omitZero(limitPrice) !== undefined) {
-                const price = leg['limit_price'];
+            if ((limitPrice !== undefined) && (this.omitZero(limitPrice) !== undefined)) {
+                const price = limitPrice;
                 const limitParts = price.split('.');
                 const limitDec = this.safeString(limitParts, 1, '');
                 const limitDecLength = limitDec.length + 0; // php tr
-                const limitDecLengthStr = limitDecLength.toString();
-                const powerNum = (limitDecLengthStr === '0') ? 0 : this.convertToBigIntCustom(limitDecLengthStr);
-                const priceInteger = (this.convertToBigIntCustom(price.replace('.', '')) * this.convertToBigIntCustom(priceMultiplier) / (Math.pow(bigInt10, powerNum)));
+                const priceDigits = parseInt(price.replace('.', ''));
+                denominator = Math.pow(10, limitDecLength);
+                const priceInteger = priceDigits * priceMultiplier / denominator;
                 legOrder['limitPrice'] = this.parseToInt(priceInteger);
             }
             else {
@@ -3251,7 +3254,8 @@ export default class grvt extends Exchange {
         }
     }
     defaultSignature() {
-        const expiration = this.milliseconds() * 1000000 + 1000000 * this.safeInteger(this.options, 'expirationSeconds', 30) * 1000;
+        const expirationSeconds = this.safeInteger(this.options, 'expirationSeconds', 30);
+        const expiration = this.milliseconds() * 1000000 + 1000000 * expirationSeconds * 1000;
         return {
             'signer': '',
             'r': '',

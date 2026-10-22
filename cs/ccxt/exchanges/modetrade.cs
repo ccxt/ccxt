@@ -1105,11 +1105,6 @@ public partial class modetrade : Exchange
         string? amount = this.safeString(trade, "executed_quantity");
         string? order_id = this.safeString(trade, "order_id");
         Dictionary<string, object> fee = this.parseTokenAndFeeTemp(trade, "fee_asset", "fee");
-        string? feeCost = this.safeString(fee, "cost");
-        if (((feeCost != null)) && ((fee != null)))
-        {
-            fee["cost"] = feeCost;
-        }
         string? cost = Precise.stringMul(price, amount);
         string? side = this.safeStringLower(trade, "side");
         string? id = this.safeString(trade, "id");
@@ -1204,7 +1199,7 @@ public partial class modetrade : Exchange
         string? fundingTimeString = this.safeString(fundingRate, "last_funding_rate_timestamp");
         string? nextFundingTimeString = this.safeString(fundingRate, "next_funding_time");
         string? millisecondsInterval = Precise.stringSub(nextFundingTimeString, fundingTimeString);
-        object fundingSymbol = ((marketValue != null)) ? getValue(marketValue, "symbol") : null;
+        string? fundingSymbol = this.safeString(marketValue, "symbol");
         return new Dictionary<string, object>() {
             { "info", fundingRate },
             { "symbol", fundingSymbol },
@@ -1979,7 +1974,7 @@ public partial class modetrade : Exchange
         return this.safeString(timeInForces, timeInForce);
     }
 
-    public virtual string? parseOrderStatus(object status)
+    public virtual string? parseOrderStatus(string? status)
     {
         if ((status != null))
         {
@@ -2059,7 +2054,8 @@ public partial class modetrade : Exchange
         bool hasStopLoss = (stopLoss != null);
         bool hasTakeProfit = (takeProfit != null);
         string? algoType = this.safeString(parameters, "algoType");
-        bool isConditional = (triggerPrice != null) || hasStopLoss || hasTakeProfit || (!isEqual(this.safeValue(parameters, "childOrders"), null));
+        object paramsChildOrders = this.safeValue(parameters, "childOrders");
+        bool isConditional = (triggerPrice != null) || hasStopLoss || hasTakeProfit || ((paramsChildOrders != null));
         bool isMarket = orderType == "MARKET";
         string? timeInForce = this.safeStringLower(parameters, "timeInForce");
         bool postOnly = this.isPostOnly(isMarket, null, parameters);
@@ -2157,7 +2153,7 @@ public partial class modetrade : Exchange
             }
             request["child_orders"] = new List<object>() {outterOrder};
         }
-        object paramsOmitted = this.omit(parameters, new List<object>() {"reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit"}));
         return this.extend(request, paramsOmitted);
     }
 
@@ -2198,7 +2194,8 @@ public partial class modetrade : Exchange
         string? triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         object stopLoss = this.safeValue(parameters, "stopLoss");
         object takeProfit = this.safeValue(parameters, "takeProfit");
-        bool isConditional = (triggerPrice != null) || (stopLoss != null) || (takeProfit != null) || (!isEqual(this.safeValue(parameters, "childOrders"), null));
+        object childOrders = this.safeValue(parameters, "childOrders");
+        bool isConditional = (triggerPrice != null) || (stopLoss != null) || (takeProfit != null) || ((childOrders != null));
         Dictionary<string, object> response = null;
         if (isConditional)
         {
@@ -2247,7 +2244,8 @@ public partial class modetrade : Exchange
             string? triggerPrice = this.safeString2(orderParams, "triggerPrice", "stopPrice");
             IDictionary<string, object> stopLoss = this.safeDict(orderParams, "stopLoss");
             IDictionary<string, object> takeProfit = this.safeDict(orderParams, "takeProfit");
-            bool isConditional = (triggerPrice != null) || (stopLoss != null) || (takeProfit != null) || (!isEqual(this.safeValue(orderParams, "childOrders"), null));
+            object childOrders = this.safeValue(orderParams, "childOrders");
+            bool isConditional = (triggerPrice != null) || (stopLoss != null) || (takeProfit != null) || ((childOrders != null));
             if (isConditional)
             {
                 throw new NotSupported ((this.id + " createOrders() only support non-stop order")) ;
@@ -2315,7 +2313,8 @@ public partial class modetrade : Exchange
         {
             request["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
         }
-        bool isConditional = ((triggerPrice != null)) || (!isEqual(this.safeValue(parameters, "childOrders"), null));
+        object childOrders = this.safeValue(parameters, "childOrders");
+        bool isConditional = ((triggerPrice != null)) || ((childOrders != null));
         string orderQtyKey = "order_quantity";
         if (isConditional)
         {
@@ -2334,7 +2333,7 @@ public partial class modetrade : Exchange
         {
             request[(string)orderQtyKey] = this.amountToPrecision(symbol, amount);
         }
-        object paramsOmitted = this.omit(parameters, new List<object>() {"stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent"}));
         Dictionary<string, object> response = null;
         if (isConditional)
         {
@@ -2364,7 +2363,7 @@ public partial class modetrade : Exchange
                 request["order_type"] = orderType;
             }
             string? clientOrderId = this.safeStringN(paramsOmitted, new List<object>() {"clOrdID", "clientOrderId", "client_order_id"});
-            object paramsOrder = this.omit(paramsOmitted, new List<object>() {"clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce"});
+            Dictionary<string, object> paramsOrder = this.omit(paramsOmitted, new List<object>() {"clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce"});
             if ((clientOrderId != null))
             {
                 request["client_order_id"] = clientOrderId;
@@ -2406,7 +2405,7 @@ public partial class modetrade : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         bool? trigger = this.safeBool2(parameters, "stop", "trigger", false);
-        object paramsOmitted = this.omit(parameters, new List<object>() {"stop", "trigger"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"stop", "trigger"}));
         if ((trigger != true) && ((symbol == null)))
         {
             throw new ArgumentsRequired ((this.id + " cancelOrder() requires a symbol argument")) ;
@@ -2426,7 +2425,7 @@ public partial class modetrade : Exchange
         string? clientOrderIdUnified = this.safeString2(paramsOmitted, "clOrdID", "clientOrderId");
         string? clientOrderIdExchangeSpecific = this.safeString(paramsOmitted, "client_order_id", clientOrderIdUnified);
         bool isByClientOrder = (clientOrderIdExchangeSpecific != null);
-        object paramsClientOrder = this.omit(paramsOmitted, new List<object>() {"clOrdID", "clientOrderId", "client_order_id"});
+        Dictionary<string, object> paramsClientOrder = this.omit(paramsOmitted, new List<object>() {"clOrdID", "clientOrderId", "client_order_id"});
         Dictionary<string, object> response = null;
         if ((trigger == true))
         {
@@ -2504,7 +2503,7 @@ public partial class modetrade : Exchange
             await this.loadMarkets();
         }
         List<object> clientOrderIds = this.safeListN(parameters, new List<object>() {"clOrdIDs", "clientOrderIds", "client_order_ids"});
-        object paramsOmitted = this.omit(parameters, new List<object>() {"clOrdIDs", "clientOrderIds", "client_order_ids"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"clOrdIDs", "clientOrderIds", "client_order_ids"}));
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> response = null;
         if ((clientOrderIds != null))
@@ -2547,7 +2546,7 @@ public partial class modetrade : Exchange
             await this.loadMarkets();
         }
         bool? trigger = this.safeBool2(parameters, "stop", "trigger");
-        object paramsOmitted = this.omit(parameters, new List<object>() {"stop", "trigger"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"stop", "trigger"}));
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((symbol != null))
         {
@@ -2610,7 +2609,7 @@ public partial class modetrade : Exchange
         bool? trigger = this.safeBool2(parameters, "stop", "trigger", false);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         string? clientOrderId = this.safeStringN(parameters, new List<object>() {"clOrdID", "clientOrderId", "client_order_id"});
-        object paramsOmitted = this.omit(parameters, new List<object>() {"stop", "trigger", "clOrdID", "clientOrderId", "client_order_id"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"stop", "trigger", "clOrdID", "clientOrderId", "client_order_id"}));
         Dictionary<string, object> response = null;
         if ((trigger == true))
         {
@@ -2713,7 +2712,7 @@ public partial class modetrade : Exchange
         }
         if ((limit != null))
         {
-            request["size"] = mathMin(limit, maxLimit);
+            request["size"] = Math.Min(limit.Value, maxLimit);
         } else
         {
             request["size"] = maxLimit;
@@ -3045,7 +3044,7 @@ public partial class modetrade : Exchange
             request["size"] = limit;
         }
         string? transactionType = this.safeString(parameters, "type");
-        object paramsOmitted = this.omit(parameters, "type");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "type"));
         if ((transactionType != null))
         {
             request["type"] = transactionType;
@@ -3311,7 +3310,7 @@ public partial class modetrade : Exchange
         //         "success":true
         //     }
         //
-        object paramsOmitted = this.omit(parameters, "side"); // request-side filter, not a unified transaction field
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "side")); // request-side filter, not a unified transaction field
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(rows, currency, since, limit, paramsOmitted));
     }
 
@@ -3332,9 +3331,9 @@ public partial class modetrade : Exchange
         return this.safeNumber(data, "withdraw_nonce");
     }
 
-    public virtual object hashMessage(object message)
+    public virtual string? hashMessage(object message)
     {
-        return ("0x" + (this.hash(message, keccak, "hex")));
+        return ((string?)((object)(("0x" + (this.hash(message, keccak, "hex"))))));
     }
 
     public virtual string signHash(object hash, object privateKey)
@@ -3435,7 +3434,7 @@ public partial class modetrade : Exchange
             { "verifyingContract", verifyingContractAddress },
             { "message", withdrawRequest },
         };
-        object paramsOmitted = this.omit(parameters, "chainId");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "chainId"));
         Dictionary<string, object> response = await this.v1PrivatePostWithdrawRequest(this.extend(request, paramsOmitted));
         //
         //     {
@@ -3788,7 +3787,7 @@ public partial class modetrade : Exchange
             string ts = this.nonce().ToString();
             url = url + pathWithParams;
             object apiKey = this.apiKey;
-            if (getIndexOf(apiKey, "ed25519:") < 0)
+            if ((((object)(apiKey)) switch { IList<object> c33a => c33a.IndexOf("ed25519:"), IList<string> c33t => c33t.IndexOf((string)(object)"ed25519:"), string c33s => c33s.IndexOf((string)(object)"ed25519:"), _ => -1 }) < 0)
             {
                 apiKey = ("ed25519:" + (apiKey));
             }
@@ -3802,20 +3801,20 @@ public partial class modetrade : Exchange
             if ((method == "POST") || (method == "PUT"))
             {
                 signedBody = this.json(paramsSigned);
-                auth = add(auth, signedBody);
+                auth = (auth + (signedBody));
                 signedHeaders["content-type"] = "application/json";
             } else
             {
                 if ((new List<object>(paramsSigned.Keys)).Count > 0)
                 {
                     url = url + ("?" + this.urlencode(paramsSigned));
-                    auth = add(auth, ("?" + this.rawencode(paramsSigned)));
+                    auth = (auth + (("?" + this.rawencode(paramsSigned))));
                 }
                 signedHeaders["content-type"] = "application/x-www-form-urlencoded";
                 signedBody = ((method == "DELETE")) ? "" : null;
             }
             object secret = this.secret;
-            if (getIndexOf(secret, "ed25519:") >= 0)
+            if ((((object)(secret)) switch { IList<object> c33a => c33a.IndexOf("ed25519:"), IList<string> c33t => c33t.IndexOf((string)(object)"ed25519:"), string c33s => c33s.IndexOf((string)(object)"ed25519:"), _ => -1 }) >= 0)
             {
                 List<object> parts = ((string)secret).Split(new [] {"ed25519:"}, StringSplitOptions.None).ToList<object>();
                 secret = (parts != null && 1 < parts.Count ? parts[1] : null);

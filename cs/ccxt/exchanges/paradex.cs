@@ -1112,7 +1112,6 @@ public partial class paradex : Exchange
             { "resolution", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        int maxLimit = 1000; // exchange has undocumented limit slightly above, but this is reliable limit
         int duration = this.parseTimeframe(timeframeVar);
         string? price = this.safeString(parameters, "price");
         if ((price != null))
@@ -1124,21 +1123,23 @@ public partial class paradex : Exchange
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
         bool hasEnd = (request.ContainsKey("end_at"));
         Dictionary<string, object> paramsOmitted = this.omit(paramsUntil, new List<object>() {"price"});
-        object limitResolved = ((limit == null)) ? maxLimit : mathMin(limit, maxLimit);
+        // exchange has undocumented limit slightly above, but 1000 is reliable limit
+        Int64? limitResolved = (((limit == null)) || ((limit > 1000))) ? 1000 : limit;
+        Int64? windowLength = this.parseToInt(((duration * ((this.parseToInt(limitResolved) + 1))) * 1000));
         if ((since != null))
         {
             requestUntil["start_at"] = since;
             if (!hasEnd)
             {
-                requestUntil["end_at"] = subtract(add(since, multiply(multiply(duration, (add(limitResolved, 1))), 1000)), 1);
+                Int64? sinceInt = this.parseToInt(since);
+                requestUntil["end_at"] = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(add(sinceInt, windowLength), 1);
             }
         } else
         {
-            if (!hasEnd)
-            {
-                requestUntil["end_at"] = this.milliseconds();
-            }
-            requestUntil["start_at"] = add(subtract(GetValue(requestUntil, "end_at"), multiply(multiply(duration, (add(limitResolved, 1))), 1000)), 1);
+            Int64? endAtRaw = hasEnd ? this.safeInteger(requestUntil, "end_at", 0) : this.milliseconds();
+            Int64? endAt = this.parseToInt(endAtRaw);
+            requestUntil["end_at"] = endAt;
+            requestUntil["start_at"] = add(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(endAt, windowLength), 1);
         }
         Dictionary<string, object> response = await this.publicGetMarketsKlines(this.extend(requestUntil, paramsOmitted));
         //
@@ -1716,10 +1717,10 @@ public partial class paradex : Exchange
         }, marketResolved);
     }
 
-    public virtual object hashMessage(object message)
+    public virtual string? hashMessage(object message)
     {
         string hashed = ((string)this.hash(message, keccak, "hex"));
-        return ("0x" + hashed);
+        return ((string?)((object)(("0x" + hashed))));
     }
 
     public virtual string signHash(object hash, object privateKey)
@@ -1818,7 +1819,7 @@ public partial class paradex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         string? cachedToken = this.safeString(this.options, "authToken");
-        Int64 now = this.nonce();
+        Int64? now = this.parseToInt(this.nonce());
         if ((cachedToken != null))
         {
             Int64? cachedExpires = this.safeInteger(this.options, "expires");
@@ -1826,14 +1827,14 @@ public partial class paradex : Exchange
             {
                 throw new ExchangeError ((this.id + " authenticateRest() missing cachedExpires")) ;
             }
-            if ((now < cachedExpires))
+            if (((now == null || now < cachedExpires)))
             {
                 return ((string?)((object)(cachedToken)));
             }
         }
         object account = await this.retrieveAccount();
         // https://docs.paradex.trade/api-reference/general-information/authentication
-        Int64 expires = (now + 180);
+        Int64? expires = (now + 180);
         Dictionary<string, object> req = new Dictionary<string, object>() {
             { "method", "POST" },
             { "path", "/v1/auth" },
@@ -1987,7 +1988,7 @@ public partial class paradex : Exchange
         return this.safeString(timeInForces, timeInForce);
     }
 
-    public virtual string? parseOrderStatus(object status)
+    public virtual string? parseOrderStatus(string? status)
     {
         if ((status != null))
         {
@@ -2122,7 +2123,7 @@ public partial class paradex : Exchange
         {
             request["flags"] = new List<object>() {"REDUCE_ONLY"};
         }
-        object paramsOmitted = this.omit(parameters, new List<object>() {"reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"}));
         return this.extend(request, paramsOmitted);
     }
 
@@ -2130,7 +2131,7 @@ public partial class paradex : Exchange
     {
         modify ??= false;
         object account = await this.retrieveAccount();
-        Int64 now = this.nonce();
+        Int64? now = this.parseToInt(this.nonce());
         string? orderType = this.safeString(request, "type");
         if ((orderType == null))
         {
@@ -2165,7 +2166,7 @@ public partial class paradex : Exchange
     { "type", "felt" },
 }};
         Dictionary<string, object> messageTypes = new Dictionary<string, object>() {};
-        if (isTrue(modify))
+        if ((((object)(modify)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
         {
             orderReq["id"] = getValue(request, "id");
             orderFields.Add(new Dictionary<string, object>() {
@@ -2459,7 +2460,7 @@ public partial class paradex : Exchange
             await this.loadMarkets();
         }
         List<object> clientOrderIds = this.safeListN(parameters, new List<object>() {"clOrdIDs", "clientOrderIds", "client_order_ids"});
-        object paramsOmitted = this.omit(parameters, new List<object>() {"clOrdIDs", "clientOrderIds", "client_order_ids"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"clOrdIDs", "clientOrderIds", "client_order_ids"}));
         bool hasOrderIds = ((ids != null)) && (((ids is IList<object>) || (ids.GetType().IsGenericType && ids.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))));
         bool hasClientOrderIds = ((clientOrderIds != null)) && (((clientOrderIds is IList<object>) || (clientOrderIds.GetType().IsGenericType && clientOrderIds.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))));
         if (!hasOrderIds && !hasClientOrderIds)
@@ -2584,7 +2585,7 @@ public partial class paradex : Exchange
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         string? clientOrderId = this.safeStringN(parameters, new List<object>() {"clOrdID", "clientOrderId", "client_order_id"});
-        object paramsOmitted = this.omit(parameters, new List<object>() {"clOrdID", "clientOrderId", "client_order_id"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"clOrdID", "clientOrderId", "client_order_id"}));
         Dictionary<string, object> response = null;
         if ((clientOrderId != null))
         {
@@ -2818,7 +2819,7 @@ public partial class paradex : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (int i = 0; i < getArrayLength(response); i++)
+        for (int i = 0; i < (((object)(response)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             IDictionary<string, object> balance = this.safeDict(response, i, new Dictionary<string, object>() {});
             string? currencyId = this.safeString(balance, "token");

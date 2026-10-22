@@ -2277,7 +2277,7 @@ class bitget(ccxt.async_support.bitget):
             paramsRequest = self.extend(paramsInstType, {'uta': True})
         if not isStockOrUta:
             args['coin'] = 'default'
-        instTypeLower = '' if (instType is None) else instType.lower()
+        instTypeLower = self.safe_string_lower(args, 'instType', '')
         messageHash = 'balance:' + instTypeLower
         return await self.watch_private(isStockOrUta, messageHash, messageHash, args, paramsRequest)
 

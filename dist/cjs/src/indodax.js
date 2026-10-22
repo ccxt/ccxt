@@ -737,7 +737,12 @@ class indodax extends indodax$1["default"] {
         }
         else {
             const duration = this.parseTimeframe(timeframe);
-            request['from'] = now - limitResolved * duration - 1;
+            if (limit === undefined) {
+                request['from'] = now - 1000 * duration - 1;
+            }
+            else {
+                request['from'] = now - limit * duration - 1;
+            }
         }
         const response = await this.publicGetTradingviewHistoryV2(this.extend(request, paramsOmitted));
         //

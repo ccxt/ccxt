@@ -71,7 +71,7 @@ export default class upbit extends Exchange {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     fetchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
-    idsQueryStrings(ids: Strings, maxQueryLength: number): string[];
+    idsQueryStrings(ids: Strings, maxQueryLength: int): string[];
     /**
      * @method
      * @name upbit#fetchTicker
@@ -131,7 +131,7 @@ export default class upbit extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
-    calcOrderPrice(symbol: string, amount: Num, price?: Num, params?: {}): Str;
+    calcOrderPrice(symbol: string, amount: Num, price?: Num, params?: Dict): Str;
     /**
      * @method
      * @name upbit#createOrder
@@ -213,7 +213,7 @@ export default class upbit extends Exchange {
      * @param {string} [params.txid] withdrawal transaction id, the id argument is reserved for uuid
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    fetchDeposit(id: string, code?: Str, params?: {}): Promise<Transaction>;
+    fetchDeposit(id: string, code?: Str, params?: Dict): Promise<Transaction>;
     /**
      * @method
      * @name upbit#fetchWithdrawals
@@ -239,7 +239,7 @@ export default class upbit extends Exchange {
      * @param {string} [params.txid] withdrawal transaction id, the id argument is reserved for uuid
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    fetchWithdrawal(id: string, code?: Str, params?: {}): Promise<Transaction>;
+    fetchWithdrawal(id: string, code?: Str, params?: Dict): Promise<Transaction>;
     parseTransactionStatus(status: Str): Str;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseOrderStatus(status: Str): Str;

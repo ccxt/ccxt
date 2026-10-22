@@ -1849,18 +1849,21 @@ class mexc(Exchange, ImplicitAPI):
         paramsUntil = paramsPaginate
         if omitUntil:
             paramsUntil = self.omit(paramsPaginate, ['until'])
-        start = since
-        if omitUntil:
-            usedLimit = limit if (limit is not None and limit is not None and limit != 0) else maxLimit
-            start = until - (usedLimit * duration)
         if market['spot'] is True:
-            if start is not None:
-                request['startTime'] = start
-                if until is None:
-                    # we have to calculate it assuming we can get at most 2000 entries per request
-                    end = self.sum(since, maxLimit * duration)
-                    now = self.milliseconds()
-                    request['endTime'] = min(end, now)
+            if since is not None:
+                request['startTime'] = since
+            if (since is not None) and (until is None):
+                # we have to calculate it assuming we can get at most 2000 entries per request
+                spotWindow = 500 * duration  # maxLimit is 500 for spot
+                now = self.milliseconds()
+                latestStart = now - spotWindow
+                request['endTime'] = self.sum(since, spotWindow) if (since < latestStart) else now
+            if omitUntil and (until is not None):
+                if limit is not None and limit is not None and limit != 0:
+                    request['startTime'] = until - (limit * duration)
+                else:
+                    spotWindow = 500 * duration  # maxLimit is 500 for spot
+                    request['startTime'] = until - spotWindow
             if limit is not None:
                 request['limit'] = limit
             if until is not None:
@@ -1887,7 +1890,11 @@ class mexc(Exchange, ImplicitAPI):
             if until is not None:
                 request['end'] = self.parse_to_int(until / 1000)
                 if since is None:
-                    request['start'] = self.parse_to_int(start / 1000)
+                    if limit is not None and limit is not None and limit != 0:
+                        request['start'] = self.parse_to_int((until - (limit * duration)) / 1000)
+                    else:
+                        swapWindow = 2000 * duration  # maxLimit is 2000 for swap
+                        request['start'] = self.parse_to_int((until - swapWindow) / 1000)
             priceType = self.safe_string(paramsUntil, 'price', 'default')
             paramsOmitted = self.omit(paramsUntil, 'price')
             response: dict
@@ -2332,7 +2339,7 @@ class mexc(Exchange, ImplicitAPI):
         else:
             return self.create_swap_order(market, type, side, amount, price, marginMode, query)
 
-    def create_spot_order_request(self, market: object, type: Str, side: Str, amount: object, price: Num = None, marginMode: Str = None, params={}):
+    def create_spot_order_request(self, market: object, type: Str, side: Str, amount: object, price: Num = None, marginMode: Str = None, params: dict = {}):
         symbol = market['symbol']
         if (type is None) or (side is None):
             raise ArgumentsRequired(self.id + ' createOrder() requires a type and a side argument')
@@ -2378,7 +2385,7 @@ class mexc(Exchange, ImplicitAPI):
                 request['type'] = 'FILL_OR_KILL'
         return self.extend(request, paramsWithoutTif)
 
-    def create_spot_order(self, market: object, type: OrderType, side: object, amount: object, price: Num = None, marginMode: Str = None, params={}) -> Order:
+    def create_spot_order(self, market: object, type: OrderType, side: object, amount: object, price: Num = None, marginMode: Str = None, params: dict = {}) -> Order:
         """
  @ignore
         create a trade order
@@ -2433,7 +2440,7 @@ class mexc(Exchange, ImplicitAPI):
             order['amount'] = amount
         return order
 
-    def create_swap_order(self, market: object, type: object, side: OrderSide, amount: object, price: Num = None, marginMode: Str = None, params={}) -> Order:
+    def create_swap_order(self, market: object, type: object, side: OrderSide, amount: object, price: Num = None, marginMode: Str = None, params: dict = {}) -> Order:
         """
  @ignore
         create a trade order
@@ -2463,16 +2470,14 @@ class mexc(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         symbol = market['symbol']
-        openType = None
+        openType = self.safe_integer(params, 'openType', 2)  # defaulting to cross margin
         if marginMode is not None:
             if marginMode == 'cross':
-                openType = 2
+                openType = self.parse_to_int(2)
             elif marginMode == 'isolated':
-                openType = 1
+                openType = self.parse_to_int(1)
             else:
                 raise ArgumentsRequired(self.id + ' createSwapOrder() marginMode parameter should be either "cross" or "isolated"')
-        else:
-            openType = self.safe_integer(params, 'openType', 2)  # defaulting to cross margin
         if (type != 'limit') and (type != 'market') and (type != 1) and (type != 2) and (type != 3) and (type != 4) and (type != 5) and (type != 6):
             raise InvalidOrder(self.id + ' createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price')
         postOnly, paramsPostOnly = self.handle_post_only(type == 'market', type == 2, params)
@@ -2846,7 +2851,7 @@ class mexc(Exchange, ImplicitAPI):
                 if end is None:
                     request['end_time'] = self.sum(since, maxTimeTillEnd)
                 else:
-                    if (end - since) > maxTimeTillEnd:
+                    if (maxTimeTillEnd is not None) and ((end - since) > maxTimeTillEnd):
                         raise BadRequest(self.id + ' end is invalid, i.e. exceeds allowed 90 days.')
                     else:
                         request['end_time'] = until
@@ -2854,7 +2859,7 @@ class mexc(Exchange, ImplicitAPI):
                 maxTimeTillEnd = self.safe_integer(self.options, 'maxTimeTillEnd')
                 if maxTimeTillEnd is None:
                     raise ExchangeError(self.id + ' fetchOrders() requires a numeric options["maxTimeTillEnd"]')
-                request['start_time'] = self.sum(until, maxTimeTillEnd * -1)
+                request['start_time'] = until - maxTimeTillEnd
                 request['end_time'] = until
             if limit is not None:
                 request['page_size'] = limit
@@ -3591,7 +3596,7 @@ class mexc(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'NEW': 'open',
             'FILLED': 'closed',
@@ -6034,7 +6039,8 @@ class mexc(Exchange, ImplicitAPI):
                     'source': self.safe_string(self.options, 'broker', 'CCXT'),
                 }
             if (method == 'POST') or (method == 'PUT') or (method == 'DELETE'):
-                requestHeaders = {} if (requestHeaders is None) else requestHeaders
+                if requestHeaders is None:
+                    requestHeaders = {}
                 requestHeaders['Content-Type'] = 'application/json'
         elif section == 'contract' or section == 'spot2':
             apiUrl = self.safe_string(self.urls['api'][section], access)

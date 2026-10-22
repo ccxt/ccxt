@@ -849,7 +849,7 @@ export default class extended extends extendedRest {
         client.resolve (stored, messageHash);
     }
 
-    findSubscription (client: Client, name: string) {
+    findSubscription (client: Client, name: string): NullableDict {
         const keys = Object.keys (client.subscriptions);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -883,9 +883,10 @@ export default class extended extends extendedRest {
             return;
         }
         const type = this.safeString (message, 'type');
-        const data = this.safeValue (message, 'data');
-        if (Array.isArray (data)) {
-            const first = this.safeDict (data, 0, {});
+        const dataList = this.safeList (message, 'data');
+        const data = this.safeDict (message, 'data');
+        if (dataList !== undefined) {
+            const first = this.safeDict (dataList, 0, {});
             const side = this.safeString (first, 'S');
             if (side !== undefined) {
                 this.handleTrades (client, message);

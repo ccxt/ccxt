@@ -463,7 +463,7 @@ public partial class BaseExchange
         {
             return defaultValue as IDictionary<string, object>;
         }
-        if (isTrue(this.isDictionary(value)))
+        if ((((object)(this.isDictionary(value))) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
         {
             return (IDictionary<string, object>)value;
         }
@@ -483,7 +483,7 @@ public partial class BaseExchange
         {
             return defaultValue as IDictionary<string, object>;
         }
-        if (isTrue(this.isDictionary(value)))
+        if ((((object)(this.isDictionary(value))) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
         {
             return (IDictionary<string, object>)value;
         }
@@ -499,12 +499,12 @@ public partial class BaseExchange
          * @returns {object | undefined}
          */
         object value = this.safeValue(dictionaryOrList, key1);
-        if (isTrue(this.isDictionary(value)))
+        if ((((object)(this.isDictionary(value))) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
         {
             return (IDictionary<string, object>)value;
         }
         object value2 = this.safeValue(dictionaryOrList, key2);
-        if (isTrue(this.isDictionary(value2)))
+        if ((((object)(this.isDictionary(value2))) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
         {
             return (IDictionary<string, object>)value2;
         }
@@ -601,7 +601,7 @@ public partial class BaseExchange
 
     public virtual void handleBookDeltas(ccxt.pro.IOrderBook orderbook, object deltas)
     {
-        for (int i = 0; i < getArrayLength(deltas); i++)
+        for (int i = 0; i < (((object)(deltas)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             this.handleBookDelta(orderbook, getValue(deltas, i));
         }
@@ -617,7 +617,7 @@ public partial class BaseExchange
         priceKey ??= 0;
         amountKey ??= 1;
         countOrIdKey ??= 2;
-        for (int i = 0; i < getArrayLength(deltas); i++)
+        for (int i = 0; i < (((object)(deltas)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             List<object> bidAsk = this.parseOrderBookBidAsk(getValue(deltas, i), priceKey, amountKey, countOrIdKey);
             (bookSide as ccxt.pro.IOrderBookSide).storeArray(bidAsk);
@@ -633,7 +633,7 @@ public partial class BaseExchange
     public virtual List<object> arraysConcat(object arraysOfArrays)
     {
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(arraysOfArrays); i++)
+        for (int i = 0; i < (((object)(arraysOfArrays)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             result = this.arrayConcat(result, getValue(arraysOfArrays, i));
         }
@@ -647,7 +647,7 @@ public partial class BaseExchange
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            if (isEqual(getValue(timeframesResolved, key), timeframe))
+            if (((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))(getValue(timeframesResolved, key), timeframe))
             {
                 return key;
             }
@@ -827,8 +827,8 @@ public partial class BaseExchange
         }
         // check the address is not the same letter like 'aaaaa' nor too short nor has a space
         object uniqChars = (this.unique(this.stringToCharsArray(address)));
-        int length = getArrayLength(uniqChars); // py transpiler trick
-        if ((length == 1) || isLessThan(((string)address).Length, this.minFundingAddressLength) || ((string)address).IndexOf(" ", StringComparison.Ordinal) > -1)
+        int length = (((object)(uniqChars)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); // py transpiler trick
+        if ((length == 1) || ((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } bool c32Int(object v) { Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } bool c32Eq(object x, object y) { if (x == null && y == null) return true; if (x == null || y == null) return false; try { if (x.GetType() != y.GetType() && (!Double.TryParse(x.ToString(), out _) || !Double.TryParse(y.ToString(), out _))) return false; if (c32Int(x) && c32Int(y)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(decimal) || y.GetType() == typeof(decimal)) return Convert.ToDecimal(x) == Convert.ToDecimal(y); if (x.GetType() == typeof(int)) return (int)x == (int)y; if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) == Convert.ToDouble(y); if (x.GetType() == typeof(Single) || y.GetType() == typeof(Single)) return Convert.ToSingle(x) == Convert.ToSingle(y); if (x.GetType() == typeof(string)) return ((string)x) == ((string)y); if (x.GetType() == typeof(bool)) return ((bool)x) == ((bool)y); return false; } catch { return false; } } return !c32Gt(c32a, c32b) && !c32Eq(c32a, c32b); }))(((string)address).Length, this.minFundingAddressLength) || ((string)address).IndexOf(" ", StringComparison.Ordinal) > -1)
         {
             throw new InvalidAddress ((((((this.id + " address is invalid or has less than ") + ((object)this.minFundingAddressLength).ToString()) + " characters: \"") + ((object)address).ToString()) + "\"")) ;
         }
@@ -867,31 +867,31 @@ public partial class BaseExchange
         fromStart ??= false;
         if (this.valueIsDefined(limit))
         {
-            int arrayLength = getArrayLength(array);
+            int arrayLength = (((object)(array)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
             if (arrayLength > 0)
             {
                 bool ascending = true;
-                if ((inOp(getValue(array, 0), key)))
+                if ((((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))(getValue(array, 0), key)))
                 {
-                    object first = getValue(getValue(array, 0), key);
-                    object last = getValue(getValue(array, (arrayLength - 1)), key);
+                    double? first = this.safeFloat(getValue(array, 0), key);
+                    double? last = this.safeFloat(getValue(array, (arrayLength - 1)), key);
                     if ((first != null) && (last != null))
                     {
-                        ascending = isLessThanOrEqual(first, last); // true if array is sorted in ascending order based on 'timestamp'
+                        ascending = ((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } bool c32Int(object v) { Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } bool c32Eq(object x, object y) { if (x == null && y == null) return true; if (x == null || y == null) return false; try { if (x.GetType() != y.GetType() && (!Double.TryParse(x.ToString(), out _) || !Double.TryParse(y.ToString(), out _))) return false; if (c32Int(x) && c32Int(y)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(decimal) || y.GetType() == typeof(decimal)) return Convert.ToDecimal(x) == Convert.ToDecimal(y); if (x.GetType() == typeof(int)) return (int)x == (int)y; if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) == Convert.ToDouble(y); if (x.GetType() == typeof(Single) || y.GetType() == typeof(Single)) return Convert.ToSingle(x) == Convert.ToSingle(y); if (x.GetType() == typeof(string)) return ((string)x) == ((string)y); if (x.GetType() == typeof(bool)) return ((bool)x) == ((bool)y); return false; } catch { return false; } } return c32Gt(c32a, c32b) || c32Eq(c32a, c32b); }))(last, first); // true if array is sorted in ascending order based on 'timestamp'
                     }
                 }
                 if (fromStart == true)
                 {
-                    object limitResolved = (isGreaterThan(limit, arrayLength)) ? arrayLength : limit;
+                    object limitResolved = (((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } return c32Gt(c32a, c32b); }))(limit, arrayLength)) ? arrayLength : limit;
                     if (ascending)
                     {
                         return this.toArray(this.arraySlice(array, 0, limitResolved));
                     }
-                    return this.toArray(this.arraySlice(array, prefixUnaryNeg(ref limitResolved)));
+                    return this.toArray(this.arraySlice(array, -System.Convert.ToInt64(limitResolved)));
                 }
                 if (ascending)
                 {
-                    return this.toArray(this.arraySlice(array, prefixUnaryNeg(ref limit)));
+                    return this.toArray(this.arraySlice(array, -System.Convert.ToInt64(limit)));
                 }
                 return this.toArray(this.arraySlice(array, 0, limit));
             }
@@ -913,11 +913,11 @@ public partial class BaseExchange
         if (sinceIsDefined)
         {
             result = new List<object>() {};
-            for (int i = 0; i < getArrayLength(parsedArray); i++)
+            for (int i = 0; i < (((object)(parsedArray)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
             {
                 object entry = getValue(parsedArray, i);
-                object value = this.safeValue(entry, key);
-                if (((value != null)) && ((value != null)) && (!isEqual(value, 0)) && (isGreaterThanOrEqual(value, since)))
+                Int64? value = this.safeInteger(entry, key);
+                if (((value != null)) && ((value != 0)) && (((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } bool c32Int(object v) { Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } bool c32Eq(object x, object y) { if (x == null && y == null) return true; if (x == null || y == null) return false; try { if (x.GetType() != y.GetType() && (!Double.TryParse(x.ToString(), out _) || !Double.TryParse(y.ToString(), out _))) return false; if (c32Int(x) && c32Int(y)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(decimal) || y.GetType() == typeof(decimal)) return Convert.ToDecimal(x) == Convert.ToDecimal(y); if (x.GetType() == typeof(int)) return (int)x == (int)y; if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) == Convert.ToDouble(y); if (x.GetType() == typeof(Single) || y.GetType() == typeof(Single)) return Convert.ToSingle(x) == Convert.ToSingle(y); if (x.GetType() == typeof(string)) return ((string)x) == ((string)y); if (x.GetType() == typeof(bool)) return ((bool)x) == ((bool)y); return false; } catch { return false; } } return c32Gt(c32a, c32b) || c32Eq(c32a, c32b); }))(value, since)))
                 {
                     ((IList<object>)result).Add(entry);
                 }
@@ -925,7 +925,7 @@ public partial class BaseExchange
         }
         if (tail == true && (limit != null))
         {
-            return this.toArray(this.arraySlice(result, prefixUnaryNeg(ref limit)));
+            return this.toArray(this.arraySlice(result, -System.Convert.ToInt64(limit)));
         }
         // if the user provided a 'since' argument
         // we want to limit the result starting from the 'since'
@@ -945,15 +945,15 @@ public partial class BaseExchange
         if (valueIsDefined || sinceIsDefined)
         {
             result = new List<object>() {};
-            for (int i = 0; i < getArrayLength(parsedArray); i++)
+            for (int i = 0; i < (((object)(parsedArray)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
             {
                 object entry = getValue(parsedArray, i);
                 // safeValue (not entry[field]) so a missing field is a non-match, not a
                 // KeyError in python/php — prediction structures key on outcome, not symbol
-                bool entryFiledEqualValue = isEqual(this.safeValue(entry, field), value);
+                bool entryFiledEqualValue = ((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))(this.safeValue(entry, field), value);
                 bool firstCondition = valueIsDefined ? entryFiledEqualValue : true;
-                object entryKeyValue = this.safeValue(entry, key);
-                bool entryKeyGESince = ((entryKeyValue != null)) && ((entryKeyValue != null)) && (!isEqual(entryKeyValue, 0)) && ((since != null)) && (isGreaterThanOrEqual(entryKeyValue, since));
+                Int64? entryKeyValue = this.safeInteger(entry, key);
+                bool entryKeyGESince = ((entryKeyValue != null)) && ((entryKeyValue != 0)) && ((since != null)) && (((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } bool c32Int(object v) { Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } bool c32Eq(object x, object y) { if (x == null && y == null) return true; if (x == null || y == null) return false; try { if (x.GetType() != y.GetType() && (!Double.TryParse(x.ToString(), out _) || !Double.TryParse(y.ToString(), out _))) return false; if (c32Int(x) && c32Int(y)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(decimal) || y.GetType() == typeof(decimal)) return Convert.ToDecimal(x) == Convert.ToDecimal(y); if (x.GetType() == typeof(int)) return (int)x == (int)y; if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) == Convert.ToDouble(y); if (x.GetType() == typeof(Single) || y.GetType() == typeof(Single)) return Convert.ToSingle(x) == Convert.ToSingle(y); if (x.GetType() == typeof(string)) return ((string)x) == ((string)y); if (x.GetType() == typeof(bool)) return ((bool)x) == ((bool)y); return false; } catch { return false; } } return c32Gt(c32a, c32b) || c32Eq(c32a, c32b); }))(entryKeyValue, since));
                 bool secondCondition = sinceIsDefined ? entryKeyGESince : true;
                 if (firstCondition && secondCondition)
                 {
@@ -963,7 +963,7 @@ public partial class BaseExchange
         }
         if (tail == true && (limit != null))
         {
-            return this.toArray(this.arraySlice(result, prefixUnaryNeg(ref limit)));
+            return this.toArray(this.arraySlice(result, -System.Convert.ToInt64(limit)));
         }
         return this.filterByLimit(result, limit, key, sinceIsDefined);
     }
@@ -1058,7 +1058,7 @@ public partial class BaseExchange
     public async virtual Task<List<ccxt.Liquidation>> WatchLiquidations(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual((this.has.ContainsKey("watchLiquidationsForSymbols") ? this.has["watchLiquidationsForSymbols"] : null), null) && (((this.has.ContainsKey("watchLiquidationsForSymbols") ? this.has["watchLiquidationsForSymbols"] : null) as bool?) != false))
+        if (!((this.has.ContainsKey("watchLiquidationsForSymbols") ? this.has["watchLiquidationsForSymbols"] : null) == null) && (((this.has.ContainsKey("watchLiquidationsForSymbols") ? this.has["watchLiquidationsForSymbols"] : null) as bool?) != false))
         {
             return await this.WatchLiquidationsForSymbols(new List<object>() {symbol},ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
         }
@@ -1074,7 +1074,7 @@ public partial class BaseExchange
     public async virtual Task<List<ccxt.Liquidation>> WatchMyLiquidations(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual((this.has.ContainsKey("watchMyLiquidationsForSymbols") ? this.has["watchMyLiquidationsForSymbols"] : null), null) && (((this.has.ContainsKey("watchMyLiquidationsForSymbols") ? this.has["watchMyLiquidationsForSymbols"] : null) as bool?) != false))
+        if (!((this.has.ContainsKey("watchMyLiquidationsForSymbols") ? this.has["watchMyLiquidationsForSymbols"] : null) == null) && (((this.has.ContainsKey("watchMyLiquidationsForSymbols") ? this.has["watchMyLiquidationsForSymbols"] : null) as bool?) != false))
         {
             return ccxt.BaseExchange.ToLiquidationList(this.WatchMyLiquidationsForSymbols(new List<object>() {symbol},ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters));
         }
@@ -1156,7 +1156,7 @@ public partial class BaseExchange
     public async virtual Task<ccxt.MarginMode> FetchMarginMode(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual((this.has.ContainsKey("fetchMarginModes") ? this.has["fetchMarginModes"] : null), null) && (((this.has.ContainsKey("fetchMarginModes") ? this.has["fetchMarginModes"] : null) as bool?) != false))
+        if (!((this.has.ContainsKey("fetchMarginModes") ? this.has["fetchMarginModes"] : null) == null) && (((this.has.ContainsKey("fetchMarginModes") ? this.has["fetchMarginModes"] : null) as bool?) != false))
         {
             Dictionary<string, object> marginModes = ccxt.BaseExchange.FromMarginModes(await this.FetchMarginModes(new List<object>() {symbol}, parameters));
             IDictionary<string, object> marginMode = this.safeDict(marginModes, symbol);
@@ -1207,7 +1207,7 @@ public partial class BaseExchange
             {
                 continue;
             }
-            string? code = ((string)GetValue(parsed, "code"));
+            string? code = ((string)(parsed != null && parsed.ContainsKey("code") ? parsed["code"] : null));
             result[(string)code] = parsed;
         }
         return result;
@@ -1221,7 +1221,7 @@ public partial class BaseExchange
     public virtual IList<object> parseMarkets(object markets)
     {
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(markets); i++)
+        for (int i = 0; i < (((object)(markets)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             Dictionary<string, object> market = this.parseMarket(getValue(markets, i));
             // parseMarket returns undefined for a market it cannot build (e.g. unknown base or quote)
@@ -1403,7 +1403,7 @@ public partial class BaseExchange
     public async virtual Task<ccxt.Leverage> FetchLeverage(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual((this.has.ContainsKey("fetchLeverages") ? this.has["fetchLeverages"] : null), null) && (((this.has.ContainsKey("fetchLeverages") ? this.has["fetchLeverages"] : null) as bool?) != false))
+        if (!((this.has.ContainsKey("fetchLeverages") ? this.has["fetchLeverages"] : null) == null) && (((this.has.ContainsKey("fetchLeverages") ? this.has["fetchLeverages"] : null) as bool?) != false))
         {
             Dictionary<string, object> leverages = ccxt.BaseExchange.FromLeverages(await this.FetchLeverages(new List<object>() {symbol}, parameters));
             IDictionary<string, object> leverage = this.safeDict(leverages, symbol);
@@ -1508,8 +1508,8 @@ public partial class BaseExchange
         // the cast is erased at transpile-time, so output matches every target language, rather than
         // branching to a bare `NaN` literal, which has no symbol in Go/Java/C#
         string stringifiedNumber = this.numberToString(number);
-        object convertedNumber = ((object)parseFloat(stringifiedNumber));
-        return ((Int64?)((object)(parseInt(convertedNumber))));
+        object convertedNumber = ((object)(((Func<object, object>)(static (object hx4pa) => { object hx4pv = null; try { hx4pv = (Convert.ToDouble(hx4pa, global::System.Globalization.CultureInfo.InvariantCulture.NumberFormat)); } catch (Exception) { } return hx4pv; }))(stringifiedNumber)));
+        return ((Int64?)((object)((((Func<object, Int64?>)(static (object hx4pa) => { try { return Convert.ToInt64(Math.Floor(Convert.ToDouble(hx4pa))); } catch (Exception) { return null; } }))(convertedNumber)))));
     }
 
     public virtual object parseToNumeric(object number)
@@ -1521,17 +1521,17 @@ public partial class BaseExchange
         // in PHP:    1 == 1.0 is true, but 1 === 1.0 is false.
         if (stringVersion.IndexOf(".", StringComparison.Ordinal) >= 0)
         {
-            return parseFloat(stringVersion);
+            return (((Func<object, object>)(static (object hx4pa) => { object hx4pv = null; try { hx4pv = (Convert.ToDouble(hx4pa, global::System.Globalization.CultureInfo.InvariantCulture.NumberFormat)); } catch (Exception) { } return hx4pv; }))(stringVersion));
         }
-        return parseInt(stringVersion);
+        return (((Func<object, Int64?>)(static (object hx4pa) => { try { return Convert.ToInt64(Math.Floor(Convert.ToDouble(hx4pa))); } catch (Exception) { return null; } }))(stringVersion));
     }
 
     public virtual bool isRoundNumber(object value)
     {
         // this method is similar to isInteger, but this is more loyal and does not check for types.
         // i.e. isRoundNumber(1.000) returns true, while isInteger(1.000) returns false
-        object res = this.parseToNumeric((mod(value, 1)));
-        return isEqual(res, 0);
+        object res = this.parseToNumeric(((((((object)(value)) is var c31v0) && (((object)(1)) is var c31v1)) ? (((c31v0 == null) || (c31v1 == null) || !((c31v0 is string) || (c31v0 is Int64) || (c31v0 is int) || (c31v0 is uint) || (c31v0 is double))) ? null : (object)Convert.ToInt64(Convert.ToDouble(c31v0) % Convert.ToDouble(c31v1))) : null)));
+        return (((object)(res)) switch { Int64 c33l => c33l == 0, int c33i => c33i == 0, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 0, decimal c33m => c33m == 0, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 0, uint c33u => (Int64)c33u == 0, short c33h => (Int64)c33h == 0, ushort c33v => (Int64)c33v == 0, byte c33y => (Int64)c33y == 0, sbyte c33e => (Int64)c33e == 0, ulong c33z => c33z == 0UL, _ => false });
     }
 
     public virtual bool isEmptyString(object value)
@@ -1598,27 +1598,27 @@ public partial class BaseExchange
         {
             string? target = ((string)targets[i]);
             object source = (target != null && fallbacks.ContainsKey(target) ? fallbacks[target] : null);
-            bool sourceDefined = ((this.has != null && source is string inOpKey0 && this.has.ContainsKey(inOpKey0))) && (!isEqual(getValue(this.has, source), null));
-            bool targetDefined = ((this.has != null && target != null && this.has.ContainsKey(target))) && (!isEqual(getValue(this.has, target), null));
+            bool sourceDefined = ((this.has != null && source is string inOpKey0 && this.has.ContainsKey(inOpKey0))) && (!((this.has != null && source != null && this.has.ContainsKey((string)source) ? this.has[(string)source] : null) == null));
+            bool targetDefined = ((this.has != null && target != null && this.has.ContainsKey(target))) && (!((this.has != null && target != null && this.has.ContainsKey(target) ? this.has[target] : null) == null));
             if (sourceDefined && !targetDefined)
             {
-                this.has[(string)target] = getValue(this.has, source);
+                this.has[(string)target] = (this.has != null && source != null && this.has.ContainsKey((string)source) ? this.has[(string)source] : null);
             }
         }
     }
 
     public virtual void initRestRateLimiter()
     {
-        if (isEqual(this.rateLimit, null) || ((this.id != null) && isEqual(this.rateLimit, -1)))
+        if ((((object)(this.rateLimit)) == null) || ((this.id != null) && (((object)(this.rateLimit)) switch { Int64 c33l => c33l == -1, int c33i => c33i == -1, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == -1, decimal c33m => c33m == -1, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == -1, uint c33u => (Int64)c33u == -1, short c33h => (Int64)c33h == -1, ushort c33v => (Int64)c33v == -1, byte c33y => (Int64)c33y == -1, sbyte c33e => (Int64)c33e == -1, ulong => false, _ => false })))
         {
             throw new ExchangeError ((this.id + ".rateLimit property is not configured")) ;
         }
         object refillRate = this.MAX_VALUE;
-        if (isGreaterThan(this.rateLimit, 0))
+        if ((this.rateLimit > 0))
         {
-            refillRate = divide(1, this.rateLimit);
+            refillRate = (1 / this.rateLimit);
         }
-        bool useLeaky = (isEqual(this.rollingWindowSize, 0)) || (isEqual(this.rateLimiterAlgorithm, "leakyBucket"));
+        bool useLeaky = ((((object)(this.rollingWindowSize)) switch { Int64 c33l => c33l == 0, int c33i => c33i == 0, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 0, decimal c33m => c33m == 0, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 0, uint c33u => (Int64)c33u == 0, short c33h => (Int64)c33h == 0, ushort c33v => (Int64)c33v == 0, byte c33y => (Int64)c33y == 0, sbyte c33e => (Int64)c33e == 0, ulong c33z => c33z == 0UL, _ => false })) || ((this.rateLimiterAlgorithm == "leakyBucket"));
         string algorithm = useLeaky ? "leakyBucket" : "rollingWindow";
         Dictionary<string, object> defaultBucket = new Dictionary<string, object>() {
             { "delay", 0.001 },
@@ -1664,7 +1664,7 @@ public partial class BaseExchange
         {
             string? marketType = ((string)unifiedMarketTypes[i]);
             // if marketType is not filled for this exchange, don't add that in `features`
-            if (!(inOp(initialFeatures, marketType)))
+            if (!(((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))(initialFeatures, marketType)))
             {
                 this.features[(string)marketType] = null;
             } else
@@ -1678,7 +1678,7 @@ public partial class BaseExchange
                     for (int j = 0; j < (subTypes?.Count ?? 0); j++)
                     {
                         string? subType = ((string)subTypes[j]);
-                        ((IDictionary<string,object>)getValue(this.features, marketType))[(string)subType] = this.featuresMapper(initialFeatures, marketType, subType);
+                        ((IDictionary<string,object>)(this.features != null && marketType != null && this.features.ContainsKey(marketType) ? this.features[marketType] : null))[(string)subType] = this.featuresMapper(initialFeatures, marketType, subType);
                     }
                 }
             }
@@ -1704,7 +1704,7 @@ public partial class BaseExchange
         // ### corrections ###
         //
         // createOrder
-        if (inOp(featuresObj, "createOrder"))
+        if ((((object)(featuresObj)) switch { null => false, IList<object> c33a => c33a.Contains("createOrder"), IList<string> c33t => c33t.Contains("createOrder"), List<Int64> c33g => c33g.Contains((Int64)(object)"createOrder"), IDictionary<string, object> c33d => c33d.ContainsKey("createOrder"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("createOrder"), _ => false }))
         {
             IDictionary<string, object> value = this.safeDict(getValue(featuresObj, "createOrder"), "attachedStopLossTakeProfit");
             ((IDictionary<string,object>)getValue(featuresObj, "createOrder"))["stopLoss"] = value;
@@ -1714,13 +1714,13 @@ public partial class BaseExchange
                 // default 'hedged': false
                 ((IDictionary<string,object>)getValue(featuresObj, "createOrder"))["hedged"] = false;
                 // default 'leverage': false
-                if (!(inOp(getValue(featuresObj, "createOrder"), "leverage")))
+                if (!((((object)(getValue(featuresObj, "createOrder"))) switch { null => false, IList<object> c33a => c33a.Contains("leverage"), IList<string> c33t => c33t.Contains("leverage"), List<Int64> c33g => c33g.Contains((Int64)(object)"leverage"), IDictionary<string, object> c33d => c33d.ContainsKey("leverage"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("leverage"), _ => false })))
                 {
                     ((IDictionary<string,object>)getValue(featuresObj, "createOrder"))["leverage"] = false;
                 }
             }
             // default 'GTC' to true
-            if (isEqual(this.safeBool(getValue(getValue(featuresObj, "createOrder"), "timeInForce"), "GTC"), null))
+            if ((this.safeBool(getValue(getValue(featuresObj, "createOrder"), "timeInForce"), "GTC") == null))
             {
                 ((IDictionary<string,object>)getValue(getValue(featuresObj, "createOrder"), "timeInForce"))["GTC"] = true;
             }
@@ -1734,7 +1734,7 @@ public partial class BaseExchange
             if (!this.inArray(key, new List<object>() {"sandbox"}) && (featureBlock != null))
             {
                 // default "symbolRequired" to false to all methods (except `createOrder`)
-                if (!(inOp(featureBlock, "symbolRequired")))
+                if (!((((object)(featureBlock)) switch { null => false, IList<object> c33a => c33a.Contains("symbolRequired"), IList<string> c33t => c33t.Contains("symbolRequired"), List<Int64> c33g => c33g.Contains((Int64)(object)"symbolRequired"), IDictionary<string, object> c33d => c33d.ContainsKey("symbolRequired"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("symbolRequired"), _ => false })))
                 {
                     ((IDictionary<string,object>)featureBlock)["symbolRequired"] = this.inArray(key, new List<object>() {"createOrder", "createOrders", "fetchOHLCV"});
                 }
@@ -1782,16 +1782,16 @@ public partial class BaseExchange
             return defaultValue;  // marketType is required
         }
         // if marketType (e.g. 'option') does not exist in features
-        if (!(inOp(this.features, marketType)))
+        if (!(((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))(this.features, marketType)))
         {
             return defaultValue;  // unsupported marketType, check "exchange.features" for details
         }
         // if marketType dict undefined
-        if (isEqual(getValue(this.features, marketType), null))
+        if (((this.features != null && marketType != null && this.features.ContainsKey((string)marketType) ? this.features[(string)marketType] : null) == null))
         {
             return defaultValue;
         }
-        object methodsContainer = getValue(this.features, marketType);
+        object methodsContainer = (this.features != null && marketType != null && this.features.ContainsKey((string)marketType) ? this.features[(string)marketType] : null);
         if ((subType == null))
         {
             if (!(marketType is "spot"))
@@ -1800,23 +1800,23 @@ public partial class BaseExchange
             }
         } else
         {
-            if (!(inOp(getValue(this.features, marketType), subType)))
+            if (!(((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))((this.features != null && marketType != null && this.features.ContainsKey((string)marketType) ? this.features[(string)marketType] : null), subType)))
             {
                 return defaultValue;  // unsupported subType, check "exchange.features" for details
             }
             // if subType dict undefined
-            if (isEqual(getValue(getValue(this.features, marketType), subType), null))
+            if ((getValue((this.features != null && marketType != null && this.features.ContainsKey((string)marketType) ? this.features[(string)marketType] : null), subType) == null))
             {
                 return defaultValue;
             }
-            methodsContainer = getValue(getValue(this.features, marketType), subType);
+            methodsContainer = getValue((this.features != null && marketType != null && this.features.ContainsKey((string)marketType) ? this.features[(string)marketType] : null), subType);
         }
         // if user wanted only marketType and didn't provide methodName, eg: featureIsSupported('spot')
         if ((methodName == null))
         {
             return ((defaultValue != null)) ? defaultValue : methodsContainer;
         }
-        if (!(inOp(methodsContainer, methodName)))
+        if (!(((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))(methodsContainer, methodName)))
         {
             return defaultValue;  // unsupported method, check "exchange.features" for details');
         }
@@ -1833,7 +1833,7 @@ public partial class BaseExchange
         List<object> splited = paramName.Split(new [] {"."}, StringSplitOptions.None).ToList<object>(); // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
         object parentKey = (splited != null && 0 < splited.Count ? splited[0] : null);
         string? subKey = this.safeString(splited, 1);
-        if (!(inOp(methodDict, parentKey)))
+        if (!(((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))(methodDict, parentKey)))
         {
             return defaultValue;  // unsupported paramName, check "exchange.features" for details');
         }
@@ -1850,7 +1850,7 @@ public partial class BaseExchange
                 return getValue(methodDict, parentKey);
             }
             // throw an exception for unsupported subKey
-            if (!(inOp(getValue(methodDict, parentKey), subKey)))
+            if (!(((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))(getValue(methodDict, parentKey), subKey)))
             {
                 return defaultValue;  // unsupported subKey, check "exchange.features" for details
             }
@@ -2114,25 +2114,25 @@ public partial class BaseExchange
         {
             Dictionary<string, object> result = this.extend(cleanStructure, market);
             // set undefined swap/future/etc
-            if (isEqual((result != null && result.ContainsKey("spot") ? result["spot"] : null), true))
+            if (((result != null && result.ContainsKey("spot") ? result["spot"] : null) is true))
             {
-                if (isEqual((result != null && result.ContainsKey("contract") ? result["contract"] : null), null))
+                if (((result != null && result.ContainsKey("contract") ? result["contract"] : null) == null))
                 {
                     result["contract"] = false;
                 }
-                if (isEqual((result != null && result.ContainsKey("swap") ? result["swap"] : null), null))
+                if (((result != null && result.ContainsKey("swap") ? result["swap"] : null) == null))
                 {
                     result["swap"] = false;
                 }
-                if (isEqual((result != null && result.ContainsKey("future") ? result["future"] : null), null))
+                if (((result != null && result.ContainsKey("future") ? result["future"] : null) == null))
                 {
                     result["future"] = false;
                 }
-                if (isEqual((result != null && result.ContainsKey("option") ? result["option"] : null), null))
+                if (((result != null && result.ContainsKey("option") ? result["option"] : null) == null))
                 {
                     result["option"] = false;
                 }
-                if (isEqual((result != null && result.ContainsKey("index") ? result["index"] : null), null))
+                if (((result != null && result.ContainsKey("index") ? result["index"] : null) == null))
                 {
                     result["index"] = false;
                 }
@@ -2153,7 +2153,7 @@ public partial class BaseExchange
         for (int i = 0; i < (marketValues?.Count ?? 0); i++)
         {
             object value = marketValues[i];
-            if (inOp(marketsById, getValue(value, "id")))
+            if ((marketsById != null && getValue(value, "id") is string inOpKey15 && marketsById.ContainsKey(inOpKey15)))
             {
                 object marketsByIdArray = ((object)getValue(marketsById, getValue(value, "id")));
                 ((IList<object>)marketsByIdArray).Add(value);
@@ -2170,7 +2170,7 @@ public partial class BaseExchange
             for (int j = 0; j < valueKeys.Count; j++)
             {
                 string? valueKey = ((string)valueKeys[j]);
-                if (!isEqual(getValue(value, valueKey), null))
+                if (!(getValue(value, valueKey) == null))
                 {
                     valueDefined[(string)valueKey] = getValue(value, valueKey);
                 }
@@ -2179,10 +2179,10 @@ public partial class BaseExchange
                 { "precision", this.precision },
                 { "limits", this.limits },
             }, getValue(this.fees, "trading"), valueDefined);
-            if (isEqual((market.ContainsKey("linear") ? market["linear"] : null), true))
+            if ((((object)((market.ContainsKey("linear") ? market["linear"] : null))) is true))
             {
                 market["subType"] = "linear";
-            } else if (isEqual((market.ContainsKey("inverse") ? market["inverse"] : null), true))
+            } else if ((((object)((market.ContainsKey("inverse") ? market["inverse"] : null))) is true))
             {
                 market["subType"] = "inverse";
             } else
@@ -2214,9 +2214,9 @@ public partial class BaseExchange
             for (int i = 0; i < (values?.Count ?? 0); i++)
             {
                 object market = values[i];
-                double? defaultCurrencyPrecision = (isEqual(this.precisionMode, DECIMAL_PLACES)) ? 8 : this.parseNumber("1e-8");
+                double? defaultCurrencyPrecision = (((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))(this.precisionMode, DECIMAL_PLACES)) ? 8 : this.parseNumber("1e-8");
                 IDictionary<string, object> marketPrecision = this.safeDict(market, "precision", new Dictionary<string, object>() {});
-                if (inOp(market, "base"))
+                if ((((object)(market)) switch { null => false, IList<object> c33a => c33a.Contains("base"), IList<string> c33t => c33t.Contains("base"), List<Int64> c33g => c33g.Contains((Int64)(object)"base"), IDictionary<string, object> c33d => c33d.ContainsKey("base"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("base"), _ => false }))
                 {
                     Dictionary<string, object> currency = this.safeCurrencyStructure(new Dictionary<string, object>() {
                         { "id", this.safeString2(market, "baseId", "base") },
@@ -2226,7 +2226,7 @@ public partial class BaseExchange
                     });
                     baseCurrencies.Add(currency);
                 }
-                if (inOp(market, "quote"))
+                if ((((object)(market)) switch { null => false, IList<object> c33a => c33a.Contains("quote"), IList<string> c33t => c33t.Contains("quote"), List<Int64> c33g => c33g.Contains((Int64)(object)"quote"), IDictionary<string, object> c33d => c33d.ContainsKey("quote"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("quote"), _ => false }))
                 {
                     Dictionary<string, object> currency = this.safeCurrencyStructure(new Dictionary<string, object>() {
                         { "id", this.safeString2(market, "quoteId", "quote") },
@@ -2259,9 +2259,9 @@ public partial class BaseExchange
                     {
                         continue;
                     }
-                    if (isEqual(this.precisionMode, TICK_SIZE))
+                    if (((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))(this.precisionMode, TICK_SIZE))
                     {
-                        if (isLessThan(currentPrecision, highestPrecision))
+                        if ((highestPrecision != null && (currentPrecision == null || highestPrecision > currentPrecision)))
                         {
                             highestPrecisionCurrency = currentCurrency;
                         }
@@ -2288,12 +2288,12 @@ public partial class BaseExchange
     public virtual BaseExchange setMarketsFromExchange(BaseExchange sourceExchange)
     {
         // Validate that both exchanges are of the same type
-        if (!isEqual(this.id, sourceExchange.id))
+        if (!((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))(this.id, sourceExchange.id))
         {
             throw new ArgumentsRequired ((((this.id + " shareMarkets() can only share markets with exchanges of the same type (got ") + (getValue(sourceExchange, "id"))) + ")")) ;
         }
         // Validate that source exchange has loaded markets
-        if ((isEqual(sourceExchange.markets, null)) || (isEqual(sourceExchange.markets, null)))
+        if (((((object)(sourceExchange.markets)) == null)) || ((((object)(sourceExchange.markets)) == null)))
         {
             throw new ExchangeError ("setMarketsFromExchange() source exchange must have loaded markets first. Can call by using loadMarkets function") ;
         }
@@ -2312,7 +2312,7 @@ public partial class BaseExchange
         for (int i = 0; i < (sourceExchangeHelpers?.Count ?? 0); i++)
         {
             object helper = sourceExchangeHelpers[i];
-            if (!isEqual(getValue(sourceExchange.options, helper), null))
+            if (!(getValue(sourceExchange.options, helper) == null))
             {
                 this.options[(string)helper] = getValue(sourceExchange.options, helper);
             }
@@ -2368,7 +2368,7 @@ public partial class BaseExchange
         }
         List<object> debtBalanceArray = new List<object>(debtBalance.Keys);
         int length = debtBalanceArray.Count;
-        if ((!isEqual(length, null)) && ((length != 0)))
+        if ((!(((object)(length)) == null)) && ((length != 0)))
         {
             ((IDictionary<string,object>)balance)["debt"] = debtBalance;
         }
@@ -2399,7 +2399,7 @@ public partial class BaseExchange
         bool parseLastTradeTimeTimestamp = ((lastTradeTimeTimestamp == null));
         object fee = this.safeValue(orderDict, "fee");
         bool parseFee = ((fee == null));
-        bool parseFees = isEqual(this.safeValue(orderDict, "fees"), null);
+        bool parseFees = (this.safeValue(orderDict, "fees") == null);
         bool parseSymbol = (symbol == null);
         bool parseSide = (side == null);
         bool shouldParseFees = parseFee || parseFees;
@@ -2415,7 +2415,7 @@ public partial class BaseExchange
             // (this as any).number = String;
             object firstTrade = this.safeValue(rawTrades, 0);
             // parse trades if they haven't already been parsed
-            bool tradesAreParsed = (((firstTrade != null)) && (inOp(firstTrade, "info")) && (inOp(firstTrade, "id")));
+            bool tradesAreParsed = (((firstTrade != null)) && ((((object)(firstTrade)) switch { null => false, IList<object> c33a => c33a.Contains("info"), IList<string> c33t => c33t.Contains("info"), List<Int64> c33g => c33g.Contains((Int64)(object)"info"), IDictionary<string, object> c33d => c33d.ContainsKey("info"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("info"), _ => false })) && ((((object)(firstTrade)) switch { null => false, IList<object> c33a => c33a.Contains("id"), IList<string> c33t => c33t.Contains("id"), List<Int64> c33g => c33g.Contains((Int64)(object)"id"), IDictionary<string, object> c33d => c33d.ContainsKey("id"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("id"), _ => false })));
             if (!tradesAreParsed)
             {
                 trades = ccxt.BaseExchange.FromTradeList(this.parseTrades(rawTrades, market));
@@ -2428,24 +2428,24 @@ public partial class BaseExchange
             bool isArray = ((trades is IList<object>) || (trades.GetType().IsGenericType && trades.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
             if (isArray)
             {
-                tradesLength = getArrayLength(trades);
+                tradesLength = (((object)(trades)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
             }
             if (isArray && (tradesLength > 0))
             {
                 // move properties that are defined in trades up into the order
-                if (isEqual(getValue(orderDict, "symbol"), null))
+                if ((getValue(orderDict, "symbol") == null))
                 {
                     ((IDictionary<string,object>)orderDict)["symbol"] = getValue(getValue(trades, 0), "symbol");
                 }
-                if (isEqual(getValue(orderDict, "side"), null))
+                if ((getValue(orderDict, "side") == null))
                 {
                     ((IDictionary<string,object>)orderDict)["side"] = getValue(getValue(trades, 0), "side");
                 }
-                if (isEqual(getValue(orderDict, "type"), null))
+                if ((getValue(orderDict, "type") == null))
                 {
                     ((IDictionary<string,object>)orderDict)["type"] = getValue(getValue(trades, 0), "type");
                 }
-                if (isEqual(getValue(orderDict, "id"), null))
+                if ((getValue(orderDict, "id") == null))
                 {
                     ((IDictionary<string,object>)orderDict)["id"] = getValue(getValue(trades, 0), "order");
                 }
@@ -2457,7 +2457,7 @@ public partial class BaseExchange
                 {
                     cost = "0";
                 }
-                for (int i = 0; i < getArrayLength(trades); i++)
+                for (int i = 0; i < (((object)(trades)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
                 {
                     object trade = getValue(trades, i);
                     string? tradeAmount = this.safeString(trade, "amount");
@@ -2486,7 +2486,7 @@ public partial class BaseExchange
                             lastTradeTimeTimestamp = tradeTimestamp;
                         } else
                         {
-                            lastTradeTimeTimestamp = mathMax(lastTradeTimeTimestamp, tradeTimestamp);
+                            lastTradeTimeTimestamp = (((((object)(lastTradeTimeTimestamp)) is var c31v2) && (((object)(tradeTimestamp)) is var c31v3)) ? (((c31v2 == null) || (c31v3 == null)) ? null : ((Convert.ToDouble(c31v2) > Convert.ToDouble(c31v3)) ? c31v2 : c31v3)) : null);
                         }
                     }
                     if (shouldParseFees)
@@ -2494,7 +2494,7 @@ public partial class BaseExchange
                         object tradeFees = this.safeValue(trade, "fees");
                         if ((tradeFees != null))
                         {
-                            for (int j = 0; j < getArrayLength(tradeFees); j++)
+                            for (int j = 0; j < (((object)(tradeFees)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); j++)
                             {
                                 object tradeFee = getValue(tradeFees, j);
                                 fees.Add(this.extend(new Dictionary<string, object>() {}, tradeFee));
@@ -2526,7 +2526,7 @@ public partial class BaseExchange
             for (int i = 0; i < reducedLength; i++)
             {
                 ((IDictionary<string,object>)(reducedFees != null && i < reducedFees.Count ? reducedFees[i] : null))["cost"] = this.safeNumber((reducedFees != null && i < reducedFees.Count ? reducedFees[i] : null), "cost");
-                if (inOp((reducedFees != null && i < reducedFees.Count ? reducedFees[i] : null), "rate"))
+                if ((((object)((reducedFees != null && i < reducedFees.Count ? reducedFees[i] : null))) switch { null => false, IList<object> c33a => c33a.Contains("rate"), IList<string> c33t => c33t.Contains("rate"), List<Int64> c33g => c33g.Contains((Int64)(object)"rate"), IDictionary<string, object> c33d => c33d.ContainsKey("rate"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("rate"), _ => false }))
                 {
                     ((IDictionary<string,object>)(reducedFees != null && i < reducedFees.Count ? reducedFees[i] : null))["rate"] = this.safeNumber((reducedFees != null && i < reducedFees.Count ? reducedFees[i] : null), "rate");
                 }
@@ -2636,7 +2636,7 @@ public partial class BaseExchange
             price = average;
         }
         // we have trades with string values at this point so we will mutate them
-        for (int i = 0; i < getArrayLength(trades); i++)
+        for (int i = 0; i < (((object)(trades)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             object entry = getValue(trades, i);
             ((IDictionary<string,object>)entry)["amount"] = this.safeNumber(entry, "amount");
@@ -2745,7 +2745,7 @@ public partial class BaseExchange
         List<object> results = new List<object>() {};
         if (((orders is IList<object>) || (orders.GetType().IsGenericType && orders.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            for (int i = 0; i < getArrayLength(orders); i++)
+            for (int i = 0; i < (((object)(orders)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
             {
                 ccxt.Order parsed = this.parseOrder(getValue(orders, i), market); // don't inline this call
                 Dictionary<string, object> order = this.extend(ccxt.BaseExchange.FromOrder(parsed), parameters);
@@ -2811,7 +2811,7 @@ public partial class BaseExchange
             key = "base";
         }
         // for derivatives, the fee is in 'settle' currency
-        if (!isEqual(getValue(market, "spot"), true))
+        if (!(getValue(market, "spot") is true))
         {
             key = "settle";
         }
@@ -2910,7 +2910,7 @@ public partial class BaseExchange
             id = this.numberToString(timestamp);
             if ((side != null))
             {
-                id = add(id, ("-" + side));
+                id = (id + ("-" + side));
             }
             if ((amount != null))
             {
@@ -2957,7 +2957,7 @@ public partial class BaseExchange
             {
                 reducedFees = new List<object>() {};
             }
-            int reducedLength = getArrayLength(reducedFees);
+            int reducedLength = (((object)(reducedFees)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
             for (int i = 0; i < reducedLength; i++)
             {
                 ((List<object>)reducedFees)[Convert.ToInt32(i)] = this.parseFeeNumeric(getValue(reducedFees, i));
@@ -2989,7 +2989,7 @@ public partial class BaseExchange
     public virtual object parseFeeNumeric(object fee)
     {
         ((IDictionary<string,object>)fee)["cost"] = this.safeNumber(fee, "cost"); // ensure numeric
-        if (inOp(fee, "rate"))
+        if ((((object)(fee)) switch { null => false, IList<object> c33a => c33a.Contains("rate"), IList<string> c33t => c33t.Contains("rate"), List<Int64> c33g => c33g.Contains((Int64)(object)"rate"), IDictionary<string, object> c33d => c33d.ContainsKey("rate"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("rate"), _ => false }))
         {
             ((IDictionary<string,object>)fee)["rate"] = this.safeNumber(fee, "rate");
         }
@@ -2999,11 +2999,11 @@ public partial class BaseExchange
     public virtual object findNearestCeiling(object arr, object providedValue)
     {
         //  i.e. findNearestCeiling ([ 10, 30, 50],  23) returns 30
-        int length = getArrayLength(arr);
+        int length = (((object)(arr)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
         for (int i = 0; i < length; i++)
         {
             object current = getValue(arr, i);
-            if (isLessThanOrEqual(providedValue, current))
+            if (((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } bool c32Int(object v) { Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } bool c32Eq(object x, object y) { if (x == null && y == null) return true; if (x == null || y == null) return false; try { if (x.GetType() != y.GetType() && (!Double.TryParse(x.ToString(), out _) || !Double.TryParse(y.ToString(), out _))) return false; if (c32Int(x) && c32Int(y)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(decimal) || y.GetType() == typeof(decimal)) return Convert.ToDecimal(x) == Convert.ToDecimal(y); if (x.GetType() == typeof(int)) return (int)x == (int)y; if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) == Convert.ToDouble(y); if (x.GetType() == typeof(Single) || y.GetType() == typeof(Single)) return Convert.ToSingle(x) == Convert.ToSingle(y); if (x.GetType() == typeof(string)) return ((string)x) == ((string)y); if (x.GetType() == typeof(bool)) return ((bool)x) == ((bool)y); return false; } catch { return false; } } return !c32Gt(c32a, c32b) || c32Eq(c32a, c32b); }))(providedValue, current))
             {
                 return current;
             }
@@ -3099,7 +3099,7 @@ public partial class BaseExchange
         //     ]
         //
         Dictionary<string, object> reduced = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(fees); i++)
+        for (int i = 0; i < (((object)(fees)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             object fee = getValue(fees, i);
             string? code = this.safeString(fee, "currency");
@@ -3117,7 +3117,7 @@ public partial class BaseExchange
                     reduced[(string)feeCurrencyCode] = new Dictionary<string, object>() {};
                 }
                 string? rateKey = ((rate == null)) ? "" : rate;
-                if (inOp((reduced.ContainsKey(feeCurrencyCode) ? reduced[feeCurrencyCode] : null), rateKey))
+                if (((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))((reduced.ContainsKey(feeCurrencyCode) ? reduced[feeCurrencyCode] : null), rateKey))
                 {
                     ((IDictionary<string,object>)getValue((reduced.ContainsKey(feeCurrencyCode) ? reduced[feeCurrencyCode] : null), rateKey))["cost"] = Precise.stringAdd(getValue(getValue((reduced.ContainsKey(feeCurrencyCode) ? reduced[feeCurrencyCode] : null), rateKey), "cost"), cost);
                 } else
@@ -3305,7 +3305,7 @@ public partial class BaseExchange
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         string message = "";
-        if (!isEqual((this.has.ContainsKey("fetchTrades") ? this.has["fetchTrades"] : null), null) && (((this.has.ContainsKey("fetchTrades") ? this.has["fetchTrades"] : null) as bool?) != false))
+        if (!((this.has.ContainsKey("fetchTrades") ? this.has["fetchTrades"] : null) == null) && (((this.has.ContainsKey("fetchTrades") ? this.has["fetchTrades"] : null) as bool?) != false))
         {
             message = ". If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see \"build-ohlcv-bars\" file";
         }
@@ -3334,7 +3334,7 @@ public partial class BaseExchange
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         string message = "";
-        if (!isEqual((this.has.ContainsKey("fetchTradesWs") ? this.has["fetchTradesWs"] : null), null) && (((this.has.ContainsKey("fetchTradesWs") ? this.has["fetchTradesWs"] : null) as bool?) != false))
+        if (!((this.has.ContainsKey("fetchTradesWs") ? this.has["fetchTradesWs"] : null) == null) && (((this.has.ContainsKey("fetchTradesWs") ? this.has["fetchTradesWs"] : null) as bool?) != false))
         {
             message = ". If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see \"build-ohlcv-bars\" file";
         }
@@ -3388,20 +3388,20 @@ public partial class BaseExchange
         result[(string)low] = new List<object>() {};
         result[(string)close] = new List<object>() {};
         result[(string)volume] = new List<object>() {};
-        for (int i = 0; i < getArrayLength(ohlcvs); i++)
+        for (int i = 0; i < (((object)(ohlcvs)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
-            object ts = ms == true ? getValue(getValue(ohlcvs, i), 0) : this.parseToInt(divide(getValue(getValue(ohlcvs, i), 0), 1000));
-            object resultTimestamp = getValue(result, timestamp);
+            object ts = ms == true ? getValue(getValue(ohlcvs, i), 0) : this.parseToInt((((((object)(getValue(getValue(ohlcvs, i), 0))) is var c31v4) && (((object)(1000)) is var c31v5)) ? (((c31v4 == null) || (c31v5 == null)) ? null : (object)(Convert.ToDouble(c31v4) / Convert.ToDouble(c31v5))) : null));
+            object resultTimestamp = (result != null && timestamp != null && result.ContainsKey((string)timestamp) ? result[(string)timestamp] : null);
             ((IList<object>)resultTimestamp).Add(ts);
-            object resultOpen = getValue(result, open);
+            object resultOpen = (result != null && open != null && result.ContainsKey((string)open) ? result[(string)open] : null);
             ((IList<object>)resultOpen).Add(getValue(getValue(ohlcvs, i), 1));
-            object resultHigh = getValue(result, high);
+            object resultHigh = (result != null && high != null && result.ContainsKey((string)high) ? result[(string)high] : null);
             ((IList<object>)resultHigh).Add(getValue(getValue(ohlcvs, i), 2));
-            object resultLow = getValue(result, low);
+            object resultLow = (result != null && low != null && result.ContainsKey((string)low) ? result[(string)low] : null);
             ((IList<object>)resultLow).Add(getValue(getValue(ohlcvs, i), 3));
-            object resultClose = getValue(result, close);
+            object resultClose = (result != null && close != null && result.ContainsKey((string)close) ? result[(string)close] : null);
             ((IList<object>)resultClose).Add(getValue(getValue(ohlcvs, i), 4));
-            object resultVolume = getValue(result, volume);
+            object resultVolume = (result != null && volume != null && result.ContainsKey((string)volume) ? result[(string)volume] : null);
             ((IList<object>)resultVolume).Add(getValue(getValue(ohlcvs, i), 5));
         }
         return result;
@@ -3421,9 +3421,9 @@ public partial class BaseExchange
             }
             Int64? maxRetries = this.safeInteger(options, "webApiRetries", 10);
             object response = null;
-            object retry = 0;
+            Int64 retry = 0;
             bool shouldBreak = false;
-            while (isLessThan(retry, maxRetries))
+            while ((retry < maxRetries))
             {
                 try
                 {
@@ -3432,8 +3432,8 @@ public partial class BaseExchange
                     break;
                 } catch(Exception e)
                 {
-                    retry = add(retry, 1);
-                    if (isEqual(retry, maxRetries))
+                    retry = (retry + 1);
+                    if ((retry == maxRetries))
                     {
                         throw e;
                     }
@@ -3501,7 +3501,7 @@ public partial class BaseExchange
             return this.toArray(symbols);
         }
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(symbols); i++)
+        for (int i = 0; i < (((object)(symbols)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             string? id = this.marketId(getValue(symbols, i));
             if ((id != null))
@@ -3519,7 +3519,7 @@ public partial class BaseExchange
             return this.toArray(codes);
         }
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(codes); i++)
+        for (int i = 0; i < (((object)(codes)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             object id = this.currencyId(((string)getValue(codes, i)));
             if ((id != null))
@@ -3537,7 +3537,7 @@ public partial class BaseExchange
             return null;
         }
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(symbols); i++)
+        for (int i = 0; i < (((object)(symbols)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             result.Add(this.market(getValue(symbols, i)));
         }
@@ -3561,16 +3561,16 @@ public partial class BaseExchange
         sameSubTypeOnly ??= false;
         if ((symbols == null))
         {
-            if (!isTrue(allowEmpty))
+            if (!(((object)(allowEmpty)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
             {
                 throw new ArgumentsRequired ((this.id + " empty list of symbols is not supported")) ;
             }
             return this.toArray(symbols);
         }
-        int symbolsLength = getArrayLength(symbols);
+        int symbolsLength = (((object)(symbols)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
         if ((symbolsLength == 0))
         {
-            if (!isTrue(allowEmpty))
+            if (!(((object)(allowEmpty)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
             {
                 throw new ArgumentsRequired ((this.id + " empty list of symbols is not supported")) ;
             }
@@ -3579,24 +3579,24 @@ public partial class BaseExchange
         List<object> result = new List<object>() {};
         string? marketType = null;
         bool? isLinearSubType = null;
-        for (int i = 0; i < getArrayLength(symbols); i++)
+        for (int i = 0; i < (((object)(symbols)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             Dictionary<string, object> market = this.market(getValue(symbols, i));
             if (sameTypeOnly == true && ((marketType != null)))
             {
-                if (!isEqual((market.ContainsKey("type") ? market["type"] : null), marketType))
+                if (!((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))((market.ContainsKey("type") ? market["type"] : null), marketType))
                 {
                     throw new BadRequest ((((((this.id + " symbols must be of the same type, either ") + marketType) + " or ") + ((market.ContainsKey("type") ? market["type"] : null))) + ".")) ;
                 }
             }
             if (sameSubTypeOnly == true && ((isLinearSubType != null)))
             {
-                if (!isEqual((market.ContainsKey("linear") ? market["linear"] : null), isLinearSubType))
+                if (!((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))((market.ContainsKey("linear") ? market["linear"] : null), isLinearSubType))
                 {
                     throw new BadRequest ((this.id + " symbols must be of the same subType, either linear or inverse.")) ;
                 }
             }
-            if ((type != null) && !isEqual((market.ContainsKey("type") ? market["type"] : null), type))
+            if ((type != null) && !((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))((market.ContainsKey("type") ? market["type"] : null), type))
             {
                 throw new BadRequest ((((this.id + " symbols must be of the same type ") + (type)) + ". If the type is incorrect you can change it in options or the params of the request")) ;
             }
@@ -3618,7 +3618,7 @@ public partial class BaseExchange
             return this.toArray(codes);
         }
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(codes); i++)
+        for (int i = 0; i < (((object)(codes)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             result.Add(this.commonCurrencyCode(((string)getValue(codes, i))));
         }
@@ -3660,10 +3660,10 @@ public partial class BaseExchange
             return this.toArray(objects);
         }
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(objects); i++)
+        for (int i = 0; i < (((object)(objects)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             string? objectValue = this.safeString(getValue(objects, i), key);
-            if (isEqual(objectValue, value))
+            if (((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))(objectValue, value))
             {
                 result.Add(getValue(objects, i));
             }
@@ -3748,7 +3748,7 @@ public partial class BaseExchange
         for (int i = 0; i < aliasKeys.Count; i++)
         {
             string? alias = ((string)aliasKeys[i]);
-            if ((isEqual(getValue(aliases, alias), unifiedCode)) && (((alias != null) && (networkIdsByCodes?.ContainsKey(alias) == true))))
+            if ((((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))(getValue(aliases, alias), unifiedCode)) && (((alias != null) && (networkIdsByCodes?.ContainsKey(alias) == true))))
             {
                 return ((string?)((object)((alias != null && networkIdsByCodes.ContainsKey(alias) ? networkIdsByCodes[alias] : null))));
             }
@@ -3822,7 +3822,7 @@ public partial class BaseExchange
                 {
                     throw new NotSupported ((string)((((this.id + " - ") + (networkCode)) + " network was not found for ") + (currencyCode))) ;
                 }
-                if (inOp(indexedNetworkEntries, networkIdOrCode))
+                if (((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))(indexedNetworkEntries, networkIdOrCode))
                 {
                     chosenNetworkId = networkIdOrCode;
                 } else
@@ -3844,7 +3844,7 @@ public partial class BaseExchange
                 {
                     throw new ExchangeError ((this.id + " selectNetworkKeyFromNetworks() missing defaultNetworkId")) ;
                 }
-                if (inOp(indexedNetworkEntries, defaultNetworkId))
+                if (((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))(indexedNetworkEntries, defaultNetworkId))
                 {
                     return defaultNetworkId;
                 }
@@ -3908,7 +3908,7 @@ public partial class BaseExchange
             return new List<object>() {};
         }
         List<object> results = new List<object>() {};
-        for (int i = 0; i < getArrayLength(ohlcvs); i++)
+        for (int i = 0; i < (((object)(ohlcvs)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             results.Add(this.parseOHLCV(getValue(ohlcvs, i), market));
         }
@@ -3929,7 +3929,7 @@ public partial class BaseExchange
         bool noSymbols = ((symbolsNormalized == null)) || ((symbolsLength == 0));
         if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            for (int i = 0; i < getArrayLength(response); i++)
+            for (int i = 0; i < (((object)(response)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
             {
                 object item = getValue(response, i);
                 string? id = ((marketIdKey == null)) ? null : this.safeString(item, marketIdKey);
@@ -3964,7 +3964,7 @@ public partial class BaseExchange
     {
         reload ??= false;
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual((this.has.ContainsKey("fetchTradingLimits") ? this.has["fetchTradingLimits"] : null), null) && (((this.has.ContainsKey("fetchTradingLimits") ? this.has["fetchTradingLimits"] : null) as bool?) != false))
+        if (!((this.has.ContainsKey("fetchTradingLimits") ? this.has["fetchTradingLimits"] : null) == null) && (((this.has.ContainsKey("fetchTradingLimits") ? this.has["fetchTradingLimits"] : null) as bool?) != false))
         {
             if (reload == true || !(this.options.ContainsKey("limitsLoaded")))
             {
@@ -3975,10 +3975,10 @@ public partial class BaseExchange
                 {
                     throw new ExchangeError ((this.id + " markets not loaded")) ;
                 }
-                for (int i = 0; i < getArrayLength(symbolsArray); i++)
+                for (int i = 0; i < (((object)(symbolsArray)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
                 {
                     object symbol = getValue(symbolsArray, i);
-                    markets[(string)symbol] = this.deepExtend(getValue(markets, symbol), getValue(response, symbol));
+                    markets[(string)symbol] = this.deepExtend((markets != null && symbol != null && markets.ContainsKey((string)symbol) ? markets[(string)symbol] : null), (response != null && symbol != null && response.ContainsKey((string)symbol) ? response[(string)symbol] : null));
                 }
                 this.options["limitsLoaded"] = this.milliseconds();
             }
@@ -4101,7 +4101,11 @@ public partial class BaseExchange
                     ((IDictionary<string,object>)position)["initialMargin"] = this.parseNumber(derivedEntryMargin);
                     marginString = derivedEntryMargin;
                     ((IDictionary<string,object>)position)["positionMargin"] = this.parseNumber(derivedEntryMargin);
-                    string? derivedCollateral = ((unrealizedPnlString != null)) ? Precise.stringAdd(derivedEntryMargin, unrealizedPnlString) : derivedEntryMargin;
+                    string? derivedCollateral = derivedEntryMargin;
+                    if ((unrealizedPnlString != null))
+                    {
+                        derivedCollateral = Precise.stringAdd(derivedEntryMargin, unrealizedPnlString);
+                    }
                     if (Precise.stringGt(derivedCollateral, "0"))
                     {
                         collateralString = derivedCollateral;
@@ -4115,18 +4119,22 @@ public partial class BaseExchange
                 if (Precise.stringGt(marginBuffer, "0") && Precise.stringGt(totalSize, "0"))
                 {
                     string? bufferPerUnit = Precise.stringDiv(marginBuffer, totalSize);
-                    string? derivedLp = null;
+                    string? derivedLp = Precise.stringAdd(entryPriceString, bufferPerUnit);
+                    if (side == "long")
+                    {
+                        derivedLp = Precise.stringSub(entryPriceString, bufferPerUnit);
+                    }
                     if (isInverse)
                     {
                         string? invEntry = Precise.stringDiv("1", entryPriceString);
-                        string? invLp = (side == "long") ? Precise.stringAdd(invEntry, bufferPerUnit) : Precise.stringSub(invEntry, bufferPerUnit);
-                        if (Precise.stringGt(invLp, "0"))
+                        string? invDerivedLp = Precise.stringSub(invEntry, bufferPerUnit);
+                        if (side == "long")
                         {
-                            derivedLp = Precise.stringDiv("1", invLp);
+                            invDerivedLp = Precise.stringAdd(invEntry, bufferPerUnit);
                         }
-                    } else
-                    {
-                        derivedLp = (side == "long") ? Precise.stringSub(entryPriceString, bufferPerUnit) : Precise.stringAdd(entryPriceString, bufferPerUnit);
+                        // 1 / invDerivedLp keeps its sign (undefined at 0), so the > 0 guard below
+                        // rejects exactly the values a separate invDerivedLp > 0 check would
+                        derivedLp = Precise.stringDiv("1", invDerivedLp);
                     }
                     if (((derivedLp != null)) && Precise.stringGt(derivedLp, "0"))
                     {
@@ -4141,18 +4149,22 @@ public partial class BaseExchange
                 if (Precise.stringGt(marginBuffer, "0") && Precise.stringGt(totalSize, "0"))
                 {
                     string? bufferPerUnit = Precise.stringDiv(marginBuffer, totalSize);
-                    string? derivedEp = null;
+                    string? derivedEp = Precise.stringSub(liquidationPriceString, bufferPerUnit);
+                    if (side == "long")
+                    {
+                        derivedEp = Precise.stringAdd(liquidationPriceString, bufferPerUnit);
+                    }
                     if (isInverse)
                     {
                         string? invLp = Precise.stringDiv("1", liquidationPriceString);
-                        string? invEp = (side == "long") ? Precise.stringSub(invLp, bufferPerUnit) : Precise.stringAdd(invLp, bufferPerUnit);
-                        if (Precise.stringGt(invEp, "0"))
+                        string? invEp = Precise.stringAdd(invLp, bufferPerUnit);
+                        if (side == "long")
                         {
-                            derivedEp = Precise.stringDiv("1", invEp);
+                            invEp = Precise.stringSub(invLp, bufferPerUnit);
                         }
-                    } else
-                    {
-                        derivedEp = (side == "long") ? Precise.stringAdd(liquidationPriceString, bufferPerUnit) : Precise.stringSub(liquidationPriceString, bufferPerUnit);
+                        // 1 / invEp keeps its sign (undefined at 0), so the > 0 guard below
+                        // rejects exactly the values a separate invEp > 0 check would
+                        derivedEp = Precise.stringDiv("1", invEp);
                     }
                     if (((derivedEp != null)) && Precise.stringGt(derivedEp, "0"))
                     {
@@ -4205,7 +4217,11 @@ public partial class BaseExchange
             if (((notionalString == null)) && hasMarkPrice && hasContracts && hasContractSize)
             {
                 string? totalSize = Precise.stringMul(contractsString, contractSizeString);
-                string? derivedNotional = isInverse ? Precise.stringDiv(totalSize, markPriceString) : Precise.stringMul(totalSize, markPriceString);
+                string? derivedNotional = Precise.stringMul(totalSize, markPriceString);
+                if (isInverse)
+                {
+                    derivedNotional = Precise.stringDiv(totalSize, markPriceString);
+                }
                 if (Precise.stringGt(derivedNotional, "0"))
                 {
                     notionalString = derivedNotional;
@@ -4214,7 +4230,11 @@ public partial class BaseExchange
             } else if (((markPriceString == null)) && ((entryPriceString == null)) && ((lastPriceString == null)) && hasNotional && hasContracts && hasContractSize)
             {
                 string? totalSize = Precise.stringMul(contractsString, contractSizeString);
-                string? derivedMark = isInverse ? Precise.stringDiv(totalSize, notionalString) : Precise.stringDiv(notionalString, totalSize);
+                string? derivedMark = Precise.stringDiv(notionalString, totalSize);
+                if (isInverse)
+                {
+                    derivedMark = Precise.stringDiv(totalSize, notionalString);
+                }
                 if (Precise.stringGt(derivedMark, "0"))
                 {
                     markPriceString = derivedMark;
@@ -4222,19 +4242,27 @@ public partial class BaseExchange
                 }
             } else if (((contractsString == null)) && hasNotional && hasMarkPrice && hasContractSize)
             {
-                string? derivedContracts = isInverse ? Precise.stringDiv(Precise.stringMul(notionalString, markPriceString), contractSizeString) : Precise.stringDiv(notionalString, Precise.stringMul(markPriceString, contractSizeString));
-                if (Precise.stringGt(derivedContracts, "0"))
+                string? notionalContracts = Precise.stringDiv(notionalString, Precise.stringMul(markPriceString, contractSizeString));
+                if (isInverse)
                 {
-                    contractsString = derivedContracts;
-                    ((IDictionary<string,object>)position)["contracts"] = this.parseNumber(derivedContracts);
+                    notionalContracts = Precise.stringDiv(Precise.stringMul(notionalString, markPriceString), contractSizeString);
+                }
+                if (Precise.stringGt(notionalContracts, "0"))
+                {
+                    contractsString = notionalContracts;
+                    ((IDictionary<string,object>)position)["contracts"] = this.parseNumber(notionalContracts);
                 }
             } else if (((contractSizeString == null)) && hasNotional && hasMarkPrice && hasContracts)
             {
-                string? derivedContractSize = isInverse ? Precise.stringDiv(Precise.stringMul(notionalString, markPriceString), contractsString) : Precise.stringDiv(notionalString, Precise.stringMul(markPriceString, contractsString));
-                if (Precise.stringGt(derivedContractSize, "0"))
+                string? notionalContractSize = Precise.stringDiv(notionalString, Precise.stringMul(markPriceString, contractsString));
+                if (isInverse)
                 {
-                    contractSizeString = derivedContractSize;
-                    ((IDictionary<string,object>)position)["contractSize"] = this.parseNumber(derivedContractSize);
+                    notionalContractSize = Precise.stringDiv(Precise.stringMul(notionalString, markPriceString), contractsString);
+                }
+                if (Precise.stringGt(notionalContractSize, "0"))
+                {
+                    contractSizeString = notionalContractSize;
+                    ((IDictionary<string,object>)position)["contractSize"] = this.parseNumber(notionalContractSize);
                 }
             }
             // 2. unrealizedPnl from entryPrice, markPrice, contracts, contractSize, side
@@ -4633,7 +4661,7 @@ public partial class BaseExchange
             newArray = this.toArray(objects);
         }
         List<object> results = new List<object>() {};
-        for (int i = 0; i < getArrayLength(newArray); i++)
+        for (int i = 0; i < (((object)(newArray)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             results.Add(getValue(getValue(newArray, i), key));
         }
@@ -4672,7 +4700,7 @@ public partial class BaseExchange
         indexed ??= true;
         IList<object> objectsValue = this.toArray(objects);
         // return all of them if no values were passed
-        if (((values == null)) || ((values == null)) || ((values is false)) || (isEqual(values, 0)) || ((values is "")))
+        if (((values == null)) || ((values == null)) || ((values is false)) || ((((object)(values)) switch { Int64 c33l => c33l == 0, int c33i => c33i == 0, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 0, decimal c33m => c33m == 0, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 0, uint c33u => (Int64)c33u == 0, short c33h => (Int64)c33h == 0, ushort c33v => (Int64)c33v == 0, byte c33y => (Int64)c33y == 0, sbyte c33e => (Int64)c33e == 0, ulong c33z => c33z == 0UL, _ => false })) || ((values is "")))
         {
             // return indexed ? this.indexBy (objects, key) : objects;
             if (indexed == true)
@@ -4704,7 +4732,7 @@ public partial class BaseExchange
         indexed ??= true;
         IList<object> objectsValue = this.toArray(objects);
         // return all of them if no values were passed
-        if (((values == null)) || ((values == null)) || ((values is false)) || (isEqual(values, 0)) || ((values is "")))
+        if (((values == null)) || ((values == null)) || ((values is false)) || ((((object)(values)) switch { Int64 c33l => c33l == 0, int c33i => c33i == 0, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 0, decimal c33m => c33m == 0, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 0, uint c33u => (Int64)c33u == 0, short c33h => (Int64)c33h == 0, ushort c33v => (Int64)c33v == 0, byte c33y => (Int64)c33y == 0, sbyte c33e => (Int64)c33e == 0, ulong c33z => c33z == 0UL, _ => false })) || ((values is "")))
         {
             // return indexed ? this.indexBy (objects, key) : objects;
             if (indexed == true)
@@ -4752,8 +4780,8 @@ public partial class BaseExchange
         (Int64?, object) retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable = this.handleOptionIntegerAndParams(paramsMaxRetriesOnFailure, path, "maxRetriesOnFailureDelay", retryDelay);
         Int64? retryDelayMaxRetriesOnFailureDelay = retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable.Item1;
         object paramsMaxRetriesOnFailureDelay = retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable.Item2;
-        bool fetchDataCacheEnabled = isGreaterThan(this.fetchHistoryCacheSize, 0);
-        for (int i = 0; isLessThan(i, (retriesMaxRetriesOnFailure + 1)); i++)
+        bool fetchDataCacheEnabled = (this.fetchHistoryCacheSize > 0);
+        for (int i = 0; (i < (retriesMaxRetriesOnFailure + 1)); i++)
         {
             Dictionary<string, object> fetchData = null;
             if (fetchDataCacheEnabled)
@@ -4778,7 +4806,7 @@ public partial class BaseExchange
                 object response = await this.fetch((request != null && request.ContainsKey("url") ? request["url"] : null), (request != null && request.ContainsKey("method") ? request["method"] : null), (request != null && request.ContainsKey("headers") ? request["headers"] : null), (request != null && request.ContainsKey("body") ? request["body"] : null));
                 if ((fetchData != null))
                 {
-                    ((IDictionary<string,object>)GetValue(fetchData, "response"))["body"] = response;
+                    ((IDictionary<string,object>)(fetchData != null && fetchData.ContainsKey("response") ? fetchData["response"] : null))["body"] = response;
                     this.addFetchCache(fetchData);
                 }
                 return response;
@@ -4795,7 +4823,7 @@ public partial class BaseExchange
                     {
                         if (this.verbose)
                         {
-                            Int64 index = add(i, 1);
+                            Int64 index = (i + 1L);
                             this.log((((((("Request failed with the error: " + ((object)e).ToString()) + ", retrying ") + ((object)index).ToString()) + " of ") + ((object)retriesMaxRetriesOnFailure).ToString()) + "..."));
                         }
                         if ((!(retryDelayMaxRetriesOnFailureDelay == null)) && (!(retryDelayMaxRetriesOnFailureDelay == 0)))
@@ -4862,20 +4890,20 @@ public partial class BaseExchange
         int i_close = 4;
         int i_volume = 5;
         int i_count = 6;
-        int tradesLength = getArrayLength(trades);
-        object oldest = mathMin(tradesLength, limit);
+        int tradesLength = (((object)(trades)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+        object oldest = (((((object)(tradesLength)) is var c31v6) && (((object)(limit)) is var c31v7)) ? (((c31v6 == null) || (c31v7 == null)) ? null : ((Convert.ToDouble(c31v6) < Convert.ToDouble(c31v7)) ? c31v6 : c31v7)) : null);
         IDictionary<string, object> options = this.safeDict(this.options, "buildOHLCVC", new Dictionary<string, object>() {});
         bool? skipZeroPrices = this.safeBool(options, "skipZeroPrices", true);
-        for (int i = 0; isLessThan(i, oldest); i++)
+        for (int i = 0; ((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } bool c32Int(object v) { Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } bool c32Eq(object x, object y) { if (x == null && y == null) return true; if (x == null || y == null) return false; try { if (x.GetType() != y.GetType() && (!Double.TryParse(x.ToString(), out _) || !Double.TryParse(y.ToString(), out _))) return false; if (c32Int(x) && c32Int(y)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(decimal) || y.GetType() == typeof(decimal)) return Convert.ToDecimal(x) == Convert.ToDecimal(y); if (x.GetType() == typeof(int)) return (int)x == (int)y; if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) == Convert.ToDouble(y); if (x.GetType() == typeof(Single) || y.GetType() == typeof(Single)) return Convert.ToSingle(x) == Convert.ToSingle(y); if (x.GetType() == typeof(string)) return ((string)x) == ((string)y); if (x.GetType() == typeof(bool)) return ((bool)x) == ((bool)y); return false; } catch { return false; } } return !c32Gt(c32a, c32b) && !c32Eq(c32a, c32b); }))(i, oldest); i++)
         {
             IDictionary<string, object> trade = ((IDictionary<string, object>)getValue(trades, i));
-            object ts = (trade != null && trade.ContainsKey("timestamp") ? trade["timestamp"] : null);
+            Int64? ts = this.safeInteger(trade, "timestamp");
             object price = (trade != null && trade.ContainsKey("price") ? trade["price"] : null);
             if (((ts == null)) || ((price == null)))
             {
                 continue;
             }
-            if (isLessThan(ts, since))
+            if (((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } bool c32Int(object v) { Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } bool c32Eq(object x, object y) { if (x == null && y == null) return true; if (x == null || y == null) return false; try { if (x.GetType() != y.GetType() && (!Double.TryParse(x.ToString(), out _) || !Double.TryParse(y.ToString(), out _))) return false; if (c32Int(x) && c32Int(y)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(decimal) || y.GetType() == typeof(decimal)) return Convert.ToDecimal(x) == Convert.ToDecimal(y); if (x.GetType() == typeof(int)) return (int)x == (int)y; if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) == Convert.ToDouble(y); if (x.GetType() == typeof(Single) || y.GetType() == typeof(Single)) return Convert.ToSingle(x) == Convert.ToSingle(y); if (x.GetType() == typeof(string)) return ((string)x) == ((string)y); if (x.GetType() == typeof(bool)) return ((bool)x) == ((bool)y); return false; } catch { return false; } } return !c32Gt(c32a, c32b) && !c32Eq(c32a, c32b); }))(ts, since))
             {
                 continue;
             }
@@ -4883,8 +4911,8 @@ public partial class BaseExchange
             {
                 throw new ExchangeError ((this.id + " buildOHLCVC() missing ts")) ;
             }
-            object openingTime = multiply((Math.Floor(Double.Parse((divide(ts, ms)).ToString()))), ms); // shift to the edge of m/h/d (but not M)
-            if (isLessThan(openingTime, since))
+            object openingTime = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))((Math.Floor(Double.Parse((((double?)ts / ms)).ToString()))), ms); // shift to the edge of m/h/d (but not M)
+            if (((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } bool c32Int(object v) { Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } bool c32Eq(object x, object y) { if (x == null && y == null) return true; if (x == null || y == null) return false; try { if (x.GetType() != y.GetType() && (!Double.TryParse(x.ToString(), out _) || !Double.TryParse(y.ToString(), out _))) return false; if (c32Int(x) && c32Int(y)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(decimal) || y.GetType() == typeof(decimal)) return Convert.ToDecimal(x) == Convert.ToDecimal(y); if (x.GetType() == typeof(int)) return (int)x == (int)y; if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) == Convert.ToDouble(y); if (x.GetType() == typeof(Single) || y.GetType() == typeof(Single)) return Convert.ToSingle(x) == Convert.ToSingle(y); if (x.GetType() == typeof(string)) return ((string)x) == ((string)y); if (x.GetType() == typeof(bool)) return ((bool)x) == ((bool)y); return false; } catch { return false; } } return !c32Gt(c32a, c32b) && !c32Eq(c32a, c32b); }))(openingTime, since))
             {
                 continue;
             }
@@ -4894,7 +4922,7 @@ public partial class BaseExchange
             {
                 throw new ArgumentsRequired ((this.id + " buildOHLCVC() requires a price argument")) ;
             }
-            if ((skipZeroPrices == true) && !(isGreaterThan(price, 0)) && !(isLessThan(price, 0)))
+            if ((skipZeroPrices == true) && !(((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } return c32Gt(c32a, c32b); }))(price, 0)) && !(((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } bool c32Int(object v) { Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } bool c32Eq(object x, object y) { if (x == null && y == null) return true; if (x == null || y == null) return false; try { if (x.GetType() != y.GetType() && (!Double.TryParse(x.ToString(), out _) || !Double.TryParse(y.ToString(), out _))) return false; if (c32Int(x) && c32Int(y)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(decimal) || y.GetType() == typeof(decimal)) return Convert.ToDecimal(x) == Convert.ToDecimal(y); if (x.GetType() == typeof(int)) return (int)x == (int)y; if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) == Convert.ToDouble(y); if (x.GetType() == typeof(Single) || y.GetType() == typeof(Single)) return Convert.ToSingle(x) == Convert.ToSingle(y); if (x.GetType() == typeof(string)) return ((string)x) == ((string)y); if (x.GetType() == typeof(bool)) return ((bool)x) == ((bool)y); return false; } catch { return false; } } return !c32Gt(c32a, c32b) && !c32Eq(c32a, c32b); }))(price, 0)))
             {
                 continue;
             }
@@ -4906,7 +4934,7 @@ public partial class BaseExchange
                 {
                     throw new ExchangeError ((this.id + " buildOHLCVC() missing candle timestamp")) ;
                 }
-                isNewCandle = isGreaterThanOrEqual(openingTime, add(candleTimestamp, ms));
+                isNewCandle = ((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } bool c32Int(object v) { Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } bool c32Eq(object x, object y) { if (x == null && y == null) return true; if (x == null || y == null) return false; try { if (x.GetType() != y.GetType() && (!Double.TryParse(x.ToString(), out _) || !Double.TryParse(y.ToString(), out _))) return false; if (c32Int(x) && c32Int(y)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(decimal) || y.GetType() == typeof(decimal)) return Convert.ToDecimal(x) == Convert.ToDecimal(y); if (x.GetType() == typeof(int)) return (int)x == (int)y; if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) == Convert.ToDouble(y); if (x.GetType() == typeof(Single) || y.GetType() == typeof(Single)) return Convert.ToSingle(x) == Convert.ToSingle(y); if (x.GetType() == typeof(string)) return ((string)x) == ((string)y); if (x.GetType() == typeof(bool)) return ((bool)x) == ((bool)y); return false; } catch { return false; } } return c32Gt(c32a, c32b) || c32Eq(c32a, c32b); }))(openingTime, add(candleTimestamp, ms));
             }
             if (isNewCandle)
             {
@@ -4919,8 +4947,8 @@ public partial class BaseExchange
                 object prevLow = getValue((ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null), i_low);
                 object prevHighValue = ((prevHigh == null)) ? price : prevHigh;
                 object prevLowValue = ((prevLow == null)) ? price : prevLow;
-                ((List<object>)(ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null))[Convert.ToInt32(i_high)] = mathMax(prevHighValue, price);
-                ((List<object>)(ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null))[Convert.ToInt32(i_low)] = mathMin(prevLowValue, price);
+                ((List<object>)(ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null))[Convert.ToInt32(i_high)] = (((((object)(prevHighValue)) is var c31v8) && (((object)(price)) is var c31v9)) ? (((c31v8 == null) || (c31v9 == null)) ? null : ((Convert.ToDouble(c31v8) > Convert.ToDouble(c31v9)) ? c31v8 : c31v9)) : null);
+                ((List<object>)(ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null))[Convert.ToInt32(i_low)] = (((((object)(prevLowValue)) is var c31v10) && (((object)(price)) is var c31v11)) ? (((c31v10 == null) || (c31v11 == null)) ? null : ((Convert.ToDouble(c31v10) < Convert.ToDouble(c31v11)) ? c31v10 : c31v11)) : null);
                 ((List<object>)(ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null))[Convert.ToInt32(i_close)] = price;
                 ((List<object>)(ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null))[Convert.ToInt32(i_volume)] = this.sum(getValue((ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null), i_volume), (trade != null && trade.ContainsKey("amount") ? trade["amount"] : null));
                 ((List<object>)(ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null))[Convert.ToInt32(i_count)] = this.sum(getValue((ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null), i_count), 1);
@@ -4993,9 +5021,9 @@ public partial class BaseExchange
         {
             return ccxt.BaseExchange.ToDict(currency);
         }
-        if (((currencyId != null)) && ((this.currencies_by_id != null)) && ((this.currencies_by_id != null && currencyId is string inOpKey1 && this.currencies_by_id.ContainsKey(inOpKey1))) && (!isEqual(getValue(this.currencies_by_id, currencyId), null)))
+        if (((currencyId != null)) && ((this.currencies_by_id != null)) && ((this.currencies_by_id != null && currencyId is string inOpKey1 && this.currencies_by_id.ContainsKey(inOpKey1))) && (!((this.currencies_by_id != null && currencyId != null && this.currencies_by_id.ContainsKey((string)currencyId) ? this.currencies_by_id[(string)currencyId] : null) == null)))
         {
-            return ccxt.BaseExchange.ToDict(getValue(this.currencies_by_id, currencyId));
+            return ccxt.BaseExchange.ToDict((this.currencies_by_id != null && currencyId != null && this.currencies_by_id.ContainsKey((string)currencyId) ? this.currencies_by_id[(string)currencyId] : null));
         }
         object code = currencyId;
         if ((currencyId != null))
@@ -5015,8 +5043,8 @@ public partial class BaseExchange
         {
             if (((this.markets_by_id != null)) && ((this.markets_by_id != null && marketId is string inOpKey2 && this.markets_by_id.ContainsKey(inOpKey2))))
             {
-                object markets = getValue(this.markets_by_id, marketId);
-                int numMarkets = getArrayLength(markets);
+                object markets = (this.markets_by_id != null && marketId != null && this.markets_by_id.ContainsKey((string)marketId) ? this.markets_by_id[(string)marketId] : null);
+                int numMarkets = (((object)(markets)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
                 if ((numMarkets == 1))
                 {
                     return ((Dictionary<string, object>)((object)(getValue(markets, 0))));
@@ -5027,10 +5055,10 @@ public partial class BaseExchange
                         throw new ArgumentsRequired ((((this.id + " safeMarket() requires a fourth argument for ") + (marketId)) + " to disambiguate between different markets with the same market id")) ;
                     }
                     object marketTypeResolved = ((marketType == null)) ? this.safeString(market, "type", "") : marketType;
-                    for (int i = 0; i < getArrayLength(markets); i++)
+                    for (int i = 0; i < (((object)(markets)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
                     {
                         object currentMarket = getValue(markets, i);
-                        if (isEqual(getValue(currentMarket, marketTypeResolved), true))
+                        if ((getValue(currentMarket, marketTypeResolved) is true))
                         {
                             return ((Dictionary<string, object>)((object)(currentMarket)));
                         }
@@ -5111,9 +5139,9 @@ public partial class BaseExchange
             string? key = ((string)keys[i]);
             object credentialValue = getValue(this, key);
             bool credentialMissing = ((credentialValue == null)) || ((credentialValue == null)) || ((credentialValue is false)) || ((credentialValue is ""));
-            if ((isEqual(getValue(this.requiredCredentials, key), true)) && credentialMissing)
+            if (((getValue(this.requiredCredentials, key) is true)) && credentialMissing)
             {
-                if (isTrue(error))
+                if ((((object)(error)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
                 {
                     throw new AuthenticationError ((((this.id + " requires \"") + key) + "\" credential")) ;
                 } else
@@ -5163,7 +5191,7 @@ public partial class BaseExchange
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> balance = ccxt.BaseExchange.FromBalances(await this.FetchBalance(parameters));
-        return ccxt.BaseExchange.ToBalance(getValue(balance, part));
+        return ccxt.BaseExchange.ToBalance((balance != null && part != null && balance.ContainsKey((string)part) ? balance[(string)part] : null));
     }
 
     public async virtual Task<ccxt.Balance> FetchFreeBalance(object parameters = null)
@@ -5193,7 +5221,7 @@ public partial class BaseExchange
     public async virtual Task<Dictionary<string, object>> FetchTransactionFee(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual((this.has.ContainsKey("fetchTransactionFees") ? this.has["fetchTransactionFees"] : null), null) || (((this.has.ContainsKey("fetchTransactionFees") ? this.has["fetchTransactionFees"] : null) as bool?) == false))
+        if (((this.has.ContainsKey("fetchTransactionFees") ? this.has["fetchTransactionFees"] : null) == null) || (((this.has.ContainsKey("fetchTransactionFees") ? this.has["fetchTransactionFees"] : null) as bool?) == false))
         {
             throw new NotSupported ((this.id + " fetchTransactionFee() is not supported yet")) ;
         }
@@ -5215,7 +5243,7 @@ public partial class BaseExchange
     public async virtual Task<ccxt.DepositWithdrawFee> FetchDepositWithdrawFee(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual((this.has.ContainsKey("fetchDepositWithdrawFees") ? this.has["fetchDepositWithdrawFees"] : null), null) || (((this.has.ContainsKey("fetchDepositWithdrawFees") ? this.has["fetchDepositWithdrawFees"] : null) as bool?) == false))
+        if (((this.has.ContainsKey("fetchDepositWithdrawFees") ? this.has["fetchDepositWithdrawFees"] : null) == null) || (((this.has.ContainsKey("fetchDepositWithdrawFees") ? this.has["fetchDepositWithdrawFees"] : null) as bool?) == false))
         {
             throw new NotSupported ((this.id + " fetchDepositWithdrawFee() is not supported yet")) ;
         }
@@ -5230,7 +5258,7 @@ public partial class BaseExchange
         {
             throw new ArgumentsRequired ((this.id + " getSupportedMapping() requires a key argument")) ;
         }
-        if (inOp(mapping, key))
+        if (((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))(mapping, key))
         {
             return ((string)((object)(getValue(mapping, key))));
         } else
@@ -5244,7 +5272,7 @@ public partial class BaseExchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        if (isEqual((this.has.ContainsKey("fetchBorrowRates") ? this.has["fetchBorrowRates"] : null), null) || (((this.has.ContainsKey("fetchBorrowRates") ? this.has["fetchBorrowRates"] : null) as bool?) == false))
+        if (((this.has.ContainsKey("fetchBorrowRates") ? this.has["fetchBorrowRates"] : null) == null) || (((this.has.ContainsKey("fetchBorrowRates") ? this.has["fetchBorrowRates"] : null) as bool?) == false))
         {
             throw new NotSupported ((this.id + " fetchCrossBorrowRate() is not supported yet")) ;
         }
@@ -5261,7 +5289,7 @@ public partial class BaseExchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        if (isEqual((this.has.ContainsKey("fetchBorrowRates") ? this.has["fetchBorrowRates"] : null), null) || (((this.has.ContainsKey("fetchBorrowRates") ? this.has["fetchBorrowRates"] : null) as bool?) == false))
+        if (((this.has.ContainsKey("fetchBorrowRates") ? this.has["fetchBorrowRates"] : null) == null) || (((this.has.ContainsKey("fetchBorrowRates") ? this.has["fetchBorrowRates"] : null) as bool?) == false))
         {
             throw new NotSupported ((this.id + " fetchIsolatedBorrowRate() is not supported yet")) ;
         }
@@ -5364,7 +5392,7 @@ public partial class BaseExchange
     /* eslint-enable no-unused-vars */
     public virtual (bool?, object) handleOptionBoolAndParams(object parameters, object methodName, string optionName, object defaultValue = null)
     {
-        // handleOptionAndParams read as a boolean; the statically typed ports throw on another type
+        // handleOptionAndParams read as a boolean (see checkOptionBool)
         IList<object> valuenewParamsVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, optionName, defaultValue);
         var value = valuenewParamsVariable[0];
         IDictionary<string, object> newParams = ((IDictionary<string, object>)valuenewParamsVariable[1]);
@@ -5479,10 +5507,10 @@ public partial class BaseExchange
             // at first, check from market object
             if ((market != null))
             {
-                if (isEqual((market != null && market.ContainsKey("linear") ? market["linear"] : null), true))
+                if (((market != null && market.ContainsKey("linear") ? market["linear"] : null) is true))
                 {
                     subType = "linear";
-                } else if (isEqual((market != null && market.ContainsKey("inverse") ? market["inverse"] : null), true))
+                } else if (((market != null && market.ContainsKey("inverse") ? market["inverse"] : null) is true))
                 {
                     subType = "inverse";
                 }
@@ -5515,7 +5543,7 @@ public partial class BaseExchange
         {
             return;
         }
-        if (inOp(exact, str))
+        if (((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))(exact, str))
         {
             throwDynamicException(getValue(exact, str), message);
         }
@@ -5636,7 +5664,7 @@ public partial class BaseExchange
     public async virtual Task<ccxt.ADL> FetchPositionADLRank(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual((this.has.ContainsKey("fetchPositionsADLRank") ? this.has["fetchPositionsADLRank"] : null), null) && (((this.has.ContainsKey("fetchPositionsADLRank") ? this.has["fetchPositionsADLRank"] : null) as bool?) != false))
+        if (!((this.has.ContainsKey("fetchPositionsADLRank") ? this.has["fetchPositionsADLRank"] : null) == null) && (((this.has.ContainsKey("fetchPositionsADLRank") ? this.has["fetchPositionsADLRank"] : null) as bool?) != false))
         {
             await this.loadMarkets();
             Dictionary<string, object> market = this.market(symbol);
@@ -5685,37 +5713,37 @@ public partial class BaseExchange
         string? stopLossAmount = this.safeString(parameters, "stopLossAmount");
         if ((takeProfitType != null))
         {
-            ((IDictionary<string,object>)getValue(parameters, "takeProfit"))["type"] = takeProfitType;
+            ((IDictionary<string,object>)(((IDictionary<string, object>)parameters).ContainsKey("takeProfit") ? ((IDictionary<string, object>)parameters)["takeProfit"] : null))["type"] = takeProfitType;
         }
         if ((takeProfitPriceType != null))
         {
-            ((IDictionary<string,object>)getValue(parameters, "takeProfit"))["priceType"] = takeProfitPriceType;
+            ((IDictionary<string,object>)(((IDictionary<string, object>)parameters).ContainsKey("takeProfit") ? ((IDictionary<string, object>)parameters)["takeProfit"] : null))["priceType"] = takeProfitPriceType;
         }
         if ((takeProfitLimitPrice != null))
         {
-            ((IDictionary<string,object>)getValue(parameters, "takeProfit"))["price"] = this.parseToNumeric(takeProfitLimitPrice);
+            ((IDictionary<string,object>)(((IDictionary<string, object>)parameters).ContainsKey("takeProfit") ? ((IDictionary<string, object>)parameters)["takeProfit"] : null))["price"] = this.parseToNumeric(takeProfitLimitPrice);
         }
         if ((takeProfitAmount != null))
         {
-            ((IDictionary<string,object>)getValue(parameters, "takeProfit"))["amount"] = this.parseToNumeric(takeProfitAmount);
+            ((IDictionary<string,object>)(((IDictionary<string, object>)parameters).ContainsKey("takeProfit") ? ((IDictionary<string, object>)parameters)["takeProfit"] : null))["amount"] = this.parseToNumeric(takeProfitAmount);
         }
         if ((stopLossType != null))
         {
-            ((IDictionary<string,object>)getValue(parameters, "stopLoss"))["type"] = stopLossType;
+            ((IDictionary<string,object>)(((IDictionary<string, object>)parameters).ContainsKey("stopLoss") ? ((IDictionary<string, object>)parameters)["stopLoss"] : null))["type"] = stopLossType;
         }
         if ((stopLossPriceType != null))
         {
-            ((IDictionary<string,object>)getValue(parameters, "stopLoss"))["priceType"] = stopLossPriceType;
+            ((IDictionary<string,object>)(((IDictionary<string, object>)parameters).ContainsKey("stopLoss") ? ((IDictionary<string, object>)parameters)["stopLoss"] : null))["priceType"] = stopLossPriceType;
         }
         if ((stopLossLimitPrice != null))
         {
-            ((IDictionary<string,object>)getValue(parameters, "stopLoss"))["price"] = this.parseToNumeric(stopLossLimitPrice);
+            ((IDictionary<string,object>)(((IDictionary<string, object>)parameters).ContainsKey("stopLoss") ? ((IDictionary<string, object>)parameters)["stopLoss"] : null))["price"] = this.parseToNumeric(stopLossLimitPrice);
         }
         if ((stopLossAmount != null))
         {
-            ((IDictionary<string,object>)getValue(parameters, "stopLoss"))["amount"] = this.parseToNumeric(stopLossAmount);
+            ((IDictionary<string,object>)(((IDictionary<string, object>)parameters).ContainsKey("stopLoss") ? ((IDictionary<string, object>)parameters)["stopLoss"] : null))["amount"] = this.parseToNumeric(stopLossAmount);
         }
-        object paramsOmitted = this.omit(parameters, new List<object>() {"takeProfitType", "takeProfitPriceType", "takeProfitLimitPrice", "takeProfitAmount", "stopLossType", "stopLossPriceType", "stopLossLimitPrice", "stopLossAmount"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"takeProfitType", "takeProfitPriceType", "takeProfitLimitPrice", "takeProfitAmount", "stopLossType", "stopLossPriceType", "stopLossLimitPrice", "stopLossAmount"}));
         return paramsOmitted;
     }
 
@@ -5859,19 +5887,19 @@ public partial class BaseExchange
     public async virtual Task<ccxt.DepositAddress> FetchDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual((this.has.ContainsKey("fetchDepositAddresses") ? this.has["fetchDepositAddresses"] : null), null) && (((this.has.ContainsKey("fetchDepositAddresses") ? this.has["fetchDepositAddresses"] : null) as bool?) != false))
+        if (!((this.has.ContainsKey("fetchDepositAddresses") ? this.has["fetchDepositAddresses"] : null) == null) && (((this.has.ContainsKey("fetchDepositAddresses") ? this.has["fetchDepositAddresses"] : null) as bool?) != false))
         {
-            object depositAddressesList = ccxt.BaseExchange.FromDepositAddressList(await this.FetchDepositAddresses(new List<object>() {code}, parameters));
+            List<object> depositAddressesList = ccxt.BaseExchange.FromDepositAddressList(await this.FetchDepositAddresses(new List<object>() {code}, parameters));
             Dictionary<string, object> depositAddresses = this.indexBy(depositAddressesList, "currency");
             if ((this.safeDict(depositAddresses, code) == null))
             {
                 throw new InvalidAddress ((((this.id + " fetchDepositAddress() could not find a deposit address for ") + code) + ", make sure you have created a corresponding deposit address in your wallet on the exchange website")) ;
             }
             return ccxt.BaseExchange.ToDepositAddress(this.safeDict(depositAddresses, code));
-        } else if (!isEqual((this.has.ContainsKey("fetchDepositAddressesByNetwork") ? this.has["fetchDepositAddressesByNetwork"] : null), null) && (((this.has.ContainsKey("fetchDepositAddressesByNetwork") ? this.has["fetchDepositAddressesByNetwork"] : null) as bool?) != false))
+        } else if (!((this.has.ContainsKey("fetchDepositAddressesByNetwork") ? this.has["fetchDepositAddressesByNetwork"] : null) == null) && (((this.has.ContainsKey("fetchDepositAddressesByNetwork") ? this.has["fetchDepositAddressesByNetwork"] : null) as bool?) != false))
         {
             string? network = this.safeString(parameters, "network");
-            object paramsOmitted = this.omit(parameters, "network");
+            IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "network"));
             Dictionary<string, object> addressStructures = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(code, paramsOmitted));
             if ((network != null))
             {
@@ -5914,7 +5942,7 @@ public partial class BaseExchange
      */
     public virtual Dictionary<string, object> mergeBalanceAccount(object result, string code, object account)
     {
-        if (!(inOp(result, code)))
+        if (!(((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))(result, code)))
         {
             ((IDictionary<string,object>)result)[(string)code] = account;
             return ((Dictionary<string, object>)((object)(result)));
@@ -5961,10 +5989,10 @@ public partial class BaseExchange
         {
             object currencies = this.currencies;
             object currenciesById = this.currencies_by_id;
-            if (inOp(currencies, code))
+            if (((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))(currencies, code))
             {
                 return ccxt.BaseExchange.ToDict(getValue(currencies, code));
-            } else if (((currenciesById != null)) && (inOp(currenciesById, code)))
+            } else if (((currenciesById != null)) && (((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))(currenciesById, code)))
             {
                 return ccxt.BaseExchange.ToDict(getValue(currenciesById, code));
             }
@@ -5986,15 +6014,15 @@ public partial class BaseExchange
         IDictionary<string, object> marketsById = this.markets_by_id;
         if ((markets != null && symbol is string inOpKey3 && markets.ContainsKey(inOpKey3)))
         {
-            return ccxt.BaseExchange.ToDict(getValue(markets, symbol));
+            return ccxt.BaseExchange.ToDict((markets != null && symbol != null && markets.ContainsKey((string)symbol) ? markets[(string)symbol] : null));
         } else if (((marketsById != null)) && ((marketsById != null && symbol is string inOpKey4 && marketsById.ContainsKey(inOpKey4))))
         {
-            object marketsList = getValue(marketsById, symbol);
+            object marketsList = (marketsById != null && symbol != null && marketsById.ContainsKey((string)symbol) ? marketsById[(string)symbol] : null);
             string? defaultType = this.safeString2(this.options, "defaultType", "defaultSubType", "spot");
-            for (int i = 0; i < getArrayLength(marketsList); i++)
+            for (int i = 0; i < (((object)(marketsList)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
             {
                 object market = getValue(marketsList, i);
-                if (isEqual(getValue(market, defaultType), true))
+                if ((getValue(market, defaultType) is true))
                 {
                     return ccxt.BaseExchange.ToDict(market);
                 }
@@ -6029,7 +6057,7 @@ public partial class BaseExchange
                 {
                     // check if base currency is inside dict
                     string baseCurrencyCode = ((string)currencyCode).Replace(leverageSuffix, (string)"");
-                    if (((existingCurrencies != null)) && (inOp(existingCurrencies, baseCurrencyCode)))
+                    if (((existingCurrencies != null)) && (((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))(existingCurrencies, baseCurrencyCode)))
                     {
                         return true;
                     }
@@ -6134,12 +6162,12 @@ public partial class BaseExchange
 
     public virtual bool isTickPrecision()
     {
-        return isEqual(this.precisionMode, TICK_SIZE);
+        return ((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))(this.precisionMode, TICK_SIZE);
     }
 
     public virtual bool isSignificantPrecision()
     {
-        return isEqual(this.precisionMode, SIGNIFICANT_DIGITS);
+        return ((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))(this.precisionMode, SIGNIFICANT_DIGITS);
     }
 
     public virtual double? safeNumber(object obj, object key, object defaultNumber = null)
@@ -6166,7 +6194,7 @@ public partial class BaseExchange
         {
             return ((string?)((object)(null)));
         }
-        Int64? precisionNumber = parseInt(precision);
+        Int64? precisionNumber = (((Func<object, Int64?>)(static (object hx4pa) => { try { return Convert.ToInt64(Math.Floor(Convert.ToDouble(hx4pa))); } catch (Exception) { return null; } }))(precision));
         if ((precisionNumber == 0))
         {
             return ((string?)((object)("1")));
@@ -6174,7 +6202,7 @@ public partial class BaseExchange
         if ((precisionNumber > 0))
         {
             string parsedPrecision = "0.";
-            for (int i = 0; isLessThan(i, subtract(precisionNumber, 1)); i++)
+            for (int i = 0; (i < (precisionNumber - 1)); i++)
             {
                 parsedPrecision = (parsedPrecision + "0");
             }
@@ -6182,7 +6210,7 @@ public partial class BaseExchange
         } else
         {
             string parsedPrecision = "1";
-            for (int i = 0; isLessThan(i, subtract((precisionNumber * -1), 1)); i++)
+            for (int i = 0; ((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } bool c32Int(object v) { Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } bool c32Eq(object x, object y) { if (x == null && y == null) return true; if (x == null || y == null) return false; try { if (x.GetType() != y.GetType() && (!Double.TryParse(x.ToString(), out _) || !Double.TryParse(y.ToString(), out _))) return false; if (c32Int(x) && c32Int(y)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(decimal) || y.GetType() == typeof(decimal)) return Convert.ToDecimal(x) == Convert.ToDecimal(y); if (x.GetType() == typeof(int)) return (int)x == (int)y; if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) == Convert.ToDouble(y); if (x.GetType() == typeof(Single) || y.GetType() == typeof(Single)) return Convert.ToSingle(x) == Convert.ToSingle(y); if (x.GetType() == typeof(string)) return ((string)x) == ((string)y); if (x.GetType() == typeof(bool)) return ((bool)x) == ((bool)y); return false; } catch { return false; } } return !c32Gt(c32a, c32b) && !c32Eq(c32a, c32b); }))(i, ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(-1, precisionNumber)); i++)
             {
                 parsedPrecision = (parsedPrecision + "0");
             }
@@ -6213,9 +6241,9 @@ public partial class BaseExchange
             {
                 return null;
             }
-            Int64? positivePrecision = parseInt(positivePrecisionString);
+            Int64? positivePrecision = (((Func<object, Int64?>)(static (object hx4pa) => { try { return Convert.ToInt64(Math.Floor(Convert.ToDouble(hx4pa))); } catch (Exception) { return null; } }))(positivePrecisionString));
             string parsedPrecision = "1";
-            for (int i = 0; isLessThan(i, subtract(positivePrecision, 1)); i++)
+            for (int i = 0; ((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } bool c32Int(object v) { Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } bool c32Eq(object x, object y) { if (x == null && y == null) return true; if (x == null || y == null) return false; try { if (x.GetType() != y.GetType() && (!Double.TryParse(x.ToString(), out _) || !Double.TryParse(y.ToString(), out _))) return false; if (c32Int(x) && c32Int(y)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(decimal) || y.GetType() == typeof(decimal)) return Convert.ToDecimal(x) == Convert.ToDecimal(y); if (x.GetType() == typeof(int)) return (int)x == (int)y; if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) == Convert.ToDouble(y); if (x.GetType() == typeof(Single) || y.GetType() == typeof(Single)) return Convert.ToSingle(x) == Convert.ToSingle(y); if (x.GetType() == typeof(string)) return ((string)x) == ((string)y); if (x.GetType() == typeof(bool)) return ((bool)x) == ((bool)y); return false; } catch { return false; } } return !c32Gt(c32a, c32b) && !c32Eq(c32a, c32b); }))(i, ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(positivePrecision, 1)); i++)
             {
                 parsedPrecision = (parsedPrecision + "0");
             }
@@ -6228,7 +6256,7 @@ public partial class BaseExchange
         parameters ??= new Dictionary<string, object>();
         Int64 serverTime = ccxt.BaseExchange.FromInt64(await this.FetchTime(parameters));
         Int64 after = this.milliseconds();
-        if (isEqual(serverTime, null))
+        if ((((object)(serverTime)) == null))
         {
             throw new ExchangeError ((this.id + " loadTimeDifference() missing serverTime")) ;
         }
@@ -6246,7 +6274,7 @@ public partial class BaseExchange
     public async virtual Task<List<ccxt.LeverageTier>> FetchMarketLeverageTiers(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual((this.has.ContainsKey("fetchLeverageTiers") ? this.has["fetchLeverageTiers"] : null), null) && (((this.has.ContainsKey("fetchLeverageTiers") ? this.has["fetchLeverageTiers"] : null) as bool?) != false))
+        if (!((this.has.ContainsKey("fetchLeverageTiers") ? this.has["fetchLeverageTiers"] : null) == null) && (((this.has.ContainsKey("fetchLeverageTiers") ? this.has["fetchLeverageTiers"] : null) as bool?) != false))
         {
             Dictionary<string, object> market = this.market(symbol);
             if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) != true))
@@ -6318,7 +6346,7 @@ public partial class BaseExchange
         List<object> results = new List<object>() {};
         if (((pricesData is IList<object>) || (pricesData.GetType().IsGenericType && pricesData.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            for (int i = 0; i < getArrayLength(pricesData); i++)
+            for (int i = 0; i < (((object)(pricesData)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
             {
                 Dictionary<string, object> priceData = this.extend(this.parseLastPrice(getValue(pricesData, i)), parameters);
                 results.Add(priceData);
@@ -6366,7 +6394,7 @@ public partial class BaseExchange
         List<object> results = new List<object>() {};
         if (((tickers is IList<object>) || (tickers.GetType().IsGenericType && tickers.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            for (int i = 0; i < getArrayLength(tickers); i++)
+            for (int i = 0; i < (((object)(tickers)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
             {
                 ccxt.Ticker parsedTicker = this.parseTicker(getValue(tickers, i));
                 Dictionary<string, object> ticker = this.extend(ccxt.BaseExchange.FromTicker(parsedTicker), parameters);
@@ -6393,7 +6421,7 @@ public partial class BaseExchange
         indexed ??= true;
         parameters ??= new Dictionary<string, object>();
         IList<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(addresses); i++)
+        for (int i = 0; i < (((object)(addresses)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             Dictionary<string, object> address = this.extend(this.parseDepositAddress(getValue(addresses, i)), parameters);
             result.Add(address);
@@ -6412,7 +6440,7 @@ public partial class BaseExchange
     public virtual List<object> parseBorrowInterests(object response, IDictionary<string, object> market = null)
     {
         List<object> interests = new List<object>() {};
-        for (int i = 0; i < getArrayLength(response); i++)
+        for (int i = 0; i < (((object)(response)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             object row = getValue(response, i);
             interests.Add(this.parseBorrowInterest(row, market));
@@ -6428,7 +6456,7 @@ public partial class BaseExchange
     public virtual object parseBorrowRateHistory(object response, string code, object since, object limit)
     {
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(response); i++)
+        for (int i = 0; i < (((object)(response)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             object item = getValue(response, i);
             Dictionary<string, object> borrowRate = this.parseBorrowRate(item);
@@ -6441,7 +6469,7 @@ public partial class BaseExchange
     public virtual object parseIsolatedBorrowRates(object info)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(info); i++)
+        for (int i = 0; i < (((object)(info)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             object item = getValue(info, i);
             IDictionary<string, object> borrowRate = ((IDictionary<string, object>)this.parseIsolatedBorrowRate(item));
@@ -6454,7 +6482,7 @@ public partial class BaseExchange
     public virtual object parseFundingRateHistories(object response, IDictionary<string, object> market = null, Int64? since = null, Int64? limit = null)
     {
         List<object> rates = new List<object>() {};
-        for (int i = 0; i < getArrayLength(response); i++)
+        for (int i = 0; i < (((object)(response)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             object entry = getValue(response, i);
             rates.Add(this.parseFundingRateHistory(entry, market));
@@ -6478,11 +6506,11 @@ public partial class BaseExchange
     public virtual object parseFundingRates(object response, IList<object> symbols = null)
     {
         Dictionary<string, object> fundingRates = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(response); i++)
+        for (int i = 0; i < (((object)(response)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             object entry = getValue(response, i);
             Dictionary<string, object> parsed = this.parseFundingRate(entry);
-            if (!isEqual((parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null), null))
+            if (!((parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null) == null))
             {
                 fundingRates[(string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null)] = parsed;
             }
@@ -6498,7 +6526,7 @@ public partial class BaseExchange
     public virtual object parseLongShortRatioHistory(object response, IDictionary<string, object> market = null, Int64? since = null, Int64? limit = null)
     {
         List<object> rates = new List<object>() {};
-        for (int i = 0; i < getArrayLength(response); i++)
+        for (int i = 0; i < (((object)(response)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             object entry = getValue(response, i);
             rates.Add(this.parseLongShortRatio(entry, market));
@@ -6527,7 +6555,7 @@ public partial class BaseExchange
                 keysToOmit.Add("triggerPrice");
                 keysToOmit.Add("stopPrice");
             }
-            triggerPriceStr = this.priceToPrecision(symbol, parseFloat(triggerPrice));
+            triggerPriceStr = this.priceToPrecision(symbol, (((Func<object, object>)(static (object hx4pa) => { object hx4pv = null; try { hx4pv = (Convert.ToDouble(hx4pa, global::System.Globalization.CultureInfo.InvariantCulture.NumberFormat)); } catch (Exception) { } return hx4pv; }))(triggerPrice)));
         }
         if ((stopLossPrice != null))
         {
@@ -6535,7 +6563,7 @@ public partial class BaseExchange
             {
                 keysToOmit.Add("stopLossPrice");
             }
-            stopLossPriceStr = this.priceToPrecision(symbol, parseFloat(stopLossPrice));
+            stopLossPriceStr = this.priceToPrecision(symbol, (((Func<object, object>)(static (object hx4pa) => { object hx4pv = null; try { hx4pv = (Convert.ToDouble(hx4pa, global::System.Globalization.CultureInfo.InvariantCulture.NumberFormat)); } catch (Exception) { } return hx4pv; }))(stopLossPrice)));
         }
         if ((takeProfitPrice != null))
         {
@@ -6543,7 +6571,7 @@ public partial class BaseExchange
             {
                 keysToOmit.Add("takeProfitPrice");
             }
-            takeProfitPriceStr = this.priceToPrecision(symbol, parseFloat(takeProfitPrice));
+            takeProfitPriceStr = this.priceToPrecision(symbol, (((Func<object, object>)(static (object hx4pa) => { object hx4pv = null; try { hx4pv = (Convert.ToDouble(hx4pa, global::System.Globalization.CultureInfo.InvariantCulture.NumberFormat)); } catch (Exception) { } return hx4pv; }))(takeProfitPrice)));
         }
         int keysToOmitLength = (keysToOmit?.Count ?? 0);
         object paramsOmitted = (keysToOmitLength > 0) ? this.omit(parameters, keysToOmit) : parameters;
@@ -6559,7 +6587,7 @@ public partial class BaseExchange
         */
         allowEmpty ??= false;
         string? triggerDirection = this.safeString(parameters, "triggerDirection");
-        bool exchangeSpecificDefined = ((exchangeSpecificKey != null)) && (inOp(parameters, exchangeSpecificKey));
+        bool exchangeSpecificDefined = ((exchangeSpecificKey != null)) && (((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))(parameters, exchangeSpecificKey));
         object paramsOmitted = ((triggerDirection != null)) ? this.omit(parameters, "triggerDirection") : parameters;
         // throw exception if:
         // A) if provided value is not unified (support old "up/down" strings too)
@@ -6609,20 +6637,20 @@ public partial class BaseExchange
         bool ioc = timeInForce == "IOC";
         bool fok = timeInForce == "FOK";
         bool timeInForcePostOnly = timeInForce == "PO";
-        if (!isTrue(postOnly))
+        if (!(((object)(postOnly)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
         {
             postOnly = timeInForcePostOnly;
         }
-        if (!isTrue(postOnly))
+        if (!(((object)(postOnly)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
         {
             postOnly = exchangeSpecificParam;
         }
-        if (isTrue(postOnly))
+        if ((((object)(postOnly)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
         {
             if (ioc || fok)
             {
                 throw new InvalidOrder (((this.id + " postOnly orders cannot have timeInForce equal to ") + timeInForce)) ;
-            } else if (isTrue(isMarketOrder))
+            } else if ((((object)(isMarketOrder)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
             {
                 throw new InvalidOrder ((this.id + " market orders cannot be postOnly")) ;
             } else
@@ -6651,20 +6679,20 @@ public partial class BaseExchange
         bool ioc = timeInForce == "IOC";
         bool fok = timeInForce == "FOK";
         bool po = timeInForce == "PO";
-        if (!isTrue(postOnly))
+        if (!(((object)(postOnly)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
         {
             postOnly = po;
         }
-        if (!isTrue(postOnly))
+        if (!(((object)(postOnly)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
         {
             postOnly = exchangeSpecificPostOnlyOption;
         }
-        if (isTrue(postOnly))
+        if ((((object)(postOnly)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
         {
             if (ioc || fok)
             {
                 throw new InvalidOrder (((this.id + " postOnly orders cannot have timeInForce equal to ") + timeInForce)) ;
-            } else if (isTrue(isMarketOrder))
+            } else if ((((object)(isMarketOrder)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
             {
                 throw new InvalidOrder ((this.id + " market orders cannot be postOnly")) ;
             } else
@@ -6677,7 +6705,7 @@ public partial class BaseExchange
                 {
                     keysToOmit = new List<object>() {"postOnly"};
                 }
-                object paramsOmitted = this.omit(parameters, keysToOmit);
+                IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, keysToOmit));
                 return new List<object>() {true, paramsOmitted};
             }
         }
@@ -6716,11 +6744,11 @@ public partial class BaseExchange
     public virtual object parseOpenInterests(object response, IList<object> symbols = null)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(response); i++)
+        for (int i = 0; i < (((object)(response)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             object entry = getValue(response, i);
             Dictionary<string, object> parsed = this.parseOpenInterest(entry);
-            if (!isEqual((parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null), null))
+            if (!((parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null) == null))
             {
                 result[(string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null)] = parsed;
             }
@@ -6731,7 +6759,7 @@ public partial class BaseExchange
     public virtual object parseOpenInterestsHistory(object response, IDictionary<string, object> market = null, object since = null, object limit = null)
     {
         List<object> interests = new List<object>() {};
-        for (int i = 0; i < getArrayLength(response); i++)
+        for (int i = 0; i < (((object)(response)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             object entry = getValue(response, i);
             Dictionary<string, object> interest = this.parseOpenInterest(entry, market);
@@ -6745,7 +6773,7 @@ public partial class BaseExchange
     public async virtual Task<ccxt.FundingRate> FetchFundingRate(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual((this.has.ContainsKey("fetchFundingRates") ? this.has["fetchFundingRates"] : null), null) && (((this.has.ContainsKey("fetchFundingRates") ? this.has["fetchFundingRates"] : null) as bool?) != false))
+        if (!((this.has.ContainsKey("fetchFundingRates") ? this.has["fetchFundingRates"] : null) == null) && (((this.has.ContainsKey("fetchFundingRates") ? this.has["fetchFundingRates"] : null) as bool?) != false))
         {
             await this.loadMarkets();
             Dictionary<string, object> market = this.market(symbol);
@@ -6772,7 +6800,7 @@ public partial class BaseExchange
     public async virtual Task<ccxt.FundingRate> FetchFundingInterval(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual((this.has.ContainsKey("fetchFundingIntervals") ? this.has["fetchFundingIntervals"] : null), null) && (((this.has.ContainsKey("fetchFundingIntervals") ? this.has["fetchFundingIntervals"] : null) as bool?) != false))
+        if (!((this.has.ContainsKey("fetchFundingIntervals") ? this.has["fetchFundingIntervals"] : null) == null) && (((this.has.ContainsKey("fetchFundingIntervals") ? this.has["fetchFundingIntervals"] : null) as bool?) != false))
         {
             await this.loadMarkets();
             Dictionary<string, object> market = this.market(symbol);
@@ -6812,7 +6840,7 @@ public partial class BaseExchange
         */
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual((this.has.ContainsKey("fetchMarkOHLCV") ? this.has["fetchMarkOHLCV"] : null), null) && (((this.has.ContainsKey("fetchMarkOHLCV") ? this.has["fetchMarkOHLCV"] : null) as bool?) != false))
+        if (!((this.has.ContainsKey("fetchMarkOHLCV") ? this.has["fetchMarkOHLCV"] : null) == null) && (((this.has.ContainsKey("fetchMarkOHLCV") ? this.has["fetchMarkOHLCV"] : null) as bool?) != false))
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "price", "mark" },
@@ -6840,7 +6868,7 @@ public partial class BaseExchange
         */
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual((this.has.ContainsKey("fetchIndexOHLCV") ? this.has["fetchIndexOHLCV"] : null), null) && (((this.has.ContainsKey("fetchIndexOHLCV") ? this.has["fetchIndexOHLCV"] : null) as bool?) != false))
+        if (!((this.has.ContainsKey("fetchIndexOHLCV") ? this.has["fetchIndexOHLCV"] : null) == null) && (((this.has.ContainsKey("fetchIndexOHLCV") ? this.has["fetchIndexOHLCV"] : null) as bool?) != false))
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "price", "index" },
@@ -6868,7 +6896,7 @@ public partial class BaseExchange
         */
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual((this.has.ContainsKey("fetchPremiumIndexOHLCV") ? this.has["fetchPremiumIndexOHLCV"] : null), null) && (((this.has.ContainsKey("fetchPremiumIndexOHLCV") ? this.has["fetchPremiumIndexOHLCV"] : null) as bool?) != false))
+        if (!((this.has.ContainsKey("fetchPremiumIndexOHLCV") ? this.has["fetchPremiumIndexOHLCV"] : null) == null) && (((this.has.ContainsKey("fetchPremiumIndexOHLCV") ? this.has["fetchPremiumIndexOHLCV"] : null) as bool?) != false))
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "price", "premiumIndex" },
@@ -6941,7 +6969,7 @@ public partial class BaseExchange
         * @returns {undefined}
         */
         options ??= new List<object>();
-        int optionsLength = getArrayLength(options);
+        int optionsLength = (((object)(options)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
         if (((argument == null)) || ((optionsLength > 0) && (!(this.inArray(argument, options)))))
         {
             string messageOptions = String.Join(", ", ((IList<object>)options).ToArray());
@@ -6989,7 +7017,7 @@ public partial class BaseExchange
         {
             responseKeys = new List<object>(((IDictionary<string,object>)response).Keys);
         }
-        for (int i = 0; i < getArrayLength(responseKeys); i++)
+        for (int i = 0; i < (((object)(responseKeys)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             object entry = getValue(responseKeys, i);
             object dictionary = isArray ? entry : getValue(response, entry);
@@ -7078,7 +7106,7 @@ public partial class BaseExchange
          * @returns {object[]} an array of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
          */
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(incomes); i++)
+        for (int i = 0; i < (((object)(incomes)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             object entry = getValue(incomes, i);
             Dictionary<string, object> parsed = this.parseIncome(entry, market);
@@ -7116,7 +7144,7 @@ public partial class BaseExchange
         object timeframeVar = timeframe;
         timeframeVar ??= "1m";
         List<object> results = new List<object>() {};
-        for (int i = 0; i < getArrayLength(ohlcvs); i++)
+        for (int i = 0; i < (((object)(ohlcvs)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             results.Add(this.parseWsOHLCV(getValue(ohlcvs, i), market));
         }
@@ -7137,7 +7165,7 @@ public partial class BaseExchange
         * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual((this.has.ContainsKey("fetchDepositsWithdrawals") ? this.has["fetchDepositsWithdrawals"] : null), null) && (((this.has.ContainsKey("fetchDepositsWithdrawals") ? this.has["fetchDepositsWithdrawals"] : null) as bool?) != false))
+        if (!((this.has.ContainsKey("fetchDepositsWithdrawals") ? this.has["fetchDepositsWithdrawals"] : null) == null) && (((this.has.ContainsKey("fetchDepositsWithdrawals") ? this.has["fetchDepositsWithdrawals"] : null) as bool?) != false))
         {
             return await this.FetchDepositsWithdrawals(code,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
         } else
@@ -7181,7 +7209,7 @@ public partial class BaseExchange
     {
         Dictionary<string, object> res = new Dictionary<string, object>() {};
         res[(string)symbol] = new Dictionary<string, object>() {};
-        ((IDictionary<string,object>)getValue(res, symbol))[timeframe] = data;
+        ((IDictionary<string,object>)(res != null && symbol != null && res.ContainsKey((string)symbol) ? res[(string)symbol] : null))[timeframe] = data;
         return res;
     }
 
@@ -7215,9 +7243,9 @@ public partial class BaseExchange
         IList<object> removeRepeatedOptionparamsRemoveRepeatedVariable = (IList<object>)this.handleOptionAndParams(paramsPaginationDirection, method, "removeRepeated", removeRepeated);
         var removeRepeatedOption = removeRepeatedOptionparamsRemoveRepeatedVariable[0];
         IDictionary<string, object> paramsRemoveRepeated = ((IDictionary<string, object>)removeRepeatedOptionparamsRemoveRepeatedVariable[1]);
-        object calls = 0;
+        Int64 calls = 0;
         List<object> result = new List<object>() {};
-        object errors = 0;
+        Int64 errors = 0;
         Int64? until = this.safeIntegerN(paramsRemoveRepeated, new List<object>() {"until", "untill", "till"}); // do not omit it from params here
         IList<object> maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = (IList<object>)this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsRemoveRepeated);
         var maxEntriesPerRequestOption = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable[0];
@@ -7231,9 +7259,9 @@ public partial class BaseExchange
             paginationTimestamp = since;
         }
         bool shouldBreak = false;
-        while ((isLessThan(calls, maxCallsPaginationCalls)))
+        while (((calls < maxCallsPaginationCalls)))
         {
-            calls = add(calls, 1);
+            calls = calls + 1;
             try
             {
                 if ((paginationDirection is "backward"))
@@ -7242,10 +7270,10 @@ public partial class BaseExchange
                     // UNTIL filtering is required in order to work
                     if (!(paginationTimestamp == null))
                     {
-                        paramsMaxEntriesPerRequest["until"] = subtract(paginationTimestamp, 1);
+                        paramsMaxEntriesPerRequest["until"] = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(paginationTimestamp, 1);
                     }
                     object response = await ((Task<object>)callDynamically(this, method, new object[] { symbol, null, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest }));
-                    int responseLength = getArrayLength(response);
+                    int responseLength = (((object)(response)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
                     if (this.verbose)
                     {
                         string backwardMessage = ((((("Dynamic pagination call " + this.numberToString(calls)) + " method ") + (method)) + " response length ") + this.numberToString(responseLength));
@@ -7269,7 +7297,7 @@ public partial class BaseExchange
                         shouldBreak = true;
                         break;
                     }
-                    if (((since != null)) && (isLessThanOrEqual(paginationTimestamp, since)))
+                    if (((since != null)) && (((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } bool c32Int(object v) { Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } bool c32Eq(object x, object y) { if (x == null && y == null) return true; if (x == null || y == null) return false; try { if (x.GetType() != y.GetType() && (!Double.TryParse(x.ToString(), out _) || !Double.TryParse(y.ToString(), out _))) return false; if (c32Int(x) && c32Int(y)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(decimal) || y.GetType() == typeof(decimal)) return Convert.ToDecimal(x) == Convert.ToDecimal(y); if (x.GetType() == typeof(int)) return (int)x == (int)y; if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) == Convert.ToDouble(y); if (x.GetType() == typeof(Single) || y.GetType() == typeof(Single)) return Convert.ToSingle(x) == Convert.ToSingle(y); if (x.GetType() == typeof(string)) return ((string)x) == ((string)y); if (x.GetType() == typeof(bool)) return ((bool)x) == ((bool)y); return false; } catch { return false; } } return !c32Gt(c32a, c32b) || c32Eq(c32a, c32b); }))(paginationTimestamp, since)))
                     {
                         shouldBreak = true;
                         break;
@@ -7278,7 +7306,7 @@ public partial class BaseExchange
                 {
                     // do it forwards, starting from the since
                     object response = await ((Task<object>)callDynamically(this, method, new object[] { symbol, paginationTimestamp, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest }));
-                    int responseLength = getArrayLength(response);
+                    int responseLength = (((object)(response)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
                     if (this.verbose)
                     {
                         string forwardMessage = ((((("Dynamic pagination call " + this.numberToString(calls)) + " method ") + (method)) + " response length ") + this.numberToString(responseLength));
@@ -7312,8 +7340,8 @@ public partial class BaseExchange
                 }
             } catch(Exception e)
             {
-                errors = add(errors, 1);
-                if (isGreaterThan(errors, maxRetriesOption))
+                errors = errors + 1;
+                if (((maxRetriesOption == null || errors > maxRetriesOption)))
                 {
                     throw e;
                 }
@@ -7324,7 +7352,7 @@ public partial class BaseExchange
             }
         }
         object uniqueResults = result;
-        if (isTrue(removeRepeatedOption))
+        if ((((object)(removeRepeatedOption)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
         {
             uniqueResults = this.removeRepeatedElementsFromArray(result);
         }
@@ -7340,8 +7368,8 @@ public partial class BaseExchange
         (Int64?, object) maxRetriesOptionparamsMaxRetriesVariable = this.handleOptionIntegerAndParams(parameters, method, "maxRetries", maxRetries);
         Int64? maxRetriesOption = maxRetriesOptionparamsMaxRetriesVariable.Item1;
         IDictionary<string, object> paramsMaxRetries = ((IDictionary<string, object>)maxRetriesOptionparamsMaxRetriesVariable.Item2);
-        object errors = 0;
-        while (isLessThanOrEqual(errors, maxRetriesOption))
+        Int64 errors = 0;
+        while ((errors <= maxRetriesOption))
         {
             try
             {
@@ -7358,8 +7386,8 @@ public partial class BaseExchange
                 {
                     throw e;
                 }
-                errors = add(errors, 1);
-                if (isGreaterThan(errors, maxRetriesOption))
+                errors = errors + 1;
+                if (((maxRetriesOption == null || errors > maxRetriesOption)))
                 {
                     throw e;
                 }
@@ -7386,9 +7414,9 @@ public partial class BaseExchange
         List<object> tasks = new List<object>() {};
         Int64 time = (this.parseTimeframe(timeframe) * 1000L);
         object maxEntriesPerRequestValue = this.requireValue(maxEntriesPerRequestOption, "fetchPaginatedCallDeterministic() maxEntriesPerRequest is required");
-        object step = multiply(time, maxEntriesPerRequestValue);
+        Int64? step = (time * this.parseToInt(maxEntriesPerRequestValue));
         Int64? until = this.safeInteger2(paramsOmitted, "until", "till"); // do not omit it here
-        object currentSince = subtract(subtract(current, (multiply(maxCallsPaginationCalls, step))), 1);
+        object currentSince = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(current, ((maxCallsPaginationCalls * step))), 1);
         if ((since != null))
         {
             if ((until != null))
@@ -7400,11 +7428,11 @@ public partial class BaseExchange
                 currentSince = since;
             } else
             {
-                currentSince = mathMax(currentSince, since);
+                currentSince = (((((object)(currentSince)) is var c31v12) && (((object)(since)) is var c31v13)) ? (((c31v12 == null) || (c31v13 == null)) ? null : ((Convert.ToDouble(c31v12) > Convert.ToDouble(c31v13)) ? c31v12 : c31v13)) : null);
             }
         } else
         {
-            currentSince = mathMax(currentSince, 1241440531000); // avoid timestamps older than 2009
+            currentSince = (((((object)(currentSince)) is var c31v14) && (((object)(1241440531000)) is var c31v15)) ? (((c31v14 == null) || (c31v15 == null)) ? null : ((Convert.ToDouble(c31v14) > Convert.ToDouble(c31v15)) ? c31v14 : c31v15)) : null); // avoid timestamps older than 2009
         }
         if ((until != null))
         {
@@ -7412,7 +7440,7 @@ public partial class BaseExchange
             {
                 throw new ArgumentsRequired ((this.id + " fetchPaginatedCallDeterministic() requires a since argument when until is set")) ;
             }
-            double requiredCalls = Math.Ceiling(Convert.ToDouble(divide((subtract(until, since)), step)));
+            double requiredCalls = Math.Ceiling(Convert.ToDouble(((((((object)((((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(until, since)))) is var c35v0) && (((object)(step)) is var c35v1)) ? (((c35v0 == null) || (c35v1 == null)) ? null : (object)(Convert.ToDouble(c35v0) / Convert.ToDouble(c35v1))) : null))));
             if (((maxCallsPaginationCalls == null || requiredCalls > maxCallsPaginationCalls)))
             {
                 throw new BadRequest (((((this.id + " the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ") + ((object)maxCallsPaginationCalls).ToString()) + " required calls is ") + ((object)requiredCalls).ToString())) ;
@@ -7420,17 +7448,17 @@ public partial class BaseExchange
         }
         for (int i = 0; (i < maxCallsPaginationCalls); i++)
         {
-            if (((until != null)) && (isGreaterThanOrEqual(currentSince, until)))
+            if (((until != null)) && (((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } bool c32Int(object v) { Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } bool c32Eq(object x, object y) { if (x == null && y == null) return true; if (x == null || y == null) return false; try { if (x.GetType() != y.GetType() && (!Double.TryParse(x.ToString(), out _) || !Double.TryParse(y.ToString(), out _))) return false; if (c32Int(x) && c32Int(y)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(decimal) || y.GetType() == typeof(decimal)) return Convert.ToDecimal(x) == Convert.ToDecimal(y); if (x.GetType() == typeof(int)) return (int)x == (int)y; if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) == Convert.ToDouble(y); if (x.GetType() == typeof(Single) || y.GetType() == typeof(Single)) return Convert.ToSingle(x) == Convert.ToSingle(y); if (x.GetType() == typeof(string)) return ((string)x) == ((string)y); if (x.GetType() == typeof(bool)) return ((bool)x) == ((bool)y); return false; } catch { return false; } } return c32Gt(c32a, c32b) || c32Eq(c32a, c32b); }))(currentSince, until)))
             {
                 break;
             }
-            if (isGreaterThanOrEqual(currentSince, current))
+            if (((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } bool c32Int(object v) { Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } bool c32Eq(object x, object y) { if (x == null && y == null) return true; if (x == null || y == null) return false; try { if (x.GetType() != y.GetType() && (!Double.TryParse(x.ToString(), out _) || !Double.TryParse(y.ToString(), out _))) return false; if (c32Int(x) && c32Int(y)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(decimal) || y.GetType() == typeof(decimal)) return Convert.ToDecimal(x) == Convert.ToDecimal(y); if (x.GetType() == typeof(int)) return (int)x == (int)y; if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) == Convert.ToDouble(y); if (x.GetType() == typeof(Single) || y.GetType() == typeof(Single)) return Convert.ToSingle(x) == Convert.ToSingle(y); if (x.GetType() == typeof(string)) return ((string)x) == ((string)y); if (x.GetType() == typeof(bool)) return ((bool)x) == ((bool)y); return false; } catch { return false; } } return c32Gt(c32a, c32b) || c32Eq(c32a, c32b); }))(currentSince, current))
             {
                 break;
             }
             tasks.Add(this.safeDeterministicCall(method,((string)symbol), currentSince, maxEntriesPerRequestValue,timeframe, paramsOmitted));
             // this.sum keeps it numeric in PHP, where the regex transpiler turns `a + b` into string concatenation
-            currentSince = subtract(this.sum(currentSince, step), 1);
+            currentSince = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(this.sum(currentSince, step), 1);
         }
         List<object> results = await promiseAll(tasks);
         List<object> result = new List<object>() {};
@@ -7460,13 +7488,13 @@ public partial class BaseExchange
         var maxEntriesPerRequestOption = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable[0];
         IDictionary<string, object> paramsMaxEntriesPerRequest = ((IDictionary<string, object>)maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable[1]);
         object cursorValue = null;
-        object i = 0;
-        object errors = 0;
+        Int64 i = 0;
+        Int64 errors = 0;
         List<object> result = new List<object>() {};
         string? timeframe = this.safeString(paramsMaxEntriesPerRequest, "timeframe");
         Dictionary<string, object> paramsOmitted = this.omit(paramsMaxEntriesPerRequest, "timeframe"); // reading the timeframe from the method arguments to avoid changing the signature
         bool shouldBreak = false;
-        while (isLessThan(i, maxCallsPaginationCalls))
+        while ((i < maxCallsPaginationCalls))
         {
             try
             {
@@ -7505,11 +7533,11 @@ public partial class BaseExchange
                 {
                     throw new NullResponse ((this.id + " fetchPaginatedCallCursor() returned empty response")) ;
                 }
-                int responseLength = getArrayLength(response);
+                int responseLength = (((object)(response)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
                 if (this.verbose)
                 {
                     object cursorString = ((cursorValue == null)) ? "" : cursorValue;
-                    object iteration = (add(i, 1));
+                    Int64 iteration = ((i + 1));
                     string cursorMessage = ((((((("Cursor pagination call " + ((object)iteration).ToString()) + " method ") + method) + " response length ") + ((object)responseLength).ToString()) + " cursor ") + (cursorString));
                     this.log(cursorMessage);
                 }
@@ -7546,15 +7574,15 @@ public partial class BaseExchange
                 {
                     throw new ArgumentsRequired ((this.id + " fetchPaginatedCallCursor() requires a since argument")) ;
                 }
-                if ((lastTimestamp != null) && isLessThan(lastTimestamp, since))
+                if ((lastTimestamp != null) && ((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } bool c32Int(object v) { Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } bool c32Eq(object x, object y) { if (x == null && y == null) return true; if (x == null || y == null) return false; try { if (x.GetType() != y.GetType() && (!Double.TryParse(x.ToString(), out _) || !Double.TryParse(y.ToString(), out _))) return false; if (c32Int(x) && c32Int(y)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(decimal) || y.GetType() == typeof(decimal)) return Convert.ToDecimal(x) == Convert.ToDecimal(y); if (x.GetType() == typeof(int)) return (int)x == (int)y; if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) == Convert.ToDouble(y); if (x.GetType() == typeof(Single) || y.GetType() == typeof(Single)) return Convert.ToSingle(x) == Convert.ToSingle(y); if (x.GetType() == typeof(string)) return ((string)x) == ((string)y); if (x.GetType() == typeof(bool)) return ((bool)x) == ((bool)y); return false; } catch { return false; } } return !c32Gt(c32a, c32b) && !c32Eq(c32a, c32b); }))(lastTimestamp, since))
                 {
                     shouldBreak = true;
                     break;
                 }
             } catch(Exception e)
             {
-                errors = add(errors, 1);
-                if (isGreaterThan(errors, maxRetriesOption))
+                errors = errors + 1;
+                if (((maxRetriesOption == null || errors > maxRetriesOption)))
                 {
                     throw e;
                 }
@@ -7563,7 +7591,7 @@ public partial class BaseExchange
             {
                 break; // go turns a break inside try into a panic that only ends the iteration
             }
-            i = add(i, 1);
+            i = i + 1;
         }
         object sorted = this.sortCursorPaginatedResult(result);
         object key = ((method == "fetchOHLCV")) ? 0 : "timestamp";
@@ -7584,21 +7612,21 @@ public partial class BaseExchange
         IList<object> maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = (IList<object>)this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsMaxRetries);
         var maxEntriesPerRequestOption = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable[0];
         IDictionary<string, object> paramsMaxEntriesPerRequest = ((IDictionary<string, object>)maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable[1]);
-        object i = 0;
-        object errors = 0;
+        Int64 i = 0;
+        Int64 errors = 0;
         List<object> result = new List<object>() {};
         bool shouldBreak = false;
-        while (isLessThan(i, maxCallsPaginationCalls))
+        while ((i < maxCallsPaginationCalls))
         {
             try
             {
-                paramsMaxEntriesPerRequest[(string)pageKey] = add(i, 1);
+                paramsMaxEntriesPerRequest[(string)pageKey] = (i + 1);
                 object response = await ((Task<object>)callDynamically(this, method, new object[] { symbol, since, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest }));
                 errors = 0;
-                int responseLength = getArrayLength(response);
+                int responseLength = (((object)(response)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
                 if (this.verbose)
                 {
-                    object iteration = (add(i, 1));
+                    Int64 iteration = ((i + 1));
                     string incrementalMessage = ((((("Incremental pagination call " + ((object)iteration).ToString()) + " method ") + method) + " response length ") + ((object)responseLength).ToString());
                     this.log(incrementalMessage);
                 }
@@ -7610,8 +7638,8 @@ public partial class BaseExchange
                 result = this.arrayConcat(result, response);
             } catch(Exception e)
             {
-                errors = add(errors, 1);
-                if (isGreaterThan(errors, maxRetriesOption))
+                errors = errors + 1;
+                if (((maxRetriesOption == null || errors > maxRetriesOption)))
                 {
                     throw e;
                 }
@@ -7620,7 +7648,7 @@ public partial class BaseExchange
             {
                 break; // go turns a break inside try into a panic that only ends the iteration
             }
-            i = add(i, 1);
+            i = i + 1;
         }
         object sorted = this.sortCursorPaginatedResult(result);
         object key = ((method == "fetchOHLCV")) ? 0 : "timestamp";
@@ -7632,11 +7660,11 @@ public partial class BaseExchange
         object first = this.safeValue(result, 0);
         if ((first != null))
         {
-            if (inOp(first, "timestamp"))
+            if ((((object)(first)) switch { null => false, IList<object> c33a => c33a.Contains("timestamp"), IList<string> c33t => c33t.Contains("timestamp"), List<Int64> c33g => c33g.Contains((Int64)(object)"timestamp"), IDictionary<string, object> c33d => c33d.ContainsKey("timestamp"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("timestamp"), _ => false }))
             {
                 return this.sortBy(result, "timestamp", true);
             }
-            if (inOp(first, "id"))
+            if ((((object)(first)) switch { null => false, IList<object> c33a => c33a.Contains("id"), IList<string> c33t => c33t.Contains("id"), List<Int64> c33g => c33g.Contains((Int64)(object)"id"), IDictionary<string, object> c33d => c33d.ContainsKey("id"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("id"), _ => false }))
             {
                 return this.sortBy(result, "id", true);
             }
@@ -7649,7 +7677,7 @@ public partial class BaseExchange
         fallbackToTimestamp ??= true;
         Dictionary<string, object> uniqueDic = new Dictionary<string, object>() {};
         List<object> uniqueResult = new List<object>() {};
-        for (int i = 0; i < getArrayLength(input); i++)
+        for (int i = 0; i < (((object)(input)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             object entry = getValue(input, i);
             string? uniqValue = fallbackToTimestamp == true ? this.safeStringN(entry, new List<object>() {"id", "timestamp", 0}) : this.safeString(entry, "id");
@@ -7670,7 +7698,7 @@ public partial class BaseExchange
     public virtual object removeRepeatedTradesFromArray(object input)
     {
         Dictionary<string, object> uniqueResult = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(input); i++)
+        for (int i = 0; i < (((object)(input)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             object entry = getValue(input, i);
             object id = this.safeString(entry, "id");
@@ -7689,7 +7717,7 @@ public partial class BaseExchange
                 id = (("t_" + ((object)timestamp).ToString()) + "_");
                 if ((side != null))
                 {
-                    id = add(id, side);
+                    id = (id + side);
                 }
                 id = add(id, "_");
                 if ((price != null))
@@ -7732,7 +7760,7 @@ public partial class BaseExchange
         Int64? until = this.safeInteger2(parameters, "until", "till");
         if ((until != null))
         {
-            ((IDictionary<string,object>)request)[(string)key] = this.parseToInt(multiply(until, multiplier));
+            ((IDictionary<string,object>)request)[(string)key] = this.parseToInt(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(until, multiplier));
         }
         object paramsOmitted = ((until != null)) ? this.omit(parameters, new List<object>() {"until", "till"}) : parameters;
         return new List<object>() {request, paramsOmitted};
@@ -7775,7 +7803,7 @@ public partial class BaseExchange
          * @returns {object[]} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
          */
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(liquidations); i++)
+        for (int i = 0; i < (((object)(liquidations)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             object entry = getValue(liquidations, i);
             IDictionary<string, object> parsed = ((IDictionary<string, object>)this.parseLiquidation(entry, market));
@@ -7800,7 +7828,7 @@ public partial class BaseExchange
         List<object> results = new List<object>() {};
         if (((greeks is IList<object>) || (greeks.GetType().IsGenericType && greeks.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            for (int i = 0; i < getArrayLength(greeks); i++)
+            for (int i = 0; i < (((object)(greeks)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
             {
                 IDictionary<string, object> parsedTicker = ((IDictionary<string, object>)this.parseGreeks(getValue(greeks, i)));
                 Dictionary<string, object> greek = this.extend(parsedTicker, parameters);
@@ -7830,7 +7858,7 @@ public partial class BaseExchange
     public virtual Dictionary<string, object> parseOptionChain(object response, string? currencyKey = null, string? symbolKey = null)
     {
         Dictionary<string, object> optionStructures = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(response); i++)
+        for (int i = 0; i < (((object)(response)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             object info = getValue(response, i);
             string? currencyId = ((currencyKey == null)) ? null : this.safeString(info, currencyKey);
@@ -7846,7 +7874,7 @@ public partial class BaseExchange
     {
         Dictionary<string, object> marginModeStructures = new Dictionary<string, object>() {};
         object marketTypeResolved = ((marketType == null)) ? "swap" : marketType; // default to swap
-        for (int i = 0; i < getArrayLength(response); i++)
+        for (int i = 0; i < (((object)(response)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             object info = getValue(response, i);
             string? marketId = ((symbolKey == null)) ? null : this.safeString(info, symbolKey);
@@ -7868,7 +7896,7 @@ public partial class BaseExchange
     {
         Dictionary<string, object> leverageStructures = new Dictionary<string, object>() {};
         object marketTypeResolved = ((marketType == null)) ? "swap" : marketType; // default to swap
-        for (int i = 0; i < getArrayLength(response); i++)
+        for (int i = 0; i < (((object)(response)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             object info = getValue(response, i);
             string? marketId = ((symbolKey == null)) ? null : this.safeString(info, symbolKey);
@@ -8067,7 +8095,7 @@ public partial class BaseExchange
         {
             return marginModifications;
         }
-        for (int i = 0; i < getArrayLength(response); i++)
+        for (int i = 0; i < (((object)(response)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             object info = getValue(response, i);
             string? marketId = ((symbolKey == null)) ? null : this.safeString(info, symbolKey);
@@ -8137,7 +8165,7 @@ public partial class BaseExchange
             {
                 ((IDictionary<string,object>)client.subscriptions).Remove((string)subHash);
             }
-            if (((subHash != null)) && (inOp(client.futures, subHash)))
+            if (((subHash != null)) && ((client.futures != null && subHash != null && client.futures.ContainsKey((string)subHash))))
             {
                 var error = new UnsubscribeError(((this.id + " ") + (subHash)));
                 client.reject(error, subHash);
@@ -8190,7 +8218,7 @@ public partial class BaseExchange
                 }
                 if (((this.ohlcvs != null)) && (((symbol != null) && ((IDictionary<string, object>)this.ohlcvs).ContainsKey(symbol))))
                 {
-                    if (inOp(getValue(this.ohlcvs, symbol), timeframe))
+                    if (((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))(getValue(this.ohlcvs, symbol), timeframe))
                     {
                         ((IDictionary<string,object>)getValue(this.ohlcvs, symbol)).Remove(timeframe);
                     }
@@ -8243,7 +8271,7 @@ public partial class BaseExchange
                 {
                     object client = clients[i];
                     object futures = (client as WebSocketClient).futures;
-                    if (((futures != null)) && (inOp(futures, "fetchPositionsSnapshot")))
+                    if (((futures != null)) && ((((object)(futures)) switch { null => false, IList<object> c33a => c33a.Contains("fetchPositionsSnapshot"), IList<string> c33t => c33t.Contains("fetchPositionsSnapshot"), List<Int64> c33g => c33g.Contains((Int64)(object)"fetchPositionsSnapshot"), IDictionary<string, object> c33d => c33d.ContainsKey("fetchPositionsSnapshot"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("fetchPositionsSnapshot"), _ => false })))
                     {
                         ((IDictionary<string,object>)futures).Remove("fetchPositionsSnapshot");
                     }
@@ -8276,7 +8304,8 @@ public partial class BaseExchange
 
     public virtual string? timeframeFromMilliseconds(object ms)
     {
-        if (isLessThanOrEqual(ms, 0))
+        Int64? msInt = this.parseToInt(ms);
+        if ((msInt == null || msInt <= 0))
         {
             return "";
         }
@@ -8285,25 +8314,25 @@ public partial class BaseExchange
         Int64 hour = (60 * minute);
         Int64 day = (24 * hour);
         Int64 week = (7 * day);
-        if (isEqual(mod(ms, week), 0))
+        if ((((object)(((Int64?)(((((object)(msInt)) is var c31v16) && (((object)(week)) is var c31v17)) ? (((c31v16 == null) || (c31v17 == null) || !((c31v16 is string) || (c31v16 is Int64) || (c31v16 is int) || (c31v16 is uint) || (c31v16 is double))) ? null : (object)Convert.ToInt64(Convert.ToDouble(c31v16) % Convert.ToDouble(c31v17))) : null)))) switch { Int64 c33l => c33l == 0, int c33i => c33i == 0, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 0, decimal c33m => c33m == 0, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 0, uint c33u => (Int64)c33u == 0, short c33h => (Int64)c33h == 0, ushort c33v => (Int64)c33v == 0, byte c33y => (Int64)c33y == 0, sbyte c33e => (Int64)c33e == 0, ulong c33z => c33z == 0UL, _ => false }))
         {
-            return ((string?)((object)(add((divide(ms, week)), "w"))));
+            return (((object)this.parseToInt(((double?)msInt / week))).ToString() + "w");
         }
-        if (isEqual(mod(ms, day), 0))
+        if ((((object)(((Int64?)(((((object)(msInt)) is var c31v18) && (((object)(day)) is var c31v19)) ? (((c31v18 == null) || (c31v19 == null) || !((c31v18 is string) || (c31v18 is Int64) || (c31v18 is int) || (c31v18 is uint) || (c31v18 is double))) ? null : (object)Convert.ToInt64(Convert.ToDouble(c31v18) % Convert.ToDouble(c31v19))) : null)))) switch { Int64 c33l => c33l == 0, int c33i => c33i == 0, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 0, decimal c33m => c33m == 0, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 0, uint c33u => (Int64)c33u == 0, short c33h => (Int64)c33h == 0, ushort c33v => (Int64)c33v == 0, byte c33y => (Int64)c33y == 0, sbyte c33e => (Int64)c33e == 0, ulong c33z => c33z == 0UL, _ => false }))
         {
-            return ((string?)((object)(add((divide(ms, day)), "d"))));
+            return (((object)this.parseToInt(((double?)msInt / day))).ToString() + "d");
         }
-        if (isEqual(mod(ms, hour), 0))
+        if ((((object)(((Int64?)(((((object)(msInt)) is var c31v20) && (((object)(hour)) is var c31v21)) ? (((c31v20 == null) || (c31v21 == null) || !((c31v20 is string) || (c31v20 is Int64) || (c31v20 is int) || (c31v20 is uint) || (c31v20 is double))) ? null : (object)Convert.ToInt64(Convert.ToDouble(c31v20) % Convert.ToDouble(c31v21))) : null)))) switch { Int64 c33l => c33l == 0, int c33i => c33i == 0, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 0, decimal c33m => c33m == 0, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 0, uint c33u => (Int64)c33u == 0, short c33h => (Int64)c33h == 0, ushort c33v => (Int64)c33v == 0, byte c33y => (Int64)c33y == 0, sbyte c33e => (Int64)c33e == 0, ulong c33z => c33z == 0UL, _ => false }))
         {
-            return ((string?)((object)(add((divide(ms, hour)), "h"))));
+            return (((object)this.parseToInt(((double?)msInt / hour))).ToString() + "h");
         }
-        if (isEqual(mod(ms, minute), 0))
+        if ((((object)(((Int64?)(((((object)(msInt)) is var c31v22) && (((object)(minute)) is var c31v23)) ? (((c31v22 == null) || (c31v23 == null) || !((c31v22 is string) || (c31v22 is Int64) || (c31v22 is int) || (c31v22 is uint) || (c31v22 is double))) ? null : (object)Convert.ToInt64(Convert.ToDouble(c31v22) % Convert.ToDouble(c31v23))) : null)))) switch { Int64 c33l => c33l == 0, int c33i => c33i == 0, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 0, decimal c33m => c33m == 0, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 0, uint c33u => (Int64)c33u == 0, short c33h => (Int64)c33h == 0, ushort c33v => (Int64)c33v == 0, byte c33y => (Int64)c33y == 0, sbyte c33e => (Int64)c33e == 0, ulong c33z => c33z == 0UL, _ => false }))
         {
-            return ((string?)((object)(add((divide(ms, minute)), "m"))));
+            return (((object)this.parseToInt(((double?)msInt / minute))).ToString() + "m");
         }
-        if (isEqual(mod(ms, second), 0))
+        if ((((object)(((Int64?)((double?)msInt % 1000)))) switch { Int64 c33l => c33l == 0, int c33i => c33i == 0, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 0, decimal c33m => c33m == 0, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 0, uint c33u => (Int64)c33u == 0, short c33h => (Int64)c33h == 0, ushort c33v => (Int64)c33v == 0, byte c33y => (Int64)c33y == 0, sbyte c33e => (Int64)c33e == 0, ulong c33z => c33z == 0UL, _ => false }))
         {
-            return ((string?)((object)(add((divide(ms, second)), "s"))));
+            return (((object)this.parseToInt(((double?)msInt / 1000))).ToString() + "s");
         }
         return "";
     }

@@ -1585,10 +1585,12 @@ class weex(Exchange, ImplicitAPI):
             if (since is None) or (until is None):
                 now = self.milliseconds()
                 duration = self.parse_timeframe(timeframe) * 1000
-                numberOfCandles = maxHistoricalLimit
-                if limitResolved is not None and limitResolved is not None and limitResolved != 0:
-                    numberOfCandles = limitResolved
-                timeDelta = numberOfCandles * duration
+                timeDelta = maxHistoricalLimit * duration
+                if limit is not None and limit is not None and limit != 0:
+                    if limit > 1000:
+                        timeDelta = 1000 * duration
+                    else:
+                        timeDelta = limit * duration
                 if (since is None) and (until is None):
                     endTime = now
                     startTime = now - timeDelta
@@ -2218,7 +2220,7 @@ class weex(Exchange, ImplicitAPI):
             raise NullResponse(self.id + ' createOrder() returned empty response')
         return self.parse_order(response, market)
 
-    def create_contract_order_request(self, symbol: Str, type: OrderType, side: OrderSide, amount: Num, price: Num = None, params: dict = {}):
+    def create_contract_order_request(self, symbol: Str, type: OrderType, side: OrderSide, amount: Num, price: Num = None, params: dict = {}) -> dict:
         if type is None:
             raise ArgumentsRequired(self.id + ' requires a type argument')
         if side is None:
@@ -2242,9 +2244,7 @@ class weex(Exchange, ImplicitAPI):
         if isTrigger and (isStopLoss or isTakeProfit):
             raise BadRequest(self.id + ' createOrder() cannot use the triggerPrice parameter together with the stopLossPrice or takeProfitPrice parameters')
         reduceOnly = self.safe_bool(query, 'reduceOnly')
-        if isStopLoss or isTakeProfit:
-            reduceOnly = True
-        isReduceOnly = (reduceOnly is True)
+        isReduceOnly = isStopLoss or isTakeProfit or (reduceOnly is True)
         positionSide = 'LONG'
         if isReduceOnly:
             if side == 'buy':
@@ -2341,7 +2341,7 @@ class weex(Exchange, ImplicitAPI):
         paramsOmitted = self.omit(params, ['takeProfit', 'stopLoss', 'stopLossPrice', 'takeProfitPrice', 'triggerPriceType', 'stopLossPriceType', 'takeProfitPriceType', 'clientOrderId', 'callerMethodName'])
         return self.extend(request, paramsOmitted)
 
-    def encode_trigger_price_type(self, triggerPriceType: Str):
+    def encode_trigger_price_type(self, triggerPriceType: Str) -> Str:
         types = {
             'mark': 'MARK_PRICE',
             'last': 'CONTRACT_PRICE',
@@ -3021,7 +3021,7 @@ class weex(Exchange, ImplicitAPI):
             'info': order,
         }, marketResolved)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'new': 'open',
             'partial_fill': 'closed',
@@ -3034,7 +3034,7 @@ class weex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type(self, type: Str):
+    def parse_order_type(self, type: Str) -> Str:
         types = {
             'LIMIT': 'limit',
             'MARKET': 'market',
@@ -3049,7 +3049,7 @@ class weex(Exchange, ImplicitAPI):
     def handle_order_or_position_error(self, errorCode: Str, errorMessage: Str, order: dict):
         errorCodeValue = '' if (errorCode is None) else errorCode
         errorMessageValue = '' if (errorMessage is None) else errorMessage
-        if (errorCodeValue == '') and (errorMessageValue == ''):
+        if ((errorCode is None) or (errorCode == '')) and ((errorMessage is None) or (errorMessage == '')):
             # some endpoints could return an empty string if there is no error
             return
         feedback = self.id + ' ' + self.json(order)
@@ -3303,7 +3303,7 @@ class weex(Exchange, ImplicitAPI):
             },
         }, currencyResolved)
 
-    def parse_ledger_type(self, type: Str):
+    def parse_ledger_type(self, type: Str) -> Str:
         types = {
             'transfer_in': 'transfer',
             'transfer_out': 'transfer',
@@ -3352,8 +3352,9 @@ class weex(Exchange, ImplicitAPI):
             request['limit'] = limit
         requestUntil, paramsUntil = self.handle_until_option('endTime', request, paramsPaginate)
         # the exchange rejects startTime and endTime when either is sent alone, they only work as a pair
-        hasSince = ('startTime' in requestUntil)
-        hasUntil = ('endTime' in requestUntil)
+        hasSince = (since is not None)
+        until = self.safe_integer_2(paramsPaginate, 'until', 'till')
+        hasUntil = (until is not None)
         if hasSince and not hasUntil:
             requestUntil['endTime'] = self.milliseconds()
         elif hasUntil and not hasSince:
@@ -3742,7 +3743,7 @@ class weex(Exchange, ImplicitAPI):
             'marginMode': self.parse_margin_type(marginType),
         }
 
-    def parse_margin_type(self, marginType: Str):
+    def parse_margin_type(self, marginType: Str) -> Str:
         marginTypes = {
             'CROSSED': 'cross',
             'ISOLATED': 'isolated',
@@ -3771,7 +3772,7 @@ class weex(Exchange, ImplicitAPI):
         }
         return await self.contractPrivatePostCapiV3AccountMarginType(self.extend(request, params))
 
-    def encode_margin_mode(self, marginMode: Str):
+    def encode_margin_mode(self, marginMode: Str) -> str:
         marginTypes = {
             'cross': 'CROSSED',
             'isolated': 'ISOLATED',

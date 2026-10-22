@@ -1387,8 +1387,8 @@ class bingx extends Exchange {
             'symbol' => $market['id'],
         );
         list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('fetchTrades', $market, $params);
+        $maxLimit = ($marketType === 'spot') ? 500 : 1000;
         if ($limit !== null) {
-            $maxLimit = ($marketType === 'spot') ? 500 : 1000;
             $request['limit'] = min($limit, $maxLimit);
         }
         if ($marketType === 'spot') {
@@ -3325,7 +3325,9 @@ class bingx extends Exchange {
             if ((($typeValue === 'LIMIT') || ($typeValue === 'TRIGGER_LIMIT') || ($typeValue === 'STOP') || ($typeValue === 'TAKE_PROFIT')) && !$isTrailing) {
                 $request['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $price));
             }
-            $reduceOnly = $this->safe_bool($paramsTakeProfit, 'reduceOnly', false);
+            $reduceOnlyParam = $this->safe_bool($paramsTakeProfit, 'reduceOnly', false);
+            // stop loss / take profit price orders are always reduce only
+            $reduceOnly = ($reduceOnlyParam === true) || (!$isTriggerOrder && ($isStopLossPriceOrder || $isTakeProfitPriceOrder));
             if ($isTriggerOrder) {
                 $request['stopPrice'] = $this->parse_to_numeric($this->price_to_precision($symbol, $triggerPrice));
                 if ($isMarketOrder || ($typeValue === 'TRIGGER_MARKET')) {
@@ -3335,7 +3337,6 @@ class bingx extends Exchange {
                 }
             } elseif ($isStopLossPriceOrder || $isTakeProfitPriceOrder) {
                 // This can be used to set the stop loss and take profit, but the position needs to be opened first
-                $reduceOnly = true;
                 if ($isStopLossPriceOrder) {
                     $request['stopPrice'] = $this->parse_to_numeric($this->price_to_precision($symbol, $stopLossPrice));
                     if ($isMarketOrder || ($typeValue === 'STOP_MARKET')) {
@@ -3717,7 +3718,7 @@ class bingx extends Exchange {
         return $this->safe_string($sides, $side, $side);
     }
 
-    public function parse_order_type(?string $type) {
+    public function parse_order_type(?string $type): ?string {
         $types = array(
             'trigger_market' => 'market',
             'trigger_limit' => 'limit',
@@ -4041,12 +4042,13 @@ class bingx extends Exchange {
         if (($feeCurrencyCode === null)) {
             if ($marketResolved['spot'] === true) {
                 if ($side === 'buy') {
-                    $feeCurrencyCode = $marketResolved['base'];
+                    $feeCurrencyCode = $this->safe_string($marketResolved, 'base');
                 } else {
-                    $feeCurrencyCode = $marketResolved['quote'];
+                    $feeCurrencyCode = $this->safe_string($marketResolved, 'quote');
                 }
             } else {
-                $feeCurrencyCode = ($marketResolved['inverse'] === true) ? $marketResolved['settle'] : $marketResolved['quote'];
+                $feeKey = ($marketResolved['inverse'] === true) ? 'settle' : 'quote';
+                $feeCurrencyCode = $this->safe_string($marketResolved, $feeKey);
             }
         }
         $stopLoss = $this->safe_value($orderData, 'stopLoss');
@@ -4121,7 +4123,7 @@ class bingx extends Exchange {
         ), $marketResolved);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'NEW' => 'open',
             'PENDING' => 'open',
@@ -5588,16 +5590,17 @@ class bingx extends Exchange {
         $currencyId = $this->safe_string($depositAddress, 'coin');
         $currencyResolved = $this->safe_currency($currencyId, $currency);
         $code = $currencyResolved['code'];
-        $address = $this->safe_string_2($depositAddress, 'addressWithPrefix', 'address');
+        $rawAddress = $this->safe_string_2($depositAddress, 'addressWithPrefix', 'address');
         $networkId = $this->safe_string($depositAddress, 'network');
         $networkCode = $this->network_id_to_code($networkId, $code);
         // despite its name the addressWithPrefix field sometimes arrives without
         // the 0x prefix on the evm networks, see https://github.com/ccxt/ccxt/issues/24331
-        if ($address !== null) {
-            $isPrefixed = str_starts_with($address, '0x') || str_starts_with($address, '0X');
+        $address = $rawAddress;
+        if ($rawAddress !== null) {
+            $isPrefixed = str_starts_with($rawAddress, '0x') || str_starts_with($rawAddress, '0X');
             $evmNetworks = array( 'BEP20', 'ERC20', 'HECO', 'MATIC', 'POLYGON', 'ARBITRUM', 'OPTIMISM', 'AVAXC', 'BASE', 'FTM', 'LINEA', 'ZKSYNC', 'OPBNB' );
             if (!$isPrefixed && $this->in_array($networkCode, $evmNetworks)) {
-                $address = '0x' . $address;
+                $address = '0x' . $rawAddress;
             }
         }
         $this->check_address($address);
@@ -5819,7 +5822,7 @@ class bingx extends Exchange {
         );
     }
 
-    public function parse_transaction_status(?string $status, ?string $type = null) {
+    public function parse_transaction_status(?string $status, ?string $type = null): ?string {
         $statusesByType = array(
             'deposit' => array(
                 '0' => 'pending',

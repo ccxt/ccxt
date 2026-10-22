@@ -5,7 +5,8 @@ import { ecdsa } from '../base/functions/crypto.js';
 import { TRUNCATE, ROUND, DECIMAL_PLACES } from '../base/functions/number.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByOutcomeById } from '../base/ws/Cache.js';
-import type { OrderSide, OrderType, Balances, Dict, Endpoint, Int, Market, Num, OHLCV, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
+import type Client from '../base/ws/Client.js';
+import type { OrderSide, OrderType, Balances, Dict, Endpoint, Int, Market, NullableDict, Num, OHLCV, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
 import { AccountNotEnabled, AuthenticationError, ArgumentsRequired, BadRequest, ExchangeError, InsufficientFunds, InvalidOrder, PermissionDenied } from '../base/errors.js';
 
 // ---------------------------------------------------------------------------
@@ -178,9 +179,9 @@ export default class opinion extends Exchange {
         // so the cache gets the base indexing (id + handle + slug) instead of a raw assignment
         const seenEvents: Dict = {};
         const eventsList: any[] = [];
-        let page = 1;
-        let fetchedRawCount = 0;
-        while (true) {
+        // every raw (unflattened) row fetched so far, so its length is the raw fetched count
+        const fetchedRawRows: Dict[] = [];
+        for (let page = 1; page <= maxPages; page++) {
             const request: Dict = {
                 'marketType': 2, // all - both standalone binaries and categorical parents
                 'limit': pageLimit,
@@ -190,17 +191,17 @@ export default class opinion extends Exchange {
             const result = this.safeDict (response, 'result', {});
             const rawMarkets: Dict[] = this.safeList (result, 'list', []);
             const rawMarketsLength = rawMarkets.length;
-            fetchedRawCount = this.sum (fetchedRawCount, rawMarketsLength);
             // categorical parents expand into several flatMarkets entries each, so the raw,
             // unflattened row count in 'total' must be compared against fetchedRawCount, not
             // flatMarkets.length - otherwise expansion makes the comparison meaningless
             const total = this.safeInteger (result, 'total');
             for (let i = 0; i < rawMarketsLength; i++) {
                 const raw = rawMarkets[i];
+                fetchedRawRows.push (raw);
                 const marketType = this.safeInteger (raw, 'marketType');
                 if (marketType === 1) {
                     const event: any = this.parseEvent (raw);
-                    const childMarkets = event['markets'];
+                    const childMarkets = this.safeList (event, 'markets', []);
                     const childMarketsLength = childMarkets.length;
                     for (let ci = 0; ci < childMarketsLength; ci++) {
                         flatMarkets.push (childMarkets[ci] as unknown as Market);
@@ -215,10 +216,10 @@ export default class opinion extends Exchange {
                 }
             }
             const collectedLength = flatMarkets.length;
+            const fetchedRawCount = fetchedRawRows.length;
             if ((rawMarketsLength < pageLimit) || (page >= maxPages) || ((total !== undefined) && (fetchedRawCount >= total)) || ((userLimit !== undefined) && (collectedLength >= userLimit))) {
                 break;
             }
-            page = this.sum (page, 1);
         }
         this.setEvents (eventsList);
         const flatMarketsLength = flatMarkets.length;
@@ -418,25 +419,17 @@ export default class opinion extends Exchange {
             return this.applyEventFetchParams ([ single ], params, queries);
         }
         const rest = this.omit (params, [ 'query', 'queries', 'tags', 'status', 'sort', 'searchIn', 'limit' ]);
-        const pageLimit = this.safeInteger (this.options, 'defaultFetchEventsLimit', 20);
-        const userLimit = this.safeInteger (params, 'limit');
+        const pageLimit = this.parseToInt (this.safeInteger (this.options, 'defaultFetchEventsLimit', 20));
         // bound how many events are actually FETCHED: the user limit when given, otherwise
         // options.maxFetchEventsResults - the scope filters keep the listing narrow, but a broad
         // label can still hold more than one page
-        let fetchCap = this.safeInteger (this.options, 'maxFetchEventsResults', 100);
-        if (userLimit !== undefined) {
-            fetchCap = userLimit;
-        }
+        const fetchCap = this.safeInteger (params, 'limit', this.safeInteger (this.options, 'maxFetchEventsResults', 100));
         const maxPages = this.safeInteger (this.options, 'maxEventsPages', 50);
         const rawEvents: any[] = [];
-        let page = 1;
-        let fetchedRawCount = 0;
-        while (true) {
-            let reqLimit = pageLimit;
-            const remaining = fetchCap - fetchedRawCount;
-            if (remaining < reqLimit) {
-                reqLimit = remaining;
-            }
+        for (let page = 1; page <= maxPages; page++) {
+            const fetchedSoFar = rawEvents.length;
+            const remaining = this.parseToInt (fetchCap - fetchedSoFar);
+            const reqLimit = (remaining < pageLimit) ? remaining : pageLimit;
             if (reqLimit <= 0) {
                 break;
             }
@@ -449,15 +442,15 @@ export default class opinion extends Exchange {
             const result = this.safeDict (response, 'result', {});
             const pageEvents = this.safeList (result, 'list', []);
             const pageEventsLength = pageEvents.length;
-            fetchedRawCount = this.sum (fetchedRawCount, pageEventsLength);
             for (let i = 0; i < pageEventsLength; i++) {
                 rawEvents.push (pageEvents[i]);
             }
+            // rawEvents holds every row fetched so far, so its length is the raw fetched count
+            const fetchedRawCount = rawEvents.length;
             const total = this.safeInteger (result, 'total');
             if ((pageEventsLength < reqLimit) || (page >= maxPages) || ((total !== undefined) && (fetchedRawCount >= total)) || (fetchedRawCount >= fetchCap)) {
                 break;
             }
-            page = this.sum (page, 1);
         }
         const rawEventsLength = rawEvents.length;
         const parsedEvents: any[] = [];
@@ -960,10 +953,13 @@ export default class opinion extends Exchange {
         return '0x' + this.remove0xPrefix (sig['r']) + this.remove0xPrefix (sig['s']) + this.intToBase16 (sig['v']);
     }
 
-    opinionOrderRawAmounts (isMarket: boolean, side: string, amount: Num, price: Num, decimals: number): Dict {
+    opinionOrderRawAmounts (isMarket: boolean, side: string, amount: Num, price: Num, decimals: Int): Dict {
         let decimalsStr = '1';
-        for (let i = 0; i < decimals; i++) {
-            decimalsStr = decimalsStr + '0';
+        if (decimals !== undefined) {
+            const decimalsCount = this.parseToInt (decimals);
+            for (let i = 0; i < decimalsCount; i++) {
+                decimalsStr = decimalsStr + '0';
+            }
         }
         const amountStr = this.numberToString (amount);
         if (isMarket && (side === 'BUY')) {
@@ -1734,7 +1730,7 @@ export default class opinion extends Exchange {
      * @param {int} outcomeSide 1 for the yes token, 2 for the no token
      * @returns {object} the outcome object, or undefined
      */
-    opinionOutcomeByMarketIdSide (marketId: Int, outcomeSide: Int): any {
+    opinionOutcomeByMarketIdSide (marketId: Int, outcomeSide: Int): NullableDict {
         if ((marketId === undefined) || (this.markets === undefined)) {
             return undefined;
         }
@@ -1799,7 +1795,7 @@ export default class opinion extends Exchange {
         this.orderbooks[sym as string] = orderbook;
     }
 
-    handleOrderBook (client: any, message: Dict) {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //     {
         //         "marketId": 2764,
@@ -1850,7 +1846,7 @@ export default class opinion extends Exchange {
         return await this.subscribeOpinionChannel (messageHash, 'market.last.price', marketId);
     }
 
-    handleTicker (client: any, message: Dict) {
+    handleTicker (client: Client, message: Dict) {
         //
         //     {
         //         "tokenId": "19120407572139442221452465677574895365338028945317996490376653704877573103648",
@@ -1903,7 +1899,7 @@ export default class opinion extends Exchange {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true) as PredictionTrade[];
     }
 
-    handleTrades (client: any, message: Dict) {
+    handleTrades (client: Client, message: Dict) {
         //
         //     {
         //         "tokenId": "19120407572139442221452465677574895365338028945317996490376653704877573103648",
@@ -2097,7 +2093,7 @@ export default class opinion extends Exchange {
         return this.filterByValueSinceLimit (trades, 'outcome', sym, since, limit, 'timestamp', true) as PredictionTrade[];
     }
 
-    handleMyTrade (client: any, message: Dict) {
+    handleMyTrade (client: Client, message: Dict) {
         //
         //     {
         //         "orderId": "3c7af25f-e21f-11f0-9714-0a58a9feac02",

@@ -448,7 +448,7 @@ class whitebit(ccxt.async_support.whitebit):
         #       "id": null
         #   }
         #
-        trade = self.safe_value(message, 'params')
+        trade = self.safe_list(message, 'params', [])
         if self.myTrades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             self.myTrades = ArrayCache(limit)
@@ -679,7 +679,7 @@ class whitebit(ccxt.async_support.whitebit):
             'trades': None,
         }, marketResolved)
 
-    def parse_ws_order_type(self, status: object) -> str:
+    def parse_ws_order_type(self, status: Str) -> Str:
         statuses = {
             '1': 'limit',
             '2': 'market',
@@ -728,7 +728,7 @@ class whitebit(ccxt.async_support.whitebit):
         # listing all tickers explicitly is rejected with "invalid argument"
         return await self.watch_private(messageHash, method, [], paramsAwaitBalanceSnapshot)
 
-    def set_balance_cache(self, client: Client, type: Str, subscriptionHash: object):
+    def set_balance_cache(self, client: Client, type: Str, subscriptionHash: str):
         if subscriptionHash in client.subscriptions:
             return
         fetchBalanceSnapshot = self.handle_option('watchBalance', 'fetchBalanceSnapshot', True)
@@ -738,7 +738,7 @@ class whitebit(ccxt.async_support.whitebit):
                 client.future(messageHash)
                 self.spawn(self.load_balance_snapshot, client, messageHash, type, subscriptionHash)
 
-    async def load_balance_snapshot(self, client: object, messageHash: object, type: object, subscriptionHash: object):
+    async def load_balance_snapshot(self, client: Client, messageHash: str, type: Str, subscriptionHash: str):
         response = await self.fetch_balance({'type': type})
         self.balance = self.extend(response, self.balance)
         # don't remove the future from the .futures cache

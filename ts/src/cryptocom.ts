@@ -798,8 +798,8 @@ export default class cryptocom extends Exchange {
             const strike = this.safeString (market, 'strike');
             const marginBuyEnabled = this.safeBool (market, 'margin_buy_enabled');
             const marginSellEnabled = this.safeBool (market, 'margin_sell_enabled');
-            const expiryString = this.omitZero (this.safeString (market, 'expiry_timestamp_ms'));
-            const expiry = (expiryString !== undefined) ? parseInt (expiryString) : undefined;
+            const expiryRaw = this.safeInteger (market, 'expiry_timestamp_ms');
+            const expiry = (expiryRaw === 0) ? undefined : expiryRaw;
             let symbol = base + '/' + quote;
             let type: Str = undefined;
             let contract: Bool = undefined;
@@ -1139,8 +1139,9 @@ export default class cryptocom extends Exchange {
         const paramsOmitted: Dict = this.omit (paramsPaginate, [ 'until' ]);
         if (since !== undefined) {
             request['start_ts'] = since - duration * 1000;
-            if (limitResolved !== undefined) {
-                request['end_ts'] = this.sum (since, duration * limitResolved * 1000);
+            if (limit !== undefined) {
+                const countLimit: int = this.parseToInt (Math.min (limit, 300));
+                request['end_ts'] = this.sum (since, duration * countLimit * 1000);
             } else {
                 request['end_ts'] = until;
             }
@@ -2017,18 +2018,13 @@ export default class cryptocom extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseAddress (addressString: any) {
-        let address: Str = undefined;
-        let tag: Str = undefined;
-        let rawTag: Str = undefined;
-        if (addressString.indexOf ('?') > 0) {
-            [ address, rawTag ] = addressString.split ('?');
-            const splitted = (rawTag as string).split ('=');
-            tag = splitted[1];
-        } else {
-            address = addressString;
+    parseAddress (addressString: Str): [Str, Str] {
+        if (addressString !== undefined && addressString.indexOf ('?') > 0) {
+            const [ address, rawTag ] = addressString.split ('?');
+            const splitted = rawTag.split ('=');
+            return [ address, splitted[1] ];
         }
-        return [ address, tag ];
+        return [ addressString, undefined ];
     }
 
     /**
@@ -2442,7 +2438,7 @@ export default class cryptocom extends Exchange {
         ];
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'ACTIVE': 'open',
             'CANCELED': 'canceled',
@@ -2453,7 +2449,7 @@ export default class cryptocom extends Exchange {
         return this.safeString (statuses, (status as string), status);
     }
 
-    parseTimeInForce (timeInForce: Str) {
+    parseTimeInForce (timeInForce: Str): Str {
         const timeInForces: Dict = {
             'GOOD_TILL_CANCEL': 'GTC',
             'IMMEDIATE_OR_CANCEL': 'IOC',
@@ -3151,7 +3147,7 @@ export default class cryptocom extends Exchange {
         const timestamp = this.safeInteger (contract, 't');
         let fundingTimestamp: Int = undefined;
         if (timestamp !== undefined) {
-            fundingTimestamp = Math.ceil (timestamp / 3600000) * 3600000; // end of the next hour
+            fundingTimestamp = this.parseToInt (Math.ceil (timestamp / 3600000)) * 3600000; // end of the next hour
         }
         return {
             'info': contract,
@@ -3418,13 +3414,14 @@ export default class cryptocom extends Exchange {
 
     paramsToString (object: any, level: number): string {
         const maxLevel = 3;
-        if (level >= maxLevel) {
+        const depth: int = this.parseToInt (level);
+        if (depth >= maxLevel) {
             return object.toString ();
         }
         if (typeof object === 'string') {
             return object;
         }
-        let returnString = '';
+        let returnString: string = '';
         let paramsKeys: Strings = undefined;
         if (Array.isArray (object)) {
             paramsKeys = object;

@@ -1157,7 +1157,7 @@ class backpack extends backpack$1["default"] {
             storedOrderBook.cache.push(data);
             // stock streams can be quiet, so do not wait for more deltas to fetch their snapshot
             const market = this.market(symbol);
-            const isStockMarket = (market['stock'] === true) || ((marketId !== undefined) && ((marketId.indexOf('.US_') !== -1) || (marketId.indexOf('.HK_') !== -1)));
+            const isStockMarket = (market['stock'] === true) || ((marketId !== undefined) && ((marketId.indexOf('.US_') >= 0) || (marketId.indexOf('.HK_') >= 0)));
             const defaultSnapshotDelay = isStockMarket ? 0 : 10;
             const snapshotDelay = this.handleOption('watchOrderBook', 'snapshotDelay', defaultSnapshotDelay);
             if (cacheLength === snapshotDelay) {
@@ -1172,7 +1172,8 @@ class backpack extends backpack$1["default"] {
         client.resolve(storedOrderBook, messageHash);
     }
     handleBookDelta(orderbook, delta) {
-        const timestamp = this.parseToInt(this.safeInteger(delta, 'T', 0) / 1000);
+        const microseconds = this.safeInteger(delta, 'T', 0);
+        const timestamp = this.parseToInt(microseconds / 1000);
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601(timestamp);
         orderbook['nonce'] = this.safeInteger(delta, 'u');
@@ -1362,7 +1363,8 @@ class backpack extends backpack$1["default"] {
     parseWsRfqOrder(data, market = undefined) {
         const event = this.safeString(data, 'e', '');
         const quoteEvent = event.indexOf('quote') === 0;
-        const timestamp = this.parseToInt(this.safeInteger(data, 'E', 0) / 1000);
+        const microseconds = this.safeInteger(data, 'E', 0);
+        const timestamp = this.parseToInt(microseconds / 1000);
         const request = {
             'rfqId': this.safeString(data, 'R'),
             'clientId': this.safeString(data, 'C'),
@@ -1384,7 +1386,8 @@ class backpack extends backpack$1["default"] {
         const parsed = this.parseOrder(request, marketResolved);
         parsed['info'] = data;
         if (event === 'rfqFilled') {
-            parsed['lastTradeTimestamp'] = this.parseToInt(this.safeInteger(data, 'T', 0) / 1000);
+            const tradeMicroseconds = this.safeInteger(data, 'T', 0);
+            parsed['lastTradeTimestamp'] = this.parseToInt(tradeMicroseconds / 1000);
         }
         return parsed;
     }
@@ -1456,7 +1459,8 @@ class backpack extends backpack$1["default"] {
         this.options['wsBalanceAssets'] = assets;
         const response = this.parseBalance(assets);
         const parsed = this.safeDict({ 'balances': response }, 'balances', {});
-        const timestamp = this.parseToInt(this.safeInteger(data, 'E', 0) / 1000);
+        const microseconds = this.safeInteger(data, 'E', 0);
+        const timestamp = this.parseToInt(microseconds / 1000);
         parsed['timestamp'] = timestamp;
         parsed['datetime'] = this.iso8601(timestamp);
         parsed['info'] = assets;
@@ -1698,7 +1702,7 @@ class backpack extends backpack$1["default"] {
         let hedged = false;
         let side = 'long';
         if (netQuantity !== undefined) {
-            if (netQuantity < 0) {
+            if (0 > netQuantity) {
                 side = 'short';
             }
         }

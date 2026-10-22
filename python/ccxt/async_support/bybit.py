@@ -1489,7 +1489,7 @@ class bybit(Exchange, ImplicitAPI):
             data[0] = first
         return data
 
-    async def is_unified_enabled(self, params: dict = {}) -> list[object]:
+    async def is_unified_enabled(self, params: dict = {}) -> list:
         """
 
         https://bybit-exchange.github.io/docs/v5/user/apikey-info#http-request
@@ -1693,11 +1693,11 @@ class bybit(Exchange, ImplicitAPI):
             return [type, paramsSubType]
         return [subType, paramsSubType]
 
-    def get_amount(self, symbol: Str, amount: float | None):
+    def get_amount(self, symbol: Str, amount: float | None) -> Str:
         # some markets like options might not have the precision available
         # and we shouldn't crash in those cases
         market = self.market(symbol)
-        emptyPrecisionAmount = (market['precision']['amount'] is None)
+        emptyPrecisionAmount = (self.safe_number(market['precision'], 'amount') is None)
         amountString = self.number_to_string(amount)
         if not emptyPrecisionAmount and (amountString != '0'):
             return self.amount_to_precision(symbol, amount)
@@ -1707,14 +1707,14 @@ class bybit(Exchange, ImplicitAPI):
         if price is None:
             return price
         market = self.market(symbol)
-        emptyPrecisionPrice = (market['precision']['price'] is None)
+        emptyPrecisionPrice = (self.safe_number(market['precision'], 'price') is None)
         if not emptyPrecisionPrice:
             return self.price_to_precision(symbol, price)
         return price
 
-    def get_cost(self, symbol: Str, cost: Str):
+    def get_cost(self, symbol: Str, cost: Str) -> Str:
         market = self.market(symbol)
-        emptyPrecisionPrice = (market['precision']['price'] is None)
+        emptyPrecisionPrice = (self.safe_number(market['precision'], 'price') is None)
         if not emptyPrecisionPrice:
             return self.cost_to_precision(symbol, cost)
         return cost
@@ -2204,9 +2204,9 @@ class bybit(Exchange, ImplicitAPI):
             expiry = None
             # some swaps have deliveryTime meaning delisting time
             if not swap:
-                expiry = self.omit_zero(self.safe_string(market, 'deliveryTime'))
-                if expiry is not None:
-                    expiry = int(expiry)
+                deliveryTime = self.omit_zero(self.safe_string(market, 'deliveryTime'))
+                if deliveryTime is not None:
+                    expiry = self.parse_to_int(deliveryTime)
             expiryDatetime = self.iso8601(expiry)
             symbol = symbol + ':' + settle
             if expiry is not None:
@@ -2625,17 +2625,18 @@ class bybit(Exchange, ImplicitAPI):
                 symbol = symbols[i]
                 # using safeMarket here because if the user provides for instance BTCUSDT and "type": "spot" in params we should
                 # infer the market type from the type provided and not from the conflicting id (BTCUSDT might be swap or spot)
-                isExchangeSpecificSymbol = (symbol.find('/') == -1)
+                isExchangeSpecificSymbol = (symbol.find('/') < 0)
                 if isExchangeSpecificSymbol:
                     market = self.safe_market(symbol, None, None, defaultType)
                 else:
                     market = self.market(symbol)
                 if currentType is None:
                     currentType = self.safe_string(market, 'type')
-                elif market['type'] != currentType:
+                elif self.safe_string(market, 'type') != currentType:
                     raise BadRequest(self.id + ' fetchTickers can only accept a list of symbols of the same type')
                 if market['option'] is True:
-                    if code is not None and code != market['base']:
+                    marketBase = self.safe_string(market, 'base')
+                    if code is not None and code != marketBase:
                         raise BadRequest(self.id + ' fetchTickers the base currency must be the same for all symbols, self endpoint only supports one base currency at a time. Read more about it here: https://bybit-exchange.github.io/docs/v5/market/tickers')
                     if code is None:
                         code = self.safe_string(market, 'base')
@@ -3028,7 +3029,10 @@ class bybit(Exchange, ImplicitAPI):
                 fundingInterval = 60 * 60 * 8 * 1000
                 if fundingTimeFrameMins is not None:
                     fundingInterval = fundingTimeFrameMins * 60 * 1000
-                request['endTime'] = self.sum(since, limitResolved * fundingInterval)
+                if limit is None:
+                    request['endTime'] = self.sum(since, 200 * fundingInterval)
+                else:
+                    request['endTime'] = self.sum(since, limit * fundingInterval)
         response = await self.publicGetV5MarketFundingHistory(self.extend(request, paramsOmitted))
         #
         #     {
@@ -3589,10 +3593,9 @@ class bybit(Exchange, ImplicitAPI):
         request = {}
         enableUnifiedMargin, enableUnifiedAccount = await self.is_unified_enabled()
         isUnifiedAccount = (enableUnifiedMargin is True) or (enableUnifiedAccount is True)
-        type = None
-        paramsMarketType = None
         # don't use getBybitType here
-        type, paramsMarketType = self.handle_market_type_and_params('fetchBalance', None, params)
+        marketType, paramsMarketType = self.handle_market_type_and_params('fetchBalance', None, params)
+        type = marketType
         subType, paramsSubType = self.handle_sub_type_and_params('fetchBalance', None, paramsMarketType)
         if (type == 'swap') or (type == 'future'):
             type = subType
@@ -3732,7 +3735,7 @@ class bybit(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             # v3 spot
             'NEW': 'open',
@@ -3760,7 +3763,7 @@ class bybit(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_time_in_force(self, timeInForce: Str):
+    def parse_time_in_force(self, timeInForce: Str) -> Str:
         timeInForces = {
             'GoodTillCancel': 'GTC',
             'ImmediateOrCancel': 'IOC',
@@ -4590,8 +4593,8 @@ class bybit(Exchange, ImplicitAPI):
             orderRequest = self.edit_order_request(id, symbol, type, side, amount, price, orderParams)
             del orderRequest['category']
             ordersRequests.append(orderRequest)
-        orderSymbols = self.market_symbols(orderSymbols, None, False, True, True)
-        market = self.market(orderSymbols[0])
+        symbols = self.market_symbols(orderSymbols, None, False, True, True)
+        market = self.market(symbols[0])
         unifiedMarginStatus = self.safe_integer(self.options, 'unifiedMarginStatus', 6)
         category, paramsValue = self.get_bybit_type('editOrders', market, params)
         if (category == 'inverse') and (unifiedMarginStatus < 5):
@@ -5876,7 +5879,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         data = self.add_pagination_cursor_to_result(response)
         return self.parse_transactions(data, currency, since, limit)
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             # v3 deposit status
             '0': 'unknown',
@@ -6226,7 +6229,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             },
         }, currencyResolved)
 
-    def parse_ledger_entry_type(self, type: Str):
+    def parse_ledger_entry_type(self, type: Str) -> Str:
         types = {
             'Deposit': 'transaction',
             'Withdraw': 'transaction',
@@ -6654,7 +6657,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         liquidationPrice = self.omit_zero(self.safe_string(position, 'liqPrice'))
         leverage = self.safe_string(position, 'leverage')
         if liquidationPrice is not None:
-            if marketResolved['settle'] == 'USDC':
+            settle = self.safe_string(marketResolved, 'settle')
+            if settle == 'USDC':
                 #  (Entry price - Liq price) * Contracts + Maintenance Margin + (unrealised pnl) = Collateral
                 useMarkPrice = self.safe_bool(self.options, 'useMarkPriceForPositionCollateral', False)
                 price = entryPrice
@@ -6790,7 +6794,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol parameter for non unified account')
             market = self.market(symbol)
-            isUsdcSettled = market['settle'] == 'USDC'
+            marketSettle = self.safe_string(market, 'settle')
+            isUsdcSettled = marketSettle == 'USDC'
             if isUsdcSettled:
                 if (marginMode != 'cross') and (marginMode != 'portfolio'):
                     raise NotSupported(self.id + ' setMarginMode() for usdc market marginMode must be either [cross, portfolio]')
@@ -6949,8 +6954,10 @@ classic accounts only/ spot not supported*  fetches information on an order made
         elif since is not None:
             # the endpoint walks backwards from endTime and ignores a lone startTime
             duration = self.parse_timeframe(timeframe)
-            requestedLimit = 50 if (limit is None) else limit  # exchange default
-            request['endTime'] = self.sum(since, duration * requestedLimit * 1000)
+            if limit is None:
+                request['endTime'] = self.sum(since, duration * 50 * 1000)  # exchange default
+            else:
+                request['endTime'] = self.sum(since, duration * limit * 1000)
         if limit is not None:
             request['limit'] = limit
         response = await self.publicGetV5MarketOpenInterest(self.extend(request, paramsOmitted))

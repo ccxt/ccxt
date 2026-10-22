@@ -248,8 +248,8 @@ class gemini extends gemini$1["default"] {
             const tradesLimit = this.safeInteger(this.options, 'tradesLimit', 1000);
             const storesForSymbols = {};
             for (let i = 0; i < trades.length; i++) {
-                const marketId = trades[i]['symbol'];
-                const market = this.safeMarket(marketId.toLowerCase());
+                const marketId = this.safeString(trades[i], 'symbol', '').toLowerCase();
+                const market = this.safeMarket(marketId);
                 const symbol = market['symbol'];
                 const trade = this.parseWsTrade(trades[i], market);
                 trade['timestamp'] = timestamp;
@@ -340,9 +340,9 @@ class gemini extends gemini$1["default"] {
         //     }
         //
         const type = this.safeString(message, 'type', '');
-        let timeframeId = type.slice(8);
-        const timeframeEndIndex = timeframeId.indexOf('_');
-        timeframeId = timeframeId.slice(0, timeframeEndIndex);
+        const timeframeIdFull = type.slice(8);
+        const timeframeEndIndex = timeframeIdFull.indexOf('_');
+        const timeframeId = timeframeIdFull.slice(0, timeframeEndIndex);
         const marketId = this.safeString(message, 'symbol', '').toLowerCase();
         const market = this.safeMarket(marketId);
         const symbol = this.safeSymbol(marketId, market);
@@ -508,8 +508,9 @@ class gemini extends gemini$1["default"] {
         //     type: 'update'
         // }
         //
-        const marketId = rawBidAskChanges[0]['symbol'];
-        const market = this.safeMarket(marketId.toLowerCase());
+        const firstBidAsk = rawBidAskChanges[0];
+        const marketId = this.safeString(firstBidAsk, 'symbol', '').toLowerCase();
+        const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
         if (!(symbol in this.bidsasks)) {
             this.bidsasks[symbol] = this.parseTicker({});
@@ -598,8 +599,9 @@ class gemini extends gemini$1["default"] {
         //   },
         //   ...
         //
-        const marketId = rawOrderBookChanges[0]['symbol'];
-        const market = this.safeMarket(marketId.toLowerCase());
+        const firstChange = rawOrderBookChanges[0];
+        const marketId = this.safeString(firstChange, 'symbol', '').toLowerCase();
+        const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
         const messageHash = 'orderbook:' + symbol;
         if (!(symbol in this.orderbooks)) {
@@ -936,7 +938,8 @@ class gemini extends gemini$1["default"] {
             for (let i = 0; i < events.length; i++) {
                 const event = events[i];
                 const eventType = this.safeString(event, 'type');
-                const isOrderBook = (eventType === 'change') && ('side' in event) && this.inArray(event['side'], ['ask', 'bid']);
+                const side = this.safeString(event, 'side');
+                const isOrderBook = (eventType === 'change') && (side !== undefined) && this.inArray(side, ['ask', 'bid']);
                 const eventReason = this.safeString(event, 'reason');
                 const isBidAsk = (eventReason === 'top-of-book') || (isOrderBook && (eventReason === 'initial') && eventsLength === 2);
                 if (isBidAsk) {

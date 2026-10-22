@@ -139,7 +139,7 @@ public partial class backpack : ccxt.backpack
         List<object> messageHashes = new List<object>() {};
         string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"));
         var client = this.client(url);
-        string kind = isTrue((bidAsk)) ? "bidask" : "ticker";
+        string kind = (((object)((bidAsk))) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }) ? "bidask" : "ticker";
         for (int i = 0; i < (normalized?.Count ?? 0); i++)
         {
             Dictionary<string, object> market = this.market(normalized[i]);
@@ -154,7 +154,7 @@ public partial class backpack : ccxt.backpack
             string? source = explicitSource;
             if ((source == null))
             {
-                source = (isRfq && !isTrue(bidAsk)) ? "External" : "Venue";
+                source = (isRfq && !(((object)(bidAsk)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false })) ? "External" : "Venue";
             }
             Dictionary<string, object> requestParams = this.extend(marketParams, new Dictionary<string, object>() {
                 { "stock", marketStock },
@@ -175,7 +175,7 @@ public partial class backpack : ccxt.backpack
                 string? baseId = this.safeString(market, "baseId", "");
                 string ticker = baseId.Replace(".US", (string)"");
                 topic = ((channel + ".") + ticker);
-            } else if (isTrue(bidAsk))
+            } else if ((((object)(bidAsk)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
             {
                 if ((source == "External") || ((this.safeString(market, "executionModel") == "rfq")) || isRfq)
                 {
@@ -201,12 +201,12 @@ public partial class backpack : ccxt.backpack
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             string messageHash = ((((kind + ":") + symbol) + "@") + topic);
             string subscriptionKey = ("marketData:" + topic);
-            object subscriptions = this.safeDict(client.subscriptions, subscriptionKey, new Dictionary<string, object>() {});
-            if (isTrue(unwatch))
+            IDictionary<string, object> subscriptions = this.safeDict(client.subscriptions, subscriptionKey, new Dictionary<string, object>() {});
+            if ((((object)(unwatch)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
             {
                 subscriptions = this.omit(subscriptions, messageHash);
                 this.cleanUnsubscription(client, messageHash, ("unsubscribe:" + messageHash));
-                if (isTrue(bidAsk))
+                if ((((object)(bidAsk)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
                 {
                     this.bidsasks.Remove(symbol);
                 } else
@@ -215,16 +215,16 @@ public partial class backpack : ccxt.backpack
                 }
             } else
             {
-                ((IDictionary<string,object>)subscriptions)[messageHash] = new Dictionary<string, object>() {
+                subscriptions[(string)messageHash] = new Dictionary<string, object>() {
                     { "symbol", symbol },
                     { "bidAsk", bidAsk },
                 };
                 messageHashes.Add(messageHash);
             }
             ((IDictionary<string,object>)client.subscriptions)[subscriptionKey] = subscriptions;
-            List<object> subscriptionHashes = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
+            List<object> subscriptionHashes = new List<object>(subscriptions.Keys);
             int subscriptionsLength = subscriptionHashes.Count;
-            if (!isTrue(unwatch) || ((subscriptionsLength == 0)))
+            if (!(((object)(unwatch)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }) || ((subscriptionsLength == 0)))
             {
                 if (!this.inArray(topic, topics))
                 {
@@ -239,7 +239,7 @@ public partial class backpack : ccxt.backpack
             throw new ArgumentsRequired ((((this.id + " ") + (methodName)) + "() requires at least one matching market")) ;
         }
         object payload = this.omit(query, new List<object>() {"stock", "source", "interval", "channel"});
-        if (isTrue(unwatch))
+        if ((((object)(unwatch)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
         {
             int topicsLength = (topics?.Count ?? 0);
             if (topicsLength > 0)
@@ -256,7 +256,7 @@ public partial class backpack : ccxt.backpack
         {
             await this.watchPublic(topics, messageHashes, payload);
         }
-        object tickers = isTrue((bidAsk)) ? this.bidsasks : this.tickers;
+        object tickers = (((object)((bidAsk))) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }) ? this.bidsasks : this.tickers;
         return this.filterByArray(tickers, "symbol", symbolsResolved);
     }
 
@@ -270,7 +270,7 @@ public partial class backpack : ccxt.backpack
         }
         string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"));
         string method = "SUBSCRIBE";
-        if (isTrue(unwatch))
+        if ((((object)(unwatch)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
         {
             method = "UNSUBSCRIBE";
         }
@@ -279,7 +279,7 @@ public partial class backpack : ccxt.backpack
             { "params", topics },
         };
         Dictionary<string, object> message = this.deepExtend(request, parameters);
-        if (isTrue(unwatch))
+        if ((((object)(unwatch)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
         {
             this.handleUnsubscriptions(url, messageHashes, message);
             return null;
@@ -296,7 +296,7 @@ public partial class backpack : ccxt.backpack
         string instruction = "subscribe";
         string ts = this.nonce().ToString();
         string method = "SUBSCRIBE";
-        if (isTrue(unwatch))
+        if ((((object)(unwatch)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
         {
             method = "UNSUBSCRIBE";
         }
@@ -311,7 +311,7 @@ public partial class backpack : ccxt.backpack
             { "signature", new List<object>() {this.apiKey, signature, ts, recvWindow} },
         };
         Dictionary<string, object> message = this.deepExtend(request, parameters);
-        if (isTrue(unwatch))
+        if ((((object)(unwatch)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
         {
             this.handleUnsubscriptions(url, messageHashes, message);
             return null;
@@ -323,52 +323,52 @@ public partial class backpack : ccxt.backpack
     {
         var client = this.client(url);
         this.watchMultiple(url, messageHashes, message, messageHashes);
-        for (int i = 0; i < getArrayLength(messageHashes); i++)
+        for (int i = 0; i < (((object)(messageHashes)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             object messageHash = getValue(messageHashes, i);
             string subMessageHash = ((string)messageHash).Replace("unsubscribe:", (string)"");
             this.cleanUnsubscription(client, subMessageHash, messageHash);
-            if (getIndexOf(messageHash, "ticker") >= 0)
+            if ((((object)(messageHash)) switch { IList<object> c33a => c33a.IndexOf("ticker"), IList<string> c33t => c33t.IndexOf((string)(object)"ticker"), string c33s => c33s.IndexOf((string)(object)"ticker"), _ => -1 }) >= 0)
             {
                 string symbol = ((string)messageHash).Replace("unsubscribe:ticker:", (string)"");
                 if (((IDictionary<string, object>)this.tickers).ContainsKey(symbol))
                 {
                     this.tickers.Remove(symbol);
                 }
-            } else if (getIndexOf(messageHash, "bidask") >= 0)
+            } else if ((((object)(messageHash)) switch { IList<object> c33a => c33a.IndexOf("bidask"), IList<string> c33t => c33t.IndexOf((string)(object)"bidask"), string c33s => c33s.IndexOf((string)(object)"bidask"), _ => -1 }) >= 0)
             {
                 string symbol = ((string)messageHash).Replace("unsubscribe:bidask:", (string)"");
                 if (((IDictionary<string, object>)this.bidsasks).ContainsKey(symbol))
                 {
                     this.bidsasks.Remove(symbol);
                 }
-            } else if (getIndexOf(messageHash, "candles") >= 0)
+            } else if ((((object)(messageHash)) switch { IList<object> c33a => c33a.IndexOf("candles"), IList<string> c33t => c33t.IndexOf((string)(object)"candles"), string c33s => c33s.IndexOf((string)(object)"candles"), _ => -1 }) >= 0)
             {
                 List<object> splitHashes = ((string)messageHash).Split(new [] {":"}, StringSplitOptions.None).ToList<object>();
                 string? symbol = this.safeString(splitHashes, 2);
                 string? timeframe = this.safeString(splitHashes, 3);
                 if (((symbol != null)) && ((timeframe != null)) && (((symbol != null) && ((IDictionary<string, object>)this.ohlcvs).ContainsKey(symbol))))
                 {
-                    if (inOp(getValue(this.ohlcvs, symbol), timeframe))
+                    if (((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))(getValue(this.ohlcvs, symbol), timeframe))
                     {
                         ((IDictionary<string,object>)getValue(this.ohlcvs, symbol)).Remove(timeframe);
                     }
                 }
-            } else if (getIndexOf(messageHash, "orderbook") >= 0)
+            } else if ((((object)(messageHash)) switch { IList<object> c33a => c33a.IndexOf("orderbook"), IList<string> c33t => c33t.IndexOf((string)(object)"orderbook"), string c33s => c33s.IndexOf((string)(object)"orderbook"), _ => -1 }) >= 0)
             {
                 string symbol = ((string)messageHash).Replace("unsubscribe:orderbook:", (string)"");
                 if (((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))
                 {
                     ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
                 }
-            } else if (getIndexOf(messageHash, "trades") >= 0)
+            } else if ((((object)(messageHash)) switch { IList<object> c33a => c33a.IndexOf("trades"), IList<string> c33t => c33t.IndexOf((string)(object)"trades"), string c33s => c33s.IndexOf((string)(object)"trades"), _ => -1 }) >= 0)
             {
                 string symbol = ((string)messageHash).Replace("unsubscribe:trades:", (string)"");
                 if (((IDictionary<string, object>)this.trades).ContainsKey(symbol))
                 {
                     this.trades.Remove(symbol);
                 }
-            } else if (getIndexOf(messageHash, "orders") >= 0)
+            } else if ((((object)(messageHash)) switch { IList<object> c33a => c33a.IndexOf("orders"), IList<string> c33t => c33t.IndexOf((string)(object)"orders"), string c33s => c33s.IndexOf((string)(object)"orders"), _ => -1 }) >= 0)
             {
                 if ((messageHash is "unsubscribe:orders"))
                 {
@@ -386,12 +386,12 @@ public partial class backpack : ccxt.backpack
                 {
                     string symbol = ((string)messageHash).Replace("unsubscribe:orders:", (string)"");
                     ccxt.pro.ArrayCache cache = this.orders;
-                    if (((cache != null)) && (inOp(cache, symbol)))
+                    if (((cache != null)) && (((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))(cache, symbol)))
                     {
                         ((IDictionary<string,object>)cache).Remove(symbol);
                     }
                 }
-            } else if (getIndexOf(messageHash, "positions") >= 0)
+            } else if ((((object)(messageHash)) switch { IList<object> c33a => c33a.IndexOf("positions"), IList<string> c33t => c33t.IndexOf((string)(object)"positions"), string c33s => c33s.IndexOf((string)(object)"positions"), _ => -1 }) >= 0)
             {
                 if ((messageHash is "unsubscribe:positions"))
                 {
@@ -405,7 +405,7 @@ public partial class backpack : ccxt.backpack
                 } else
                 {
                     string symbol = ((string)messageHash).Replace("unsubscribe:positions:", (string)"");
-                    if (inOp(this.positions, symbol))
+                    if (((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))(this.positions, symbol))
                     {
                         ((IDictionary<string,object>)this.positions).Remove(symbol);
                     }
@@ -932,7 +932,7 @@ public partial class backpack : ccxt.backpack
         {
             this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
         }
-        if (!(inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe)))
+        if (!(((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe)))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             var stored = new ArrayCacheByTimestamp(limit);
@@ -1338,10 +1338,10 @@ public partial class backpack : ccxt.backpack
             (storedOrderBook as ccxt.pro.OrderBook).cache.Add(data);
             // stock streams can be quiet, so do not wait for more deltas to fetch their snapshot
             Dictionary<string, object> market = this.market(symbol);
-            bool isStockMarket = ((((market.ContainsKey("stock") ? market["stock"] : null) as bool?) == true)) || (((marketId != null)) && (((marketId.IndexOf(".US_", StringComparison.Ordinal) != -1)) || ((marketId.IndexOf(".HK_", StringComparison.Ordinal) != -1))));
+            bool isStockMarket = ((((market.ContainsKey("stock") ? market["stock"] : null) as bool?) == true)) || (((marketId != null)) && ((marketId.IndexOf(".US_", StringComparison.Ordinal) >= 0) || (marketId.IndexOf(".HK_", StringComparison.Ordinal) >= 0)));
             int defaultSnapshotDelay = isStockMarket ? 0 : 10;
             object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", defaultSnapshotDelay);
-            if (isEqual(cacheLength, snapshotDelay))
+            if (((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))(cacheLength, snapshotDelay))
             {
                 this.spawn(this.loadOrderBook, new object[] { client, messageHash, symbol, null, new Dictionary<string, object>() {}});
             }
@@ -1356,7 +1356,8 @@ public partial class backpack : ccxt.backpack
 
     public override void handleBookDelta(ccxt.pro.IOrderBook orderbook, object delta)
     {
-        Int64? timestamp = this.parseToInt(((double?)this.safeInteger(delta, "T", 0) / 1000));
+        Int64? microseconds = this.safeInteger(delta, "T", 0);
+        Int64? timestamp = this.parseToInt(((double?)microseconds / 1000));
         orderbook["timestamp"] = timestamp;
         orderbook["datetime"] = this.iso8601(timestamp);
         orderbook["nonce"] = this.safeInteger(delta, "u");
@@ -1406,7 +1407,7 @@ public partial class backpack : ccxt.backpack
             {
                 return cacheLength;
             }
-            if ((isGreaterThanOrEqual(nonce, (deltaStart - 1))) && ((nonce < deltaEnd)))
+            if ((((deltaStart - 1) == null || nonce >= (deltaStart - 1))) && ((nonce < deltaEnd)))
             {
                 return i;
             }
@@ -1581,7 +1582,8 @@ public partial class backpack : ccxt.backpack
     {
         string? eventVar = this.safeString(data, "e", "");
         bool quoteEvent = ((eventVar?.IndexOf("quote", StringComparison.Ordinal) ?? -1) == 0);
-        Int64? timestamp = this.parseToInt(((double?)this.safeInteger(data, "E", 0) / 1000));
+        Int64? microseconds = this.safeInteger(data, "E", 0);
+        Int64? timestamp = this.parseToInt(((double?)microseconds / 1000));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "rfqId", this.safeString(data, "R") },
             { "clientId", this.safeString(data, "C") },
@@ -1605,7 +1607,8 @@ public partial class backpack : ccxt.backpack
         parsed["info"] = data;
         if (eventVar == "rfqFilled")
         {
-            parsed["lastTradeTimestamp"] = this.parseToInt(((double?)this.safeInteger(data, "T", 0) / 1000));
+            Int64? tradeMicroseconds = this.safeInteger(data, "T", 0);
+            parsed["lastTradeTimestamp"] = this.parseToInt(((double?)tradeMicroseconds / 1000));
         }
         return parsed;
     }
@@ -1703,7 +1706,8 @@ public partial class backpack : ccxt.backpack
         IDictionary<string, object> parsed = this.safeDict(new Dictionary<string, object>() {
             { "balances", response },
         }, "balances", new Dictionary<string, object>() {});
-        Int64? timestamp = this.parseToInt(((double?)this.safeInteger(data, "E", 0) / 1000));
+        Int64? microseconds = this.safeInteger(data, "E", 0);
+        Int64? timestamp = this.parseToInt(((double?)microseconds / 1000));
         parsed["timestamp"] = timestamp;
         parsed["datetime"] = this.iso8601(timestamp);
         parsed["info"] = assets;
@@ -1971,7 +1975,7 @@ public partial class backpack : ccxt.backpack
         string? side = "long";
         if ((netQuantity != null))
         {
-            if (isLessThan(netQuantity, 0))
+            if (((netQuantity == null || 0 > netQuantity)))
             {
                 side = "short";
             }
@@ -2014,7 +2018,7 @@ public partial class backpack : ccxt.backpack
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        if (!isEqual(this.handleErrorMessage(client, message), true))
+        if (!(this.handleErrorMessage(client, message) == true))
         {
             return;
         }

@@ -119,12 +119,19 @@ func SafeListTyped(m any, key any) []any {
 // plain map like MapTyped.
 func SafeDict2Typed(m any, key1 any, key2 any, optionalArgs ...any) map[string]any {
 	defaultValue := GetArg(optionalArgs, 0, nil)
+	isDict := func(v any) bool {
+		switch derefScalar(v).(type) {
+		case map[string]any, *sync.Map, Dict, map[any]any, OrderBookInterface:
+			return true
+		}
+		return false
+	}
 	value := SafeValue(m, key1, nil)
-	if IsDictionary(value) {
+	if isDict(value) {
 		return MapTyped(value)
 	}
 	value = SafeValue(m, key2, nil)
-	if IsDictionary(value) {
+	if isDict(value) {
 		return MapTyped(value)
 	}
 	return MapTyped(defaultValue)
@@ -134,12 +141,19 @@ func SafeDict2Typed(m any, key1 any, key2 any, optionalArgs ...any) map[string]a
 // key1/key2 holds that is neither nil nor a non-array, the caller's default otherwise.
 func SafeList2Typed(m any, key1 any, key2 any, optionalArgs ...any) []any {
 	defaultValue := GetArg(optionalArgs, 0, nil)
+	isArr := func(v any) bool {
+		switch derefScalar(v).(type) {
+		case []any, [][]any, IOrderBookSide, []map[string]any, ListCache, []string, []bool, []int, []int8, []int16, []int32, []int64, []float32, []float64, []uint, []uint8, []uint16, []uint32, []uint64:
+			return true
+		}
+		return false
+	}
 	value := SafeValue(m, key1, nil)
-	if !IsEqual(value, nil) && IsArray(value) {
+	if isArr(value) {
 		return listValueToTypedSlice(value)
 	}
 	value = SafeValue(m, key2, nil)
-	if !IsEqual(value, nil) && IsArray(value) {
+	if isArr(value) {
 		return listValueToTypedSlice(value)
 	}
 	return listValueToTypedSlice(defaultValue)
@@ -150,7 +164,9 @@ func SafeList2Typed(m any, key1 any, key2 any, optionalArgs ...any) []any {
 // SafeListTyped. The printer emits it for a local whose default is a non-empty array literal.
 func SafeListTypedDefault(m any, key any, defaultValue any) []any {
 	value := SafeValue(m, key, defaultValue)
-	if IsEqual(value, nil) || !IsArray(value) {
+	switch derefScalar(value).(type) {
+	case []any, [][]any, IOrderBookSide, []map[string]any, ListCache, []string, []bool, []int, []int8, []int16, []int32, []int64, []float32, []float64, []uint, []uint8, []uint16, []uint32, []uint64:
+	default:
 		value = defaultValue
 	}
 	return listValueToTypedSlice(value)

@@ -848,8 +848,7 @@ export default class btse extends Exchange {
                 // if so, just omit until for correct paginated calls for not to get an error from the exchange
                 const duration = this.parseTimeframe (timeframe);
                 const maxDelta = duration * maxLimit * 1000; // parseTimeframe returns seconds, the difference below is in milliseconds
-                const difference = until - since;
-                if (difference < maxDelta) {
+                if ((until - since) < maxDelta) {
                     request['end'] = this.parseToInt (until / 1000);
                 }
             } else {
@@ -970,11 +969,12 @@ export default class btse extends Exchange {
         if (period === undefined) {
             period = '7D';
             if (since !== undefined) {
-                const age = this.milliseconds () - since;
-                const day = 86400000;
-                if (age > 14 * day) {
+                const now = this.milliseconds ();
+                const twoWeeksAgo = now - 1209600000; // 14 days in ms
+                const oneWeekAgo = now - 604800000; // 7 days in ms
+                if (since < twoWeeksAgo) {
                     period = '1M';
-                } else if (age > 7 * day) {
+                } else if (since < oneWeekAgo) {
                     period = '2W';
                 }
             }
@@ -1190,11 +1190,8 @@ export default class btse extends Exchange {
         //
         // a single-symbol request returns the entry directly in data
         //
-        let data = this.safeList (response, 'data');
-        if (data === undefined) {
-            const single = this.safeDict (response, 'data', {});
-            data = [ single ];
-        }
+        const single = this.safeDict (response, 'data', {});
+        const data = this.safeList (response, 'data', [ single ]);
         const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const entry = this.safeDict (data, i);
@@ -1204,40 +1201,27 @@ export default class btse extends Exchange {
             if (symbolsNormalized === undefined || this.inArray (symbol, symbolsNormalized)) {
                 const levels: Dict[] = this.safeList (entry, 'riskLimits', []);
                 const tiers: Dict[] = [];
+                // each tier's floor is the previous tier's cap (0 for the first)
+                let minNotional: Num = undefined;
                 for (let j = 0; j < levels.length; j++) {
                     const level = levels[j];
+                    const maxNotional = this.safeNumber (level, 'value');
                     // the endpoint only reports the notional ladder, the
                     // per-tier leverage and margin rates are not available
                     tiers.push ({
                         'tier': this.safeInteger (level, 'level'),
                         'symbol': symbol,
                         'currency': market['settle'],
-                        'minNotional': undefined,
-                        'maxNotional': this.safeNumber (level, 'value'),
+                        'minNotional': (j === 0) ? 0 : minNotional,
+                        'maxNotional': maxNotional,
                         'maintenanceMarginRate': undefined,
                         'maxLeverage': undefined,
                         'info': level,
                     });
+                    minNotional = maxNotional;
                 }
                 result[symbol] = tiers; // rows arrive ordered by level ascending, avoid sortBy which compares numeric keys lexicographically in some transpiled runtimes
             }
-        }
-        // the exchange only provides the cap of each risk tier, so the floor
-        // is derived from the previous tier: 0 for the first tier, and the
-        // previous tier's maxNotional for every subsequent tier
-        const symbolKeys = Object.keys (result);
-        for (let i = 0; i < symbolKeys.length; i++) {
-            const symbolKey = symbolKeys[i];
-            const tiersList = result[symbolKey];
-            for (let j = 0; j < tiersList.length; j++) {
-                if (j === 0) {
-                    tiersList[j]['minNotional'] = 0;
-                } else {
-                    tiersList[j]['minNotional'] = tiersList[j - 1]['maxNotional'];
-                }
-            }
-            // php copies arrays by value, so the mutated list must be written back explicitly
-            result[symbolKey] = tiersList;
         }
         return result as LeverageTiers;
     }
@@ -1330,11 +1314,8 @@ export default class btse extends Exchange {
         //     }
         //
         // a single-symbol query returns data as one object, a multi-symbol or bare query returns an array
-        let data = this.safeDict (response, 'data');
-        if (data === undefined) {
-            const rows = this.safeList (response, 'data', []);
-            data = this.safeDict (rows, 0, {});
-        }
+        const rows = this.safeList (response, 'data', []);
+        const data = this.safeDict (response, 'data', this.safeDict (rows, 0, {}));
         return this.parseTicker (data, market);
     }
 
@@ -1403,11 +1384,8 @@ export default class btse extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.publicGetPublicApiMarketV1Ticker24hr (this.extend (request, params));
-        let interest = this.safeDict (response, 'data');
-        if (interest === undefined) {
-            const rows = this.safeList (response, 'data', []);
-            interest = this.safeDict (rows, 0, {});
-        }
+        const rows = this.safeList (response, 'data', []);
+        const interest = this.safeDict (response, 'data', this.safeDict (rows, 0, {}));
         return this.parseOpenInterest (interest, market);
     }
 
@@ -1472,11 +1450,8 @@ export default class btse extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.publicGetPublicApiMarketV1Ticker24hr (this.extend (request, params));
-        let data = this.safeDict (response, 'data');
-        if (data === undefined) {
-            const rows = this.safeList (response, 'data', []);
-            data = this.safeDict (rows, 0, {});
-        }
+        const rows = this.safeList (response, 'data', []);
+        const data = this.safeDict (response, 'data', this.safeDict (rows, 0, {}));
         return this.parseFundingRate (data, market);
     }
 
@@ -1739,10 +1714,7 @@ export default class btse extends Exchange {
             //
             response = await this.privateGetFuturesApiV3TradeTradeHistory (this.extend (request, paramsMarketType));
         }
-        let rows = this.safeList (response, 'data') as any;
-        if (rows === undefined) {
-            rows = response;
-        }
+        const rows = this.safeList (response, 'data', response as any);
         return this.parseTrades (rows, market, since, limit);
     }
 
@@ -2328,7 +2300,7 @@ export default class btse extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    encodeTriggerPriceType (priceType: Str) {
+    encodeTriggerPriceType (priceType: Str): Str {
         const priceTypes = {
             'last': 'LAST_PRICE',
             'mark': 'MARK_PRICE',
@@ -2730,7 +2702,7 @@ export default class btse extends Exchange {
         }, marketResolved);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses = {
             '2': 'open', // Order Inserted
             '3': 'closed', // Order Transacted
@@ -2755,7 +2727,7 @@ export default class btse extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderType (type: Str) {
+    parseOrderType (type: Str): Str {
         const types = {
             // the unified futures place order response reports a degenerate 0
             // in the type field regardless of the real order type, observed
@@ -2767,7 +2739,7 @@ export default class btse extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseTimeInForce (timeInForce: Str) {
+    parseTimeInForce (timeInForce: Str): Str {
         const values = {
             'GTC': 'GTC',
             'IOC': 'IOC',
@@ -3258,10 +3230,7 @@ export default class btse extends Exchange {
         //
         // the response is a bare array of position rows
         //
-        let rows = this.safeList (response, 'data') as any;
-        if (rows === undefined) {
-            rows = response;
-        }
+        const rows = this.safeList (response, 'data', response as any);
         return this.parsePositions (rows, symbolsNormalized);
     }
 
@@ -3374,7 +3343,7 @@ export default class btse extends Exchange {
         });
     }
 
-    parseMarginModeType (marginMode: Str) {
+    parseMarginModeType (marginMode: Str): Str {
         const marginModes = {
             '91': 'cross',
             '92': 'isolated',
@@ -3384,7 +3353,7 @@ export default class btse extends Exchange {
         return this.safeString (marginModes, marginMode, marginMode);
     }
 
-    parsePositionSide (side: Str) {
+    parsePositionSide (side: Str): Str {
         const sides = {
             'buy': 'long',
             'sell': 'short',
@@ -3587,10 +3556,7 @@ export default class btse extends Exchange {
         }
         const paramsOmitted = (typeUpper === 'LIMIT') ? this.omit (paramsOrderType, 'price') : paramsOrderType;
         const response = await this.privateDeleteFuturesApiV3TradePositions (this.extend (request, paramsOmitted));
-        let order = this.safeDict (response, 0);
-        if (order === undefined) {
-            order = response;
-        }
+        const order = this.safeDict (response, 0, response);
         return this.parseOrder (order, market);
     }
 
@@ -3831,7 +3797,7 @@ export default class btse extends Exchange {
         return this.safeString (market['info'], 'tradeCurrency', market['id']);
     }
 
-    cleanPath (path: string) {
+    cleanPath (path: string): string {
         let result = path.replace ('spot', '');
         result = result.replace ('futures', '');
         result = result.replace ('otc', '');

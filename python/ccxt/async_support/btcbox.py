@@ -614,7 +614,7 @@ class btcbox(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             # TODO: complete list
             'part': 'open',  # partially or not at all executed

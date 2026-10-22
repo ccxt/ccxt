@@ -756,7 +756,7 @@ public class Btcmarkets extends BtcmarketsApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        for (var i = 0; i < Helpers.getArrayLength(response); i++)
+        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, (Object) null);
             String currencyId = this.safeString(balance, "assetName");
@@ -1074,10 +1074,12 @@ public class Btcmarkets extends BtcmarketsApi
         String feeCostString = this.safeString(trade, "fee");
         if (!java.util.Objects.equals(feeCostString, null))
         {
-            fee = Helpers.newMap(
-                "cost", feeCostString,
-                "currency", feeCurrencyCode
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("cost", feeCostString);
+                hx4NewMap0.put("currency", feeCurrencyCode);
+                fee = hx4NewMap0;
+            }
         }
         String takerOrMaker = this.safeStringLower(trade, "liquidityType");
         HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
@@ -1163,7 +1165,7 @@ public class Btcmarkets extends BtcmarketsApi
             request.put("amount", this.amountToPrecision(symbol, amount));
             request.put("side", (((java.util.Objects.equals(side, "buy")))) ? "Bid" : "Ask");
             String lowercaseType = ((String)type).toLowerCase();
-            Object orderTypes = this.safeDict(this.options, "orderTypes", new HashMap<String, Object>() {{
+            Map<String, Object> orderTypes = (Map<String, Object>) this.safeDict(this.options, "orderTypes", new HashMap<String, Object>() {{
                 put( "limit", "Limit" );
                 put( "market", "Market" );
                 put( "stop", "Stop" );
@@ -1267,7 +1269,7 @@ public class Btcmarkets extends BtcmarketsApi
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
                 // numericIds[i] = parseInt (ids[i]);
-                ((List<Object>)numericIds).add(Helpers.parseInt((ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i))));
+                ((List<Object>)numericIds).add(((Long) (switch ((Object) ((ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i)))) { case null -> (Long) null; case Long hx4J42v1 -> hx4J42v1; case Integer hx4J42v1 -> Long.valueOf(hx4J42v1.longValue()); case Double hx4J42v1 -> Long.valueOf(hx4J42v1.longValue()); case Float hx4J42v1 -> Long.valueOf(hx4J42v1.longValue()); case java.math.BigDecimal hx4J42v1 -> Long.valueOf(hx4J42v1.longValue()); case Object hx4J42v1 -> { try { yield Long.valueOf(Long.parseLong(String.valueOf(hx4J42v1))); } catch (Exception hx4J42v1e) { yield (Long) null; } } })));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "ids", numericIds );
@@ -1374,7 +1376,7 @@ public class Btcmarkets extends BtcmarketsApi
             h2kMap1.put("type", java.util.Objects.requireNonNullElse(takerOrMaker, "taker"));
             h2kMap1.put("currency", currency);
             h2kMap1.put("rate", rate);
-            h2kMap1.put("cost", Helpers.parseFloat(feeCost));
+            h2kMap1.put("cost", ((Double) (switch ((Object) (feeCost)) { case null -> Double.valueOf(0.0); case Double hx4J42v0 -> Double.valueOf(hx4J42v0.doubleValue()); case Float hx4J42v0 -> Double.valueOf(hx4J42v0.doubleValue()); case Long hx4J42v0 -> Double.valueOf(hx4J42v0.doubleValue()); case Integer hx4J42v0 -> Double.valueOf(hx4J42v0.doubleValue()); case java.math.BigDecimal hx4J42v0 -> Double.valueOf(hx4J42v0.doubleValue()); case Object hx4J42v0 -> { String hx4J42v0s; try { hx4J42v0s = String.valueOf(hx4J42v0); } catch (Exception hx4J42v0e) { yield (Double) null; } try { yield Double.valueOf(Double.parseDouble(hx4J42v0s)); } catch (NumberFormatException hx4J42v0e) { yield Double.valueOf(0.0); } } })));
             return h2kMap1;
         }
     }

@@ -1436,7 +1436,7 @@ class bitteam extends Exchange {
         ), $marketResolved);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'accepted' => 'open',
             'executed' => 'closed',
@@ -1458,7 +1458,7 @@ class bitteam extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_value_to_pricision(array $valueObject, string $valueKey, ?array $preciseObject, string $precisionKey) {
+    public function parse_value_to_pricision(array $valueObject, string $valueKey, ?array $preciseObject, string $precisionKey): ?string {
         $valueRawString = $this->safe_string($valueObject, $valueKey);
         $precisionRawString = $this->safe_string($preciseObject, $precisionKey);
         if ($valueRawString === null || $precisionRawString === null) {
@@ -2499,7 +2499,7 @@ class bitteam extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'approving' => 'pending',
             'success' => 'ok',

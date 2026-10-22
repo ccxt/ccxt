@@ -3464,7 +3464,7 @@ class kucoin extends Exchange {
             'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         $duration = $this->parse_timeframe($timeframe) * 1000;
-        $endAt = $this->milliseconds(); // required param
+        $now = $this->milliseconds(); // required param
         $denominator = 1000;
         // For each query, the system would return at most 1500 pieces of data.
         // To obtain more data, please page the data by time.
@@ -3472,13 +3472,13 @@ class kucoin extends Exchange {
         $limitResolved = ($since !== null) ? $windowLimit : $limit;
         $sinceResolved = $since;
         if (($since === null) && ($limit !== null)) {
-            $sinceResolved = $endAt - $limit * $duration;
+            $sinceResolved = $now - $limit * $duration;
         }
+        $endAt = ($since !== null) ? $this->parse_to_int($this->sum($since, $windowLimit * $duration)) : $now;
         if ($since !== null) {
             $request['startAt'] = $this->parse_to_int((int) floor($since / $denominator));
-            $endAt = $this->sum($since, $windowLimit * $duration);
         } elseif ($limit !== null) {
-            $request['startAt'] = $this->parse_to_int((int) floor(($endAt - $limit * $duration) / $denominator));
+            $request['startAt'] = $this->parse_to_int((int) floor(($now - $limit * $duration) / $denominator));
         }
         $request['endAt'] = $this->parse_to_int((int) floor($endAt / $denominator));
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchOHLCV', $market, $paramsPaginate);
@@ -3553,7 +3553,7 @@ class kucoin extends Exchange {
             'type' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         $duration = $this->parse_timeframe($timeframe) * 1000;
-        $endAt = $this->milliseconds(); // required param
+        $now = $this->milliseconds(); // required param
         $denominator = 1000;
         // For each query, the system would return at most 1500 pieces of data.
         // To obtain more data, please page the data by time.
@@ -3561,13 +3561,13 @@ class kucoin extends Exchange {
         $limitResolved = ($since !== null) ? $windowLimit : $limit;
         $sinceResolved = $since;
         if (($since === null) && ($limit !== null)) {
-            $sinceResolved = $endAt - $limit * $duration;
+            $sinceResolved = $now - $limit * $duration;
         }
+        $endAt = ($since !== null) ? $this->parse_to_int($this->sum($since, $windowLimit * $duration)) : $now;
         if ($since !== null) {
             $request['startAt'] = $this->parse_to_int((int) floor($since / $denominator));
-            $endAt = $this->sum($since, $windowLimit * $duration);
         } elseif ($limit !== null) {
-            $request['startAt'] = $this->parse_to_int((int) floor(($endAt - $limit * $duration) / $denominator));
+            $request['startAt'] = $this->parse_to_int((int) floor(($now - $limit * $duration) / $denominator));
         }
         $request['endAt'] = $this->parse_to_int((int) floor($endAt / $denominator));
         $response = Async\await($this->publicGetMarketCandles($this->extend($request, $paramsPaginate)));
@@ -3624,15 +3624,16 @@ class kucoin extends Exchange {
             $request['granularity'] = $timeframe;
         }
         $duration = $this->parse_timeframe($timeframe) * 1000;
-        $endAt = $this->milliseconds(); // required param
+        $now = $this->milliseconds(); // required param
         // For each query, the system would return at most 200 pieces of data.
         // To obtain more data, please page the data by time.
         $windowLimit = ($limit === null) ? $this->safe_integer($this->options, 'fetchOHLCVLimit', $maxLimit) : $limit;
         $limitResolved = ($since !== null) ? $windowLimit : $limit;
         $sinceResolved = $since;
         if (($since === null) && ($limit !== null)) {
-            $sinceResolved = $endAt - $limit * $duration;
+            $sinceResolved = $now - $limit * $duration;
         }
+        $endAt = $now;
         if ($since !== null) {
             $request['from'] = $since;
             $endAt = $this->sum($since, $windowLimit * $duration);
@@ -4300,7 +4301,7 @@ class kucoin extends Exchange {
         return $this->extend($request, $paramsOmitted);
     }
 
-    public function market_order_amount_to_precision(?string $symbol, mixed $amount) {
+    public function market_order_amount_to_precision(?string $symbol, mixed $amount): string {
         $market = $this->market($symbol);
         $result = $this->decimal_to_precision($amount, TRUNCATE, $market['info']['quoteIncrement'], $this->precisionMode, $this->paddingMode);
         if ($result === '0') {
@@ -7546,15 +7547,15 @@ class kucoin extends Exchange {
         $id = $this->safe_string_2($trade, 'tradeId', 'id');
         $orderId = $this->safe_string($trade, 'orderId');
         $takerOrMaker = $this->safe_string($trade, 'liquidity');
-        $timestamp = $this->safe_integer_2($trade, 'time', 'ts');
-        if ($timestamp !== null) {
-            $timestamp = $this->parse_to_int($timestamp / 1000000);
-        } else {
-            $timestamp = $this->safe_integer($trade, 'createdAt');
-            // if it's a historical v1 trade, the exchange returns timestamp in seconds
-            if ((is_array($trade) && array_key_exists('dealValue' ?? '', $trade)) && ($timestamp !== null)) {
-                $timestamp = $timestamp * 1000;
-            }
+        $nanoseconds = $this->safe_integer_2($trade, 'time', 'ts');
+        $createdAt = $this->safe_integer($trade, 'createdAt');
+        // if it's a historical v1 trade, the exchange returns timestamp in seconds
+        $timestamp = $createdAt;
+        if ((is_array($trade) && array_key_exists('dealValue' ?? '', $trade)) && ($createdAt !== null)) {
+            $timestamp = $createdAt * 1000;
+        }
+        if ($nanoseconds !== null) {
+            $timestamp = $this->parse_to_int($nanoseconds / 1000000);
         }
         $priceString = $this->safe_string_2($trade, 'price', 'dealPrice');
         $amountString = $this->safe_string_2($trade, 'size', 'amount');
@@ -7676,15 +7677,15 @@ class kucoin extends Exchange {
         $id = $this->safe_string_2($trade, 'tradeId', 'id');
         $orderId = $this->safe_string($trade, 'orderId');
         $takerOrMaker = $this->safe_string($trade, 'liquidity');
-        $timestamp = $this->safe_integer($trade, 'ts');
-        if ($timestamp !== null) {
-            $timestamp = $this->parse_to_int($timestamp / 1000000);
-        } else {
-            $timestamp = $this->safe_integer($trade, 'createdAt');
-            // if it's a historical v1 trade, the exchange returns timestamp in seconds
-            if ((is_array($trade) && array_key_exists('dealValue' ?? '', $trade)) && ($timestamp !== null)) {
-                $timestamp = $timestamp * 1000;
-            }
+        $nanoseconds = $this->safe_integer($trade, 'ts');
+        $createdAt = $this->safe_integer($trade, 'createdAt');
+        // if it's a historical v1 trade, the exchange returns timestamp in seconds
+        $timestamp = $createdAt;
+        if ((is_array($trade) && array_key_exists('dealValue' ?? '', $trade)) && ($createdAt !== null)) {
+            $timestamp = $createdAt * 1000;
+        }
+        if ($nanoseconds !== null) {
+            $timestamp = $this->parse_to_int($nanoseconds / 1000000);
         }
         $priceString = $this->safe_string_2($trade, 'price', 'dealPrice');
         $amountString = $this->safe_string_2($trade, 'size', 'amount');
@@ -7941,7 +7942,7 @@ class kucoin extends Exchange {
         return $withdrawal;
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'SUCCESS' => 'ok',
             'PROCESSING' => 'pending',
@@ -8032,19 +8033,17 @@ class kucoin extends Exchange {
                 'currency' => $code,
             );
         }
-        $timestamp = $this->safe_integer_2($transaction, 'createdAt', 'createAt');
-        $updated = $this->safe_integer($transaction, 'updatedAt');
+        $createdAt = $this->safe_integer_2($transaction, 'createdAt', 'createAt');
+        $updatedAt = $this->safe_integer($transaction, 'updatedAt');
         $isV1 = !(is_array($transaction) && array_key_exists('createdAt' ?? '', $transaction));
         // if it's a v1 structure
         if ($isV1) {
             $type = (is_array($transaction) && array_key_exists('address' ?? '', $transaction)) ? 'withdrawal' : 'deposit';
-            if ($timestamp !== null) {
-                $timestamp = $timestamp * 1000;
-            }
-            if ($updated !== null) {
-                $updated = $updated * 1000;
-            }
         }
+        $createdAtMs = ($createdAt === null) ? null : $createdAt * 1000;
+        $updatedAtMs = ($updatedAt === null) ? null : $updatedAt * 1000;
+        $timestamp = $isV1 ? $createdAtMs : $createdAt;
+        $updated = $isV1 ? $updatedAtMs : $updatedAt;
         $internal = $this->safe_bool($transaction, 'isInner');
         $tag = $this->safe_string($transaction, 'memo');
         $chainId = $this->safe_string($transaction, 'chain');
@@ -8564,7 +8563,7 @@ class kucoin extends Exchange {
         );
         if ($isolated) {
             $data = $this->safe_dict($response, 'data', array());
-            $assets = $this->safe_value($data, 'assets', $data);
+            $assets = $this->safe_list($data, 'assets', array());
             for ($i = 0; $i < count($assets); $i++) {
                 $entry = $this->safe_dict($assets, $i);
                 $base = $this->safe_dict($entry, 'baseAsset', array());

@@ -1248,7 +1248,7 @@ public class Weex extends WeexApi
             return null;
         }
         String settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
-        Object active = true;
+        Boolean active = true;
         String symbol = ((base + "/") + quote);
         Boolean isSpot = true;
         Boolean isLinear = null;
@@ -1268,7 +1268,7 @@ public class Weex extends WeexApi
             }
         } else
         {
-            active = this.safeBool(market, "enableTrade", false);
+            active = (Boolean) this.safeBool(market, "enableTrade", false);
         }
         Double amountPrecision = this.safeNumber(market, "stepSize", (Object) null);
         Double pricePrecision = this.safeNumber(market, "tickSize", (Object) null);
@@ -1936,26 +1936,31 @@ public class Weex extends WeexApi
                 {
                     Long now = this.milliseconds();
                     Long duration = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L);
-                    Long numberOfCandles = maxHistoricalLimit;
-                    if (!java.util.Objects.equals(limitResolved, null) && !java.util.Objects.equals(limitResolved, null) && !java.util.Objects.equals(limitResolved, 0L))
+                    Long timeDelta = (((long) maxHistoricalLimit) * duration);
+                    if (!java.util.Objects.equals(limit, null) && !java.util.Objects.equals(limit, null) && (limit != 0))
                     {
-                        numberOfCandles = limitResolved;
+                        if ((limit > 1000))
+                        {
+                            timeDelta = (1000L * duration);
+                        } else
+                        {
+                            timeDelta = (limit * duration);
+                        }
                     }
-                    Object timeDelta = Helpers.multiply(numberOfCandles, duration);
                     if ((java.util.Objects.equals(since, null)) && (java.util.Objects.equals(until, null)))
                     {
                         endTime = now;
-                        startTime = Helpers.subtract(now, timeDelta);
+                        startTime = (now - timeDelta);
                     } else if (java.util.Objects.equals(since, null))
                     {
                         if (java.util.Objects.equals(until, null))
                         {
                             throw new ArgumentsRequired((this.id + " fetchOHLCV() requires a since or until argument")) ;
                         }
-                        startTime = Helpers.subtract(until, timeDelta);
+                        startTime = (until - timeDelta);
                     } else
                     {
-                        endTime = Helpers.add(since, timeDelta);
+                        endTime = (since + timeDelta);
                     }
                 }
                 request.put("startTime", startTime);
@@ -2136,10 +2141,12 @@ public class Weex extends WeexApi
                     feeCurrency = this.safeString(marketResolved, "quote");
                 }
             }
-            fee = Helpers.newMap(
-                "cost", commission,
-                "currency", feeCurrency
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("cost", commission);
+                hx4NewMap0.put("currency", feeCurrency);
+                fee = hx4NewMap0;
+            }
         }
         Boolean isMaker = (Boolean) this.safeBool(trade, "maker", (Object) null);
         String takerOrMaker = null;
@@ -2747,7 +2754,7 @@ public class Weex extends WeexApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Object request = this.createContractOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+            Map<String, Object> request = (Map<String, Object>) this.createContractOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             String triggerPrice = this.safeString(request, "triggerPrice");
             Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
             Map<String, Object> response = null;
@@ -2812,11 +2819,7 @@ public class Weex extends WeexApi
             throw new BadRequest((this.id + " createOrder() cannot use the triggerPrice parameter together with the stopLossPrice or takeProfitPrice parameters")) ;
         }
         Boolean reduceOnly = (Boolean) this.safeBool(query, "reduceOnly", (Object) null);
-        if (Boolean.TRUE.equals(isStopLoss) || Boolean.TRUE.equals(isTakeProfit))
-        {
-            reduceOnly = true;
-        }
-        Boolean isReduceOnly = (java.util.Objects.equals(reduceOnly, true));
+        Boolean isReduceOnly = Boolean.TRUE.equals(isStopLoss) || Boolean.TRUE.equals(isTakeProfit) || (java.util.Objects.equals(reduceOnly, true));
         String positionSide = "LONG";
         if (Boolean.TRUE.equals(isReduceOnly))
         {
@@ -2862,7 +2865,7 @@ public class Weex extends WeexApi
                 throw new BadRequest((this.id + " createOrder() cannot use the timeInForce parameter with trigger orders")) ;
             }
             request.put("clientAlgoId", clientOrderId);
-            Helpers.addElementToObject(parameters, "triggerPrice", this.priceToPrecision(symbol, triggerPrice));
+            { Map<Object, Object> j39v28 = (Map<Object, Object>) (Map<?, ?>) (parameters); Object j39v29 = "triggerPrice"; Object j39v30 = this.priceToPrecision(symbol, triggerPrice); if (j39v28 == null) { if (j39v29 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v28) { if (j39v30 == null && j39v28 instanceof java.util.concurrent.ConcurrentHashMap) { j39v28.remove(j39v29); } else { j39v28.put(j39v29, j39v30); } } }
             if (Boolean.TRUE.equals(isMarketOrder))
             {
                 parameters.put("type", "STOP_MARKET");
@@ -2878,7 +2881,7 @@ public class Weex extends WeexApi
                 String stopLossPriceType = this.safeString(stopLoss, "triggerPriceType");
                 if (!java.util.Objects.equals(stopLossPriceType, null))
                 {
-                    Helpers.addElementToObject(parameters, "SlWorkingType", this.encodeTriggerPriceType(stopLossPriceType));
+                    { Map<Object, Object> j39v25 = (Map<Object, Object>) (Map<?, ?>) (parameters); Object j39v26 = "SlWorkingType"; Object j39v27 = this.encodeTriggerPriceType(stopLossPriceType); if (j39v25 == null) { if (j39v26 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v25) { if (j39v27 == null && j39v25 instanceof java.util.concurrent.ConcurrentHashMap) { j39v25.remove(j39v26); } else { j39v25.put(j39v26, j39v27); } } }
                 }
             }
             if (Boolean.TRUE.equals(hasTakeProfit))
@@ -2888,7 +2891,7 @@ public class Weex extends WeexApi
                 String takeProfitPriceType = this.safeString(takeProfit, "triggerPriceType");
                 if (!java.util.Objects.equals(takeProfitPriceType, null))
                 {
-                    Helpers.addElementToObject(parameters, "TpWorkingType", this.encodeTriggerPriceType(takeProfitPriceType));
+                    { Map<Object, Object> j39v22 = (Map<Object, Object>) (Map<?, ?>) (parameters); Object j39v23 = "TpWorkingType"; Object j39v24 = this.encodeTriggerPriceType(takeProfitPriceType); if (j39v22 == null) { if (j39v23 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v22) { if (j39v24 == null && j39v22 instanceof java.util.concurrent.ConcurrentHashMap) { j39v22.remove(j39v23); } else { j39v22.put(j39v23, j39v24); } } }
                 }
             }
         } else if (Boolean.TRUE.equals(isStopLoss) || Boolean.TRUE.equals(isTakeProfit))
@@ -2916,9 +2919,9 @@ public class Weex extends WeexApi
                 String stopLossPriceType = this.safeString2(parameters, "stopLossPriceType", "triggerPriceType");
                 if (!java.util.Objects.equals(stopLossPriceType, null))
                 {
-                    Helpers.addElementToObject(parameters, "SlWorkingType", this.encodeTriggerPriceType(stopLossPriceType));
+                    { Map<Object, Object> j39v19 = (Map<Object, Object>) (Map<?, ?>) (parameters); Object j39v20 = "SlWorkingType"; Object j39v21 = this.encodeTriggerPriceType(stopLossPriceType); if (j39v19 == null) { if (j39v20 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v19) { if (j39v21 == null && j39v19 instanceof java.util.concurrent.ConcurrentHashMap) { j39v19.remove(j39v20); } else { j39v19.put(j39v20, j39v21); } } }
                 }
-                Helpers.addElementToObject(parameters, "triggerPrice", this.priceToPrecision(symbol, stopLossPrice));
+                { Map<Object, Object> j39v16 = (Map<Object, Object>) (Map<?, ?>) (parameters); Object j39v17 = "triggerPrice"; Object j39v18 = this.priceToPrecision(symbol, stopLossPrice); if (j39v16 == null) { if (j39v17 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v16) { if (j39v18 == null && j39v16 instanceof java.util.concurrent.ConcurrentHashMap) { j39v16.remove(j39v17); } else { j39v16.put(j39v17, j39v18); } } }
                 if (Boolean.TRUE.equals(isMarketOrder))
                 {
                     orderType = "STOP_MARKET";
@@ -2931,9 +2934,9 @@ public class Weex extends WeexApi
                 String takeProfitPriceType = this.safeString2(parameters, "takeProfitPriceType", "triggerPriceType");
                 if (!java.util.Objects.equals(takeProfitPriceType, null))
                 {
-                    Helpers.addElementToObject(parameters, "TpWorkingType", this.encodeTriggerPriceType(takeProfitPriceType));
+                    { Map<Object, Object> j39v13 = (Map<Object, Object>) (Map<?, ?>) (parameters); Object j39v14 = "TpWorkingType"; Object j39v15 = this.encodeTriggerPriceType(takeProfitPriceType); if (j39v13 == null) { if (j39v14 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v13) { if (j39v15 == null && j39v13 instanceof java.util.concurrent.ConcurrentHashMap) { j39v13.remove(j39v14); } else { j39v13.put(j39v14, j39v15); } } }
                 }
-                Helpers.addElementToObject(parameters, "triggerPrice", this.priceToPrecision(symbol, takeProfitPrice));
+                { Map<Object, Object> j39v10 = (Map<Object, Object>) (Map<?, ?>) (parameters); Object j39v11 = "triggerPrice"; Object j39v12 = this.priceToPrecision(symbol, takeProfitPrice); if (j39v10 == null) { if (j39v11 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v10) { if (j39v12 == null && j39v10 instanceof java.util.concurrent.ConcurrentHashMap) { j39v10.remove(j39v11); } else { j39v10.put(j39v11, j39v12); } } }
                 if (Boolean.TRUE.equals(isMarketOrder))
                 {
                     orderType = "TAKE_PROFIT_MARKET";
@@ -2942,7 +2945,7 @@ public class Weex extends WeexApi
                     orderType = "TAKE_PROFIT";
                 }
             }
-            Helpers.addElementToObject(parameters, "type", orderType);
+            { Map<Object, Object> j39v7 = (Map<Object, Object>) (Map<?, ?>) (parameters); Object j39v8 = "type"; Object j39v9 = orderType; if (j39v7 == null) { if (j39v8 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v7) { if (j39v9 == null && j39v7 instanceof java.util.concurrent.ConcurrentHashMap) { j39v7.remove(j39v8); } else { j39v7.put(j39v8, j39v9); } } }
         } else
         {
             if (!Boolean.TRUE.equals(isMarketOrder) && java.util.Objects.equals(timeInForce, null))
@@ -2957,7 +2960,7 @@ public class Weex extends WeexApi
                 String stopLossPriceType = this.safeString(stopLoss, "triggerPriceType");
                 if (!java.util.Objects.equals(stopLossPriceType, null))
                 {
-                    Helpers.addElementToObject(parameters, "SlWorkingType", this.encodeTriggerPriceType(stopLossPriceType));
+                    { Map<Object, Object> j39v4 = (Map<Object, Object>) (Map<?, ?>) (parameters); Object j39v5 = "SlWorkingType"; Object j39v6 = this.encodeTriggerPriceType(stopLossPriceType); if (j39v4 == null) { if (j39v5 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v4) { if (j39v6 == null && j39v4 instanceof java.util.concurrent.ConcurrentHashMap) { j39v4.remove(j39v5); } else { j39v4.put(j39v5, j39v6); } } }
                 }
             }
             if (Boolean.TRUE.equals(hasTakeProfit))
@@ -2967,7 +2970,7 @@ public class Weex extends WeexApi
                 String takeProfitPriceType = this.safeString(takeProfit, "triggerPriceType");
                 if (!java.util.Objects.equals(takeProfitPriceType, null))
                 {
-                    Helpers.addElementToObject(parameters, "TpWorkingType", this.encodeTriggerPriceType(takeProfitPriceType));
+                    { Map<Object, Object> j39v1 = (Map<Object, Object>) (Map<?, ?>) (parameters); Object j39v2 = "TpWorkingType"; Object j39v3 = this.encodeTriggerPriceType(takeProfitPriceType); if (j39v1 == null) { if (j39v2 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v1) { if (j39v3 == null && j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); } else { j39v1.put(j39v2, j39v3); } } }
                 }
             }
         }
@@ -3921,7 +3924,7 @@ public class Weex extends WeexApi
     {
         String errorCodeValue = (((java.util.Objects.equals(errorCode, null)))) ? "" : errorCode;
         String errorMessageValue = (((java.util.Objects.equals(errorMessage, null)))) ? "" : errorMessage;
-        if ((java.util.Objects.equals(errorCodeValue, "")) && (java.util.Objects.equals(errorMessageValue, "")))
+        if (((java.util.Objects.equals(errorCode, null)) || (java.util.Objects.equals(errorCode, ""))) && ((java.util.Objects.equals(errorMessage, null)) || (java.util.Objects.equals(errorMessage, ""))))
         {
             // some endpoints could return an empty string if there is no error
             return;
@@ -4341,8 +4344,9 @@ public class Weex extends WeexApi
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             // the exchange rejects startTime and endTime when either is sent alone, they only work as a pair
-            Boolean hasSince = (((Map<?, ?>)requestUntil).containsKey("startTime"));
-            Boolean hasUntil = (((Map<?, ?>)requestUntil).containsKey("endTime"));
+            Boolean hasSince = (!java.util.Objects.equals(since, null));
+            Long until = (Long) this.safeInteger2(paramsPaginate, "until", "till");
+            Boolean hasUntil = (!java.util.Objects.equals(until, null));
             if (Boolean.TRUE.equals(hasSince) && !Boolean.TRUE.equals(hasUntil))
             {
                 ((Map<String, Object>)requestUntil).put("endTime", this.milliseconds());
@@ -4483,13 +4487,13 @@ public class Weex extends WeexApi
             if (Boolean.TRUE.equals(sandboxMode))
             {
                 // the demo trading API does not provide a single-position endpoint
-                return (this.fetchPositions(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(market.get("symbol")))), parameters)).join();
+                return (this.fetchPositions(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(market.get("symbol"))))) { case null -> (List<String>) null; case List<?> hx4J40v2 -> (List<String>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v2.getClass().getName()); })), parameters)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
             }};
             List<Object> response = (this.contractPrivateGetCapiV3AccountPositionSinglePosition(this.extend(request, parameters))).join();
-            return this.parsePositions(response, Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(market.get("symbol")))), new HashMap<String, Object>() {{}});
+            return this.parsePositions(response, ((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(market.get("symbol"))))) { case null -> (List<String>) null; case List<?> hx4J40v1 -> (List<String>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v1.getClass().getName()); })), new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
@@ -5130,15 +5134,15 @@ public class Weex extends WeexApi
             request.put("amount", this.costToPrecision(symbol, amount));
             request.put("type", type);
             String parsedType = "reduce";
-            if (Helpers.isEqual(type, 1))
+            if ((switch ((Object) (type)) { case null -> false; case Long hx4J40v0 -> hx4J40v0 == 1L; case Integer hx4J40v0 -> hx4J40v0 == 1L; case Double hx4J40v0 -> hx4J40v0 == 1L; case Float hx4J40v0 -> hx4J40v0.doubleValue() == 1L; case java.math.BigDecimal hx4J40v0 -> hx4J40v0.stripTrailingZeros().scale() <= 0 && hx4J40v0.longValue() == 1L; case Object hx4J40v0 -> { try { String hx4J40v0t = String.valueOf(hx4J40v0); Double.parseDouble(hx4J40v0t); yield new java.math.BigDecimal(hx4J40v0t).compareTo(java.math.BigDecimal.valueOf(1L)) == 0; } catch (NumberFormatException hx4J40v0x) { yield false; } } }))
             {
                 parsedType = "add";
             }
             Map<String, Object> response = (this.contractPrivatePostCapiV3AccountPositionMargin(this.extend(request, paramsOmitted))).join();
-            return this.extend(this.parseMarginModification((Map<String, Object>) (response), market), Helpers.newMap(
-                "amount", this.parseNumber(amount),
-                "type", parsedType
-            ));
+            return this.extend(this.parseMarginModification((Map<String, Object>) (response), market), (switch (0) { default -> { HashMap<String, Object> j39v31 = new HashMap<String, Object>();
+                j39v31.put("amount", this.parseNumber(amount));
+                j39v31.put("type", parsedType);
+                yield j39v31; } }));
         });
 
     }
@@ -5259,7 +5263,7 @@ public class Weex extends WeexApi
         if (((String)marketId).endsWith("SUSDT"))
         {
             Long baseLength = (((long) ((String)marketId).length()) - 5L);
-            return (Helpers.slice(marketId, 0, baseLength) + "USDT");
+            return (((java.util.function.Function<Object[], String>) (hx4J41a) -> { if (hx4J41a[0] == null) return null; String hx4J41s = (String) hx4J41a[0]; java.util.function.ToIntFunction<Object> hx4J41i = (hx4J41o) -> (hx4J41o instanceof Integer hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Long hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Double hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Float hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof java.math.BigDecimal hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof String hx4J41n) ? Integer.parseInt(hx4J41n) : Integer.parseInt(String.valueOf(hx4J41o)); int hx4J41b = (hx4J41a[1] != null) ? hx4J41i.applyAsInt(hx4J41a[1]) : -1; if (hx4J41a[2] == null) { if (hx4J41b < 0) return hx4J41s.substring(Math.max(hx4J41s.length() + hx4J41b, 0)); if (hx4J41b > hx4J41s.length()) return ""; return hx4J41s.substring(hx4J41b); } int hx4J41e = hx4J41i.applyAsInt(hx4J41a[2]); if (hx4J41b < 0) hx4J41b = hx4J41s.length() + hx4J41b; if (hx4J41e < 0) hx4J41e = hx4J41s.length() + hx4J41e; if (hx4J41b < 0) hx4J41b = 0; if (hx4J41e > hx4J41s.length()) hx4J41e = hx4J41s.length(); if (hx4J41b > hx4J41e) hx4J41b = hx4J41e; return hx4J41s.substring(hx4J41b, hx4J41e); }).apply(new Object[] { marketId, 0, baseLength }) + "USDT");
         }
         return marketId;
     }
@@ -5267,7 +5271,7 @@ public class Weex extends WeexApi
     public void setSandboxMode(Boolean enable)
     {
         super.setSandboxMode(enable);
-        Helpers.addElementToObject(this.options, "sandboxMode", enable);
+        { Map<Object, Object> j39v32 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v33 = "sandboxMode"; Object j39v34 = enable; if (j39v32 == null) { if (j39v33 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v32) { if (j39v34 == null && j39v32 instanceof java.util.concurrent.ConcurrentHashMap) { j39v32.remove(j39v33); } else { j39v32.put(j39v33, j39v34); } } }
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters)
@@ -5278,7 +5282,7 @@ public class Weex extends WeexApi
         Boolean isBatch = (((String)path).indexOf("batch") >= 0);
         if (!Boolean.TRUE.equals(isBatch) && ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"))))
         {
-            if (Helpers.objectKeys(query).size() > 0)
+            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v35 -> { synchronized (j39v35) { yield new ArrayList<Object>(j39v35.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
             {
                 endpoint = (endpoint + ("?" + this.urlencode(query)));
             }
@@ -5306,12 +5310,14 @@ public class Weex extends WeexApi
                 payload = (payload + requestBody);
             }
             String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
-            requestHeaders = Helpers.newMap(
-                "ACCESS-KEY", this.apiKey,
-                "ACCESS-SIGN", signature,
-                "ACCESS-PASSPHRASE", this.password,
-                "ACCESS-TIMESTAMP", timestamp
-            );
+            {
+                HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
+                hx4NewMap1.put("ACCESS-KEY", this.apiKey);
+                hx4NewMap1.put("ACCESS-SIGN", signature);
+                hx4NewMap1.put("ACCESS-PASSPHRASE", this.password);
+                hx4NewMap1.put("ACCESS-TIMESTAMP", timestamp);
+                requestHeaders = hx4NewMap1;
+            }
             if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE")))
             {
                 requestHeaders.put("Content-Type", "application/json");

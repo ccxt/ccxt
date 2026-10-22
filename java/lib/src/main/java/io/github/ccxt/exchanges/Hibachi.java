@@ -408,7 +408,7 @@ public class Hibachi extends HibachiApi
         mapLiteral1.put("optionType", null);
         mapLiteral1.put("precision", new HashMap<String, Object>() {{
                 put( "amount", Hibachi.this.parseNumber(Hibachi.this.parsePrecision(Hibachi.this.safeString(market, "underlyingDecimals"))) );
-                put( "price", Helpers.divide(Hibachi.this.parseNumber(Hibachi.this.safeValue(Hibachi.this.safeList(market, "orderbookGranularities", new ArrayList<Object>(Arrays.asList())), 0)), 10000) );
+                put( "price", Hibachi.this.parseNumber(Precise.stringDiv(Hibachi.this.safeString(Hibachi.this.safeList(market, "orderbookGranularities", new ArrayList<Object>(Arrays.asList())), 0), "10000")) );
             }});
         mapLiteral1.put("limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
@@ -1053,7 +1053,7 @@ public class Hibachi extends HibachiApi
         Double makerFee = this.safeNumber(market, "maker", this.safeNumber(this.options, "defaultMakerFee", 0.00015));
         Object takerFeeValue = (((java.util.Objects.equals(takerFee, null)))) ? 0 : takerFee;
         Object makerFeeValue = (((java.util.Objects.equals(makerFee, null)))) ? 0 : makerFee;
-        Object feeRate = Helpers.mathMax(takerFeeValue, makerFeeValue);
+        Double feeRate = this.parseNumber(Precise.stringMax(this.numberToString(takerFeeValue), this.numberToString(makerFeeValue)));
         String sideInternal = "";
         if (java.util.Objects.equals(side, "sell"))
         {
@@ -1063,7 +1063,7 @@ public class Hibachi extends HibachiApi
             sideInternal = "BID";
         }
         String priceInternal = "";
-        if ((!java.util.Objects.equals(price, null)) && (!Helpers.isEqual(price, 0)))
+        if ((!java.util.Objects.equals(price, null)) && (!(switch ((Object) (price)) { case null -> false; case Long hx4J40v4 -> hx4J40v4 == 0L; case Integer hx4J40v4 -> hx4J40v4 == 0L; case Double hx4J40v4 -> hx4J40v4 == 0L; case Float hx4J40v4 -> hx4J40v4.doubleValue() == 0L; case java.math.BigDecimal hx4J40v4 -> hx4J40v4.stripTrailingZeros().scale() <= 0 && hx4J40v4.longValue() == 0L; case Object hx4J40v4 -> { try { String hx4J40v4t = String.valueOf(hx4J40v4); Double.parseDouble(hx4J40v4t); yield new java.math.BigDecimal(hx4J40v4t).compareTo(java.math.BigDecimal.valueOf(0L)) == 0; } catch (NumberFormatException hx4J40v4x) { yield false; } } })))
         {
             priceInternal = this.priceToPrecision(symbol, price);
         }
@@ -1168,7 +1168,7 @@ public class Hibachi extends HibachiApi
                 Double amount = this.safeNumber(rawOrder, "amount", (Object) null);
                 Double price = this.safeNumber(rawOrder, "price", (Object) null);
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
-                Map<String, Object> orderRequest = this.createOrderRequest(Helpers.add(nonce, i), symbol, type, side, amount, price, orderParams);
+                Map<String, Object> orderRequest = this.createOrderRequest(((java.util.function.BinaryOperator<Object>) (hx4J40v3A, hx4J40v3B) -> { Object hx4J40v3P = hx4J40v3A instanceof Integer hx4J40v3i ? (Object) Long.valueOf(hx4J40v3i.longValue()) : hx4J40v3A; Object hx4J40v3Q = hx4J40v3B instanceof Integer hx4J40v3i ? (Object) Long.valueOf(hx4J40v3i.longValue()) : hx4J40v3B; if (hx4J40v3P instanceof Long hx4J40v3l && hx4J40v3Q instanceof Long hx4J40v3r) { return hx4J40v3l + hx4J40v3r; } if (hx4J40v3P instanceof Double || hx4J40v3Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v3D = hx4J40v3o -> { if (hx4J40v3o instanceof Double || hx4J40v3o instanceof Float || hx4J40v3o instanceof Long || hx4J40v3o instanceof Integer || hx4J40v3o instanceof java.math.BigDecimal) { return ((Number) hx4J40v3o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v3o)); } catch (NumberFormatException hx4J40v3e) { return 0.0; } }; return hx4J40v3D.applyAsDouble(hx4J40v3P) + hx4J40v3D.applyAsDouble(hx4J40v3Q); } if (hx4J40v3P instanceof String || hx4J40v3Q instanceof String) { return String.valueOf(hx4J40v3P) + String.valueOf(hx4J40v3Q); } return null; }).apply(nonce, i), symbol, type, side, amount, price, orderParams);
                 orderRequest.put("action", "place");
                 ((List<Object>)requestOrders).add(orderRequest);
             }
@@ -1211,7 +1211,7 @@ public class Hibachi extends HibachiApi
         Double makerFee = this.safeNumber(market, "maker", 0);
         Object takerFeeValue = (((java.util.Objects.equals(takerFee, null)))) ? 0 : takerFee;
         Object makerFeeValue = (((java.util.Objects.equals(makerFee, null)))) ? 0 : makerFee;
-        Object feeRate = Helpers.mathMax(takerFeeValue, makerFeeValue);
+        Double feeRate = this.parseNumber(Precise.stringMax(this.numberToString(takerFeeValue), this.numberToString(makerFeeValue)));
         Object message = this.orderMessage((Map<String, Object>) (market), nonce, feeRate, (String) (type), (String) (side), amount, price);
         Object signature = this.signMessage(message, this.privateKey);
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1294,7 +1294,7 @@ public class Hibachi extends HibachiApi
                 Double amount = this.safeNumber(rawOrder, "amount", (Object) null);
                 Double price = this.safeNumber(rawOrder, "price", (Object) null);
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
-                Map<String, Object> orderRequest = this.editOrderRequest(Helpers.add(nonce, i), id, symbol, type, side, amount, price, orderParams);
+                Map<String, Object> orderRequest = this.editOrderRequest(((java.util.function.BinaryOperator<Object>) (hx4J40v2A, hx4J40v2B) -> { Object hx4J40v2P = hx4J40v2A instanceof Integer hx4J40v2i ? (Object) Long.valueOf(hx4J40v2i.longValue()) : hx4J40v2A; Object hx4J40v2Q = hx4J40v2B instanceof Integer hx4J40v2i ? (Object) Long.valueOf(hx4J40v2i.longValue()) : hx4J40v2B; if (hx4J40v2P instanceof Long hx4J40v2l && hx4J40v2Q instanceof Long hx4J40v2r) { return hx4J40v2l + hx4J40v2r; } if (hx4J40v2P instanceof Double || hx4J40v2Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v2D = hx4J40v2o -> { if (hx4J40v2o instanceof Double || hx4J40v2o instanceof Float || hx4J40v2o instanceof Long || hx4J40v2o instanceof Integer || hx4J40v2o instanceof java.math.BigDecimal) { return ((Number) hx4J40v2o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v2o)); } catch (NumberFormatException hx4J40v2e) { return 0.0; } }; return hx4J40v2D.applyAsDouble(hx4J40v2P) + hx4J40v2D.applyAsDouble(hx4J40v2Q); } if (hx4J40v2P instanceof String || hx4J40v2Q instanceof String) { return String.valueOf(hx4J40v2P) + String.valueOf(hx4J40v2Q); } return null; }).apply(nonce, i), id, symbol, type, side, amount, price, orderParams);
                 orderRequest.put("action", "modify");
                 ((List<Object>)requestOrders).add(orderRequest);
             }
@@ -1322,7 +1322,7 @@ public class Hibachi extends HibachiApi
 
     }
 
-    public Object cancelOrderRequest(Object id)
+    public Map<String, Object> cancelOrderRequest(Object id)
     {
         Object bigid = this.convertToBigInt(id);
         String idbase16 = this.intToBase16(bigid);
@@ -1350,8 +1350,8 @@ public class Hibachi extends HibachiApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object request = this.cancelOrderRequest(id);
-            ((Map<String, Object>)request).put("accountId", this.getAccountId());
+            Map<String, Object> request = this.cancelOrderRequest(id);
+            request.put("accountId", this.getAccountId());
             Map<String, Object> response = (this.privateDeleteTradeOrder(this.extend(request, parameters))).join();
             // At this time the response body is empty. A 200 response means the cancel request is accepted and sent to cancel
             //
@@ -1384,8 +1384,8 @@ public class Hibachi extends HibachiApi
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
-                Object orderRequest = this.cancelOrderRequest((ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i)));
-                ((Map<String, Object>)orderRequest).put("action", "cancel");
+                Map<String, Object> orderRequest = this.cancelOrderRequest((ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i)));
+                orderRequest.put("action", "cancel");
                 ((List<Object>)orders).add(orderRequest);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2159,7 +2159,7 @@ public class Hibachi extends HibachiApi
         {
             return null;  // fallback to default error handler
         }
-        if (Helpers.inOp(response, "status"))
+        if ((switch ((Object)(response)) { case List<?> j39v2 -> j39v2.contains("status"); case Map<?, ?> j39v1 -> j39v1.containsKey("status"); case null, default -> false; }))
         {
             //
             //     {"errorCode":4,"message":"Invalid input: Invalid quantity: 0","status":"failed"}
@@ -2651,7 +2651,7 @@ public class Hibachi extends HibachiApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "settlements", new ArrayList<Object>(Arrays.asList()));
-            Object settlements = this.parseSettlements(data, market);
+            List<Object> settlements = (List<Object>) this.parseSettlements(data, market);
             List<Object> sorted = this.sortBy(settlements, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit, false);
         });

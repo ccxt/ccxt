@@ -271,15 +271,14 @@ class apex extends \ccxt\async\apex {
         // are already subscribed, skip the subscribe entirely.
         $client = $this->client($url);
         $newTopics = array();
-        $newTopicsCount = 0;
         for ($i = 0; $i < count($topics); $i++) {
             if (!(is_array($client->subscriptions) && array_key_exists($messageHashes[$i] ?? '', $client->subscriptions))) {
                 $newTopics[] = $topics[$i];
-                $newTopicsCount = $newTopicsCount + 1;
             }
         }
+        $newTopicsLength = count($newTopics);
         $message = null;
-        if ($newTopicsCount > 0) {
+        if ($newTopicsLength > 0) {
             $request = array(
                 'op' => 'subscribe',
                 'args' => $newTopics,

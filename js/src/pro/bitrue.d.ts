@@ -32,7 +32,7 @@ export default class bitrue extends bitrueRest {
     handleOrderBook(client: Client, message: Dict): void;
     findSwapMarketByWsBaseQuote(wsBaseQuote: string): any;
     parseContractBidsAsks(bidsAsks: any[], symbol: string): List;
-    convertFromRawQuantity(symbol: string, rawQuantity: Num): number | undefined;
+    convertFromRawQuantity(symbol: string, rawQuantity: Num): Num;
     /**
      * @method
      * @name bitrue#watchTrades

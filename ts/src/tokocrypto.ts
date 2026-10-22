@@ -1621,7 +1621,7 @@ export default class tokocrypto extends Exchange {
         return this.safeBalance (result);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             '-2': 'open',
             '0': 'open', // NEW
@@ -1848,7 +1848,10 @@ export default class tokocrypto extends Exchange {
         // only supported for spot/margin api
         const typeResolved: OrderType = (postOnly) ? 'LIMIT_MAKER' : type;
         // post only is expressed by the order type here, not by a time force
-        const timeInForceResolved: Str = (postOnly) ? undefined : requestedTimeInForce;
+        let timeInForceResolved: Str = requestedTimeInForce;
+        if (postOnly) {
+            timeInForceResolved = undefined;
+        }
         const initialUppercaseType = typeResolved.toUpperCase ();
         let uppercaseType = initialUppercaseType;
         const triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
@@ -2823,11 +2826,12 @@ export default class tokocrypto extends Exchange {
         } else if (('noPoolId' in config) && !('poolId' in params)) {
             return config['noPoolId'];
         } else if (('byLimit' in config) && ('limit' in params)) {
-            const limit = params['limit'];
+            const limit = this.safeInteger (params, 'limit');
             const byLimit = this.safeList (config, 'byLimit', []);
             for (let i = 0; i < byLimit.length; i++) {
                 const entry = byLimit[i];
-                if (limit <= entry[0]) {
+                const entryLimit = this.safeInteger (entry, 0);
+                if ((limit !== undefined) && (entryLimit !== undefined) && (limit <= entryLimit)) {
                     return entry[1];
                 }
             }

@@ -242,13 +242,12 @@ class apex(ccxt.async_support.apex):
         # are already subscribed, skip the subscribe entirely.
         client = self.client(url)
         newTopics = []
-        newTopicsCount = 0
         for i in range(0, len(topics)):
             if not (messageHashes[i] in client.subscriptions):
                 newTopics.append(topics[i])
-                newTopicsCount = newTopicsCount + 1
+        newTopicsLength = len(newTopics)
         message = None
-        if newTopicsCount > 0:
+        if newTopicsLength > 0:
             request = {
                 'op': 'subscribe',
                 'args': newTopics,

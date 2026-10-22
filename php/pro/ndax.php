@@ -244,7 +244,7 @@ class ndax extends \ccxt\async\ndax {
         $payload = array(
             'OMSId' => $omsId,
             'InstrumentId' => $this->safe_integer($market, 'id'), // conditionally optional
-            'Interval' => intval($this->safe_string($this->timeframes, $timeframe, $timeframe)),
+            'Interval' => $this->parse_to_int($this->safe_string($this->timeframes, $timeframe, $timeframe)),
             'IncludeLastCount' => 100, // the number of previous candles to retrieve in the immediate snapshot, 100 by default
         );
         $request = array(
@@ -302,13 +302,14 @@ class ndax extends \ccxt\async\ndax {
             for ($j = 0; $j < count($keys); $j++) {
                 $timeframe = $keys[$j];
                 $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-                $duration = intval($interval) * 1000;
+                $duration = $this->parse_to_int($interval) * 1000;
                 $timestamp = $this->safe_integer($ohlcv, 0);
                 if ($timestamp === null) {
                     continue;
                 }
+                $candleTimestamp = $this->parse_to_int(($timestamp / $duration) * $duration);
                 $parsed = array(
-                    $this->parse_to_int(($timestamp / $duration) * $duration),
+                    $candleTimestamp,
                     $this->safe_float($ohlcv, 3),
                     $this->safe_float($ohlcv, 1),
                     $this->safe_float($ohlcv, 2),
@@ -317,19 +318,25 @@ class ndax extends \ccxt\async\ndax {
                 );
                 $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe, array());
                 $length = count($stored);
-                if (($length > 0) && ($parsed[0] === $stored[$length - 1][0])) {
+                if (($length > 0) && ($candleTimestamp === $this->safe_integer($stored[$length - 1], 0))) {
                     $previous = $stored[$length - 1];
-                    $high = $parsed[1];
-                    if ($parsed[1] === null) {
-                        $high = $previous[1];
-                    } elseif ($previous[1] !== null) {
-                        $high = max($parsed[1], $previous[1]);
+                    $parsedHigh = $this->safe_float($ohlcv, 1);
+                    $previousHigh = $this->safe_float($previous, 1);
+                    $high = $previousHigh;
+                    if ($parsedHigh !== null) {
+                        $high = $parsedHigh;
+                        if (($previousHigh !== null) && ($previousHigh > $parsedHigh)) {
+                            $high = $previousHigh;
+                        }
                     }
-                    $low = $parsed[2];
-                    if ($parsed[2] === null) {
-                        $low = $previous[2];
-                    } elseif ($previous[2] !== null) {
-                        $low = min($parsed[2], $previous[2]);
+                    $parsedLow = $this->safe_float($ohlcv, 2);
+                    $previousLow = $this->safe_float($previous, 2);
+                    $low = $previousLow;
+                    if ($parsedLow !== null) {
+                        $low = $parsedLow;
+                        if (($previousLow !== null) && ($parsedLow > $previousLow)) {
+                            $low = $previousLow;
+                        }
                     }
                     $stored[$length - 1] = array(
                         $parsed[0],
@@ -343,17 +350,19 @@ class ndax extends \ccxt\async\ndax {
                         $updates[$marketId][$timeframe] = true;
                     }
                 } else {
-                    if (($length > 0) && ($this->parse_to_int($parsed[0]) < $this->parse_to_int($stored[$length - 1][0]))) {
-                        continue;
-                    } else {
-                        $stored[] = $parsed;
-                        $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
-                        if ($length >= $limit) {
-                            array_shift($stored);
+                    if ($length > 0) {
+                        $lastTimestamp = $this->safe_integer($stored[$length - 1], 0);
+                        if (($lastTimestamp !== null) && ($lastTimestamp > $candleTimestamp)) {
+                            continue;
                         }
-                        if ($marketId !== null) {
-                            $updates[$marketId][$timeframe] = true;
-                        }
+                    }
+                    $stored[] = $parsed;
+                    $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
+                    if ($length >= $limit) {
+                        array_shift($stored);
+                    }
+                    if ($marketId !== null) {
+                        $updates[$marketId][$timeframe] = true;
                     }
                 }
                 $this->ohlcvs[$symbol][$timeframe] = $stored;
@@ -463,25 +472,26 @@ class ndax extends \ccxt\async\ndax {
         if ($orderbook === null) {
             return;
         }
-        $timestamp = null;
-        $nonce = null;
+        // seeded from the first entry so the locals keep a typed initializer (the loop re-reads it as a no-op)
+        $timestamp = $this->safe_integer($firstBidAsk, 2);
+        $nonce = $this->safe_integer($firstBidAsk, 0);
         for ($i = 0; $i < count($payload); $i++) {
             $bidask = $this->safe_list($payload, $i);
             if ($timestamp === null) {
                 $timestamp = $this->safe_integer($bidask, 2);
             } else {
                 $newTimestamp = $this->safe_integer($bidask, 2);
-                $currentTimestampValue = ($timestamp === null) ? 0 : $timestamp;
-                $newTimestampValue = ($newTimestamp === null) ? 0 : $newTimestamp;
-                $timestamp = max($currentTimestampValue, $newTimestampValue);
+                if (($newTimestamp !== null) && ($newTimestamp > $timestamp)) {
+                    $timestamp = $newTimestamp;
+                }
             }
             if ($nonce === null) {
                 $nonce = $this->safe_integer($bidask, 0);
             } else {
                 $newNonce = $this->safe_integer($bidask, 0);
-                $currentNonceValue = ($nonce === null) ? 0 : $nonce;
-                $newNonceValue = ($newNonce === null) ? 0 : $newNonce;
-                $nonce = max($currentNonceValue, $newNonceValue);
+                if (($newNonce !== null) && ($newNonce > $nonce)) {
+                    $nonce = $newNonce;
+                }
             }
             // 0 new, 1 update, 2 remove
             $type = $this->safe_integer($bidask, 3);

@@ -781,7 +781,11 @@ class indodax extends Exchange {
             $request['from'] = (int) floor($since / 1000);
         } else {
             $duration = $this->parse_timeframe($timeframe);
-            $request['from'] = $now - $limitResolved * $duration - 1;
+            if ($limit === null) {
+                $request['from'] = $now - 1000 * $duration - 1;
+            } else {
+                $request['from'] = $now - $limit * $duration - 1;
+            }
         }
         $response = Async\await($this->publicGetTradingviewHistoryV2($this->extend($request, $paramsOmitted)));
         //
@@ -799,7 +803,7 @@ class indodax extends Exchange {
         return $this->parse_ohlcvs($this->to_array($response), $market, $timeframe, $since, $limitResolved);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'open' => 'open',
             'filled' => 'closed',
@@ -1480,7 +1484,7 @@ class indodax extends Exchange {
         );
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'success' => 'ok',
         );

@@ -197,10 +197,10 @@ export default class binance extends binanceRest {
     requestId(url: string): number;
     isSpotUrl(client: Client): boolean;
     stream(type: Str, subscriptionHash: Str, numSubscriptions?: Int): Str;
-    getWsUrl(type: any, category: string): string;
-    getFutureWsCategory(channel: Str): "market" | "public";
+    getWsUrl(type: string, category: string): string;
+    getFutureWsCategory(channel: Str): string;
     getPrivateWsUrl(type: Str, listenKey: Str): string;
-    getStockWsUrl(streamType?: Str): any;
+    getStockWsUrl(streamType?: Str): string;
     getStockTickerFromSymbol(symbol: Str): Str;
     getStockUnifiedSymbol(stockSymbol: Str, quote?: Str): Str;
     /**
@@ -375,8 +375,8 @@ export default class binance extends binanceRest {
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
     handleOrderBookMessage(client: Client, message: Dict, orderbook: WsOrderBook): WsOrderBook;
-    handleOrderBook(client: Client, message: any): void;
-    handleOrderBookSubscription(client: Client, message: any, subscription: any): void;
+    handleOrderBook(client: Client, message: Dict): void;
+    handleOrderBookSubscription(client: Client, message: any, subscription: Dict): void;
     handleSubscriptionStatus(client: Client, message: Dict): Dict;
     handleUnSubscription(client: Client, subscription: Dict): void;
     /**
@@ -695,7 +695,7 @@ export default class binance extends binanceRest {
      */
     watchBidsAsks(symbols?: Strings, params?: Dict): Promise<Tickers>;
     watchMultiTickerHelper(methodName: string, channelName: Str, symbols?: Strings, params?: Dict, isUnsubscribe?: boolean): Promise<any>;
-    parseWsTicker(message: any, marketType: any): Ticker;
+    parseWsTicker(message: NullableDict, marketType: Str): Ticker;
     handleTickerWs(client: Client, message: Dict): void;
     handleBidsAsks(client: Client, message: any): void;
     handleTickers(client: Client, message: any): void;
@@ -779,10 +779,10 @@ export default class binance extends binanceRest {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     watchBalance(params?: Dict): Promise<Balances>;
-    handleBalance(client: Client, message: any): void;
+    handleBalance(client: Client, message: Dict): void;
     getAccountTypeFromSubscriptions(subscriptions: string[]): string;
     resolveAuthType(methodName: string, market?: Market, params?: Dict): [string, Str, Dict];
-    getMarketType(method: any, market: any, params?: Dict): string;
+    getMarketType(method: string, market: Market, params?: Dict): string;
     /**
      * @method
      * @name binance#createOrderWs
@@ -923,7 +923,7 @@ export default class binance extends binanceRest {
      */
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     parseWsOrder(order: Dict, market?: Market): Order;
-    handleOrderUpdate(client: Client, message: any): void;
+    handleOrderUpdate(client: Client, message: Dict): void;
     handleStockPrice(client: Client, message: Dict): void;
     handleStockQuote(client: Client, message: Dict): void;
     handleOptionsOrderUpdate(client: Client, message: Dict): void;
@@ -943,7 +943,7 @@ export default class binance extends binanceRest {
     loadPositionsSnapshot(client: Client, messageHash: string, type: string, isPortfolioMargin: boolean): Promise<void>;
     handlePositions(client: Client, message: Dict): void;
     parseWsPosition(position: NullableDict, market?: Market): Position;
-    parseWsOptionsPosition(position: any, market?: any): Position;
+    parseWsOptionsPosition(position: NullableDict, market?: Market): Position;
     /**
      * @method
      * @name binance#fetchMyTradesWs
@@ -988,7 +988,7 @@ export default class binance extends binanceRest {
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     handleMyTrade(client: Client, message: Dict): void;
     handleOrder(client: Client, message: Dict): void;
-    handleAcountUpdate(client: Client, message: any): void;
+    handleAcountUpdate(client: Client, message: Dict): void;
     handleOptionsAccountUpdate(client: Client, message: Dict): void;
     handleWsError(client: Client, message: Dict): void;
     handleEventStreamTerminated(client: Client, message: Dict): void;

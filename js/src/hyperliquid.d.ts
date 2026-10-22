@@ -73,7 +73,7 @@ export default class hyperliquid extends Exchange {
      * @param {int} maxDecimals the maxDecimals to use in the calculation
      * @returns {int} The calculated price precision
      */
-    calculatePricePrecision(price: number, amountPrecision: number, maxDecimals: number): number;
+    calculatePricePrecision(price: number, amountPrecision: int, maxDecimals: int): number;
     /**
      * @method
      * @name hyperliquid#fetchSpotMarkets
@@ -185,11 +185,8 @@ export default class hyperliquid extends Exchange {
     hashMessage(message: any): string;
     signHash(hash: string, privateKey: string): Dict;
     signMessage(message: any, privateKey: string): Dict;
-    constructPhantomAgent(hash: any, isTestnet?: boolean): {
-        source: string;
-        connectionId: any;
-    };
-    actionHash(action: any, vaultAddress: any, nonce: any, expiresAfter?: Int): Uint8Array<ArrayBufferLike>;
+    constructPhantomAgent(hash: any, isTestnet?: boolean): Dict;
+    actionHash(action: any, vaultAddress: Str, nonce: any, expiresAfter?: Int): Uint8Array<ArrayBufferLike>;
     signL1Action(action: any, nonce: any, vaultAdress?: Str, expiresAfter?: Int): object;
     signUserSignedAction(messageTypes: Dict, message: Dict): Dict;
     buildUsdSendSig(message: Dict): Dict;
@@ -503,7 +500,7 @@ export default class hyperliquid extends Exchange {
      */
     fetchOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     parseOrder(order: Dict, market?: Market): Order;
-    parseOrderStatus(status: Str): string | undefined;
+    parseOrderStatus(status: Str): Str;
     parseOrderType(status: Str): Str;
     /**
      * @method

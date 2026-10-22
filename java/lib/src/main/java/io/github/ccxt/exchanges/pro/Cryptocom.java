@@ -141,7 +141,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), Helpers.toMapArg(parameters))).join();
+            return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })))).join();
         });
 
     }
@@ -190,7 +190,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             Pair<String, Map<String, Object>> bookSubscriptionType2paramsBookSubscriptionType2Variable = this.handleOptionStringAndParams((Map<String, Object>) (paramsBookSubscriptionType), "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType);
             String bookSubscriptionType2 = bookSubscriptionType2paramsBookSubscriptionType2Variable.first();
             Map<String, Object> paramsBookSubscriptionType2 = bookSubscriptionType2paramsBookSubscriptionType2Variable.second();
-            Helpers.addElementToObject(Helpers.GetValue(paramsBookSubscriptionType2, "params"), "bookSubscriptionType", bookSubscriptionType2);
+            Helpers.addElementToObject((paramsBookSubscriptionType2 == null ? null : paramsBookSubscriptionType2.get("params")), "bookSubscriptionType", bookSubscriptionType2);
             Pair<String, Map<String, Object>> bookUpdateFrequencyparamsBookUpdateFrequencyVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsBookSubscriptionType2), "watchOrderBook", "bookUpdateFrequency", (String) null);
             String bookUpdateFrequency = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.first();
             Map<String, Object> paramsBookUpdateFrequency = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.second();
@@ -199,7 +199,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             Map<String, Object> paramsBookUpdateFrequency2 = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.second();
             if (!java.util.Objects.equals(bookUpdateFrequency2, null))
             {
-                Helpers.addElementToObject(Helpers.GetValue(paramsBookUpdateFrequency2, "params"), "bookSubscriptionType", bookUpdateFrequency2);
+                Helpers.addElementToObject((paramsBookUpdateFrequency2 == null ? null : paramsBookUpdateFrequency2.get("params")), "bookSubscriptionType", bookUpdateFrequency2);
             }
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
@@ -253,7 +253,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             Pair<String, Map<String, Object>> bookSubscriptionType2paramsBookSubscriptionType2Variable = this.handleOptionStringAndParams((Map<String, Object>) (paramsBookSubscriptionType), "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType);
             String bookSubscriptionType2 = bookSubscriptionType2paramsBookSubscriptionType2Variable.first();
             Map<String, Object> paramsBookSubscriptionType2 = bookSubscriptionType2paramsBookSubscriptionType2Variable.second();
-            Helpers.addElementToObject(Helpers.GetValue(paramsBookSubscriptionType2, "params"), "bookSubscriptionType", bookSubscriptionType2);
+            Helpers.addElementToObject((paramsBookSubscriptionType2 == null ? null : paramsBookSubscriptionType2.get("params")), "bookSubscriptionType", bookSubscriptionType2);
             Pair<String, Map<String, Object>> bookUpdateFrequencyparamsBookUpdateFrequencyVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsBookSubscriptionType2), "watchOrderBook", "bookUpdateFrequency", (String) null);
             String bookUpdateFrequency = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.first();
             Map<String, Object> paramsBookUpdateFrequency = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.second();
@@ -262,7 +262,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             Map<String, Object> paramsBookUpdateFrequency2 = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.second();
             if (!java.util.Objects.equals(bookUpdateFrequency2, null))
             {
-                Helpers.addElementToObject(Helpers.GetValue(paramsBookUpdateFrequency2, "params"), "bookSubscriptionType", bookUpdateFrequency2);
+                Helpers.addElementToObject((paramsBookUpdateFrequency2 == null ? null : paramsBookUpdateFrequency2.get("params")), "bookSubscriptionType", bookUpdateFrequency2);
             }
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
@@ -289,7 +289,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
 
     public void handleDeltas(Object bookside, Object deltas)
     {
-        for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
+        for (var i = 0; i < (switch ((Object)(deltas)) { case null -> 0; case List<?> j39v2 -> j39v2.size(); case String j39v3 -> j39v3.length(); case Object j39v4 -> j39v4.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v4) : 0; }); i++)
         {
             this.handleDelta(bookside, Helpers.GetValue(deltas, i));
         }
@@ -355,8 +355,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         String marketId = this.safeString(message, "instrument_name");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) market.get("symbol");
-        Object data = this.safeValue(message, "data");
-        data = this.safeDict(data, 0, (Object) null);
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(this.safeList(message, "data", (Object) null), 0, (Object) null);
         Long timestamp = this.safeInteger(data, "t");
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
@@ -366,7 +365,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         String channel = this.safeString(message, "channel");
         Long nonce = (Long) this.safeInteger2(data, "u", "s");
-        Object books = data;
+        Map<String, Object> books = data;
         if (java.util.Objects.equals(channel, "book"))
         {
             orderbook.reset(new HashMap<String, Object>() {{}});
@@ -376,10 +375,10 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             orderbook.put("nonce", nonce);
         } else
         {
-            books = this.safeDict(data, "update", new HashMap<String, Object>() {{}});
+            books = (Map<String, Object>) this.safeDict(data, "update", new HashMap<String, Object>() {{}});
             Long previousNonce = this.safeInteger(data, "pu");
             Object currentNonce = (orderbook == null ? null : orderbook.get("nonce"));
-            if (!Helpers.isEqual(currentNonce, previousNonce))
+            if (!((java.util.function.BiPredicate<Object, Object>) (hx4J40v0A, hx4J40v0B) -> { try { if (hx4J40v0A == null && hx4J40v0B == null) { return true; } if (hx4J40v0A == null || hx4J40v0B == null) { return false; } java.util.function.Predicate<Object> hx4J40v0N = hx4J40v0o -> { try { Double.parseDouble(String.valueOf(hx4J40v0o)); return true; } catch (Exception hx4J40v0e) { return false; } }; if (!hx4J40v0A.getClass().equals(hx4J40v0B.getClass()) && !(hx4J40v0N.test(hx4J40v0A) && hx4J40v0N.test(hx4J40v0B))) { return false; } java.util.function.Predicate<Object> hx4J40v0I = hx4J40v0o -> hx4J40v0o instanceof Byte || hx4J40v0o instanceof Short || hx4J40v0o instanceof Integer || hx4J40v0o instanceof Long || hx4J40v0o instanceof java.util.concurrent.atomic.AtomicInteger || hx4J40v0o instanceof java.util.concurrent.atomic.AtomicLong || ((hx4J40v0o instanceof Float || hx4J40v0o instanceof Double || hx4J40v0o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(hx4J40v0o)).stripTrailingZeros().scale() <= 0); java.util.function.ToDoubleFunction<Object> hx4J40v0D = hx4J40v0o -> { if (hx4J40v0o instanceof Double || hx4J40v0o instanceof Float || hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof java.math.BigDecimal) { return ((Number) hx4J40v0o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v0o)); } catch (NumberFormatException hx4J40v0e) { return 0.0; } }; if (hx4J40v0I.test(hx4J40v0A) && hx4J40v0I.test(hx4J40v0B)) { java.util.function.ToLongFunction<Object> hx4J40v0L = hx4J40v0o -> hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof Double || hx4J40v0o instanceof Float || hx4J40v0o instanceof java.math.BigDecimal ? ((Number) hx4J40v0o).longValue() : Long.parseLong(String.valueOf(hx4J40v0o)); return hx4J40v0L.applyAsLong(hx4J40v0A) == hx4J40v0L.applyAsLong(hx4J40v0B); } if (hx4J40v0A instanceof Double || hx4J40v0B instanceof Double) { return hx4J40v0D.applyAsDouble(hx4J40v0A) == hx4J40v0D.applyAsDouble(hx4J40v0B); } if (hx4J40v0A instanceof Float || hx4J40v0B instanceof Float) { java.util.function.Function<Object, Float> hx4J40v0F = hx4J40v0o -> hx4J40v0o instanceof Float || hx4J40v0o instanceof Double || hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof java.math.BigDecimal ? ((Number) hx4J40v0o).floatValue() : Float.parseFloat(String.valueOf(hx4J40v0o)); return hx4J40v0F.apply(hx4J40v0A).floatValue() == hx4J40v0F.apply(hx4J40v0B).floatValue(); } if (hx4J40v0A instanceof String && hx4J40v0B instanceof String) { return hx4J40v0A.equals(hx4J40v0B); } if (hx4J40v0A instanceof Boolean && hx4J40v0B instanceof Boolean) { return hx4J40v0A.equals(hx4J40v0B); } if (hx4J40v0N.test(hx4J40v0A) && hx4J40v0N.test(hx4J40v0B)) { return new java.math.BigDecimal(String.valueOf(hx4J40v0A)).compareTo(new java.math.BigDecimal(String.valueOf(hx4J40v0B))) == 0; } return false; } catch (Exception hx4J40v0e) { return false; } }).test(currentNonce, previousNonce))
             {
                 Object checksum = this.handleOption("watchOrderBook", "checksum", true);
                 if (java.util.Objects.equals(checksum, true))
@@ -563,7 +562,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         {
             stored.append((parsedTrades == null || j < 0 || j >= parsedTrades.size() ? null : parsedTrades.get(j)));
         }
-        String channelReplaced = Helpers.replace(channel, (String)("." + marketId), (String)"");
+        String channelReplaced = ((java.util.function.Function<Object, java.util.function.BiFunction<Object, Object, String>>) hx4J43a0 -> (hx4J43b0, hx4J43c0) -> { if (hx4J43a0 == null) { return null; } String hx4J43a0s = String.valueOf(hx4J43a0); String hx4J43a0f = (hx4J43b0 == null) ? "" : String.valueOf(hx4J43b0); String hx4J43a0r = (hx4J43c0 == null) ? "" : String.valueOf(hx4J43c0); return hx4J43a0s.replaceFirst(java.util.regex.Pattern.quote(hx4J43a0f), java.util.regex.Matcher.quoteReplacement(hx4J43a0r)); }).apply(channel).apply((String)("." + marketId), (String)"");
         client.resolve(stored, symbolSpecificMessageHash);
         client.resolve(stored, channelReplaced);
     }
@@ -893,8 +892,8 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
     {
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> ticker = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-        Object parsedTicker = this.parseWsBidAsk((Map<String, Object>) (ticker), (Map<String, Object>) null);
-        String symbol = (String) ((Map<String, Object>)parsedTicker).get("symbol");
+        Map<String, Object> parsedTicker = (Map<String, Object>) this.parseWsBidAsk((Map<String, Object>) (ticker), (Map<String, Object>) null);
+        String symbol = (String) parsedTicker.get("symbol");
         if (!java.util.Objects.equals(symbol, null))
         {
             Helpers.addElementToObject(this.bidsasks, symbol, parsedTicker);
@@ -1017,7 +1016,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
             }
         }
-        Object data = this.safeValue(message, "data");
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Map<String, Object> tick = (Map<String, Object>) this.safeDict(data, i, (Object) null);
@@ -1272,10 +1271,10 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             ((List<Object>)newPositions).add(position);
             cache.append(position);
         }
-        Object messageHashes = this.findMessageHashes(client, "positions::");
+        List<Object> messageHashes = (List<Object>) this.findMessageHashes(client, "positions::");
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
-            Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
+            Object messageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = (String) (parts == null || 1 >= parts.size() ? null : parts.get(1));
             List<Object> symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
@@ -1680,7 +1679,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             return false;
         } catch(Exception e)
         {
-            if (Helpers.isInstance(e, AuthenticationError.class))
+            if ((switch ((Object) (e)) { case null -> false; case Throwable hx4J44v0 -> { Throwable hx4J44v0u = hx4J44v0; while ((hx4J44v0u instanceof java.util.concurrent.CompletionException || hx4J44v0u instanceof java.util.concurrent.ExecutionException) && hx4J44v0u.getCause() != null) { hx4J44v0u = hx4J44v0u.getCause(); } yield AuthenticationError.class.isInstance(hx4J44v0u); } case Object hx4J44v0 -> AuthenticationError.class.isInstance(hx4J44v0); }))
             {
                 String messageHash = "authenticated";
                 client.reject(e, messageHash);
@@ -1763,7 +1762,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         // handle unsubscribe
         // {"id":1725448572836,"method":"unsubscribe","code":0}
         //
-        if (java.util.Objects.equals(this.handleErrorMessage(client, message), true))
+        if (this.handleErrorMessage(client, message))
         {
             return;
         }
@@ -1835,7 +1834,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
     public void handleUnsubscribe(Client client, Map<String, Object> message)
     {
         String id = this.safeString(message, "id");
-        List<Object> keys = Helpers.objectKeys(client.subscriptions);
+        List<Object> keys = ((List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v16 -> { synchronized (j39v16) { yield new ArrayList<Object>(j39v16.keySet()); } } case null, default -> new ArrayList<Object>(); });
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object messageHash = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));

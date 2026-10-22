@@ -5,7 +5,7 @@ import Exchange from './abstract/lighter.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, InvalidOrder, NotSupported, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Dict, FundingRate, FundingRates, Int, List, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order, Balances, Position, Str, TransferEntry, Currency, CurrencyInterface, Currencies, Transaction, Trade, Account, MarginModification, NullableDict, Status, Endpoint } from './base/types.js';
+import type { Dict, FundingRate, FundingRates, Int, List, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order, Balances, Position, Str, Bool, TransferEntry, Currency, CurrencyInterface, Currencies, Transaction, Trade, Account, MarginModification, NullableDict, Status, Endpoint } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 
 //  ---------------------------------------------------------------------------
@@ -442,19 +442,10 @@ export default class lighter extends Exchange {
     }
 
     getLighterPrivateKey (strAccountIndex: string, strApiKeyIndex: string) {
-        if (!('auths' in this.options)) {
-            return undefined;
-        }
-        if (!(strAccountIndex in this.options['auths'])) {
-            return undefined;
-        }
-        if (!(strApiKeyIndex in this.options['auths'][strAccountIndex])) {
-            return undefined;
-        }
-        if (!('lighterPrivateKey' in this.options['auths'][strAccountIndex][strApiKeyIndex])) {
-            return undefined;
-        }
-        return this.options['auths'][strAccountIndex][strApiKeyIndex]['lighterPrivateKey'];
+        const auths = this.safeDict (this.options, 'auths');
+        const accountAuths = this.safeDict (auths, strAccountIndex);
+        const apiKeyAuths = this.safeDict (accountAuths, strApiKeyIndex);
+        return this.safeString (apiKeyAuths, 'lighterPrivateKey');
     }
 
     /**
@@ -486,13 +477,14 @@ export default class lighter extends Exchange {
 
     handleApiKeyIndex (params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue: any = undefined): [Int, Dict] {
         const [ apiKeyIndexOption, paramsApiKeyIndex ] = this.handleOptionAndParams2 (params, methodName1, optionName1, optionName2, defaultValue);
-        let apiKeyIndex: Int = apiKeyIndexOption;
-        if ((apiKeyIndex === undefined) || (apiKeyIndex < 4) || (apiKeyIndex > 254)) {
-            // apiKeyIndex = this.randNumber (2);
-            apiKeyIndex = 254;
-            this.options['apiKeyIndex'] = apiKeyIndex; // default to a value to avoid overriding other keys
+        const apiKeyIndex = this.safeInteger ([ apiKeyIndexOption ], 0);
+        if ((apiKeyIndex !== undefined) && (apiKeyIndex >= 4) && (apiKeyIndex <= 254)) {
+            return [ this.parseToInt (apiKeyIndex), paramsApiKeyIndex ];
         }
-        return [ this.parseToInt (apiKeyIndex), paramsApiKeyIndex ];
+        // apiKeyIndex = this.randNumber (2);
+        const defaultApiKeyIndex = 254;
+        this.options['apiKeyIndex'] = defaultApiKeyIndex; // default to a value to avoid overriding other keys
+        return [ defaultApiKeyIndex, paramsApiKeyIndex ];
     }
 
     async handleAccountIndex (params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue: any = undefined): Promise<[Int, Dict]> {
@@ -582,11 +574,9 @@ export default class lighter extends Exchange {
         const accountAuths = this.safeDict (auths, accountIndex);
         const cachedAuth = this.safeDict (accountAuths, apiKeyIndex);
         const cachedDeadline = this.safeInteger (cachedAuth, 'deadline');
-        if (cachedDeadline !== undefined) {
-            const minimumDeadline = this.seconds () + this.safeInteger (this.options, 'authDeadlineMinimumRemaining', 60);
-            if (cachedDeadline >= minimumDeadline) {
-                return this.safeString (cachedAuth, 'token');
-            }
+        const minimumRemaining = this.safeInteger (this.options, 'authDeadlineMinimumRemaining', 60);
+        if ((cachedDeadline !== undefined) && (minimumRemaining !== undefined) && (cachedDeadline - minimumRemaining >= this.seconds ())) {
+            return this.safeString (cachedAuth, 'token');
         }
         const deadline = this.seconds () + this.safeInteger (this.options, 'authDeadlineExpiry', 28800);
         const request: Dict = {
@@ -600,7 +590,7 @@ export default class lighter extends Exchange {
         return token;
     }
 
-    pow (n: string, m: string) {
+    pow (n: string, m: string): Str {
         let r = Precise.stringMul (n, '1');
         const c = this.parseToInt (m);
         if (c < 0) {
@@ -627,7 +617,7 @@ export default class lighter extends Exchange {
         return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), keccak, 'hex');
     }
 
-    signHash (hash: any, privateKey: any): string {
+    signHash (hash: string, privateKey: string): string {
         this.checkRequiredCredentials ();
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
         const r = signature['r'];
@@ -636,7 +626,7 @@ export default class lighter extends Exchange {
         return '0x' + r.padStart (64, '0') + s.padStart (64, '0') + v;
     }
 
-    signL1AndPrepareTxInfo (txInfo: any, message: any, privateKey: any): string {
+    signL1AndPrepareTxInfo (txInfo: any, message: any, privateKey: string): string {
         const hashMessage = this.hashMessage (message);
         const signature = this.signHash (hashMessage, privateKey);
         const decTxInfo = this.parseJson (txInfo);
@@ -811,8 +801,8 @@ export default class lighter extends Exchange {
         request['api_key_index'] = apiKeyIndex;
         request['account_index'] = this.parseToInt (accountIndex);
         const triggerPrice = this.safeString2 (paramsOrderExpiry, 'triggerPrice', 'stopPrice');
-        const stopLossPrice = this.safeValue (paramsOrderExpiry, 'stopLossPrice', triggerPrice);
-        const takeProfitPrice = this.safeValue (paramsOrderExpiry, 'takeProfitPrice');
+        const stopLossPrice = this.safeString (paramsOrderExpiry, 'stopLossPrice', triggerPrice);
+        const takeProfitPrice = this.safeString (paramsOrderExpiry, 'takeProfitPrice');
         const stopLoss = this.safeDict (paramsOrderExpiry, 'stopLoss');
         const takeProfit = this.safeDict (paramsOrderExpiry, 'takeProfit');
         const hasStopLoss = (stopLoss !== undefined);
@@ -1264,9 +1254,10 @@ export default class lighter extends Exchange {
             if (type === 'perp') {
                 type = 'swap';
             }
-            let baseId = this.safeString (market, 'symbol');
-            if (baseId !== undefined && baseId.indexOf ('/') !== -1) {
-                baseId = baseId.split ('/')[0];
+            const marketSymbol = this.safeString (market, 'symbol');
+            let baseId = marketSymbol;
+            if (marketSymbol !== undefined && marketSymbol.indexOf ('/') !== -1) {
+                baseId = marketSymbol.split ('/')[0];
             }
             const quoteId = 'USDC';
             const settleId = (type === 'swap') ? 'USDC' : undefined;
@@ -1723,12 +1714,15 @@ export default class lighter extends Exchange {
                 endTs = now;
             }
         } else {
-            endTs = (until !== undefined) ? until : now;
-            const defaultLimit = 100;
-            if (limit !== undefined) {
-                startTs = endTs - this.parseTimeframe (timeframe) * 1000 * limit;
+            const count = this.safeInteger ({ 'limit': limit }, 'limit', 100);
+            const timeframeMs = this.parseTimeframe (timeframe) * 1000;
+            const span = timeframeMs * count;
+            if (until !== undefined) {
+                endTs = until;
+                startTs = until - span;
             } else {
-                startTs = endTs - this.parseTimeframe (timeframe) * 1000 * defaultLimit;
+                endTs = now;
+                startTs = now - span;
             }
         }
         const request: Dict = {
@@ -2394,16 +2388,13 @@ export default class lighter extends Exchange {
         const marketId = this.safeString (order, 'market_index');
         const marketResolved: Market = this.safeMarket (marketId, market);
         const timestamp = this.safeTimestamp (order, 'timestamp');
-        let isAsk = this.safeBool (order, 'is_ask');
-        if (isAsk === undefined) {
-            const isAskAsInteger = this.safeInteger (order, 'is_ask');
-            if (isAskAsInteger !== undefined) {
-                isAsk = isAskAsInteger === 1;
-            }
-        }
+        const isAsk = this.safeBool (order, 'is_ask');
+        const isAskAsInteger = this.safeInteger (order, 'is_ask');
         let side: Str = undefined;
         if (isAsk !== undefined) {
-            side = isAsk ? 'sell' : 'buy';
+            side = (isAsk === true) ? 'sell' : 'buy';
+        } else if (isAskAsInteger !== undefined) {
+            side = (isAskAsInteger === 1) ? 'sell' : 'buy';
         }
         let type = this.safeString (order, 'type');
         if (type === undefined) {
@@ -2422,19 +2413,13 @@ export default class lighter extends Exchange {
             }
         }
         // Try to parse to integer first, because parsing an integer to a string wouldn't result in undefined
-        let tif: Str = undefined;
         const tifAsInteger = this.safeInteger (order, 'time_in_force');
-        if (tifAsInteger !== undefined) {
-            tif = this.parseOrderTimeInForceInteger (tifAsInteger);
-        } else {
-            tif = this.safeString (order, 'time_in_force');
-        }
-        let reduceOnly = this.safeBool (order, 'reduce_only');
-        if (reduceOnly === undefined) {
-            const reduceOnlyAsInteger = this.safeInteger (order, 'reduce_only');
-            if (reduceOnlyAsInteger !== undefined) {
-                reduceOnly = reduceOnlyAsInteger === 1;
-            }
+        const tif = (tifAsInteger !== undefined) ? this.parseOrderTimeInForceInteger (tifAsInteger) : this.safeString (order, 'time_in_force');
+        const reduceOnlyAsBool = this.safeBool (order, 'reduce_only');
+        const reduceOnlyAsInteger = this.safeInteger (order, 'reduce_only');
+        let reduceOnly: Bool = reduceOnlyAsBool;
+        if ((reduceOnlyAsBool === undefined) && (reduceOnlyAsInteger !== undefined)) {
+            reduceOnly = (reduceOnlyAsInteger === 1);
         }
         const status = this.safeString (order, 'status');
         return this.safeOrder ({
@@ -2466,7 +2451,7 @@ export default class lighter extends Exchange {
         }, marketResolved);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'in-progress': 'open',
             'pending': 'open',
@@ -2531,7 +2516,7 @@ export default class lighter extends Exchange {
         return this.safeString (timeInForces, tif, tif);
     }
 
-    parseOrderTimeInForceInteger (tifInteger: any) {
+    parseOrderTimeInForceInteger (tifInteger: number): Str {
         const timeInForces: Dict = {
             '0': 'immediate-or-cancel',
             '1': 'good-till-time',
@@ -2881,7 +2866,7 @@ export default class lighter extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             'failed': 'failed',
             'pending': 'pending',
@@ -3129,7 +3114,7 @@ export default class lighter extends Exchange {
         }
         let takerOrMaker: Str = undefined;
         if (side !== undefined && isMakerAsk !== undefined) {
-            const isMaker = (side === 'sell') ? isMakerAsk : !isMakerAsk;
+            const isMaker = (side === 'sell') ? (isMakerAsk === true) : (isMakerAsk === false);
             takerOrMaker = isMaker ? 'maker' : 'taker';
         }
         return this.safeTrade ({

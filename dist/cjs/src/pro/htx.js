@@ -557,18 +557,18 @@ class htx extends htx$1["default"] {
             const snapshotOrderBook = this.orderBook(snapshot, snapshotLimit);
             client.resolve(snapshotOrderBook, id);
             if ((sequence === undefined) || (nonce < sequence)) {
-                const maxAttempts = this.handleOption('watchOrderBook', 'maxRetries', 3);
-                let numAttempts = this.safeInteger(subscription, 'numAttempts', 0);
+                const maxAttempts = this.parseToInt(this.handleOption('watchOrderBook', 'maxRetries', 3));
+                const numAttempts = this.safeInteger(subscription, 'numAttempts', 0);
                 // retry to synchronize if we have not reached maxAttempts yet
                 if (numAttempts < maxAttempts) {
                     // safety guard
                     if (messageHash in client.subscriptions) {
-                        numAttempts = this.sum(numAttempts, 1);
+                        const nextAttempts = this.sum(numAttempts, 1);
                         let delayTime = 1000;
                         if ((lastTimestamp !== undefined) && (snapshotTimestamp !== undefined)) {
                             delayTime = this.sum(1000, lastTimestamp - snapshotTimestamp);
                         }
-                        subscription['numAttempts'] = numAttempts;
+                        subscription['numAttempts'] = nextAttempts;
                         client.subscriptions[messageHash] = subscription;
                         this.delay(delayTime, this.watchOrderBookSnapshot, client, message, subscription);
                     }
@@ -733,7 +733,8 @@ class htx extends htx$1["default"] {
             orderbook.reset(snapshot);
             orderbook['nonce'] = version;
         }
-        if ((prevSeqNum !== undefined) && prevSeqNum > this.safeInteger(orderbook, 'nonce', 0)) {
+        const orderbookNonce = this.safeInteger(orderbook, 'nonce', 0);
+        if ((prevSeqNum !== undefined) && prevSeqNum > orderbookNonce) {
             const checksum = this.handleOption('watchOrderBook', 'checksum', true);
             if (checksum === true) {
                 throw new errors.ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));

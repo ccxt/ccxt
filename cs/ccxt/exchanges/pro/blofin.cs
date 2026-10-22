@@ -574,10 +574,6 @@ public partial class blofin : ccxt.blofin
         //     }
         //
         string marketType = "swap"; // for now
-        if (!((this.balance != null && this.balance.ContainsKey(marketType))))
-        {
-            this.balance[marketType] = new Dictionary<string, object>() {};
-        }
         this.balance[marketType] = this.parseWsBalance(message);
         string messageHash = (marketType + ":balance");
         client.resolve((this.balance != null && this.balance.ContainsKey(marketType) ? this.balance[marketType] : null), messageHash);
@@ -631,7 +627,7 @@ public partial class blofin : ccxt.blofin
             await this.loadMarkets();
         }
         bool? trigger = this.safeBool2(parameters, "stop", "trigger");
-        object paramsOmitted = this.omit(parameters, new List<object>() {"stop", "trigger"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"stop", "trigger"}));
         string channel = "orders";
         if ((trigger == true))
         {
@@ -841,10 +837,10 @@ public partial class blofin : ccxt.blofin
         {
             symbols = new List<object>() {};
         }
-        int symbolsLength = getArrayLength(symbols);
+        int symbolsLength = (((object)(symbols)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
         if (symbolsLength > 0)
         {
-            for (int i = 0; i < getArrayLength(symbols); i++)
+            for (int i = 0; i < (((object)(symbols)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
             {
                 object current = getValue(symbols, i);
                 IDictionary<string, object> market = null;
@@ -883,7 +879,7 @@ public partial class blofin : ccxt.blofin
         }
         Dictionary<string, object> request = this.getSubscriptionRequest(rawSubscriptions);
         string privateOrPublic = "private";
-        if (isTrue(isPublic))
+        if ((((object)(isPublic)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
         {
             privateOrPublic = "public";
         }

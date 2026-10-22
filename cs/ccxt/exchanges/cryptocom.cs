@@ -1049,8 +1049,8 @@ public partial class cryptocom : Exchange
             string? strike = this.safeString(market, "strike");
             bool? marginBuyEnabled = this.safeBool(market, "margin_buy_enabled");
             bool? marginSellEnabled = this.safeBool(market, "margin_sell_enabled");
-            string? expiryString = ((string)this.omitZero(this.safeString(market, "expiry_timestamp_ms")));
-            Int64? expiry = ((expiryString != null)) ? parseInt(expiryString) : null;
+            Int64? expiryRaw = this.safeInteger(market, "expiry_timestamp_ms");
+            Int64? expiry = ((expiryRaw == 0)) ? null : expiryRaw;
             string symbol = ((bs + "/") + quote);
             string? type = null;
             bool? contract = null;
@@ -1434,9 +1434,10 @@ public partial class cryptocom : Exchange
         if ((since != null))
         {
             request["start_ts"] = (since - (duration * 1000L));
-            if (!(limitResolved == null))
+            if ((limit != null))
             {
-                request["end_ts"] = this.sum(since, multiply(multiply(duration, limitResolved), 1000));
+                Int64? countLimit = this.parseToInt((((((object)(limit)) is var c31v0) && (((object)(300)) is var c31v1)) ? (((c31v0 == null) || (c31v1 == null)) ? null : ((Convert.ToDouble(c31v0) < Convert.ToDouble(c31v1)) ? c31v0 : c31v1)) : null));
+                request["end_ts"] = this.sum(since, ((duration * countLimit) * 1000));
             } else
             {
                 request["end_ts"] = until;
@@ -2465,21 +2466,15 @@ public partial class cryptocom : Exchange
 
     public virtual List<object> parseAddress(object addressString)
     {
-        object address = null;
-        object tag = null;
-        object rawTag = null;
-        if (getIndexOf(addressString, "?") > 0)
+        if ((addressString != null) && ((string)addressString).IndexOf("?", StringComparison.Ordinal) > 0)
         {
             var addressrawTagVariable = ((string)addressString).Split(new [] {"?"}, StringSplitOptions.None).ToList<object>();
-            address = addressrawTagVariable[0];
-            rawTag = addressrawTagVariable[1];
+            var address = addressrawTagVariable[0];
+            var rawTag = addressrawTagVariable[1];
             List<object> splitted = ((string)rawTag).Split(new [] {"="}, StringSplitOptions.None).ToList<object>();
-            tag = (splitted != null && 1 < splitted.Count ? splitted[1] : null);
-        } else
-        {
-            address = addressString;
+            return new List<object>() {address, (splitted != null && 1 < splitted.Count ? splitted[1] : null)};
         }
-        return new List<object>() {address, tag};
+        return new List<object>() {addressString, null};
     }
 
     /**
@@ -2631,7 +2626,7 @@ public partial class cryptocom : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         string? networkParam = this.safeStringUpper(parameters, "network");
-        object paramsOmitted = this.omit(parameters, new List<object>() {"network"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"network"}));
         Dictionary<string, object> depositAddressesRaw = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(code, paramsOmitted));
         Dictionary<string, object> depositAddresses = depositAddressesRaw;
         if ((networkParam != null))
@@ -2682,7 +2677,7 @@ public partial class cryptocom : Exchange
             request["page_size"] = limit;
         }
         Int64? until = this.safeInteger(parameters, "until");
-        object paramsOmitted = this.omit(parameters, new List<object>() {"until"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"until"}));
         if ((until != null))
         {
             request["end_ts"] = until;
@@ -2751,7 +2746,7 @@ public partial class cryptocom : Exchange
             request["page_size"] = limit;
         }
         Int64? until = this.safeInteger(parameters, "until");
-        object paramsOmitted = this.omit(parameters, new List<object>() {"until"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"until"}));
         if ((until != null))
         {
             request["end_ts"] = until;
@@ -3184,7 +3179,7 @@ public partial class cryptocom : Exchange
         parameters ??= new Dictionary<string, object>();
         string? defaultType = this.safeString(this.options, "defaultType");
         bool? isMargin = this.safeBool(parameters, "margin", false);
-        object paramsOmitted = this.omit(parameters, "margin");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "margin"));
         string? marginMode = null;
         object paramsMarginMode = null;
         (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams(methodName, paramsOmitted);
@@ -3325,7 +3320,7 @@ public partial class cryptocom : Exchange
             request["limit"] = limit;
         }
         Int64? until = this.safeInteger(parameters, "until");
-        object paramsOmitted = this.omit(parameters, new List<object>() {"until"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"until"}));
         if ((until != null))
         {
             request["end_time"] = until;
@@ -3701,10 +3696,10 @@ public partial class cryptocom : Exchange
         //                 },
         //
         Int64? timestamp = this.safeInteger(contract, "t");
-        object fundingTimestamp = null;
+        Int64? fundingTimestamp = null;
         if ((timestamp != null))
         {
-            fundingTimestamp = multiply(Math.Ceiling(Convert.ToDouble(((double?)timestamp / 3600000))), 3600000); // end of the next hour
+            fundingTimestamp = (this.parseToInt(Math.Ceiling(Convert.ToDouble(((double?)timestamp / 3600000)))) * 3600000); // end of the next hour
         }
         return new Dictionary<string, object>() {
             { "info", contract },
@@ -3997,7 +3992,8 @@ public partial class cryptocom : Exchange
     public virtual object paramsToString(object obj, object level)
     {
         int maxLevel = 3;
-        if (isGreaterThanOrEqual(level, maxLevel))
+        Int64? depth = this.parseToInt(level);
+        if ((depth >= maxLevel))
         {
             return obj.ToString();
         }
@@ -4015,23 +4011,23 @@ public partial class cryptocom : Exchange
             List<object> objectKeys = new List<object>(((IDictionary<string,object>)obj).Keys);
             paramsKeys = this.sort(objectKeys);
         }
-        for (int i = 0; i < getArrayLength(paramsKeys); i++)
+        for (int i = 0; i < (((object)(paramsKeys)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             object key = getValue(paramsKeys, i);
             returnString = add(returnString, key);
             object value = getValue(obj, key);
             if ((value is "undefined"))
             {
-                returnString = add(returnString, "null");
+                returnString = (returnString + ("null"));
             } else if (((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
-                for (int j = 0; j < getArrayLength(value); j++)
+                for (int j = 0; j < (((object)(value)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); j++)
                 {
                     returnString = add(returnString, this.paramsToString(getValue(value, j), add(level, 1)));
                 }
             } else
             {
-                returnString = add(returnString, ((object)value).ToString());
+                returnString = (returnString + (((object)value).ToString()));
             }
         }
         return returnString;
@@ -4180,7 +4176,7 @@ public partial class cryptocom : Exchange
         result["info"] = response;
         for (int i = 0; i < this.symbols.Count; i++)
         {
-            object symbol = getValue(this.symbols, i);
+            object symbol = (this.symbols != null && i < this.symbols.Count ? this.symbols[i] : null);
             Dictionary<string, object> market = this.market(symbol);
             bool? isSwap = ((bool?)(market.ContainsKey("swap") ? market["swap"] : null));
             string takerFeeKey = "effective_spot_taker_rate_bps";

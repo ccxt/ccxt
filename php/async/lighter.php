@@ -449,19 +449,10 @@ class lighter extends Exchange {
     }
 
     public function get_lighter_private_key(string $strAccountIndex, string $strApiKeyIndex) {
-        if (!(is_array($this->options) && array_key_exists('auths' ?? '', $this->options))) {
-            return null;
-        }
-        if (!(is_array($this->options['auths']) && array_key_exists($strAccountIndex ?? '', $this->options['auths']))) {
-            return null;
-        }
-        if (!(is_array($this->options['auths'][$strAccountIndex]) && array_key_exists($strApiKeyIndex ?? '', $this->options['auths'][$strAccountIndex]))) {
-            return null;
-        }
-        if (!(is_array($this->options['auths'][$strAccountIndex][$strApiKeyIndex]) && array_key_exists('lighterPrivateKey' ?? '', $this->options['auths'][$strAccountIndex][$strApiKeyIndex]))) {
-            return null;
-        }
-        return $this->options['auths'][$strAccountIndex][$strApiKeyIndex]['lighterPrivateKey'];
+        $auths = $this->safe_dict($this->options, 'auths');
+        $accountAuths = $this->safe_dict($auths, $strAccountIndex);
+        $apiKeyAuths = $this->safe_dict($accountAuths, $strApiKeyIndex);
+        return $this->safe_string($apiKeyAuths, 'lighterPrivateKey');
     }
 
     public function pre_load_lighter_library($params = array()): PromiseInterface {
@@ -495,13 +486,14 @@ class lighter extends Exchange {
 
     public function handle_api_key_index(array $params, string $methodName1, string $optionName1, string $optionName2, mixed $defaultValue = null): array {
         list($apiKeyIndexOption, $paramsApiKeyIndex) = $this->handle_option_and_params_2($params, $methodName1, $optionName1, $optionName2, $defaultValue);
-        $apiKeyIndex = $apiKeyIndexOption;
-        if (($apiKeyIndex === null) || ($apiKeyIndex < 4) || ($apiKeyIndex > 254)) {
-            // apiKeyIndex = this.randNumber (2);
-            $apiKeyIndex = 254;
-            $this->options['apiKeyIndex'] = $apiKeyIndex; // default to a value to avoid overriding other keys
+        $apiKeyIndex = $this->safe_integer(array( $apiKeyIndexOption ), 0);
+        if (($apiKeyIndex !== null) && ($apiKeyIndex >= 4) && ($apiKeyIndex <= 254)) {
+            return array( $this->parse_to_int($apiKeyIndex), $paramsApiKeyIndex );
         }
-        return array( $this->parse_to_int($apiKeyIndex), $paramsApiKeyIndex );
+        // apiKeyIndex = this.randNumber (2);
+        $defaultApiKeyIndex = 254;
+        $this->options['apiKeyIndex'] = $defaultApiKeyIndex; // default to a value to avoid overriding other keys
+        return array( $defaultApiKeyIndex, $paramsApiKeyIndex );
     }
 
     public function handle_account_index(array $params, string $methodName1, string $optionName1, string $optionName2, mixed $defaultValue = null): PromiseInterface {
@@ -599,11 +591,9 @@ class lighter extends Exchange {
         $accountAuths = $this->safe_dict($auths, $accountIndex);
         $cachedAuth = $this->safe_dict($accountAuths, $apiKeyIndex);
         $cachedDeadline = $this->safe_integer($cachedAuth, 'deadline');
-        if ($cachedDeadline !== null) {
-            $minimumDeadline = $this->seconds() . $this->safe_integer($this->options, 'authDeadlineMinimumRemaining', 60);
-            if ($cachedDeadline >= $minimumDeadline) {
-                return $this->safe_string($cachedAuth, 'token');
-            }
+        $minimumRemaining = $this->safe_integer($this->options, 'authDeadlineMinimumRemaining', 60);
+        if (($cachedDeadline !== null) && ($minimumRemaining !== null) && ($cachedDeadline - $minimumRemaining >= $this->seconds())) {
+            return $this->safe_string($cachedAuth, 'token');
         }
         $deadline = $this->seconds() . $this->safe_integer($this->options, 'authDeadlineExpiry', 28800);
         $request = array(
@@ -617,7 +607,7 @@ class lighter extends Exchange {
         return $token;
     }
 
-    public function pow(string $n, string $m) {
+    public function pow(string $n, string $m): ?string {
         $r = Precise::string_mul($n, '1');
         $c = $this->parse_to_int($m);
         if ($c < 0) {
@@ -644,7 +634,7 @@ class lighter extends Exchange {
         return '0x' . $this->hash($this->binary_concat($prefix, $binaryMessage), 'keccak', 'hex');
     }
 
-    public function sign_hash(mixed $hash, mixed $privateKey): string {
+    public function sign_hash(string $hash, string $privateKey): string {
         $this->check_required_credentials();
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
         $r = $signature['r'];
@@ -653,7 +643,7 @@ class lighter extends Exchange {
         return '0x' . str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($s, 64, '0', STR_PAD_LEFT) . $v;
     }
 
-    public function sign_l1_and_prepare_tx_info(mixed $txInfo, mixed $message, mixed $privateKey): string {
+    public function sign_l1_and_prepare_tx_info(mixed $txInfo, mixed $message, string $privateKey): string {
         $hashMessage = $this->hash_message($message);
         $signature = $this->sign_hash($hashMessage, $privateKey);
         $decTxInfo = $this->parse_json($txInfo);
@@ -842,8 +832,8 @@ class lighter extends Exchange {
         $request['api_key_index'] = $apiKeyIndex;
         $request['account_index'] = $this->parse_to_int($accountIndex);
         $triggerPrice = $this->safe_string_2($paramsOrderExpiry, 'triggerPrice', 'stopPrice');
-        $stopLossPrice = $this->safe_value($paramsOrderExpiry, 'stopLossPrice', $triggerPrice);
-        $takeProfitPrice = $this->safe_value($paramsOrderExpiry, 'takeProfitPrice');
+        $stopLossPrice = $this->safe_string($paramsOrderExpiry, 'stopLossPrice', $triggerPrice);
+        $takeProfitPrice = $this->safe_string($paramsOrderExpiry, 'takeProfitPrice');
         $stopLoss = $this->safe_dict($paramsOrderExpiry, 'stopLoss');
         $takeProfit = $this->safe_dict($paramsOrderExpiry, 'takeProfit');
         $hasStopLoss = ($stopLoss !== null);
@@ -1318,9 +1308,10 @@ class lighter extends Exchange {
             if ($type === 'perp') {
                 $type = 'swap';
             }
-            $baseId = $this->safe_string($market, 'symbol');
-            if ($baseId !== null && mb_strpos($baseId, '/') !== -1) {
-                $baseId = explode('/', $baseId)[0];
+            $marketSymbol = $this->safe_string($market, 'symbol');
+            $baseId = $marketSymbol;
+            if ($marketSymbol !== null && mb_strpos($marketSymbol, '/') !== -1) {
+                $baseId = explode('/', $marketSymbol)[0];
             }
             $quoteId = 'USDC';
             $settleId = ($type === 'swap') ? 'USDC' : null;
@@ -1797,12 +1788,15 @@ class lighter extends Exchange {
                 $endTs = $now;
             }
         } else {
-            $endTs = ($until !== null) ? $until : $now;
-            $defaultLimit = 100;
-            if ($limit !== null) {
-                $startTs = $endTs - $this->parse_timeframe($timeframe) * 1000 * $limit;
+            $count = $this->safe_integer(array( 'limit' => $limit ), 'limit', 100);
+            $timeframeMs = $this->parse_timeframe($timeframe) * 1000;
+            $span = $timeframeMs * $count;
+            if ($until !== null) {
+                $endTs = $until;
+                $startTs = $until - $span;
             } else {
-                $startTs = $endTs - $this->parse_timeframe($timeframe) * 1000 * $defaultLimit;
+                $endTs = $now;
+                $startTs = $now - $span;
             }
         }
         $request = array(
@@ -2497,15 +2491,12 @@ class lighter extends Exchange {
         $marketResolved = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_timestamp($order, 'timestamp');
         $isAsk = $this->safe_bool($order, 'is_ask');
-        if ($isAsk === null) {
-            $isAskAsInteger = $this->safe_integer($order, 'is_ask');
-            if ($isAskAsInteger !== null) {
-                $isAsk = $isAskAsInteger === 1;
-            }
-        }
+        $isAskAsInteger = $this->safe_integer($order, 'is_ask');
         $side = null;
         if ($isAsk !== null) {
-            $side = $isAsk ? 'sell' : 'buy';
+            $side = ($isAsk === true) ? 'sell' : 'buy';
+        } elseif ($isAskAsInteger !== null) {
+            $side = ($isAskAsInteger === 1) ? 'sell' : 'buy';
         }
         $type = $this->safe_string($order, 'type');
         if ($type === null) {
@@ -2524,19 +2515,13 @@ class lighter extends Exchange {
             }
         }
         // Try to parse to integer first, because parsing an integer to a string wouldn't result in undefined
-        $tif = null;
         $tifAsInteger = $this->safe_integer($order, 'time_in_force');
-        if ($tifAsInteger !== null) {
-            $tif = $this->parse_order_time_in_force_integer($tifAsInteger);
-        } else {
-            $tif = $this->safe_string($order, 'time_in_force');
-        }
-        $reduceOnly = $this->safe_bool($order, 'reduce_only');
-        if ($reduceOnly === null) {
-            $reduceOnlyAsInteger = $this->safe_integer($order, 'reduce_only');
-            if ($reduceOnlyAsInteger !== null) {
-                $reduceOnly = $reduceOnlyAsInteger === 1;
-            }
+        $tif = ($tifAsInteger !== null) ? $this->parse_order_time_in_force_integer($tifAsInteger) : $this->safe_string($order, 'time_in_force');
+        $reduceOnlyAsBool = $this->safe_bool($order, 'reduce_only');
+        $reduceOnlyAsInteger = $this->safe_integer($order, 'reduce_only');
+        $reduceOnly = $reduceOnlyAsBool;
+        if (($reduceOnlyAsBool === null) && ($reduceOnlyAsInteger !== null)) {
+            $reduceOnly = ($reduceOnlyAsInteger === 1);
         }
         $status = $this->safe_string($order, 'status');
         return $this->safe_order(array(
@@ -2568,7 +2553,7 @@ class lighter extends Exchange {
         ), $marketResolved);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'in-progress' => 'open',
             'pending' => 'open',
@@ -2633,7 +2618,7 @@ class lighter extends Exchange {
         return $this->safe_string($timeInForces, $tif, $tif);
     }
 
-    public function parse_order_time_in_force_integer(mixed $tifInteger) {
+    public function parse_order_time_in_force_integer(float $tifInteger): ?string {
         $timeInForces = array(
             '0' => 'immediate-or-cancel',
             '1' => 'good-till-time',
@@ -2997,7 +2982,7 @@ class lighter extends Exchange {
         );
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'failed' => 'failed',
             'pending' => 'pending',
@@ -3255,7 +3240,7 @@ class lighter extends Exchange {
         }
         $takerOrMaker = null;
         if ($side !== null && $isMakerAsk !== null) {
-            $isMaker = ($side === 'sell') ? $isMakerAsk : !$isMakerAsk;
+            $isMaker = ($side === 'sell') ? ($isMakerAsk === true) : ($isMakerAsk === false);
             $takerOrMaker = $isMaker ? 'maker' : 'taker';
         }
         return $this->safe_trade(array(

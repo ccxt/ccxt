@@ -1497,7 +1497,7 @@ class xt extends Exchange {
             // window start return one pre-since candle, shifting paginated windows and
             // dropping one candle per page - align up so the rounding is a no-op, see https://github.com/ccxt/ccxt/issues/25285
             $duration = $this->parse_timeframe($timeframe) * 1000;
-            $request['startTime'] = (int) ceil($since / $duration) * $duration;
+            $request['startTime'] = $this->parse_to_int((int) ceil($since / $duration)) * $duration;
         }
         $limitResolved = $limit;
         if ($limit !== null) {
@@ -2010,7 +2010,7 @@ class xt extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($ticker, 's');
-        $marketType = ($market !== null) ? $this->safe_string($market, 'type') : null;
+        $marketType = $this->safe_string($market, 'type');
         $hasSpotKeys = (is_array($ticker) && array_key_exists('cv' ?? '', $ticker)) || (is_array($ticker) && array_key_exists('aq' ?? '', $ticker));
         if ($marketType === null) {
             $marketType = $hasSpotKeys ? 'spot' : 'contract';
@@ -2361,7 +2361,7 @@ class xt extends Exchange {
         //    }
         //
         $marketId = $this->safe_string_2($trade, 's', 'symbol');
-        $marketType = ($market !== null) ? $this->safe_string($market, 'type') : null;
+        $marketType = $this->safe_string($market, 'type');
         $hasSpotKeys = (is_array($trade) && array_key_exists('b' ?? '', $trade)) || (is_array($trade) && array_key_exists('bizType' ?? '', $trade)) || (is_array($trade) && array_key_exists('oi' ?? '', $trade));
         if ($marketType === null) {
             $marketType = $hasSpotKeys ? 'spot' : 'contract';
@@ -2698,7 +2698,7 @@ class xt extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function create_contract_order(string $symbol, string $type, mixed $side, mixed $amount, ?float $price = null, $params = array()): array {
+    public function create_contract_order(string $symbol, string $type, string $side, mixed $amount, ?float $price = null, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -4010,7 +4010,7 @@ class xt extends Exchange {
         ), $marketResolved);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'NEW' => 'open',
             'PARTIALLY_FILLED' => 'open',
@@ -4138,7 +4138,7 @@ class xt extends Exchange {
         ), $currencyResolved);
     }
 
-    public function parse_ledger_entry_type(?string $type) {
+    public function parse_ledger_entry_type(?string $type): ?string {
         $ledgerType = array(
             'EXCHANGE' => 'transfer',
             'CLOSE_POSITION' => 'trade',
@@ -4447,7 +4447,7 @@ class xt extends Exchange {
         );
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'SUBMIT' => 'pending',
             'REVIEW' => 'pending',
@@ -4747,7 +4747,7 @@ class xt extends Exchange {
             $tier = $this->safe_dict($brackets, $i);
             $marketId = $this->safe_string($info, 'symbol');
             $marketResolved = $this->safe_market($marketId, $market, '_', 'contract');
-            $minNotional = $this->safe_number($brackets[$i - 1], 'maxNominalValue', 0);
+            $minNotional = $this->safe_number($this->safe_dict($brackets, $i - 1), 'maxNominalValue', 0);
             $tiers[] = array(
                 'tier' => $this->safe_integer($tier, 'bracket'),
                 'symbol' => $this->safe_symbol($marketId, $marketResolved, '_', 'contract'),
@@ -4914,10 +4914,8 @@ class xt extends Exchange {
         $marketId = $this->safe_string($contract, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '_', 'swap');
         $timestamp = $this->safe_integer($contract, 'nextCollectionTime');
-        $interval = $this->safe_string($contract, 'collectionInternal');
-        if ($interval !== null) {
-            $interval = $interval . 'h';
-        }
+        $collectionInterval = $this->safe_string($contract, 'collectionInternal');
+        $interval = ($collectionInterval !== null) ? ($collectionInterval . 'h') : null;
         return array(
             'info' => $contract,
             'symbol' => $symbol,
@@ -5881,14 +5879,8 @@ class xt extends Exchange {
             $timestamp = $this->number_to_string($this->nonce());
             if (($payload === '/v4/order') || ($payload === '/future/trade/v1/order/create') || ($payload === '/future/trade/v1/entrust/create-plan') || ($payload === '/future/trade/v1/entrust/create-profit') || ($payload === '/future/trade/v1/order/create-batch')) {
                 $id = 'CCXT';
-                if ($query === null) {
-                    throw new NullResponse($this->id . ' sign() returned empty body');
-                }
                 if (mb_strpos($payload, 'future') > -1) {
                     $query['clientMedia'] = $id;
-                    if ($query === null) {
-                        throw new NullResponse($this->id . ' sign() returned empty body');
-                    }
                 } else {
                     $query['media'] = $id;
                 }

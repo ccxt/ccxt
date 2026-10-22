@@ -2155,7 +2155,7 @@ class hashkey(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             '1': 'pending',
             '2': 'pending',
@@ -2267,7 +2267,7 @@ class hashkey(Exchange, ImplicitAPI):
             'info': account,
         }
 
-    def parse_account_type(self, type: Str):
+    def parse_account_type(self, type: Str) -> Str:
         types = {
             '1': 'spot account',
             '3': 'swap account',
@@ -3605,7 +3605,7 @@ class hashkey(Exchange, ImplicitAPI):
                 reduceOnly = True
         return [side, reduceOnly]
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',

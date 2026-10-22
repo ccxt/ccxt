@@ -1667,7 +1667,7 @@ class aster extends \ccxt\async\aster {
             $account['free'] = $this->safe_string($entry, 'f');
             $account['used'] = $this->safe_string($entry, 'l');
             $account['total'] = $this->safe_string($entry, $wallet);
-            if (($accountType !== null) && ($code !== null)) {
+            if ($code !== null) {
                 $this->balance[$accountType][$code] = $account;
             }
         }

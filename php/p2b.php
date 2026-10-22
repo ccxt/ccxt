@@ -1135,18 +1135,27 @@ class p2b extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $until = $this->safe_integer($params, 'until');
+        $untilParam = $this->safe_integer($params, 'until');
         $paramsOmitted = $this->omit($params, 'until');
-        if ($until === null) {
-            if ($since === null) {
-                $until = $this->milliseconds();
+        $until = null;
+        $sinceResolved = 0;
+        if ($untilParam !== null) {
+            $until = $untilParam;
+            if ($since !== null) {
+                if (($untilParam - $since) > 86400000) {
+                    throw new BadRequest($this->id . ' fetchMyTrades () the time between since and params["until"] cannot be greater than 24 hours');
+                }
+                $sinceResolved = $since;
             } else {
-                $until = $since + 86400000;
+                $sinceResolved = $untilParam - 86400000;
             }
-        }
-        $sinceResolved = ($since === null) ? ($until - 86400000) : $since;
-        if (($until - $sinceResolved) > 86400000) {
-            throw new BadRequest($this->id . ' fetchMyTrades () the time between since and params["until"] cannot be greater than 24 hours');
+        } elseif ($since !== null) {
+            $until = $since + 86400000;
+            $sinceResolved = $since;
+        } else {
+            $now = $this->milliseconds();
+            $until = $now;
+            $sinceResolved = $now - 86400000;
         }
         $market = $this->market($symbol);
         $sinceSec = $this->parse_to_int($sinceResolved / 1000);
@@ -1210,22 +1219,31 @@ class p2b extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $until = $this->safe_integer($params, 'until');
+        $untilParam = $this->safe_integer($params, 'until');
         $paramsOmitted = $this->omit($params, 'until');
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        if ($until === null) {
-            if ($since === null) {
-                $until = $this->milliseconds();
+        $until = null;
+        $sinceResolved = 0;
+        if ($untilParam !== null) {
+            $until = $untilParam;
+            if ($since !== null) {
+                if (($untilParam - $since) > 86400000) {
+                    throw new BadRequest($this->id . ' fetchClosedOrders () the time between since and params["until"] cannot be greater than 24 hours');
+                }
+                $sinceResolved = $since;
             } else {
-                $until = $since + 86400000;
+                $sinceResolved = $untilParam - 86400000;
             }
-        }
-        $sinceResolved = ($since === null) ? ($until - 86400000) : $since;
-        if (($until - $sinceResolved) > 86400000) {
-            throw new BadRequest($this->id . ' fetchClosedOrders () the time between since and params["until"] cannot be greater than 24 hours');
+        } elseif ($since !== null) {
+            $until = $since + 86400000;
+            $sinceResolved = $since;
+        } else {
+            $now = $this->milliseconds();
+            $until = $now;
+            $sinceResolved = $now - 86400000;
         }
         $sinceSec = $this->parse_to_int($sinceResolved / 1000);
         $untilSec = $this->parse_to_int($until / 1000);
@@ -1394,7 +1412,8 @@ class p2b extends Exchange {
             $feedback = $this->id . ' ' . $body;
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
             $codeAsString = (string) $code;
-            if (($code < 400) || !(is_array($this->httpExceptions) && array_key_exists($codeAsString ?? '', $this->httpExceptions))) {
+            $statusCode = $this->parse_to_int($code);
+            if (($statusCode < 400) || !(is_array($this->httpExceptions) && array_key_exists($codeAsString ?? '', $this->httpExceptions))) {
                 // an error envelope must always throw — also for statuses the http-status handler has no entry for
                 throw new ExchangeError($feedback);
             }

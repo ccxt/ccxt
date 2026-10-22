@@ -830,7 +830,7 @@ public partial class poloniex : Exchange
         //             "1740770099999",
         //           ],
         //
-        int ohlcvLength = getArrayLength(ohlcv);
+        int ohlcvLength = (((object)(ohlcv)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
         bool isContract = (ohlcvLength == 9);
         if (isContract)
         {
@@ -1317,10 +1317,11 @@ public partial class poloniex : Exchange
         string? marketId = this.safeString2(ticker, "symbol", "s");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId);
         string? baseVolume = this.safeString2(ticker, "quantity", "qty");
-        if (((((marketResolved != null && marketResolved.ContainsKey("contract") ? marketResolved["contract"] : null) as bool?) == true)) && (!isEqual((marketResolved != null && marketResolved.ContainsKey("contractSize") ? marketResolved["contractSize"] : null), null)))
+        double? contractSize = this.safeNumber(marketResolved, "contractSize");
+        if (((((marketResolved != null && marketResolved.ContainsKey("contract") ? marketResolved["contract"] : null) as bool?) == true)) && ((contractSize != null)))
         {
             // 'quantity' counts contracts, and a ticker reports base volume
-            baseVolume = Precise.stringMul(baseVolume, this.numberToString((marketResolved != null && marketResolved.ContainsKey("contractSize") ? marketResolved["contractSize"] : null)));
+            baseVolume = Precise.stringMul(baseVolume, this.numberToString(contractSize));
         }
         string? relativeChange = this.safeString2(ticker, "dailyChange", "dc");
         string? percentage = Precise.stringMul(relativeChange, "100");
@@ -2123,7 +2124,7 @@ public partial class poloniex : Exchange
 
     public virtual object parseOpenOrders(object orders, IDictionary<string, object> market, object result)
     {
-        for (int i = 0; i < getArrayLength(orders); i++)
+        for (int i = 0; i < (((object)(orders)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             IDictionary<string, object> order = ((IDictionary<string, object>)getValue(orders, i));
             Dictionary<string, object> extended = this.extend(order, new Dictionary<string, object>() {
@@ -2167,8 +2168,13 @@ public partial class poloniex : Exchange
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
         if ((limit != null))
         {
-            int max = ((marketType == "spot")) ? 2000 : 100;
-            request["limit"] = mathMax(limit, max);
+            if ((marketType == "spot"))
+            {
+                request["limit"] = Math.Max(limit.Value, 2000);
+            } else
+            {
+                request["limit"] = Math.Max(limit.Value, 100);
+            }
         }
         bool? isTrigger = this.safeBool2(paramsMarketType, "trigger", "stop");
         Dictionary<string, object> paramsOmitted = this.omit(paramsMarketType, new List<object>() {"trigger", "stop"});
@@ -2417,11 +2423,13 @@ public partial class poloniex : Exchange
             IDictionary<string, object> rawOrder = ((IDictionary<string, object>)(orders != null && i < orders.Count ? orders[i] : null));
             string? symbol = ((string)(rawOrder != null && rawOrder.ContainsKey("symbol") ? rawOrder["symbol"] : null));
             Dictionary<string, object> marketInner = this.market(symbol);
+            string? marketInnerType = this.safeString(marketInner, "type");
+            string? marketType = this.safeString(market, "type");
             if ((market == null))
             {
                 market = marketInner;
                 isContract = ((((marketInner != null && marketInner.ContainsKey("contract") ? marketInner["contract"] : null) as bool?) == true));
-            } else if (!isEqual((market.ContainsKey("type") ? market["type"] : null), (marketInner != null && marketInner.ContainsKey("type") ? marketInner["type"] : null)))
+            } else if ((marketType != marketInnerType))
             {
                 throw new BadRequest ((this.id + " createOrders() requires all orders to be of the same market type, either spot or swap")) ;
             }
@@ -2523,7 +2531,7 @@ public partial class poloniex : Exchange
                 {
                     throw new ArgumentsRequired ((this.id + " createOrder() requires a marginMode parameter \"cross\" or \"isolated\" for hedged orders")) ;
                 }
-                if (!(inOp(query, "posSide")))
+                if (!((query is IDictionary<string, object> inOpDict0 && inOpDict0.ContainsKey("posSide"))))
                 {
                     throw new ArgumentsRequired ((this.id + " createOrder() requires a posSide parameter \"LONG\" or \"SHORT\" for hedged orders")) ;
                 }
@@ -2716,11 +2724,11 @@ public partial class poloniex : Exchange
             //
             return this.parseOrder(this.safeDict(raw, "data", new Dictionary<string, object>() {}));
         }
-        object clientOrderId = this.safeValue(parameters, "clientOrderId");
+        string? clientOrderId = this.safeString(parameters, "clientOrderId");
         object idValue = ((clientOrderId != null)) ? clientOrderId : idVar;
         request["id"] = idValue;
         bool? isTrigger = this.safeBool2(parameters, "trigger", "stop");
-        object paramsOmitted = this.omit(parameters, new List<object>() {"clientOrderId", "trigger", "stop"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"clientOrderId", "trigger", "stop"}));
         Dictionary<string, object> response = new Dictionary<string, object>() {};
         if ((isTrigger == true))
         {
@@ -3051,11 +3059,11 @@ public partial class poloniex : Exchange
             return this.safeBalance(result);
         }
         // for spot
-        for (int i = 0; i < getArrayLength(response); i++)
+        for (int i = 0; i < (((object)(response)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             IDictionary<string, object> account = this.safeDict(response, i, new Dictionary<string, object>() {});
-            object balances = this.safeValue(account, "balances");
-            for (int j = 0; j < getArrayLength(balances); j++)
+            List<object> balances = this.safeList(account, "balances", new List<object>() {});
+            for (int j = 0; j < balances.Count; j++)
             {
                 IDictionary<string, object> balance = this.safeDict(balances, j);
                 string? currencyId = this.safeString(balance, "currency");
@@ -3249,22 +3257,22 @@ public partial class poloniex : Exchange
         //     }
         //
         Int64? timestamp = this.safeInteger(response, "time");
-        object asks = this.safeValue(response, "asks");
-        object bids = this.safeValue(response, "bids");
+        List<object> asks = this.safeList(response, "asks", new List<object>() {});
+        List<object> bids = this.safeList(response, "bids", new List<object>() {});
         List<object> asksResult = new List<object>() {};
         List<object> bidsResult = new List<object>() {};
-        for (int i = 0; i < getArrayLength(asks); i++)
+        for (int i = 0; i < asks.Count; i++)
         {
-            if (isLessThan((((Int64)i % 2L)), 1))
+            if ((((object)((((Int64)i % 2L)))) switch { Int64 c33l => c33l == 0, int c33i => c33i == 0, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 0, decimal c33m => c33m == 0, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 0, uint c33u => (Int64)c33u == 0, short c33h => (Int64)c33h == 0, ushort c33v => (Int64)c33v == 0, byte c33y => (Int64)c33y == 0, sbyte c33e => (Int64)c33e == 0, ulong c33z => c33z == 0UL, _ => false }))
             {
                 double? price = this.safeNumber(asks, i);
                 double? amount = this.safeNumber(asks, this.sum(i, 1));
                 asksResult.Add(new List<object>() {price, amount});
             }
         }
-        for (int i = 0; i < getArrayLength(bids); i++)
+        for (int i = 0; i < bids.Count; i++)
         {
-            if (isLessThan((((Int64)i % 2L)), 1))
+            if ((((object)((((Int64)i % 2L)))) switch { Int64 c33l => c33l == 0, int c33i => c33i == 0, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 0, decimal c33m => c33m == 0, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 0, uint c33u => (Int64)c33u == 0, short c33h => (Int64)c33h == 0, ushort c33v => (Int64)c33v == 0, byte c33y => (Int64)c33y == 0, sbyte c33e => (Int64)c33e == 0, ulong c33z => c33z == 0UL, _ => false }))
             {
                 double? price = this.safeNumber(bids, i);
                 double? amount = this.safeNumber(bids, this.sum(i, 1));
@@ -3339,7 +3347,7 @@ public partial class poloniex : Exchange
     public virtual List<object> prepareRequestForDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!(inOp(this.currencies, code)))
+        if (!(((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))(this.currencies, code)))
         {
             throw new BadSymbol ((((this.id + " fetchDepositAddress(): can not recognize ") + code) + " currency, you might try using unified currency-code and add provide specific \"network\" parameter, like: fetchDepositAddress(\"USDT\", { \"network\": \"TRC20\" })")) ;
         }
@@ -3358,7 +3366,7 @@ public partial class poloniex : Exchange
         IDictionary<string, object> networkEntry = ((networkCode == null)) ? null : this.safeDict((currency.ContainsKey("networks") ? currency["networks"] : null), networkCode);
         if ((networkEntry != null))
         {
-            exchangeNetworkId = GetValue(networkEntry, "id");
+            exchangeNetworkId = (networkEntry != null && networkEntry.ContainsKey("id") ? networkEntry["id"] : null);
         } else
         {
             exchangeNetworkId = this.networkCodeToId(networkCode, code);
@@ -3515,7 +3523,7 @@ public partial class poloniex : Exchange
         return ccxt.BaseExchange.ToTransferEntryList(this.parseTransfers(response, currency, since, limit));
     }
 
-    public virtual string? parseTransferStatus(object status)
+    public virtual string? parseTransferStatus(string? status)
     {
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "SUCCESS", "ok" },
@@ -3618,7 +3626,14 @@ public partial class poloniex : Exchange
         await this.loadMarkets();
         int year = 31104000; // 60 * 60 * 24 * 30 * 12 = one year of history, why not
         Int64 now = this.seconds();
-        Int64? start = ((since != null)) ? this.parseToInt(divide(since, 1000)) : (now - (10L * year));
+        Int64? start = (now - (10L * year));
+        if ((since != null))
+        {
+            Int64? sinceMs = this.safeInteger(new Dictionary<string, object>() {
+                { "since", since },
+            }, "since", 0);
+            start = this.parseToInt(((double?)sinceMs / 1000));
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "start", start },
             { "end", now },
@@ -3842,14 +3857,14 @@ public partial class poloniex : Exchange
             {
                 Dictionary<string, object> currency = this.currency(code);
                 depositWithdrawFees[(string)code] = this.parseDepositWithdrawFee(feeInfo, currency);
-                object childChains = this.safeValue(feeInfo, "childChains");
-                int chainsLength = getArrayLength(childChains);
+                List<object> childChains = this.safeList(feeInfo, "childChains", new List<object>() {});
+                int chainsLength = childChains.Count;
                 if (chainsLength > 0)
                 {
-                    for (int j = 0; j < getArrayLength(childChains); j++)
+                    for (int j = 0; j < childChains.Count; j++)
                     {
-                        object networkId = getValue(childChains, j);
-                        networkId = ((string)networkId).Replace(code, (string)"");
+                        string? rawNetworkId = this.safeString(childChains, j, "");
+                        string networkId = rawNetworkId.Replace(code, (string)"");
                         string? networkCode = this.networkIdToCode(networkId, this.safeString(currency, "code"));
                         IDictionary<string, object> networkInfo = this.safeDict(response, networkId);
                         Dictionary<string, object> networkObject = new Dictionary<string, object>() {};
@@ -3993,7 +4008,7 @@ public partial class poloniex : Exchange
         status = this.parseTransactionStatus(status);
         string? txid = this.safeString(transactionValue, "txid");
         string type = "deposit";
-        if (inOp(transactionValue, "withdrawalRequestsId"))
+        if ((((object)(transactionValue)) switch { null => false, IList<object> c33a => c33a.Contains("withdrawalRequestsId"), IList<string> c33t => c33t.Contains("withdrawalRequestsId"), List<Int64> c33g => c33g.Contains((Int64)(object)"withdrawalRequestsId"), IDictionary<string, object> c33d => c33d.ContainsKey("withdrawalRequestsId"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("withdrawalRequestsId"), _ => false }))
         {
             type = "withdrawal";
         }
@@ -4370,7 +4385,7 @@ public partial class poloniex : Exchange
             { "positionMargin", this.parseNumber(positionMargin) },
             { "initialMargin", initialMargin },
             { "initialMarginPercentage", null },
-            { "leverage", parseInt(leverage) },
+            { "leverage", (((Func<object, Int64?>)(static (object hx4pa) => { try { return Convert.ToInt64(Math.Floor(Convert.ToDouble(hx4pa))); } catch (Exception) { return null; } }))(leverage)) },
             { "marginRatio", this.safeNumber(position, "mgnRatio") },
             { "stopLossPrice", this.safeNumber(position, "slTrgPx") },
             { "takeProfitPrice", this.safeNumber(position, "tpTrgPx") },
@@ -4446,9 +4461,9 @@ public partial class poloniex : Exchange
      */
     public async override Task<Dictionary<string, object>> reduceMargin(string symbol, double amount, object parameters = null)
     {
-        object amountVar = amount;
+        // modifyMarginHelper sends Precise.stringAbs (amountToPrecision (amount)), so the sign is irrelevant
         parameters ??= new Dictionary<string, object>();
-        return await this.modifyMarginHelper(symbol, prefixUnaryNeg(ref amountVar), "reduce", parameters);
+        return await this.modifyMarginHelper(symbol, amount, "reduce", parameters);
     }
 
     /**

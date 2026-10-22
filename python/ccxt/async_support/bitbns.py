@@ -554,7 +554,7 @@ class bitbns(Exchange, ImplicitAPI):
         # note that "Money" stands for INR - the only fiat in bitbns
         return self.parse_balance(response)
 
-    def parse_status(self, status: Str):
+    def parse_status(self, status: Str) -> Str:
         statuses = {
             '-1': 'cancelled',
             '0': 'open',
@@ -1085,7 +1085,7 @@ class bitbns(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    def parse_transaction_status_by_type(self, status: Str, type: Str = None):
+    def parse_transaction_status_by_type(self, status: Str, type: Str = None) -> Str:
         statusesByType = {
             'deposit': {
                 '0': 'pending',

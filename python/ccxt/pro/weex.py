@@ -1676,7 +1676,7 @@ class weex(ccxt.async_support.weex):
         else:
             self.positions = ArrayCacheBySymbolById()
 
-    async def load_positions_snapshot(self, client: Client, messageHash: str, params: object):
+    async def load_positions_snapshot(self, client: Client, messageHash: str, params: dict):
         positions = await self.fetch_positions(None, params)
         self.positions = ArrayCacheBySymbolById()
         cache = self.positions

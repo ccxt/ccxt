@@ -823,7 +823,7 @@ public partial class alpaca : Exchange
             { "symbols", marketId },
             { "loc", loc },
         };
-        object paramsOmitted = this.omit(parameters, new List<object>() {"loc", "method"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"loc", "method"}));
         List<object> symbolTrades = null;
         if (method == "marketPublicGetV1beta3CryptoLocTrades")
         {
@@ -990,10 +990,10 @@ public partial class alpaca : Exchange
         (bool?, object) paginatequeryVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         paginate = paginatequeryVariable.Item1;
         query = paginatequeryVariable.Item2;
-        object paginationCalls = 10;
-        (Int64?, object) paginationCallsqueryVariable = this.handleOptionIntegerAndParams(query, "fetchOHLCV", "paginationCalls", 10);
-        paginationCalls = paginationCallsqueryVariable.Item1;
-        query = paginationCallsqueryVariable.Item2;
+        (Int64?, object) paginationCallsqueryPaginationVariable = this.handleOptionIntegerAndParams(query, "fetchOHLCV", "paginationCalls", 10);
+        Int64? paginationCalls = paginationCallsqueryPaginationVariable.Item1;
+        IDictionary<string, object> queryPagination = ((IDictionary<string, object>)paginationCallsqueryPaginationVariable.Item2);
+        query = queryPagination;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbols", marketId },
             { "loc", loc },
@@ -1053,7 +1053,7 @@ public partial class alpaca : Exchange
             {
                 // the endpoint answers with a server-sized page plus a next_page_token regardless of the requested limit
                 string? pageToken = this.safeString(response, "next_page_token");
-                for (int i = 1; isLessThan(i, paginationCalls); i++)
+                for (int i = 1; (i < paginationCalls); i++)
                 {
                     int ohlcvsLength = (ohlcvs?.Count ?? 0);
                     if (((pageToken == null)) || (((limit != null)) && ((limit == null || ohlcvsLength >= limit))))
@@ -1171,7 +1171,7 @@ public partial class alpaca : Exchange
             { "symbols", String.Join(",", ids.ToArray()) },
             { "loc", loc },
         };
-        object paramsOmitted = this.omit(parameters, "loc");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "loc"));
         Dictionary<string, object> response = await this.marketPublicGetV1beta3CryptoLocSnapshots(this.extend(request, paramsOmitted));
         //
         //     {
@@ -1382,7 +1382,7 @@ public partial class alpaca : Exchange
         if ((triggerPrice != null))
         {
             string? newType = null;
-            if (getIndexOf(type, "limit") >= 0)
+            if (type.IndexOf("limit", StringComparison.Ordinal) >= 0)
             {
                 newType = "stop_limit";
             } else
@@ -1392,7 +1392,7 @@ public partial class alpaca : Exchange
             request["stop_price"] = this.priceToPrecision(symbol, triggerPrice);
             request["type"] = newType;
         }
-        if (getIndexOf(type, "limit") >= 0)
+        if (type.IndexOf("limit", StringComparison.Ordinal) >= 0)
         {
             request["limit_price"] = this.priceToPrecision(symbol, price);
         }
@@ -2208,7 +2208,7 @@ public partial class alpaca : Exchange
     public async override Task<List<ccxt.Transaction>> FetchDepositsWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object transactions = ccxt.BaseExchange.FromTransactionList(await this.FetchTransactionsHelper("BOTH", code, since, limit, parameters));
+        List<object> transactions = ccxt.BaseExchange.FromTransactionList(await this.FetchTransactionsHelper("BOTH", code, since, limit, parameters));
         return ccxt.BaseExchange.ToTransactionList(this.toArray(transactions));
     }
 
@@ -2226,7 +2226,7 @@ public partial class alpaca : Exchange
     public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object transactions = ccxt.BaseExchange.FromTransactionList(await this.FetchTransactionsHelper("INCOMING", code, since, limit, parameters));
+        List<object> transactions = ccxt.BaseExchange.FromTransactionList(await this.FetchTransactionsHelper("INCOMING", code, since, limit, parameters));
         return ccxt.BaseExchange.ToTransactionList(this.toArray(transactions));
     }
 
@@ -2244,7 +2244,7 @@ public partial class alpaca : Exchange
     public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object transactions = ccxt.BaseExchange.FromTransactionList(await this.FetchTransactionsHelper("OUTGOING", code, since, limit, parameters));
+        List<object> transactions = ccxt.BaseExchange.FromTransactionList(await this.FetchTransactionsHelper("OUTGOING", code, since, limit, parameters));
         return ccxt.BaseExchange.ToTransactionList(this.toArray(transactions));
     }
 
@@ -2521,9 +2521,9 @@ public partial class alpaca : Exchange
             {
                 // crypto position symbols come compressed with a USD tail, e.g. BTCUSD or USDTUSD
                 int baseLength = (positionSymbol.Length - 3);
-                if ((baseLength > 0) && (isEqual(slice(positionSymbol, baseLength, null), "USD")))
+                if ((baseLength > 0) && ((((object)(((Func<object, object, object, string>)(static (s36s, s36a, s36b) => { if (s36s == null) { return null; } var s36str = (string)s36s; var s36start = s36a != null ? Convert.ToInt32(s36a) : -1; if (s36b == null) { if (s36start < 0) { var s36inner = s36str.Length + s36start; s36inner = s36inner < 0 ? 0 : s36inner; return s36str[(s36inner)..]; } else { return s36str[s36start..]; } } else { var s36end = Convert.ToInt32(s36b); if (s36start < 0) { s36start = s36str.Length + s36start; } if (s36end < 0) { s36end = s36str.Length + s36end; } if (s36end > s36str.Length) { s36end = s36str.Length; } return s36str[s36start..s36end]; } }))(positionSymbol, baseLength, null))) is "USD")))
                 {
-                    baseId = slice(positionSymbol, 0, baseLength);
+                    baseId = ((Func<object, object, object, string>)(static (s36s, s36a, s36b) => { if (s36s == null) { return null; } var s36str = (string)s36s; var s36start = s36a != null ? Convert.ToInt32(s36a) : -1; if (s36b == null) { if (s36start < 0) { var s36inner = s36str.Length + s36start; s36inner = s36inner < 0 ? 0 : s36inner; return s36str[(s36inner)..]; } else { return s36str[s36start..]; } } else { var s36end = Convert.ToInt32(s36b); if (s36start < 0) { s36start = s36str.Length + s36start; } if (s36end < 0) { s36end = s36str.Length + s36end; } if (s36end > s36str.Length) { s36end = s36str.Length; } return s36str[s36start..s36end]; } }))(positionSymbol, 0, baseLength);
                 }
             }
             if ((baseId == null))
@@ -2554,7 +2554,7 @@ public partial class alpaca : Exchange
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         Dictionary<string, object> headersValue = new Dictionary<string, object>() {};
-        if (isEqual(getValue(api, 1), "private"))
+        if ((getValue(api, 1) is "private"))
         {
             this.checkRequiredCredentials();
             headersValue["APCA-API-KEY-ID"] = this.apiKey;
@@ -2605,7 +2605,8 @@ public partial class alpaca : Exchange
             this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
             string codeAsString = code.ToString();
-            if ((isLessThan(code, 400)) || !(this.httpExceptions.ContainsKey(codeAsString)))
+            Int64? statusCode = this.parseToInt(code);
+            if ((((statusCode == null || statusCode < 400))) || !(this.httpExceptions.ContainsKey(codeAsString)))
             {
                 throw new ExchangeError (feedback) ;
             }

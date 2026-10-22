@@ -515,7 +515,7 @@ export default class hyperliquid extends Exchange {
             const isWrapped = fullName.startsWith ('Unit ') && name.startsWith ('U');
             if (isWrapped) {
                 const parts = name.split ('U');
-                let nameWithoutU = '';
+                let nameWithoutU: string = '';
                 for (let j = 0; j < parts.length; j++) {
                     nameWithoutU = nameWithoutU + parts[j];
                 }
@@ -591,10 +591,11 @@ export default class hyperliquid extends Exchange {
         //     ]
         //
         const perpDexesOffset: Dict = {};
-        for (let i = 1; i < fetchDexes.length; i++) {
+        const dexesCount: int = fetchDexes.length;
+        for (let i = 1; i < dexesCount; i++) {
             // builder-deployed perp dexs start at 110000
             const dex = this.safeDict (fetchDexes, i, {});
-            const secondPart = (i - 1) * 10000;
+            const secondPart = i * 10000 - 10000;
             const offset = this.sum (110000, secondPart);
             perpDexesOffset[dex['name']] = offset;
         }
@@ -779,41 +780,44 @@ export default class hyperliquid extends Exchange {
      * @param {int} maxDecimals the maxDecimals to use in the calculation
      * @returns {int} The calculated price precision
      */
-    calculatePricePrecision (price: number, amountPrecision: number, maxDecimals: number) {
+    calculatePricePrecision (price: number, amountPrecision: int, maxDecimals: int): number {
         let pricePrecision = 0;
         const priceStr = this.numberToString (price);
         if (priceStr === undefined) {
             return 0;
         }
         const priceSplitted = priceStr.split ('.');
+        const maxDecimalsInt = this.parseToInt (maxDecimals);
+        const amountPrecisionInt = this.parseToInt (amountPrecision);
+        const decimalsLeft = maxDecimalsInt - amountPrecisionInt;
         if (Precise.stringEq (priceStr, '0')) {
             // Significant digits is always 5 in this case
-            const significantDigits = 5;
-            // Integer digits is always 0 in this case (0 doesn't count)
-            const integerDigits = 0;
-            // Calculate the price precision
-            pricePrecision = Math.min (maxDecimals - amountPrecision, significantDigits - integerDigits);
+            // and integer digits is always 0 (0 doesn't count), so the precision is capped at 5 - 0
+            pricePrecision = Math.min (decimalsLeft, 5);
         } else if (Precise.stringGt (priceStr, '0') && Precise.stringLt (priceStr, '1')) {
             // Significant digits, always 5 in this case
             const significantDigits = 5;
             // Get the part after the decimal separator
             const decimalPart = this.safeString (priceSplitted, 1, '');
             // Count the number of leading zeros in the decimal part
-            let leadingZeros = 0;
+            let leadingZeros: int = 0;
             while ((leadingZeros <= decimalPart.length) && (decimalPart[leadingZeros] === '0')) {
                 leadingZeros = leadingZeros + 1;
             }
             // Calculate price precision based on leading zeros and significant digits
             pricePrecision = leadingZeros + significantDigits;
             // Calculate the price precision based on maxDecimals - szDecimals and the calculated price precision from the previous step
-            pricePrecision = Math.min (maxDecimals - amountPrecision, pricePrecision);
+            pricePrecision = Math.min (decimalsLeft, pricePrecision);
         } else {
             // Count the numbers before the decimal separator
             const integerPart = this.safeString (priceSplitted, 0, '');
             // Get significant digits, take the max() of 5 and the integer digits count
-            const significantDigits = Math.max (5, integerPart.length);
-            // Calculate price precision based on maxDecimals - szDecimals and significantDigits - integerPart.length
-            pricePrecision = Math.min (maxDecimals - amountPrecision, significantDigits - integerPart.length);
+            // significantDigits - integerPart.length, with significantDigits = max (5, integerPart.length)
+            let digitsLeft: int = 0;
+            if (integerPart.length <= 5) {
+                digitsLeft = 5 - (integerPart.length);
+            }
+            pricePrecision = Math.min (decimalsLeft, digitsLeft);
         }
         return this.parseToInt (pricePrecision);
     }
@@ -916,7 +920,7 @@ export default class hyperliquid extends Exchange {
             const innerBaseTokenInfo = this.safeDict (baseTokenInfo, 'spec', baseTokenInfo);
             // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
             const amountPrecisionStr = this.safeString (innerBaseTokenInfo, 'szDecimals');
-            const amountPrecision = parseInt ((amountPrecisionStr as string));
+            const amountPrecision = this.parseToInt (amountPrecisionStr);
             const price = this.safeNumber (extraData, 'midPx');
             let pricePrecision = 0;
             if (price !== undefined) {
@@ -1050,7 +1054,7 @@ export default class hyperliquid extends Exchange {
         const taker = this.safeNumber (fees, 'taker');
         const maker = this.safeNumber (fees, 'maker');
         const amountPrecisionStr = this.safeString (market, 'szDecimals');
-        const amountPrecision = parseInt ((amountPrecisionStr as string));
+        const amountPrecision = this.parseToInt (amountPrecisionStr);
         const price = this.safeNumber (market, 'markPx', 0);
         let pricePrecision = 0;
         if (price !== undefined) {
@@ -1445,7 +1449,8 @@ export default class hyperliquid extends Exchange {
         const funding = this.safeNumber (info, 'funding');
         const markPx = this.safeNumber (info, 'markPx');
         const oraclePx = this.safeNumber (info, 'oraclePx');
-        const fundingTimestamp = (Math.floor (this.milliseconds () / 60 / 60 / 1000) + 1) * 60 * 60 * 1000;
+        const currentHour: int = this.parseToInt (this.milliseconds () / 60 / 60 / 1000);
+        const fundingTimestamp = (currentHour + 1) * 60 * 60 * 1000;
         return {
             'info': info,
             'symbol': symbol,
@@ -1681,12 +1686,15 @@ export default class hyperliquid extends Exchange {
         const integerPart = (priceStr as string).split ('.')[0];
         const significantDigits = Math.max (5, integerPart.length);
         const result = this.decimalToPrecision (price, ROUND, significantDigits, SIGNIFICANT_DIGITS, this.paddingMode);
-        const maxDecimals = (market['spot'] === true) ? 8 : 6;
+        let maxDecimals: int = 6;
+        if (market['spot'] === true) {
+            maxDecimals = 8;
+        }
         const subtractedValue = maxDecimals - this.precisionFromString (this.safeString (market['precision'], 'amount'));
         return this.decimalToPrecision (result, ROUND, subtractedValue, DECIMAL_PLACES, this.paddingMode);
     }
 
-    hashMessage (message: any) {
+    hashMessage (message: any): string {
         return '0x' + this.hash (message, keccak, 'hex');
     }
 
@@ -1703,7 +1711,7 @@ export default class hyperliquid extends Exchange {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64));
     }
 
-    constructPhantomAgent (hash: any, isTestnet = true) {
+    constructPhantomAgent (hash: any, isTestnet = true): Dict {
         const source = (isTestnet) ? 'b' : 'a';
         return {
             'source': source,
@@ -1711,10 +1719,10 @@ export default class hyperliquid extends Exchange {
         };
     }
 
-    actionHash (action: any, vaultAddress: any, nonce: any, expiresAfter: Int = undefined) {
+    actionHash (action: any, vaultAddress: Str, nonce: any, expiresAfter: Int = undefined) {
         const dataBinary = this.packb (action);
         const dataHex = this.binaryToBase16 (dataBinary);
-        let data = dataHex;
+        let data: string = dataHex;
         data += '00000' + this.intToBase16 (nonce);
         if (vaultAddress === undefined) {
             data += '00';
@@ -2192,7 +2200,7 @@ export default class hyperliquid extends Exchange {
         await this.initializeClient ();
         const market = this.market (symbol);
         const nonce = this.incrementingNonce ();
-        const isBuy = ((side as string).toUpperCase () === 'BUY');
+        const isBuy = (side.toUpperCase () === 'BUY');
         const randomize = this.safeBool (params, 'randomize', false);
         const paramsOmitted: Dict = this.omit (params, 'randomize');
         const [ vaultAddressOption, paramsVault ] = this.handleOptionStringAndParams (paramsOmitted, 'createOrder', 'vaultAddress');
@@ -2303,7 +2311,7 @@ export default class hyperliquid extends Exchange {
         }
         const market = this.market (symbol);
         const typeValue: Str = type.toUpperCase ();
-        const sideValue: Str = (side as string).toUpperCase ();
+        const sideValue: Str = side.toUpperCase ();
         const isMarket = (typeValue === 'MARKET');
         const isBuy = (sideValue === 'BUY');
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
@@ -3153,7 +3161,7 @@ export default class hyperliquid extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
     }
 
-    getDexFromHip3Symbol (market: Market) {
+    getDexFromHip3Symbol (market: Market): Str {
         const baseName = this.safeString (market, 'baseName', '');
         const part = baseName.split (':');
         const partsLength = part.length;
@@ -3346,10 +3354,7 @@ export default class hyperliquid extends Exchange {
         }
         for (let i = 0; i < historicalOrders.length; i++) {
             const rawOrder = historicalOrders[i];
-            let entry = this.safeDict (rawOrder, 'order');
-            if (entry === undefined) {
-                entry = rawOrder;
-            }
+            const entry = this.safeDict (rawOrder, 'order', rawOrder);
             const oid = this.safeString (entry, 'oid');
             if (oid !== undefined) {
                 if (!(oid in deduplicatedByOid)) {
@@ -3540,10 +3545,7 @@ export default class hyperliquid extends Exchange {
                 'status': 'rejected',
             });
         }
-        let entry = this.safeDictN (order, [ 'order', 'resting', 'filled' ]);
-        if (entry === undefined) {
-            entry = order;
-        }
+        const entry = this.safeDictN (order, [ 'order', 'resting', 'filled' ], order);
         const filled = this.safeDict (order, 'filled', {});
         const coin = this.safeString (entry, 'coin');
         let marketId: Str = undefined;
@@ -3614,7 +3616,7 @@ export default class hyperliquid extends Exchange {
         }, marketResolved);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         if (status === undefined) {
             return undefined;
         }
@@ -3896,7 +3898,7 @@ export default class hyperliquid extends Exchange {
         return this.safeDict (positions, 0, {}) as Position;
     }
 
-    getDexFromSymbols (methodName: string, symbols: Strings = undefined) {
+    getDexFromSymbols (methodName: string, symbols: Strings = undefined): Str {
         if (symbols === undefined) {
             return undefined;
         }
@@ -4241,10 +4243,8 @@ export default class hyperliquid extends Exchange {
         }
         const market = this.market (symbol);
         const asset = this.parseToInt (market['baseId']);
-        let sz = this.parseToInt (Precise.stringMul (this.amountToPrecision (symbol, amount), '1000000'));
-        if (type === 'reduce') {
-            sz = -sz;
-        }
+        const szAbs: int = this.parseToInt (Precise.stringMul (this.amountToPrecision (symbol, amount), '1000000'));
+        const sz: int = (type === 'reduce') ? -szAbs : szAbs;
         const nonce = this.incrementingNonce ();
         const updateAction: Dict = {
             'type': 'updateIsolatedMargin',
@@ -4889,19 +4889,19 @@ export default class hyperliquid extends Exchange {
         let vaultAddress: Str = undefined;
         [ vaultAddress, params2 ] = this.handleOptionStringAndParams (params2, 'fetchDepositsWithdrawals', 'vaultAddress');
         vaultAddress = this.formatVaultAddress (vaultAddress);
-        let deposits: Dict[] = [];
-        if (vaultAddress !== undefined) {
-            for (let i = 0; i < records.length; i++) {
-                const record = records[i];
-                if (this.safeString (record, 'type') === 'vaultDeposit') {
-                    const delta = this.safeDict (record, 'delta', {});
-                    if (delta['vault'] === '0x' + vaultAddress) {
-                        deposits.push (record);
-                    }
+        if (vaultAddress === undefined) {
+            const filtered = this.filterByArray (records, 'type', [ 'deposit' ], false);
+            return this.parseTransactions (filtered, undefined, since, limit);
+        }
+        const deposits: Dict[] = [];
+        for (let i = 0; i < records.length; i++) {
+            const record = records[i];
+            if (this.safeString (record, 'type') === 'vaultDeposit') {
+                const delta = this.safeDict (record, 'delta', {});
+                if (delta['vault'] === '0x' + vaultAddress) {
+                    deposits.push (record);
                 }
             }
-        } else {
-            deposits = this.filterByArray (records, 'type', [ 'deposit' ], false);
         }
         return this.parseTransactions (deposits, undefined, since, limit);
     }
@@ -4960,19 +4960,19 @@ export default class hyperliquid extends Exchange {
         let vaultAddress: Str = undefined;
         [ vaultAddress, params2 ] = this.handleOptionStringAndParams (params2, 'fetchDepositsWithdrawals', 'vaultAddress');
         vaultAddress = this.formatVaultAddress (vaultAddress);
-        let withdrawals: Dict[] = [];
-        if (vaultAddress !== undefined) {
-            for (let i = 0; i < records.length; i++) {
-                const record = records[i];
-                if (this.safeString (record, 'type') === 'vaultWithdraw') {
-                    const delta = this.safeDict (record, 'delta', {});
-                    if (delta['vault'] === '0x' + vaultAddress) {
-                        withdrawals.push (record);
-                    }
+        if (vaultAddress === undefined) {
+            const filtered = this.filterByArray (records, 'type', [ 'withdraw' ], false);
+            return this.parseTransactions (filtered, undefined, since, limit);
+        }
+        const withdrawals: Dict[] = [];
+        for (let i = 0; i < records.length; i++) {
+            const record = records[i];
+            if (this.safeString (record, 'type') === 'vaultWithdraw') {
+                const delta = this.safeDict (record, 'delta', {});
+                if (delta['vault'] === '0x' + vaultAddress) {
+                    withdrawals.push (record);
                 }
             }
-        } else {
-            withdrawals = this.filterByArray (records, 'type', [ 'withdraw' ], false);
         }
         return this.parseTransactions (withdrawals, undefined, since, limit);
     }
@@ -5197,7 +5197,7 @@ export default class hyperliquid extends Exchange {
         return response;
     }
 
-    extractTypeFromDelta (data: Dict[] = []) {
+    extractTypeFromDelta (data: Dict[] = []): Dict[] {
         const records: Dict[] = [];
         for (let i = 0; i < data.length; i++) {
             const record = data[i];
@@ -5330,7 +5330,7 @@ export default class hyperliquid extends Exchange {
     override calculateRateLimiterCost (api: string[], method: any, path: any, params: any, config: Dict = {}) {
         if (('byType' in config) && ('type' in params)) {
             const type = params['type'];
-            const byType = config['byType'] as Dict;
+            const byType = this.safeDict (config, 'byType', {});
             if (type in byType) {
                 return byType[type];
             }

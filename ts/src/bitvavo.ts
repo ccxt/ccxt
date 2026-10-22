@@ -1131,12 +1131,10 @@ export default class bitvavo extends Exchange {
             request['end'] = this.sum (since, sinceLimit * duration * 1000);
         }
         const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end', request, params);
-        let limitResolved: Int = limit;
-        if ((since !== undefined) && (limit === undefined)) {
-            limitResolved = 1440;
-        }
-        if (limitResolved !== undefined) {
-            requestUntil['limit'] = Math.min (limitResolved, 1440); // default 1440, max 1440
+        if (limit !== undefined) {
+            requestUntil['limit'] = Math.min (limit, 1440); // default 1440, max 1440
+        } else if (since !== undefined) {
+            requestUntil['limit'] = 1440;
         }
         return this.extend (requestUntil, paramsUntil);
     }
@@ -2044,7 +2042,7 @@ export default class bitvavo extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'new': 'open',
             'canceled': 'canceled',
@@ -2290,7 +2288,7 @@ export default class bitvavo extends Exchange {
         return this.parseLedger (items, currency, since, limit);
     }
 
-    parseLedgerEntryType (type: Str) {
+    parseLedgerEntryType (type: Str): Str {
         const types: Dict = {
             'buy': 'trade',
             'sell': 'trade',
@@ -2508,7 +2506,7 @@ export default class bitvavo extends Exchange {
         return this.parseTransactions (response, currency, since, limit, { 'type': 'deposit' });
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             'awaiting_processing': 'pending',
             'awaiting_email_confirmation': 'pending',

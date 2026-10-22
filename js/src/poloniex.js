@@ -1101,9 +1101,10 @@ export default class poloniex extends Exchange {
         const marketId = this.safeString2(ticker, 'symbol', 's');
         const marketResolved = this.safeMarket(marketId);
         let baseVolume = this.safeString2(ticker, 'quantity', 'qty');
-        if ((marketResolved['contract'] === true) && (marketResolved['contractSize'] !== undefined)) {
+        const contractSize = this.safeNumber(marketResolved, 'contractSize');
+        if ((marketResolved['contract'] === true) && (contractSize !== undefined)) {
             // 'quantity' counts contracts, and a ticker reports base volume
-            baseVolume = Precise.stringMul(baseVolume, this.numberToString(marketResolved['contractSize']));
+            baseVolume = Precise.stringMul(baseVolume, this.numberToString(contractSize));
         }
         const relativeChange = this.safeString2(ticker, 'dailyChange', 'dc');
         const percentage = Precise.stringMul(relativeChange, '100');
@@ -1886,8 +1887,12 @@ export default class poloniex extends Exchange {
         }
         const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('fetchOpenOrders', market, params);
         if (limit !== undefined) {
-            const max = (marketType === 'spot') ? 2000 : 100;
-            request['limit'] = Math.max(limit, max);
+            if (marketType === 'spot') {
+                request['limit'] = Math.max(limit, 2000);
+            }
+            else {
+                request['limit'] = Math.max(limit, 100);
+            }
         }
         const isTrigger = this.safeBool2(paramsMarketType, 'trigger', 'stop');
         const paramsOmitted = this.omit(paramsMarketType, ['trigger', 'stop']);
@@ -2115,11 +2120,13 @@ export default class poloniex extends Exchange {
             const rawOrder = orders[i];
             const symbol = rawOrder['symbol'];
             const marketInner = this.market(symbol);
+            const marketInnerType = this.safeString(marketInner, 'type');
+            const marketType = this.safeString(market, 'type');
             if (market === undefined) {
                 market = marketInner;
                 isContract = (marketInner['contract'] === true);
             }
-            else if (market['type'] !== marketInner['type']) {
+            else if (marketType !== marketInnerType) {
                 throw new BadRequest(this.id + ' createOrders() requires all orders to be of the same market type, either spot or swap');
             }
             const type = rawOrder['type'];
@@ -2367,7 +2374,7 @@ export default class poloniex extends Exchange {
             //
             return this.parseOrder(this.safeDict(raw, 'data', {}));
         }
-        const clientOrderId = this.safeValue(params, 'clientOrderId');
+        const clientOrderId = this.safeString(params, 'clientOrderId');
         const idValue = (clientOrderId !== undefined) ? clientOrderId : id;
         request['id'] = idValue;
         const isTrigger = this.safeBool2(params, 'trigger', 'stop');
@@ -2665,7 +2672,7 @@ export default class poloniex extends Exchange {
         // for spot
         for (let i = 0; i < response.length; i++) {
             const account = this.safeDict(response, i, {});
-            const balances = this.safeValue(account, 'balances');
+            const balances = this.safeList(account, 'balances', []);
             for (let j = 0; j < balances.length; j++) {
                 const balance = this.safeDict(balances, j);
                 const currencyId = this.safeString(balance, 'currency');
@@ -2842,19 +2849,19 @@ export default class poloniex extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger(response, 'time');
-        const asks = this.safeValue(response, 'asks');
-        const bids = this.safeValue(response, 'bids');
+        const asks = this.safeList(response, 'asks', []);
+        const bids = this.safeList(response, 'bids', []);
         const asksResult = [];
         const bidsResult = [];
         for (let i = 0; i < asks.length; i++) {
-            if ((i % 2) < 1) {
+            if ((i % 2) === 0) {
                 const price = this.safeNumber(asks, i);
                 const amount = this.safeNumber(asks, this.sum(i, 1));
                 asksResult.push([price, amount]);
             }
         }
         for (let i = 0; i < bids.length; i++) {
-            if ((i % 2) < 1) {
+            if ((i % 2) === 0) {
                 const price = this.safeNumber(bids, i);
                 const amount = this.safeNumber(bids, this.sum(i, 1));
                 bidsResult.push([price, amount]);
@@ -3162,7 +3169,11 @@ export default class poloniex extends Exchange {
         await this.loadMarkets();
         const year = 31104000; // 60 * 60 * 24 * 30 * 12 = one year of history, why not
         const now = this.seconds();
-        const start = (since !== undefined) ? this.parseToInt(since / 1000) : now - 10 * year;
+        let start = now - 10 * year;
+        if (since !== undefined) {
+            const sinceMs = this.safeInteger({ 'since': since }, 'since', 0);
+            start = this.parseToInt(sinceMs / 1000);
+        }
         const request = {
             'start': start, // UNIX timestamp, required
             'end': now, // UNIX timestamp, required
@@ -3367,12 +3378,12 @@ export default class poloniex extends Exchange {
             if ((code !== undefined) && ((codesValue === undefined) || (this.inArray(code, codesValue)))) {
                 const currency = this.currency(code);
                 depositWithdrawFees[code] = this.parseDepositWithdrawFee(feeInfo, currency);
-                const childChains = this.safeValue(feeInfo, 'childChains');
+                const childChains = this.safeList(feeInfo, 'childChains', []);
                 const chainsLength = childChains.length;
                 if (chainsLength > 0) {
                     for (let j = 0; j < childChains.length; j++) {
-                        let networkId = childChains[j];
-                        networkId = networkId.replace(code, '');
+                        const rawNetworkId = this.safeString(childChains, j, '');
+                        const networkId = rawNetworkId.replace(code, '');
                         const networkCode = this.networkIdToCode(networkId, this.safeString(currency, 'code'));
                         const networkInfo = this.safeDict(response, networkId);
                         const networkObject = {};
@@ -3914,7 +3925,8 @@ export default class poloniex extends Exchange {
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     async reduceMargin(symbol, amount, params = {}) {
-        return await this.modifyMarginHelper(symbol, -amount, 'reduce', params);
+        // modifyMarginHelper sends Precise.stringAbs (amountToPrecision (amount)), so the sign is irrelevant
+        return await this.modifyMarginHelper(symbol, amount, 'reduce', params);
     }
     /**
      * @method

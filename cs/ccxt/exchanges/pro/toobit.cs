@@ -115,7 +115,7 @@ public partial class toobit : ccxt.toobit
         //     ]
         //
         string? topic = this.safeString(message, "topic");
-        if (isEqual(this.handleErrorMessage(client, message), true))
+        if ((this.handleErrorMessage(client, message) == true))
         {
             return;
         }
@@ -148,7 +148,7 @@ public partial class toobit : ccxt.toobit
         } else
         {
             // check private streams
-            for (int i = 0; i < getArrayLength(message); i++)
+            for (int i = 0; i < (((object)(message)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
             {
                 object item = getValue(message, i);
                 string? eventVar = this.safeString(item, "e");
@@ -903,7 +903,7 @@ public partial class toobit : ccxt.toobit
         }
         this.balance[type] = this.extend(response, this.safeDict(this.balance, type, new Dictionary<string, object>() {}));
         // don't remove the future from the .futures cache
-        if (inOp(client.futures, messageHash))
+        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
         {
             Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve();
@@ -1167,15 +1167,13 @@ public partial class toobit : ccxt.toobit
         IList<object> symbolsNormalized = symbols;
         if (!this.isEmpty(symbols))
         {
-            symbolsNormalized = this.marketSymbols(symbols);
-        }
-        if (!this.isEmpty(symbols))
-        {
-            if ((symbolsNormalized == null))
+            IList<object> marketSymbols = this.marketSymbols(symbols);
+            if ((marketSymbols == null))
             {
                 throw new ArgumentsRequired ((this.id + " watchPositions() symbols is required")) ;
             }
-            messageHash = ("::" + String.Join(",", symbolsNormalized.ToArray()));
+            symbolsNormalized = marketSymbols;
+            messageHash = ("::" + String.Join(",", marketSymbols.ToArray()));
         }
         messageHash = ((type + ":positions") + messageHash);
         string? url = this.getUserStreamUrl();
@@ -1201,7 +1199,7 @@ public partial class toobit : ccxt.toobit
         {
             this.positions = new Dictionary<string, object>() {};
         }
-        if (inOp(this.positions, type))
+        if (((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))(this.positions, type))
         {
             return;
         }
@@ -1209,7 +1207,7 @@ public partial class toobit : ccxt.toobit
         if ((fetchPositionsSnapshot == true))
         {
             object messageHash = add(type, ":fetchPositionsSnapshot");
-            if (!(inOp(client.futures, messageHash)))
+            if (!((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash))))
             {
                 client.future(messageHash);
                 this.spawn(this.loadPositionsSnapshot, new object[] { client, messageHash, type});
@@ -1234,7 +1232,7 @@ public partial class toobit : ccxt.toobit
             cache.append(position);
         }
         // don't remove the future from the .futures cache
-        if (inOp(client.futures, messageHash))
+        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
         {
             Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(cache);
@@ -1273,7 +1271,7 @@ public partial class toobit : ccxt.toobit
         {
             this.positions = new Dictionary<string, object>() {};
         }
-        if (!(inOp(this.positions, accountType)))
+        if (!(((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))(this.positions, accountType)))
         {
             ((IDictionary<string,object>)this.positions)[accountType] = new ArrayCacheBySymbolBySide();
         }
@@ -1285,7 +1283,7 @@ public partial class toobit : ccxt.toobit
             rawPositions = new List<object>() {message};
         }
         List<object> newPositions = new List<object>() {};
-        for (int i = 0; i < getArrayLength(rawPositions); i++)
+        for (int i = 0; i < (((object)(rawPositions)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             object rawPosition = getValue(rawPositions, i);
             Dictionary<string, object> position = this.parseWsPosition(rawPosition);
@@ -1353,7 +1351,7 @@ public partial class toobit : ccxt.toobit
         Int64? lastAuthenticatedTime = this.safeInteger((this.options.ContainsKey("ws") ? this.options["ws"] : null), "lastAuthenticatedTime", 0);
         Int64? listenKeyRefreshRate = this.safeInteger((this.options.ContainsKey("ws") ? this.options["ws"] : null), "listenKeyRefreshRate", 1200000);
         Int64? delay = (listenKeyRefreshRate + 10000);
-        if (isGreaterThan((time - lastAuthenticatedTime), delay))
+        if (((time - lastAuthenticatedTime) > delay))
         {
             this.checkRequiredCredentials();
             // single-flight leader election on a never-dialed client, see

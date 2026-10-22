@@ -1322,7 +1322,7 @@ export default class modetrade extends modetradeRest {
         }
     }
     handleMessage(client, message) {
-        if (this.handleErrorMessage(client, message) === true) {
+        if (this.handleErrorMessage(client, message)) {
             return;
         }
         const methods = {

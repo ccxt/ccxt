@@ -125,7 +125,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             {
                 throw new ArgumentsRequired((this.id + " watchTradesForSymbols() requires a non-empty array of symbols")) ;
             }
-            Object url = this.getWsPublicUrl();
+            String url = this.getWsPublicUrl();
             List<Object> topics = new ArrayList<Object>(Arrays.asList());
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
@@ -174,7 +174,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         //
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         String topic = this.safeString(message, "topic");
-        Object trades = data;
+        List<Object> trades = data;
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("."))));
         String marketId = this.safeString(parts, 2);
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
@@ -190,7 +190,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         for (var j = 0; (length != null && j < length); j++)
         {
             Long index = ((((long) length) - ((long) j)) - 1L);
-            Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (Helpers.GetValue(trades, index)), market);
+            Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) ((trades == null || index == null || index.intValue() < 0 || index.intValue() >= trades.size() ? null : trades.get(index.intValue()))), market);
             stored.append(parsed);
         }
         String messageHash = (("trade" + ":") + symbol);
@@ -282,7 +282,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
                 throw new ArgumentsRequired((this.id + " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            Object url = this.getWsPublicUrl();
+            String url = this.getWsPublicUrl();
             List<Object> topics = new ArrayList<Object>(Arrays.asList());
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             Object limitValue = (((java.util.Objects.equals(limit, null)))) ? 25 : limit;
@@ -313,17 +313,16 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             // are already subscribed, skip the subscribe entirely.
             Client client = this.client(url);
             List<Object> newTopics = new ArrayList<Object>(Arrays.asList());
-            Object newTopicsCount = 0;
             for (var i = 0; i < ((List<?>)topics).size(); i++)
             {
                 if (!(((Map<?, ?>)client.subscriptions).containsKey((messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i)))))
                 {
                     ((List<Object>)newTopics).add((topics == null || i < 0 || i >= ((List<?>)topics).size() ? null : ((List<?>)topics).get(i)));
-                    newTopicsCount = Helpers.add(newTopicsCount, 1);
                 }
             }
+            Integer newTopicsLength = ((List<?>)newTopics).size();
             Map<String, Object> message = null;
-            if (Helpers.isGreaterThan(newTopicsCount, 0))
+            if ((newTopicsLength != null && newTopicsLength > 0))
             {
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "op", "subscribe" );
@@ -336,7 +335,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
 
     }
 
-    public Object getWsPublicUrl()
+    public String getWsPublicUrl()
     {
         // apex appends a millisecond timestamp to the WS URL for connection-time
         // signing. CCXT's client manager keys clients by URL, so recomputing the
@@ -347,7 +346,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         {
             String timeStamp = String.valueOf(this.milliseconds());
             url = ((this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "public") + "&timestamp=") + timeStamp);
-            Helpers.addElementToObject(this.options, "wsPublicUrl", url);
+            { Map<Object, Object> j39v1 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v2 = "wsPublicUrl"; Object j39v3 = url; if (j39v1 == null) { if (j39v2 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v1) { if (j39v3 == null && j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); } else { j39v1.put(j39v2, j39v3); } } }
         }
         return url;
     }
@@ -359,7 +358,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         {
             String timeStamp = String.valueOf(this.milliseconds());
             url = ((this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "private") + "&timestamp=") + timeStamp);
-            Helpers.addElementToObject(this.options, "wsPrivateUrl", url);
+            { Map<Object, Object> j39v4 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v5 = "wsPrivateUrl"; Object j39v6 = url; if (j39v4 == null) { if (j39v5 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v4) { if (j39v6 == null && j39v4 instanceof java.util.concurrent.ConcurrentHashMap) { j39v4.remove(j39v5); } else { j39v4.put(j39v5, j39v6); } } }
         }
         return url;
     }
@@ -437,7 +436,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
 
     public void handleDeltas(Object bookside, Object deltas)
     {
-        for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
+        for (var i = 0; i < (switch ((Object)(deltas)) { case null -> 0; case List<?> j39v8 -> j39v8.size(); case String j39v9 -> j39v9.length(); case Object j39v10 -> j39v10.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v10) : 0; }); i++)
         {
             this.handleDelta(bookside, Helpers.GetValue(deltas, i));
         }
@@ -463,7 +462,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             }
             Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) market.get("symbol");
-            Object url = this.getWsPublicUrl();
+            String url = this.getWsPublicUrl();
             String messageHash = ("ticker:" + symbolValue);
             String topic = (("instrumentInfo" + ".H.") + this.safeString(market, "id2"));
             List<Object> topics = new ArrayList<Object>(Arrays.asList(topic));
@@ -492,7 +491,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             }
             Object symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
-            Object url = this.getWsPublicUrl();
+            String url = this.getWsPublicUrl();
             List<Object> topics = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)(List<String>)(symbolsNormalized)).size(); i++)
             {
@@ -546,10 +545,10 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         String updateType = this.safeString(message, "type", "");
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String symbol = null;
-        Object parsed = this.parseTicker(data, (Map<String, Object>) null);
+        Map<String, Object> parsed = (Map<String, Object>) this.parseTicker(data, (Map<String, Object>) null);
         if ((java.util.Objects.equals(updateType, "snapshot")))
         {
-            parsed = this.parseTicker(data, (Map<String, Object>) null);
+            parsed = (Map<String, Object>) this.parseTicker(data, (Map<String, Object>) null);
             symbol = this.safeString(parsed, "symbol");
         } else if (java.util.Objects.equals(updateType, "delta"))
         {
@@ -561,11 +560,11 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             Map<String, Object> ticker = (Map<String, Object>) this.safeDict(this.tickers, symbol, new HashMap<String, Object>() {{}});
             Map<String, Object> rawTicker = (Map<String, Object>) this.safeDict(ticker, "info", new HashMap<String, Object>() {{}});
             Map<String, Object> merged = this.extend(rawTicker, data);
-            parsed = this.parseTicker(merged, (Map<String, Object>) null);
+            parsed = (Map<String, Object>) this.parseTicker(merged, (Map<String, Object>) null);
         }
         Long timestamp = this.safeIntegerProduct(message, "ts", 0.001);
-        Helpers.addElementToObject(parsed, "timestamp", timestamp);
-        Helpers.addElementToObject(parsed, "datetime", this.iso8601(timestamp));
+        parsed.put("timestamp", timestamp);
+        parsed.put("datetime", this.iso8601(timestamp));
         Helpers.addElementToObject(this.tickers, symbol, parsed);
         String messageHash = ("ticker:" + symbol);
         client.resolve(Helpers.GetValue(this.tickers, symbol), messageHash);
@@ -615,7 +614,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object url = this.getWsPublicUrl();
+            String url = this.getWsPublicUrl();
             List<String> rawHashes = new ArrayList<String>(Arrays.asList());
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
@@ -695,7 +694,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object parsed = this.parseWsOHLCV((data == null || i < 0 || i >= data.size() ? null : data.get(i)), (Map<String, Object>) null);
+            List<Object> parsed = (List<Object>) this.parseWsOHLCV((data == null || i < 0 || i >= data.size() ? null : data.get(i)), (Map<String, Object>) null);
             stored.append(parsed);
         }
         String messageHash = ((("ohlcv::" + symbol) + "::") + timeframe);
@@ -801,12 +800,12 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             messageHash = ("positions" + messageHash);
             Client client = this.client(url);
             (this.authenticate(url, new HashMap<String, Object>() {{}})).join();
-            this.setPositionsCache(client, Helpers.toStringListArg(symbolsNormalized2));
+            this.setPositionsCache(client, ((List<String>) (switch ((Object) (symbolsNormalized2)) { case null -> (List<String>) null; case List<?> hx4J40v2 -> (List<String>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v2.getClass().getName()); })));
             io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
             if (java.util.Objects.equals(cache, null))
             {
                 Object snapshot = client.future("fetchPositionsSnapshot").getFuture().join();
-                return this.filterBySymbolsSinceLimit(snapshot, Helpers.toStringListArg(symbolsNormalized2), since, limit, true);
+                return this.filterBySymbolsSinceLimit(snapshot, ((List<String>) (switch ((Object) (symbolsNormalized2)) { case null -> (List<String>) null; case List<?> hx4J40v1 -> (List<String>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v1.getClass().getName()); })), since, limit, true);
             }
             List<String> topics = new ArrayList<String>(Arrays.asList("positions"));
             List<Object> newPositions = (List<Object>) (this.watchTopics(url, new ArrayList<Object>(Arrays.asList(messageHash)), topics, parameters)).join();
@@ -814,7 +813,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             {
                 return newPositions;
             }
-            return this.filterBySymbolsSinceLimit(cache, Helpers.toStringListArg(symbolsNormalized2), since, limit, true);
+            return this.filterBySymbolsSinceLimit(cache, ((List<String>) (switch ((Object) (symbolsNormalized2)) { case null -> (List<String>) null; case List<?> hx4J40v0 -> (List<String>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v0.getClass().getName()); })), since, limit, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
@@ -1058,10 +1057,10 @@ public class Apex extends io.github.ccxt.exchanges.Apex
                 cache.append(position);
             }
         }
-        Object messageHashes = this.findMessageHashes(client, "positions::");
+        List<Object> messageHashes = (List<Object>) this.findMessageHashes(client, "positions::");
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
-            Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
+            Object messageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = (String) (parts == null || 1 >= parts.size() ? null : parts.get(1));
             List<Object> symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
@@ -1195,7 +1194,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             return false;
         } catch(Exception error)
         {
-            if (Helpers.isInstance(error, AuthenticationError.class))
+            if ((switch ((Object) (error)) { case null -> false; case Throwable hx4J44v0 -> { Throwable hx4J44v0u = hx4J44v0; while ((hx4J44v0u instanceof java.util.concurrent.CompletionException || hx4J44v0u instanceof java.util.concurrent.ExecutionException) && hx4J44v0u.getCause() != null) { hx4J44v0u = hx4J44v0u.getCause(); } yield AuthenticationError.class.isInstance(hx4J44v0u); } case Object hx4J44v0 -> AuthenticationError.class.isInstance(hx4J44v0); }))
             {
                 String messageHash = "authenticated";
                 client.reject(error, messageHash);
@@ -1250,7 +1249,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            if (Helpers.getIndexOf(topic, (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i))) >= 0)
+            if (((java.util.function.ToIntBiFunction<Object, Object>) (hx4J41s, hx4J41t) -> (hx4J41s instanceof List<?> hx4J41l) ? hx4J41l.indexOf(hx4J41t) : (hx4J41s instanceof String hx4J41x && hx4J41t instanceof String hx4J41y) ? hx4J41x.indexOf(hx4J41y) : -1).applyAsInt(topic, (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i))) >= 0)
             {
                 Object method = (methods == null || key == null ? null : methods.get(key));
                 Helpers.callDynamically(this, method, new Object[] {client, message});

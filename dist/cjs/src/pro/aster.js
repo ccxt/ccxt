@@ -1512,7 +1512,7 @@ class aster extends aster$1["default"] {
             account['free'] = this.safeString(entry, 'f');
             account['used'] = this.safeString(entry, 'l');
             account['total'] = this.safeString(entry, wallet);
-            if ((accountType !== undefined) && (code !== undefined)) {
+            if (code !== undefined) {
                 this.balance[accountType][code] = account;
             }
         }

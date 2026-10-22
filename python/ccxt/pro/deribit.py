@@ -896,7 +896,7 @@ class deribit(ccxt.async_support.deribit):
             'id': self.request_id(),
         }
         extendedRequest = self.deep_extend(request, params)
-        maxMessageByteLimit = 32768 - 1  # 'Message Too Big: limit 32768B'
+        maxMessageByteLimit = 32767  # 'Message Too Big: limit 32768B'
         jsonedText = self.json(extendedRequest)
         if len(jsonedText) >= maxMessageByteLimit:
             raise ExchangeError(self.id + ' requested subscription length over limit, try to reduce symbols amount')

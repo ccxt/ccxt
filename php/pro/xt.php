@@ -845,11 +845,11 @@ class xt extends \ccxt\async\xt {
         }
     }
 
-    public function load_positions_snapshot(Client $client, mixed $messageHash) {
+    public function load_positions_snapshot(Client $client, string $messageHash) {
         return Async\async(self::do_load_positions_snapshot(...))($client, $messageHash);
     }
 
-    private function do_load_positions_snapshot(Client $client, mixed $messageHash) {
+    private function do_load_positions_snapshot(Client $client, string $messageHash) {
         $positions = Async\await($this->fetch_positions());
         $this->positions = new ArrayCacheBySymbolBySide();
         $cache = $this->positions;
@@ -1722,7 +1722,6 @@ class xt extends \ccxt\async\xt {
         //
         $id = $this->safe_string($message, 'id');
         $subscriptionsById = $this->index_by($client->subscriptions, 'id');
-        $unsubscribe = false;
         if ($id !== null) {
             $subscription = $this->safe_dict($subscriptionsById, $id, array());
             $unsubscribe = $this->safe_bool($subscription, 'unsubscribe', false);

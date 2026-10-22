@@ -154,7 +154,7 @@ public Object describe()
             {
                 return null;
             }
-            extraNames = Helpers.add((extraNames + ", "), scopeKey);
+            extraNames = ((extraNames + ", ") + scopeKey);
         }
         throw new ArgumentsRequired((((this.id + " fetchEvents() requires at least one of query, queries, tags, eventId, slug") + extraNames) + " to scope the search")) ;
     }
@@ -230,7 +230,7 @@ public Object describe()
             // via reflect Slice, and throws in C#, unlike JS/Python which return the whole array
             Integer resultLength = ((List<?>)result).size();
             Object sliceEnd = limit;
-            if (Helpers.isGreaterThan(sliceEnd, resultLength))
+            if ((sliceEnd != null && (resultLength == null || ((Number) sliceEnd).doubleValue() > resultLength)))
             {
                 sliceEnd = resultLength;
             }
@@ -384,7 +384,7 @@ public Object describe()
                     Object tagKey = this.normalizeTagKey(tagLabel);
                     for (var wi = 0; wi < ((List<?>)wanted).size(); wi++)
                     {
-                        if (Helpers.getIndexOf(tagKey, (wanted == null || wi < 0 || wi >= wanted.size() ? null : wanted.get(wi))) >= 0)
+                        if (((java.util.function.ToIntBiFunction<Object, Object>) (hx4J41s, hx4J41t) -> (hx4J41s instanceof List<?> hx4J41l) ? hx4J41l.indexOf(hx4J41t) : (hx4J41s instanceof String hx4J41x && hx4J41t instanceof String hx4J41y) ? hx4J41x.indexOf(hx4J41y) : -1).applyAsInt(tagKey, (wanted == null || wi < 0 || wi >= wanted.size() ? null : wanted.get(wi))) >= 0)
                         {
                             matched = true;
                             break;
@@ -469,7 +469,7 @@ public Object describe()
         }
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         Map<String, Object> seen = new HashMap<String, Object>() {{}};
-        List<Object> keys = Helpers.objectKeys(this.events);
+        List<Object> keys = ((List<Object>) switch ((Object)(this.events)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); });
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object eventVar = Helpers.GetValue(this.events, (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)));
@@ -588,14 +588,13 @@ public Object describe()
             return (Map<String, Object>) (outcomeObj);
         }
         // stub for an unknown handle; it only carries the identity keys, not the market fields
-        Map<String, Object> outcomeObjValue = Helpers.newMap(
-            "outcome", outcomeIdOrSymbol,
-            "outcomeId", outcomeIdOrSymbol,
-            "market", null,
-            "label", null,
-            "event", null,
-            "info", new HashMap<String, Object>() {{}}
-        );
+        Map<String, Object> outcomeObjValue = new HashMap<String, Object>();
+        outcomeObjValue.put("outcome", outcomeIdOrSymbol);
+        outcomeObjValue.put("outcomeId", outcomeIdOrSymbol);
+        outcomeObjValue.put("market", null);
+        outcomeObjValue.put("label", null);
+        outcomeObjValue.put("event", null);
+        outcomeObjValue.put("info", new HashMap<String, Object>() {{}});
         return (Map<String, Object>) (outcomeObjValue);
     }
 
@@ -645,7 +644,7 @@ public Object describe()
             Object ch = (chars == null || i < 0 || i >= ((List<?>)chars).size() ? null : ((List<?>)chars).get(i));
             if (((String)allowed).indexOf(((String)ch)) >= 0)
             {
-                s = Helpers.add(s, ch);
+                s = ((java.util.function.BinaryOperator<Object>) (hx4J40v10A, hx4J40v10B) -> { Object hx4J40v10P = hx4J40v10A instanceof Integer hx4J40v10i ? (Object) Long.valueOf(hx4J40v10i.longValue()) : hx4J40v10A; Object hx4J40v10Q = hx4J40v10B instanceof Integer hx4J40v10i ? (Object) Long.valueOf(hx4J40v10i.longValue()) : hx4J40v10B; if (hx4J40v10P instanceof Long hx4J40v10l && hx4J40v10Q instanceof Long hx4J40v10r) { return hx4J40v10l + hx4J40v10r; } if (hx4J40v10P instanceof Double || hx4J40v10Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v10D = hx4J40v10o -> { if (hx4J40v10o instanceof Double || hx4J40v10o instanceof Float || hx4J40v10o instanceof Long || hx4J40v10o instanceof Integer || hx4J40v10o instanceof java.math.BigDecimal) { return ((Number) hx4J40v10o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v10o)); } catch (NumberFormatException hx4J40v10e) { return 0.0; } }; return hx4J40v10D.applyAsDouble(hx4J40v10P) + hx4J40v10D.applyAsDouble(hx4J40v10Q); } if (hx4J40v10P instanceof String || hx4J40v10Q instanceof String) { return String.valueOf(hx4J40v10P) + String.valueOf(hx4J40v10Q); } return null; }).apply(s, ch);
                 lastDash = false;
             } else if (!Boolean.TRUE.equals(lastDash))
             {
@@ -660,14 +659,14 @@ public Object describe()
             String replacementValue = this.safeString(replacements, replacementKey);
             if (!java.util.Objects.equals(replacementValue, null))
             {
-                s = Helpers.replaceAll(((String)s), replacementKey, replacementValue);
+                s = ((java.util.function.Function<Object, java.util.function.BiFunction<Object, Object, String>>) hx4J43a1 -> (hx4J43b1, hx4J43c1) -> { if (hx4J43a1 == null) { return null; } String hx4J43a1s = String.valueOf(hx4J43a1); String hx4J43a1f = (hx4J43b1 == null) ? "" : String.valueOf(hx4J43b1); if (hx4J43a1f.isEmpty()) { return hx4J43a1s; } String hx4J43a1r = (hx4J43c1 == null) ? "" : String.valueOf(hx4J43c1); return hx4J43a1s.replace(hx4J43a1f, hx4J43a1r); }).apply(((String)s)).apply(replacementKey, replacementValue);
             }
         }
         List<Object> rawParts = new ArrayList<Object>(Arrays.asList(((String)s).split(java.util.regex.Pattern.quote("-"))));
         Object parts = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)rawParts).size(); i++)
         {
-            String w = (String) Helpers.GetValue(rawParts, i);
+            String w = (String) (rawParts == null || i < 0 || i >= rawParts.size() ? null : rawParts.get(i));
             if (w.length() > 0 && !this.inArray(w, stopWords))
             {
                 ((List<Object>)parts).add(w);
@@ -720,7 +719,7 @@ public Object describe()
                 {
                     label = (label + "_");
                 }
-                label = Helpers.add(label, ch);
+                label = ((java.util.function.BinaryOperator<Object>) (hx4J40v9A, hx4J40v9B) -> { Object hx4J40v9P = hx4J40v9A instanceof Integer hx4J40v9i ? (Object) Long.valueOf(hx4J40v9i.longValue()) : hx4J40v9A; Object hx4J40v9Q = hx4J40v9B instanceof Integer hx4J40v9i ? (Object) Long.valueOf(hx4J40v9i.longValue()) : hx4J40v9B; if (hx4J40v9P instanceof Long hx4J40v9l && hx4J40v9Q instanceof Long hx4J40v9r) { return hx4J40v9l + hx4J40v9r; } if (hx4J40v9P instanceof Double || hx4J40v9Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v9D = hx4J40v9o -> { if (hx4J40v9o instanceof Double || hx4J40v9o instanceof Float || hx4J40v9o instanceof Long || hx4J40v9o instanceof Integer || hx4J40v9o instanceof java.math.BigDecimal) { return ((Number) hx4J40v9o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v9o)); } catch (NumberFormatException hx4J40v9e) { return 0.0; } }; return hx4J40v9D.applyAsDouble(hx4J40v9P) + hx4J40v9D.applyAsDouble(hx4J40v9Q); } if (hx4J40v9P instanceof String || hx4J40v9Q instanceof String) { return String.valueOf(hx4J40v9P) + String.valueOf(hx4J40v9Q); } return null; }).apply(label, ch);
                 pendingSep = false;
             } else
             {
@@ -806,7 +805,7 @@ public Object describe()
                         Object suffix = ocId;
                         if ((idLen != null && idLen > 6))
                         {
-                            suffix = Helpers.slice(ocId, (((long) idLen) - 6L), null);
+                            suffix = ((java.util.function.Function<Object[], String>) (hx4J41a) -> { if (hx4J41a[0] == null) return null; String hx4J41s = (String) hx4J41a[0]; java.util.function.ToIntFunction<Object> hx4J41i = (hx4J41o) -> (hx4J41o instanceof Integer hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Long hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Double hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Float hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof java.math.BigDecimal hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof String hx4J41n) ? Integer.parseInt(hx4J41n) : Integer.parseInt(String.valueOf(hx4J41o)); int hx4J41b = (hx4J41a[1] != null) ? hx4J41i.applyAsInt(hx4J41a[1]) : -1; if (hx4J41a[2] == null) { if (hx4J41b < 0) return hx4J41s.substring(Math.max(hx4J41s.length() + hx4J41b, 0)); if (hx4J41b > hx4J41s.length()) return ""; return hx4J41s.substring(hx4J41b); } int hx4J41e = hx4J41i.applyAsInt(hx4J41a[2]); if (hx4J41b < 0) hx4J41b = hx4J41s.length() + hx4J41b; if (hx4J41e < 0) hx4J41e = hx4J41s.length() + hx4J41e; if (hx4J41b < 0) hx4J41b = 0; if (hx4J41e > hx4J41s.length()) hx4J41e = hx4J41s.length(); if (hx4J41b > hx4J41e) hx4J41b = hx4J41e; return hx4J41s.substring(hx4J41b, hx4J41e); }).apply(new Object[] { ocId, (((long) idLen) - 6L), null });
                         }
                         ocSymbol = ((ocSymbol + "_") + ((String)suffix).toUpperCase());
                     }
@@ -836,7 +835,7 @@ public Object describe()
         {
             return;
         }
-        List<Object> marketKeys = Helpers.objectKeys(this.markets);
+        List<Object> marketKeys = ((List<Object>) switch ((Object)(this.markets)) { case Map<?, ?> j39v10 -> { synchronized (j39v10) { yield new ArrayList<Object>(j39v10.keySet()); } } case null, default -> new ArrayList<Object>(); });
         for (var i = 0; i < ((List<?>)marketKeys).size(); i++)
         {
             this.indexMarketOutcomes((this.markets == null ? null : ((Map<?, ?>)this.markets).get((marketKeys == null || i < 0 || i >= marketKeys.size() ? null : marketKeys.get(i)))));
@@ -1011,23 +1010,23 @@ public Object describe()
         // carry no searchable words
         Object marketPart = outcomeSymbol;
         Object colonIndex = ((String)outcomeSymbol).indexOf(":");
-        if (Helpers.isGreaterThanOrEqual(colonIndex, 0))
+        if ((((Integer) colonIndex) >= 0))
         {
-            marketPart = Helpers.slice(outcomeSymbol, 0, colonIndex);
+            marketPart = ((java.util.function.Function<Object[], String>) (hx4J41a) -> { if (hx4J41a[0] == null) return null; String hx4J41s = (String) hx4J41a[0]; java.util.function.ToIntFunction<Object> hx4J41i = (hx4J41o) -> (hx4J41o instanceof Integer hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Long hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Double hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Float hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof java.math.BigDecimal hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof String hx4J41n) ? Integer.parseInt(hx4J41n) : Integer.parseInt(String.valueOf(hx4J41o)); int hx4J41b = (hx4J41a[1] != null) ? hx4J41i.applyAsInt(hx4J41a[1]) : -1; if (hx4J41a[2] == null) { if (hx4J41b < 0) return hx4J41s.substring(Math.max(hx4J41s.length() + hx4J41b, 0)); if (hx4J41b > hx4J41s.length()) return ""; return hx4J41s.substring(hx4J41b); } int hx4J41e = hx4J41i.applyAsInt(hx4J41a[2]); if (hx4J41b < 0) hx4J41b = hx4J41s.length() + hx4J41b; if (hx4J41e < 0) hx4J41e = hx4J41s.length() + hx4J41e; if (hx4J41b < 0) hx4J41b = 0; if (hx4J41e > hx4J41s.length()) hx4J41e = hx4J41s.length(); if (hx4J41b > hx4J41e) hx4J41b = hx4J41e; return hx4J41s.substring(hx4J41b, hx4J41e); }).apply(new Object[] { outcomeSymbol, 0, colonIndex });
         }
         if ((((String)marketPart).indexOf("0x") == 0))
         {
             return null;
         }
         // handles join words with '_' (slug-derived) or legacy '-' separated inputs (normalized below)
-        String normalized = Helpers.replaceAll(((String)((String)marketPart).toLowerCase()), "-", "_");
+        String normalized = ((java.util.function.Function<Object, java.util.function.BiFunction<Object, Object, String>>) hx4J43a0 -> (hx4J43b0, hx4J43c0) -> { if (hx4J43a0 == null) { return null; } String hx4J43a0s = String.valueOf(hx4J43a0); String hx4J43a0f = (hx4J43b0 == null) ? "" : String.valueOf(hx4J43b0); if (hx4J43a0f.isEmpty()) { return hx4J43a0s; } String hx4J43a0r = (hx4J43c0 == null) ? "" : String.valueOf(hx4J43c0); return hx4J43a0s.replace(hx4J43a0f, hx4J43a0r); }).apply(((String)((String)marketPart).toLowerCase())).apply("-", "_");
         List<Object> rawWords = new ArrayList<Object>(Arrays.asList(((String)normalized).split(java.util.regex.Pattern.quote("_"))));
         Object words = new ArrayList<Object>(Arrays.asList());
         Boolean hasLetters = false;
         String letters = "abcdefghijklmnopqrstuvwxyz";
         for (var i = 0; i < ((List<?>)rawWords).size(); i++)
         {
-            String word = (String) Helpers.GetValue(rawWords, i);
+            String word = (String) (rawWords == null || i < 0 || i >= rawWords.size() ? null : rawWords.get(i));
             // inline .length so the php transpiler emits strlen() — the standalone
             // `const n = str.length;` statement form wrongly becomes count() (array)
             if ((word.length() == 0))
@@ -1038,7 +1037,7 @@ public Object describe()
             Object chars = this.stringToCharsArray(word);
             for (var ci = 0; ci < ((List<?>)chars).size(); ci++)
             {
-                if (Helpers.getIndexOf(letters, (chars == null || ci < 0 || ci >= ((List<?>)chars).size() ? null : ((List<?>)chars).get(ci))) >= 0)
+                if (((java.util.function.ToIntBiFunction<Object, Object>) (hx4J41s, hx4J41t) -> (hx4J41s instanceof List<?> hx4J41l) ? hx4J41l.indexOf(hx4J41t) : (hx4J41s instanceof String hx4J41x && hx4J41t instanceof String hx4J41y) ? hx4J41x.indexOf(hx4J41y) : -1).applyAsInt(letters, (chars == null || ci < 0 || ci >= ((List<?>)chars).size() ? null : ((List<?>)chars).get(ci))) >= 0)
                 {
                     wordHasLetters = true;
                     break;
@@ -1080,15 +1079,15 @@ public Object describe()
                 Long searchLimit = this.safeInteger(this.options, "fetchOutcomeSearchLimit", 10);
                 try
                 {
-                    (this.fetchEvents(Helpers.newMap(
-                        "query", searchQuery,
-                        "limit", searchLimit
-                    ))).join();
+                    HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+                    mapLiteral1.put("query", searchQuery);
+                    mapLiteral1.put("limit", searchLimit);
+                    (this.fetchEvents(mapLiteral1)).join();
                 } catch(Exception e)
                 {
                     // a query with zero matches surfaces as BadSymbol on some venues — treat it as a
                     // plain miss (the guidance-rich throw below); let real transport errors propagate
-                    if (!(Helpers.isInstance(e, BadSymbol.class)))
+                    if (!((switch ((Object) (e)) { case null -> false; case Throwable hx4J44v0 -> { Throwable hx4J44v0u = hx4J44v0; while ((hx4J44v0u instanceof java.util.concurrent.CompletionException || hx4J44v0u instanceof java.util.concurrent.ExecutionException) && hx4J44v0u.getCause() != null) { hx4J44v0u = hx4J44v0u.getCause(); } yield BadSymbol.class.isInstance(hx4J44v0u); } case Object hx4J44v0 -> BadSymbol.class.isInstance(hx4J44v0); })))
                     {
                         throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                     }
@@ -1760,7 +1759,7 @@ public Object describe()
         // trigger orders, so the isTriggerOrSLTp guard collapses): a market order defaults to IOC
         String orderType = this.safeString(outcomeOrder, "type");
         String timeInForce = this.safeString(outcomeOrder, "timeInForce");
-        Object postOnly = this.safeBool(outcomeOrder, "postOnly", (Object) null);
+        Boolean postOnly = (Boolean) this.safeBool(outcomeOrder, "postOnly", (Object) null);
         if (java.util.Objects.equals(timeInForce, null))
         {
             if (java.util.Objects.equals(orderType, "market"))
@@ -1781,34 +1780,33 @@ public Object describe()
         {
             datetime = this.iso8601(timestamp);
         }
-        Map<String, Object> result = Helpers.newMap(
-            "id", this.safeString(outcomeOrder, "id"),
-            "clientOrderId", this.safeString(outcomeOrder, "clientOrderId"),
-            "timestamp", timestamp,
-            "datetime", datetime,
-            "lastTradeTimestamp", lastTradeTimestamp,
-            "lastUpdateTimestamp", this.safeInteger(outcomeOrder, "lastUpdateTimestamp"),
-            "status", status,
-            "type", orderType,
-            "timeInForce", timeInForce,
-            "side", side,
-            "price", this.parseNumber(price),
-            "average", this.parseNumber(average),
-            "amount", this.parseNumber(amount),
-            "filled", this.parseNumber(filled),
-            "remaining", this.parseNumber(remaining),
-            "cost", this.parseNumber(cost),
-            "fee", fee,
-            "reduceOnly", this.safeBool(outcomeOrder, "reduceOnly", (Object) null),
-            "postOnly", postOnly,
-            "trades", trades,
-            "outcome", this.safeString(outcomeOrder, "outcome"),
-            "outcomeId", this.safeString(outcomeOrder, "outcomeId"),
-            "label", this.safeString(outcomeOrder, "label"),
-            "market", this.safeString(outcomeOrder, "market"),
-            "event", this.safeString(outcomeOrder, "event"),
-            "info", this.safeValue(outcomeOrder, "info", outcomeOrder)
-        );
+        Map<String, Object> result = new HashMap<String, Object>();
+        result.put("id", this.safeString(outcomeOrder, "id"));
+        result.put("clientOrderId", this.safeString(outcomeOrder, "clientOrderId"));
+        result.put("timestamp", timestamp);
+        result.put("datetime", datetime);
+        result.put("lastTradeTimestamp", lastTradeTimestamp);
+        result.put("lastUpdateTimestamp", this.safeInteger(outcomeOrder, "lastUpdateTimestamp"));
+        result.put("status", status);
+        result.put("type", orderType);
+        result.put("timeInForce", timeInForce);
+        result.put("side", side);
+        result.put("price", this.parseNumber(price));
+        result.put("average", this.parseNumber(average));
+        result.put("amount", this.parseNumber(amount));
+        result.put("filled", this.parseNumber(filled));
+        result.put("remaining", this.parseNumber(remaining));
+        result.put("cost", this.parseNumber(cost));
+        result.put("fee", fee);
+        result.put("reduceOnly", this.safeBool(outcomeOrder, "reduceOnly", (Object) null));
+        result.put("postOnly", postOnly);
+        result.put("trades", trades);
+        result.put("outcome", this.safeString(outcomeOrder, "outcome"));
+        result.put("outcomeId", this.safeString(outcomeOrder, "outcomeId"));
+        result.put("label", this.safeString(outcomeOrder, "label"));
+        result.put("market", this.safeString(outcomeOrder, "market"));
+        result.put("event", this.safeString(outcomeOrder, "event"));
+        result.put("info", this.safeValue(outcomeOrder, "info", outcomeOrder));
         return result;
     }
 
@@ -1828,25 +1826,24 @@ public Object describe()
         {
             datetime = this.iso8601(timestamp);
         }
-        Map<String, Object> result = Helpers.newMap(
-            "id", this.safeString(trade, "id"),
-            "order", this.safeString(trade, "order"),
-            "timestamp", timestamp,
-            "datetime", datetime,
-            "type", this.safeString(trade, "type"),
-            "side", this.safeString(trade, "side"),
-            "takerOrMaker", this.safeString(trade, "takerOrMaker"),
-            "price", this.parseNumber(price),
-            "amount", this.parseNumber(amount),
-            "cost", this.parseNumber(cost),
-            "fee", this.safeDict(trade, "fee", (Object) null),
-            "realizedPnl", this.safeNumber(trade, "realizedPnl", (Object) null),
-            "outcome", this.safeString(trade, "outcome"),
-            "outcomeId", this.safeString(trade, "outcomeId"),
-            "label", this.safeString(trade, "label"),
-            "market", this.safeString(trade, "market"),
-            "info", this.safeValue(trade, "info", trade)
-        );
+        Map<String, Object> result = new HashMap<String, Object>();
+        result.put("id", this.safeString(trade, "id"));
+        result.put("order", this.safeString(trade, "order"));
+        result.put("timestamp", timestamp);
+        result.put("datetime", datetime);
+        result.put("type", this.safeString(trade, "type"));
+        result.put("side", this.safeString(trade, "side"));
+        result.put("takerOrMaker", this.safeString(trade, "takerOrMaker"));
+        result.put("price", this.parseNumber(price));
+        result.put("amount", this.parseNumber(amount));
+        result.put("cost", this.parseNumber(cost));
+        result.put("fee", this.safeDict(trade, "fee", (Object) null));
+        result.put("realizedPnl", this.safeNumber(trade, "realizedPnl", (Object) null));
+        result.put("outcome", this.safeString(trade, "outcome"));
+        result.put("outcomeId", this.safeString(trade, "outcomeId"));
+        result.put("label", this.safeString(trade, "label"));
+        result.put("market", this.safeString(trade, "market"));
+        result.put("info", this.safeValue(trade, "info", trade));
         return result;
     }
 
@@ -1879,31 +1876,30 @@ public Object describe()
         {
             datetime = this.iso8601(timestamp);
         }
-        Map<String, Object> result = Helpers.newMap(
-            "timestamp", timestamp,
-            "datetime", datetime,
-            "high", this.safeNumber(ticker, "high", (Object) null),
-            "low", this.safeNumber(ticker, "low", (Object) null),
-            "bid", this.parseNumber(this.omitZero(this.safeString(ticker, "bid"))),
-            "bidVolume", this.safeNumber(ticker, "bidVolume", (Object) null),
-            "ask", this.parseNumber(this.omitZero(this.safeString(ticker, "ask"))),
-            "askVolume", this.safeNumber(ticker, "askVolume", (Object) null),
-            "open", this.parseNumber(open),
-            "close", this.parseNumber(close),
-            "last", this.parseNumber(last),
-            "change", this.parseNumber(change),
-            "percentage", this.parseNumber(percentage),
-            "average", this.parseNumber(average),
-            "baseVolume", this.safeNumber(ticker, "baseVolume", (Object) null),
-            "quoteVolume", this.safeNumber(ticker, "quoteVolume", (Object) null),
-            "openInterest", this.safeNumber(ticker, "openInterest", (Object) null),
-            "outcome", this.safeString(ticker, "outcome"),
-            "outcomeId", this.safeString(ticker, "outcomeId"),
-            "label", this.safeString(ticker, "label"),
-            "market", this.safeString(ticker, "market"),
-            "event", this.safeString(ticker, "event"),
-            "info", this.safeValue(ticker, "info", ticker)
-        );
+        Map<String, Object> result = new HashMap<String, Object>();
+        result.put("timestamp", timestamp);
+        result.put("datetime", datetime);
+        result.put("high", this.safeNumber(ticker, "high", (Object) null));
+        result.put("low", this.safeNumber(ticker, "low", (Object) null));
+        result.put("bid", this.parseNumber(this.omitZero(this.safeString(ticker, "bid"))));
+        result.put("bidVolume", this.safeNumber(ticker, "bidVolume", (Object) null));
+        result.put("ask", this.parseNumber(this.omitZero(this.safeString(ticker, "ask"))));
+        result.put("askVolume", this.safeNumber(ticker, "askVolume", (Object) null));
+        result.put("open", this.parseNumber(open));
+        result.put("close", this.parseNumber(close));
+        result.put("last", this.parseNumber(last));
+        result.put("change", this.parseNumber(change));
+        result.put("percentage", this.parseNumber(percentage));
+        result.put("average", this.parseNumber(average));
+        result.put("baseVolume", this.safeNumber(ticker, "baseVolume", (Object) null));
+        result.put("quoteVolume", this.safeNumber(ticker, "quoteVolume", (Object) null));
+        result.put("openInterest", this.safeNumber(ticker, "openInterest", (Object) null));
+        result.put("outcome", this.safeString(ticker, "outcome"));
+        result.put("outcomeId", this.safeString(ticker, "outcomeId"));
+        result.put("label", this.safeString(ticker, "label"));
+        result.put("market", this.safeString(ticker, "market"));
+        result.put("event", this.safeString(ticker, "event"));
+        result.put("info", this.safeValue(ticker, "info", ticker));
         return result;
     }
 
@@ -1917,32 +1913,31 @@ public Object describe()
         {
             datetime = this.iso8601(timestamp);
         }
-        Map<String, Object> result = Helpers.newMap(
-            "id", this.safeString(position, "id"),
-            "timestamp", timestamp,
-            "datetime", datetime,
-            "contracts", this.safeNumber(position, "contracts", (Object) null),
-            "contractSize", this.safeNumber(position, "contractSize", (Object) null),
-            "side", this.safeString(position, "side"),
-            "notional", this.safeNumber(position, "notional", (Object) null),
-            "unrealizedPnl", this.safeNumber(position, "unrealizedPnl", (Object) null),
-            "realizedPnl", this.safeNumber(position, "realizedPnl", (Object) null),
-            "collateral", this.safeNumber(position, "collateral", (Object) null),
-            "entryPrice", this.safeNumber(position, "entryPrice", (Object) null),
-            "markPrice", this.safeNumber(position, "markPrice", (Object) null),
-            "lastPrice", this.safeNumber(position, "lastPrice", (Object) null),
-            "percentage", this.safeNumber(position, "percentage", (Object) null),
-            "resolved", this.safeBool(position, "resolved", (Object) null),
-            "won", this.safeBool(position, "won", (Object) null),
-            "settleFraction", this.safeNumber(position, "settleFraction", (Object) null),
-            "payout", this.safeNumber(position, "payout", (Object) null),
-            "outcome", this.safeString(position, "outcome"),
-            "outcomeId", this.safeString(position, "outcomeId"),
-            "label", this.safeString(position, "label"),
-            "market", this.safeString(position, "market"),
-            "event", this.safeString(position, "event"),
-            "info", this.safeValue(position, "info", position)
-        );
+        Map<String, Object> result = new HashMap<String, Object>();
+        result.put("id", this.safeString(position, "id"));
+        result.put("timestamp", timestamp);
+        result.put("datetime", datetime);
+        result.put("contracts", this.safeNumber(position, "contracts", (Object) null));
+        result.put("contractSize", this.safeNumber(position, "contractSize", (Object) null));
+        result.put("side", this.safeString(position, "side"));
+        result.put("notional", this.safeNumber(position, "notional", (Object) null));
+        result.put("unrealizedPnl", this.safeNumber(position, "unrealizedPnl", (Object) null));
+        result.put("realizedPnl", this.safeNumber(position, "realizedPnl", (Object) null));
+        result.put("collateral", this.safeNumber(position, "collateral", (Object) null));
+        result.put("entryPrice", this.safeNumber(position, "entryPrice", (Object) null));
+        result.put("markPrice", this.safeNumber(position, "markPrice", (Object) null));
+        result.put("lastPrice", this.safeNumber(position, "lastPrice", (Object) null));
+        result.put("percentage", this.safeNumber(position, "percentage", (Object) null));
+        result.put("resolved", this.safeBool(position, "resolved", (Object) null));
+        result.put("won", this.safeBool(position, "won", (Object) null));
+        result.put("settleFraction", this.safeNumber(position, "settleFraction", (Object) null));
+        result.put("payout", this.safeNumber(position, "payout", (Object) null));
+        result.put("outcome", this.safeString(position, "outcome"));
+        result.put("outcomeId", this.safeString(position, "outcomeId"));
+        result.put("label", this.safeString(position, "label"));
+        result.put("market", this.safeString(position, "market"));
+        result.put("event", this.safeString(position, "event"));
+        result.put("info", this.safeValue(position, "info", position));
         return result;
     }
 
@@ -1952,11 +1947,10 @@ public Object describe()
         // `symbol` with the `outcome` handle and attach the outcome identity fields
         // outcomeId and market - so books match the PredictionOrderBook structure.
         String fallback = this.safeString2(orderbook, "outcome", "symbol");
-        Map<String, Object> identity = Helpers.newMap(
-            "outcome", (((java.util.Objects.equals(outcomeObj, null)))) ? fallback : this.safeString(outcomeObj, "outcome", fallback),
-            "outcomeId", (((java.util.Objects.equals(outcomeObj, null)))) ? this.safeString(orderbook, "outcomeId") : this.safeString(outcomeObj, "outcomeId"),
-            "market", (((java.util.Objects.equals(outcomeObj, null)))) ? this.safeString(orderbook, "market") : this.safeString(outcomeObj, "market")
-        );
+        Map<String, Object> identity = new HashMap<String, Object>();
+        identity.put("outcome", (((java.util.Objects.equals(outcomeObj, null)))) ? fallback : this.safeString(outcomeObj, "outcome", fallback));
+        identity.put("outcomeId", (((java.util.Objects.equals(outcomeObj, null)))) ? this.safeString(orderbook, "outcomeId") : this.safeString(outcomeObj, "outcomeId"));
+        identity.put("market", (((java.util.Objects.equals(outcomeObj, null)))) ? this.safeString(orderbook, "market") : this.safeString(outcomeObj, "market"));
         // omit (not delete) — `del dict['symbol']` raises KeyError in python/php when absent
         return this.extend(this.omit(orderbook, "symbol"), identity);
     }
@@ -2008,7 +2002,7 @@ public Object describe()
         List<Object> results = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)rows).size(); i++)
         {
-            Object parsed = this.parsePredictionTrade((Map<String, Object>) ((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i))), Helpers.toMapArg(outcomeObj));
+            Map<String, Object> parsed = (Map<String, Object>) this.parsePredictionTrade((Map<String, Object>) ((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i))), ((Map<String, Object>) (switch ((Object) (outcomeObj)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v8 -> (Map<String, Object>) hx4J40v8; case Object hx4J40v8 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v8.getClass().getName()); })));
             Map<String, Object> trade = this.extend(parsed, parameters);
             ((List<Object>)results).add(trade);
         }
@@ -2036,7 +2030,7 @@ public Object describe()
         List<Object> results = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)rows).size(); i++)
         {
-            Object parsed = this.parsePredictionOrder((Map<String, Object>) ((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i))), Helpers.toMapArg(outcomeObj));
+            Map<String, Object> parsed = (Map<String, Object>) this.parsePredictionOrder((Map<String, Object>) ((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i))), ((Map<String, Object>) (switch ((Object) (outcomeObj)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v7 -> (Map<String, Object>) hx4J40v7; case Object hx4J40v7 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v7.getClass().getName()); })));
             Map<String, Object> order = this.extend(parsed, parameters);
             ((List<Object>)results).add(order);
         }
@@ -2064,7 +2058,7 @@ public Object describe()
         List<Object> results = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)rows).size(); i++)
         {
-            Object parsed = this.parsePredictionPosition((Map<String, Object>) ((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i))), (Map<String, Object>) null);
+            Map<String, Object> parsed = (Map<String, Object>) this.parsePredictionPosition((Map<String, Object>) ((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i))), (Map<String, Object>) null);
             Map<String, Object> position = this.extend(parsed, parameters);
             ((List<Object>)results).add(position);
         }
@@ -2118,7 +2112,7 @@ public Object describe()
         }
         // prepend a nibble so the hex has an even number of characters (whole bytes)
         Integer hexLength = ((String)hex).length();
-        if (!Helpers.isEqual(((((double) hexLength) % ((double) 2))), 0))
+        if ((((((double) hexLength) % ((double) 2))) != 0))
         {
             return ("0" + hex);
         }
@@ -2148,18 +2142,18 @@ public Object describe()
         {
             return "80";
         }
-        if (((byteLength != null && byteLength == 1)) && (Helpers.isLessThan(hex, "80")))
+        if (((byteLength != null && byteLength == 1)) && (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(hex, "80")))
         {
             return hex;
         }
         if (((byteLength == null || byteLength < 56)))
         {
-            return Helpers.add(this.intToBase16((128L + byteLength)), hex);
+            return (this.intToBase16((128L + byteLength)) + hex);
         }
         Object lengthHex = this.intToBase16(byteLength);
         lengthHex = this.padHexToEven((String) (lengthHex));
         Long lengthOfLength = this.parseToInt((((double) ((String)lengthHex).length()) / ((double) 2)));
-        return Helpers.add(Helpers.add(this.intToBase16((183L + lengthOfLength)), lengthHex), hex);
+        return Helpers.add((this.intToBase16((183L + lengthOfLength)) + lengthHex), hex);
     }
 
     public Object rlpEncodeList(Object items)
@@ -2177,7 +2171,7 @@ public Object describe()
         Object lengthHex = this.intToBase16(byteLength);
         lengthHex = this.padHexToEven((String) (lengthHex));
         Long lengthOfLength = this.parseToInt((((double) ((String)lengthHex).length()) / ((double) 2)));
-        return (Helpers.add(this.intToBase16((247L + lengthOfLength)), lengthHex) + concatenated);
+        return ((this.intToBase16((247L + lengthOfLength)) + lengthHex) + concatenated);
     }
 
     public Object intToRlpHex(Object value)
@@ -2187,7 +2181,7 @@ public Object describe()
             throw new ArgumentsRequired((this.id + " intToRlpHex() requires a value argument")) ;
         }
         // an integer as its minimal big-endian byte hex; 0 is the empty byte string
-        if (Helpers.isEqual(value, 0))
+        if ((switch ((Object) (value)) { case null -> false; case Long hx4J40v2 -> hx4J40v2 == 0L; case Integer hx4J40v2 -> hx4J40v2 == 0L; case Double hx4J40v2 -> hx4J40v2 == 0L; case Float hx4J40v2 -> hx4J40v2.doubleValue() == 0L; case java.math.BigDecimal hx4J40v2 -> hx4J40v2.stripTrailingZeros().scale() <= 0 && hx4J40v2.longValue() == 0L; case Object hx4J40v2 -> { try { String hx4J40v2t = String.valueOf(hx4J40v2); Double.parseDouble(hx4J40v2t); yield new java.math.BigDecimal(hx4J40v2t).compareTo(java.math.BigDecimal.valueOf(0L)) == 0; } catch (NumberFormatException hx4J40v2x) { yield false; } } }))
         {
             return "";
         }
@@ -2207,11 +2201,11 @@ public Object describe()
         Object h = this.remove0xPrefix(hexValue);
         Object start = 0;
         Integer total = ((String)h).length();
-        while ((Helpers.isLessThan(start, total)) && (java.util.Objects.equals(Helpers.slice(h, start, Helpers.add(start, 1)), "0")))
+        while ((((total != null && !(((Number) start).doubleValue() >= total)))) && (java.util.Objects.equals(((java.util.function.Function<Object[], String>) (hx4J41a) -> { if (hx4J41a[0] == null) return null; String hx4J41s = (String) hx4J41a[0]; java.util.function.ToIntFunction<Object> hx4J41i = (hx4J41o) -> (hx4J41o instanceof Integer hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Long hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Double hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Float hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof java.math.BigDecimal hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof String hx4J41n) ? Integer.parseInt(hx4J41n) : Integer.parseInt(String.valueOf(hx4J41o)); int hx4J41b = (hx4J41a[1] != null) ? hx4J41i.applyAsInt(hx4J41a[1]) : -1; if (hx4J41a[2] == null) { if (hx4J41b < 0) return hx4J41s.substring(Math.max(hx4J41s.length() + hx4J41b, 0)); if (hx4J41b > hx4J41s.length()) return ""; return hx4J41s.substring(hx4J41b); } int hx4J41e = hx4J41i.applyAsInt(hx4J41a[2]); if (hx4J41b < 0) hx4J41b = hx4J41s.length() + hx4J41b; if (hx4J41e < 0) hx4J41e = hx4J41s.length() + hx4J41e; if (hx4J41b < 0) hx4J41b = 0; if (hx4J41e > hx4J41s.length()) hx4J41e = hx4J41s.length(); if (hx4J41b > hx4J41e) hx4J41b = hx4J41e; return hx4J41s.substring(hx4J41b, hx4J41e); }).apply(new Object[] { h, start, ((Object) (switch ((Object) (start)) { case null -> (Object) null; case Long hx4J40v1 -> (Object) (hx4J40v1 + 1L); case Integer hx4J40v1 -> (Object) (hx4J40v1.longValue() + 1L); case Double hx4J40v1 -> (Object) (hx4J40v1 + ((double) 1L)); case String hx4J40v1 -> (Object) (hx4J40v1 + "1"); default -> (Object) null; })) }), "0")))
         {
-            start = Helpers.add(start, 1);
+            start = ((Object) (switch ((Object) (start)) { case null -> (Object) null; case Long hx4J40v0 -> (Object) (hx4J40v0 + 1L); case Integer hx4J40v0 -> (Object) (hx4J40v0.longValue() + 1L); case Double hx4J40v0 -> (Object) (hx4J40v0 + ((double) 1L)); case String hx4J40v0 -> (Object) (hx4J40v0 + "1"); default -> (Object) null; }));
         }
-        h = Helpers.slice(h, start, null);
+        h = ((java.util.function.Function<Object[], String>) (hx4J41a) -> { if (hx4J41a[0] == null) return null; String hx4J41s = (String) hx4J41a[0]; java.util.function.ToIntFunction<Object> hx4J41i = (hx4J41o) -> (hx4J41o instanceof Integer hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Long hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Double hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Float hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof java.math.BigDecimal hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof String hx4J41n) ? Integer.parseInt(hx4J41n) : Integer.parseInt(String.valueOf(hx4J41o)); int hx4J41b = (hx4J41a[1] != null) ? hx4J41i.applyAsInt(hx4J41a[1]) : -1; if (hx4J41a[2] == null) { if (hx4J41b < 0) return hx4J41s.substring(Math.max(hx4J41s.length() + hx4J41b, 0)); if (hx4J41b > hx4J41s.length()) return ""; return hx4J41s.substring(hx4J41b); } int hx4J41e = hx4J41i.applyAsInt(hx4J41a[2]); if (hx4J41b < 0) hx4J41b = hx4J41s.length() + hx4J41b; if (hx4J41e < 0) hx4J41e = hx4J41s.length() + hx4J41e; if (hx4J41b < 0) hx4J41b = 0; if (hx4J41e > hx4J41s.length()) hx4J41e = hx4J41s.length(); if (hx4J41b > hx4J41e) hx4J41b = hx4J41e; return hx4J41s.substring(hx4J41b, hx4J41e); }).apply(new Object[] { h, start, null });
         if (java.util.Objects.equals(h, ""))
         {
             return "";
@@ -2270,7 +2264,7 @@ public Object describe()
                 put( "value", value );
                 put( "data", data );
             }};
-            Object signed = this.signEvmTransaction((Map<String, Object>) (tx), this.privateKey);
+            Map<String, Object> signed = (Map<String, Object>) this.signEvmTransaction((Map<String, Object>) (tx), this.privateKey);
             return (this.ethRpc((String) (rpcUrl), "eth_sendRawTransaction", new ArrayList<Object>(Arrays.asList(signed)))).join();
         });
 
@@ -2282,7 +2276,7 @@ public Object describe()
         return BaseExchange.supplyAsync(() -> {
 
             Long start = this.milliseconds();
-            while (Helpers.isLessThan(((this.milliseconds() - start)), java.util.Objects.requireNonNullElse(timeout, 60000)))
+            while (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(((this.milliseconds() - start)), java.util.Objects.requireNonNullElse(timeout, 60000)))
             {
                 Object receipt = (this.ethRpc((String) (rpcUrl), "eth_getTransactionReceipt", new ArrayList<Object>(Arrays.asList(txHash)))).join();
                 if ((!java.util.Objects.equals(receipt, null)) && (!java.util.Objects.equals(receipt, null)))

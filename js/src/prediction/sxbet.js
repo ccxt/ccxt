@@ -243,8 +243,9 @@ export default class sxbet extends Exchange {
         const pageSize = this.safeInteger(this.options, 'marketsPageSize', 100);
         const maxPages = this.safeInteger(this.options, 'maxMarketsPages', 50);
         const rawMarkets = [];
+        const collectCap = this.safeInteger({ 'limit': userLimit }, 'limit');
         let paginationKey = undefined;
-        let page = 0;
+        let page = this.parseToInt(0);
         while (true) {
             const request = { 'pageSize': pageSize };
             if (paginationKey !== undefined) {
@@ -258,9 +259,9 @@ export default class sxbet extends Exchange {
                 rawMarkets.push(pageMarkets[i]);
             }
             paginationKey = this.safeString(result, 'nextKey');
-            page = this.sum(page, 1);
-            const collectedLength = rawMarkets.length;
-            if ((pageMarketsLength < pageSize) || (page >= maxPages) || (paginationKey === undefined) || ((userLimit !== undefined) && (collectedLength >= userLimit))) {
+            page = this.parseToInt(page + 1);
+            const collectedLength = this.parseToInt(rawMarkets.length);
+            if ((pageMarketsLength < pageSize) || (page >= maxPages) || (paginationKey === undefined) || ((collectCap !== undefined) && (collectedLength >= collectCap))) {
                 break;
             }
         }
@@ -327,11 +328,7 @@ export default class sxbet extends Exchange {
         // variants) whose outcomeOneName text can coincide or nearly coincide, so a text-only
         // slug isn't guaranteed unique. suffix with the market hash instead (always unique,
         // letters+digits only so it survives shortenSlug in one atomic word)
-        // parseToInt-wrapped .length: the bare `const n = str.length;` statement is the php
-        // transpiler's ARRAY hint (count()), which breaks on a string — this form emits
-        // strlen()/len() correctly in both python and php
-        const hashLength = this.parseToInt(marketHash.length);
-        const hashSuffix = marketHash.slice(hashLength - 6);
+        const hashSuffix = marketHash.slice(-6);
         const marketSlug = this.shortenSlug(outcomeOneName) + '_' + hashSuffix;
         const marketSymbol = this.slugToMarketSymbol(eventSlug, marketSlug);
         const status = this.safeStringUpper(raw, 'status');
@@ -579,7 +576,7 @@ export default class sxbet extends Exchange {
     parseEvent(fixtureId, rawMarkets) {
         const marketsList = [];
         let anyActive = false;
-        let earliestGameTime = undefined;
+        let earliestGameTime = this.safeInteger({}, 'gameTime');
         let teamOneName = undefined;
         let teamTwoName = undefined;
         let leagueLabel = undefined;
@@ -599,9 +596,9 @@ export default class sxbet extends Exchange {
                 teamTwoName = this.safeString(raw, 'teamTwoName');
                 leagueLabel = this.safeString(raw, 'leagueLabel');
             }
-            const gameTime = this.safeString(raw, 'gameTime');
+            const gameTime = this.safeInteger(raw, 'gameTime');
             // skip the zero sentinel for "no scheduled game time" so it can't become the epoch
-            if ((gameTime !== undefined) && (gameTime !== '0') && ((earliestGameTime === undefined) || (gameTime < earliestGameTime))) {
+            if ((gameTime !== undefined) && (gameTime !== 0) && ((earliestGameTime === undefined) || (gameTime < earliestGameTime))) {
                 earliestGameTime = gameTime;
             }
         }
@@ -717,7 +714,7 @@ export default class sxbet extends Exchange {
         const hex = this.remove0xPrefix(result);
         // dynamic ABI string return: [32-byte offset][32-byte length][utf8 bytes, right-padded]
         const lengthHex = hex.slice(64, 128);
-        const length = this.hexToInt(lengthHex);
+        const length = this.parseToInt(this.hexToInt(lengthHex));
         const dataEnd = this.sum(128, length * 2);
         const dataHex = hex.slice(128, dataEnd);
         return this.decode(this.base16ToBinary(dataHex));
@@ -734,11 +731,12 @@ export default class sxbet extends Exchange {
         const digits = '0123456789abcdef';
         const lowerHex = hex.toLowerCase();
         const hexLength = lowerHex.length;
-        let result = 0;
+        let result = this.parseToInt(0);
         for (let i = 0; i < hexLength; i++) {
             const ch = lowerHex[i];
-            const digitValue = digits.indexOf(ch);
-            result = (result * 16) + digitValue;
+            const digitValue = this.parseToInt(digits.indexOf(ch));
+            const shifted = result * 16;
+            result = this.parseToInt(this.sum(shifted, digitValue));
         }
         return result;
     }
@@ -1133,14 +1131,20 @@ export default class sxbet extends Exchange {
         const chunkCount = this.parseToInt(this.sum(idsLength, chunkSize - 1) / chunkSize);
         let result = [];
         for (let c = 0; c < chunkCount; c++) {
-            const start = c * chunkSize;
-            let end = start + chunkSize;
-            if (end > idsLength) {
-                end = idsLength;
+            const chunkIndex = this.parseToInt(c);
+            const chunkWidth = this.parseToInt(chunkSize);
+            const start = chunkIndex * chunkWidth;
+            const nextChunkIndex = chunkIndex + 1;
+            const chunkEnd = nextChunkIndex * chunkWidth;
+            let end = chunkEnd;
+            if (chunkEnd > idsLength) {
+                end = this.parseToInt(idsLength);
             }
             const orderItems = [];
-            for (let i = start; i < end; i++) {
-                orderItems.push({ 'orderId': ids[i] });
+            const chunkIds = this.arraySlice(ids, start, end);
+            const chunkIdsLength = chunkIds.length;
+            for (let i = 0; i < chunkIdsLength; i++) {
+                orderItems.push({ 'orderId': chunkIds[i] });
             }
             const request = { 'orders': orderItems };
             const response = await this.sxbetPrivateDeleteOrdersV3(this.extend(request, params));
@@ -1178,8 +1182,10 @@ export default class sxbet extends Exchange {
         result = this.arrayConcat(result, this.parseSxbetCancelResponse(response));
         // both paths paginate their async submission - keep going on the SAME route while more remain
         let hasMore = this.safeBool(this.safeDict(response, 'data', {}), 'hasMore', false);
-        let guard = 0;
-        while ((hasMore) && (guard < 50)) {
+        for (let guard = 0; guard < 50; guard++) {
+            if (!hasMore) {
+                break;
+            }
             let nextResponse = undefined;
             if (isEventScoped) {
                 const nextRequest = { 'eventId': eventId };
@@ -1190,7 +1196,6 @@ export default class sxbet extends Exchange {
             }
             result = this.arrayConcat(result, this.parseSxbetCancelResponse(nextResponse));
             hasMore = this.safeBool(this.safeDict(nextResponse, 'data', {}), 'hasMore', false);
-            guard = this.sum(guard, 1);
         }
         return result;
     }
@@ -1296,11 +1301,14 @@ export default class sxbet extends Exchange {
      * @returns {int} the limit clamped to at most 100
      */
     clampSxbetPerPage(limit) {
-        const maxPerPage = 100;
         if (limit === undefined) {
-            return undefined;
+            return limit;
         }
-        return (limit > maxPerPage) ? maxPerPage : limit;
+        const requested = this.parseToInt(limit);
+        if (requested >= 100) {
+            return 100;
+        }
+        return limit;
     }
     /**
      * @method
@@ -1670,13 +1678,13 @@ export default class sxbet extends Exchange {
     async fetchSettlements(outcome = undefined, since = undefined, limit = undefined, params = {}) {
         this.checkRequiredCredentials();
         const request = { 'status': 'SETTLED' };
-        let wantedOutcomeId = undefined;
+        let outcomeObj = undefined;
         if (outcome !== undefined) {
             await this.loadOutcome(outcome);
-            const outcomeObj = this.outcome(outcome);
+            outcomeObj = this.outcome(outcome);
             request['marketHash'] = this.safeString(outcomeObj['info'], 'marketHash', '');
-            wantedOutcomeId = this.safeString(outcomeObj, 'outcomeId');
         }
+        const wantedOutcomeId = this.safeString(outcomeObj, 'outcomeId');
         if (since !== undefined) {
             request['startDate'] = this.iso8601(since);
         }
@@ -1734,10 +1742,7 @@ export default class sxbet extends Exchange {
         const winner = this.safeInteger(settlement, 'outcome');
         const isVoid = (winner === 0);
         const heldNumber = (isBettingOutcomeOne) ? 1 : 2;
-        let won = undefined;
-        if ((winner !== undefined) && !isVoid) {
-            won = (winner === heldNumber);
-        }
+        const won = ((winner !== undefined) && !isVoid) ? (winner === heldNumber) : undefined;
         const usdcDecimals = '1000000';
         const stake = Precise.stringDiv(this.safeString(trade, 'totalStake', '0'), usdcDecimals, 6);
         const payout = Precise.stringDiv(this.safeString(settlement, 'settleReturnAmount', '0'), usdcDecimals, 6);
@@ -1890,10 +1895,14 @@ export default class sxbet extends Exchange {
         const chunkSize = this.safeInteger(this.options, 'bestOddsBatchSize', 100);
         const chunkCount = this.parseToInt(this.sum(hashesLength, chunkSize - 1) / chunkSize);
         for (let c = 0; c < chunkCount; c++) {
-            const start = c * chunkSize;
-            let end = start + chunkSize;
-            if (end > hashesLength) {
-                end = hashesLength;
+            const chunkIndex = this.parseToInt(c);
+            const chunkWidth = this.parseToInt(chunkSize);
+            const start = chunkIndex * chunkWidth;
+            const nextChunkIndex = chunkIndex + 1;
+            const chunkEnd = nextChunkIndex * chunkWidth;
+            let end = chunkEnd;
+            if (chunkEnd > hashesLength) {
+                end = this.parseToInt(hashesLength);
             }
             const chunk = this.arraySlice(hashesOrder, start, end);
             const rows = await this.fetchSxbetBestOdds(chunk, params);
@@ -2030,17 +2039,13 @@ export default class sxbet extends Exchange {
         let sortedAsks = this.safeList(sides, 'asks', []);
         if (limit !== undefined) {
             const bidsLength = sortedBids.length;
-            let bidsEnd = limit;
-            if (bidsEnd > bidsLength) {
-                bidsEnd = bidsLength;
+            if (limit < bidsLength) {
+                sortedBids = this.arraySlice(sortedBids, 0, limit);
             }
-            sortedBids = this.arraySlice(sortedBids, 0, bidsEnd);
             const asksLength = sortedAsks.length;
-            let asksEnd = limit;
-            if (asksEnd > asksLength) {
-                asksEnd = asksLength;
+            if (limit < asksLength) {
+                sortedAsks = this.arraySlice(sortedAsks, 0, limit);
             }
-            sortedAsks = this.arraySlice(sortedAsks, 0, asksEnd);
         }
         const timestamp = this.milliseconds();
         return this.safePredictionOrderBook({

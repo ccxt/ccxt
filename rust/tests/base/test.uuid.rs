@@ -20,8 +20,8 @@ pub fn testUuid() {
     assert!(ccxt::runtime::is_true(&((id1 != Value::Null))));
     assert!(ccxt::runtime::is_true(&((id2 != Value::Null))));
     assert!(ccxt::runtime::is_true(&((id1.as_str() != id2.as_str()))));
-    assert!(ccxt::runtime::is_true(&((to_string_val(&id1).as_str() == id1.as_str()))));
-    assert!(ccxt::runtime::is_true(&((to_string_val(&id2).as_str() == id2.as_str()))));
+    assert!(ccxt::runtime::is_true(&((Value::Str(format!("{}", id1).into()).as_str() == id1.as_str()))));
+    assert!(ccxt::runtime::is_true(&((Value::Str(format!("{}", id2).into()).as_str() == id2.as_str()))));
     assert!(ccxt::runtime::is_true(&((Value::Int(id1.len() as i64).as_f64() == Some(36.0)))));
     assert!(ccxt::runtime::is_true(&((Value::Int(id2.len() as i64).as_f64() == Some(36.0)))));
     assert!(ccxt::runtime::is_true(&((Value::Int(id1.as_str().and_then(|__s| __s.find("-")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(8.0)))));
@@ -31,8 +31,8 @@ pub fn testUuid() {
     assert!(ccxt::runtime::is_true(&((id16a != Value::Null))));
     assert!(ccxt::runtime::is_true(&((id16b != Value::Null))));
     assert!(ccxt::runtime::is_true(&((id16a.as_str() != id16b.as_str()))));
-    assert!(ccxt::runtime::is_true(&((to_string_val(&id16a).as_str() == id16a.as_str()))));
-    assert!(ccxt::runtime::is_true(&((to_string_val(&id16b).as_str() == id16b.as_str()))));
+    assert!(ccxt::runtime::is_true(&((Value::Str(format!("{}", id16a).into()).as_str() == id16a.as_str()))));
+    assert!(ccxt::runtime::is_true(&((Value::Str(format!("{}", id16b).into()).as_str() == id16b.as_str()))));
     assert!(ccxt::runtime::is_true(&((Value::Int(id16a.len() as i64).as_f64() == Some(16.0)))));
     assert!(ccxt::runtime::is_true(&((Value::Int(id16b.len() as i64).as_f64() == Some(16.0)))));
     // uuid22() - 22-char hex string
@@ -41,8 +41,8 @@ pub fn testUuid() {
     assert!(ccxt::runtime::is_true(&((id22a != Value::Null))));
     assert!(ccxt::runtime::is_true(&((id22b != Value::Null))));
     assert!(ccxt::runtime::is_true(&((id22a.as_str() != id22b.as_str()))));
-    assert!(ccxt::runtime::is_true(&((to_string_val(&id22a).as_str() == id22a.as_str()))));
-    assert!(ccxt::runtime::is_true(&((to_string_val(&id22b).as_str() == id22b.as_str()))));
+    assert!(ccxt::runtime::is_true(&((Value::Str(format!("{}", id22a).into()).as_str() == id22a.as_str()))));
+    assert!(ccxt::runtime::is_true(&((Value::Str(format!("{}", id22b).into()).as_str() == id22b.as_str()))));
     assert!(ccxt::runtime::is_true(&((Value::Int(id22a.len() as i64).as_f64() == Some(22.0)))));
     assert!(ccxt::runtime::is_true(&((Value::Int(id22b.len() as i64).as_f64() == Some(22.0)))));
 }

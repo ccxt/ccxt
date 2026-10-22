@@ -269,8 +269,8 @@ public partial class gemini : ccxt.gemini
             Dictionary<string, object> storesForSymbols = new Dictionary<string, object>() {};
             for (int i = 0; i < (trades?.Count ?? 0); i++)
             {
-                object marketId = getValue((trades != null && i < trades.Count ? trades[i] : null), "symbol");
-                Dictionary<string, object> market = this.safeMarket(((string)marketId).ToLower());
+                string marketId = this.safeString((trades != null && i < trades.Count ? trades[i] : null), "symbol", "").ToLower();
+                Dictionary<string, object> market = this.safeMarket(marketId);
                 string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
                 ccxt.Trade trade = this.parseWsTrade((trades != null && i < trades.Count ? trades[i] : null), market);
                 trade.timestamp = ccxt.BaseExchange.StructInt64(timestamp);
@@ -369,9 +369,9 @@ public partial class gemini : ccxt.gemini
         //     }
         //
         string? type = this.safeString(message, "type", "");
-        string? timeframeId = ((type == null) ? null : type.Substring(Math.Min(8, type.Length)));
-        int timeframeEndIndex = (timeframeId?.IndexOf("_", StringComparison.Ordinal) ?? -1);
-        timeframeId = slice(timeframeId, 0, timeframeEndIndex);
+        string? timeframeIdFull = ((type == null) ? null : type.Substring(Math.Min(8, type.Length)));
+        int timeframeEndIndex = (timeframeIdFull?.IndexOf("_", StringComparison.Ordinal) ?? -1);
+        string? timeframeId = ((Func<object, object, object, string>)(static (s36s, s36a, s36b) => { if (s36s == null) { return null; } var s36str = (string)s36s; var s36start = s36a != null ? Convert.ToInt32(s36a) : -1; if (s36b == null) { if (s36start < 0) { var s36inner = s36str.Length + s36start; s36inner = s36inner < 0 ? 0 : s36inner; return s36str[(s36inner)..]; } else { return s36str[s36start..]; } } else { var s36end = Convert.ToInt32(s36b); if (s36start < 0) { s36start = s36str.Length + s36start; } if (s36end < 0) { s36end = s36str.Length + s36end; } if (s36end > s36str.Length) { s36end = s36str.Length; } return s36str[s36start..s36end]; } }))(timeframeIdFull, 0, timeframeEndIndex);
         string marketId = this.safeString(message, "symbol", "").ToLower();
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = this.safeSymbol(marketId, market);
@@ -397,7 +397,7 @@ public partial class gemini : ccxt.gemini
         for (Int64 i = 0; i < changesLength; i++)
         {
             Int64 index = ((changesLength - i) - 1);
-            IList<object> parsed = this.parseOHLCV(getValue(changes, index), market);
+            IList<object> parsed = this.parseOHLCV((changes != null && index < changes.Count ? changes[(int)index] : null), market);
             stored.append(parsed);
         }
         string messageHash = ((("ohlcv:" + symbol) + ":") + timeframeId);
@@ -491,7 +491,7 @@ public partial class gemini : ccxt.gemini
             double? price = this.safeNumber(delta, 1);
             double? size = this.safeNumber(delta, 2);
             string side = ((this.safeString(delta, 0) == "buy")) ? "bids" : "asks";
-            object bookside = getValue(orderbook, side);
+            object bookside = (orderbook != null && side != null && orderbook.ContainsKey(side) ? orderbook[side] : null);
             (bookside as IOrderBookSide).store(price, size);
             orderbook[side] = bookside;
         }
@@ -561,8 +561,9 @@ public partial class gemini : ccxt.gemini
         //     type: 'update'
         // }
         //
-        object marketId = getValue((rawBidAskChanges != null && 0 < rawBidAskChanges.Count ? rawBidAskChanges[0] : null), "symbol");
-        Dictionary<string, object> market = this.safeMarket(((string)marketId).ToLower());
+        object firstBidAsk = (rawBidAskChanges != null && 0 < rawBidAskChanges.Count ? rawBidAskChanges[0] : null);
+        string marketId = this.safeString(firstBidAsk, "symbol", "").ToLower();
+        Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         if (!((this.bidsasks != null && symbol != null && this.bidsasks.ContainsKey(symbol))))
         {
@@ -666,8 +667,9 @@ public partial class gemini : ccxt.gemini
         //   },
         //   ...
         //
-        object marketId = getValue((rawOrderBookChanges != null && 0 < rawOrderBookChanges.Count ? rawOrderBookChanges[0] : null), "symbol");
-        Dictionary<string, object> market = this.safeMarket(((string)marketId).ToLower());
+        object firstChange = (rawOrderBookChanges != null && 0 < rawOrderBookChanges.Count ? rawOrderBookChanges[0] : null);
+        string marketId = this.safeString(firstChange, "symbol", "").ToLower();
+        Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("orderbook:" + symbol);
         if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
@@ -851,7 +853,7 @@ public partial class gemini : ccxt.gemini
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         ccxt.pro.ArrayCache orders = this.orders;
-        for (int i = 0; i < getArrayLength(message); i++)
+        for (int i = 0; i < (((object)(message)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             ccxt.Order order = this.parseWsOrder(getValue(message, i));
             orders.append(ccxt.BaseExchange.FromOrder(order));
@@ -1036,7 +1038,8 @@ public partial class gemini : ccxt.gemini
             {
                 object eventVar = events[i];
                 string? eventType = this.safeString(eventVar, "type");
-                bool isOrderBook = (eventType == "change") && (inOp(eventVar, "side")) && this.inArray(getValue(eventVar, "side"), new List<object>() {"ask", "bid"});
+                string? side = this.safeString(eventVar, "side");
+                bool isOrderBook = (eventType == "change") && ((side != null)) && this.inArray(side, new List<object>() {"ask", "bid"});
                 string? eventReason = this.safeString(eventVar, "reason");
                 bool isBidAsk = (eventReason == "top-of-book") || (isOrderBook && (eventReason == "initial") && (eventsLength == 2));
                 if (isBidAsk)
@@ -1081,11 +1084,11 @@ public partial class gemini : ccxt.gemini
             return;
         }
         this.checkRequiredCredentials();
-        int startIndex = getArrayLength(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        int startIndex = (((object)(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"))) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
         int urlParamsIndex = url.IndexOf("?", StringComparison.Ordinal);
         int urlLength = url.Length;
         int endIndex = (urlParamsIndex >= 0) ? urlParamsIndex : urlLength;
-        string? request = slice(url, startIndex, endIndex);
+        string? request = ((Func<object, object, object, string>)(static (s36s, s36a, s36b) => { if (s36s == null) { return null; } var s36str = (string)s36s; var s36start = s36a != null ? Convert.ToInt32(s36a) : -1; if (s36b == null) { if (s36start < 0) { var s36inner = s36str.Length + s36start; s36inner = s36inner < 0 ? 0 : s36inner; return s36str[(s36inner)..]; } else { return s36str[s36start..]; } } else { var s36end = Convert.ToInt32(s36b); if (s36start < 0) { s36start = s36str.Length + s36start; } if (s36end < 0) { s36end = s36str.Length + s36end; } if (s36end > s36str.Length) { s36end = s36str.Length; } return s36str[s36start..s36end]; } }))(url, startIndex, endIndex);
         Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "request", request },
             { "nonce", this.incrementingNonce() },

@@ -2527,7 +2527,7 @@ class bitget extends \ccxt\async\bitget {
         if (!$isStockOrUta) {
             $args['coin'] = 'default';
         }
-        $instTypeLower = ($instType === null) ? '' : strtolower($instType);
+        $instTypeLower = $this->safe_string_lower($args, 'instType', '');
         $messageHash = 'balance:' . $instTypeLower;
         return Async\await($this->watch_private($isStockOrUta, $messageHash, $messageHash, $args, $paramsRequest));
     }

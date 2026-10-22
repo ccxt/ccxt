@@ -343,8 +343,9 @@ export default class woofipro extends woofiproRest {
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const ticker = this.parseWsBidAsk(this.extend(data[i], { 'ts': timestamp }));
-            if (ticker['symbol'] !== undefined) {
-                this.tickers[ticker['symbol']] = ticker;
+            const tickerSymbol = this.safeString(ticker, 'symbol');
+            if (tickerSymbol !== undefined) {
+                this.tickers[tickerSymbol] = ticker;
             }
             result.push(ticker);
         }

@@ -1696,7 +1696,7 @@ class bybit extends bybit$1["default"] {
         // some markets like options might not have the precision available
         // and we shouldn't crash in those cases
         const market = this.market(symbol);
-        const emptyPrecisionAmount = (market['precision']['amount'] === undefined);
+        const emptyPrecisionAmount = (this.safeNumber(market['precision'], 'amount') === undefined);
         const amountString = this.numberToString(amount);
         if (!emptyPrecisionAmount && (amountString !== '0')) {
             return this.amountToPrecision(symbol, amount);
@@ -1708,7 +1708,7 @@ class bybit extends bybit$1["default"] {
             return price;
         }
         const market = this.market(symbol);
-        const emptyPrecisionPrice = (market['precision']['price'] === undefined);
+        const emptyPrecisionPrice = (this.safeNumber(market['precision'], 'price') === undefined);
         if (!emptyPrecisionPrice) {
             return this.priceToPrecision(symbol, price);
         }
@@ -1716,7 +1716,7 @@ class bybit extends bybit$1["default"] {
     }
     getCost(symbol, cost) {
         const market = this.market(symbol);
-        const emptyPrecisionPrice = (market['precision']['price'] === undefined);
+        const emptyPrecisionPrice = (this.safeNumber(market['precision'], 'price') === undefined);
         if (!emptyPrecisionPrice) {
             return this.costToPrecision(symbol, cost);
         }
@@ -2243,9 +2243,9 @@ class bybit extends bybit$1["default"] {
             let expiry = undefined;
             // some swaps have deliveryTime meaning delisting time
             if (!swap) {
-                expiry = this.omitZero(this.safeString(market, 'deliveryTime'));
-                if (expiry !== undefined) {
-                    expiry = parseInt(expiry);
+                const deliveryTime = this.omitZero(this.safeString(market, 'deliveryTime'));
+                if (deliveryTime !== undefined) {
+                    expiry = this.parseToInt(deliveryTime);
                 }
             }
             const expiryDatetime = this.iso8601(expiry);
@@ -2684,7 +2684,7 @@ class bybit extends bybit$1["default"] {
                 const symbol = symbols[i];
                 // using safeMarket here because if the user provides for instance BTCUSDT and "type": "spot" in params we should
                 // infer the market type from the type provided and not from the conflicting id (BTCUSDT might be swap or spot)
-                const isExchangeSpecificSymbol = (symbol.indexOf('/') === -1);
+                const isExchangeSpecificSymbol = (symbol.indexOf('/') < 0);
                 if (isExchangeSpecificSymbol) {
                     market = this.safeMarket(symbol, undefined, undefined, defaultType);
                 }
@@ -2694,11 +2694,12 @@ class bybit extends bybit$1["default"] {
                 if (currentType === undefined) {
                     currentType = this.safeString(market, 'type');
                 }
-                else if (market['type'] !== currentType) {
+                else if (this.safeString(market, 'type') !== currentType) {
                     throw new errors.BadRequest(this.id + ' fetchTickers can only accept a list of symbols of the same type');
                 }
                 if (market['option'] === true) {
-                    if (code !== undefined && code !== market['base']) {
+                    const marketBase = this.safeString(market, 'base');
+                    if (code !== undefined && code !== marketBase) {
                         throw new errors.BadRequest(this.id + ' fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://bybit-exchange.github.io/docs/v5/market/tickers');
                     }
                     if (code === undefined) {
@@ -3126,7 +3127,12 @@ class bybit extends bybit$1["default"] {
                 if (fundingTimeFrameMins !== undefined) {
                     fundingInterval = fundingTimeFrameMins * 60 * 1000;
                 }
-                request['endTime'] = this.sum(since, limitResolved * fundingInterval);
+                if (limit === undefined) {
+                    request['endTime'] = this.sum(since, 200 * fundingInterval);
+                }
+                else {
+                    request['endTime'] = this.sum(since, limit * fundingInterval);
+                }
             }
         }
         const response = await this.publicGetV5MarketFundingHistory(this.extend(request, paramsOmitted));
@@ -3734,10 +3740,9 @@ class bybit extends bybit$1["default"] {
         const request = {};
         const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
         const isUnifiedAccount = (enableUnifiedMargin === true) || (enableUnifiedAccount === true);
-        let type = undefined;
-        let paramsMarketType = undefined;
         // don't use getBybitType here
-        [type, paramsMarketType] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
+        const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
+        let type = marketType;
         const [subType, paramsSubType] = this.handleSubTypeAndParams('fetchBalance', undefined, paramsMarketType);
         if ((type === 'swap') || (type === 'future')) {
             type = subType;
@@ -4853,7 +4858,7 @@ class bybit extends bybit$1["default"] {
             await this.loadMarkets();
         }
         const ordersRequests = [];
-        let orderSymbols = [];
+        const orderSymbols = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = this.safeDict(orders, i);
             const symbol = this.safeString(rawOrder, 'symbol');
@@ -4868,8 +4873,8 @@ class bybit extends bybit$1["default"] {
             delete orderRequest['category'];
             ordersRequests.push(orderRequest);
         }
-        orderSymbols = this.marketSymbols(orderSymbols, undefined, false, true, true);
-        const market = this.market(orderSymbols[0]);
+        const symbols = this.marketSymbols(orderSymbols, undefined, false, true, true);
+        const market = this.market(symbols[0]);
         const unifiedMarginStatus = this.safeInteger(this.options, 'unifiedMarginStatus', 6);
         const [category, paramsValue] = this.getBybitType('editOrders', market, params);
         if ((category === 'inverse') && (unifiedMarginStatus < 5)) {
@@ -7071,7 +7076,8 @@ class bybit extends bybit$1["default"] {
         const liquidationPrice = this.omitZero(this.safeString(position, 'liqPrice'));
         const leverage = this.safeString(position, 'leverage');
         if (liquidationPrice !== undefined) {
-            if (marketResolved['settle'] === 'USDC') {
+            const settle = this.safeString(marketResolved, 'settle');
+            if (settle === 'USDC') {
                 //  (Entry price - Liq price) * Contracts + Maintenance Margin + (unrealised pnl) = Collateral
                 const useMarkPrice = this.safeBool(this.options, 'useMarkPriceForPositionCollateral', false);
                 let price = entryPrice;
@@ -7224,7 +7230,8 @@ class bybit extends bybit$1["default"] {
                 throw new errors.ArgumentsRequired(this.id + ' setMarginMode() requires a symbol parameter for non unified account');
             }
             market = this.market(symbol);
-            const isUsdcSettled = market['settle'] === 'USDC';
+            const marketSettle = this.safeString(market, 'settle');
+            const isUsdcSettled = marketSettle === 'USDC';
             if (isUsdcSettled) {
                 if ((marginMode !== 'cross') && (marginMode !== 'portfolio')) {
                     throw new errors.NotSupported(this.id + ' setMarginMode() for usdc market marginMode must be either [cross, portfolio]');
@@ -7413,8 +7420,12 @@ class bybit extends bybit$1["default"] {
         else if (since !== undefined) {
             // the endpoint walks backwards from endTime and ignores a lone startTime
             const duration = this.parseTimeframe(timeframe);
-            const requestedLimit = (limit === undefined) ? 50 : limit; // exchange default
-            request['endTime'] = this.sum(since, duration * requestedLimit * 1000);
+            if (limit === undefined) {
+                request['endTime'] = this.sum(since, duration * 50 * 1000); // exchange default
+            }
+            else {
+                request['endTime'] = this.sum(since, duration * limit * 1000);
+            }
         }
         if (limit !== undefined) {
             request['limit'] = limit;

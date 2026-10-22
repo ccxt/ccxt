@@ -303,7 +303,7 @@ public partial class delta : Exchange
                     } },
                 } },
             } },
-            { "userAgent", getValue(this.userAgents, "chrome39") },
+            { "userAgent", (this.userAgents != null && this.userAgents.ContainsKey("chrome39") ? this.userAgents["chrome39"] : null) },
             { "options", new Dictionary<string, object>() {
                 { "networks", new Dictionary<string, object>() {
                     { "TRC20", "TRC20(TRON)" },
@@ -425,23 +425,23 @@ public partial class delta : Exchange
         string quote = "USDT";
         List<object> optionParts = ((string)symbol).Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
         List<object> symbolBase = ((string)symbol).Split(new [] {"/"}, StringSplitOptions.None).ToList<object>();
+        bool hasSlash = ((string)symbol).IndexOf("/", StringComparison.Ordinal) > -1;
         object bs = null;
-        string? expiry = null;
         object optionType = null;
-        if (((string)symbol).IndexOf("/", StringComparison.Ordinal) > -1)
+        if (hasSlash)
         {
             bs = this.safeString(symbolBase, 0);
-            expiry = this.safeString(optionParts, 1);
             optionType = this.safeString(optionParts, 3);
         } else
         {
             bs = this.safeString(optionParts, 1);
-            expiry = this.safeString(optionParts, 3);
             optionType = this.safeString(optionParts, 0);
         }
-        if ((expiry != null))
+        string? rawExpiry = this.safeString(optionParts, hasSlash ? 1 : 3);
+        string? expiry = null;
+        if ((rawExpiry != null))
         {
-            expiry = ((((expiry == null) ? null : expiry.Substring(Math.Min(4, expiry.Length))) + ((expiry == null) ? null : expiry.Substring(Math.Min(2, expiry.Length), Math.Min(4, expiry.Length) - Math.Min(2, expiry.Length)))) + ((expiry == null) ? null : expiry.Substring(0, Math.Min(2, expiry.Length))));
+            expiry = ((((rawExpiry == null) ? null : rawExpiry.Substring(Math.Min(4, rawExpiry.Length))) + ((rawExpiry == null) ? null : rawExpiry.Substring(Math.Min(2, rawExpiry.Length), Math.Min(4, rawExpiry.Length) - Math.Min(2, rawExpiry.Length)))) + ((rawExpiry == null) ? null : rawExpiry.Substring(0, Math.Min(2, rawExpiry.Length))));
         }
         string settle = quote;
         string? strike = this.safeString(optionParts, 2);
@@ -744,12 +744,12 @@ public partial class delta : Exchange
         return ((IDictionary<string, object>)((object)(markets)));
     }
 
-    public virtual object indexByStringifiedNumericId(object input)
+    public virtual Dictionary<string, object> indexByStringifiedNumericId(object input)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         if ((input == null))
         {
-            return null;
+            return ((Dictionary<string, object>)((object)(null)));
         }
         List<object> keys = new List<object>(((IDictionary<string,object>)input).Keys);
         for (int i = 0; i < keys.Count; i++)
@@ -1789,30 +1789,36 @@ public partial class delta : Exchange
         };
         int duration = this.parseTimeframe(timeframeVar);
         object limitValue = 2000;
+        Int64? windowSeconds = (2000L * duration);
         if ((limit != null) && (limit != null) && (limit != 0))
         {
             limitValue = limit; // max 2000
+            windowSeconds = (limit * duration);
         }
         Int64? until = this.safeIntegerProduct(parameters, "until", 0.001);
-        bool untilIsDefined = ((until != null));
+        bool untilIsDefined = (until != null);
         if (untilIsDefined)
         {
             until = this.parseToInt(until);
         }
         if ((since == null))
         {
-            Int64? end = untilIsDefined ? until : this.seconds();
+            Int64? end = this.seconds();
+            if (untilIsDefined)
+            {
+                end = this.parseToInt(until);
+            }
             request["end"] = end;
             if ((end == null))
             {
                 throw new ExchangeError ((this.id + " fetchOHLCV() missing end")) ;
             }
-            request["start"] = subtract(end, multiply(limitValue, duration));
+            request["start"] = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(end, windowSeconds);
         } else
         {
             Int64? start = this.parseToInt(((double?)since / 1000));
             request["start"] = start;
-            request["end"] = untilIsDefined ? until : this.sum(start, multiply(limitValue, duration));
+            request["end"] = untilIsDefined ? until : this.sum(start, windowSeconds);
         }
         string? price = this.safeString(parameters, "price");
         if (price == "mark")
@@ -1825,7 +1831,7 @@ public partial class delta : Exchange
         {
             request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        object paramsOmitted = this.omit(parameters, new List<object>() {"price", "until"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"price", "until"}));
         Dictionary<string, object> response = await this.publicGetHistoryCandles(this.extend(request, paramsOmitted));
         //
         //     {
@@ -2220,7 +2226,7 @@ public partial class delta : Exchange
             request["limit_price"] = this.priceToPrecision((market.ContainsKey("symbol") ? market["symbol"] : null), price);
         }
         string? clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
-        object paramsOmitted = this.omit(parameters, new List<object>() {"clientOrderId", "client_order_id"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"clientOrderId", "client_order_id"}));
         if ((clientOrderId != null))
         {
             request["client_order_id"] = clientOrderId;
@@ -2292,7 +2298,7 @@ public partial class delta : Exchange
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "id", parseInt(id) },
+            { "id", (((Func<object, Int64?>)(static (object hx4pa) => { try { return Convert.ToInt64(Math.Floor(Convert.ToDouble(hx4pa))); } catch (Exception) { return null; } }))(id)) },
             { "product_id", (market.ContainsKey("numericId") ? market["numericId"] : null) },
         };
         if ((amount != null))
@@ -2302,7 +2308,7 @@ public partial class delta : Exchange
             {
                 sizeString = "0";
             }
-            request["size"] = parseInt(sizeString);
+            request["size"] = (((Func<object, Int64?>)(static (object hx4pa) => { try { return Convert.ToInt64(Math.Floor(Convert.ToDouble(hx4pa))); } catch (Exception) { return null; } }))(sizeString));
         }
         if ((price != null))
         {
@@ -2350,7 +2356,7 @@ public partial class delta : Exchange
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "id", parseInt(id) },
+            { "id", (((Func<object, Int64?>)(static (object hx4pa) => { try { return Convert.ToInt64(Math.Floor(Convert.ToDouble(hx4pa))); } catch (Exception) { return null; } }))(id)) },
             { "product_id", (market.ContainsKey("numericId") ? market["numericId"] : null) },
         };
         Dictionary<string, object> response = await this.privateDeleteOrders(this.extend(request, parameters));
@@ -2447,7 +2453,7 @@ public partial class delta : Exchange
             market = this.market(symbol);
         }
         string? clientOrderId = this.safeStringN(parameters, new List<object>() {"clientOrderId", "client_oid", "clientOid"});
-        object paramsOmitted = this.omit(parameters, new List<object>() {"clientOrderId", "client_oid", "clientOid"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"clientOrderId", "client_oid", "clientOid"}));
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> response = null;
         if ((clientOrderId != null))
@@ -2707,7 +2713,7 @@ public partial class delta : Exchange
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(result, currency, since, limit));
     }
 
-    public virtual string? parseLedgerEntryType(object type)
+    public virtual string? parseLedgerEntryType(string? type)
     {
         Dictionary<string, object> types = new Dictionary<string, object>() {
             { "pnl", "pnl" },
@@ -2718,7 +2724,7 @@ public partial class delta : Exchange
             { "referral_bonus", "referral" },
             { "commission_rebate", "rebate" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     public override Dictionary<string, object> parseLedgerEntry(object item, object currency = null)

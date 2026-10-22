@@ -289,7 +289,7 @@ export default class woo extends Exchange {
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     parseTimeInForce(timeInForce: Str): Str;
     parseOrder(order: Dict, market?: Market): Order;
-    parseOrderStatus(status: Str): string | undefined;
+    parseOrderStatus(status: Str): Str;
     /**
      * @method
      * @name woo#fetchOrderBook
@@ -401,9 +401,9 @@ export default class woo extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     fetchDepositAddress(code: string, params?: Dict): Promise<DepositAddress>;
-    getDedicatedNetworkId(currency: any, params: Dict): any;
+    getDedicatedNetworkId(currency: any, params: Dict): [Str, Dict];
     parseDepositAddress(depositEntry: Dict, currency?: Currency): DepositAddress;
-    getAssetHistoryRows(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    getAssetHistoryRows(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<any>;
     /**
      * @method
      * @name woo#fetchLedger
@@ -418,7 +418,7 @@ export default class woo extends Exchange {
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<LedgerEntry[]>;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
     parseLedgerEntryType(type: Str): Str;
-    getCurrencyFromChaincode(networkizedCode: any, currency: any): any;
+    getCurrencyFromChaincode(networkizedCode: any, currency: any): CurrencyInterface;
     /**
      * @method
      * @name woo#fetchDeposits

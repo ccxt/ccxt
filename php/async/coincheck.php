@@ -962,7 +962,7 @@ class coincheck extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             // withdrawals
             'pending' => 'pending',

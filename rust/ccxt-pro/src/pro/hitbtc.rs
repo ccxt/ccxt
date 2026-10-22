@@ -448,11 +448,11 @@ impl HitbtcCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_372: bool = true;
                 while { if !__for_first_372 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_372 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
-                append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHashPrefix, Value::Str("::".into())).into()), symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).into()));
+                if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHashPrefix, Value::Str("::".into())).into()), symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).into())); }
             }
             }
         }  else {
-            append_to_array(&mut messageHashes, messageHashPrefix);
+            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(messageHashPrefix); }
         }
         let mut requestId: Value = self.incrementing_nonce();
         let mut subscribe: Value = Value::Map({
@@ -491,7 +491,7 @@ impl HitbtcCore {
         }
         self.authenticate().await;
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private");
-        let mut splitName: Value = split(&name, &Value::Str("_subscribe".into()));
+        let mut splitName: Value = Value::Array(name.as_str().map(|__s| __s.split("_subscribe").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
         let mut messageHash: Value = self.safe_string(splitName, Value::Int(0), &[Value::Str("".into())]);
         if (symbol != Value::Null) {
             messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), symbol).into());
@@ -530,7 +530,7 @@ impl HitbtcCore {
         }
         self.authenticate().await;
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private");
-        let mut messageHash: Value = to_string_val(&self.incrementing_nonce());
+        let mut messageHash: Value = Value::Str(format!("{}", self.incrementing_nonce()).into());
         let mut subscribe: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), name);
@@ -645,7 +645,7 @@ impl HitbtcCore {
         if (snapshot != Value::Null) && (snapshot != Value::Null) {
             type_var = Value::Str("snapshot".into());
         }
-        let mut marketIds: Value = object_keys(&data);
+        let mut marketIds: Value = ({ let __r29o: &Value = &data; match __r29o { Value::Dict(__m) => Value::List(__m.keys().filter(|__k| __k.as_str() != "__ws_subs_url" && __k.as_str() != "__ws_sub_ref").map(|__k| Value::Str(__k.clone().into())).collect()), _ => Value::List(vec![]) } });
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_373: bool = true;
@@ -656,7 +656,7 @@ impl HitbtcCore {
             let mut item: Value = get_value(&data, &marketId);
             let mut item: Value = get_value(&data, &marketId);
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbooks::".into()), symbol).into());
-            if !(in_op(&self.orderbooks, &symbol)) {
+            if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 let mut subscription: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), messageHash.clone(), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
@@ -667,7 +667,7 @@ impl HitbtcCore {
     m
 }), limit]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
             }
-            let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
+            let mut orderbook: Value = self.orderbooks.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
             let mut timestamp: Value = self.safe_integer_k(item.clone(), "t", &[]);
             let mut nonce: Value = self.safe_integer_k(item.clone(), "s", &[]);
             if (type_var.as_str() == Some("snapshot")) {
@@ -699,7 +699,7 @@ impl HitbtcCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_374: bool = true;
-            while { if !__for_first_374 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_374 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&deltas).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_374 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_374 = false; i.as_f64().unwrap_or(f64::NAN) < ({ let __r29o: &Value = &deltas; match __r29o { Value::Dict(__d) if __d.contains_key("__sideKind") && !__d.contains_key("__cacheKind") && !matches!(__d.get("__book_cache_id"), Some(Value::Int(_))) => Value::Int(crate::value::side_entries_as_value(__r29o).map(|__s| __s.len()).unwrap_or(0) as i64), _ => Value::Int(__r29o.len() as i64) } }).as_f64().unwrap_or(f64::NAN) } {
             self.handle_delta(bookside.clone(), get_value(&deltas, &i));
         }
         }
@@ -772,9 +772,9 @@ impl HitbtcCore {
             m
         }));
         let mut paramsOmitted: Value = self.omit(paramsMethod, Value::from(vec![Value::Str("method".into()), Value::Str("defaultMethod".into()), Value::Str("speed".into())]), &[]);
-        let mut marketIds: Value = Value::from(vec![]);
+        let mut marketIds: Vec<Value> = Vec::new();
         if (symbolsNormalized == Value::Null) {
-            append_to_array(&mut marketIds, Value::Str("*".into()));
+            marketIds.push(Value::Str("*".into()));
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
@@ -782,7 +782,7 @@ impl HitbtcCore {
                 while { if !__for_first_375 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_375 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
                 let mut marketId: Value = self.market_id(symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
                 if (marketId != Value::Null) {
-                    append_to_array(&mut marketIds, marketId);
+                    marketIds.push(marketId);
                 }
             }
             }
@@ -791,13 +791,13 @@ impl HitbtcCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbols".to_string(), marketIds);
+        m.insert("symbols".to_string(), Value::from(marketIds));
     m
 }));
             m
         });
         let mut newTickers: Value = self.subscribe_public(name, Value::Str("tickers".into()), &[symbolsNormalized.clone(), self.deep_extend(request, &[paramsOmitted])]).await;
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             if !(matches!(&newTickers, Value::Arr(_))) {
                 let mut tickers: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -860,7 +860,7 @@ impl HitbtcCore {
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-        let mut marketIds: Value = object_keys(&data);
+        let mut marketIds: Value = ({ let __r29o: &Value = &data; match __r29o { Value::Dict(__m) => Value::List(__m.keys().filter(|__k| __k.as_str() != "__ws_subs_url" && __k.as_str() != "__ws_sub_ref").map(|__k| Value::Str(__k.clone().into())).collect()), _ => Value::List(vec![]) } });
         let mut result: Value = Value::from(vec![]);
         let mut topic: Value = Value::Str("tickers".into());
         {
@@ -872,7 +872,7 @@ impl HitbtcCore {
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut ticker: Value = self.parse_ws_ticker(data.as_map().and_then(|__m| marketId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &[market]);
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
-            append_to_array(&mut result, ticker.clone());
+            if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(ticker.clone()); }
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", topic, Value::Str("::".into())).into()), symbol).into());
             client.resolve(&[ticker, messageHash]);
         }
@@ -983,7 +983,7 @@ impl HitbtcCore {
             m
         });
         let mut newTickers: Value = self.subscribe_public(name, Value::Str("bidask".into()), &[symbolsNormalized.clone(), self.deep_extend(request, &[paramsOmitted])]).await;
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             if !(matches!(&newTickers, Value::Arr(_))) {
                 let mut tickers: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -1022,7 +1022,7 @@ impl HitbtcCore {
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-        let mut marketIds: Value = object_keys(&data);
+        let mut marketIds: Value = ({ let __r29o: &Value = &data; match __r29o { Value::Dict(__m) => Value::List(__m.keys().filter(|__k| __k.as_str() != "__ws_subs_url" && __k.as_str() != "__ws_sub_ref").map(|__k| Value::Str(__k.clone().into())).collect()), _ => Value::List(vec![]) } });
         let mut result: Value = Value::from(vec![]);
         let mut topic: Value = Value::Str("bidask".into());
         {
@@ -1034,7 +1034,7 @@ impl HitbtcCore {
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut ticker: Value = self.parse_ws_bid_ask(data.as_map().and_then(|__m| marketId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &[market]);
             if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
-            append_to_array(&mut result, ticker.clone());
+            if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(ticker.clone()); }
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", topic, Value::Str("::".into())).into()), symbol).into());
             client.resolve(&[ticker, messageHash]);
         }
@@ -1102,7 +1102,7 @@ impl HitbtcCore {
         let mut name: Value = Value::Str("trades".into());
         let mut trades: Value = self.subscribe_public(name, Value::Str("trades".into()), &[Value::from(vec![symbol.clone()]), self.deep_extend(request, &[params])]).await;
         let mut limitResolved: Value = limit.clone();
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbol, limit);
         }
         return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into())]);
@@ -1154,7 +1154,7 @@ impl HitbtcCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut marketIds: Value = object_keys(&data);
+        let mut marketIds: Value = ({ let __r29o: &Value = &data; match __r29o { Value::Dict(__m) => Value::List(__m.keys().filter(|__k| __k.as_str() != "__ws_subs_url" && __k.as_str() != "__ws_sub_ref").map(|__k| Value::Str(__k.clone().into())).collect()), _ => Value::List(vec![]) } });
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_379: bool = true;
@@ -1201,7 +1201,7 @@ impl HitbtcCore {
             while { if !__for_first_380 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_380 = false; i.as_f64().unwrap_or(f64::NAN) < ((tradesArray.len() as i64) as f64) } {
             let __ws_arg_1 = self.parse_ws_trade(tradesArray.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[market.clone()]);
             let mut trade: Value = self.extend(__ws_arg_1, &[params.clone()]);
-            append_to_array(&mut result, trade);
+            if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(trade); }
         }
         }
         result = self.sort_by2(result.clone(), Value::Str("timestamp".into()), Value::Str("id".into()), &[]);
@@ -1281,7 +1281,7 @@ impl HitbtcCore {
         }
         let mut ohlcv: Value = self.subscribe_public(name, Value::Str("candles".into()), &[Value::from(vec![symbol.clone()]), self.deep_extend(request, &[params])]).await;
         let mut limitResolved: Value = limit.clone();
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbol, limit);
         }
         return self.filter_by_since_limit(ohlcv, &[since, limitResolved, Value::Int(0)]);
@@ -1329,9 +1329,9 @@ impl HitbtcCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut marketIds: Value = object_keys(&data);
+        let mut marketIds: Value = ({ let __r29o: &Value = &data; match __r29o { Value::Dict(__m) => Value::List(__m.keys().filter(|__k| __k.as_str() != "__ws_subs_url" && __k.as_str() != "__ws_sub_ref").map(|__k| Value::Str(__k.clone().into())).collect()), _ => Value::List(vec![]) } });
         let mut channel: Value = (match __pro_message.get("ch").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
-        let mut splitChannel: Value = split(&channel, &Value::Str("/".into()));
+        let mut splitChannel: Value = Value::Array(channel.as_str().map(|__s| __s.split("/").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
         let mut period: Value = self.safe_string(splitChannel, Value::Int(1), &[]);
         let mut timeframe: Value = self.find_timeframe(period, &[]);
         if (timeframe == Value::Null) {
@@ -1419,7 +1419,7 @@ impl HitbtcCore {
         })]);
         let mut orders: Value = self.subscribe_private(name, &[symbol.clone(), paramsMarketType]).await;
         let mut limitResolved: Value = limit.clone();
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbol, limit);
         }
         return self.filter_by_since_limit(orders, &[since, limitResolved, Value::Str("timestamp".into())]);
@@ -1522,7 +1522,7 @@ impl HitbtcCore {
         }
         let mut marketId: Value = self.safe_string_lower2(order.clone(), Value::Str("instrument".into()), Value::Str("symbol".into()), &[]);
         let mut method: Value = (match message.get("method") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
-        let mut splitMethod: Value = split(&method, &Value::Str("_order".into()));
+        let mut splitMethod: Value = Value::Array(method.as_str().map(|__s| __s.split("_order").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
         let mut messageHash: Value = self.safe_string(splitMethod, Value::Int(0), &[]);
         let mut symbol: Value = self.safe_symbol(marketId, &[]);
         let mut parsed: Value = self.parse_order(order, &[]);
@@ -1631,9 +1631,9 @@ impl HitbtcCore {
         let mut report_type: Value = self.safe_string_k(order.clone(), "report_type", &[]);
         let mut parsedStatus: Value = Value::Null;
         if (report_type.as_str() == Some("canceled")) {
-            parsedStatus = self.parent.parse_order_status(report_type);
+            parsedStatus = self.parent.parse_order_status(report_type).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         }  else {
-            parsedStatus = self.parent.parse_order_status(rawStatus);
+            parsedStatus = self.parent.parse_order_status(rawStatus).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1977,7 +1977,7 @@ impl HitbtcCore {
                 let mut __for_first_384: bool = true;
                 while { if !__for_first_384 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_384 = false; i.as_f64().unwrap_or(f64::NAN) < ((result.len() as i64) as f64) } {
                 let mut parsedOrder: Value = self.parse_ws_order(result.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[]);
-                append_to_array(&mut parsedOrders, parsedOrder.clone());
+                if let Value::Arr(__a) = &mut parsedOrders { std::sync::Arc::make_mut(__a).push(parsedOrder.clone()); }
             }
             }
             client.resolve(&[parsedOrders, messageHash.clone()]);
@@ -1998,7 +1998,7 @@ impl HitbtcCore {
         }
         let mut channel: Value = self.safe_string2(message.clone(), Value::Str("ch".into()), Value::Str("method".into()), &[]);
         if (channel != Value::Null) {
-            let mut splitChannel: Value = split(&channel, &Value::Str("/".into()));
+            let mut splitChannel: Value = Value::Array(channel.as_str().map(|__s| __s.split("/").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
             channel = self.safe_string(splitChannel.clone(), Value::Int(0), &[]);
             if (channel.as_str() == Some("orderbook")) {
                 let mut channel2: Option<String> = self.safe_string(splitChannel, Value::Int(1), &[]).as_str().map(str::to_owned);
@@ -2033,7 +2033,7 @@ impl HitbtcCore {
             if (clientOrderId.is_some()) {
                 self.handle_order_request(client.clone(), message.clone());
             }
-            if (is_equal(&result, &Value::Bool(true))) && !(matches!(&message, Value::Dict(__d) if __d.contains_key("id"))) {
+            if ((match &(result) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) })) && !(matches!(&message, Value::Dict(__d) if __d.contains_key("id"))) {
                 self.handle_authenticate(client.clone(), message.clone());
             }
             if (matches!(&result, Value::Arr(_))) {
@@ -2067,8 +2067,8 @@ impl HitbtcCore {
         }  else {
             let mut error = Value::from(crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&message))));
             client.reject(&[Value::from(error), messageHash.clone()]);
-            if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
-                remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
+            if (({ let __r29o: &Value = &get_value(&client, &Value::Str("subscriptions".into())); let __r29k: &Value = &messageHash; match (__r29o, __r29k) { (Value::Dict(__m), Value::Str(__k)) => __m.contains_key(&**__k), (Value::Arr(__a), __r29v) => __a.iter().any(|__r29e| (match (__r29e, __r29v) { (Value::Null, Value::Null) => true, (Value::Bool(__p), Value::Bool(__q)) => __p == __q, (Value::Str(__p), Value::Str(__q)) => __p == __q, (Value::Int(__p), Value::Int(__q)) => __p == __q, (Value::Float(__p), Value::Float(__q)) => __p == __q, (__p, __q) => matches!(((match __p { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), (match __q { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })), (Some(__x), Some(__y)) if __x == __y) })), _ => false } })) {
+                { let __r29o: &mut Value = &mut get_value(&client, &Value::Str("subscriptions".into())); let __r29k: &Value = &messageHash; match (__r29o, __r29k) { (Value::Dict(__m), Value::Str(__k)) => { if let Some(Value::Str(__u)) = __m.get("__ws_subs_url") { crate::pro::ws_client::value_subs_remove(__u, __k); } std::sync::Arc::make_mut(__m).shift_remove(&**__k); } (Value::Arr(__a), Value::Int(__i)) => { let __i = *__i as usize; let __a = std::sync::Arc::make_mut(__a); if __i < __a.len() { __a.remove(__i); } } _ => {} } };
             }
         }
         return message;
@@ -2103,11 +2103,11 @@ impl HitbtcCore {
              #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut id: Value = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-                if is_instance(&e, &Value::Str("AuthenticationError".into())) {
+                if ({ let __r32v: &Value = &e; matches!(__r32v, Value::Str(__s) if __s.contains("[AuthenticationError]") || matches!(__s.find('[').and_then(|__a| __s[__a + 1..].find(']').map(|__b| &__s[__a + 1..__a + 1 + __b])), Some("PermissionDenied" | "AccountNotEnabled" | "AccountSuspended"))) }) {
                     let mut messageHash: Value = Value::Str("authenticated".into());
                     client.reject(&[e.clone(), messageHash.clone()]);
-                    if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
-                        remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
+                    if (({ let __r29o: &Value = &get_value(&client, &Value::Str("subscriptions".into())); let __r29k: &Value = &messageHash; match (__r29o, __r29k) { (Value::Dict(__m), Value::Str(__k)) => __m.contains_key(&**__k), (Value::Arr(__a), __r29v) => __a.iter().any(|__r29e| (match (__r29e, __r29v) { (Value::Null, Value::Null) => true, (Value::Bool(__p), Value::Bool(__q)) => __p == __q, (Value::Str(__p), Value::Str(__q)) => __p == __q, (Value::Int(__p), Value::Int(__q)) => __p == __q, (Value::Float(__p), Value::Float(__q)) => __p == __q, (__p, __q) => matches!(((match __p { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), (match __q { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })), (Some(__x), Some(__y)) if __x == __y) })), _ => false } })) {
+                        { let __r29o: &mut Value = &mut get_value(&client, &Value::Str("subscriptions".into())); let __r29k: &Value = &messageHash; match (__r29o, __r29k) { (Value::Dict(__m), Value::Str(__k)) => { if let Some(Value::Str(__u)) = __m.get("__ws_subs_url") { crate::pro::ws_client::value_subs_remove(__u, __k); } std::sync::Arc::make_mut(__m).shift_remove(&**__k); } (Value::Arr(__a), Value::Int(__i)) => { let __i = *__i as usize; let __a = std::sync::Arc::make_mut(__a); if __i < __a.len() { __a.remove(__i); } } _ => {} } };
                     }
                 }  else {
                     client.reject(&[e.clone(), id.clone()]); // trade requests use the request id as the message hash
@@ -2115,16 +2115,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 // subscriptions keep the request id, reject the futures waiting for a subscription refused by the exchange,
                 // authentication errors included: a private channel the api key has no access to is refused with 1003
                 // the login request has no id, so a login error matches no subscription
-                let mut subscriptionHashes: Value = object_keys(&get_value(&client, &Value::Str("subscriptions".into())));
+                let mut subscriptionHashes: Value = ({ let __r29o: &Value = &get_value(&client, &Value::Str("subscriptions".into())); match __r29o { Value::Dict(__m) => Value::List(__m.keys().filter(|__k| __k.as_str() != "__ws_subs_url" && __k.as_str() != "__ws_sub_ref").map(|__k| Value::Str(__k.clone().into())).collect()), _ => Value::List(vec![]) } });
                 {
                                         let mut i: Value = Value::Int(0);
                     let mut __for_first_385: bool = true;
                     while { if !__for_first_385 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_385 = false; i.as_f64().unwrap_or(f64::NAN) < ((subscriptionHashes.len() as i64) as f64) } {
                     let mut subscriptionHash: Value = subscriptionHashes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                     let mut subscriptionId: Value = self.safe_string(get_value(&get_value(&client, &Value::Str("subscriptions".into())), &subscriptionHash), Value::Str("id".into()), &[]);
-                    if (subscriptionId != Value::Null) && (subscriptionId.as_str() == id.as_str()) {
+                    if (subscriptionId != Value::Null) && (subscriptionId == id) {
                         client.reject(&[e.clone(), subscriptionHash.clone()]);
-                        remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &subscriptionHash); // so a retry sends the subscribe request again
+                        { let __r29o: &mut Value = &mut get_value(&client, &Value::Str("subscriptions".into())); let __r29k: &Value = &subscriptionHash; match (__r29o, __r29k) { (Value::Dict(__m), Value::Str(__k)) => { if let Some(Value::Str(__u)) = __m.get("__ws_subs_url") { crate::pro::ws_client::value_subs_remove(__u, __k); } std::sync::Arc::make_mut(__m).shift_remove(&**__k); } (Value::Arr(__a), Value::Int(__i)) => { let __i = *__i as usize; let __a = std::sync::Arc::make_mut(__a); if __i < __a.len() { __a.remove(__i); } } _ => {} } }; // so a retry sends the subscribe request again
                     }
                 }
                 }

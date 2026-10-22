@@ -382,7 +382,7 @@ public partial class testMainClass
         for (int i = 0; i < objectNames.Count; i++)
         {
             string? objectName = ((string)objectNames[i]);
-            object objectMethods = getValue(objectSkips, objectName);
+            object objectMethods = (objectSkips != null && objectName != null && objectSkips.ContainsKey(objectName) ? objectSkips[objectName] : null);
             if (isTrue(exchange.inArray(methodName, objectMethods)))
             {
                 // if whole object is skipped, by assigning a string to it, i.e. "orderBook":"blabla"
@@ -484,7 +484,7 @@ public partial class testMainClass
                     {
                         // wait and retry again
                         // (increase wait time on every retry)
-                        await exchange.sleep(multiply((add(i, 1)), 1000));
+                        await exchange.sleep(multiply(((i + 1L)), 1000));
                     }
                 } else
                 {
@@ -612,7 +612,7 @@ public partial class testMainClass
         for (int i = 0; i < testNames.Count; i++)
         {
             string? testName = ((string)testNames[i]);
-            object testReturnedValue = getValue(results, i);
+            object testReturnedValue = (results != null && i < results.Count ? results[i] : null);
             if (!isEqual(testReturnedValue, true))
             {
                 failedMethods.Add(testName);
@@ -1133,7 +1133,7 @@ public partial class testMainClass
                 int scopesToTestLength = (scopesToTest?.Count ?? 0);
                 for (int sj = 0; sj < scopesToTestLength; sj++)
                 {
-                    object scope = getValue(scopesToTest, sj);
+                    object scope = (scopesToTest != null && sj < scopesToTest.Count ? scopesToTest[sj] : null);
                     // fetchEvents scoped by a single parameter must return a non-empty, valid list
                     object scopedEvents = await callExchangeMethodDynamically(exchange, "fetchEvents", new List<object>() {scope});
                     object scopedList = exchange.safeList(new Dictionary<string, object>() {
@@ -1699,12 +1699,12 @@ public partial class testMainClass
                 {
                     // handle urls like this: /v1/account/accounts?AccessK
                     List<object> currentParts = current.Split(new [] {((string)"?")}, StringSplitOptions.None).ToList<object>();
-                    res = add(res, "/");
+                    res = (res + ("/"));
                     res = add(res, (currentParts != null && 0 < currentParts.Count ? currentParts[0] : null));
                     break;
                 }
-                res = add(res, "/");
-                res = add(res, current);
+                res = (res + ("/"));
+                res = (res + (current));
             }
         }
         return res;
@@ -2370,18 +2370,18 @@ public partial class testMainClass
         sequential ??= false;
         for (int i = 0; i < getArrayLength(messages); i++)
         {
-            object waited = 0;
-            while (!isTrue(wsClientHasPendingFutures(exchange, url)) && (isLessThan(waited, 5000)))
+            Int64 waited = 0;
+            while (!isTrue(wsClientHasPendingFutures(exchange, url)) && (waited < 5000))
             {
                 await exchange.sleep(50);
-                waited = add(waited, 50);
+                waited = (waited + 50);
             }
             object frameId = exchange.safeString(getValue(messages, i), "id");
-            object waitedSent = 0;
-            while (((frameId != null)) && !isTrue(this.wsRequestWasSent(exchange, url, frameId)) && (isLessThan(waitedSent, 5000)))
+            Int64 waitedSent = 0;
+            while (((frameId != null)) && !isTrue(this.wsRequestWasSent(exchange, url, frameId)) && (waitedSent < 5000))
             {
                 await exchange.sleep(50);
-                waitedSent = add(waitedSent, 50);
+                waitedSent = (waitedSent + 50);
             }
             object frame = getValue(messages, i);
             object binaryFrame = exchange.safeString(frame, "binary");
@@ -2390,11 +2390,11 @@ public partial class testMainClass
                 frame = exchange.base16ToBinary(binaryFrame);
             }
             injectWsMessage(exchange, url, frame);
-            object settled = 0;
-            while (isTrue(wsClientHasPendingFutures(exchange, url)) && (isLessThan(settled, 500)))
+            Int64 settled = 0;
+            while (isTrue(wsClientHasPendingFutures(exchange, url)) && (settled < 500))
             {
                 await exchange.sleep(20);
-                settled = add(settled, 20);
+                settled = (settled + 20);
             }
         }
         await exchange.sleep(50);
@@ -2407,12 +2407,12 @@ public partial class testMainClass
             // executed inline on a stack that blocks the watch side (forkjoin
             // work stealing): give up eventually so the stack unwinds instead
             // of deadlocking
-            object waitedDone = 0;
-            while (!isTrue(isWsTestCompleted(exchange, url)) && (isLessThan(waitedDone, 30000)))
+            Int64 waitedDone = 0;
+            while (!isTrue(isWsTestCompleted(exchange, url)) && (waitedDone < 30000))
             {
                 rejectPendingWsFutures(exchange, url);
                 await exchange.sleep(50);
-                waitedDone = add(waitedDone, 50);
+                waitedDone = (waitedDone + 50);
             }
         }
         // reject anything still pending so a wrong fixture fails fast
@@ -2507,7 +2507,7 @@ public partial class testMainClass
                 // after the first resolution, so serialize only at the end
                 List<object> promises = new List<object> {callExchangeMethodDynamically(exchange, method, input), this.injectWsMessages(exchange, url, messages)};
                 List<object> results = await promiseAll(promises);
-                object unifiedResult = jsonParse(jsonStringify(getValue(results, 0)));
+                object unifiedResult = jsonParse(jsonStringify((results != null && 0 < results.Count ? results[0] : null)));
                 this.assertStaticResponseOutput(exchange, skipKeys, unifiedResult, getValue(data, "parsedResponse"));
                 this.assertWsSentMessages(exchange, url, data);
             }

@@ -497,7 +497,7 @@ public partial class cryptomus : Exchange
         string? id = null; // all entries have same id, as they were grouped by
         string? code = null;
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(rawCurrency); i++)
+        for (int i = 0; i < (((object)(rawCurrency)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             IDictionary<string, object> networkEntry = this.safeDict(rawCurrency, i);
             // set ID on first loop
@@ -787,7 +787,7 @@ public partial class cryptomus : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", balance },
         };
-        for (int i = 0; i < getArrayLength(balance); i++)
+        for (int i = 0; i < (((object)(balance)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             IDictionary<string, object> balanceEntry = this.safeDict(balance, i);
             string? currencyId = this.safeString(balanceEntry, "ticker");
@@ -1369,13 +1369,13 @@ public partial class cryptomus : Exchange
         {
             return null;
         }
-        if (inOp(response, "code"))
+        if ((((object)(response)) switch { null => false, IList<object> c33a => c33a.Contains("code"), IList<string> c33t => c33t.Contains("code"), List<Int64> c33g => c33g.Contains((Int64)(object)"code"), IDictionary<string, object> c33d => c33d.ContainsKey("code"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("code"), _ => false }))
         {
             string? code = this.safeString(response, "code");
             string feedback = ((this.id + " ") + (body));
             this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), code, feedback);
             throw new ExchangeError (feedback) ;
-        } else if (inOp(response, "message"))
+        } else if ((((object)(response)) switch { null => false, IList<object> c33a => c33a.Contains("message"), IList<string> c33t => c33t.Contains("message"), List<Int64> c33g => c33g.Contains((Int64)(object)"message"), IDictionary<string, object> c33d => c33d.ContainsKey("message"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("message"), _ => false }))
         {
             //
             //      {"message":"Minimum amount 15 USDT","state":1}

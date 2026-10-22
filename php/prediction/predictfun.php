@@ -313,11 +313,7 @@ class predictfun extends Exchange {
          */
         // the id argument is the event slug, per the base fetchEvent (id) contract - params.slug
         // overrides it so a caller can pass the slug the same way fetchEvents () takes it
-        $paramSlug = $this->safe_string($params, 'slug');
-        $slug = $id;
-        if ($paramSlug !== null) {
-            $slug = $paramSlug;
-        }
+        $slug = $this->safe_string($params, 'slug', $id);
         if ($slug === null) {
             throw new ArgumentsRequired($this->id . ' fetchEvent() requires the "id" argument or the "slug" parameter');
         }
@@ -777,7 +773,7 @@ class predictfun extends Exchange {
         return $result;
     }
 
-    public function parse_event(array $rawTopic): mixed {
+    public function parse_event(array $rawTopic): array {
         /**
          * @ignore
          * parses a raw predictfun market topic (with nested markets) into the unified event shape
@@ -1003,9 +999,8 @@ class predictfun extends Exchange {
         }
         $digits = '0123456789';
         $chars = $this->string_to_chars_array($text);
-        $charsLength = count($chars);
         $stripped = '';
-        for ($i = 0; $i < $charsLength; $i++) {
+        for ($i = 0; $i < count($chars); $i++) {
             $ch = $chars[$i];
             $keep = true;
             if ($ch === '$') {
@@ -1015,7 +1010,7 @@ class predictfun extends Exchange {
                 // up to "1500" to match the venue's comma-free slug. a comma anywhere else is
                 // ordinary punctuation and stays, so it still separates words
                 $prevIsDigit = ($i > 0) && (mb_strpos($digits, $chars[$i - 1]) !== false);
-                $nextIsDigit = (($i + 1) < $charsLength) && (mb_strpos($digits, $chars[$i + 1]) !== false);
+                $nextIsDigit = (($i + 1) < strlen($chars)) && (mb_strpos($digits, $chars[$i + 1]) !== false);
                 $keep = !($prevIsDigit && $nextIsDigit);
             }
             if ($keep) {
@@ -1444,7 +1439,8 @@ class predictfun extends Exchange {
         $outcomeFound = false;
         for ($i = 0; $i < $rawOutcomesLength; $i++) {
             $candidate = $rawOutcomes[$i];
-            if ($this->safe_integer($candidate, 'indexSet') === $indexSet) {
+            $candidateIndexSet = $this->safe_integer($candidate, 'indexSet');
+            if ($candidateIndexSet === $indexSet) {
                 $rawOutcome = $candidate;
                 $outcomeFound = true;
                 break;
@@ -3149,7 +3145,7 @@ class predictfun extends Exchange {
         // silently leaving those two languages with a stale cache
         $subMessageHashesLength = count($subMessageHashes);
         for ($i = 0; $i < $subMessageHashesLength; $i++) {
-            $subHash = $subMessageHashes[$i];
+            $subHash = $this->safe_string($subMessageHashes, $i);
             if (($subHash === 'orders') || ($subHash === 'myTrades')) {
                 $this->clean_cache(array(
                     'topic' => $subHash,
@@ -3176,7 +3172,7 @@ class predictfun extends Exchange {
          */
         $messageHash = 'orders';
         $outcomeResolved = $outcome;
-        if ($outcomeResolved !== null) {
+        if ($outcome !== null) {
             Async\await($this->load_outcome($outcomeResolved));
             $outcomeObj = $this->outcome($outcomeResolved);
             $outcomeResolved = $this->safe_outcome_symbol(null, $outcomeObj);
@@ -3215,7 +3211,7 @@ class predictfun extends Exchange {
          */
         $messageHash = 'myTrades';
         $outcomeResolved = $outcome;
-        if ($outcomeResolved !== null) {
+        if ($outcome !== null) {
             Async\await($this->load_outcome($outcomeResolved));
             $outcomeObj = $this->outcome($outcomeResolved);
             $outcomeResolved = $this->safe_outcome_symbol(null, $outcomeObj);
@@ -3660,7 +3656,7 @@ class predictfun extends Exchange {
         }
     }
 
-    public function wallet_event_outcome(array $details): mixed {
+    public function wallet_event_outcome(array $details): array {
         /**
          * @ignore
          * resolves the cached outcome a wallet event refers to, by market and outcome index
@@ -3674,7 +3670,8 @@ class predictfun extends Exchange {
         for ($i = 0; $i < $outcomesLength; $i++) {
             $candidate = $outcomes[$i];
             $info = $this->safe_dict($candidate, 'info', array());
-            if ($this->safe_integer($info, 'indexSet') === $outcomeIndex) {
+            $candidateIndexSet = $this->safe_integer($info, 'indexSet');
+            if ($candidateIndexSet === $outcomeIndex) {
                 return $candidate;
             }
         }

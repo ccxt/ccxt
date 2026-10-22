@@ -15,7 +15,7 @@ public partial class coinbaseinternational : Exchange
             { "pro", true },
             { "rateLimit", 100 },
             { "version", "v2" },
-            { "userAgent", getValue(this.userAgents, "chrome") },
+            { "userAgent", (this.userAgents != null && this.userAgents.ContainsKey("chrome") ? this.userAgents["chrome"] : null) },
             { "has", new Dictionary<string, object>() {
                 { "CORS", true },
                 { "spot", true },
@@ -1114,18 +1114,18 @@ public partial class coinbaseinternational : Exchange
             {
                 limitResolved = 100;
             }
-            request["start_timestamp"] = this.sum(now, multiply(multiply(prefixUnaryNeg(ref limitResolved), duration), 1000));
+            request["start_timestamp"] = this.sum(now, multiply(multiply(((limitResolved is Int64 c31v0) ? (limitResolved = -c31v0) : (limitResolved is int c31v1) ? (limitResolved = -c31v1) : (limitResolved is double c31v2) ? (limitResolved = -c31v2) : (limitResolved == null) ? throw new NullReferenceException() : (object)null), duration), 1000));
             request["end_timestamp"] = now;
         } else
         {
-            object sinceResolved = mathMax((since - 1), 0);
+            object sinceResolved = (((((object)((since - 1))) is var c31v3) && (((object)(0)) is var c31v4)) ? (((c31v3 == null) || (c31v4 == null)) ? null : ((Convert.ToDouble(c31v3) > Convert.ToDouble(c31v4)) ? c31v3 : c31v4)) : null);
             request["start_timestamp"] = sinceResolved;
             if ((limitResolved == null))
             {
                 request["end_timestamp"] = now;
             } else
             {
-                request["end_timestamp"] = this.sum(sinceResolved, multiply(multiply(limitResolved, duration), 1000));
+                request["end_timestamp"] = this.sum(sinceResolved, ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(limitResolved, duration), 1000));
             }
         }
         Int64? until = this.safeInteger(paramsPaginate, "until");
@@ -1501,7 +1501,7 @@ public partial class coinbaseinternational : Exchange
                 }
                 for (int i = 0; i < (depths?.Count ?? 0); i++)
                 {
-                    if (isLessThanOrEqual(limit, depths[i]))
+                    if (((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } bool c32Int(object v) { Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } bool c32Eq(object x, object y) { if (x == null && y == null) return true; if (x == null || y == null) return false; try { if (x.GetType() != y.GetType() && (!Double.TryParse(x.ToString(), out _) || !Double.TryParse(y.ToString(), out _))) return false; if (c32Int(x) && c32Int(y)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(decimal) || y.GetType() == typeof(decimal)) return Convert.ToDecimal(x) == Convert.ToDecimal(y); if (x.GetType() == typeof(int)) return (int)x == (int)y; if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) == Convert.ToDouble(y); if (x.GetType() == typeof(Single) || y.GetType() == typeof(Single)) return Convert.ToSingle(x) == Convert.ToSingle(y); if (x.GetType() == typeof(string)) return ((string)x) == ((string)y); if (x.GetType() == typeof(bool)) return ((bool)x) == ((bool)y); return false; } catch { return false; } } return !c32Gt(c32a, c32b) || c32Eq(c32a, c32b); }))(limit, depths[i]))
                     {
                         request["depth"] = depths[i];
                         break;
@@ -1866,7 +1866,7 @@ public partial class coinbaseinternational : Exchange
         {
             summaries = this.safeList(response, "summaries", new List<object>() {response});
         }
-        for (int i = 0; i < getArrayLength(summaries); i++)
+        for (int i = 0; i < (((object)(summaries)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             IDictionary<string, object> data = this.safeDict(summaries, i);
             string? currencyId = this.safeString(data, "currency");
@@ -2485,7 +2485,7 @@ public partial class coinbaseinternational : Exchange
     public virtual object getOrderAmount(object market, object amount)
     {
         string? exchangeAmount = this.numberToString(amount);
-        if (this.isNativeDeribitCredentials() && (isEqual(getValue(market, "contract"), true)))
+        if (this.isNativeDeribitCredentials() && ((getValue(market, "contract") is true)))
         {
             exchangeAmount = Precise.stringMul(exchangeAmount, this.safeString(market, "contractSize"));
         }
@@ -2537,7 +2537,7 @@ public partial class coinbaseinternational : Exchange
             {
                 throw new ArgumentsRequired ((this.id + " createOrder() requires a buy or sell side argument")) ;
             }
-            if ((!isEqual(this.safeNumber(paramsResolved, "stopLossPrice"), null)) || (!isEqual(this.safeNumber(paramsResolved, "takeProfitPrice"), null)))
+            if ((!(this.safeNumber(paramsResolved, "stopLossPrice") == null)) || (!(this.safeNumber(paramsResolved, "takeProfitPrice") == null)))
             {
                 throw new NotSupported ((this.id + " createOrder() supports triggerPrice, not stopLossPrice or takeProfitPrice")) ;
             }
@@ -2789,7 +2789,7 @@ public partial class coinbaseinternational : Exchange
         object remaining = null;
         if (((filled != null)) && ((amount != null)))
         {
-            remaining = subtract(amount, filled);
+            remaining = (amount - filled);
         }
         double? price = this.safeNumber(order, "price");
         double? average = this.safeNumber(order, "average_price");
@@ -3015,7 +3015,7 @@ public partial class coinbaseinternational : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object paramsResolved = this.handleRouteAndParams("editOrder", parameters);
-        if (this.isNativeDeribitCredentials() && ((amount == null)) && (isEqual(this.safeNumber(paramsResolved, "contracts"), null)))
+        if (this.isNativeDeribitCredentials() && ((amount == null)) && ((this.safeNumber(paramsResolved, "contracts") == null)))
         {
             throw new ArgumentsRequired ((this.id + " editOrder() requires amount or params.contracts on Deribit")) ;
         }
@@ -3608,17 +3608,17 @@ public partial class coinbaseinternational : Exchange
      * @param {boolean} [useEddsa] true for Ed25519 keys, false for ECDSA PEM keys
      * @returns {string} signed JWT
      */
-    public virtual string createAuthToken(object seconds, object method = null, object url = null, bool? useEddsa = null)
+    public virtual string createAuthToken(object seconds, object method = null, string? url = null, bool? useEddsa = null)
     {
         useEddsa ??= false;
         object uri = null;
         if ((url != null))
         {
-            uri = add(add(method, " "), ((string)url).Replace("https://", (string)""));
-            int quesPos = getIndexOf(uri, "?");
+            uri = add(add(method, " "), url.Replace("https://", (string)""));
+            int quesPos = (((object)(uri)) switch { IList<object> c33a => c33a.IndexOf("?"), IList<string> c33t => c33t.IndexOf((string)(object)"?"), string c33s => c33s.IndexOf((string)(object)"?"), _ => -1 });
             if (quesPos > 0)
             {
-                uri = slice(uri, 0, quesPos);
+                uri = ((Func<object, object, object, string>)(static (s36s, s36a, s36b) => { if (s36s == null) { return null; } var s36str = (string)s36s; var s36start = s36a != null ? Convert.ToInt32(s36a) : -1; if (s36b == null) { if (s36start < 0) { var s36inner = s36str.Length + s36start; s36inner = s36inner < 0 ? 0 : s36inner; return s36str[(s36inner)..]; } else { return s36str[s36start..]; } } else { var s36end = Convert.ToInt32(s36b); if (s36start < 0) { s36start = s36str.Length + s36start; } if (s36end < 0) { s36end = s36str.Length + s36end; } if (s36end > s36str.Length) { s36end = s36str.Length; } return s36str[s36start..s36end]; } }))(uri, 0, quesPos);
             }
         }
         object nonce = this.randomBytes(16);
@@ -3721,7 +3721,7 @@ public partial class coinbaseinternational : Exchange
         }
         double? ratio = this.safeNumber(this.options, "accessTokenRefreshRatio");
         double? refreshRatio = ((ratio == null)) ? 0.8 : ratio;
-        Int64? tokenRefreshInMilliseconds = this.parseToInt(multiply((expiresIn * 1000), refreshRatio));
+        Int64? tokenRefreshInMilliseconds = this.parseToInt(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))((expiresIn * 1000), refreshRatio));
         this.token = accessToken;
         this.options["v2AccessToken"] = accessToken;
         this.options["v2TokenExpires"] = this.sum(now, tokenRefreshInMilliseconds);
@@ -3741,7 +3741,7 @@ public partial class coinbaseinternational : Exchange
         {
             return token;
         }
-        if ((isEqual(this.token, null)) || (isEqual(this.token, "")))
+        if (((this.token == null)) || ((this.token is "")))
         {
             return null;
         }
@@ -3757,12 +3757,12 @@ public partial class coinbaseinternational : Exchange
         object rpcMethod = add(add(access, "/"), path);
         object requestParams = this.handleRouteAndParams("sign", parameters);
         bool isNativeDeribit = this.isNativeDeribitCredentials();
-        object baseApiUrl = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest");
+        string baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest", "");
         if (isNativeDeribit)
         {
             baseApiUrl = "https://www.deribit.com/api/v2";
         }
-        object url = add(add(baseApiUrl, "/"), rpcMethod);
+        string url = ((baseApiUrl + "/") + (rpcMethod));
         Dictionary<string, object> requestHeaders = null;
         if (isNativeDeribit && (((path == "get_leverage")) || ((path == "set_leverage"))))
         {
@@ -3816,10 +3816,10 @@ public partial class coinbaseinternational : Exchange
         }
         if ((method == "GET"))
         {
-            object requestUrl = url;
+            string requestUrl = url;
             if ((new List<object>(((IDictionary<string,object>)requestParams).Keys)).Count > 0)
             {
-                requestUrl = add(requestUrl, ("?" + this.urlencode(requestParams)));
+                requestUrl = requestUrl + ("?" + this.urlencode(requestParams));
             }
             return new Dictionary<string, object>() {
                 { "url", requestUrl },
@@ -3882,8 +3882,8 @@ public partial class coinbaseinternational : Exchange
         bool deribit = this.resolveRoute(route);
         bool? previousBackend = this.safeBool(this.options, "routeBackend");
         bool configuredBackend = this.isNativeDeribitCredentials();
-        bool hasToken = !isEqual(this.getV2AccessToken(), null);
-        bool hasWsState = !isEqual(this.safeInteger(this.options, "wsAuthRefreshAt"), null);
+        bool hasToken = !(this.getV2AccessToken() == null);
+        bool hasWsState = !(this.safeInteger(this.options, "wsAuthRefreshAt") == null);
         if (((previousBackend != null)) && ((previousBackend != deribit)))
         {
             throw new BadRequest ((this.id + " cannot switch route backend on an initialized instance; use a separate exchange instance")) ;
@@ -3940,7 +3940,7 @@ public partial class coinbaseinternational : Exchange
         {
             throw new BadRequest ((this.id + " route must be auto, deribit, or coinbase")) ;
         }
-        if (((this.apiKey == null)) || (isEqual(this.apiKey, "")) || ((this.secret == null)) || (isEqual(this.secret, "")))
+        if (((this.apiKey == null)) || ((this.apiKey == "")) || ((this.secret == null)) || ((this.secret == "")))
         {
             return false;
         }

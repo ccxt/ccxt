@@ -1719,8 +1719,11 @@ class woo(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
+        triggerAfter = 0
+        if (timeout is not None) and (timeout > 0):
+            triggerAfter = 900000 if (timeout > 900000) else timeout
         request = {
-            'triggerAfter': min(timeout, 900000) if (timeout > 0) else 0,
+            'triggerAfter': triggerAfter,
         }
         response = self.v3PrivatePostTradeCancelAllAfter(self.extend(request, params))
         #
@@ -2016,7 +2019,7 @@ class woo(Exchange, ImplicitAPI):
         extendedParams = self.extend(params, {'status': 'COMPLETED'})
         return self.fetch_orders(symbol, since, limit, extendedParams)
 
-    def parse_time_in_force(self, timeInForce: Str):
+    def parse_time_in_force(self, timeInForce: Str) -> Str:
         timeInForces = {
             'ioc': 'IOC',
             'fok': 'FOK',
@@ -2173,7 +2176,7 @@ class woo(Exchange, ImplicitAPI):
             'info': order,
         }, marketResolved)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         if status is not None:
             statuses = {
                 'NEW': 'open',
@@ -2746,7 +2749,7 @@ class woo(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_deposit_address(self.extend(data, {'network': self.safe_string(request, 'network')}), currency)
 
-    def get_dedicated_network_id(self, currency: object, params: dict) -> object:
+    def get_dedicated_network_id(self, currency: object, params: dict) -> list:
         networkCodeRaw, paramsNetworkCode = self.handle_network_code_and_params(params)
         networkCode = self.network_id_to_code(networkCodeRaw, currency['code'])
         networkEntry = None if (networkCode is None) else self.safe_dict(currency['networks'], networkCode)
@@ -2768,7 +2771,7 @@ class woo(Exchange, ImplicitAPI):
             'tag': self.safe_string(depositEntry, 'extra'),
         }
 
-    def get_asset_history_rows(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> object:
+    def get_asset_history_rows(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> object:
         if self.markets is None:
             self.load_markets()
         request = {}
@@ -2901,7 +2904,7 @@ class woo(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def get_currency_from_chaincode(self, networkizedCode: object, currency: object):
+    def get_currency_from_chaincode(self, networkizedCode: object, currency: object) -> CurrencyInterface:
         if currency is not None:
             return currency
         else:

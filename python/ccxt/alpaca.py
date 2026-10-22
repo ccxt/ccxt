@@ -789,8 +789,8 @@ class alpaca(Exchange, ImplicitAPI):
         paginate = False
         query = None
         paginate, query = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
-        paginationCalls = 10
-        paginationCalls, query = self.handle_option_integer_and_params(query, 'fetchOHLCV', 'paginationCalls', 10)
+        paginationCalls, queryPagination = self.handle_option_integer_and_params(query, 'fetchOHLCV', 'paginationCalls', 10)
+        query = queryPagination
         request = {
             'symbols': marketId,
             'loc': loc,
@@ -1494,7 +1494,7 @@ class alpaca(Exchange, ImplicitAPI):
             'info': order,
         }, marketResolved)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'pending_new': 'open',
             'accepted': 'open',
@@ -1517,7 +1517,7 @@ class alpaca(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_time_in_force(self, timeInForce: Str):
+    def parse_time_in_force(self, timeInForce: Str) -> Str:
         timeInForces = {
             'day': 'Day',  # equities-only value kept as-is deliberately: crypto orders reject it with 42210000, verified live 2026-09-13, and the unified set has no day spelling either way
             'gtc': 'GTC',
@@ -1733,7 +1733,7 @@ class alpaca(Exchange, ImplicitAPI):
         super(alpaca, self).set_sandbox_mode(enable)
         self.options['sandboxMode'] = enable
 
-    def fetch_transactions_helper(self, type: str, code: Str, since: object, limit: object, params: object) -> list[Transaction]:
+    def fetch_transactions_helper(self, type: str, code: Str, since: Int, limit: Int, params: object) -> list[Transaction]:
         if self.markets is None:
             self.load_markets()
         currency = None
@@ -1958,7 +1958,7 @@ class alpaca(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             # crypto wallets api
             'PROCESSING': 'pending',
@@ -2147,7 +2147,8 @@ class alpaca(Exchange, ImplicitAPI):
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             codeAsString = str(code)
-            if (code < 400) or not (codeAsString in self.httpExceptions):
+            statusCode = self.parse_to_int(code)
+            if (statusCode < 400) or not (codeAsString in self.httpExceptions):
                 # an error envelope must always throw — also for statuses the http-status handler has no entry for
                 raise ExchangeError(feedback)
             # unmapped messages on the remaining error statuses fall through to the default http-status handler

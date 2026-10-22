@@ -183,8 +183,8 @@ export default class toobit extends Exchange {
     createOrderRequest(symbol: Str, type: OrderType, side: OrderSide, amount: Num, price?: Num, params?: Dict): [Dict, Dict];
     createContractOrderRequest(symbol: Str, type: OrderType, side: OrderSide, amount: Num, price?: Num, params?: Dict): [Dict, Dict];
     parseOrder(order: Dict, market?: Market): Order;
-    parseOrderStatus(status: Str): string | undefined;
-    parseOrderType(status: Str): string | undefined;
+    parseOrderStatus(status: Str): Str;
+    parseOrderType(status: Str): Str;
     /**
      * @method
      * @name toobit#cancelOrder
@@ -350,7 +350,7 @@ export default class toobit extends Exchange {
     fetchDepositsOrWithdrawalsHelper(type: Str, code: Str, since: Int, limit: Int, params?: Dict): Promise<Transaction[]>;
     parseTransactionWithType(transaction: Dict, currency?: Currency, transactType?: Str): Transaction;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    parseTransactionStatus(status: Str, type?: Str): string | undefined;
+    parseTransactionStatus(status: Str, type?: Str): Str;
     /**
      * @method
      * @name toobit#fetchDepositAddress

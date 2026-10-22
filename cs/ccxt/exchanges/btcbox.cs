@@ -412,7 +412,7 @@ public partial class btcbox : Exchange
             Dictionary<string, object> currency = this.currency(code);
             object currencyId = (currency.ContainsKey("id") ? currency["id"] : null);
             object free = add(currencyId, "_balance");
-            if (inOp(response, free))
+            if (((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))(response, free))
             {
                 Dictionary<string, object> account = this.account();
                 object used = add(currencyId, "_lock");
@@ -942,7 +942,7 @@ public partial class btcbox : Exchange
             return null;  // resort to defaultErrorHandler
         }
         // typical error response: {"result":false,"code":"401"}
-        if (isGreaterThanOrEqual(httpCode, 400))
+        if ((Convert.ToInt64(httpCode) >= 400))
         {
             return null;  // resort to defaultErrorHandler
         }

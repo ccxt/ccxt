@@ -108,7 +108,7 @@ public partial class weex : ccxt.weex
             { "id", id },
         });
         string type = "spot";
-        if (isTrue(isContract))
+        if ((((object)(isContract)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
         {
             type = "contract";
         }
@@ -122,7 +122,7 @@ public partial class weex : ccxt.weex
         parameters ??= new Dictionary<string, object>();
         subscription ??= new Dictionary<string, object>();
         string type = "spot";
-        if (isTrue(isContract))
+        if ((((object)(isContract)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
         {
             type = "contract";
         }
@@ -149,7 +149,7 @@ public partial class weex : ccxt.weex
     public virtual void authenticate(object url)
     {
         this.checkRequiredCredentials();
-        if (((this.clients != null)) && (inOp(this.clients, url)))
+        if (((this.clients != null)) && ((this.clients != null && url != null && this.clients.ContainsKey((string)url))))
         {
             return;
         }
@@ -679,7 +679,7 @@ public partial class weex : ccxt.weex
             await this.loadMarkets();
         }
         string? callerMethodName = this.safeString(parameters, "callerMethodName", "watchOHLCVForSymbols");
-        object paramsOmitted = this.omit(parameters, "callerMethodName");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "callerMethodName"));
         List<object> channels = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         List<object> firstEntry = this.safeList(symbolsAndTimeframes, 0, new List<object>() {});
@@ -699,7 +699,7 @@ public partial class weex : ccxt.weex
             List<object> data = this.safeList(symbolsAndTimeframes, i);
             string? symbolString = this.safeString(data, 0);
             Dictionary<string, object> market = this.market(symbolString);
-            if (!isEqual((market.ContainsKey("type") ? market["type"] : null), (firstMarket != null && firstMarket.ContainsKey("type") ? firstMarket["type"] : null)))
+            if (!((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))((market.ContainsKey("type") ? market["type"] : null), (firstMarket != null && firstMarket.ContainsKey("type") ? firstMarket["type"] : null)))
             {
                 throw new BadRequest ((((this.id + " ") + callerMethodName) + " market symbols must be of the same type")) ;
             }
@@ -762,7 +762,7 @@ public partial class weex : ccxt.weex
             await this.loadMarkets();
         }
         string? callerMethodName = this.safeString(parameters, "callerMethodName", "unWatchOHLCVForSymbols");
-        object paramsOmitted = this.omit(parameters, "callerMethodName");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "callerMethodName"));
         List<object> channels = new List<object>() {};
         List<object> subHashes = new List<object>() {};
         List<object> unSubHashes = new List<object>() {};
@@ -783,7 +783,7 @@ public partial class weex : ccxt.weex
             List<object> data = this.safeList(symbolsAndTimeframes, i);
             string? symbolString = this.safeString(data, 0);
             Dictionary<string, object> market = this.market(symbolString);
-            if (!isEqual((market.ContainsKey("type") ? market["type"] : null), (firstMarket != null && firstMarket.ContainsKey("type") ? firstMarket["type"] : null)))
+            if (!((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))((market.ContainsKey("type") ? market["type"] : null), (firstMarket != null && firstMarket.ContainsKey("type") ? firstMarket["type"] : null)))
             {
                 throw new BadRequest ((((this.id + " ") + callerMethodName) + " market symbols must be of the same type")) ;
             }
@@ -933,7 +933,7 @@ public partial class weex : ccxt.weex
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
         bool? isContract = ((bool?)(firstMarket != null && firstMarket.ContainsKey("contract") ? firstMarket["contract"] : null));
         string? callerMethodName = this.safeString(parameters, "callerMethodName", "watchOrderBookForSymbols");
-        object paramsOmitted = this.omit(parameters, "callerMethodName");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "callerMethodName"));
         string depth = "200";
         (string?, object) depthOptionparamsDepthVariable = this.handleOptionStringAndParams(paramsOmitted, callerMethodName, "depth", depth);
         string? depthOption = depthOptionparamsDepthVariable.Item1;
@@ -996,7 +996,7 @@ public partial class weex : ccxt.weex
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
         bool? isContract = ((bool?)(firstMarket != null && firstMarket.ContainsKey("contract") ? firstMarket["contract"] : null));
         string? callerMethodName = this.safeString(parameters, "callerMethodName", "unWatchOrderBookForSymbols");
-        object paramsOmitted = this.omit(parameters, "callerMethodName");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "callerMethodName"));
         string depth = "200";
         (string?, object) depthOptionparamsDepthVariable = this.handleOptionStringAndParams(paramsOmitted, callerMethodName, "depth", depth);
         string? depthOption = depthOptionparamsDepthVariable.Item1;
@@ -1855,7 +1855,7 @@ public partial class weex : ccxt.weex
         if ((fetchBalanceSnapshot == true))
         {
             object messageHash = add(type, ":fetchBalanceSnapshot");
-            if (!(inOp(client.futures, messageHash)))
+            if (!((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash))))
             {
                 client.future(messageHash);
                 this.spawn(this.loadBalanceSnapshot, new object[] { client, messageHash, type});
@@ -1874,11 +1874,11 @@ public partial class weex : ccxt.weex
         Dictionary<string, object> response = ccxt.BaseExchange.FromBalances(await this.FetchBalance(parameters));
         this.balance[(string)type] = this.extend(response, this.safeDict(this.balance, type, new Dictionary<string, object>() {}));
         // don't remove the future from the .futures cache
-        if (inOp(client.futures, messageHash))
+        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
         {
             Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve();
-            client.resolve(getValue(this.balance, type), add(type, ":balance"));
+            client.resolve((this.balance != null && type != null && this.balance.ContainsKey((string)type) ? this.balance[(string)type] : null), add(type, ":balance"));
         }
     }
 
@@ -1948,7 +1948,7 @@ public partial class weex : ccxt.weex
             accountType = "swap";
         }
         string messageHash = (accountType + ":balance");
-        if (isEqual((this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null), null))
+        if (((this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null) == null))
         {
             this.balance[accountType] = new Dictionary<string, object>() {};
         }
@@ -2039,7 +2039,7 @@ public partial class weex : ccxt.weex
         }
     }
 
-    public async virtual Task loadPositionsSnapshot(WebSocketClient client, object messageHash, object parameters)
+    public async virtual Task loadPositionsSnapshot(WebSocketClient client, object messageHash, IDictionary<string, object> parameters)
     {
         List<object> positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(null, parameters));
         this.positions = new ArrayCacheBySymbolById();

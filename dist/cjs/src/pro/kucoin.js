@@ -258,8 +258,7 @@ class kucoin extends kucoin$1["default"] {
         this.checkRequiredCredentials();
         const utaToken = this.safeString(this.options, 'utaToken');
         const lastUpdate = this.safeInteger(this.options, 'utaTokenLastUpdate', 0);
-        let refreshInterval = 1000 * 60 * 60 * 24; // 24 hours
-        refreshInterval = this.safeInteger(this.options, 'utaTokenRefreshInterval', refreshInterval);
+        const refreshInterval = this.safeInteger(this.options, 'utaTokenRefreshInterval', 86400000); // 24 hours
         const now = this.milliseconds();
         const expired = (now - lastUpdate) >= refreshInterval;
         const messageHash = 'utaToken';
@@ -1695,7 +1694,7 @@ class kucoin extends kucoin$1["default"] {
                 orderbook.cache.push(data);
                 return;
             }
-            else if (nonce >= deltaEnd) {
+            else if ((deltaEnd !== undefined) && (nonce >= deltaEnd)) {
                 return;
             }
         }
@@ -1755,7 +1754,7 @@ class kucoin extends kucoin$1["default"] {
                 orderbook.cache.push(data);
                 return;
             }
-            else if (nonce >= deltaEnd) {
+            else if ((deltaEnd !== undefined) && (nonce >= deltaEnd)) {
                 return;
             }
         }
@@ -1963,7 +1962,10 @@ class kucoin extends kucoin$1["default"] {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        const symbolResolved = (market !== undefined) ? this.safeString(market, 'symbol') : symbol;
+        let symbolResolved = symbol;
+        if (market !== undefined) {
+            symbolResolved = this.safeString(market, 'symbol');
+        }
         let messageHash = 'orders';
         if (symbolResolved !== undefined) {
             messageHash = messageHash + ':' + symbolResolved;
@@ -2386,7 +2388,10 @@ class kucoin extends kucoin$1["default"] {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        const symbolResolved = (market !== undefined) ? this.safeString(market, 'symbol') : symbol;
+        let symbolResolved = symbol;
+        if (market !== undefined) {
+            symbolResolved = this.safeString(market, 'symbol');
+        }
         if (market !== undefined) {
             messageHash = messageHash + ':' + market['symbol'];
         }
@@ -2965,7 +2970,7 @@ class kucoin extends kucoin$1["default"] {
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             const contracts = this.safeNumber(position, 'contracts', 0);
-            if (contracts > 0) {
+            if ((contracts !== undefined) && (contracts > 0)) {
                 cache.append(position);
             }
         }

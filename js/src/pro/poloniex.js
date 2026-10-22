@@ -170,8 +170,7 @@ export default class poloniex extends poloniexRest {
             if (symbols === undefined) {
                 throw new ArgumentsRequired(this.id + ' subscribe() symbols is required');
             }
-            const ids = this.marketIds(symbols);
-            marketIds = (ids === undefined) ? [] : ids;
+            marketIds = this.marketIds(symbols);
         }
         const symbolsSuffix = (symbols === undefined) ? '' : symbols.join(',');
         let symbolsHash = undefined;
@@ -677,8 +676,8 @@ export default class poloniex extends poloniexRest {
         //        ]
         //    }
         //
-        let data = this.safeValue(message, 'data');
-        data = this.safeValue(data, 0);
+        const dataList = this.safeList(message, 'data');
+        const data = this.safeDict(dataList, 0);
         const channel = this.safeString(message, 'channel');
         const marketId = this.safeString(data, 'symbol');
         const symbol = this.safeSymbol(marketId);

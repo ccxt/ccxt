@@ -15,7 +15,7 @@ class okx extends Exchange {
             'name' => 'OKX',
             'countries' => array( 'CN', 'US' ),
             'version' => 'v5',
-            'rateLimit' => 100 * 1.10, // 10% tolerance because of #26973
+            'rateLimit' => 110, // 100 plus 10% tolerance because of #26973
             'pro' => true,
             'certified' => true,
             'has' => array(
@@ -1501,7 +1501,7 @@ class okx extends Exchange {
         return parent::handle_market_type_and_params($methodName, $market, $paramsOmitted, $defaultValue);
     }
 
-    public function convert_to_instrument_type(mixed $type) {
+    public function convert_to_instrument_type(?string $type): ?string {
         $exchangeTypes = $this->safe_dict($this->options, 'exchangeType', array());
         return $this->safe_string($exchangeTypes, $type, $type);
     }
@@ -1767,9 +1767,9 @@ class okx extends Exchange {
         for ($i = 0; $i < count($types); $i++) {
             $promises[] = $this->fetch_markets_by_type($types[$i], $params);
         }
-        $promises = $promises;
-        for ($i = 0; $i < count($promises); $i++) {
-            $result = $this->array_concat($result, $promises[$i]);
+        $responses = $promises;
+        for ($i = 0; $i < count($responses); $i++) {
+            $result = $this->array_concat($result, $responses[$i]);
         }
         return $result;
     }
@@ -2188,16 +2188,15 @@ class okx extends Exchange {
         $requestedLimit = ($limit === null) ? $defaultLimit : $limit;
         // the rpi book hard-errors with 51000 "Parameter sz error." above 400,
         // including the 5000 that publicGetMarketBooksFull defaults to
-        $limitResolved = $requestedLimit;
-        if ($rpi && ($requestedLimit > 400)) {
-            $limitResolved = 400;
-        }
+        $isFullBook = ($method === 'publicGetMarketBooksFull');
+        $largeLimit = (($limit === null) && $isFullBook) || (($limit !== null) && ($limit > 400));
+        $limitResolved = ($rpi && $largeLimit) ? 400 : $requestedLimit;
         if ($limitResolved !== null) {
             $request['sz'] = $limitResolved; // max 400
         }
         if ($rpi) {
             $response = $this->publicGetMarketBooksRpi($this->extend($request, $paramsMethod));
-        } elseif (($method === 'publicGetMarketBooksFull') || ($limitResolved > 400)) {
+        } elseif ($isFullBook || $largeLimit) {
             $response = $this->publicGetMarketBooksFull($this->extend($request, $paramsMethod));
         } else {
             $response = $this->publicGetMarketBooks($this->extend($request, $paramsMethod));
@@ -2743,13 +2742,12 @@ class okx extends Exchange {
             $now = $this->milliseconds();
             $durationInMilliseconds = $duration * 1000;
             // switch to history candles if since is past the cutoff for current candles
-            $historyBorder = $now - ((1440 - 1) * $durationInMilliseconds);
+            $historyBorder = $now - (1439 * $durationInMilliseconds);
             if ($since < $historyBorder) {
+                // limitResolved is already at most 100 for mark or index candles and 300 otherwise
                 $defaultType = 'HistoryCandles';
-                $maxLimit = $isMarkOrIndex ? 100 : 300;
-                $limitResolved = min($limitResolved, $maxLimit);
             }
-            $startTime = max($since - 1, 0);
+            $startTime = ($since > 1) ? ($since - 1) : 0;
             $request['before'] = $startTime;
             $request['after'] = $this->sum($since, $durationInMilliseconds * $limitResolved);
         }
@@ -3252,13 +3250,12 @@ class okx extends Exchange {
         $isReduceOnly = ($this->safe_bool($params, 'reduceOnly', false)) || ($closeFraction !== null);
         $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'cross');
         $marginMode = $this->safe_string_2($params, 'marginMode', 'tdMode'); // cross or isolated, tdMode not omitted so as to be extended into the request
-        $margin = false;
-        if (($marginMode !== null) && ($marginMode !== 'cash')) {
-            $margin = true;
-        } else {
+        $marginModeIsExplicit = ($marginMode !== null) && ($marginMode !== 'cash');
+        if (!$marginModeIsExplicit) {
             $marginMode = $defaultMarginMode;
-            $margin = $this->safe_bool($params, 'margin', false);
         }
+        $marginParam = $this->safe_bool($params, 'margin', false);
+        $margin = $marginModeIsExplicit || ($marginParam === true);
         // position side / hedged options only apply to swap and future orders
         $isSwapOrFuture = ($contract === true) && (($market['swap'] === true) || ($market['future'] === true));
         list($positionSide, $paramsPositionSide) = $this->handle_option_string_and_params($params, 'createOrder', 'positionSide');
@@ -4176,7 +4173,7 @@ class okx extends Exchange {
         return $response;
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'canceled' => 'canceled',
             'order_failed' => 'canceled',
@@ -5319,7 +5316,10 @@ class okx extends Exchange {
             // 'limit': 100, // default 100, max 100
         );
         list($marginModeOption, $paramsMarginMode) = $this->handle_margin_mode_and_params('fetchLedger', $paramsOmitted);
-        $marginMode = ($marginModeOption === null) ? $this->safe_string($paramsMarginMode, 'mgnMode') : $marginModeOption;
+        $marginMode = $marginModeOption;
+        if ($marginMode === null) {
+            $marginMode = $this->safe_string($paramsMarginMode, 'mgnMode');
+        }
         if ($method !== 'privateGetAssetBills') {
             if ($marginMode !== null) {
                 $request['mgnMode'] = $marginMode;
@@ -5971,7 +5971,7 @@ class okx extends Exchange {
         return $this->parse_transaction($withdrawal);
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         //
         // deposit statuses
         //
@@ -8310,7 +8310,7 @@ class okx extends Exchange {
          * @return {array[]} the $request and the remaining $params
          */
         $maxLimit = 100;
-        $effectiveLimit = ($limit === null) ? $maxLimit : min($limit, $maxLimit);
+        $effectiveLimit = (($limit === null) || ($limit > 100)) ? 100 : $limit;
         if ($limit !== null) {
             $request['limit'] = $effectiveLimit;
         }
@@ -8859,10 +8859,7 @@ class okx extends Exchange {
         }
         $request = array();
         $symbolsNormalized = $this->market_symbols($symbols, null, true, true, true);
-        $symbolsLength = null;
-        if ($symbolsNormalized !== null) {
-            $symbolsLength = count($symbolsNormalized);
-        }
+        $symbolsLength = ($symbolsNormalized === null) ? 0 : count($symbolsNormalized);
         if (($symbolsNormalized === null) || ($symbolsLength !== 1)) {
             $uly = $this->safe_string($params, 'uly');
             if ($uly !== null) {

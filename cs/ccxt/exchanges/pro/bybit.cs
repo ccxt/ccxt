@@ -182,7 +182,7 @@ public partial class bybit : ccxt.bybit
         isPrivate ??= false;
         parameters ??= new Dictionary<string, object>();
         string accessibility = "public";
-        if (isTrue(isPrivate))
+        if ((((object)(isPrivate)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
         {
             accessibility = "private";
         }
@@ -208,7 +208,7 @@ public partial class bybit : ccxt.bybit
             isUsdcSettled = (defaultSettle == "USDC");
         }
         isSpot = (type == "spot");
-        if (isTrue(isPrivate))
+        if ((((object)(isPrivate)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
         {
             List<object> unified = await this.isUnifiedEnabled();
             bool? isUnifiedMargin = this.safeBool(unified, 0, false);
@@ -889,7 +889,7 @@ public partial class bybit : ccxt.bybit
         //         "type": "snapshot"
         //     }
         //
-        object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
+        List<object> data = this.safeList(message, "data", new List<object>() {});
         string? topic = this.safeString(message, "topic", "");
         List<object> topicParts = topic.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
         int topicLength = topicParts.Count;
@@ -913,15 +913,15 @@ public partial class bybit : ccxt.bybit
         {
             this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
         }
-        if (isEqual(this.safeValue(ohlcvsByTimeframe, timeframe), null))
+        if ((this.safeValue(ohlcvsByTimeframe, timeframe) == null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = new ArrayCacheByTimestamp(limit);
         }
         ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)getValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe));
-        for (int i = 0; i < getArrayLength(data); i++)
+        for (int i = 0; i < data.Count; i++)
         {
-            List<object> parsed = this.parseWsOHLCV(getValue(data, i), market);
+            List<object> parsed = this.parseWsOHLCV(data[i], market);
             stored.append(parsed);
         }
         string messageHash = ((("ohlcv::" + symbol) + "::") + timeframe);
@@ -1046,14 +1046,16 @@ public partial class bybit : ccxt.bybit
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
         string channel = "orderbook.";
-        object limit = this.safeInteger(parameters, "limit");
-        object paramsOmitted = (!(limit == null)) ? this.omit(parameters, "limit") : parameters;
-        if ((limit == null))
+        Int64? limitParam = this.safeInteger(parameters, "limit");
+        object paramsOmitted = ((limitParam != null)) ? this.omit(parameters, "limit") : parameters;
+        int defaultLimit = 500;
+        if ((limitParam == null))
         {
             Dictionary<string, object> firstMarket = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
-            limit = ((((firstMarket != null && firstMarket.ContainsKey("spot") ? firstMarket["spot"] : null) as bool?) == true)) ? 50 : 500;
+            defaultLimit = ((((firstMarket != null && firstMarket.ContainsKey("spot") ? firstMarket["spot"] : null) as bool?) == true)) ? 50 : 500;
         }
-        channel = channel + limit.ToString();
+        Int64? limit = ((limitParam == null)) ? defaultLimit : limitParam;
+        channel = channel + ((object)limit).ToString();
         List<object> subMessageHashes = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         List<object> topics = new List<object>() {};
@@ -1123,7 +1125,7 @@ public partial class bybit : ccxt.bybit
         //     }
         //
         string? topic = this.safeString(message, "topic", "");
-        object limit = getValue(topic.Split(new [] {"."}, StringSplitOptions.None).ToList<object>(), 1);
+        string? limit = this.safeString(topic.Split(new [] {"."}, StringSplitOptions.None).ToList<object>(), 1);
         bool isSpot = ((string)client.url).IndexOf("spot", StringComparison.Ordinal) >= 0;
         string? type = this.safeString(message, "type");
         bool isSnapshot = (type == "snapshot");
@@ -1159,7 +1161,7 @@ public partial class bybit : ccxt.bybit
         string messageHash = (("orderbook" + ":") + symbol);
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         client.resolve(orderbook, messageHash);
-        if (isEqual(limit, "1"))
+        if (limit == "1")
         {
             Dictionary<string, object> bidask = this.parseWsBidAsk(this.getOrderBook(this.orderbooks, symbol), market);
             Dictionary<string, object> newBidsAsks = new Dictionary<string, object>() {};
@@ -1318,9 +1320,9 @@ public partial class bybit : ccxt.bybit
         //         ]
         //     }
         //
-        object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
+        List<object> data = this.safeList(message, "data", new List<object>() {});
         string? topic = this.safeString(message, "topic", "");
-        object trades = data;
+        List<object> trades = data;
         List<object> parts = topic.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
         bool isSpot = ((string)client.url).IndexOf("spot", StringComparison.Ordinal) >= 0;
         string marketType = "contract";
@@ -1338,9 +1340,9 @@ public partial class bybit : ccxt.bybit
             stored = new ArrayCache(limit);
             this.trades[(string)symbol] = stored;
         }
-        for (int j = 0; j < getArrayLength(trades); j++)
+        for (int j = 0; j < (trades?.Count ?? 0); j++)
         {
-            ccxt.Trade parsed = this.parseWsTrade(getValue(trades, j), market);
+            ccxt.Trade parsed = this.parseWsTrade(trades[j], market);
             stored.append(ccxt.BaseExchange.FromTrade(parsed));
         }
         string messageHash = (("trade" + ":") + symbol);
@@ -1677,7 +1679,7 @@ public partial class bybit : ccxt.bybit
                 }
                 parsed = ccxt.BaseExchange.FromTrade(this.parseTrade(rawTrade));
             }
-            string? symbol = ((string)GetValue(parsed, "symbol"));
+            string? symbol = ((string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null));
             if ((symbol == null))
             {
                 continue;
@@ -1785,14 +1787,14 @@ public partial class bybit : ccxt.bybit
         for (int i = 0; i < (promises?.Count ?? 0); i++)
         {
             object positions = promises[i];
-            for (int ii = 0; ii < getArrayLength(positions); ii++)
+            for (int ii = 0; ii < (((object)(positions)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); ii++)
             {
                 IDictionary<string, object> position = ((IDictionary<string, object>)getValue(positions, ii));
                 cache.append(position);
             }
         }
         // don't remove the future from the .futures cache
-        if (inOp(client.futures, messageHash))
+        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
         {
             Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(cache);
@@ -2262,7 +2264,7 @@ public partial class bybit : ccxt.bybit
             rawOrders = this.safeValue(rawOrders, "result", rawOrders);
         }
         Dictionary<string, object> symbols = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(rawOrders); i++)
+        for (int i = 0; i < (((object)(rawOrders)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             ccxt.Order parsed = this.parseOrder(getValue(rawOrders, i));
             // if (isSpot) {
@@ -2530,7 +2532,7 @@ public partial class bybit : ccxt.bybit
         if (topic == "wallet")
         {
             object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
-            for (int i = 0; i < getArrayLength(data); i++)
+            for (int i = 0; i < (((object)(data)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
             {
                 IDictionary<string, object> result = this.safeDict(data, 0, new Dictionary<string, object>() {});
                 account = this.safeStringLower(result, "accountType");
@@ -2623,7 +2625,7 @@ public partial class bybit : ccxt.bybit
             }
             if (((accountType != null)) && ((code != null)))
             {
-                ((IDictionary<string,object>)getValue(this.balance, accountType))[(string)code] = account;
+                ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey((string)accountType) ? this.balance[(string)accountType] : null))[(string)code] = account;
             }
         } else
         {
@@ -2875,7 +2877,7 @@ public partial class bybit : ccxt.bybit
     public override void handleMessage(WebSocketClient client, object message)
     {
         string? topic = this.safeString2(message, "topic", "op", "");
-        if (isEqual(this.handleErrorMessage(client, message), true))
+        if ((this.handleErrorMessage(client, message) == true))
         {
             return;
         }
@@ -3078,7 +3080,7 @@ public partial class bybit : ccxt.bybit
             }
             if (messageHash.StartsWith("unsubscribe"))
             {
-                object subscription = getValue(client.subscriptions, messageHash);
+                object subscription = (client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash) ? client.subscriptions[messageHash] : null);
                 string? subId = this.safeString(subscription, "id");
                 if ((reqId != subId))
                 {

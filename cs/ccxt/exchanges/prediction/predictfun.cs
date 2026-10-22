@@ -320,12 +320,7 @@ public partial class predictfun : PredictionExchange
         // the id argument is the event slug, per the base fetchEvent (id) contract - params.slug
         // overrides it so a caller can pass the slug the same way fetchEvents () takes it
         parameters ??= new Dictionary<string, object>();
-        string? paramSlug = this.safeString(parameters, "slug");
-        string slug = id;
-        if ((paramSlug != null))
-        {
-            slug = paramSlug;
-        }
+        string? slug = this.safeString(parameters, "slug", id);
         if ((slug == null))
         {
             throw new ArgumentsRequired ((this.id + " fetchEvent() requires the \"id\" argument or the \"slug\" parameter")) ;
@@ -361,7 +356,7 @@ public partial class predictfun : PredictionExchange
         }
         List<object> queries = this.parseSearchQueries(parameters);
         int queriesLength = (queries?.Count ?? 0);
-        object paramsValue = this.omit(parameters, new List<object>() {"query", "queries"});
+        IDictionary<string, object> paramsValue = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"query", "queries"}));
         // keys dropped before the client-side pass; the categories listing also drops its limit
         List<object> postOmitKeys = new List<object>() {"tags"};
         Int64? userLimit = this.safeInteger(paramsValue, "limit");
@@ -371,7 +366,7 @@ public partial class predictfun : PredictionExchange
             fetchCap = userLimit;
         }
         string? slug = this.safeString2(paramsValue, "slug", "eventId");
-        object rest = this.omit(paramsValue, new List<object>() {"status", "limit", "sort", "eventId", "slug", "tags", "marketVariant"});
+        Dictionary<string, object> rest = this.omit(paramsValue, new List<object>() {"status", "limit", "sort", "eventId", "slug", "tags", "marketVariant"});
         if ((this.markets == null))
         {
             this.markets = this.createSafeDictionary();
@@ -401,7 +396,7 @@ public partial class predictfun : PredictionExchange
                 request["tagIds"] = tagsString;
             }
             postOmitKeys.Add("limit");
-            object paramsCategories = this.omit(paramsValue, new List<object>() {"limit", "tags"});
+            Dictionary<string, object> paramsCategories = this.omit(paramsValue, new List<object>() {"limit", "tags"});
             Dictionary<string, object> extendedRequest = this.extend(request, paramsCategories);
             Dictionary<string, object> rawTopicsResponse = await this.predictfunGetV1Categories(extendedRequest);
             //
@@ -571,7 +566,7 @@ public partial class predictfun : PredictionExchange
             //
             List<object> data = this.safeList(rawTopicsResponse, "data", new List<object>() {});
             rawTopics = this.arrayConcat(rawTopics, data);
-            int topicsLength = getArrayLength(rawTopics);
+            int topicsLength = (((object)(rawTopics)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
             while ((topicsLength < fetchCap))
             {
                 string? nextPageToken = this.safeString(rawTopicsResponse, "cursor");
@@ -583,14 +578,14 @@ public partial class predictfun : PredictionExchange
                 rawTopicsResponse = await this.predictfunGetV1Categories(extendedRequest);
                 data = this.safeList(rawTopicsResponse, "data", new List<object>() {});
                 rawTopics = this.arrayConcat(rawTopics, data);
-                topicsLength = getArrayLength(rawTopics);
+                topicsLength = (((object)(rawTopics)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
             }
             if (((fetchCap == null || topicsLength > fetchCap)))
             {
                 rawTopics = this.arraySlice(rawTopics, 0, fetchCap);
             }
         }
-        int rawTopicsLength = getArrayLength(rawTopics);
+        int rawTopicsLength = (((object)(rawTopics)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
         List<object> result = new List<object>() {};
         for (int i = 0; i < rawTopicsLength; i++)
         {
@@ -613,7 +608,7 @@ public partial class predictfun : PredictionExchange
         // scoping already happened server-side: the tag filter needs an event-level tags field
         // predictfun topics lack, and the query filter would drop semantic-search matches whose
         // title uses different words than the query
-        object postParams = this.omit(paramsValue, postOmitKeys);
+        Dictionary<string, object> postParams = this.omit(paramsValue, postOmitKeys);
         // status is documented as the venue enum ('OPEN' / 'RESOLVED') but the shared client-side
         // pass speaks the unified vocabulary — translate so it doesn't discard every row it matched
         string? rawStatus = this.safeString(paramsValue, "status");
@@ -642,7 +637,7 @@ public partial class predictfun : PredictionExchange
      * @param {string} [params.status] anything other than 'active' asks the venue to include resolved rows
      * @returns {object[]} an array of raw market topics, each with a nested markets list
      */
-    public async virtual Task<object> fetchRawTopicsByQueries(IList<object> queries, object parameters = null)
+    public async virtual Task<object> fetchRawTopicsByQueries(IList<object> queries, IDictionary<string, object>? parameters = null)
     {
         // always ask for the venue's maximum page size - this is the per-type page size of the
         // search endpoint (it caps at 25 and defaults to 10), not the caller's event limit, which
@@ -657,7 +652,7 @@ public partial class predictfun : PredictionExchange
             includeResolved = "true";
         }
         // marketVariant/tags/sort are categories-listing filters the search endpoint does not accept
-        object rest = this.omit(parameters, new List<object>() {"query", "queries", "limit", "sort", "searchIn", "status", "eventId", "slug", "tags", "marketVariant"});
+        IDictionary<string, object> rest = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"query", "queries", "limit", "sort", "searchIn", "status", "eventId", "slug", "tags", "marketVariant"}));
         int queriesLength = queries?.Count ?? 0;
         List<object> result = new List<object>() {};
         // the venue answers every term separately and the same category comes back for each term
@@ -1042,11 +1037,10 @@ public partial class predictfun : PredictionExchange
         }
         string digits = "0123456789";
         List<object> chars = this.stringToCharsArray(text);
-        int charsLength = (chars?.Count ?? 0);
         string stripped = "";
-        for (object i = 0; isLessThan(i, charsLength); postFixIncrement(ref i))
+        for (Int64 i = 0; ((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } bool c32Int(object v) { Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } bool c32Eq(object x, object y) { if (x == null && y == null) return true; if (x == null || y == null) return false; try { if (x.GetType() != y.GetType() && (!Double.TryParse(x.ToString(), out _) || !Double.TryParse(y.ToString(), out _))) return false; if (c32Int(x) && c32Int(y)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(decimal) || y.GetType() == typeof(decimal)) return Convert.ToDecimal(x) == Convert.ToDecimal(y); if (x.GetType() == typeof(int)) return (int)x == (int)y; if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) == Convert.ToDouble(y); if (x.GetType() == typeof(Single) || y.GetType() == typeof(Single)) return Convert.ToSingle(x) == Convert.ToSingle(y); if (x.GetType() == typeof(string)) return ((string)x) == ((string)y); if (x.GetType() == typeof(bool)) return ((bool)x) == ((bool)y); return false; } catch { return false; } } return !c32Gt(c32a, c32b) && !c32Eq(c32a, c32b); }))(i, (chars?.Count ?? 0)); i++)
         {
-            string? ch = ((string)getValue(chars, i));
+            string? ch = ((string)(chars != null && i < chars.Count ? chars[(int)i] : null));
             bool keep = true;
             if (ch == "$")
             {
@@ -1056,8 +1050,8 @@ public partial class predictfun : PredictionExchange
                 // only a comma between two digits is a thousands separator: "1,500" has to close
                 // up to "1500" to match the venue's comma-free slug. a comma anywhere else is
                 // ordinary punctuation and stays, so it still separates words
-                bool prevIsDigit = (isGreaterThan(i, 0)) && (digits.IndexOf(((string)getValue(chars, subtract(i, 1))), StringComparison.Ordinal) >= 0);
-                bool nextIsDigit = (isLessThan((add(i, 1)), charsLength)) && (digits.IndexOf(((string)getValue(chars, add(i, 1))), StringComparison.Ordinal) >= 0);
+                bool prevIsDigit = ((i > 0)) && (digits.IndexOf(((string)(chars != null && (i - 1) < chars.Count ? chars[(int)(i - 1)] : null)), StringComparison.Ordinal) >= 0);
+                bool nextIsDigit = (((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } bool c32Int(object v) { Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } bool c32Eq(object x, object y) { if (x == null && y == null) return true; if (x == null || y == null) return false; try { if (x.GetType() != y.GetType() && (!Double.TryParse(x.ToString(), out _) || !Double.TryParse(y.ToString(), out _))) return false; if (c32Int(x) && c32Int(y)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(decimal) || y.GetType() == typeof(decimal)) return Convert.ToDecimal(x) == Convert.ToDecimal(y); if (x.GetType() == typeof(int)) return (int)x == (int)y; if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) == Convert.ToDouble(y); if (x.GetType() == typeof(Single) || y.GetType() == typeof(Single)) return Convert.ToSingle(x) == Convert.ToSingle(y); if (x.GetType() == typeof(string)) return ((string)x) == ((string)y); if (x.GetType() == typeof(bool)) return ((bool)x) == ((bool)y); return false; } catch { return false; } } return !c32Gt(c32a, c32b) && !c32Eq(c32a, c32b); }))((add(i, 1)), (chars?.Count ?? 0))) && (digits.IndexOf(((string)(chars != null && (i + 1) < chars.Count ? chars[(int)(i + 1)] : null)), StringComparison.Ordinal) >= 0);
                 keep = !(prevIsDigit && nextIsDigit);
             }
             if (keep)
@@ -1085,7 +1079,7 @@ public partial class predictfun : PredictionExchange
         // btc-updown-5m-1789017900 and as "Bitcoin Up or Down - September 10, 1:25AM-1:30AM ET".
         // returning the slug makes slugToMarketSymbol collapse the two halves into one part.
         // inside a multi-market topic the title is what keeps the handles apart, so it stays
-        if ((isEqual(marketCount, 1)) && ((topicSlug != null)))
+        if (((((object)(marketCount)) switch { Int64 c33l => c33l == 1, int c33i => c33i == 1, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 1, decimal c33m => c33m == 1, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 1, uint c33u => (Int64)c33u == 1, short c33h => (Int64)c33h == 1, ushort c33v => (Int64)c33v == 1, byte c33y => (Int64)c33y == 1, sbyte c33e => (Int64)c33e == 1, ulong c33z => c33z == 1UL, _ => false })) && ((topicSlug != null)))
         {
             return topicSlug;
         }
@@ -1517,7 +1511,8 @@ public partial class predictfun : PredictionExchange
         for (int i = 0; i < rawOutcomesLength; i++)
         {
             object candidate = (rawOutcomes != null && i < rawOutcomes.Count ? rawOutcomes[i] : null);
-            if ((this.safeInteger(candidate, "indexSet") == indexSet))
+            Int64? candidateIndexSet = this.safeInteger(candidate, "indexSet");
+            if ((candidateIndexSet == indexSet))
             {
                 rawOutcome = candidate;
                 outcomeFound = true;
@@ -1594,7 +1589,7 @@ public partial class predictfun : PredictionExchange
             IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
             request["marketId"] = this.safeString(info, "marketId");
         }
-        object query = this.omit(parameters, "signerAddress");
+        IDictionary<string, object> query = ((IDictionary<string, object>)this.omit(parameters, "signerAddress"));
         // the endpoint carries no time filter, it pages back from the most recent match, so
         // since is applied client side by parsePredictionTrades
         Dictionary<string, object> response = await this.predictfunGetV1OrdersMatches(this.extend(request, query));
@@ -1846,7 +1841,7 @@ public partial class predictfun : PredictionExchange
         this.options["sandboxMode"] = enable;
         this.options["chainId"] = enable == true ? 97 : 56;
         ((IDictionary<string,object>)this.requiredCredentials)["apiKey"] = enable != true;
-        if (!isEqual(wasSandbox, enable))
+        if (!(wasSandbox == enable))
         {
             // a token minted for one host is not valid on the other, so the live one is set aside
             // on the way in and taken back on the way out - a round trip through the sandbox then
@@ -1875,14 +1870,14 @@ public partial class predictfun : PredictionExchange
      * @param {string} message the message to hash
      * @returns {string} the 0x prefixed hash
      */
-    public virtual object hashMessage(object message)
+    public virtual string? hashMessage(object message)
     {
         string? binaryMessage = this.encode(message);
         object binaryMessageLength = this.binaryLength(binaryMessage);
         byte[] x19 = this.base16ToBinary("19");
         byte[] newline = this.base16ToBinary("0a");
         byte[] prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
-        return ("0x" + (this.hash(this.binaryConcat(prefix, binaryMessage), keccak, "hex")));
+        return ((string?)((object)(("0x" + (this.hash(this.binaryConcat(prefix, binaryMessage), keccak, "hex"))))));
     }
 
     /**
@@ -2273,7 +2268,7 @@ public partial class predictfun : PredictionExchange
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "address", address },
             };
-            object rest = this.omit(parameters, "address");
+            IDictionary<string, object> rest = ((IDictionary<string, object>)this.omit(parameters, "address"));
             response = await this.predictfunGetV1PositionsAddress(this.extend(request, rest));
         } else
         {
@@ -2834,7 +2829,7 @@ public partial class predictfun : PredictionExchange
      * @param {string} [status] the raw status
      * @returns {string} the unified status
      */
-    public virtual string? parseOrderStatus(object status)
+    public virtual string? parseOrderStatus(string? status)
     {
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "OPEN", "open" },
@@ -2886,7 +2881,7 @@ public partial class predictfun : PredictionExchange
         // order - that case is matched above and has already thrown, so reaching here with a 401
         // means the credential itself was refused. drop the cached JWT, otherwise a token revoked
         // or aged out before its window closes is replayed for the life of the process
-        if (isEqual(statusCode, 401))
+        if ((((object)(statusCode)) switch { Int64 c33l => c33l == 401, int c33i => c33i == 401, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 401, decimal c33m => c33m == 401, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 401, uint c33u => (Int64)c33u == 401, short c33h => (Int64)c33h == 401, ushort c33v => (Int64)c33v == 401, byte c33y => (Int64)c33y == 401, sbyte c33e => (Int64)c33e == 401, ulong c33z => c33z == 401UL, _ => false }))
         {
             this.options["jwtToken"] = null;
             this.options["jwtTokenExpiresAt"] = 0;
@@ -2895,7 +2890,7 @@ public partial class predictfun : PredictionExchange
         this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), error, feedback);
         // a 400 is a rejected request or a business rule, not a transport outage - the base would
         // otherwise map the bare status onto a retryable network error
-        if (isEqual(statusCode, 400))
+        if ((((object)(statusCode)) switch { Int64 c33l => c33l == 400, int c33i => c33i == 400, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 400, decimal c33m => c33m == 400, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 400, uint c33u => (Int64)c33u == 400, short c33h => (Int64)c33h == 400, ushort c33v => (Int64)c33v == 400, byte c33y => (Int64)c33y == 400, sbyte c33e => (Int64)c33e == 400, ulong c33z => c33z == 400UL, _ => false }))
         {
             throw new BadRequest (feedback) ;
         }
@@ -3211,7 +3206,7 @@ public partial class predictfun : PredictionExchange
         }
         string topic = ("predictOrderbook/" + marketId);
         object outcomes = this.outcomesByMarketId(marketId);
-        int outcomesLength = getArrayLength(outcomes);
+        int outcomesLength = (((object)(outcomes)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
         List<object> handles = new List<object>() {};
         List<object> subMessageHashes = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
@@ -3258,7 +3253,7 @@ public partial class predictfun : PredictionExchange
     public virtual object orderBookMessageHashes(string? marketId)
     {
         object outcomes = this.outcomesByMarketId(marketId);
-        int outcomesLength = getArrayLength(outcomes);
+        int outcomesLength = (((object)(outcomes)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
         List<object> hashes = new List<object>() {};
         for (int i = 0; i < outcomesLength; i++)
         {
@@ -3301,7 +3296,7 @@ public partial class predictfun : PredictionExchange
             // rejected and, with the subscription gone below, never retried or torn down either
             messageHashes = this.walletEventMessageHashes(client);
         }
-        int messageHashesLength = getArrayLength(messageHashes);
+        int messageHashesLength = (((object)(messageHashes)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
         if ((messageHashesLength == 0))
         {
             throw error;
@@ -3352,7 +3347,7 @@ public partial class predictfun : PredictionExchange
         int subMessageHashesLength = subMessageHashes.Count;
         for (int i = 0; i < subMessageHashesLength; i++)
         {
-            string? subHash = ((string)(subMessageHashes != null && i < subMessageHashes.Count ? subMessageHashes[i] : null));
+            string? subHash = this.safeString(subMessageHashes, i);
             if ((subHash == "orders") || (subHash == "myTrades"))
             {
                 this.cleanCache(new Dictionary<string, object>() {
@@ -3378,7 +3373,7 @@ public partial class predictfun : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         string messageHash = "orders";
         object outcomeResolved = outcome;
-        if ((outcomeResolved != null))
+        if ((outcome != null))
         {
             await this.loadOutcome(outcomeResolved);
             IDictionary<string, object> outcomeObj = this.outcome(outcomeResolved);
@@ -3418,7 +3413,7 @@ public partial class predictfun : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         string messageHash = "myTrades";
         object outcomeResolved = outcome;
-        if ((outcomeResolved != null))
+        if ((outcome != null))
         {
             await this.loadOutcome(outcomeResolved);
             IDictionary<string, object> outcomeObj = this.outcome(outcomeResolved);
@@ -3753,7 +3748,7 @@ public partial class predictfun : PredictionExchange
             noBids.Add(new List<object> {this.parseNumber(Precise.stringSub("1", askPrice)), askSize});
         }
         object outcomes = this.outcomesByMarketId(marketId);
-        int outcomesLength = getArrayLength(outcomes);
+        int outcomesLength = (((object)(outcomes)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
         for (int i = 0; i < outcomesLength; i++)
         {
             IDictionary<string, object> outcomeObj = this.safeDict(outcomes, i);
@@ -3917,12 +3912,13 @@ public partial class predictfun : PredictionExchange
         string? marketId = this.safeString(details, "marketId");
         Int64? outcomeIndex = this.safeInteger(details, "outcomeIndex");
         object outcomes = this.outcomesByMarketId(marketId);
-        int outcomesLength = getArrayLength(outcomes);
+        int outcomesLength = (((object)(outcomes)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
         for (int i = 0; i < outcomesLength; i++)
         {
             object candidate = getValue(outcomes, i);
             IDictionary<string, object> info = this.safeDict(candidate, "info", new Dictionary<string, object>() {});
-            if ((this.safeInteger(info, "indexSet") == outcomeIndex))
+            Int64? candidateIndexSet = this.safeInteger(info, "indexSet");
+            if ((candidateIndexSet == outcomeIndex))
             {
                 return candidate;
             }

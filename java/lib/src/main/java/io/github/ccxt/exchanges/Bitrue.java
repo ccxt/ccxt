@@ -1001,9 +1001,9 @@ public class Bitrue extends BitrueApi
             List<Object> spotMarkets = (List<Object>) this.safeList(this.safeDict(promises, 0, (Object) null), "symbols", new ArrayList<Object>(Arrays.asList()));
             Object futureMarkets = this.safeValue(promises, 1);
             Object deliveryMarkets = this.safeValue(promises, 2);
-            Object markets = spotMarkets;
-            markets = this.arrayConcat(markets, futureMarkets);
-            markets = this.arrayConcat(markets, deliveryMarkets);
+            List<Object> markets = spotMarkets;
+            markets = (List<Object>) this.arrayConcat(markets, futureMarkets);
+            markets = (List<Object>) this.arrayConcat(markets, deliveryMarkets);
             //
             // spot
             //
@@ -2840,9 +2840,10 @@ public class Bitrue extends BitrueApi
             {
                 request.put("startTime", since);
             }
-            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? null : Math.min(limit, 1000);
-            if (!java.util.Objects.equals(limitResolved, null))
+            Long limitResolved = null;
+            if (!java.util.Objects.equals(limit, null))
             {
+                limitResolved = ((((limit > 1000)))) ? 1000L : limit;
                 request.put("limit", limitResolved);
             }
             if (java.util.Objects.equals(market.get("swap"), true))
@@ -3191,10 +3192,12 @@ public class Bitrue extends BitrueApi
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            fee = Helpers.newMap(
-                "currency", code,
-                "cost", feeCost
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("currency", code);
+                hx4NewMap0.put("cost", feeCost);
+                fee = hx4NewMap0;
+            }
         }
         {
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
@@ -3445,9 +3448,10 @@ public class Bitrue extends BitrueApi
             {
                 request.put("beginTime", since);
             }
-            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? null : Math.min(limit, 200);
-            if (!java.util.Objects.equals(limitResolved, null))
+            Long limitResolved = null;
+            if (!java.util.Objects.equals(limit, null))
             {
+                limitResolved = ((((limit > 200)))) ? 200L : limit;
                 request.put("limit", limitResolved);
             }
             Long until = this.safeInteger(parameters, "until");
@@ -3540,7 +3544,7 @@ public class Bitrue extends BitrueApi
             {
                 throw new ArgumentsRequired((this.id + " setLeverage() requires a symbol argument")) ;
             }
-            if ((Helpers.isLessThan(leverage, 1)) || (Helpers.isGreaterThan(leverage, 125)))
+            if (((leverage == null || !(((Number) leverage).doubleValue() >= 1))) || ((leverage != null && ((Number) leverage).doubleValue() > 125)))
             {
                 throw new BadRequest((this.id + " leverage should be between 1 and 125")) ;
             }
@@ -3707,11 +3711,13 @@ public class Bitrue extends BitrueApi
                         signMessage = (signMessage + ("?" + this.urlencode(paramsOmitted)));
                     }
                     String signature = (String) this.hmac(this.encode(signMessage), this.encode(this.secret), sha256());
-                    requestHeaders = Helpers.newMap(
-                        "X-CH-APIKEY", this.apiKey,
-                        "X-CH-SIGN", signature,
-                        "X-CH-TS", timestamp
-                    );
+                    {
+                        HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
+                        hx4NewMap1.put("X-CH-APIKEY", this.apiKey);
+                        hx4NewMap1.put("X-CH-SIGN", signature);
+                        hx4NewMap1.put("X-CH-TS", timestamp);
+                        requestHeaders = hx4NewMap1;
+                    }
                     url = (url + ("?" + this.urlencode(paramsOmitted)));
                 } else
                 {
@@ -3721,12 +3727,14 @@ public class Bitrue extends BitrueApi
                     requestBody = this.json(query);
                     signMessage = (signMessage + requestBody);
                     String signature = (String) this.hmac(this.encode(signMessage), this.encode(this.secret), sha256());
-                    requestHeaders = Helpers.newMap(
-                        "Content-Type", "application/json",
-                        "X-CH-APIKEY", this.apiKey,
-                        "X-CH-SIGN", signature,
-                        "X-CH-TS", timestamp
-                    );
+                    {
+                        HashMap<String, Object> hx4NewMap2 = new HashMap<String, Object>();
+                        hx4NewMap2.put("Content-Type", "application/json");
+                        hx4NewMap2.put("X-CH-APIKEY", this.apiKey);
+                        hx4NewMap2.put("X-CH-SIGN", signature);
+                        hx4NewMap2.put("X-CH-TS", timestamp);
+                        requestHeaders = hx4NewMap2;
+                    }
                 }
             }
         } else
@@ -3750,14 +3758,15 @@ public class Bitrue extends BitrueApi
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
     {
-        if ((Helpers.isEqual(code, 418)) || (Helpers.isEqual(code, 429)))
+        if (((code != null && ((Number) code).doubleValue() == 418)) || ((code != null && ((Number) code).doubleValue() == 429)))
         {
             throw new DDoSProtection(((((((this.id + " ") + String.valueOf(code)) + " ") + reason) + " ") + body)) ;
         }
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block contains legacy checks against message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
-        if (Helpers.isGreaterThanOrEqual(code, 400))
+        Long statusCode = this.parseToInt(code);
+        if (((statusCode != null && statusCode >= 400)))
         {
             if (((String)body).indexOf("Price * QTY is zero or less") >= 0)
             {
@@ -3832,17 +3841,18 @@ public class Bitrue extends BitrueApi
 
     public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
     {
-        if ((config.containsKey("noSymbol")) && !(Helpers.inOp(parameters, "symbol")))
+        if ((config.containsKey("noSymbol")) && !((switch ((Object)(parameters)) { case List<?> j39v5 -> j39v5.contains("symbol"); case Map<?, ?> j39v4 -> j39v4.containsKey("symbol"); case null, default -> false; })))
         {
             return config.get("noSymbol");
-        } else if ((config.containsKey("byLimit")) && (Helpers.inOp(parameters, "limit")))
+        } else if ((config.containsKey("byLimit")) && ((switch ((Object)(parameters)) { case List<?> j39v3 -> j39v3.contains("limit"); case Map<?, ?> j39v2 -> j39v2.containsKey("limit"); case null, default -> false; })))
         {
-            Object limit = Helpers.GetValue(parameters, "limit");
+            Long limit = this.safeInteger(parameters, "limit");
             List<Object> byLimit = (List<Object>) this.safeList(config, "byLimit", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)byLimit).size(); i++)
             {
                 Object entry = (byLimit == null || i < 0 || i >= byLimit.size() ? null : byLimit.get(i));
-                if (Helpers.isLessThanOrEqual(limit, Helpers.GetValue(entry, 0)))
+                Long threshold = this.safeInteger(entry, 0);
+                if (!java.util.Objects.equals(limit, null) && !java.util.Objects.equals(threshold, null) && (limit == null || (threshold != null && limit <= threshold)))
                 {
                     return Helpers.GetValue(entry, 1);
                 }

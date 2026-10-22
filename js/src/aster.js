@@ -1003,10 +1003,11 @@ export default class aster extends Exchange {
             spot = false;
             swap = true;
             settleId = this.safeString(market, 'marginAsset');
-            settle = this.safeCurrencyCode(settleId);
-            symbol = base + '/' + quote + ':' + settle;
-            linear = settle === quote;
-            inverse = settle === base;
+            const settleCode = this.safeCurrencyCode(settleId);
+            settle = settleCode;
+            symbol = base + '/' + quote + ':' + settleCode;
+            linear = settleCode === quote;
+            inverse = settleCode === base;
             contractSize = this.safeNumber2(market, 'contractSize', 'unit', this.parseNumber('1'));
         }
         else {
@@ -1347,7 +1348,7 @@ export default class aster extends Exchange {
             request = this.handleUntilOption('endTime', request, params);
         }
         // use historical endpoint for targeted requests
-        if ('startTime' in request) {
+        if (sinceDefined) {
             if (market['swap'] === true) {
                 response = await this.fapiPublicGetV3AggTrades(this.extend(request, params));
             }
@@ -2900,9 +2901,7 @@ export default class aster extends Exchange {
             if (stopPrice === undefined) {
                 throw new InvalidOrder(this.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order');
             }
-            if (stopPrice !== undefined) {
-                request['stopPrice'] = this.priceToPrecision(symbol, stopPrice);
-            }
+            request['stopPrice'] = this.priceToPrecision(symbol, stopPrice);
         }
         const [tifOption, paramsTifOption] = this.handleOptionStringAndParams(params, 'createOrder', 'timeInForce');
         const tifIsMissing = timeInForceIsRequired && (this.safeString(params, 'timeInForce') === undefined) && (this.safeString(request, 'timeInForce') === undefined);
@@ -3580,7 +3579,7 @@ export default class aster extends Exchange {
         let maintenanceMarginPercentageString = undefined;
         for (let i = 0; i < leverageBracket.length; i++) {
             const bracket = leverageBracket[i];
-            if (Precise.stringLt(notionalStringAbs, bracket[0])) {
+            if (Precise.stringLt(notionalStringAbs, this.safeString(bracket, 0))) {
                 break;
             }
             maintenanceMarginPercentageString = this.safeString(bracket, 1);
@@ -3654,7 +3653,9 @@ export default class aster extends Exchange {
         else {
             collateralString = this.safeString(position, 'isolatedMargin');
         }
-        collateralString = (collateralString === undefined) ? '0' : collateralString;
+        if (collateralString === undefined) {
+            collateralString = '0';
+        }
         const collateral = this.parseNumber(collateralString);
         const markPrice = this.parseNumber(this.omitZero(this.safeString(position, 'markPrice')));
         let timestamp = this.safeInteger(position, 'updateTime');
@@ -3672,7 +3673,7 @@ export default class aster extends Exchange {
         let initialMarginPercentageString = undefined;
         const leverageString = this.safeString(position, 'leverage');
         if (leverageString !== undefined) {
-            const leverage = parseInt(leverageString);
+            const leverage = this.parseToInt(leverageString);
             const rational = this.isRoundNumber(1000 % leverage);
             initialMarginPercentageString = Precise.stringDiv('1', leverageString, 8);
             if (!rational) {
@@ -3838,9 +3839,10 @@ export default class aster extends Exchange {
             if (!filterClosed || isPositionOpen) {
                 // sometimes not all the codes are correctly returned...
                 if (code in balances) {
+                    const balance = this.safeDict(balances, code);
                     const parsed = this.parseAccountPosition(this.extend(position, {
-                        'crossMargin': balances[code]['crossMargin'],
-                        'crossWalletBalance': balances[code]['crossWalletBalance'],
+                        'crossMargin': this.safeString(balance, 'crossMargin'),
+                        'crossWalletBalance': this.safeString(balance, 'crossWalletBalance'),
                     }), market);
                     result.push(parsed);
                 }
@@ -3853,15 +3855,12 @@ export default class aster extends Exchange {
         const marketResolved = this.safeMarket(marketId, market, undefined, 'contract');
         const symbol = this.safeString(marketResolved, 'symbol');
         const leverageString = this.safeString(position, 'leverage');
-        const leverage = (leverageString !== undefined) ? parseInt(leverageString) : undefined;
         const initialMarginString = this.safeString(position, 'initialMargin');
         const initialMargin = this.parseNumber(initialMarginString);
         let initialMarginPercentageString = undefined;
         if (leverageString !== undefined) {
             initialMarginPercentageString = Precise.stringDiv('1', leverageString, 8);
-            if (leverage === undefined) {
-                throw new ExchangeError(this.id + ' parseAccountPosition() missing leverage');
-            }
+            const leverage = this.parseToInt(leverageString);
             const rational = this.isRoundNumber(1000 % leverage);
             if (!rational) {
                 initialMarginPercentageString = Precise.stringDiv(Precise.stringAdd(initialMarginPercentageString, '1e-8'), '1', 8);
@@ -3890,7 +3889,7 @@ export default class aster extends Exchange {
         let maintenanceMarginPercentageString = undefined;
         for (let i = 0; i < leverageBracket.length; i++) {
             const bracket = leverageBracket[i];
-            if (Precise.stringLt(notionalStringAbs, bracket[0])) {
+            if (Precise.stringLt(notionalStringAbs, this.safeString(bracket, 0))) {
                 break;
             }
             maintenanceMarginPercentageString = this.safeString(bracket, 1);
@@ -3902,10 +3901,14 @@ export default class aster extends Exchange {
         if (timestamp === 0) {
             timestamp = undefined;
         }
-        let isolated = this.safeBool(position, 'isolated');
-        if (isolated === undefined) {
+        const isolatedRaw = this.safeBool(position, 'isolated');
+        let isolated = false;
+        if (isolatedRaw === undefined) {
             const isolatedMarginRaw = this.safeString(position, 'isolatedMargin');
             isolated = !Precise.stringEq(isolatedMarginRaw, '0');
+        }
+        else {
+            isolated = (isolatedRaw === true);
         }
         let marginMode = undefined;
         let collateralString = undefined;
@@ -3979,8 +3982,7 @@ export default class aster extends Exchange {
             const pricePrecisionPlusOne = pricePrecision + 1;
             const pricePrecisionPlusOneString = pricePrecisionPlusOne.toString();
             // round half up
-            const rounder = new Precise('5e-' + pricePrecisionPlusOneString);
-            const rounderString = rounder.toString();
+            const rounderString = '5e-' + pricePrecisionPlusOneString;
             const liquidationPriceRoundedString = Precise.stringAdd(rounderString, liquidationPriceStringRaw);
             let truncatedLiquidationPrice = Precise.stringDiv(liquidationPriceRoundedString, '1', pricePrecision);
             if (truncatedLiquidationPrice === undefined) {
@@ -4453,10 +4455,11 @@ export default class aster extends Exchange {
         const approvedBuilders = result;
         const length = approvedBuilders.length;
         let found = false;
+        const builderAddress = this.safeString(this.options, 'builder');
         for (let i = 0; i < length; i++) {
             const builderInfo = this.safeDict(approvedBuilders, i, {});
             const builderAccountId = this.safeString(builderInfo, 'builderAddress');
-            if (builderAccountId === this.safeString(this.options, 'builder')) {
+            if (builderAccountId === builderAddress) {
                 found = true;
                 break;
             }

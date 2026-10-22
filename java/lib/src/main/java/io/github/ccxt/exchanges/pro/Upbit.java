@@ -93,7 +93,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 String messageHash = ((channel + ":") + symbol);
                 ((List<Object>)messageHashes).add(messageHash);
-                if (!(Helpers.inOp(subscriptions, messageHash)))
+                if (!((switch ((Object)(subscriptions)) { case List<?> j39v4 -> ((Object)(messageHash)) != null && j39v4.contains(messageHash); case Map<?, ?> j39v3 -> ((Object)(messageHash)) instanceof String && j39v3.containsKey(messageHash); case null, default -> false; })))
                 {
                     HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
                     mapLiteral1.put("type", channel);
@@ -104,7 +104,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             List<Object> finalMessage = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
         put( "ticket", Upbit.this.uuid() );
     }}));
-            List<Object> channelKeys = Helpers.objectKeys(subscriptions);
+            List<Object> channelKeys = ((List<Object>) switch ((Object)(subscriptions)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); });
             for (var i = 0; i < ((List<?>)channelKeys).size(); i++)
             {
                 Object key = (channelKeys == null || i < 0 || i >= channelKeys.size() ? null : channelKeys.get(i));
@@ -450,7 +450,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         put( "authorization", ("Bearer " + token) );
     }} );
 }});
-            Helpers.addElementToObject(this.options, "ws", wsOptions);
+            { Map<Object, Object> j39v6 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v7 = "ws"; Object j39v8 = wsOptions; if (j39v6 == null) { if (j39v7 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v6) { if (j39v8 == null && j39v6 instanceof java.util.concurrent.ConcurrentHashMap) { j39v6.remove(j39v7); } else { j39v6.put(j39v7, j39v8); } } }
         }
     }
 
@@ -494,7 +494,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
                 channelKey = ((channel + ":") + symbolResolved);
             }
             Object subscriptions = Helpers.GetValue(client.subscriptions, subscriptionsKey);
-            Boolean isNewChannel = !(Helpers.inOp(subscriptions, channelKey));
+            Boolean isNewChannel = !((switch ((Object)(subscriptions)) { case List<?> j39v11 -> ((Object)(channelKey)) != null && j39v11.contains(channelKey); case Map<?, ?> j39v10 -> ((Object)(channelKey)) instanceof String && j39v10.containsKey(channelKey); case null, default -> false; }));
             if (Boolean.TRUE.equals(isNewChannel))
             {
                 Helpers.addElementToObject(subscriptions, channelKey, request);
@@ -502,7 +502,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             // Build subscription message with all requested private channels
             // Format: [{'ticket': uuid}, {'type': 'myOrder'}, {'type': 'myAsset'}, ...]
             List<Object> requests = new ArrayList<Object>(Arrays.asList());
-            List<Object> channelKeys = Helpers.objectKeys(subscriptions);
+            List<Object> channelKeys = ((List<Object>) switch ((Object)(subscriptions)) { case Map<?, ?> j39v9 -> { synchronized (j39v9) { yield new ArrayList<Object>(j39v9.keySet()); } } case null, default -> new ArrayList<Object>(); });
             for (var i = 0; i < ((List<?>)channelKeys).size(); i++)
             {
                 ((List<Object>)requests).add(Helpers.GetValue(subscriptions, (channelKeys == null || i < 0 || i >= channelKeys.size() ? null : channelKeys.get(i))));
@@ -654,10 +654,12 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         String feeCost = this.safeString(order, "paid_fee");
         if (!java.util.Objects.equals(feeCost, null))
         {
-            fee = Helpers.newMap(
-                "currency", marketResolved.get("quote"),
-                "cost", feeCost
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("currency", marketResolved.get("quote"));
+                hx4NewMap0.put("cost", feeCost);
+                fee = hx4NewMap0;
+            }
         }
         // when state is trade the price and volume fields describe the fill, not the order:
         // fall back to the average fill price and let the order volume derive from filled + remaining
@@ -723,10 +725,12 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         String feeCost = this.safeString(trade, "trade_fee");
         if (!java.util.Objects.equals(feeCost, null))
         {
-            fee = Helpers.newMap(
-                "currency", marketResolved.get("quote"),
-                "cost", feeCost
-            );
+            {
+                HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
+                hx4NewMap1.put("currency", marketResolved.get("quote"));
+                hx4NewMap1.put("cost", feeCost);
+                fee = hx4NewMap1;
+            }
         }
         HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
         mapLiteral3.put("id", this.safeString(trade, "trade_uuid"));
@@ -775,7 +779,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
 
     public void handleOrder(Client client, Map<String, Object> message)
     {
-        Object parsed = this.parseWsOrder((Map<String, Object>) (message), (Map<String, Object>) null);
+        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (message), (Map<String, Object>) null);
         String symbol = this.safeString(parsed, "symbol");
         String orderId = this.safeString(parsed, "id");
         if (java.util.Objects.equals(this.orders, null))
@@ -795,7 +799,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
                 Object fee = this.safeValue(order, "fee");
                 if (!java.util.Objects.equals(fee, null))
                 {
-                    ((Map<String, Object>)parsed).put("fee", fee);
+                    parsed.put("fee", fee);
                 }
                 List<Object> fees = (List<Object>) this.safeList(order, "fees", (Object) null);
                 if (!java.util.Objects.equals(fees, null))
@@ -803,17 +807,17 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
                     ((Map<String, Object>)parsed).put("fees", fees);
                 }
             }
-            ((Map<String, Object>)parsed).put("trades", this.safeValue(order, "trades"));
+            parsed.put("trades", this.safeValue(order, "trades"));
             Long lastTradeTimestamp = this.safeInteger(parsed, "lastTradeTimestamp");
             if (java.util.Objects.equals(lastTradeTimestamp, null))
             {
-                ((Map<String, Object>)parsed).put("lastTradeTimestamp", this.safeInteger(order, "lastTradeTimestamp"));
+                parsed.put("lastTradeTimestamp", this.safeInteger(order, "lastTradeTimestamp"));
             }
             Long timestamp = this.safeInteger(parsed, "timestamp");
             if (java.util.Objects.equals(timestamp, null))
             {
-                ((Map<String, Object>)parsed).put("timestamp", this.safeInteger(order, "timestamp"));
-                ((Map<String, Object>)parsed).put("datetime", this.safeString(order, "datetime"));
+                parsed.put("timestamp", this.safeInteger(order, "timestamp"));
+                parsed.put("datetime", this.safeString(order, "datetime"));
             }
             // fill updates carry the fill price and volume instead of the order's
             String rawStatus = this.safeString(message, "state");
@@ -822,12 +826,12 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
                 Double cachedPrice = this.safeNumber(order, "price", (Object) null);
                 if (!java.util.Objects.equals(cachedPrice, null))
                 {
-                    ((Map<String, Object>)parsed).put("price", cachedPrice);
+                    parsed.put("price", cachedPrice);
                 }
                 Double cachedAmount = this.safeNumber(order, "amount", (Object) null);
                 if (!java.util.Objects.equals(cachedAmount, null))
                 {
-                    ((Map<String, Object>)parsed).put("amount", cachedAmount);
+                    parsed.put("amount", cachedAmount);
                 }
             }
         }

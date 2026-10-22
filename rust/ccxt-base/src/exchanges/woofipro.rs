@@ -171,7 +171,6 @@ impl crate::exchange_generated::ExchangeBase for WoofiproCore {
                 "get_asset_history_rows" => self.get_asset_history_rows(&args[..]).await,
                 "get_withdraw_nonce" => self.get_withdraw_nonce(&args[..]).await,
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
-                "hash_message" => self.hash_message(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "modify_margin_helper" => self.modify_margin_helper(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
                 "nonce" => self.nonce(),
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -186,15 +185,11 @@ impl crate::exchange_generated::ExchangeBase for WoofiproCore {
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_open_interest" => self.parse_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_order_status" => self.parse_order_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_order_type" => self.parse_order_type(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_position" => self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_time_in_force" => self.parse_time_in_force(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_token_and_fee_temp" => self.parse_token_and_fee_temp(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transaction_status" => self.parse_transaction_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "reduce_margin" => self.reduce_margin(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
                 "set_leverage" => self.set_leverage(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "set_margin_mode" => self.set_margin_mode(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
@@ -1479,7 +1474,7 @@ impl WoofiproCore {
         if (marketId == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseMarket() missing marketId".into()))));
         }
-        let mut parts: Value = split(&marketId, &Value::Str("_".into()));
+        let mut parts: Value = Value::Array(marketId.as_str().map(|__s| __s.split("_").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
         let mut marketType: Value = Value::Str("swap".into());
         let mut baseId: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
         let mut quoteId: Value = self.safe_string(parts.clone(), Value::Int(2), &[]);
@@ -1675,8 +1670,8 @@ impl WoofiproCore {
         let mut indexedChains: Value = self.index_by(chainRows, Value::Str("chain_id".into()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1167: bool = true;
-            while { if !__for_first_1167 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1167 = false; i.as_f64().unwrap_or(f64::NAN) < ((tokenRows.len() as i64) as f64) } {
+            let mut __for_first_1163: bool = true;
+            while { if !__for_first_1163 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1163 = false; i.as_f64().unwrap_or(f64::NAN) < ((tokenRows.len() as i64) as f64) } {
             let mut token: Value = tokenRows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut parsed: Value = self.parse_currency(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1715,8 +1710,8 @@ impl WoofiproCore {
         });
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_1168: bool = true;
-            while { if !__for_first_1168 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1168 = false; j.as_f64().unwrap_or(f64::NAN) < ((networks.len() as i64) as f64) } {
+            let mut __for_first_1164: bool = true;
+            while { if !__for_first_1164 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1164 = false; j.as_f64().unwrap_or(f64::NAN) < ((networks.len() as i64) as f64) } {
             let mut networkEntry: Value = networks.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "chain_id", &[]);
             let mut networkRow: Value = self.safe_dict(indexedChains.clone(), networkId.clone(), &[]);
@@ -1849,10 +1844,6 @@ impl WoofiproCore {
         let mut amount: Value = self.safe_string_k(trade.clone(), "executed_quantity", &[]);
         let mut order_id: Value = self.safe_string_k(trade.clone(), "order_id", &[]);
         let mut fee: Value = self.parse_token_and_fee_temp(trade.clone(), Value::Str("fee_asset".into()), Value::Str("fee".into()));
-        let mut feeCost: Value = self.safe_string_k(fee.clone(), "cost", &[]);
-        if (fee != Value::Null) && (feeCost != Value::Null) {
-            if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("cost".into(), feeCost); }
-        }
         let mut cost: Value = crate::precise::Precise::stringMul(&price, &amount);
         let mut side: Value = self.safe_string_lower_k(trade.clone(), "side", &[]);
         let mut id: Value = self.safe_string_k(trade.clone(), "id", &[]);
@@ -2218,7 +2209,7 @@ impl WoofiproCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        add_element_to_object(&mut data, &Value::Str("timestamp".into()), self.safe_integer_k(response, "timestamp", &[]));
+        if let Value::Dict(__d) = &mut data { std::sync::Arc::make_mut(__d).insert("timestamp".into(), self.safe_integer_k(response, "timestamp", &[])); }
         return self.parse_ticker(data, &[market]);
 
     Value::Null
@@ -2274,14 +2265,14 @@ impl WoofiproCore {
 })]);
         let mut rows: Value = self.safe_list_k(data, "rows", &[Value::from(vec![])]);
         let mut timestamp: Value = self.safe_integer_k(response, "timestamp", &[]);
-        let mut result: Value = Value::from(vec![]);
+        let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1169: bool = true;
-            while { if !__for_first_1169 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1169 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
+            let mut __for_first_1165: bool = true;
+            while { if !__for_first_1165 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1165 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
             let mut row: Value = rows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(row.clone(), "symbol", &[Value::Str("".into())]);
-            if (self.markets_by_id.clone() == Value::Null) || !(in_op(&self.markets_by_id, &marketId)) {
+            if (self.markets_by_id.clone() == Value::Null) || !(matches!((&self.markets_by_id, &marketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 continue;
             }
             let mut ticker: Value = self.extend(Value::Map({
@@ -2289,10 +2280,10 @@ impl WoofiproCore {
                     m.insert("timestamp".to_string(), timestamp.clone());
                 m
             }), &[row]);
-            append_to_array(&mut result, self.parse_ticker(ticker, &[]));
+            result.push(self.parse_ticker(ticker, &[]));
         }
         }
-        return self.filter_by_array_tickers(result, Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array_tickers(Value::from(result), Value::Str("symbol".into()), &[symbolsNormalized]);
 
     Value::Null
 }
@@ -2374,7 +2365,7 @@ impl WoofiproCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        add_element_to_object(&mut data, &Value::Str("timestamp".into()), self.safe_integer_k(response, "timestamp", &[]));
+        if let Value::Dict(__d) = &mut data { std::sync::Arc::make_mut(__d).insert("timestamp".into(), self.safe_integer_k(response, "timestamp", &[])); }
         return self.parse_open_interest(data, &[market]);
 
     Value::Null
@@ -2422,14 +2413,14 @@ impl WoofiproCore {
 })]);
         let mut rows: Value = self.safe_list_k(data, "rows", &[Value::from(vec![])]);
         let mut timestamp: Value = self.safe_integer_k(response, "timestamp", &[]);
-        let mut result: Value = Value::from(vec![]);
+        let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1170: bool = true;
-            while { if !__for_first_1170 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1170 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
+            let mut __for_first_1166: bool = true;
+            while { if !__for_first_1166 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1166 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
             let mut row: Value = rows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(row.clone(), "symbol", &[Value::Str("".into())]);
-            if (self.markets_by_id.clone() == Value::Null) || !(in_op(&self.markets_by_id, &marketId)) {
+            if (self.markets_by_id.clone() == Value::Null) || !(matches!((&self.markets_by_id, &marketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 continue;
             }
             let mut interest: Value = self.extend(Value::Map({
@@ -2437,10 +2428,10 @@ impl WoofiproCore {
                     m.insert("timestamp".to_string(), timestamp.clone());
                 m
             }), &[row]);
-            append_to_array(&mut result, self.parse_open_interest(interest, &[]));
+            result.push(self.parse_open_interest(interest, &[]));
         }
         }
-        return self.index_by(self.filter_by_array(result, Value::Str("symbol".into()), &[symbolsNormalized, Value::Bool(false)]), Value::Str("symbol".into()));
+        return self.index_by(self.filter_by_array(Value::from(result), Value::Str("symbol".into()), &[symbolsNormalized, Value::Bool(false)]), Value::Str("symbol".into()));
 
     Value::Null
 }
@@ -2472,7 +2463,7 @@ impl WoofiproCore {
         let mut paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchFundingRateHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
         let mut paginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        if is_true(&paginate) {
+        if paginate.as_bool() == Some(true) {
             return self.fetch_paginated_call_incremental(Value::Str("fetchFundingRateHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("page".into()), Value::Int(25)]).await;
         }
         let mut request: Value = Value::Map({
@@ -2517,15 +2508,15 @@ impl WoofiproCore {
     m
 })]);
         let mut result: Value = self.safe_list_k(data, "rows", &[Value::from(vec![])]);
-        let mut rates: Value = Value::from(vec![]);
+        let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1171: bool = true;
-            while { if !__for_first_1171 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1171 = false; i.as_f64().unwrap_or(f64::NAN) < ((result.len() as i64) as f64) } {
+            let mut __for_first_1167: bool = true;
+            while { if !__for_first_1167 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1167 = false; i.as_f64().unwrap_or(f64::NAN) < ((result.len() as i64) as f64) } {
             let mut entry: Value = result.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "funding_rate_timestamp", &[]);
-            append_to_array(&mut rates, Value::Map({
+            rates.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), entry.clone());
                     m.insert("symbol".to_string(), self.safe_symbol(marketId, &[]));
@@ -2536,7 +2527,7 @@ impl WoofiproCore {
             }));
         }
         }
-        let mut sorted: Value = self.sort_by(rates, Value::Str("timestamp".into()), &[]);
+        let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
         return self.filter_by_symbol_since_limit(sorted, &[symbolResolved, since, limit]);
 
     Value::Null
@@ -2606,7 +2597,7 @@ impl WoofiproCore {
         let mut paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchFundingHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
         let mut paginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        if is_true(&paginate) {
+        if paginate.as_bool() == Some(true) {
             return self.fetch_paginated_call_incremental(Value::Str("fetchFundingHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("page".into()), Value::Int(500)]).await;
         }
         let mut request: Value = Value::Map({
@@ -2721,8 +2712,8 @@ impl WoofiproCore {
         let mut symbols: Value = self.symbols.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1172: bool = true;
-            while { if !__for_first_1172 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1172 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
+            let mut __for_first_1168: bool = true;
+            while { if !__for_first_1168 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1168 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
             let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2963,10 +2954,10 @@ impl WoofiproCore {
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), lastUpdateTimestamp);
-        m.insert("status".to_string(), self.parse_order_status(status));
+        m.insert("status".to_string(), self.parse_order_status(status).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), symbol);
-        m.insert("type".to_string(), self.parse_order_type(orderType.clone()));
-        m.insert("timeInForce".to_string(), self.parse_time_in_force(orderType));
+        m.insert("type".to_string(), self.parse_order_type(orderType.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+        m.insert("timeInForce".to_string(), self.parse_time_in_force(orderType).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
         m.insert("postOnly".to_string(), Value::Null);
         m.insert("reduceOnly".to_string(), self.safe_bool_k(order.clone(), "reduce_only", &[]));
         m.insert("side".to_string(), side);
@@ -2993,7 +2984,7 @@ impl WoofiproCore {
     Value::Null
 }
 
-    pub fn parse_time_in_force(&self, mut timeInForce: Value) -> Value {
+    pub fn parse_time_in_force(&self, mut timeInForce: Value) -> Option<String> {
         let mut timeInForces: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ioc".to_string(), Value::Str("IOC".into()));
@@ -3001,12 +2992,10 @@ impl WoofiproCore {
                 m.insert("post_only".to_string(), Value::Str("PO".into()));
             m
         });
-        return self.safe_string(timeInForces, timeInForce, &[]);
-
-    Value::Null
+        return self.safe_string(timeInForces, timeInForce, &[]).as_str().map(str::to_owned);
 }
 
-    pub fn parse_order_status(&self, mut status: Value) -> Value {
+    pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
         if (status != Value::Null) {
             let mut statuses: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -3021,14 +3010,12 @@ impl WoofiproCore {
                     m.insert("COMPLETED".to_string(), Value::Str("closed".into()));
                 m
             });
-            return self.safe_string(statuses, status.clone(), &[status.clone()]);
+            return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
         }
-        return Value::Null;
-
-    Value::Null
+        return None;
 }
 
-    pub fn parse_order_type(&self, mut type_var: Value) -> Value {
+    pub fn parse_order_type(&self, mut type_var: Value) -> Option<String> {
         let mut types: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("LIMIT".to_string(), Value::Str("limit".into()));
@@ -3036,9 +3023,7 @@ impl WoofiproCore {
                 m.insert("POST_ONLY".to_string(), Value::Str("limit".into()));
             m
         });
-        return self.safe_string_lower(types, type_var.clone(), &[type_var.clone()]);
-
-    Value::Null
+        return self.safe_string_lower(types, type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn create_order_request(&self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
@@ -3067,12 +3052,12 @@ impl WoofiproCore {
          * @returns {object} request to be sent to the exchange
          */
         let mut reduceOnly: Value = self.safe_bool2(params.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]);
-        let mut orderType: Value = to_upper(&type_var);
+        let mut orderType: Value = type_var.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
         if (side == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrderRequest() requires a side argument".into()))));
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut orderSide: Value = to_upper(&side);
+        let mut orderSide: Value = side.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -3094,7 +3079,7 @@ impl WoofiproCore {
         let mut typeKey: Value = (if isConditional { Value::Str("type".into()) } else { Value::Str("order_type".into()) });
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&typeKey), orderType); }; // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
         if !isConditional {
-            if is_true(&postOnly) {
+            if postOnly.as_bool() == Some(true) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_type".into(), Value::Str("POST_ONLY".into())); }
             }  else if (timeInForce.as_deref() == Some("fok")) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_type".into(), Value::Str("FOK".into())); }
@@ -3122,7 +3107,7 @@ impl WoofiproCore {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("algo_type".into(), Value::Str("STOP".into())); }
         }  else if hasStopLoss || hasTakeProfit {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("algo_type".into(), Value::Str("TP_SL".into())); }
-            let mut childOrders: Value = Value::from(vec![]);
+            let mut childOrders: Vec<Value> = Vec::new();
             let mut closeSide: Value = (if (orderSide.as_str() == Some("BUY")) { Value::Str("SELL".into()) } else { Value::Str("BUY".into()) });
             if hasStopLoss {
                 let mut stopLossPrice: Value = self.safe_value2(stopLoss.clone(), Value::Str("triggerPrice".into()), Value::Str("price".into()), &[stopLoss]);
@@ -3135,7 +3120,7 @@ impl WoofiproCore {
                         m.insert("reduce_only".to_string(), Value::Bool(true));
                     m
                 });
-                append_to_array(&mut childOrders, stopLossOrder);
+                childOrders.push(stopLossOrder);
             }
             if hasTakeProfit {
                 let mut takeProfitPrice: Value = self.safe_value2(takeProfit.clone(), Value::Str("triggerPrice".into()), Value::Str("price".into()), &[takeProfit]);
@@ -3148,14 +3133,14 @@ impl WoofiproCore {
                         m.insert("reduce_only".to_string(), Value::Bool(true));
                     m
                 });
-                append_to_array(&mut childOrders, takeProfitOrder);
+                childOrders.push(takeProfitOrder);
             }
             let mut outterOrder: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                     m.insert("reduce_only".to_string(), Value::Bool(false));
                     m.insert("algo_type".to_string(), Value::Str("POSITIONAL_TP_SL".into()));
-                    m.insert("child_orders".to_string(), childOrders);
+                    m.insert("child_orders".to_string(), Value::from(childOrders));
                 m
             });
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("child_orders".into(), Value::from(vec![outterOrder])); }
@@ -3238,11 +3223,11 @@ impl WoofiproCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut ordersRequests: Value = Value::from(vec![]);
+        let mut ordersRequests: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1173: bool = true;
-            while { if !__for_first_1173 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1173 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
+            let mut __for_first_1169: bool = true;
+            while { if !__for_first_1169 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1169 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
             let mut rawOrder: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
             let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
             let mut type_var: Value = self.safe_string_k(rawOrder.clone(), "type", &[]);
@@ -3261,12 +3246,12 @@ impl WoofiproCore {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrders() only support non-stop order".into()))));
             }
             let mut orderRequest: Value = self.create_order_request(marketId, type_var, side, amount, &[price, orderParams]);
-            append_to_array(&mut ordersRequests, orderRequest);
+            ordersRequests.push(orderRequest);
         }
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("orders".to_string(), ordersRequests);
+                m.insert("orders".to_string(), Value::from(ordersRequests));
             m
         });
         let __ws_arg_8 = self.extend(request, &[params]);
@@ -3353,12 +3338,12 @@ impl WoofiproCore {
             response = self.v1_private_put_algo_order(&[__ws_arg_9]).await;
         }  else {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("side".into(), to_upper(&side)); }
-            let mut orderType: Value = to_upper(&type_var);
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("side".into(), side.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null)); }
+            let mut orderType: Value = type_var.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
             let mut timeInForce: Option<String> = self.safe_string_lower_k(paramsOmitted.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
             let mut isMarket: Value = Value::Bool(orderType.as_str() == Some("MARKET"));
             let mut postOnly: Value = self.is_post_only(isMarket, Value::Null, &[paramsOmitted.clone()]);
-            if is_true(&postOnly) {
+            if postOnly.as_bool() == Some(true) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_type".into(), Value::Str("POST_ONLY".into())); }
             }  else if (timeInForce.as_deref() == Some("fok")) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_type".into(), Value::Str("FOK".into())); }
@@ -3533,11 +3518,11 @@ impl WoofiproCore {
         });
         let mut response: Value = Value::Null;
         if (clientOrderIds != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("client_order_ids".into(), join(&clientOrderIds, &Value::Str(",".into()))); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("client_order_ids".into(), ({ let __r31a: &Value = &clientOrderIds; let __r31d: &Value = &Value::Str(",".into()); let __r31j: String = (match __r31d { Value::Str(__s) => __s.to_string(), Value::Int(__n) => __n.to_string(), Value::Float(__f) => __f.to_string(), Value::Bool(__b) => __b.to_string(), Value::Null => "null".to_string(), Value::Dict(__m) if __m.contains_key("__precise") => crate::runtime::stringify_param(__r31d), __o => format!("{}", __o) }); match __r31a { Value::Arr(__a) => Value::Str(__a.iter().map(|__r31e| (match __r31e { Value::Str(__s) => __s.to_string(), Value::Int(__n) => __n.to_string(), Value::Float(__f) => __f.to_string(), Value::Bool(__b) => __b.to_string(), Value::Null => "null".to_string(), Value::Dict(__m) if __m.contains_key("__precise") => crate::runtime::stringify_param(__r31e), __o => format!("{}", __o) })).collect::<Vec<String>>().join(&__r31j).into()), _ => Value::Str(String::new().into()) } })); }
             let __ws_arg_17 = self.extend(request.clone(), &[paramsOmitted.clone()]);
             response = self.v1_private_delete_client_batch_order(&[__ws_arg_17]).await;
         }  else {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_ids".into(), join(&ids, &Value::Str(",".into()))); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_ids".into(), Value::Str(ids.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into())); }
             let __ws_arg_18 = self.extend(request, &[paramsOmitted]);
             response = self.v1_private_delete_batch_order(&[__ws_arg_18]).await;
         }
@@ -3724,7 +3709,7 @@ impl WoofiproCore {
         let mut paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
         let mut paginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        if is_true(&paginate) {
+        if paginate.as_bool() == Some(true) {
             return self.fetch_paginated_call_incremental(Value::Str("fetchOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("page".into()), maxLimit.clone()]).await;
         }
         let mut request: Value = Value::Map({
@@ -3968,7 +3953,7 @@ impl WoofiproCore {
         let mut paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
         let mut paginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        if is_true(&paginate) {
+        if paginate.as_bool() == Some(true) {
             return self.fetch_paginated_call_incremental(Value::Str("fetchMyTrades".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("page".into()), Value::Int(500)]).await;
         }
         let mut request: Value = Value::Map({
@@ -4038,8 +4023,8 @@ impl WoofiproCore {
         let mut balances: Value = self.safe_list_k(response, "holding", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1174: bool = true;
-            while { if !__for_first_1174 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1174 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
+            let mut __for_first_1170: bool = true;
+            while { if !__for_first_1170 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1170 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
             let mut balance: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
             let mut code: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "token", &[]), &[]);
             let mut account: Value = self.account();
@@ -4177,7 +4162,7 @@ impl WoofiproCore {
         m.insert("account".to_string(), self.safe_string_k(item.clone(), "account", &[]));
         m.insert("referenceAccount".to_string(), Value::Null);
         m.insert("referenceId".to_string(), self.safe_string_k(item.clone(), "tx_id", &[]));
-        m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(item.clone(), "status", &[])));
+        m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(item.clone(), "status", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount);
         m.insert("before".to_string(), Value::Null);
         m.insert("after".to_string(), Value::Null);
@@ -4258,7 +4243,7 @@ impl WoofiproCore {
         m.insert("type".to_string(), movementDirection);
         m.insert("amount".to_string(), self.safe_number_k(transaction.clone(), "amount", &[]));
         m.insert("currency".to_string(), code);
-        m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[])));
+        m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
         m.insert("updated".to_string(), self.safe_integer_k(transaction, "updated_time", &[]));
         m.insert("comment".to_string(), Value::Null);
         m.insert("internal".to_string(), Value::Null);
@@ -4270,7 +4255,7 @@ impl WoofiproCore {
     Value::Null
 }
 
-    pub fn parse_transaction_status(&self, mut status: Value) -> Value {
+    pub fn parse_transaction_status(&self, mut status: Value) -> Option<String> {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("NEW".to_string(), Value::Str("pending".into()));
@@ -4280,9 +4265,7 @@ impl WoofiproCore {
                 m.insert("CANCELED".to_string(), Value::Str("canceled".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]);
-
-    Value::Null
+        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
 /*
@@ -4416,11 +4399,9 @@ impl WoofiproCore {
     Value::Null
 }
 
-    pub fn hash_message(&self, mut message: Value) -> Value {
+    pub fn hash_message(&self, mut message: Value) -> Option<String> {
         let mut hashed: Value = self.hash(message, Value::Str("keccak".into()), &[Value::Str("hex".into())]);
-        return Value::Str(format!("{}{}", Value::Str("0x".into()), hashed).into());
-
-    Value::Null
+        return Value::Str(format!("{}{}", Value::Str("0x".into()), hashed).into()).as_str().map(str::to_owned);
 }
 
     pub fn sign_hash(&self, mut hash: Value, mut privateKey: Value) -> Option<String> {
@@ -4428,11 +4409,11 @@ impl WoofiproCore {
         let mut r: Value = signature.as_map().and_then(|__m| __m.get("r")).cloned().unwrap_or(Value::Null);
         let mut s: Value = signature.as_map().and_then(|__m| __m.get("s")).cloned().unwrap_or(Value::Null);
         let mut v: Value = self.int_to_base16(self.sum(&[Value::Int(27), signature.as_map().and_then(|__m| __m.get("v")).cloned().unwrap_or(Value::Null)]), &[]);
-        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), pad_start(&r, &Value::Int(64), &Value::Str("0".into()))).into()), pad_start(&s, &Value::Int(64), &Value::Str("0".into()))).into()), v).into()).as_str().map(str::to_owned);
+        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), r.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null)).into()), s.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null)).into()), v).into()).as_str().map(str::to_owned);
 }
 
     pub fn sign_message(&self, mut message: Value, mut privateKey: Value) -> Option<String> {
-        return self.sign_hash(self.hash_message(message), privateKey.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+        return self.sign_hash(self.hash_message(message).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null), privateKey.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
 }
 
 /*
@@ -4456,7 +4437,7 @@ impl WoofiproCore {
             self.load_markets(&[]).await;
         }
         self.check_address(&[address.clone()]);
-        let mut codeUpper: Value = to_upper(&code);
+        let mut codeUpper: Value = code.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
         if (codeUpper.as_str() != Some("USDC")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" withdraw() only support USDC".into()))));
         }
@@ -4531,7 +4512,7 @@ impl WoofiproCore {
                 m.insert("chainId".to_string(), self.parse_to_int(chainId));
                 m.insert("receiver".to_string(), address.clone());
                 m.insert("token".to_string(), codeUpper);
-                m.insert("amount".to_string(), to_string_val(&amount));
+                m.insert("amount".to_string(), Value::Str(format!("{}", amount).into()));
                 m.insert("withdrawNonce".to_string(), withdrawNonce);
                 m.insert("timestamp".to_string(), nonce);
             m
@@ -4680,7 +4661,7 @@ impl WoofiproCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut marginModeValue: Value = to_lower(&marginMode);
+        let mut marginModeValue: Value = marginMode.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
         if (marginModeValue.as_str() != Some("cross")) && (marginModeValue.as_str() != Some("isolated")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() marginMode must be either cross or isolated".into()))));
         }
@@ -4688,7 +4669,7 @@ impl WoofiproCore {
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                m.insert("default_margin_mode".to_string(), to_upper(&marginModeValue));
+                m.insert("default_margin_mode".to_string(), marginModeValue.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
             m
         });
         let __ws_arg_34 = self.extend(request, &[params]);
@@ -4762,8 +4743,8 @@ impl WoofiproCore {
         // }
         //
         let mut modification: Value = self.parse_margin_modification(response, &[market]);
-        add_element_to_object(&mut modification, &Value::Str("type".into()), (if (type_var.as_str() == Some("ADD")) { Value::Str("add".into()) } else { Value::Str("reduce".into()) }));
-        add_element_to_object(&mut modification, &Value::Str("amount".into()), self.parse_number(self.number_to_string(amount), &[]));
+        if let Value::Dict(__d) = &mut modification { std::sync::Arc::make_mut(__d).insert("type".into(), (if (type_var.as_str() == Some("ADD")) { Value::Str("add".into()) } else { Value::Str("reduce".into()) })); }
+        if let Value::Dict(__d) = &mut modification { std::sync::Arc::make_mut(__d).insert("amount".into(), self.parse_number(self.number_to_string(amount), &[])); }
         return modification;
 
     Value::Null
@@ -4941,7 +4922,7 @@ impl WoofiproCore {
         let mut marketResolved: Value = self.safe_market(&[contract, market]);
         let mut size: Value = self.safe_string_k(position.clone(), "position_qty", &[]);
         let mut side: Value = Value::Null;
-        if is_true(&crate::precise::Precise::stringGt(&size, &Value::Str("0".into()))) {
+        if crate::precise::Precise::stringGt(&size, &Value::Str("0".into())).as_bool() == Some(true) {
             side = Value::Str("long".into());
         }  else {
             side = Value::Str("short".into());
@@ -5143,7 +5124,7 @@ impl WoofiproCore {
         let mut requestHeaders: Value = Value::Null;
         if (access.as_str() == Some("public")) {
             url = Value::Str(format!("{}{}", url, pathWithParams).into());
-            if ((object_keys(&requestParams).len() as i64) as f64) > ((0i64) as f64) {
+            if ((Value::Array(requestParams.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(requestParams.clone(), &[])).into())).into());
             }
         }  else {
@@ -5156,8 +5137,8 @@ impl WoofiproCore {
                         let mut ordersList: Value = self.safe_list_k(requestParams.clone(), "orders", &[Value::from(vec![])]);
                         {
                                                         let mut i: Value = Value::Int(0);
-                            let mut __for_first_1175: bool = true;
-                            while { if !__for_first_1175 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1175 = false; i.as_f64().unwrap_or(f64::NAN) < ((ordersList.len() as i64) as f64) } {
+                            let mut __for_first_1171: bool = true;
+                            while { if !__for_first_1171 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1171 = false; i.as_f64().unwrap_or(f64::NAN) < ((ordersList.len() as i64) as f64) } {
                             add_element_to_object(get_value_mut(get_value_mut(&mut requestParams, &Value::Str("orders".into())), &i), &Value::Str("order_tag".into()), brokerId.clone());
                         }
                         }
@@ -5168,7 +5149,7 @@ impl WoofiproCore {
                 requestParams = self.keysort(requestParams.clone(), &[]);
             }
             let mut auth: Value = Value::Str("".into());
-            let mut ts: Value = to_string_val(&self.nonce());
+            let mut ts: Value = Value::Str(format!("{}", self.nonce()).into());
             url = Value::Str(format!("{}{}", url, pathWithParams).into());
             let mut apiKey: Value = self.apiKey.clone();
             if Value::Int(apiKey.as_str().and_then(|__s| __s.find("ed25519:")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) < ((0i64) as f64) {
@@ -5185,24 +5166,25 @@ impl WoofiproCore {
             if (method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")) {
                 requestBody = json_stringify(&requestParams);
                 auth = Value::Str(format!("{}{}", auth, requestBody).into());
-                add_element_to_object(&mut requestHeaders, &Value::Str("content-type".into()), Value::Str("application/json".into()));
+                if let Value::Dict(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("content-type".into(), Value::Str("application/json".into())); }
             }  else {
-                if ((object_keys(&requestParams).len() as i64) as f64) > ((0i64) as f64) {
+                if ((Value::Array(requestParams.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                     url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(requestParams.clone(), &[])).into())).into());
-                    auth = Value::Str(format!("{}{}", auth, Value::Str(format!("{}{}", Value::Str("?".into()), self.rawencode(requestParams.clone(), &[])).into())).into());
+                    auth = Value::Str(format!("{}{}", auth, Value::Str(format!("{}{}", Value::Str("?".into()), self.rawencode(requestParams, &[])).into())).into());
                 }
-                add_element_to_object(&mut requestHeaders, &Value::Str("content-type".into()), Value::Str("application/x-www-form-urlencoded".into()));
+                if let Value::Dict(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("content-type".into(), Value::Str("application/x-www-form-urlencoded".into())); }
                 if (method.as_str() == Some("DELETE")) {
                     requestBody = Value::Str("".into());
                 }
             }
             let mut secret: Value = self.secret.clone();
-            if Value::Int(secret.as_str().and_then(|__s| __s.find("ed25519:")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
-                let mut parts: Value = split(&secret, &Value::Str("ed25519:".into()));
+            let mut rawSecret: Value = self.secret.clone();
+            if Value::Int(rawSecret.as_str().and_then(|__s| __s.find("ed25519:")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+                let mut parts: Value = Value::Array(rawSecret.as_str().map(|__s| __s.split("ed25519:").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
                 secret = parts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
             }
             let mut signature: Value = eddsa(self.encode(auth), self.base58_to_binary(secret, &[]), Value::Str("ed25519".into()));
-            add_element_to_object(&mut requestHeaders, &Value::Str("orderly-signature".into()), self.urlencode_base64(self.base64_to_binary(signature, &[]), &[]));
+            if let Value::Dict(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("orderly-signature".into(), self.urlencode_base64(self.base64_to_binary(signature, &[]), &[])); }
         }
         let mut bodyResult: Value = requestBody;
         let mut headersResult: Value = requestHeaders;

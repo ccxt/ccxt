@@ -872,7 +872,7 @@ class mexc extends \ccxt\async\mexc {
         if (($nonce === null) || ($firstDeltaNonce === null)) {
             return -1;
         }
-        if ($nonce < $firstDeltaNonce - 1) {
+        if (($nonce !== null) && ($firstDeltaNonce !== null) && ($nonce < $firstDeltaNonce - 1)) {
             return -1;
         }
         for ($i = 0; $i < count($cache); $i++) {

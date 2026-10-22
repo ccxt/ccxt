@@ -1605,7 +1605,7 @@ export default class kraken extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {});
-        const trades = this.safeValue (result, id);
+        const trades = this.safeList (result, id, []);
         // trades is a sorted array: last (most recent trade) goes last
         const length = trades.length;
         if (length <= 0) {
@@ -1779,7 +1779,7 @@ export default class kraken extends Exchange {
             await this.loadMarkets ();
         }
         const ordersRequests: List = [];
-        let orderSymbols: List = [];
+        const orderSymbols: List = [];
         let symbol: Str = undefined;
         let market: Market = undefined;
         for (let i = 0; i < orders.length; i++) {
@@ -1808,7 +1808,7 @@ export default class kraken extends Exchange {
             const orderRequest = this.orderRequest ('createOrders', marketId, type, req, amount, price, orderParams);
             ordersRequests.push (orderRequest[0]);
         }
-        orderSymbols = this.marketSymbols (orderSymbols, undefined, false, true, true);
+        this.marketSymbols (orderSymbols, undefined, false, true, true);
         let response: NullableDict = undefined;
         let request: Dict = {
             'orders': ordersRequests,
@@ -1862,7 +1862,7 @@ export default class kraken extends Exchange {
         return market;
     }
 
-    getDelistedMarketById (id: any) {
+    getDelistedMarketById (id: Str): any {
         if (id === undefined) {
             return id;
         }
@@ -1902,7 +1902,7 @@ export default class kraken extends Exchange {
         return market;
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'pending': 'open', // order pending book entry
             'open': 'open',
@@ -2032,12 +2032,7 @@ export default class kraken extends Exchange {
         const orderOmitted: Dict = this.omit (order, 'usingCost');
         const description = this.safeDict (orderOmitted, 'descr', {});
         const orderDescriptionObj = this.safeDict (orderOmitted, 'descr'); // can be null
-        let orderDescription: Str = undefined;
-        if (orderDescriptionObj !== undefined) {
-            orderDescription = this.safeString (orderDescriptionObj, 'order');
-        } else {
-            orderDescription = this.safeString (orderOmitted, 'descr');
-        }
+        const orderDescription = (orderDescriptionObj !== undefined) ? this.safeString (orderDescriptionObj, 'order') : this.safeString (orderOmitted, 'descr');
         let side: Str = undefined;
         let rawType: Str = undefined;
         let marketId: Str = undefined;
@@ -2276,10 +2271,9 @@ export default class kraken extends Exchange {
                 request['reduce_only'] = 'true'; // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
             }
         }
-        let close = this.safeDict (paramsOmitted2, 'close');
-        if (close !== undefined) {
-            close = this.extend ({}, close);
-            close = (close === undefined) ? {} : close;
+        const rawClose = this.safeDict (paramsOmitted2, 'close');
+        if (rawClose !== undefined) {
+            const close: Dict = this.extend ({}, rawClose);
             const closePrice = this.safeValue (close, 'price');
             if (closePrice !== undefined) {
                 close['price'] = this.priceToPrecision (symbol, closePrice);
@@ -2490,17 +2484,20 @@ export default class kraken extends Exchange {
         const options = this.safeDict (this.options, 'fetchOrderTrades', {});
         const batchSize = this.safeInteger (options, 'batchSize', 20);
         const numTradeIds = tradeIds.length;
-        let numBatches = this.parseToInt (numTradeIds / batchSize);
-        numBatches = this.sum (numBatches, 1);
-        let result: List = [];
-        for (let j = 0; j < numBatches; j++) {
-            const requestIds: List = [];
-            for (let k = 0; k < batchSize; k++) {
-                const index = this.sum (j * batchSize, k);
-                if (index < numTradeIds) {
-                    requestIds.push (tradeIds[index]);
-                }
+        // full batches of batchSize ids, then the remainder (an empty one when the ids divide evenly)
+        const batches: List = [];
+        let batch: string[] = [];
+        for (let i = 0; i < numTradeIds; i++) {
+            batch.push (tradeIds[i]);
+            if (batch.length >= batchSize) {
+                batches.push (batch);
+                batch = [];
             }
+        }
+        batches.push (batch);
+        let result: List = [];
+        for (let j = 0; j < batches.length; j++) {
+            const requestIds: string[] = batches[j];
             const request: Dict = {
                 'txid': requestIds.join (','),
             };
@@ -2966,7 +2963,7 @@ export default class kraken extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         // IFEX transaction states
         const statuses: Dict = {
             'Initial': 'pending',
@@ -3267,9 +3264,9 @@ export default class kraken extends Exchange {
         return this.parseTransactionsByType ('withdrawal', rawWithdrawals, code, since, limit);
     }
 
-    addPaginationCursorToResult (result: any) {
+    addPaginationCursorToResult (result: Dict): List {
         const cursor = this.safeString (result, 'next_cursor');
-        const data = this.safeValue (result, 'withdrawals');
+        const data = this.safeList (result, 'withdrawals', []);
         const dataLength = data.length;
         if (cursor !== undefined && dataLength > 0) {
             const last = data[dataLength - 1];
@@ -3596,7 +3593,7 @@ export default class kraken extends Exchange {
         });
     }
 
-    parseAccountType (account: Str) {
+    parseAccountType (account: Str): Str {
         const accountByType: Dict = {
             'spot': 'Spot Wallet',
             'swap': 'Futures Wallet',

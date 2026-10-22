@@ -666,7 +666,7 @@ export default class coinmate extends Exchange {
         return this.parseTransactions (items, undefined, since, limit);
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             'COMPLETED': 'ok',
             'WAITING': 'pending',
@@ -1060,7 +1060,7 @@ export default class coinmate extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'FILLED': 'closed',
             'CANCELLED': 'canceled',
@@ -1070,7 +1070,7 @@ export default class coinmate extends Exchange {
         return this.safeString (statuses, status as string, status);
     }
 
-    parseOrderType (type: Str) {
+    parseOrderType (type: Str): Str {
         const types: Dict = {
             'LIMIT': 'limit',
             'MARKET': 'market',
