@@ -3790,7 +3790,11 @@ function goProvenParseMapMethods (): string[] {
         'ParseContractTicker', 'ParseUtaOrder', 'ParseContractOrder', 'ParseSpotOrder', 'ParseSwapOrder',
         'SafeMarketStructure', 'SafeCurrencyStructure', 'SafeOpenInterest', 'ParseCurrency', 'ParseOpenInterest',
         'SafePredictionOrder', 'SafePredictionTicker', 'SafePredictionOrderBook', 'ParsePredictionOrder', 'ParsePredictionTicker', 'ParsePredictionOpenInterest',
-        'ParseSpotOrUtaTicker', 'ParseContractOrderBook', 'ParseFundingRate', 'ParseLeverage', 'ParseTradingFee', 'ParseDepositAddress', 'ParseMarginMode', 'ParseGreeks', 'ParseOption', 'ParseBorrowRate', 'ParseIsolatedBorrowRate', 'ParseConversion', 'ParseMarginModification', 'ParseTradeTx', 'ParseLeverageFromMarket', 'ParseLeverageFromSetting', 'ParseMarginModeFromSetting' ];
+        'ParseSpotOrUtaTicker', 'ParseContractOrderBook', 'ParseFundingRate', 'ParseLeverage', 'ParseTradingFee', 'ParseDepositAddress', 'ParseMarginMode', 'ParseGreeks', 'ParseOption', 'ParseBorrowRate', 'ParseIsolatedBorrowRate', 'ParseConversion', 'ParseMarginModification', 'ParseTradeTx', 'ParseLeverageFromMarket', 'ParseLeverageFromSetting', 'ParseMarginModeFromSetting',
+        'ParseMarginLoan', // U15
+        'ParseADLRank', // U16
+        'ParseEvent', 'ParseMarketToEvent', // W18
+        'SafePosition', 'ParsePosition', 'ParseOptionPosition' ]; // gochan32-U10
 }
 
 // function-level `return` expressions of a Go body (func literal bodies skipped); undefined when unscannable
@@ -3801,8 +3805,9 @@ function goFunctionLevelReturnExprs (body: string): string[] | undefined {
     for (let i = 0; i < body.length; i++) {
         inLiteral[i] = literalOpen > 0;
         const c = body[i];
-        if ((c === '"') || (c === '`') || (c === "'") || ((c === '/') && (body[i + 1] === '/'))) {
-            const end = (c === '/') ? goSkipCommentText (body, i) - 1 : goSkipLiteralText (body, i);
+        // block comments too: a doc URL (`https://`) would otherwise open a line comment mid-docblock
+        if ((c === '"') || (c === '`') || (c === "'") || ((c === '/') && ((body[i + 1] === '/') || (body[i + 1] === '*')))) {
+            const end = ((c === '/') && (body[i + 1] === '/')) ? goSkipCommentText (body, i) - 1 : (c === '/') ? goSkipCommentText (body, i) : goSkipLiteralText (body, i);
             for (let k = i + 1; k <= end; k++) {
                 inLiteral[k] = literalOpen > 0;
             }
@@ -3852,14 +3857,57 @@ export function retypeGoProvenParseMethods (content: string): string {
 function goProvenListMethods (): string[] {
     return [ 'ParseOrders', 'ParseTrades', 'ParseTradesHelper', 'ParseTransactions', 'ParseOHLCVs', 'ParseLedger', 'ParsePositions', 'ParseMarkets',
         'ParseTransfers', 'FilterBySinceLimit', 'FilterBySymbolSinceLimit', 'FilterBySymbolsSinceLimit', 'FilterByArrayPositions',
-        'FilterByValueSinceLimit', 'FilterByCurrencySinceLimit', 'FilterByLimit', 'ParseCancelOrders' ];
+        'FilterByValueSinceLimit', 'FilterByCurrencySinceLimit', 'FilterByLimit', 'ParseCancelOrders',
+        'ParseBorrowRateHistory', // U15
+        'InsertMissingCandles', 'ParseTradingViewOHLCV', // gochan32-U05
+ 'ArraysConcat',
+        'ParseTransactionsByType', // U09: kraken, FilterByCurrencySinceLimit on its only path
+        'ParseMarketLeverageTiers', 'ParseEmulatedLeverageTiers', // U14
+        'ParseOpenInterestsHistory', 'ParseLiquidations', 'ParseADLRanks', 'FilterByArrayADLRanks', 'FilterByArrayPositions', // U16
+        'ParseConversions', 'ParseLongShortRatioHistory', 'ParseAccounts', // U17
+        'ParsePredictionOrders', 'FilterByOutcomeSinceLimit', // U03
+        'ParseFundingRateHistories', 'ParseIncomes', 'ParseFundingHistories', // U13
+        'ParsePredictionTrades', // U04
+        'ParsePredictionPositions', // U10
+        'ParseDepositAddresses', // W15
+        'ParseDepositMethodIds', 'ParsePortfolioDetails' ]; // W23
 }
 
 // dict producers beyond the single-structure parsers (Balances/Tickers/FundingRates/Dictionary<..>). SafeBalance stays
 // `any` (ws venues hand it this.Balance, a *sync.Map); it returns its argument, so `SafeBalance(<map literal local>)` is proven
 function goProvenMapCollectionMethods (): string[] {
     return [ 'ParseBalance', 'ParseTickers', 'ParseCurrencies', 'FilterByArrayTickers', 'ParseFundingRate', 'ParseFundingRates',
-        'ParseDepositAddress', 'ParseLeverage', 'ParseTradingFee', 'ParseDepositWithdrawFees' ];
+        'ParseDepositAddress', 'ParseLeverage', 'ParseTradingFee', 'ParseDepositWithdrawFees',
+        'ParseIsolatedBorrowRates', // U15
+        'ParseLastPrices', 'RemoveKeysFromDict', 'ParseTickersForRolling', 'ParseBidsAsksCustom', 'ParseSxbetTickersByHash', // U06
+        // venue balance parsers (every override ends in SafeBalance(<balance local>) or returns another of these)
+        'ParseBalanceCustom', 'ParseUtaBalance', 'ParseBalanceByType', 'ParseBalanceForSingleCurrency', 'ParseCustomBalance',
+        'ParseSwapBalance', 'ParseSpotBalance', 'CustomParseBalance', 'ParseFundingBalance', 'ParseTradingBalance', // U07
+        'ParseCurrenciesCustom', // U08
+        'ParseLeverageTiers', 'ParseLeverages', 'ParseMarginModes', // U14
+        'ParseOpenInterests', // U16
+        'ParseAllGreeks', 'ParseOptionChain', 'ParseAccount', // U17
+        'ParseDepositAddressSpecial', // U11
+        'ParseTradingFees', 'AssignDefaultDepositWithdrawFees', 'ParseDepositWithdrawFee', 'ParseTradingLimits', 'DepositWithdrawFee',
+        'ParsePublicDepositWithdrawFees', // U12
+        'SetApiCredentials' ]; // W20: opinion/polymarket return their creds map literal
+}
+
+// `X` is a balance local: declared once as a map literal, and every later write keeps the same map
+// (`X = this.MergeBalanceAccount(X, ..)` / `X = this.SafeBalance(X)` both return their first argument)
+export function goBalanceLocalIsMap (body: string, name: string): boolean {
+    if ((body.match (new RegExp ('\\bvar ' + name + '\\b', 'g')) || []).length !== 1) {
+        return false;
+    }
+    if (!new RegExp ('\\n\\t+var ' + name + ' (?:any|map\\[string\\]any) = map\\[string\\]any\\{').test (body)) {
+        return false;
+    }
+    if (new RegExp ('(?<![\\w.])' + name + '\\s*(?:,[^\\n=]*)?:=|\\bfunc\\s*\\([^)]*\\b' + name + ' ').test (body)) {
+        return false;
+    }
+    const writes = body.match (new RegExp ('(^|[^\\w.])' + name + '\\s*[-+*/:]?=[^=][^\\n]*', 'gm')) || [];
+    const keeps = new RegExp ('^[^\\w.]?' + name + ' = this\\.(?:MergeBalanceAccount\\(' + name + ', |SafeBalance\\(' + name + '\\)$)');
+    return writes.every ((w) => keeps.test (w));
 }
 
 // one family: `names` retype to `type`; returns proven by a `type` literal, a call of `calls`, a typed/proven local,
@@ -3891,9 +3939,7 @@ function retypeGoProvenFamily (content: string, names: string[], type: string, p
                 continue;
             }
             const balance = /^this\.SafeBalance\((\w+)\)$/.exec (expr);
-            if ((type === 'map[string]any') && (balance !== null) && ((newBody.match (new RegExp ('\\bvar ' + balance[1] + '\\b', 'g')) || []).length === 1)
-                && new RegExp ('\\n\\t+var ' + balance[1] + ' map\\[string\\]any = map\\[string\\]any\\{').test (newBody)
-                && !new RegExp ('(^|[^\\w.])' + balance[1] + '\\s*[-+*/:]?=[^=]', 'm').test (newBody)) {
+            if ((type === 'map[string]any') && (balance !== null) && goBalanceLocalIsMap (newBody, balance[1])) {
                 newBody = newBody.replace (new RegExp ('\\n(\\t+)return this\\.SafeBalance\\(' + balance[1] + '\\)\\n', 'g'), '\n$1return this.SafeBalance(' + balance[1] + ').(map[string]any)\n');
                 continue;
             }
@@ -3935,6 +3981,9 @@ function goProvenParseSelfTest (): string[] {
     ok (throws (fn ('ParseOrder', '\treturn this.SafeString(order, "x")\n')), 'other call rejected');
     ok (throws (fn ('ParseTicker', '\t_ = 1\n')), 'no return no panic rejected');
     ok (throws (fn ('ParseOrder', '\tif a {\n\t\tvar r any = this.SafeOrder(order)\n\t\t_ = r\n\t}\n\tvar r any = this.SafeString(order, "x")\n\treturn r\n')), 'shadowed local rejected');
+    ok (retypeGoProvenParseMethods (fn ('ParseBalanceCustom', '\tvar result any = map[string]any{}\n\tresult = this.MergeBalanceAccount(result, c, a)\n\treturn this.SafeBalance(result)\n')).includes ('\treturn this.SafeBalance(result).(map[string]any)\n'), 'merged balance local');
+    ok (throws (fn ('ParseBalanceCustom', '\tvar result any = map[string]any{}\n\tresult = this.MergeBalanceAccount(other, c, a)\n\treturn this.SafeBalance(result)\n')), 'foreign merge rejected');
+    ok (throws (fn ('ParseBalanceCustom', '\tvar result any = map[string]any{}\n\tresult = order\n\treturn this.SafeBalance(result)\n')), 'rewritten balance local rejected');
     ok (retypeGoProvenParseMethods (fn ('ParseTrade', '\treturn nil\n')).includes (') any {'), 'other method untouched');
     return problems;
 }
@@ -4295,6 +4344,7 @@ const INTERFACE_METHODS = [
     'cancelOrder',
     'cancelOrderWithClientOrderId',
     'cancelOrdersForSymbols',
+    'closePosition',
     'createConvertTrade',
     'createDepositAddress',
     'createLimitBuyOrder',
@@ -5158,6 +5208,7 @@ class NewTranspiler {
             'create',
             'edit',
             'cancel',
+            'closePosition',
             'setP',
             'setM',
             'setL',
@@ -5277,6 +5328,10 @@ class NewTranspiler {
             // fetchTime cores carry *int64 (AsyncResult[*int64]); ParseInt derefs it
             return `ParseInt(res)`;
         }
+        if (methodName === 'fetchOrderStatus') {
+            // fetchOrderStatus cores carry *string (AsyncResult[*string]); ToString derefs it
+            return `ToString(res)`;
+        }
 
         if (unwrappedType === 'float64') {
             return `(res).(float64)`;
@@ -5300,6 +5355,11 @@ class NewTranspiler {
 
         if (unwrappedType === '[]map[string]any') {
             return `NewMapArray(res)`; // safe conversion, the runtime value is usually a []any
+        }
+
+        if (unwrappedType === 'map[string]map[string][]OHLCV') {
+            // watchOHLCVForSymbols cores send nested map[string]any (createOHLCVObject), never the struct shape
+            return `NewOHLCVForSymbolsMap(res)`;
         }
 
         if (unwrappedType.startsWith('map[string]')) {
@@ -6115,7 +6175,9 @@ ${constStatements.join('\n')}
             // (see go/v4/exchange_interface.go) to let prediction cores satisfy it. These dispatch
             // sites live only inside the 62 (regular-only code that prediction never compiles), so we
             // type-assert to the per-method interface (I<Method>), which the regular venue satisfies.
-            [new RegExp(`this\\.DerivedExchange\\.(EditOrder|FetchOrder|FetchTickers|CancelOrderWs|CreateOrderWs|FetchOrdersWs|FetchTickersWs|FetchPositionsHistory)${GO_ASYNC_SUFFIX}\\(`, 'g'), `this.DerivedExchange.(I$1).$1${GO_ASYNC_SUFFIX}(`],
+            [new RegExp(`this\\.DerivedExchange\\.(CreateOrder|CancelOrder|EditOrder|FetchOrder|FetchTickers|CancelOrderWs|CreateOrderWs|FetchOrdersWs|FetchTickersWs|FetchPositionsHistory)${GO_ASYNC_SUFFIX}\\(`, 'g'), `this.DerivedExchange.(I$1).$1${GO_ASYNC_SUFFIX}(`],
+            [new RegExp(`this\\.DerivedExchange\\.(FetchTrades|FetchOrders|FetchClosedOrders|FetchOHLCV)${GO_ASYNC_SUFFIX}\\(`, 'g'), `this.DerivedExchange.(I$1).$1${GO_ASYNC_SUFFIX}(`], // W28
+            [new RegExp(`this\\.DerivedExchange\\.(FetchTradingFee|FetchMyTrades|CreateOrders|CancelOrders|WatchMyTrades|WatchOHLCV|WatchOrders|WatchPositions|WatchTrades|FetchOrderBook|FetchStatus)${GO_ASYNC_SUFFIX}\\(`, 'g'), `this.DerivedExchange.(I$1).$1${GO_ASYNC_SUFFIX}(`], // W3+W4
             // SafeNumber / SafeNumber2 / SafeNumberN / SafeNumberOmitZero are hand-written in
             // go/v4/exchange_safe.go with the honest *float64 return the printer cannot emit (the
             // TS `Num` annotation prints as `any`), so drop the transpiled copies to avoid a
@@ -6205,6 +6267,10 @@ ${constStatements.join('\n')}
             // route through this.DerivedExchange type-asserted to IPredictionDispatch (these loops only
             // ever run on prediction instances, whose DerivedExchange satisfies it).
             [/this\.(ParsePredictionOrder|ParsePredictionTrade|ParsePredictionPosition)\(/g, 'this.DerivedExchange.(IPredictionDispatch).$1('],
+            // createOrder/cancelOrder are trimmed from IDerivedExchange (regular venues carry them as
+            // AsyncResult[Order], prediction venues as the map of a prediction order): the prediction
+            // base reaches the venue through the prediction-shaped per-method interface
+            [/this\.DerivedExchange\.(CreateOrder|CancelOrder)Async\(/g, 'this.DerivedExchange.(IPrediction$1).$1Async('],
             // `any` locals that capture a SafeBool* pointer must carry the plain value: this
             // file does not go through createGoExchange's unwrap pass, and its `any` locals are
             // still compared raw (`postOnly != true` in IsPostOnly), which an interface holding
@@ -6216,6 +6282,10 @@ ${constStatements.join('\n')}
         baseClass = this.retypeGoMapMethod (baseClass, 'PredictionExchange', 'Outcome', undefined, true);
         baseClass = this.retypeGoMapMethod (baseClass, 'PredictionExchange', 'SafeOutcome', undefined, true);
         baseClass = this.retypeGoMapMethod (baseClass, 'PredictionExchange', 'ParseSearchQueries', undefined, true, '[]any');
+        // applyEventFetchParams (: any[]) has no venue override: every return is the events list (ListTyped), so fetchEvents cores send []any
+        baseClass = this.retypeGoMapMethod (baseClass, 'PredictionExchange', 'ApplyEventFetchParams', undefined, true, '[]any');
+        // setEvents (: Dictionary<any>) has no venue override: its only return is this.events (MapTyped), so loadEvents cores send map[string]any // W19
+        baseClass = this.retypeGoMapMethod (baseClass, 'PredictionExchange', 'SetEvents', undefined, true); // W19
         const jsDelimiter = '// ' + delimiter;
         const parts = baseClass.split (jsDelimiter);
         if (parts.length > 1) {
@@ -7976,7 +8046,9 @@ func (this *${className}) Init(userConfig map[string]any) {
             // it), so call sites in the harness type-assert to the per-method interface (ccxt.I<Method>)
             // for exactly the method called. A prediction venue that overrides only some of these runs
             // the has-gated test for the ones it has, and each single-method assertion succeeds.
-            [/exchange\.(FetchL2OrderBook|FetchPositions|FetchTicker|FetchTickers|WatchTicker|WatchTickers|FetchOpenOrders|EditOrder|FetchOrder|CancelOrderWithClientOrderId|CancelOrdersWithClientOrderIds|EditOrderWithClientOrderId|FetchOrderWithClientOrderId|FetchBidsAsks|WatchBidsAsks|WatchOrderBookForSymbols|WatchPosition|WatchTradesForSymbols)(Async)?\(/g, 'exchange.(ccxt.I$1).$1$2('],
+            [/exchange\.(CreateOrder|CancelOrder|FetchL2OrderBook|FetchPositions|FetchTicker|FetchTickers|WatchTicker|WatchTickers|FetchOpenOrders|EditOrder|FetchOrder|CancelOrderWithClientOrderId|CancelOrdersWithClientOrderIds|EditOrderWithClientOrderId|FetchOrderWithClientOrderId|FetchBidsAsks|WatchBidsAsks|WatchOrderBookForSymbols|WatchPosition|WatchTradesForSymbols)(Async)?\(/g, 'exchange.(ccxt.I$1).$1$2('],
+            [/exchange\.(FetchTrades|FetchOrders|FetchClosedOrders|FetchOHLCV)(Async)?\(/g, 'exchange.(ccxt.I$1).$1$2('], // W28
+            [/exchange\.(FetchTradingFee|FetchMyTrades|CreateOrders|CancelOrders|WatchMyTrades|WatchOHLCV|WatchOrders|WatchPositions|WatchTrades|FetchOrderBook|FetchStatus)(Async)?\(/g, 'exchange.(ccxt.I$1).$1$2('], // W3+W4
             GO_TEST_ANY_RECEIVE_REGEX,
             // SafeBool* now return `*bool` (the pointer layer): an `any` local that captures
             // the call must keep holding the plain value, exactly as it did before that change,
@@ -8103,7 +8175,9 @@ func (this *${className}) Init(userConfig map[string]any) {
                 // 62 symbol-based methods trimmed from ICoreExchange → assert to the per-method interface
                 // (ccxt.I<Method>) for exactly the method called, so a prediction venue that overrides
                 // only some of them satisfies each has-gated per-method assertion it actually runs.
-                [/exchange\.(FetchL2OrderBook|FetchPositions|FetchTicker|FetchTickers|WatchTicker|WatchTickers|FetchOpenOrders|EditOrder|FetchOrder|CancelOrderWithClientOrderId|CancelOrdersWithClientOrderIds|EditOrderWithClientOrderId|FetchOrderWithClientOrderId|FetchBidsAsks|WatchBidsAsks|WatchOrderBookForSymbols|WatchPosition|WatchTradesForSymbols)(Async)?\(/g, 'exchange.(ccxt.I$1).$1$2('],
+                [/exchange\.(CreateOrder|CancelOrder|FetchL2OrderBook|FetchPositions|FetchTicker|FetchTickers|WatchTicker|WatchTickers|FetchOpenOrders|EditOrder|FetchOrder|CancelOrderWithClientOrderId|CancelOrdersWithClientOrderIds|EditOrderWithClientOrderId|FetchOrderWithClientOrderId|FetchBidsAsks|WatchBidsAsks|WatchOrderBookForSymbols|WatchPosition|WatchTradesForSymbols)(Async)?\(/g, 'exchange.(ccxt.I$1).$1$2('],
+                [/exchange\.(FetchTrades|FetchOrders|FetchClosedOrders|FetchOHLCV)(Async)?\(/g, 'exchange.(ccxt.I$1).$1$2('], // W28
+                [/exchange\.(FetchTradingFee|FetchMyTrades|CreateOrders|CancelOrders|WatchMyTrades|WatchOHLCV|WatchOrders|WatchPositions|WatchTrades|FetchOrderBook|FetchStatus)(Async)?\(/g, 'exchange.(ccxt.I$1).$1$2('], // W3+W4
                 GO_TEST_ANY_RECEIVE_REGEX,
                 // SafeBool* now return `*bool` (the pointer layer): an `any` local that
                 // captures the call must keep holding the plain value, exactly as it did before

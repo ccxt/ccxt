@@ -965,8 +965,9 @@ export default class binance extends binanceRest {
         const subscription: Dict = {
             'method': this.handleFetchOrderBook,
         };
-        const orderbook = await this.watch (url, messageHash, message, messageHash, subscription);
-        orderbook['symbol'] = market['symbol'];
+        const snapshot = await this.watch (url, messageHash, message, messageHash, subscription);
+        snapshot['symbol'] = market['symbol'];
+        const orderbook = this.orderBook (snapshot);
         return orderbook;
     }
 

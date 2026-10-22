@@ -5291,7 +5291,7 @@ export default class bybit extends Exchange {
         if (length > 1) {
             throw new InvalidOrder (this.id + ' returned more than one order');
         }
-        return this.safeValue (result, 0) as Order;
+        return this.safeDict (result, 0) as Order;
     }
 
     /**
@@ -5536,7 +5536,8 @@ export default class bybit extends Exchange {
         if (length > 1) {
             throw new InvalidOrder (this.id + ' returned more than one order');
         }
-        return this.safeValue (result, 0) as Order;
+        const order = this.safeDict (result, 0);
+        return order as Order;
     }
 
     /**
@@ -5573,7 +5574,8 @@ export default class bybit extends Exchange {
         if (length > 1) {
             throw new InvalidOrder (this.id + ' returned more than one order');
         }
-        return this.safeValue (result, 0) as Order;
+        const order = this.safeDict (result, 0);
+        return order as Order;
     }
 
     /**
@@ -6070,7 +6072,7 @@ export default class bybit extends Exchange {
         const [ networkCode, paramsOmited ] = this.handleNetworkCodeAndParams (params);
         const indexedAddresses = await this.fetchDepositAddressesByNetwork (code, paramsOmited);
         const selectedNetworkCode = this.selectNetworkKeyFromNetworks (currency['code'], networkCode, indexedAddresses, true);
-        return this.safeValue (indexedAddresses, selectedNetworkCode);
+        return this.safeDict (indexedAddresses, selectedNetworkCode) as DepositAddress;
     }
 
     /**
@@ -8933,7 +8935,7 @@ export default class bybit extends Exchange {
             'nextPageCursor': cursorValue,
         };
         result[lastIndex] = last;
-        return result;
+        return this.toArray (result);
     }
 
     /**

@@ -583,9 +583,12 @@ export default class myriad extends Exchange {
         const data = this.safeList (response, 'data', []);
         const result: PredictionPosition[] = [];
         for (let i = 0; i < data.length; i++) {
-            result.push (this.parsePredictionPosition (data[i]));
+            const position = this.parsePredictionPosition (data[i]);
+            if ((outcomes === undefined) || this.inArray (position['outcome'], outcomes)) {
+                result.push (position);
+            }
         }
-        return this.filterByArray (result, 'outcome', outcomes, false) as PredictionPosition[];
+        return result;
     }
 
     /**
@@ -2052,7 +2055,7 @@ export default class myriad extends Exchange {
      * @param {object} market the parsed ccxt market
      * @returns {object} an event structure
      */
-    parseMarketToEvent (raw: Dict, market: any): any {
+    parseMarketToEvent (raw: Dict, market: any): PredictionEvent {
         const slug = this.safeString (raw, 'slug', this.safeString (raw, 'id'));
         const state = this.safeString (raw, 'state', 'open');
         const endDate = this.safeString (raw, 'expiresAt');
@@ -3143,7 +3146,7 @@ export default class myriad extends Exchange {
      * @param {object} rawEvent the raw myriad question object
      * @returns {object} an event structure
      */
-    parseEvent (rawEvent: Dict): any {
+    parseEvent (rawEvent: Dict): PredictionEvent {
         const questionSlug = this.safeString (rawEvent, 'slug', this.safeString (rawEvent, 'id'));
         const rawMarkets = this.safeList (rawEvent, 'markets', []) as any[];
         const marketsList: Market[] = [];

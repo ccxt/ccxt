@@ -2499,9 +2499,9 @@ func promiseAll(tasksInterface any) <-chan AsyncResult[any] {
 	return ch
 }
 
-// AsyncOutcome is one async result as reflective consumers see it: its boxed value and its failure.
-type AsyncOutcome interface {
-	Boxed() any
+// UntypedOutcome is one async result as reflective consumers see it: its value as any and its failure.
+type UntypedOutcome interface {
+	Untyped() any
 	Failure() error
 }
 
@@ -2546,7 +2546,7 @@ func PromiseAllTyped[T any, R TypedOutcome[T]](tasks ...<-chan R) <-chan AsyncRe
 	return ch
 }
 
-var asyncOutcomeType = reflect.TypeOf((*AsyncOutcome)(nil)).Elem()
+var untypedOutcomeType = reflect.TypeOf((*UntypedOutcome)(nil)).Elem()
 
 // awaitOutcome receives one result from an async core channel or a *Future; anything else reads nil.
 func awaitOutcome(task any) (any, error) {
@@ -2565,23 +2565,23 @@ func awaitOutcome(task any) (any, error) {
 		return typedTask.Value, typedTask.Err
 	}
 	if outcome, ok := receiveOutcome(task); ok && outcome != nil {
-		return outcome.Boxed(), outcome.Failure()
+		return outcome.Untyped(), outcome.Failure()
 	}
 	return nil, nil
 }
 
-// receiveOutcome receives once from a channel whose element implements AsyncOutcome;
+// receiveOutcome receives once from a channel whose element implements UntypedOutcome;
 // ok is false when task is not such a channel, outcome is nil when it was closed empty.
-func receiveOutcome(task any) (AsyncOutcome, bool) {
+func receiveOutcome(task any) (UntypedOutcome, bool) {
 	rv := reflect.ValueOf(task)
-	if !rv.IsValid() || rv.Kind() != reflect.Chan || rv.IsNil() || rv.Type().ChanDir()&reflect.RecvDir == 0 || !rv.Type().Elem().Implements(asyncOutcomeType) {
+	if !rv.IsValid() || rv.Kind() != reflect.Chan || rv.IsNil() || rv.Type().ChanDir()&reflect.RecvDir == 0 || !rv.Type().Elem().Implements(untypedOutcomeType) {
 		return nil, false
 	}
 	v, received := rv.Recv()
 	if !received {
 		return nil, true
 	}
-	return v.Interface().(AsyncOutcome), true
+	return v.Interface().(UntypedOutcome), true
 }
 
 func ParseInt(number any) int64 {
@@ -3115,8 +3115,8 @@ func CallInternalMethod(methodCache *sync.Map, itf any, name2 string, args ...an
 						break // result channel is closed
 					}
 					out := val.Interface()
-					if outcome, isOutcome := out.(AsyncOutcome); isOutcome {
-						ch <- AsyncResult[any]{Value: outcome.Boxed(), Err: outcome.Failure()}
+					if outcome, isOutcome := out.(UntypedOutcome); isOutcome {
+						ch <- AsyncResult[any]{Value: DynamicValue(outcome.Untyped()), Err: outcome.Failure()}
 					} else {
 						ch <- AsyncResult[any]{Value: out}
 					}
@@ -3136,14 +3136,14 @@ func CallInternalMethod(methodCache *sync.Map, itf any, name2 string, args ...an
 	return ch
 }
 
-// PanicOnError re-panics when msg carries a failure, and otherwise returns msg (an AsyncOutcome
-// returns its boxed value) so a typed receive can convert it in the same frame.
+// PanicOnError re-panics when msg carries a failure, and otherwise returns msg (an UntypedOutcome
+// returns its value as any) so a typed receive can convert it in the same frame.
 func PanicOnError(msg any) any {
-	if outcome, ok := msg.(AsyncOutcome); ok {
+	if outcome, ok := msg.(UntypedOutcome); ok {
 		if err := outcome.Failure(); err != nil {
 			panic(err)
 		}
-		return outcome.Boxed()
+		return outcome.Untyped()
 	}
 	if err := failureOf(msg); err != nil {
 		panic(err)
@@ -3209,22 +3209,8 @@ type AsyncResult[T any] struct {
 	Err   error
 }
 
-// Boxed returns the value for reflective and forwarding consumers; a nil typed map/slice
-// (AsyncResult[map[string]any]) boxes as untyped nil, as the AsyncResult[any] core sent it.
-func (r AsyncResult[T]) Boxed() any {
-	if plain, isAny := any(r).(AsyncResult[any]); isAny {
-		return plain.Value
-	}
-	switch c := any(r.Value).(type) {
-	case map[string]any:
-		if c == nil {
-			return nil
-		}
-	case []any:
-		if c == nil {
-			return nil
-		}
-	}
+// Untyped returns the carried value as any, unchanged (a nil typed map stays a typed nil).
+func (r AsyncResult[T]) Untyped() any {
 	return r.Value
 }
 
@@ -3265,8 +3251,8 @@ type EndpointResult[T any] struct {
 	Err   error
 }
 
-// Boxed returns the untyped response for reflective and forwarding consumers.
-func (r EndpointResult[T]) Boxed() any {
+// Untyped returns the raw response exactly as Fetch2Async delivered it.
+func (r EndpointResult[T]) Untyped() any {
 	return r.Raw
 }
 

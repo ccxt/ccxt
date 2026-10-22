@@ -448,7 +448,7 @@ export default class coinbaseinternational extends Exchange {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    override async fetchTime (params = {}): Promise<Int> {
+    override async fetchTime (params: Dict = {}): Promise<Int> {
         const paramsResolved = this.handleRouteAndParams ('fetchTime', params);
         const response = await this.publicGetGetTime (paramsResolved);
         //
@@ -476,7 +476,7 @@ export default class coinbaseinternational extends Exchange {
      * @param {string} [params.currency] settlement currency filter, defaults to any on Deribit
      * @returns {object[]} an array of objects representing market data
      */
-    override async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const paramsResolved = this.handleRouteAndParams ('fetchMarkets', params);
         const request: Dict = {};
         if (this.isNativeDeribitCredentials ()) {
@@ -569,8 +569,7 @@ export default class coinbaseinternational extends Exchange {
         //     }
         //
         const instruments = this.safeList (response, 'result', []);
-        const parsedMarkets = this.parseMarkets (instruments);
-        return parsedMarkets;
+        return this.parseMarkets (instruments);
     }
 
     override parseMarket (market: Dict): Market {
@@ -694,7 +693,7 @@ export default class coinbaseinternational extends Exchange {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} an associative dictionary of currencies
      */
-    override async fetchCurrencies (params = {}): Promise<Currencies> {
+    override async fetchCurrencies (params: Dict = {}): Promise<Currencies> {
         const paramsResolved = this.handleRouteAndParams ('fetchCurrencies', params);
         const response = await this.publicGetGetCurrencies (paramsResolved);
         //
@@ -1053,7 +1052,7 @@ export default class coinbaseinternational extends Exchange {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         const paramsResolved = this.handleRouteAndParams ('fetchTickers', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -1071,7 +1070,7 @@ export default class coinbaseinternational extends Exchange {
             const ticker = await this.fetchTicker (symbol, paramsResolved);
             tickers[symbol] = ticker;
         }
-        return this.filterByArray (tickers, 'symbol', symbolsResolved, true);
+        return this.filterByArrayTickers (tickers, 'symbol', symbolsResolved);
     }
 
     /**
@@ -1085,7 +1084,7 @@ export default class coinbaseinternational extends Exchange {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         const paramsResolved = this.handleRouteAndParams ('fetchTicker', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -1202,7 +1201,7 @@ export default class coinbaseinternational extends Exchange {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}) {
         const paramsResolved = this.handleRouteAndParams ('fetchOrderBook', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -1290,7 +1289,7 @@ export default class coinbaseinternational extends Exchange {
      * @param {string} [params.code] unified currency code for a native Deribit single account summary
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
         const paramsResolved = this.handleRouteAndParams ('fetchBalance', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -1602,7 +1601,7 @@ export default class coinbaseinternational extends Exchange {
      * @param {string} [params.continuation] continuation token for pagination
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    override async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
+    override async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<TransferEntry[]> {
         const paramsResolved = this.handleRouteAndParams ('fetchTransfers', params);
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTransfers() requires a currency code argument');
@@ -1910,12 +1909,11 @@ export default class coinbaseinternational extends Exchange {
         //     }
         //
         const result = this.safeList (response, 'result', []);
-        const positions = this.parsePositions (result);
         if (this.isEmpty (symbols)) {
-            return positions;
+            return this.parsePositions (result);
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
-        return this.filterByArrayPositions (positions, 'symbol', symbolsNormalized);
+        return this.parsePositions (result, symbolsNormalized);
     }
 
     /**
@@ -1934,7 +1932,7 @@ export default class coinbaseinternational extends Exchange {
      * @param {string} [params.continuation] continuation token for pagination
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         const paramsResolved = this.handleRouteAndParams ('fetchDepositsWithdrawals', params);
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositsWithdrawals() requires a currency code argument');
@@ -3219,7 +3217,7 @@ export default class coinbaseinternational extends Exchange {
      * @param {boolean} [params.forceRefresh] ignore the cached token and request a new one
      * @returns {string} a Deribit gateway access token
      */
-    async authenticateV2 (params = {}): Promise<Str> {
+    async authenticateV2 (params: Dict = {}): Promise<Str> {
         const paramsResolved = this.handleRouteAndParams ('authenticateV2', params);
         if (this.isNativeDeribitCredentials ()) {
             return undefined;

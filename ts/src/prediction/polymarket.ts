@@ -898,9 +898,8 @@ export default class polymarket extends Exchange {
                     this.markets[(mkt as Dict)['market']] = mkt;
                 }
                 this.populateOutcomes ();
-                const byId = this.safeValue (this.outcomes_by_id, outcomeSymbol);
-                if (byId !== undefined) {
-                    return byId;
+                if (this.safeDict (this.outcomes_by_id, outcomeSymbol) !== undefined) {
+                    return this.safeDict (this.outcomes_by_id, outcomeSymbol);
                 }
             }
         }
@@ -1728,10 +1727,10 @@ export default class polymarket extends Exchange {
         const positions = this.safeList (response, 'data', []);
         // parse without the base outcome filter (it resolves standard markets, not outcome tokens),
         // then filter by the requested outcomes' token ids ourselves
-        const parsed = this.parsePredictionPositions (positions);
         if (outcomesLength === 0) {
-            return parsed;
+            return this.parsePredictionPositions (positions);
         }
+        const parsed = this.parsePredictionPositions (positions);
         const wantedIds: Dict = {};
         if (outcomes === undefined) {
             throw new ExchangeError (this.id + ' fetchPositions() missing outcomes');
@@ -2554,7 +2553,7 @@ export default class polymarket extends Exchange {
         return event;
     }
 
-    parseEvent (rawEvent: Dict): Dict {
+    parseEvent (rawEvent: Dict): PredictionEvent {
         // {
         //     "id": "73113",
         //     "ticker": "ukraine-agrees-not-to-join-nato-before-2027",

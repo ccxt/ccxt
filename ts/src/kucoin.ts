@@ -11510,7 +11510,8 @@ export default class kucoin extends Exchange {
         const [ utaOption, paramsUta ] = this.handleOptionBoolAndParams (params, 'fetchMarketLeverageTiers', 'uta', uta);
         if (utaOption) {
             const result = await this.fetchLeverageTiers ([ symbol ], paramsUta);
-            return this.safeList (result, symbol, []);
+            const tiers = this.safeList (result, symbol, []);
+            return tiers;
         }
         const request: Dict = {
             'symbol': market['id'],
@@ -11792,14 +11793,13 @@ export default class kucoin extends Exchange {
      * @returns {boolean} true if unified account is enabled, false otherwise
      */
     override async isUTAEnabled (params: Dict = {}): Promise<boolean> {
-        let uta = this.safeBool (this.options, 'uta');
-        if (uta === undefined) {
+        if (this.safeBool (this.options, 'uta') === undefined) {
             const response = await this.utaPrivateGetAccountMode (params);
             const data = this.safeDict (response, 'data', {});
             const accountMode = this.safeString (data, 'selfAccountMode');
-            uta = (accountMode === 'UNIFIED');
-            this.options['uta'] = uta;
+            this.options['uta'] = (accountMode === 'UNIFIED');
         }
+        const uta = this.safeBool (this.options, 'uta') === true;
         return uta;
     }
 

@@ -772,15 +772,13 @@ export default class btcbox extends Exchange {
         //      },
         // ]
         //
-        const orders = this.parseOrders (response, market, since, limit);
         // status (open/closed/canceled) is undefined
         // btcbox does not return status, but we know it's 'open' as we queried for open orders
+        const extra: Dict = {};
         if (type === 'open') {
-            for (let i = 0; i < orders.length; i++) {
-                orders[i]['status'] = 'open';
-            }
+            extra['status'] = 'open';
         }
-        return orders;
+        return this.parseOrders (response, market, since, limit, extra);
     }
 
     /**
