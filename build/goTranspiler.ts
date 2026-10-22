@@ -3024,7 +3024,11 @@ function goLevel45OperatorText (content: string, index: number): string | null {
 // literal in the condition, a condition spanning lines, or no control keyword in front)
 function goControlClauseClose (content: string, open: number): number {
     const head = content.slice (content.lastIndexOf ('\n', open - 1) + 1, open);
-    if (!/^[ \t]*(?:\} else )?(?:if|for|switch)[ \t]+$/.test (head)) {
+    // the parens may wrap the whole clause (`if (c) {`) or, in a three-clause `for`, just the
+    // condition between the two semicolons (`for i := 0; (c); i++ {`); gofmt strips both
+    const whole = /^[ \t]*(?:\} else )?(?:if|for|switch)[ \t]+$/.test (head);
+    const middle = /^[ \t]*for[ \t]+[^;{]*;[ \t]*$/.test (head);
+    if (!whole && !middle) {
         return -1;
     }
     let depth = 0;
@@ -3039,7 +3043,10 @@ function goControlClauseClose (content: string, open: number): number {
             if (depth === 0) {
                 const lineEnd = content.indexOf ('\n', i);
                 const tail = content.slice (i + 1, lineEnd < 0 ? content.length : lineEnd);
-                return /^[ \t]*\{[ \t]*$/.test (tail) ? i : -1;
+                // `if (c) {` ends the line at the brace; a `for`'s middle clause is followed
+                // by `; post {`, and gofmt strips the parens in both shapes
+                const ok = /^[ \t]*\{[ \t]*$/.test (tail) || (middle && /^[ \t]*;[^;{]*\{[ \t]*$/.test (tail));
+                return ok ? i : -1;
             }
         } else if ((char === '{') || (char === '}') || (char === '\n')) {
             return -1;                    // not the whole condition: gofmt keeps the parens
