@@ -791,7 +791,7 @@ impl P2bCore {
 }), limit]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
             orderbook = get_value(&self.orderbooks, &symbol);
         }
-        if (isFullUpdate.as_bool() == Some(true)) {
+        if isFullUpdate.as_bool() == Some(true) {
             // the first parameter signals whether the message carries all
             // records or only the changed ones, a full set replaces the book,
             // otherwise stale levels that left the depth window would linger

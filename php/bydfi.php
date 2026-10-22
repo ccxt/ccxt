@@ -703,7 +703,7 @@ class bydfi extends Exchange {
             $this->load_markets();
         }
         $paginate = $this->safe_bool($params, 'paginate', false);
-        if ($paginate === true) {
+        if ($paginate) {
             $maxLimit = 500;
             $paramsPaginate = $this->extend($this->omit($params, 'paginate'), array( 'paginationDirection' => 'backward' ));
             $paginatedResponse = $this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $paramsPaginate, $maxLimit, true);
@@ -906,8 +906,7 @@ class bydfi extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
-        $result = $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
-        return $result;
+        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
@@ -1328,13 +1327,13 @@ class bydfi extends Exchange {
         if ($hedged) {
             $query = $this->omit($query, 'reduceOnly');
             if ($side === 'buy') {
-                $request['positionSide'] = ($reduceOnly === true) ? 'SHORT' : 'LONG';
+                $request['positionSide'] = ($reduceOnly) ? 'SHORT' : 'LONG';
             } elseif ($side === 'sell') {
-                $request['positionSide'] = ($reduceOnly === true) ? 'LONG' : 'SHORT';
+                $request['positionSide'] = ($reduceOnly) ? 'LONG' : 'SHORT';
             }
         }
         $closePosition = $this->safe_bool($query, 'closePosition', false);
-        if ($closePosition !== true) {
+        if (!$closePosition) {
             $query = $this->omit($query, 'closePosition');
             $request['quantity'] = $this->amount_to_precision($symbol, $amount);
         } elseif (($typeValue !== 'STOP_MARKET') && ($typeValue !== 'TAKE_PROFIT_MARKET')) {
@@ -1700,7 +1699,7 @@ class bydfi extends Exchange {
             $this->load_markets();
         }
         $paginate = $this->safe_bool($params, 'paginate', false);
-        if ($paginate === true) {
+        if ($paginate) {
             $maxLimit = 500;
             $paramsPaginate = $this->extend($this->omit($params, 'paginate'), array( 'paginationDirection' => 'backward' ));
             $paginatedResponse = $this->fetch_paginated_call_dynamic('fetchCanceledAndClosedOrders', $symbol, $since, $limit, $paramsPaginate, $maxLimit, true);
@@ -2665,7 +2664,7 @@ class bydfi extends Exchange {
         $transfer = $this->parse_transfer($response, $currency);
         $transferOptions = $this->safe_dict($this->options, 'transfer', array());
         $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
-        if ($fillResponseFromRequest === true) {
+        if ($fillResponseFromRequest) {
             $transfer['currency'] = $code;
             $transfer['fromAccount'] = $fromAccount;
             $transfer['toAccount'] = $toAccount;
@@ -2695,7 +2694,7 @@ class bydfi extends Exchange {
         }
         $currency = $this->currency($code);
         $paginate = $this->safe_bool($params, 'paginate', false);
-        if ($paginate === true) {
+        if ($paginate) {
             $maxLimit = 50;
             $paramsPaginate = $this->extend($this->omit($params, 'paginate'), array( 'paginationDirection' => 'backward' ));
             $paginatedResponse = $this->fetch_paginated_call_dynamic('fetchTransfers', $this->safe_string($currency, 'code'), $since, $limit, $paramsPaginate, $maxLimit, true);
@@ -2799,7 +2798,8 @@ class bydfi extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
-        return $this->fetch_transactions_helper('deposit', $code, $since, $limit, $params);
+        $transactions = $this->fetch_transactions_helper('deposit', $code, $since, $limit, $params);
+        return $this->to_array($transactions);
     }
 
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -2814,7 +2814,8 @@ class bydfi extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
-        return $this->fetch_transactions_helper('withdrawal', $code, $since, $limit, $params);
+        $transactions = $this->fetch_transactions_helper('withdrawal', $code, $since, $limit, $params);
+        return $this->to_array($transactions);
     }
 
     public function fetch_transactions_helper(string $type, ?string $code, ?int $since, ?int $limit, mixed $params): array {
@@ -2830,7 +2831,7 @@ class bydfi extends Exchange {
         }
         $currency = $this->currency($code);
         $paginate = $this->safe_bool($params, 'paginate', false);
-        if ($paginate === true) {
+        if ($paginate) {
             $maxLimit = 50;
             $paramsPaginate = $this->extend($this->omit($params, 'paginate'), array( 'paginationDirection' => 'backward' ));
             $paginatedResponse = $this->fetch_paginated_call_dynamic($methodName, $this->safe_string($currency, 'code'), $since, $limit, $paramsPaginate, $maxLimit, true);

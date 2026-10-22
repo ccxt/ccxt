@@ -834,13 +834,13 @@ public partial class htx : ccxt.htx
         }
         bool spotConditon = ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) && (isEqual(prevSeqNum, getValue(orderbook, "nonce")));
         bool nonSpotCondition = ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true)) && ((version != null)) && (isEqual((version - 1), getValue(orderbook, "nonce")));
-        if (((spotConditon == true)) || ((nonSpotCondition == true)))
+        if ((spotConditon) || (nonSpotCondition))
         {
             List<object> asks = this.safeList(tick, "asks", new List<object>() {});
             List<object> bids = this.safeList(tick, "bids", new List<object>() {});
             this.handleDeltas(orderbook?.asks, asks);
             this.handleDeltas(orderbook?.bids, bids);
-            orderbook["nonce"] = ((spotConditon == true)) ? seqNum : version;
+            orderbook["nonce"] = spotConditon ? seqNum : version;
             orderbook["timestamp"] = timestamp;
             orderbook["datetime"] = this.iso8601(timestamp);
         }
@@ -1738,7 +1738,7 @@ public partial class htx : ccxt.htx
         string? takerOrMaker = null;
         if ((aggressor != null))
         {
-            takerOrMaker = ((aggressor == true)) ? "taker" : "maker";
+            takerOrMaker = aggressor == true ? "taker" : "maker";
         }
         return ccxt.BaseExchange.FromTrade(this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
@@ -3125,7 +3125,7 @@ public partial class htx : ccxt.htx
         string? takerOrMaker = null;
         if ((aggressor != null))
         {
-            takerOrMaker = ((aggressor == true)) ? "taker" : "maker";
+            takerOrMaker = aggressor == true ? "taker" : "maker";
         } else
         {
             takerOrMaker = this.safeStringLower(trade, "role");

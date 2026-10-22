@@ -860,7 +860,7 @@ public partial class krakenfutures : Exchange
         string? baseVolume = null;
         string? quoteVolume = null;
         bool? isIndex = this.safeBool(marketResolved, "index", false);
-        if ((isIndex != true))
+        if (isIndex != true)
         {
             if ((((marketResolved != null && marketResolved.ContainsKey("linear") ? marketResolved["linear"] : null) as bool?) == true))
             {

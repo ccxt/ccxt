@@ -2058,7 +2058,7 @@ func (this *Dydx) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, o
 	_ = params
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop", false)
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"trigger", "stop"})
-	if (isTrigger == nil || *isTrigger != true) && (symbol == nil) {
+	if (!(isTrigger != nil && *isTrigger)) && (symbol == nil) {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol argument"))
 	}
 	if this.Markets == nil {
@@ -2084,7 +2084,7 @@ func (this *Dydx) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, o
 	paramsGoodTillBlockTimeInSeconds := GetValue(goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable, 1) // default is 30 days
 	var goodTillBlockTime any = nil
 	var defaultOrderFlags int = func() int {
-		if isTrigger != nil && *isTrigger == true {
+		if isTrigger != nil && *isTrigger {
 			return 32
 		}
 		return 64

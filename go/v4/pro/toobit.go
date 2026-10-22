@@ -837,7 +837,7 @@ func (this *Toobit) HandleOrderBook(client any, message map[string]any) {
 	//     }
 	//
 	var isSnapshot *bool = this.SafeBool(message, "f", false)
-	if isSnapshot != nil && *isSnapshot == true {
+	if isSnapshot != nil && *isSnapshot {
 		this.SetOrderBookSnapshot(client, message, "diffDepth")
 		return
 	}

@@ -2155,7 +2155,7 @@ public partial class kucoin : Exchange
         {
             promises.Add(this.publicGetSymbols(paramsRequest));
         }
-        if ((requestMarginables == true))
+        if (requestMarginables)
         {
             promises.Add(this.privateGetMarginSymbols(paramsRequest)); // cross margin symbols
             //
@@ -2220,7 +2220,7 @@ public partial class kucoin : Exchange
         {
             nextIndex = 1;
         }
-        if ((requestMarginables == true))
+        if (requestMarginables)
         {
             crossIndex = nextIndex;
             nextIndex = this.sum(nextIndex, 2);
@@ -2235,10 +2235,10 @@ public partial class kucoin : Exchange
         {
             contractIndex = nextIndex;
         }
-        IDictionary<string, object> crossData = ((requestMarginables == true)) ? this.safeDict(getValue(responses, crossIndex), "data", new Dictionary<string, object>() {}) : new Dictionary<string, object>() {};
+        IDictionary<string, object> crossData = requestMarginables ? this.safeDict(getValue(responses, crossIndex), "data", new Dictionary<string, object>() {}) : new Dictionary<string, object>() {};
         List<object> crossItems = this.safeList(crossData, "items", new List<object>() {});
         Dictionary<string, object> crossById = this.indexBy(crossItems, "symbol");
-        object isolatedData = ((requestMarginables == true)) ? getValue(responses, isolatedIndex) : new Dictionary<string, object>() {};
+        object isolatedData = requestMarginables ? getValue(responses, isolatedIndex) : new Dictionary<string, object>() {};
         List<object> isolatedItems = this.safeList(isolatedData, "data", new List<object>() {});
         Dictionary<string, object> isolatedById = this.indexBy(isolatedItems, "symbol");
         IDictionary<string, object> tickersResponse = fetchTickersFees == true ? this.safeDict(responses, tickersIndex, new Dictionary<string, object>() {}) : new Dictionary<string, object>() {};
@@ -5052,7 +5052,7 @@ public partial class kucoin : Exchange
             request["postOnly"] = true;
         }
         object hidden = this.safeValue(paramsOmitted, "hidden");
-        if (((postOnly == true)) && ((hidden != null)))
+        if ((postOnly == true) && ((hidden != null)))
         {
             throw new BadRequest ((this.id + " createOrder() does not support the postOnly parameter together with a hidden parameter")) ;
         }
@@ -5801,7 +5801,7 @@ public partial class kucoin : Exchange
         bool isMarginOrder = tradeType == "MARGIN_TRADE" || (marginMode != null);
         if (((hf == true)) || (useSync == true) || isMarginOrder)
         {
-            if ((trigger != true))
+            if (trigger != true)
             {
                 if ((symbol == null))
                 {
@@ -6114,14 +6114,14 @@ public partial class kucoin : Exchange
         if ((symbol != null))
         {
             request["symbol"] = this.marketId(symbol);
-        } else if (((trigger != true)) && isMarginOrders)
+        } else if ((trigger != true) && isMarginOrders)
         {
             throw new ArgumentsRequired ((this.id + " cancelAllOrders() requires a symbol argument for margin non-trigger orders")) ;
         }
         if (isMarginOrders)
         {
             request["tradeType"] = getValue((this.options.ContainsKey("marginModes") ? this.options["marginModes"] : null), marginMode);
-            if ((marginMode == "isolated") && ((trigger == true)))
+            if ((marginMode == "isolated") && (trigger == true))
             {
                 throw new BadRequest ((this.id + " cancelAllOrders does not support isolated margin for stop orders")) ;
             }
@@ -6407,7 +6407,7 @@ public partial class kucoin : Exchange
         }
         request["tradeType"] = this.safeString((this.options.ContainsKey("marginModes") ? this.options["marginModes"] : null), marginMode, "TRADE");
         Dictionary<string, object> response = null;
-        if (isMarginOrder && lowercaseStatus == "active" && ((trigger != true)))
+        if (isMarginOrder && lowercaseStatus == "active" && (trigger != true))
         {
             // hf margin open non-trigger orders require only symbol and tradeType params
             response = await this.privateGetHfMarginOrdersActive(this.extend(request, query));
@@ -6939,7 +6939,7 @@ public partial class kucoin : Exchange
         }
         if (((hf == true)) || isMarginOrder)
         {
-            if ((trigger != true))
+            if (trigger != true)
             {
                 if ((symbol == null))
                 {
@@ -7347,9 +7347,9 @@ public partial class kucoin : Exchange
         string? status = null;
         if ((isActive != null))
         {
-            status = ((isActive == true)) ? "open" : "closed";
+            status = isActive == true ? "open" : "closed";
         }
-        status = ((cancelExist == true)) ? "canceled" : status;
+        status = cancelExist == true ? "canceled" : status;
         Dictionary<string, object> fee = null;
         if ((feeCost != null))
         {
@@ -7538,7 +7538,7 @@ public partial class kucoin : Exchange
             if (responseStatus == "NEW")
             {
                 status = "open";
-            } else if (((isActive != true)) && ((stopTriggered != true)))
+            } else if (((isActive != true)) && (stopTriggered != true))
             {
                 status = "cancelled";
             }
@@ -12377,7 +12377,7 @@ public partial class kucoin : Exchange
         string? marginMode = this.safeStringLower(position, "marginMode");
         if ((crossMode != null))
         {
-            marginMode = ((crossMode == true)) ? "cross" : "isolated";
+            marginMode = crossMode == true ? "cross" : "isolated";
         }
         string? collateralString = this.safeString(position, "maintMargin");
         string? marginString = null;

@@ -324,7 +324,7 @@ class pacifica extends \ccxt\async\pacifica {
             $orderId = $this->safe_string($order, 'i');
             $clientOrderId = $this->safe_string($order, 'I');
             $status = null;
-            if (($error !== null) || ($success !== true)) {
+            if (($error !== null) || (!$success)) {
                 $status = 'closed';
             } else {
                 $status = 'canceled';

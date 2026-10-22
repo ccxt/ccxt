@@ -3384,7 +3384,7 @@ class bitrue extends bitrue$1["default"] {
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         const success = this.safeBool(response, 'success', true);
         let parsedMessage = undefined;
-        if (success !== true) {
+        if (!success) {
             const messageInner = this.safeString(response, 'msg');
             if (messageInner !== undefined) {
                 try {
@@ -3420,7 +3420,7 @@ class bitrue extends bitrue$1["default"] {
             this.throwExactlyMatchedException(this.exceptions['exact'], error, feedback);
             throw new errors.ExchangeError(feedback);
         }
-        if (success !== true) {
+        if (!success) {
             throw new errors.ExchangeError(this.id + ' ' + body);
         }
         return undefined;

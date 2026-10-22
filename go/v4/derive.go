@@ -2561,7 +2561,7 @@ func (this *Derive) HashOrderMessage(order any) any {
 	var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	// EIP712Domain (name "Matching", version "1.0", verifyingContract 0xeB8d770ec18DB98Db922E9D83260A585b9F0DeAD) precomputed for chainId 1 (mainnet) and 11155111 (sepolia testnet)
 	var DOMAIN_SEPARATOR string = "da616dfabb88681b08e1592820a41d55ddc62d68de110e327ae99d734506fe19"
-	if sandboxMode != nil && *sandboxMode == true {
+	if sandboxMode != nil && *sandboxMode {
 		DOMAIN_SEPARATOR = "24d674cd5f2b9d564691c51e9d88f649b99246a2244dd74ce27b96578d773e85"
 	}
 	var binaryDomainSeparator []byte = this.Base16ToBinary(DOMAIN_SEPARATOR)
@@ -2744,7 +2744,7 @@ func (this *Derive) createOrderBody(ch chan AsyncResult[map[string]any], symbol 
 	request["signature"] = signature
 	var paramsOmitted map[string]any = this.OmitDict(paramsDeriveWalletAddress, []any{"reduceOnly", "reduce_only", "timeInForce", "time_in_force", "postOnly", "test", "clientOrderId", "stopPrice", "triggerPrice", "trigger_price", "stopLossPrice", "takeProfitPrice", "trigger_price_type"})
 	var response map[string]any = nil
-	if test != nil && *test == true {
+	if test != nil && *test {
 
 		r1 := <-this.PrivatePostOrderDebug(this.Extend(request, paramsOmitted))
 		if r1.Err != nil {
@@ -3060,7 +3060,7 @@ func (this *Derive) cancelOrderBody(ch chan AsyncResult[map[string]any], id any,
 		response = r1.Value
 	} else {
 		request["order_id"] = id
-		if isTrigger != nil && *isTrigger == true {
+		if isTrigger != nil && *isTrigger {
 
 			r2 := <-this.PrivatePostCancelTriggerOrder(this.Extend(request, paramsOmitted))
 			if r2.Err != nil {
@@ -3450,7 +3450,7 @@ func (this *Derive) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs .
 		market = this.Market(symbol)
 	}
 	var response map[string]any = nil
-	if isTrigger != nil && *isTrigger == true {
+	if isTrigger != nil && *isTrigger {
 
 		r1 := <-this.PrivatePostGetTriggerOrders(this.Extend(request, paramsDeriveSubaccountId))
 		if r1.Err != nil {

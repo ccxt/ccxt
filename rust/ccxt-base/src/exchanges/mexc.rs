@@ -3012,13 +3012,13 @@ impl MexcCore {
                 let mut isMaker: Value = self.safe_bool_k(trade.clone(), "isMaker", &[]);
                 let mut buyerMaker: Value = self.safe_bool2(trade.clone(), Value::Str("isBuyerMaker".into()), Value::Str("m".into()), &[]);
                 if (isMaker != Value::Null) {
-                    takerOrMaker = (if (isMaker.as_bool() == Some(true)) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
+                    takerOrMaker = (if isMaker.as_bool() == Some(true) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
                 }
                 if (isBuyer != Value::Null) {
-                    side = (if (isBuyer.as_bool() == Some(true)) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
+                    side = (if isBuyer.as_bool() == Some(true) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
                 }
                 if (buyerMaker != Value::Null) {
-                    side = (if (buyerMaker.as_bool() == Some(true)) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
+                    side = (if buyerMaker.as_bool() == Some(true) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
                     takerOrMaker = Value::Str("taker".into());
                 }
                 let mut feeAsset: Value = self.safe_string_k(trade.clone(), "commissionAsset", &[]);
@@ -3710,7 +3710,7 @@ impl MexcCore {
         let mut postOnlyparamsPostOnlyVariable = self.handle_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(type_var.as_str() == Some("LIMIT_MAKER")), &[paramsWithoutClientOrderId]);
         let mut postOnly: Value = postOnlyparamsPostOnlyVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsPostOnly: Value = postOnlyparamsPostOnlyVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        if (postOnly.as_bool() == Some(true)) {
+        if is_true(&postOnly) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("LIMIT_MAKER".into())); }
         }
         let mut tif: Option<String> = self.safe_string_k(paramsPostOnly.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
@@ -3757,7 +3757,7 @@ impl MexcCore {
         let mut paramsOmitted: Value = self.omit(params, Value::Str("test".into()), &[]);
         let mut request: Value = self.create_spot_order_request(market.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), marginMode, paramsOmitted]);
         let mut response: Value = Value::Null;
-        if (test.as_bool() == Some(true)) {
+        if test.as_bool() == Some(true) {
             response = self.spot_private_post_order_test(&[request.clone()]).await;
         }  else {
             response = self.spot_private_post_order(&[request]).await;
@@ -3851,7 +3851,7 @@ impl MexcCore {
         let mut postOnly: Value = postOnlyparamsPostOnlyVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsPostOnly: Value = postOnlyparamsPostOnlyVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut orderType: Value = Value::Null;
-        if (postOnly.as_bool() == Some(true)) {
+        if is_true(&postOnly) {
             orderType = Value::Int(2);
         }  else if (type_var.as_str() == Some("limit")) {
             orderType = Value::Int(1);
@@ -3888,22 +3888,22 @@ impl MexcCore {
         let mut reduceOnly: Value = self.safe_bool_k(paramsPostOnly.clone(), "reduceOnly", &[Value::Bool(false)]);
         let mut hedged: Value = self.safe_bool_k(paramsPostOnly.clone(), "hedged", &[Value::Bool(false)]);
         let mut sideInteger: Value = Value::Null;
-        if (hedged.as_bool() == Some(true)) {
-            if (reduceOnly.as_bool() == Some(true)) {
+        if hedged.as_bool() == Some(true) {
+            if reduceOnly.as_bool() == Some(true) {
                 sideInteger = (if (side.as_str() == Some("buy")) { Value::Int(4) } else { Value::Int(2) }); // close short, close long
             }  else {
                 sideInteger = (if (side.as_str() == Some("buy")) { Value::Int(1) } else { Value::Int(3) });
             }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("positionMode".into(), Value::Int(1)); }
         }  else {
-            if (reduceOnly.as_bool() == Some(true)) {
+            if reduceOnly.as_bool() == Some(true) {
                 sideInteger = (if (side.as_str() == Some("buy")) { Value::Int(2) } else { Value::Int(4) });
             }  else {
                 sideInteger = (if (side.as_str() == Some("buy")) { Value::Int(1) } else { Value::Int(3) });
             }
         }
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("side".into(), sideInteger); }
-        let mut paramsReduceOnly: Value = (if (reduceOnly.as_bool() == Some(true)) { self.omit(paramsPostOnly.clone(), Value::Str("reduceOnly".into()), &[]) } else { paramsPostOnly }); // hedged mode does not accept this parameter
+        let mut paramsReduceOnly: Value = (if reduceOnly.as_bool() == Some(true) { self.omit(paramsPostOnly.clone(), Value::Str("reduceOnly".into()), &[]) } else { paramsPostOnly }); // hedged mode does not accept this parameter
         let mut clientOrderId: Value = self.safe_string2(paramsReduceOnly.clone(), Value::Str("clientOrderId".into()), Value::Str("externalOid".into()), &[]);
         if (clientOrderId != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("externalOid".into(), clientOrderId); }
@@ -5371,7 +5371,7 @@ impl MexcCore {
         let mut isMargin: Value = self.safe_bool_k(paramsMarketType.clone(), "margin", &[Value::Bool(false)]);
         let mut paramsOmitted2: Value = self.omit(paramsMarketType, Value::from(vec![Value::Str("margin".into()), Value::Str("marginMode".into())]), &[]);
         let mut response: Value = Value::Null;
-        if (marginMode.is_some()) || (isMargin.as_bool() == Some(true)) || (marketType.as_str() == Some("margin")) {
+        if (marginMode.is_some()) || isMargin.as_bool() == Some(true) || (marketType.as_str() == Some("margin")) {
             let mut parsedSymbols: Value = Value::Null;
             let mut symbol: Value = self.safe_string_k(paramsOmitted2.clone(), "symbol", &[]);
             if (symbol == Value::Null) {
@@ -7229,7 +7229,7 @@ impl MexcCore {
         let mut tagResolved: Value = tagResolvedparamsWithdrawTagVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsWithdrawTag: Value = tagResolvedparamsWithdrawTagVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut internal: Value = self.safe_bool_k(paramsWithdrawTag.clone(), "internal", &[Value::Bool(false)]);
-        if (internal.as_bool() == Some(true)) {
+        if internal.as_bool() == Some(true) {
             let mut paramsInternal: Value = self.omit(paramsWithdrawTag.clone(), Value::Str("internal".into()), &[]);
             let mut requestForInternal: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -7646,7 +7646,7 @@ impl MexcCore {
         let mut marginModeparamsMarginModeVariable = self.super_handle_margin_mode_and_params(methodName, params, defaultValue);
         let mut marginMode: Value = marginModeparamsMarginModeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        if (defaultType.as_deref() == Some("margin")) || (isMargin.as_bool() == Some(true)) {
+        if (defaultType.as_deref() == Some("margin")) || isMargin.as_bool() == Some(true) {
             return Value::from(vec![Value::Str("isolated".into()), paramsMarginMode.clone()]);
         }
         return Value::from(vec![marginMode, paramsMarginMode]);
@@ -7934,7 +7934,7 @@ impl MexcCore {
         //     {"success":true, "code":0, "data":1634095541710}
         //
         let mut success: Value = self.safe_bool_k(response.clone(), "success", &[Value::Bool(false)]); // v1
-        if (success.as_bool() == Some(true)) {
+        if success.as_bool() == Some(true) {
             return Value::Null;
         }
         let mut responseCode: Value = self.safe_string_k(response, "code", &[]);

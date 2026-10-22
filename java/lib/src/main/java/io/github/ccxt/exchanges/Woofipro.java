@@ -2694,7 +2694,7 @@ public class Woofipro extends WoofiproApi
 
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
-            if ((!java.util.Objects.equals(trigger, true)) && (java.util.Objects.equals(symbol, null)))
+            if ((!Boolean.TRUE.equals(trigger)) && (java.util.Objects.equals(symbol, null)))
             {
                 throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
             }
@@ -2713,7 +2713,7 @@ public class Woofipro extends WoofiproApi
             String clientOrderIdExchangeSpecific = this.safeString(paramsOmitted, "client_order_id", clientOrderIdUnified);
             Boolean isByClientOrder = !java.util.Objects.equals(clientOrderIdExchangeSpecific, null);
             Object response = null;
-            if (java.util.Objects.equals(trigger, true))
+            if (Boolean.TRUE.equals(trigger))
             {
                 if (Boolean.TRUE.equals(isByClientOrder))
                 {
@@ -2762,7 +2762,7 @@ public class Woofipro extends WoofiproApi
             {
                 extendParams.put("id", id);
             }
-            if (java.util.Objects.equals(trigger, true))
+            if (Boolean.TRUE.equals(trigger))
             {
                 Object parsedResponse = (((java.util.Objects.equals(response, null)))) ? new HashMap<String, Object>() {{}} : response;
                 return this.extend(this.parseOrder(parsedResponse, (Map<String, Object>) null), extendParams);
@@ -2915,7 +2915,7 @@ public class Woofipro extends WoofiproApi
             String clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "clOrdID", "clientOrderId", "client_order_id")));
             Map<String, Object> response = null;
-            if (java.util.Objects.equals(trigger, true))
+            if (Boolean.TRUE.equals(trigger))
             {
                 if (!java.util.Objects.equals(clientOrderId, null) && !java.util.Objects.equals(clientOrderId, ""))
                 {
@@ -2999,7 +2999,7 @@ public class Woofipro extends WoofiproApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Boolean isTrigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
-            Long maxLimit = (((java.util.Objects.equals(isTrigger, true)))) ? 100L : 500L;
+            Long maxLimit = ((Boolean.TRUE.equals(isTrigger))) ? 100L : 500L;
             Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOrders", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
@@ -3026,7 +3026,7 @@ public class Woofipro extends WoofiproApi
             {
                 request.put("size", maxLimit);
             }
-            if (java.util.Objects.equals(isTrigger, true))
+            if (Boolean.TRUE.equals(isTrigger))
             {
                 request.put("algo_type", "STOP");
             }
@@ -3034,7 +3034,7 @@ public class Woofipro extends WoofiproApi
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = null;
-            if (java.util.Objects.equals(isTrigger, true))
+            if (Boolean.TRUE.equals(isTrigger))
             {
                 response = (this.v1PrivateGetAlgoOrders(this.extend(requestUntil, paramsUntil))).join();
             } else
@@ -3898,20 +3898,18 @@ public class Woofipro extends WoofiproApi
         //
         Long timestamp = this.safeInteger(data, "timestamp");
         Boolean success = (Boolean) this.safeBool(data, "success", false);
-        {
-            HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
-            h2kMap3.put("info", data);
-            h2kMap3.put("symbol", this.safeString(market, "symbol"));
-            h2kMap3.put("type", null);
-            h2kMap3.put("marginMode", "isolated");
-            h2kMap3.put("amount", null);
-            h2kMap3.put("total", null);
-            h2kMap3.put("code", this.safeString(market, "settle"));
-            h2kMap3.put("status", (((java.util.Objects.equals(success, true)))) ? "ok" : "failed");
-            h2kMap3.put("timestamp", timestamp);
-            h2kMap3.put("datetime", this.iso8601(timestamp));
-            return h2kMap3;
-        }
+        return new HashMap<String, Object>() {{
+            put( "info", data );
+            put( "symbol", Woofipro.this.safeString(market, "symbol") );
+            put( "type", null );
+            put( "marginMode", "isolated" );
+            put( "amount", null );
+            put( "total", null );
+            put( "code", Woofipro.this.safeString(market, "settle") );
+            put( "status", ((Boolean.TRUE.equals(success))) ? "ok" : "failed" );
+            put( "timestamp", timestamp );
+            put( "datetime", Woofipro.this.iso8601(timestamp) );
+        }};
     }
 
     /**
@@ -4314,7 +4312,7 @@ public class Woofipro extends WoofiproApi
             if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PUT")) && (java.util.Objects.equals(path, "algo/order") || java.util.Objects.equals(path, "order") || java.util.Objects.equals(path, "batch-order")))
             {
                 Boolean isSandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
-                if (!java.util.Objects.equals(isSandboxMode, true))
+                if (!Boolean.TRUE.equals(isSandboxMode))
                 {
                     String brokerId = this.safeString(this.options, "brokerId", "CCXT");
                     if (java.util.Objects.equals(path, "batch-order"))
@@ -4375,12 +4373,12 @@ public class Woofipro extends WoofiproApi
         String bodyResult = requestBody;
         Map<String, Object> headersResult = requestHeaders;
         {
-            HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
-            h2kMap4.put("url", url);
-            h2kMap4.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap4.put("body", bodyResult);
-            h2kMap4.put("headers", headersResult);
-            return h2kMap4;
+            HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
+            h2kMap3.put("url", url);
+            h2kMap3.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap3.put("body", bodyResult);
+            h2kMap3.put("headers", headersResult);
+            return h2kMap3;
         }
     }
 

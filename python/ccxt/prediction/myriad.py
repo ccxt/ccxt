@@ -541,8 +541,10 @@ class myriad(PredictionExchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         result = []
         for i in range(0, len(data)):
-            result.append(self.parse_prediction_position(data[i]))
-        return self.filter_by_array(result, 'outcome', outcomes, False)
+            position = self.parse_prediction_position(data[i])
+            if (outcomes is None) or self.in_array(position['outcome'], outcomes):
+                result.append(position)
+        return result
 
     def parse_prediction_position(self, position: dict, market: Market = None) -> PredictionPosition:
         """
@@ -769,7 +771,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         # the on-chain AMM path requires native gas and has not been verified end to end; keep it behind
         # an explicit opt-in so callers do not silently hit an untested signing/broadcast path
         enableAmm = self.safe_bool_2(params, 'enableAmm', 'enableAmmOrders', self.safe_bool(self.options, 'enableAmmOrders', False))
-        if enableAmm is not True:
+        if not enableAmm:
             raise NotSupported(self.id + ' createOrder() only supports the gasless order book; self market uses the on-chain AMM (needs native gas and is unverified) — pass params.enableAmm=true to opt in')
         return await self.create_amm_order(outcome, type, side, amount, price, self.omit(rest, ['enableAmm', 'enableAmmOrders']))
 
@@ -965,7 +967,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         # plain createOrder buy on the AMM is rejected so it can't misinterpret shares as collateral
         sideLower = side.lower() if (side is not None) else None
         isCostDenominated = self.safe_bool(params, 'costDenominated', False)
-        if (sideLower == 'buy') and (isCostDenominated is not True):
+        if (sideLower == 'buy') and (not isCostDenominated):
             raise NotSupported(self.id + ' createOrder() market buy on the AMM sizes by collateral, not shares — use createMarketBuyOrderWithCost(outcome, collateral) for a dollar buy, or the default order book (omit enableAmm) for a share-denominated order')
         if self.privateKey is None:
             raise ArgumentsRequired(self.id + ' createOrder() requires a privateKey to sign the on-chain transaction')
@@ -993,13 +995,13 @@ class myriad(PredictionExchange, ImplicitAPI):
         txHashParam = self.safe_string_2(params, 'transactionHash', 'txHash')
         hasPreBroadcastTxHash = (txHashParam is not None)
         skipAllowance = self.safe_bool(params, 'skipAllowance', hasPreBroadcastTxHash)
-        if (sideStr == 'buy') and (tokenAddress is not None) and (skipAllowance is not True):
+        if (sideStr == 'buy') and (tokenAddress is not None) and (not skipAllowance):
             await self.ensure_erc20_allowance(rpcUrl, networkId, tokenAddress, fromAddress, predictionMarket)
         skipWaitForReceipt = self.safe_bool(params, 'skipWaitForReceipt', hasPreBroadcastTxHash)
         txHash = txHashParam
         if txHash is None:
             txHash = await self.send_evm_transaction(rpcUrl, self.parse_to_int(networkId), fromAddress, predictionMarket, '0x0', calldata, gasLimit)
-        if skipWaitForReceipt is not True:
+        if not skipWaitForReceipt:
             await self.wait_for_transaction_receipt(rpcUrl, txHash)
         return self.parse_trade_tx(txHash, quote, outcomeObj, sideStr)
 
@@ -1840,7 +1842,7 @@ class myriad(PredictionExchange, ImplicitAPI):
             'fee': None,
         }, market)
 
-    def parse_market_to_event(self, raw: dict, market: object) -> object:
+    def parse_market_to_event(self, raw: dict, market: object) -> PredictionEvent:
         """
  @ignore
         wraps a parsed myriad market into a unified event structure
@@ -1927,7 +1929,7 @@ class myriad(PredictionExchange, ImplicitAPI):
                 settleFractionRaw = 1 if winnerRaw else 0
                 if winnerRaw:
                     resolvedOutcome = outcomeHandle
-            elif voided is True:
+            elif voided:
                 winnerRaw = False
             # effectively-final copies for the object literal below (Java cannot capture a
             # reassigned local into the anonymous inner class it emits for a map literal)
@@ -2752,7 +2754,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         :returns dict[]: an array of event structures
         """
         allowUnscopedFetchEvents = self.safe_bool(self.options, 'allowUnscopedFetchEvents', False)
-        if allowUnscopedFetchEvents is not True:
+        if not allowUnscopedFetchEvents:
             self.require_event_query(params)
         queries = self.parse_search_queries(params)
         rest = self.omit(params, ['query', 'queries', 'sort', 'searchIn', 'eventId', 'slug', 'status', 'tags'])
@@ -2852,7 +2854,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         postParams = self.omit(params, ['tags'])
         return self.apply_event_fetch_params(result, postParams, queries)
 
-    def parse_event(self, rawEvent: dict) -> object:
+    def parse_event(self, rawEvent: dict) -> PredictionEvent:
         """
  @ignore
         parses a raw myriad question object into the unified event shape with a nested markets list

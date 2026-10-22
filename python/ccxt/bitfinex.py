@@ -1739,7 +1739,7 @@ class bitfinex(Exchange, ImplicitAPI):
                 orderType = 'STOP'
         ioc = (timeInForce == 'IOC')
         fok = (timeInForce == 'FOK')
-        postOnly = ((postOnlyParam is True) or (timeInForce == 'PO'))
+        postOnly = ((postOnlyParam) or (timeInForce == 'PO'))
         if (ioc or fok) and (price is None):
             raise InvalidOrder(self.id + ' createOrder() requires a price argument with IOC and FOK orders')
         if (ioc or fok) and (type == 'market'):
@@ -1759,7 +1759,7 @@ class bitfinex(Exchange, ImplicitAPI):
         flags = 0
         if postOnly:
             flags = self.sum(flags, 4096)
-        if reduceOnly is True:
+        if reduceOnly:
             flags = self.sum(flags, 1024)
         if flags != 0:
             request['flags'] = flags
@@ -2067,7 +2067,7 @@ class bitfinex(Exchange, ImplicitAPI):
             'id': [int(id)],
         }
         orders = self.fetch_open_orders(symbol, None, None, self.extend(request, params))
-        order = self.safe_value(orders, 0)
+        order = self.safe_dict(orders, 0)
         if order is None:
             raise OrderNotFound(self.id + ' order ' + id + ' not found')
         return order
@@ -2088,7 +2088,7 @@ class bitfinex(Exchange, ImplicitAPI):
             'id': [int(id)],
         }
         orders = self.fetch_closed_orders(symbol, None, None, self.extend(request, params))
-        order = self.safe_value(orders, 0)
+        order = self.safe_dict(orders, 0)
         if order is None:
             raise OrderNotFound(self.id + ' order ' + id + ' not found')
         return order
@@ -2741,7 +2741,7 @@ class bitfinex(Exchange, ImplicitAPI):
             request['payment_id'] = tag
         withdrawOptions = self.safe_dict(self.options, 'withdraw', {})
         includeFee = self.safe_bool(withdrawOptions, 'includeFee', False)
-        if includeFee is True:
+        if includeFee:
             request['fee_deduct'] = 1
         response = self.privatePostAuthWWithdraw(self.extend(request, paramsOmitted2))
         #
@@ -3804,14 +3804,14 @@ class bitfinex(Exchange, ImplicitAPI):
             request['price'] = self.price_to_precision(symbol, triggerPrice)
             if type == 'limit':
                 request['price_aux_limit'] = self.price_to_precision(symbol, price)
-        postOnly = ((postOnlyParam is True) or (timeInForce == 'PO'))
+        postOnly = ((postOnlyParam) or (timeInForce == 'PO'))
         if (type != 'market') and (triggerPrice is None):
             request['price'] = self.price_to_precision(symbol, price)
         # flag values may be summed to combine flags
         flags = 0
         if postOnly:
             flags = self.sum(flags, 4096)
-        if reduceOnly is True:
+        if reduceOnly:
             flags = self.sum(flags, 1024)
         if flags != 0:
             request['flags'] = flags

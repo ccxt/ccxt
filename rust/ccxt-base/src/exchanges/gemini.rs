@@ -2583,7 +2583,7 @@ impl GeminiCore {
                 }
             }
             let mut postOnly: Value = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]);
-            if (postOnly.as_bool() == Some(true)) {
+            if postOnly.as_bool() == Some(true) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("options".into(), Value::from(vec![Value::Str("maker-or-cancel".into())])); }
             }
             // allowing override for auction-only and indication-of-interest order options

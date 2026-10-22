@@ -4931,7 +4931,7 @@ public class Htx extends HtxApi
                 Map<String, Object> paramsClientOrderId = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("client_order_id", "clientOrderId", "algo_client_order_id"))) : paramsOmitted;
                 if (java.util.Objects.equals(clientOrderId, null))
                 {
-                    if (java.util.Objects.equals(isAlgo, true))
+                    if (Boolean.TRUE.equals(isAlgo))
                     {
                         request.put("algo_id", id);
                     } else
@@ -4940,7 +4940,7 @@ public class Htx extends HtxApi
                     }
                 } else
                 {
-                    if (java.util.Objects.equals(isAlgo, true))
+                    if (Boolean.TRUE.equals(isAlgo))
                     {
                         request.put("algo_client_order_id", clientOrderId);
                     } else
@@ -4950,7 +4950,7 @@ public class Htx extends HtxApi
                 }
                 if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
                 {
-                    if (java.util.Objects.equals(isAlgo, true))
+                    if (Boolean.TRUE.equals(isAlgo))
                     {
                         if (java.util.Objects.equals(trigger, true))
                         {
@@ -5256,7 +5256,7 @@ public class Htx extends HtxApi
             Boolean stopLoss = (Boolean) this.safeBool(parameters, "stopLoss", (Object) null);
             Boolean takeProfit = (Boolean) this.safeBool(parameters, "takeProfit", (Object) null);
             Boolean trailing = (Boolean) this.safeBool(parameters, "trailing", false);
-            Boolean isAlgo = ((java.util.Objects.equals(trigger, true)) || (java.util.Objects.equals(stopLoss, true)) || (java.util.Objects.equals(takeProfit, true)) || (java.util.Objects.equals(stopLossTakeProfit, true)) || (java.util.Objects.equals(trailing, true)));
+            Boolean isAlgo = ((java.util.Objects.equals(trigger, true)) || (java.util.Objects.equals(stopLoss, true)) || (java.util.Objects.equals(takeProfit, true)) || (java.util.Objects.equals(stopLossTakeProfit, true)) || Boolean.TRUE.equals(trailing));
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit")));
             if (!java.util.Objects.equals(since, null))
             {
@@ -5276,12 +5276,12 @@ public class Htx extends HtxApi
                 Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
                 request.put("margin_mode", (((java.util.Objects.equals(marginMode, null)))) ? "cross" : marginMode);
                 request.put("contract_code", market.get("id"));
-                if (java.util.Objects.equals(isAlgo, true))
+                if (Boolean.TRUE.equals(isAlgo))
                 {
                     if (java.util.Objects.equals(trigger, true))
                     {
                         request.put("type", "trigger");
-                    } else if (java.util.Objects.equals(trailing, true))
+                    } else if (Boolean.TRUE.equals(trailing))
                     {
                         request.put("type", "trailing_stop");
                     } else if (java.util.Objects.equals(stopLossTakeProfit, true))
@@ -5313,7 +5313,7 @@ public class Htx extends HtxApi
                     } else if (java.util.Objects.equals(stopLossTakeProfit, true))
                     {
                         response = (this.contractPrivatePostSwapApiV1SwapTpslHisorders(this.extend(request, paramsUntil))).join();
-                    } else if (java.util.Objects.equals(trailing, true))
+                    } else if (Boolean.TRUE.equals(trailing))
                     {
                         response = (this.contractPrivatePostSwapApiV1SwapTrackHisorders(this.extend(request, paramsUntil))).join();
                     } else
@@ -5329,7 +5329,7 @@ public class Htx extends HtxApi
                     } else if (java.util.Objects.equals(stopLossTakeProfit, true))
                     {
                         response = (this.contractPrivatePostApiV1ContractTpslHisorders(this.extend(request, paramsUntil))).join();
-                    } else if (java.util.Objects.equals(trailing, true))
+                    } else if (Boolean.TRUE.equals(trailing))
                     {
                         response = (this.contractPrivatePostApiV1ContractTrackHisorders(this.extend(request, paramsUntil))).join();
                     } else
@@ -5370,8 +5370,8 @@ public class Htx extends HtxApi
                 Boolean stopLoss = (Boolean) this.safeBool(parameters, "stopLoss", (Object) null);
                 Boolean takeProfit = (Boolean) this.safeBool(parameters, "takeProfit", (Object) null);
                 Boolean trailing = (Boolean) this.safeBool(parameters, "trailing", false);
-                Boolean isAlgo = ((java.util.Objects.equals(trigger, true)) || (java.util.Objects.equals(stopLoss, true)) || (java.util.Objects.equals(takeProfit, true)) || (java.util.Objects.equals(stopLossTakeProfit, true)) || (java.util.Objects.equals(trailing, true)));
-                if (java.util.Objects.equals(isAlgo, true))
+                Boolean isAlgo = ((java.util.Objects.equals(trigger, true)) || (java.util.Objects.equals(stopLoss, true)) || (java.util.Objects.equals(takeProfit, true)) || (java.util.Objects.equals(stopLossTakeProfit, true)) || Boolean.TRUE.equals(trailing));
+                if (Boolean.TRUE.equals(isAlgo))
                 {
                     request.put("states", "effective");
                 } else
@@ -5501,8 +5501,8 @@ public class Htx extends HtxApi
                     Boolean stopLoss = (Boolean) this.safeBool(paramsMarketType, "stopLoss", (Object) null);
                     Boolean takeProfit = (Boolean) this.safeBool(paramsMarketType, "takeProfit", (Object) null);
                     Boolean trailing = (Boolean) this.safeBool(paramsMarketType, "trailing", false);
-                    Boolean isAlgo = ((java.util.Objects.equals(trigger, true)) || (java.util.Objects.equals(stopLoss, true)) || (java.util.Objects.equals(takeProfit, true)) || (java.util.Objects.equals(stopLossTakeProfit, true)) || (java.util.Objects.equals(trailing, true)));
-                    if (java.util.Objects.equals(isAlgo, true))
+                    Boolean isAlgo = ((java.util.Objects.equals(trigger, true)) || (java.util.Objects.equals(stopLoss, true)) || (java.util.Objects.equals(takeProfit, true)) || (java.util.Objects.equals(stopLossTakeProfit, true)) || Boolean.TRUE.equals(trailing));
+                    if (Boolean.TRUE.equals(isAlgo))
                     {
                         request.put("states", "canceled");
                     } else
@@ -5670,12 +5670,12 @@ public class Htx extends HtxApi
                 Map<String, Object> paramsOmitted = this.omit(paramsSubType, new ArrayList<Object>(Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit")));
                 if (Boolean.TRUE.equals(isLinear))
                 {
-                    if ((java.util.Objects.equals(trigger, true)) || (java.util.Objects.equals(trailing, true)) || (java.util.Objects.equals(stopLossTakeProfit, true)) || (java.util.Objects.equals(stopLoss, true)) || (java.util.Objects.equals(takeProfit, true)))
+                    if ((java.util.Objects.equals(trigger, true)) || Boolean.TRUE.equals(trailing) || (java.util.Objects.equals(stopLossTakeProfit, true)) || (java.util.Objects.equals(stopLoss, true)) || (java.util.Objects.equals(takeProfit, true)))
                     {
                         if (java.util.Objects.equals(trigger, true))
                         {
                             request.put("type", "trigger");
-                        } else if (java.util.Objects.equals(trailing, true))
+                        } else if (Boolean.TRUE.equals(trailing))
                         {
                             request.put("type", "trailing_stop");
                         } else if (java.util.Objects.equals(stopLossTakeProfit, true))
@@ -5703,7 +5703,7 @@ public class Htx extends HtxApi
                         } else if (java.util.Objects.equals(stopLossTakeProfit, true))
                         {
                             response = (this.contractPrivatePostSwapApiV1SwapTpslOpenorders(this.extend(request, paramsOmitted))).join();
-                        } else if (java.util.Objects.equals(trailing, true))
+                        } else if (Boolean.TRUE.equals(trailing))
                         {
                             response = (this.contractPrivatePostSwapApiV1SwapTrackOpenorders(this.extend(request, paramsOmitted))).join();
                         } else
@@ -5719,7 +5719,7 @@ public class Htx extends HtxApi
                         } else if (java.util.Objects.equals(stopLossTakeProfit, true))
                         {
                             response = (this.contractPrivatePostApiV1ContractTpslOpenorders(this.extend(request, paramsOmitted))).join();
-                        } else if (java.util.Objects.equals(trailing, true))
+                        } else if (Boolean.TRUE.equals(trailing))
                         {
                             response = (this.contractPrivatePostApiV1ContractTrackOpenorders(this.extend(request, paramsOmitted))).join();
                         } else
@@ -6242,7 +6242,7 @@ public class Htx extends HtxApi
         String contractCode = this.safeString(order, "contract_code");
         Boolean isLinearOrder = (!java.util.Objects.equals(contractCode, null)) && (!java.util.Objects.equals(marketResolved, null)) && (java.util.Objects.equals(marketResolved.get("linear"), true)) && (!java.util.Objects.equals(marketResolved.get("spot"), true));
         Object type = null;
-        if (java.util.Objects.equals(isLinearOrder, true))
+        if (Boolean.TRUE.equals(isLinearOrder))
         {
             type = this.safeString(order, "type");
             if ((java.util.Objects.equals(type, null)) || (java.util.Objects.equals(type, "tp")) || (java.util.Objects.equals(type, "sl")) || (java.util.Objects.equals(type, "tpsl")))
@@ -6274,7 +6274,7 @@ public class Htx extends HtxApi
         String clientOrderId = this.safeStringN(order, new ArrayList<Object>(Arrays.asList("client_order_id", ("client-or" + "der-id"), "algo_client_order_id"))); // transpiler regex trick for php issue
         String cost = null;
         String amount = null;
-        if ((!java.util.Objects.equals(type, null)) && (((String)type).indexOf("market") >= 0) && (!java.util.Objects.equals(isLinearOrder, true)))
+        if ((!java.util.Objects.equals(type, null)) && (((String)type).indexOf("market") >= 0) && (!Boolean.TRUE.equals(isLinearOrder)))
         {
             cost = this.safeString(order, "field-cash-amount");
         } else
@@ -6306,7 +6306,7 @@ public class Htx extends HtxApi
         String average = this.safeString(order, "trade_avg_price");
         Object trades = this.safeValue(order, "trades");
         Object reduceOnly = null;
-        if (java.util.Objects.equals(isLinearOrder, true))
+        if (Boolean.TRUE.equals(isLinearOrder))
         {
             reduceOnly = this.safeBool(order, "reduce_only", (Object) null);
         } else
@@ -6483,7 +6483,7 @@ public class Htx extends HtxApi
             List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(orderType, "market"), java.util.Objects.equals(orderType, "limit-maker"), paramsMarginMode);
             Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
             Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
-            if (java.util.Objects.equals(postOnly, true))
+            if (Boolean.TRUE.equals(postOnly))
             {
                 orderType = "limit-maker";
             }
@@ -6610,7 +6610,7 @@ public class Htx extends HtxApi
         List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), java.util.Objects.equals(type, "post_only"), parameters);
         Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
         Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
-        String orderType = (((java.util.Objects.equals(postOnly, true)))) ? "post_only" : type;
+        String orderType = ((Boolean.TRUE.equals((postOnly)))) ? "post_only" : type;
         Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("createOrder", market, paramsPostOnly, (Object) null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
@@ -6674,9 +6674,9 @@ public class Htx extends HtxApi
             }
         } else
         {
-            if (java.util.Objects.equals(hedged, true))
+            if (Boolean.TRUE.equals(hedged))
             {
-                if (java.util.Objects.equals(reduceOnly, true))
+                if (Boolean.TRUE.equals(reduceOnly))
                 {
                     request.put("offset", "close");
                 } else
@@ -6788,7 +6788,7 @@ public class Htx extends HtxApi
         }
         if (!Boolean.TRUE.equals(isStopLossTriggerOrder) && !Boolean.TRUE.equals(isTakeProfitTriggerOrder))
         {
-            if (java.util.Objects.equals(reduceOnly, true))
+            if (Boolean.TRUE.equals(reduceOnly))
             {
                 request.put("reduce_only", 1);
             }
@@ -7301,7 +7301,7 @@ public class Htx extends HtxApi
                     throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
                 }
                 String clientOrderId = this.safeStringN(query, new ArrayList<Object>(Arrays.asList("client_order_id", "clientOrderId", "algo_client_order_id")));
-                if (!(Boolean.TRUE.equals(isLinear) && ((java.util.Objects.equals(trigger, true)) || (java.util.Objects.equals(stopLossTakeProfit, true)) || (java.util.Objects.equals(trailing, true)))))
+                if (!(Boolean.TRUE.equals(isLinear) && ((java.util.Objects.equals(trigger, true)) || (java.util.Objects.equals(stopLossTakeProfit, true)) || Boolean.TRUE.equals(trailing))))
                 {
                     if (java.util.Objects.equals(clientOrderId, null))
                     {
@@ -7321,7 +7321,7 @@ public class Htx extends HtxApi
                 }
                 if (Boolean.TRUE.equals(isLinear))
                 {
-                    if ((java.util.Objects.equals(trigger, true)) || (java.util.Objects.equals(stopLossTakeProfit, true)) || (java.util.Objects.equals(trailing, true)))
+                    if ((java.util.Objects.equals(trigger, true)) || (java.util.Objects.equals(stopLossTakeProfit, true)) || Boolean.TRUE.equals(trailing))
                     {
                         Map<String, Object> requestItem = new HashMap<String, Object>();
                         requestItem.put("contract_code", this.safeString(market, "id"));
@@ -7350,7 +7350,7 @@ public class Htx extends HtxApi
                         } else if (java.util.Objects.equals(stopLossTakeProfit, true))
                         {
                             response = (this.contractPrivatePostSwapApiV1SwapTpslCancel(this.extend(request, query))).join();
-                        } else if (java.util.Objects.equals(trailing, true))
+                        } else if (Boolean.TRUE.equals(trailing))
                         {
                             response = (this.contractPrivatePostSwapApiV1SwapTrackCancel(this.extend(request, query))).join();
                         } else
@@ -7365,7 +7365,7 @@ public class Htx extends HtxApi
                         } else if (java.util.Objects.equals(stopLossTakeProfit, true))
                         {
                             response = (this.contractPrivatePostApiV1ContractTpslCancel(this.extend(request, query))).join();
-                        } else if (java.util.Objects.equals(trailing, true))
+                        } else if (Boolean.TRUE.equals(trailing))
                         {
                             response = (this.contractPrivatePostApiV1ContractTrackCancel(this.extend(request, query))).join();
                         } else
@@ -7428,7 +7428,7 @@ public class Htx extends HtxApi
             Map<String, Object> result = null;
             if (Boolean.TRUE.equals(isLinear))
             {
-                if ((java.util.Objects.equals(trigger, true)) || (java.util.Objects.equals(stopLossTakeProfit, true)) || (java.util.Objects.equals(trailing, true)))
+                if ((java.util.Objects.equals(trigger, true)) || (java.util.Objects.equals(stopLossTakeProfit, true)) || Boolean.TRUE.equals(trailing))
                 {
                     List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
                     result = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
@@ -7844,7 +7844,7 @@ public class Htx extends HtxApi
                         } else if (java.util.Objects.equals(stopLossTakeProfit, true))
                         {
                             response = (this.contractPrivatePostSwapApiV1SwapTpslCancelall(this.extend(request, paramsOmitted))).join();
-                        } else if (java.util.Objects.equals(trailing, true))
+                        } else if (Boolean.TRUE.equals(trailing))
                         {
                             response = (this.contractPrivatePostSwapApiV1SwapTrackCancelall(this.extend(request, paramsOmitted))).join();
                         } else
@@ -7859,7 +7859,7 @@ public class Htx extends HtxApi
                         } else if (java.util.Objects.equals(stopLossTakeProfit, true))
                         {
                             response = (this.contractPrivatePostApiV1ContractTpslCancelall(this.extend(request, paramsOmitted))).join();
-                        } else if (java.util.Objects.equals(trailing, true))
+                        } else if (Boolean.TRUE.equals(trailing))
                         {
                             response = (this.contractPrivatePostApiV1ContractTrackCancelall(this.extend(request, paramsOmitted))).join();
                         } else
@@ -7881,7 +7881,7 @@ public class Htx extends HtxApi
                 //         "ts": "1683435723755"
                 //     }
                 //
-                if (Boolean.TRUE.equals((this.safeBool(market, "linear", false))) && ((!java.util.Objects.equals(trigger, true)) && (!java.util.Objects.equals(trailing, true)) && (!java.util.Objects.equals(stopLossTakeProfit, true))))
+                if (Boolean.TRUE.equals((this.safeBool(market, "linear", false))) && ((!java.util.Objects.equals(trigger, true)) && (!Boolean.TRUE.equals(trailing)) && (!java.util.Objects.equals(stopLossTakeProfit, true))))
                 {
                     return this.parseCancelOrders(response);
                 }

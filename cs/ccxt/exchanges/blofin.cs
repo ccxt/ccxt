@@ -970,7 +970,7 @@ public partial class blofin : Exchange
         string? last = this.safeString(ticker, "last");
         string? open = this.safeString(ticker, "open24h");
         bool? spot = this.safeBool(marketResolved, "spot", false);
-        string? quoteVolume = ((spot == true)) ? this.safeString(ticker, "volCurrency24h") : null;
+        string? quoteVolume = spot == true ? this.safeString(ticker, "volCurrency24h") : null;
         string? baseVolume = this.safeString(ticker, "vol24h");
         string? high = this.safeString(ticker, "high24h");
         string? low = this.safeString(ticker, "low24h");
@@ -2035,7 +2035,7 @@ public partial class blofin : Exchange
             request["clientOrderId"] = clientOrderId;
         } else
         {
-            if (((isTrigger != true)) && ((isTpsl != true)))
+            if ((isTrigger != true) && (isTpsl != true))
             {
                 request["orderId"] = id.ToString();
             } else if ((isTpsl == true))
@@ -2146,10 +2146,10 @@ public partial class blofin : Exchange
         IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable.Item2);
         Dictionary<string, object> query = this.omit(paramsMethod, new List<object>() {"method", "stop", "trigger", "tpsl", "TPSL"});
         Dictionary<string, object> response = null;
-        if (((isTpSl == true)) || ((method == "privateGetTradeOrdersTpslPending")))
+        if ((isTpSl == true) || ((method == "privateGetTradeOrdersTpslPending")))
         {
             response = await this.privateGetTradeOrdersTpslPending(this.extend(request, query));
-        } else if (((isTrigger == true)) || ((method == "privateGetTradeOrdersAlgoPending")))
+        } else if ((isTrigger == true) || ((method == "privateGetTradeOrdersAlgoPending")))
         {
             request["orderType"] = "trigger";
             response = await this.privateGetTradeOrdersAlgoPending(this.extend(request, query));
@@ -3814,7 +3814,7 @@ public partial class blofin : Exchange
         IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable.Item2);
         Dictionary<string, object> query = this.omit(paramsMethod, new List<object>() {"method", "stop", "trigger", "tpsl", "TPSL"});
         Dictionary<string, object> response = null;
-        if (((isTrigger == true)) || ((method == "privateGetTradeOrdersTpslHistory")))
+        if ((isTrigger == true) || ((method == "privateGetTradeOrdersTpslHistory")))
         {
             response = await this.privateGetTradeOrdersTpslHistory(this.extend(request, query));
         } else

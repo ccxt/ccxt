@@ -1577,10 +1577,10 @@ export default class kalshi extends Exchange {
         const positions = this.safeList (response, 'market_positions', []);
         // filter by the requested outcomes' market tickers — a kalshi position is per market
         // ticker and covers both the YES and the NO leg
-        const parsed = this.parsePredictionPositions (positions);
         if (outcomesLength === 0) {
-            return parsed as PredictionPosition[];
+            return this.parsePredictionPositions (positions);
         }
+        const parsed = this.parsePredictionPositions (positions);
         const wantedTickers: Dict = {};
         if (outcomes === undefined) {
             throw new ExchangeError (this.id + ' fetchPositions() missing outcomes');
@@ -2329,7 +2329,8 @@ export default class kalshi extends Exchange {
     async fetchRawEventByTicker (ticker: string, params: Dict = {}): Promise<Dict> {
         const request: Dict = { 'event_ticker': ticker, 'with_nested_markets': true };
         const response = await this.kalshiPublicGetEventsEventTicker (this.extend (request, params));
-        const fullEvent = this.safeDict (response, 'event', response);
+        // a typed copy of the event row: the caller-facing dict is never the raw response
+        const fullEvent = this.extend ({}, this.safeDict (response, 'event', response));
         const nestedMarkets = this.safeList (fullEvent, 'markets');
         if (nestedMarkets === undefined) {
             fullEvent['markets'] = this.safeList (response, 'markets', []);

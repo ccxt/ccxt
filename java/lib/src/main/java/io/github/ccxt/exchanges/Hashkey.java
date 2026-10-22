@@ -2467,7 +2467,7 @@ public class Hashkey extends HashkeyApi
         if (java.util.Objects.equals(status, null))
         {
             Boolean success = (Boolean) this.safeBool(transaction, "success", false); // for withdraw
-            if (java.util.Objects.equals(success, true))
+            if (Boolean.TRUE.equals(success))
             {
                 status = "ok";
             } else
@@ -2588,7 +2588,7 @@ public class Hashkey extends HashkeyApi
         String currencyId = this.safeString(currency, "id");
         String status = null;
         Boolean success = (Boolean) this.safeBool(transfer, "success", false);
-        if (java.util.Objects.equals(success, true))
+        if (Boolean.TRUE.equals(success))
         {
             status = "ok";
         }

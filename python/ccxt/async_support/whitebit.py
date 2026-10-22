@@ -1091,7 +1091,7 @@ class whitebit(Exchange, ImplicitAPI):
             hasAmountLimits = (amountLimits is not None) and (amountLimits is not None) and self.safe_number(amountLimits, 'min') is not None and self.safe_number(amountLimits, 'max') is not None
             hasPriceLimits = (priceLimits is not None) and (priceLimits is not None) and self.safe_number(priceLimits, 'min') is not None and self.safe_number(priceLimits, 'max') is not None
             hasCostLimits = (costLimits is not None) and (costLimits is not None) and self.safe_number(costLimits, 'min') is not None and self.safe_number(costLimits, 'max') is not None
-            if (hasAmountLimits is True) and (hasPriceLimits is True) and (hasCostLimits is True):
+            if (hasAmountLimits) and (hasPriceLimits) and (hasCostLimits):
                 result[symbol] = {
                     'info': market,
                     'limits': {
@@ -1432,7 +1432,7 @@ class whitebit(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['market'] = market['id']
         # Try active orders first (if enabled)
-        if checkActive is True:
+        if checkActive:
             try:
                 response = await self.v4PrivatePostOrders(self.extend(request, paramsOmitted))
                 # Search for order in active orders response (array format)
@@ -1448,7 +1448,7 @@ class whitebit(Exchange, ImplicitAPI):
                 if not (isinstance(error, OrderNotFound)):
                     raise error
         # Try executed orders (if enabled)
-        if checkExecuted is True:
+        if checkExecuted:
             try:
                 response = await self.v4PrivatePostTradeAccountOrderHistory(self.extend(request, paramsOmitted))
                 # Search for order in executed orders response (object format)
@@ -2194,7 +2194,7 @@ class whitebit(Exchange, ImplicitAPI):
         sortedOrders = self.sort_by(allOrders, 'timestamp', True)
         # Apply limit if specified (since and symbol filtering already handled by individual methods)
         if limit is not None and len(sortedOrders) > limit:
-            return sortedOrders[0:limit]
+            return self.array_slice(sortedOrders, 0, limit)
         return sortedOrders
 
     async def cancel_all_orders_after(self, timeout: Int, params: dict = {}):
@@ -2400,9 +2400,7 @@ class whitebit(Exchange, ImplicitAPI):
             for j in range(0, len(orders)):
                 order = self.parse_order(orders[j], marketNew)
                 results.append(self.extend(order, {'status': 'closed'}))
-        results = self.sort_by(results, 'timestamp')
-        results = self.filter_by_symbol_since_limit(results, symbolResolved, since, limit)
-        return results
+        return self.filter_by_symbol_since_limit(self.sort_by(results, 'timestamp'), symbolResolved, since, limit)
 
     def parse_order_type(self, type: Str):
         types = {
@@ -4082,7 +4080,7 @@ class whitebit(Exchange, ImplicitAPI):
                 raise ExchangeError(feedback)
             # {"success":false,"message":{"limit":["limit must be less than or equal to 100"]},"result":null}
             success = self.safe_bool(response, 'success', True)
-            if success is not True:
+            if not success:
                 errMsg = self.safe_dict(response, 'message', {})
                 errKeys = list(errMsg.keys())
                 errKeysLength = len(errKeys)

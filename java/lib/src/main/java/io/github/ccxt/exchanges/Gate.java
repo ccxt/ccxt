@@ -5971,7 +5971,7 @@ public class Gate extends GateApi
         Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
         Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
         String timeInForce = this.handleTimeInForce(paramsPostOnly);
-        if (java.util.Objects.equals(postOnly, true))
+        if (Boolean.TRUE.equals(postOnly))
         {
             timeInForce = "poc";
         }
@@ -6131,7 +6131,7 @@ public class Gate extends GateApi
                 request.put("text", clientOrderId);
             } else
             {
-                if (java.util.Objects.equals(textIsRequired, true))
+                if (Boolean.TRUE.equals(textIsRequired))
                 {
                     // batchOrders requires text in the request
                     request.put("text", ("t-" + this.uuid16()));
@@ -6638,7 +6638,7 @@ public class Gate extends GateApi
         //     }
         //
         Boolean succeeded = (Boolean) this.safeBool(order, "succeeded", true);
-        if (!java.util.Objects.equals(succeeded, true))
+        if (!Boolean.TRUE.equals(succeeded))
         {
             // cancelOrders response
             return this.safeOrder(new HashMap<String, Object>() {{
@@ -6885,7 +6885,7 @@ public class Gate extends GateApi
             Map<String, Object> response = null;
             if (java.util.Objects.equals(type, "spot") || java.util.Objects.equals(type, "margin"))
             {
-                if (java.util.Objects.equals(trigger, true))
+                if (Boolean.TRUE.equals(trigger))
                 {
                     response = (this.privateSpotGetPriceOrdersOrderId(this.extend(request, requestParams))).join();
                 } else
@@ -6894,7 +6894,7 @@ public class Gate extends GateApi
                 }
             } else if (java.util.Objects.equals(type, "swap"))
             {
-                if (java.util.Objects.equals(trigger, true))
+                if (Boolean.TRUE.equals(trigger))
                 {
                     response = (this.privateFuturesGetSettlePriceOrdersOrderId(this.extend(request, requestParams))).join();
                 } else
@@ -6903,7 +6903,7 @@ public class Gate extends GateApi
                 }
             } else if (java.util.Objects.equals(type, "future"))
             {
-                if (java.util.Objects.equals(trigger, true))
+                if (Boolean.TRUE.equals(trigger))
                 {
                     response = (this.privateDeliveryGetSettlePriceOrdersOrderId(this.extend(request, requestParams))).join();
                 } else
@@ -7347,7 +7347,7 @@ public class Gate extends GateApi
             Map<String, Object> response = null;
             if (java.util.Objects.equals(type, "spot") || java.util.Objects.equals(type, "margin"))
             {
-                if (java.util.Objects.equals(trigger, true))
+                if (Boolean.TRUE.equals(trigger))
                 {
                     response = (this.privateSpotDeletePriceOrdersOrderId(this.extend(request, requestParams))).join();
                 } else
@@ -7356,7 +7356,7 @@ public class Gate extends GateApi
                 }
             } else if (java.util.Objects.equals(type, "swap"))
             {
-                if (java.util.Objects.equals(trigger, true))
+                if (Boolean.TRUE.equals(trigger))
                 {
                     response = (this.privateFuturesDeleteSettlePriceOrdersOrderId(this.extend(request, requestParams))).join();
                 } else
@@ -7365,7 +7365,7 @@ public class Gate extends GateApi
                 }
             } else if (java.util.Objects.equals(type, "future"))
             {
-                if (java.util.Objects.equals(trigger, true))
+                if (Boolean.TRUE.equals(trigger))
                 {
                     response = (this.privateDeliveryDeleteSettlePriceOrdersOrderId(this.extend(request, requestParams))).join();
                 } else
@@ -8862,7 +8862,7 @@ public class Gate extends GateApi
         String bodyJson = null;
         Map<String, Object> signedHeaders = null;
         Boolean containsSettle = ((String)path).indexOf("settle") > -1;
-        if (Boolean.TRUE.equals(containsSettle) && (java.util.Objects.equals(((String)path).endsWith("batch_cancel_orders"), true)))
+        if (Boolean.TRUE.equals(containsSettle) && (((String)path).endsWith("batch_cancel_orders")))
         {
             // special case where we need to extract the settle from the path
             // but the body is an array of strings

@@ -1208,7 +1208,7 @@ func (this *Tokocrypto) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var takerOrMaker *string = nil
 	if buyerMaker != nil {
 		side = SafeStringPtr(func() string {
-			if buyerMaker != nil && *buyerMaker == true {
+			if buyerMaker != nil && *buyerMaker {
 				return "sell"
 			}
 			return "buy"
@@ -2177,14 +2177,14 @@ func (this *Tokocrypto) createOrderBody(ch chan AsyncResult[map[string]any], sym
 	var paramsPostOnly map[string]any = MapTyped(postOnlyparamsPostOnlyVariable[1])
 	// only supported for spot/margin api
 	var typeResolved any = func() any {
-		if postOnly == true {
+		if postOnly {
 			return "LIMIT_MAKER"
 		}
 		return typeVar
 	}()
 	// post only is expressed by the order type here, not by a time force
 	var timeInForceResolved any = func() any {
-		if postOnly == true {
+		if postOnly {
 			return nil
 		}
 		return requestedTimeInForce
@@ -2200,7 +2200,7 @@ func (this *Tokocrypto) createOrderBody(ch chan AsyncResult[map[string]any], sym
 	}()
 	var paramsRequest any = this.Omit(paramsPostOnly, this.ArrayConcat([]any{"clientId", "clientOrderId", "timeInForce"}, triggerKeys))
 	if !IsEqual(triggerPrice, nil) {
-		if postOnly == true {
+		if postOnly {
 			panic(InvalidOrder(this.Id + " createOrder() does not support post only trigger orders, the venue has no post only trigger order type"))
 		}
 		if uppercaseType == "MARKET" {
@@ -3400,7 +3400,7 @@ func (this *Tokocrypto) HandleErrors(code any, reason any, url any, method any, 
 	// response in format {'msg': 'The coin does not exist.', 'success': true/false}
 	var success *bool = this.SafeBool(response, "success", true)
 	var parsedMessage any = nil
-	if success == nil || *success != true {
+	if !(success != nil && *success) {
 		var messageInner *string = this.SafeString(response, "msg")
 		if messageInner != nil {
 
@@ -3459,7 +3459,7 @@ func (this *Tokocrypto) HandleErrors(code any, reason any, url any, method any, 
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], error, feedback)
 		panic(ExchangeError(feedback))
 	}
-	if success == nil || *success != true {
+	if !(success != nil && *success) {
 		panic(ExchangeError(this.Id + " " + body))
 	}
 	return nil

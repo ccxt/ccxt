@@ -1613,7 +1613,7 @@ public partial class bingx : Exchange
         parameters ??= new Dictionary<string, object>();
         List<object> requests = new List<object> {this.FetchSwapMarkets(parameters)};
         bool? isSandbox = this.safeBool(this.options, "sandboxMode", false);
-        if ((isSandbox != true))
+        if (isSandbox != true)
         {
             requests.Add(this.FetchInverseSwapMarkets(parameters));
             requests.Add(this.FetchSpotMarkets(parameters)); // sandbox is swap only
@@ -2629,9 +2629,9 @@ public partial class bingx : Exchange
         string? symbol = this.safeSymbol(id, market, "-", "swap");
         double? openInterest = this.safeNumber(interest, "openInterest");
         bool? inverse = this.safeBool(market, "inverse", false);
-        bool isInverse = ((inverse == true));
-        double? openInterestAmount = isInverse ? openInterest : null;
-        double? openInterestValue = isInverse ? null : openInterest;
+        bool? isInverse = (inverse);
+        double? openInterestAmount = isInverse == true ? openInterest : null;
+        double? openInterestValue = isInverse == true ? null : openInterest;
         return this.safeOpenInterest(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "baseVolume", null },
@@ -3674,7 +3674,7 @@ public partial class bingx : Exchange
         IList<object> postOnlyparamsPostOnlyVariable = (IList<object>)this.handlePostOnly(isMarketOrder, timeInForce == "PostOnly", paramsMarketType);
         bool postOnly = (bool)postOnlyparamsPostOnlyVariable[0];
         IDictionary<string, object> paramsPostOnly = ((IDictionary<string, object>)postOnlyparamsPostOnlyVariable[1]);
-        if (((postOnly == true)) || (timeInForce == "PostOnly"))
+        if (isTrue((postOnly)) || (timeInForce == "PostOnly"))
         {
             request["timeInForce"] = "PostOnly";
         } else if (timeInForce == "IOC")
@@ -3901,7 +3901,7 @@ public partial class bingx : Exchange
             }
             string? positionSide = null;
             bool? hedged = this.safeBool(paramsTakeProfit, "hedged", false);
-            paramsOrder = ((hedged == true)) ? this.omit(paramsTakeProfit, "reduceOnly") : paramsTakeProfit;
+            paramsOrder = hedged == true ? this.omit(paramsTakeProfit, "reduceOnly") : paramsTakeProfit;
             if ((hedged == true))
             {
                 if ((reduceOnly == true))
@@ -3920,7 +3920,7 @@ public partial class bingx : Exchange
             if ((cost != null))
             {
                 request["quoteOrderQty"] = this.parseToNumeric(this.costToPrecision(symbol, cost));
-            } else if ((closePosition != true))
+            } else if (closePosition != true)
             {
                 object amountReq = amount;
                 if ((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) != true))
@@ -7342,7 +7342,7 @@ public partial class bingx : Exchange
         object access = getValue(section, 2);
         bool? isSandbox = this.safeBool(this.options, "sandboxMode", false);
         object url = this.implodeHostname(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), type));
-        if (((isSandbox == true)) && (url == null))
+        if ((isSandbox == true) && (url == null))
         {
             throw new NotSupported ((((this.id + " does not have a testnet/sandbox URL for ") + (type)) + " endpoints")) ;
         }

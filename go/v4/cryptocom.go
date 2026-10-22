@@ -1969,7 +1969,7 @@ func (this *Cryptocom) CreateOrderRequest(symbol any, typeVar any, side any, amo
 		}
 	}
 	var postOnly *bool = this.SafeBool(paramsValue, "postOnly", false)
-	if (postOnly != nil && *postOnly == true) || (timeInForce != nil && *timeInForce == "PO") {
+	if (postOnly != nil && *postOnly) || (timeInForce != nil && *timeInForce == "PO") {
 		request["exec_inst"] = []any{"POST_ONLY"}
 		request["time_in_force"] = "GOOD_TILL_CANCEL"
 	}
@@ -2238,7 +2238,7 @@ func (this *Cryptocom) CreateAdvancedOrderRequest(symbol any, typeVar any, side 
 		}
 	}
 	var postOnly *bool = this.SafeBool(params, "postOnly", false)
-	if (postOnly != nil && *postOnly == true) || (timeInForce != nil && *timeInForce == "PO") {
+	if (postOnly != nil && *postOnly) || (timeInForce != nil && *timeInForce == "PO") {
 		request["exec_inst"] = []any{"POST_ONLY"}
 		request["time_in_force"] = "GOOD_TILL_CANCEL"
 	}
@@ -3628,7 +3628,7 @@ func (this *Cryptocom) CustomHandleMarginModeAndParams(methodName any, optionalA
 			panic(NotSupported(this.Id + " only cross margin is supported"))
 		}
 	} else {
-		if (defaultType != nil && *defaultType == "margin") || (isMargin != nil && *isMargin == true) {
+		if (defaultType != nil && *defaultType == "margin") || (isMargin != nil && *isMargin) {
 			marginMode = SafeStringPtr("cross")
 		}
 	}

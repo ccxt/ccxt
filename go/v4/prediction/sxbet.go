@@ -1026,7 +1026,7 @@ func (this *Sxbet) approveBody(ch chan ccxt.AsyncResult[any], optionalArgs ...an
 	}
 	proxy := r.Value
 	var deployed *bool = this.SafeBool(proxy, "deployed", false)
-	if deployed == nil || *deployed != true {
+	if !(deployed != nil && *deployed) {
 
 		r1 := <-this.SxbetPrivatePostUserDeployProxy()
 		if r1.Err != nil {
@@ -1205,7 +1205,7 @@ func (this *Sxbet) createOrderBody(ch chan ccxt.AsyncResult[map[string]any], out
 	// the venue has no post-only or trigger mechanics - reject the unified params instead
 	// of forwarding fields the exchange would silently ignore
 	var postOnly *bool = this.SafeBool(params, "postOnly", false)
-	if postOnly != nil && *postOnly == true {
+	if postOnly != nil && *postOnly {
 		panic(ccxt.NotSupported(this.Id + " createOrder() does not support postOnly - GTC orders may cross on entry"))
 	}
 	var triggerPrice *string = this.SafeStringN(params, []any{"triggerPrice", "stopLossPrice", "takeProfitPrice"})
@@ -1638,7 +1638,7 @@ func (this *Sxbet) cancelAllOrdersBody(ch chan ccxt.AsyncResult[any], optionalAr
 	// both paths paginate their async submission - keep going on the SAME route while more remain
 	var hasMore *bool = this.SafeBool(this.SafeDict(response, "data", map[string]any{}), "hasMore", false)
 	var guard any = 0
-	for (hasMore != nil && *hasMore == true) && (ccxt.IsLessThan(guard, 50)) {
+	for (hasMore != nil && *hasMore) && (ccxt.IsLessThan(guard, 50)) {
 		var nextResponse map[string]any = nil
 		if isEventScoped {
 			var nextRequest map[string]any = map[string]any{
@@ -2144,7 +2144,7 @@ func (this *Sxbet) ParseSxbetV3Fill(fill any, optionalArgs ...any) any {
 	var takerOrMaker *string = nil
 	if isMaker != nil {
 		takerOrMaker = ccxt.SafeStringPtr(func() string {
-			if isMaker != nil && *isMaker == true {
+			if isMaker != nil && *isMaker {
 				return "maker"
 			}
 			return "taker"

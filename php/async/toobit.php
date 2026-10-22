@@ -1604,7 +1604,7 @@ class toobit extends Exchange {
             $results[] = $ticker;
         }
         $symbolsNormalized = $this->market_symbols($symbols);
-        return $this->filter_by_array($results, 'symbol', $symbolsNormalized);
+        return $this->filter_by_array_tickers($results, 'symbol', $symbolsNormalized);
     }
 
     public function parse_bid_ask_custom(array $ticker): array {
@@ -1909,7 +1909,7 @@ class toobit extends Exchange {
             $request['quantity'] = $this->amount_to_precision($symbol, $amount);
         }
         list($isPostOnly, $paramsPostOnly) = $this->handle_post_only($type === 'market', false, $paramsCost);
-        if ($isPostOnly === true) {
+        if ($isPostOnly) {
             $request['type'] = 'LIMIT_MAKER';
         } else {
             $request['type'] = strtoupper($type);
@@ -1948,7 +1948,7 @@ class toobit extends Exchange {
             $request['priceType'] = 'MARKET';
         }
         list($isPostOnly, $paramsPostOnly) = $this->handle_post_only($type === 'market', false, $paramsReduceOnly);
-        if ($isPostOnly === true) {
+        if ($isPostOnly) {
             $request['timeInForce'] = 'LIMIT_MAKER';
         }
         $values = $this->handle_trigger_prices_and_params($symbol, $paramsPostOnly);

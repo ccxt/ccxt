@@ -763,7 +763,7 @@ class modetrade extends \ccxt\async\modetrade {
         }
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
         $topic = 'executionreport';
-        if ($trigger === true) {
+        if ($trigger) {
             $topic = 'algoexecutionreport';
         }
         $paramsOmitted = $this->omit($params, array( 'stop', 'trigger' ));
@@ -810,7 +810,7 @@ class modetrade extends \ccxt\async\modetrade {
         }
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
         $topic = 'executionreport';
-        if ($trigger === true) {
+        if ($trigger) {
             $topic = 'algoexecutionreport';
         }
         $paramsOmitted = $this->omit($params, 'stop');

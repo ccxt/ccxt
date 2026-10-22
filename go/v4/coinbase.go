@@ -2548,7 +2548,7 @@ func (this *Coinbase) ParseContractMarket(market any, feeTier map[string]any) ma
 		"swap":         isSwap,
 		"future":       !isSwap,
 		"option":       false,
-		"active":       (tradingDisabled != true),
+		"active":       !tradingDisabled,
 		"contract":     true,
 		"linear":       true,
 		"inverse":      false,
@@ -3476,7 +3476,7 @@ func (this *Coinbase) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ..
 			panic(r1.Err)
 		}
 		response = r1.Raw
-	} else if (isV3 != nil && *isV3 == true) || (method != nil && *method == "v3PrivateGetBrokerageAccounts") {
+	} else if (isV3 != nil && *isV3) || (method != nil && *method == "v3PrivateGetBrokerageAccounts") {
 		request["limit"] = 250
 
 		r2 := <-this.V3PrivateGetBrokerageAccounts(this.Extend(request, paramsMarketType))
@@ -4403,7 +4403,7 @@ func (this *Coinbase) createOrderBody(ch chan AsyncResult[map[string]any], symbo
 	var paramsOmitted any = this.Omit(paramsBase, []any{"timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice", "stopPrice", "stop_price", "stopDirection", "stop_direction", "clientOrderId", "postOnly", "post_only", "end_time", "marginMode"})
 	var preview *bool = this.SafeBool2(paramsOmitted, "preview", "test", false)
 	var response map[string]any = nil
-	if preview != nil && *preview == true {
+	if preview != nil && *preview {
 		request = this.OmitDict(request, "client_order_id")
 
 		r2 := <-this.V3PrivatePostBrokerageOrdersPreview(this.Extend(request, this.Omit(paramsOmitted, []any{"preview", "test"})))
@@ -4810,7 +4810,7 @@ func (this *Coinbase) editOrderBody(ch chan AsyncResult[map[string]any], id stri
 	}
 	var preview *bool = this.SafeBool2(params, "preview", "test", false)
 	var response map[string]any = nil
-	if preview != nil && *preview == true {
+	if preview != nil && *preview {
 
 		r1 := <-this.V3PrivatePostBrokerageOrdersEditPreview(this.Extend(request, this.Omit(params, []any{"preview", "test"})))
 		if r1.Err != nil {

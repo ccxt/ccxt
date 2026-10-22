@@ -898,8 +898,9 @@ class binance(ccxt.async_support.binance):
         subscription = {
             'method': self.handle_fetch_order_book,
         }
-        orderbook = await self.watch(url, messageHash, message, messageHash, subscription)
-        orderbook['symbol'] = market['symbol']
+        snapshot = await self.watch(url, messageHash, message, messageHash, subscription)
+        snapshot['symbol'] = market['symbol']
+        orderbook = self.order_book(snapshot)
         return orderbook
 
     def handle_fetch_order_book(self, client: Client, message: dict):
@@ -1131,7 +1132,7 @@ class binance(ccxt.async_support.binance):
         if method is not None:
             method(client, message, subscription)
         isUnSubMessage = self.safe_bool(subscription, 'unsubscribe', False)
-        if isUnSubMessage is True:
+        if isUnSubMessage:
             self.handle_un_subscription(client, subscription)
         return message
 
@@ -2213,7 +2214,7 @@ class binance(ccxt.async_support.binance):
         unsubscribeMessageHashes = []
         suffix = ''
         if isMarkPrice and not isOptionMarkPrice:
-            suffix = '@1s' if (use1sFreq is True) else ''
+            suffix = '@1s' if (use1sFreq) else ''
         unifiedPrefix = None
         if isBidAsk:
             unifiedPrefix = 'bidask'
@@ -2734,7 +2735,7 @@ class binance(ccxt.async_support.binance):
                 isIsolated = self.safe_bool(params, 'isIsolated', False)
                 validity = self.safe_integer(params, 'validity')
                 request = {}
-                if isIsolated is True:
+                if isIsolated:
                     if symbol is None:
                         raise ArgumentsRequired(self.id + ' ensureUserDataStreamWsSubscribeListenToken() requires a symbol argument for isolated margin mode')
                     marketId = self.market_id(symbol)
@@ -2794,7 +2795,7 @@ class binance(ccxt.async_support.binance):
         renewParams = {}
         if symbol is not None:
             renewParams['symbol'] = symbol
-        if isIsolated is True:
+        if isIsolated:
             renewParams['isIsolated'] = isIsolated
         if validity is not None:
             renewParams['validity'] = validity
@@ -3001,7 +3002,7 @@ class binance(ccxt.async_support.binance):
             return
         options = self.safe_dict(self.options, 'watchBalance')
         fetchBalanceSnapshot = self.safe_bool(options, 'fetchBalanceSnapshot', False)
-        if fetchBalanceSnapshot is True:
+        if fetchBalanceSnapshot:
             messageHash = type + ':fetchBalanceSnapshot'
             if not (messageHash in client.futures):
                 client.future(messageHash)
@@ -3013,7 +3014,7 @@ class binance(ccxt.async_support.binance):
         params = {
             'type': type,
         }
-        if isPortfolioMargin is True:
+        if isPortfolioMargin:
             params['portfolioMargin'] = True
         response = await self.fetch_balance(params)
         self.balance[type] = self.extend(response, self.safe_dict(self.balance, type, {}))
@@ -3258,7 +3259,7 @@ class binance(ccxt.async_support.binance):
                 urlType = 'papi'
             elif type == 'option':
                 demoMode = self.safe_bool(self.options, 'enableDemoTrading', False)
-                if (demoMode is True) or self.isSandboxModeEnabled:
+                if (demoMode) or self.isSandboxModeEnabled:
                     raise NotSupported(self.id + ' watchBalance() does not support option markets in demo/testnet mode')
                 urlType = 'optionPrivate'
             url = self.get_private_ws_url(urlType, self.options[type]['listenKey'])
@@ -3268,7 +3269,7 @@ class binance(ccxt.async_support.binance):
         options = self.safe_dict(self.options, 'watchBalance')
         fetchBalanceSnapshot = self.safe_bool(options, 'fetchBalanceSnapshot', False)
         awaitBalanceSnapshot = self.safe_bool(options, 'awaitBalanceSnapshot', True)
-        if (fetchBalanceSnapshot is True) and (awaitBalanceSnapshot is True):
+        if (fetchBalanceSnapshot) and (awaitBalanceSnapshot):
             await client.future(type + ':fetchBalanceSnapshot')
         messageHash = type + ':balance'
         message = None
@@ -3474,8 +3475,8 @@ class binance(ccxt.async_support.binance):
             'method': 'order.place',
             'params': self.sign_params(self.extend(payload, paramsOmitted2)),
         }
-        if test is True:
-            if sor is True:
+        if test:
+            if sor:
                 message['method'] = 'sor.order.test'
             else:
                 message['method'] = 'order.test'
@@ -3773,12 +3774,12 @@ class binance(ccxt.async_support.binance):
         clientOrderId = self.safe_string_n(paramsReturnRateLimits, ['clientAlgoId', 'origClientOrderId', 'clientOrderId'])
         shouldUseAlgoOrder = (market['linear'] is True) and ((market['swap'] is True) or (market['future'] is True)) and (isConditional is True)
         if clientOrderId is not None:
-            if shouldUseAlgoOrder is True:
+            if shouldUseAlgoOrder:
                 payload['clientAlgoId'] = clientOrderId
             else:
                 payload['origClientOrderId'] = clientOrderId
         else:
-            if shouldUseAlgoOrder is True:
+            if shouldUseAlgoOrder:
                 payload['algoId'] = self.number_to_string(id)
             else:
                 payload['orderId'] = self.number_to_string(id)
@@ -3788,7 +3789,7 @@ class binance(ccxt.async_support.binance):
             'method': 'order.cancel',
             'params': self.sign_params(self.extend(payload, paramsOmitted)),
         }
-        if shouldUseAlgoOrder is True:
+        if shouldUseAlgoOrder:
             message['method'] = 'algoOrder.cancel'
         subscription = {
             'method': self.handle_order_ws,
@@ -4059,7 +4060,7 @@ class binance(ccxt.async_support.binance):
                 urlType = 'papi'
             elif type == 'option':
                 demoMode = self.safe_bool(self.options, 'enableDemoTrading', False)
-                if (demoMode is True) or self.isSandboxModeEnabled:
+                if (demoMode) or self.isSandboxModeEnabled:
                     raise NotSupported(self.id + ' watchOrders() does not support option markets in demo/testnet mode')
                 urlType = 'optionPrivate'
             url = self.get_private_ws_url(urlType, self.options[type]['listenKey'])
@@ -4655,7 +4656,7 @@ class binance(ccxt.async_support.binance):
             urlType = 'papi'
         elif type == 'option':
             demoMode = self.safe_bool(self.options, 'enableDemoTrading', False)
-            if (demoMode is True) or self.isSandboxModeEnabled:
+            if (demoMode) or self.isSandboxModeEnabled:
                 raise NotSupported(self.id + ' watchPositions() does not support option markets in demo/testnet mode')
             urlType = 'optionPrivate'
         url = self.get_private_ws_url(urlType, self.options[type]['listenKey'])
@@ -4693,7 +4694,7 @@ class binance(ccxt.async_support.binance):
         params = {
             'type': type,
         }
-        if isPortfolioMargin is True:
+        if isPortfolioMargin:
             params['portfolioMargin'] = True
         positions = await self.fetch_positions(None, params)
         self.positions[type] = ArrayCacheBySymbolBySide()
@@ -5047,7 +5048,7 @@ class binance(ccxt.async_support.binance):
                 urlType = 'papi'
             elif type == 'option':
                 demoMode = self.safe_bool(self.options, 'enableDemoTrading', False)
-                if (demoMode is True) or self.isSandboxModeEnabled:
+                if (demoMode) or self.isSandboxModeEnabled:
                     raise NotSupported(self.id + ' watchMyTrades() does not support option markets in demo/testnet mode')
                 urlType = 'optionPrivate'
             url = self.get_private_ws_url(urlType, self.options[type]['listenKey'])

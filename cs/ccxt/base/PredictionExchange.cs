@@ -848,7 +848,7 @@ public partial class PredictionExchange : BaseExchange
             int missingLength = (missing?.Count ?? 0);
             bool wasWarm = ((this.outcomes != null)) && !this.isEmpty(this.outcomes);
             bool? loadAll = this.safeBool(this.options, "loadAllOutcomes", false);
-            if ((missingLength > 0) && ((loadAll == true)) && !wasWarm && reload != true)
+            if ((missingLength > 0) && (loadAll == true) && !wasWarm && reload != true)
             {
                 await this.loadOutcomes();
                 List<object> stillMissing = new List<object>() {};
@@ -927,7 +927,7 @@ public partial class PredictionExchange : BaseExchange
                 }
             }
             bool? loadAll = this.safeBool(this.options, "loadAllOutcomes", false);
-            if (((loadAll == true)) && !wasWarm)
+            if ((loadAll == true) && !wasWarm)
             {
                 // a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
                 // a miss on an already-warm cache is authoritative — the outcome genuinely isn't

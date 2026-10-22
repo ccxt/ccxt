@@ -1852,7 +1852,7 @@ class derive(Exchange, ImplicitAPI):
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         # EIP712Domain (name "Matching", version "1.0", verifyingContract 0xeB8d770ec18DB98Db922E9D83260A585b9F0DeAD) precomputed for chainId 1 (mainnet) and 11155111 (sepolia testnet)
         DOMAIN_SEPARATOR = 'da616dfabb88681b08e1592820a41d55ddc62d68de110e327ae99d734506fe19'
-        if sandboxMode is True:
+        if sandboxMode:
             DOMAIN_SEPARATOR = '24d674cd5f2b9d564691c51e9d88f649b99246a2244dd74ce27b96578d773e85'
         binaryDomainSeparator = self.base16_to_binary(DOMAIN_SEPARATOR)
         prefix = self.base16_to_binary('1901')
@@ -2012,7 +2012,7 @@ class derive(Exchange, ImplicitAPI):
         request['signature'] = signature
         paramsOmitted = self.omit(paramsDeriveWalletAddress, ['reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'test', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trigger_price', 'stopLossPrice', 'takeProfitPrice', 'trigger_price_type'])
         response: dict
-        if test is True:
+        if test:
             response = await self.privatePostOrderDebug(self.extend(request, paramsOmitted))
         else:
             response = await self.privatePostOrder(self.extend(request, paramsOmitted))
@@ -2274,7 +2274,7 @@ class derive(Exchange, ImplicitAPI):
             response = await self.privatePostCancelByLabel(self.extend(request, paramsLabel))
         else:
             request['order_id'] = id
-            if isTrigger is True:
+            if isTrigger:
                 response = await self.privatePostCancelTriggerOrder(self.extend(request, paramsOmitted))
             else:
                 response = await self.privatePostCancel(self.extend(request, paramsOmitted))
@@ -2516,7 +2516,7 @@ class derive(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
         response: dict
-        if isTrigger is True:
+        if isTrigger:
             response = await self.privatePostGetTriggerOrders(self.extend(request, paramsDeriveSubaccountId))
         else:
             response = await self.privatePostGetOpenOrders(self.extend(request, paramsDeriveSubaccountId))

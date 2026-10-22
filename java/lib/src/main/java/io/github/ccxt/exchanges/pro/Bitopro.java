@@ -406,7 +406,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isMaker, null))
         {
-            if (java.util.Objects.equals(isMaker, true))
+            if (Boolean.TRUE.equals(isMaker))
             {
                 takerOrMaker = "maker";
             } else

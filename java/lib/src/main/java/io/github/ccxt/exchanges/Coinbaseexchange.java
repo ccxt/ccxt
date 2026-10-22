@@ -1952,7 +1952,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                 request.put("time_in_force", timeInForce);
             }
             Boolean postOnly = (Boolean) this.safeBool2(parameters, "postOnly", "post_only", false);
-            if (java.util.Objects.equals(postOnly, true))
+            if (Boolean.TRUE.equals(postOnly))
             {
                 request.put("post_only", true);
             }

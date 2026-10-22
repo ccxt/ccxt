@@ -1126,7 +1126,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         defaultTif = 'Gtc'
         if isMarket:
             defaultTif = 'Ioc'
-        if postOnly is True:
+        if postOnly:
             defaultTif = 'Alo'
         tif = self.capitalize(self.safe_string_lower(params, 'timeInForce', defaultTif))  # eslint-disable-line
         if price is None:
@@ -1768,7 +1768,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         # so getEvent() resolves these events by any of the three keys
         return self.apply_event_fetch_params(events, params, queries)
 
-    def parse_event(self, raw: dict) -> object:
+    def parse_event(self, raw: dict) -> PredictionEvent:
         """
  @ignore
         parses a grouped set of outcome markets into a unified prediction event object
@@ -1945,7 +1945,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         nonce = self.incrementing_nonce()
         isSandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         payload = {
-            'hyperliquidChain': 'Testnet' if (isSandboxMode is True) else 'Mainnet',
+            'hyperliquidChain': 'Testnet' if (isSandboxMode) else 'Mainnet',
             'maxFeeRate': maxFeeRate,
             'builder': builder,
             'nonce': nonce,
@@ -1973,7 +1973,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         # async for the PHP and typed transpilers, which mishandle an async body that never suspends
         await self.load_markets()
         buildFee = self.safe_bool(self.options, 'builderFee', False)
-        if buildFee is not True:
+        if not buildFee:
             return None
         if self.safe_bool(self.options, 'approvedBuilderFee', False):
             return None  # already approved
@@ -2009,7 +2009,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         apiGroup = api[0]
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         baseUrl: str
-        if sandboxMode is True:
+        if sandboxMode:
             testUrls = self.safe_dict(self.urls, 'test', {})
             baseUrl = self.safe_string(testUrls, apiGroup, self.safe_string(testUrls, 'public', ''))
         else:

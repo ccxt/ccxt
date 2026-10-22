@@ -422,7 +422,7 @@ func (this *Bitopro) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var isMaker *bool = this.SafeBool(trade, "isMaker")
 	var takerOrMaker *string = nil
 	if isMaker != nil {
-		if isMaker != nil && *isMaker == true {
+		if isMaker != nil && *isMaker {
 			takerOrMaker = ccxt.SafeStringPtr("maker")
 		} else {
 			takerOrMaker = ccxt.SafeStringPtr("taker")

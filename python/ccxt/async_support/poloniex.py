@@ -1628,8 +1628,7 @@ class poloniex(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        result = self.parse_trades(response, market, since, limit)
-        return result
+        return self.parse_trades(response, market, since, limit)
 
     def parse_order_status(self, status: Str):
         statuses = {
@@ -2499,7 +2498,9 @@ class poloniex(Exchange, ImplicitAPI):
         await self.load_markets()
         orders = await self.fetch_open_orders(symbol, None, None, params)
         indexed = self.index_by(orders, 'id')
-        return 'open' if (id in indexed) else 'closed'
+        statuses = {'true': 'open', 'false': 'closed'}
+        found = 'true' if (id in indexed) else 'false'
+        return self.safe_string(statuses, found)
 
     async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """

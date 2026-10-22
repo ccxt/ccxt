@@ -1569,7 +1569,7 @@ public class Coinsph extends CoinsphApi
         String side = null;
         if (!java.util.Objects.equals(isBuyer, null))
         {
-            side = (((java.util.Objects.equals(isBuyer, true)))) ? "buy" : "sell";
+            side = ((Boolean.TRUE.equals(isBuyer))) ? "buy" : "sell";
         }
         String isMaker = this.safeString(trade, "isMaker");
         String takerOrMaker = null;
@@ -1769,7 +1769,7 @@ public class Coinsph extends CoinsphApi
             Object paramsBase = (((!java.util.Objects.equals(paramsQuote, null)))) ? paramsQuote : paramsType;
             Object paramsRequest = this.omit(paramsBase, "price", "stopPrice", "triggerPrice", "quantity", "quoteOrderQty");
             Map<String, Object> response = new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(testOrder, true))
+            if (Boolean.TRUE.equals(testOrder))
             {
                 response = (this.privatePostOpenapiV1OrderTest(this.extend(request, paramsRequest))).join();
             } else
@@ -2317,7 +2317,7 @@ public class Coinsph extends CoinsphApi
             Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagparamsWithdrawTagVariable).get(1);
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "withdraw", (Object) null);
             Boolean warning = (Boolean) this.safeBool(options, "warning", true);
-            if (java.util.Objects.equals(warning, true))
+            if (Boolean.TRUE.equals(warning))
             {
                 throw new InvalidAddress((this.id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account")) ;
             }

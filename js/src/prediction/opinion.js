@@ -1108,7 +1108,7 @@ export default class opinion extends Exchange {
         // a false result does NOT mean the order is still open — it may already be filled,
         // already cancelled, or unknown; don't invent a status the venue didn't report.
         // error responses with an errno never reach this line, handleErrors throws on them
-        const status = (canceled === true) ? 'canceled' : undefined;
+        const status = (canceled) ? 'canceled' : undefined;
         return this.safePredictionOrder({ 'id': id, 'status': status, 'info': response });
     }
     /**
@@ -1445,10 +1445,10 @@ export default class opinion extends Exchange {
         const response = await this.opinionPrivateGetPositionsUserWalletAddress(this.extend(request, params));
         const result = this.safeDict(response, 'result', {});
         const positions = this.safeList(result, 'list', []);
-        const parsed = this.parsePredictionPositions(positions);
         if (outcomesLength === 0) {
-            return parsed;
+            return this.parsePredictionPositions(positions);
         }
+        const parsed = this.parsePredictionPositions(positions);
         const wantedTokenIds = {};
         // copy to a plain list so the strict null checks see one shape
         const outcomesList = (outcomes === undefined) ? [] : outcomes;

@@ -151,6 +151,8 @@ export const CCXT_GO_HELPER_RETURN_TYPES = {
     'this.SortBy': '[]any',
     'this.SortBy2': '[]any',
     'this.FilterBy': '[]any',
+    // kraken parseTransactionsByType: goTranspiler.ts#goProvenListMethods retypes it to []any
+    'this.ParseTransactionsByType': '[]any',
     // hand-written (exchange.go): a slice on every path, a nil []any when the argument is not one
     'this.ArraySlice': '[]any',
     'this.Sort': '[]any',
@@ -159,6 +161,9 @@ export const CCXT_GO_HELPER_RETURN_TYPES = {
     // never a typed nil — the Go twin returns a nil `[]any` (not an untyped nil) when an
     // operand is not a slice, which reads exactly like the old boxed `nil`.
     'this.ArrayConcat': '[]any',
+    // retyped by goTranspiler.ts#retypeGoProvenParseMethods: every return is the []any{} accumulator / the result map literal
+    'this.ArraysConcat': '[]any',
+    'this.ParseCurrenciesCustom': 'map[string]any',
     // deepExtend2 is Go-only: every return path hands back the `outDict` accumulator (a
     // non-map operand panics on the assertion instead of escaping), so `map[string]any` is exact.
     'this.DeepExtend2': 'map[string]any',
@@ -172,12 +177,26 @@ export const CCXT_GO_HELPER_RETURN_TYPES = {
     ...Object.fromEntries ([ 'SafeOrder', 'SafeTicker', 'SafeLedgerEntry', 'ParseOrder', 'ParseTicker', 'ParseTransaction', 'ParseTransfer', 'ParseLedgerEntry',
         'SafeMarketStructure', 'SafeCurrencyStructure', 'SafeOpenInterest', 'ParseCurrency', 'ParseOpenInterest',
         'SafePredictionOrder', 'SafePredictionTicker', 'SafePredictionOrderBook', 'ParsePredictionOrder', 'ParsePredictionTicker', 'ParsePredictionOpenInterest',
-        'ParseSpotOrUtaTicker', 'ParseContractOrderBook', 'ParseFundingRate', 'ParseLeverage', 'ParseTradingFee', 'ParseDepositAddress', 'ParseMarginMode', 'ParseGreeks', 'ParseOption', 'ParseBorrowRate', 'ParseIsolatedBorrowRate', 'ParseConversion', 'ParseMarginModification', 'ParseTradeTx', 'ParseLeverageFromMarket', 'ParseLeverageFromSetting', 'ParseMarginModeFromSetting' ]
+        'ParseSpotOrUtaTicker', 'ParseContractOrderBook', 'ParseFundingRate', 'ParseLeverage', 'ParseTradingFee', 'ParseDepositAddress', 'ParseMarginMode', 'ParseGreeks', 'ParseOption', 'ParseBorrowRate', 'ParseIsolatedBorrowRate', 'ParseConversion', 'ParseMarginModification', 'ParseTradeTx', 'ParseLeverageFromMarket', 'ParseLeverageFromSetting', 'ParseMarginModeFromSetting',
+        'ParseMarginLoan', 'ParseIsolatedBorrowRates', // U15
+        'ParseBalanceCustom', 'ParseUtaBalance', 'ParseBalanceByType', 'ParseBalanceForSingleCurrency', 'ParseCustomBalance', 'ParseSwapBalance', 'ParseSpotBalance', 'CustomParseBalance', 'ParseFundingBalance', 'ParseTradingBalance', // U07
+        'ParseADLRank', // U16
+        'ParseDepositAddressSpecial', // U11
+        'ParseEvent', 'ParseMarketToEvent', // W18
+        'SafePosition', 'ParsePosition', 'ParseOptionPosition' ] // gochan32-U10
         .flatMap ((name) => [ [ 'this.' + name, 'map[string]any' ], [ 'this.DerivedExchange.' + name, 'map[string]any' ] ])),
+    ...Object.fromEntries ([ 'ParseTradingFees', 'AssignDefaultDepositWithdrawFees', 'ParseDepositWithdrawFee', 'ParseTradingLimits', 'DepositWithdrawFee', 'ParsePublicDepositWithdrawFees' ].flatMap ((name) => [ [ 'this.' + name, 'map[string]any' ], [ 'this.DerivedExchange.' + name, 'map[string]any' ] ])), // U12
     // exchange_prediction.go: retyped by transpilePredictionBaseMethods (no venue overrides)
     'this.Outcome': 'map[string]any',
     'this.SafeOutcome': 'map[string]any',
     'this.ParseSearchQueries': '[]any',
+    ...Object.fromEntries ([ 'ParseLastPrices', 'RemoveKeysFromDict', 'ParseTickersForRolling', 'ParseBidsAsksCustom', 'ParseSxbetTickersByHash' ].flatMap ((n) => [ [ 'this.' + n, 'map[string]any' ], [ 'this.DerivedExchange.' + n, 'map[string]any' ] ])), // U06
+    ...Object.fromEntries ([ [ 'ParseLeverageTiers', 'map[string]any' ], [ 'ParseLeverages', 'map[string]any' ], [ 'ParseMarginModes', 'map[string]any' ], [ 'ParseMarketLeverageTiers', '[]any' ], [ 'ParseEmulatedLeverageTiers', '[]any' ] ].flatMap (([ n, t ]) => [ [ 'this.' + n, t ], [ 'this.DerivedExchange.' + n, t ] ])), // U14
+    'this.ApplyEventFetchParams': '[]any',
+    'this.ParsePredictionPositions': '[]any', // U10
+    'this.ParseDepositAddresses': '[]any', 'this.DerivedExchange.ParseDepositAddresses': '[]any', // W15
+    'this.SetApiCredentials': 'map[string]any', // W20
+    'this.ParseDepositMethodIds': '[]any', 'this.ParsePortfolioDetails': '[]any', // W23
     // exchange.go / exchange_string.go
     'this.StringToCharsArray': '[]string',
     // exchange_market_type.go (hand-written)
@@ -1720,7 +1739,8 @@ function ccxtGoStructureDictionaryFetch (checker, node) {
         || (call.expression.expression?.kind !== ts.SyntaxKind.ThisKeyword) || !/^fetch[A-Z]/.test (call.expression.name?.text ?? '')) {
         return false;
     }
-    return /^(?:Tickers|OpenInterests|FundingRates|MarginModes|Leverages|TradingFees|IsolatedBorrowRates|CrossBorrowRates)$/.test (checker.typeToString (checker.getTypeAtLocation (node)));
+    // LeverageTiers: fetchLeverageTiers cores send map[string]any (ParseLeverageTiers retyped, U14)
+    return /^(?:Tickers|OpenInterests|FundingRates|MarginModes|Leverages|TradingFees|IsolatedBorrowRates|CrossBorrowRates|LeverageTiers)$/.test (checker.typeToString (checker.getTypeAtLocation (node)));
 }
 
 // `this.<endpoint> (...)` declared in ts/src/abstract: the awaited value is the decoded HTTP body
@@ -8172,9 +8192,14 @@ const CCXT_GO_PRODUCER_DECLARATIONS = {
     'this.OpinionOrderRawAmounts': 'map',
     'this.ParseBinaryMarketToOutcomes': 'list',
     'this.ParseCancelOrders': 'list',
+    'this.ParseBorrowRateHistory': 'list', // U15
+    'this.ParsePredictionOrders': 'list', 'this.FilterByOutcomeSinceLimit': 'list', // U03
+    'this.ParsePredictionTrades': 'list', // U04
     'this.ParseFundingRate': 'map',
     'this.ParseMarketLeverageTiers': 'list',
     'this.ParseOHLCVs': 'list',
+    'this.InsertMissingCandles': 'list', // gochan32-U05
+    'this.ParseTradingViewOHLCV': 'list', // gochan32-U05
     'this.ParseTrade': 'map',
     'this.ParseOrder': 'map',
     'this.ParseTicker': 'map',
@@ -8247,6 +8272,10 @@ const CCXT_GO_PRODUCER_DECLARATIONS = {
     'this.SafePredictionTicker': 'map',
     'this.SafePredictionTrade': 'map',
     'this.SeparateBidsOrAsks': 'list',
+    'this.ParseOpenInterestsHistory': 'list', 'this.ParseLiquidations': 'list', 'this.ParseADLRanks': 'list', 'this.FilterByArrayADLRanks': 'list', 'this.ParseOpenInterests': 'map', // U16
+    'this.ParseConversions': 'list', 'this.ParseLongShortRatioHistory': 'list', 'this.ParseAccounts': 'list', 'this.ParseAllGreeks': 'map', 'this.ParseOptionChain': 'map', 'this.ParseAccount': 'map', // U17
+    'this.ParseFundingRateHistories': 'list', 'this.ParseIncomes': 'list', 'this.ParseFundingHistories': 'list', // U13
+    'this.ParseDepositAddresses': 'list', // W15
 };
 
 const CCXT_GO_PRODUCER_DICT_TYPE = 'map[string]any';

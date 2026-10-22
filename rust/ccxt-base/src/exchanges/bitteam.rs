@@ -783,7 +783,7 @@ impl BitteamCore {
     m
 })]);
         let mut quoteInUsd: Value = self.safe_bool(currenciesValuedInUsd, quote.clone(), &[Value::Bool(false)]);
-        if (quoteInUsd.as_bool() == Some(true)) {
+        if quoteInUsd.as_bool() == Some(true) {
             let mut settings: Value = self.safe_dict_k(market.clone(), "settings", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

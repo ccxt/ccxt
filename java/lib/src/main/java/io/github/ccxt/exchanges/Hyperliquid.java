@@ -1265,9 +1265,10 @@ public class Hyperliquid extends HyperliquidApi
             var paramsValue = ((List<Object>) isUnifiedEnabledparamsValueVariable).get(1);
             String dex = this.safeString(paramsValue, "dex");
             Boolean isSpot = ((java.util.Objects.equals(type, "spot")) || (java.util.Objects.equals(isUnifiedEnabled, true))) && (java.util.Objects.equals(dex, null));
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("type", (((java.util.Objects.equals(isSpot, true)))) ? "spotClearinghouseState" : "clearinghouseState");
-            request.put("user", userAddress);
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "type", ((Boolean.TRUE.equals(isSpot))) ? "spotClearinghouseState" : "clearinghouseState" );
+                put( "user", userAddress );
+            }};
             Object response = (this.publicPostInfo(this.extend(request, paramsValue))).join();
             //
             //     {
@@ -1314,7 +1315,7 @@ public class Hyperliquid extends HyperliquidApi
                 {
                     Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
                     String unifiedCode = this.safeCurrencyCode(this.safeString(balance, "coin"), (Map<String, Object>) null);
-                    Object code = (((java.util.Objects.equals(isSpot, true)))) ? this.updateSpotCurrencyCode(unifiedCode) : unifiedCode;
+                    Object code = ((Boolean.TRUE.equals(isSpot))) ? this.updateSpotCurrencyCode(unifiedCode) : unifiedCode;
                     Map<String, Object> account = this.account();
                     String total = this.safeString(balance, "total");
                     String used = this.safeString(balance, "hold");
@@ -2181,11 +2182,12 @@ public class Hyperliquid extends HyperliquidApi
 
             Object nonce = this.incrementingNonce();
             Boolean isSandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
-            Map<String, Object> payload = new HashMap<String, Object>();
-            payload.put("hyperliquidChain", (((java.util.Objects.equals(isSandboxMode, true)))) ? "Testnet" : "Mainnet");
-            payload.put("maxFeeRate", maxFeeRate);
-            payload.put("builder", builder);
-            payload.put("nonce", nonce);
+            Map<String, Object> payload = new HashMap<String, Object>() {{
+                put( "hyperliquidChain", ((Boolean.TRUE.equals(isSandboxMode))) ? "Testnet" : "Mainnet" );
+                put( "maxFeeRate", maxFeeRate );
+                put( "builder", builder );
+                put( "nonce", nonce );
+            }};
             Object sig = this.buildApproveBuilderFeeSig((Map<String, Object>) (payload));
             Map<String, Object> action = new HashMap<String, Object>() {{
                 put( "hyperliquidChain", payload.get("hyperliquidChain") );
@@ -2238,7 +2240,7 @@ public class Hyperliquid extends HyperliquidApi
 
             Boolean buildFee = (Boolean) this.safeBool(this.options, "builderFee", true);
             Boolean approvedBuilderFee = (Boolean) this.safeBool(this.options, "approvedBuilderFee", false);
-            if (java.util.Objects.equals(approvedBuilderFee, true))
+            if (Boolean.TRUE.equals(approvedBuilderFee))
             {
                 return true;  // skip if builder fee is already approved
             }
@@ -2248,7 +2250,7 @@ public class Hyperliquid extends HyperliquidApi
                 // when the user disables the builder fee (builderFee = false) we still approve and attach the builder,
                 // but with a 0% fee rate, so orders remain attributed to the builder for statistics purposes only and the user is not charged
                 String maxFeeRate = this.safeString(this.options, "feeRate", "0.01%");
-                if (!java.util.Objects.equals(buildFee, true))
+                if (!Boolean.TRUE.equals(buildFee))
                 {
                     maxFeeRate = "0%";
                 }
@@ -2355,11 +2357,12 @@ public class Hyperliquid extends HyperliquidApi
             Object nonce = this.incrementingNonce();
             Boolean isSandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
             String type = this.safeString(paramsPublicAddress, "type", "userSetAbstraction");
-            Map<String, Object> payload = new HashMap<String, Object>();
-            payload.put("hyperliquidChain", (((java.util.Objects.equals(isSandboxMode, true)))) ? "Testnet" : "Mainnet");
-            payload.put("user", userAddress);
-            payload.put("abstraction", abstraction);
-            payload.put("nonce", nonce);
+            Map<String, Object> payload = new HashMap<String, Object>() {{
+                put( "hyperliquidChain", ((Boolean.TRUE.equals(isSandboxMode))) ? "Testnet" : "Mainnet" );
+                put( "user", userAddress );
+                put( "abstraction", abstraction );
+                put( "nonce", nonce );
+            }};
             Object sig = this.buildUserAbstractionSig((Map<String, Object>) (payload));
             Map<String, Object> action = new HashMap<String, Object>() {{
                 put( "hyperliquidChain", payload.get("hyperliquidChain") );
@@ -2408,11 +2411,12 @@ public class Hyperliquid extends HyperliquidApi
             Object nonce = this.incrementingNonce();
             Boolean isSandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
             String type = this.safeString(paramsPublicAddress, "type", "userDexAbstraction");
-            Map<String, Object> payload = new HashMap<String, Object>();
-            payload.put("hyperliquidChain", (((java.util.Objects.equals(isSandboxMode, true)))) ? "Testnet" : "Mainnet");
-            payload.put("user", userAddress);
-            payload.put("enabled", enabled);
-            payload.put("nonce", nonce);
+            Map<String, Object> payload = new HashMap<String, Object>() {{
+                put( "hyperliquidChain", ((Boolean.TRUE.equals(isSandboxMode))) ? "Testnet" : "Mainnet" );
+                put( "user", userAddress );
+                put( "enabled", enabled );
+                put( "nonce", nonce );
+            }};
             Object sig = this.buildUserDexAbstractionSig((Map<String, Object>) (payload));
             Map<String, Object> action = new HashMap<String, Object>() {{
                 put( "hyperliquidChain", payload.get("hyperliquidChain") );
@@ -2683,7 +2687,7 @@ public class Hyperliquid extends HyperliquidApi
             defaultTimeInForce = "ioc";
         }
         Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", false);
-        if (java.util.Objects.equals(postOnly, true))
+        if (Boolean.TRUE.equals(postOnly))
         {
             defaultTimeInForce = "alo";
         }
@@ -3334,7 +3338,7 @@ public class Hyperliquid extends HyperliquidApi
                 defaultTimeInForce = "ioc";
             }
             Boolean postOnly = (Boolean) this.safeBool(orderParams, "postOnly", false);
-            if (java.util.Objects.equals(postOnly, true))
+            if (Boolean.TRUE.equals(postOnly))
             {
                 defaultTimeInForce = "alo";
             }
@@ -5275,11 +5279,12 @@ public class Hyperliquid extends HyperliquidApi
             } else
             {
                 Boolean isSandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
-                Map<String, Object> payload = new HashMap<String, Object>();
-                payload.put("hyperliquidChain", (((java.util.Objects.equals(isSandboxMode, true)))) ? "Testnet" : "Mainnet");
-                payload.put("destination", address);
-                payload.put("amount", String.valueOf(amount));
-                payload.put("time", nonce);
+                Map<String, Object> payload = new HashMap<String, Object>() {{
+                    put( "hyperliquidChain", ((Boolean.TRUE.equals(isSandboxMode))) ? "Testnet" : "Mainnet" );
+                    put( "destination", address );
+                    put( "amount", String.valueOf(amount) );
+                    put( "time", nonce );
+                }};
                 sig = this.buildWithdrawSig((Map<String, Object>) (payload));
                 action = new HashMap<String, Object>() {{
                     put( "hyperliquidChain", payload.get("hyperliquidChain") );

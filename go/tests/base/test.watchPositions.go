@@ -58,7 +58,7 @@ func testWatchPositionsBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreEx
 			}()
 
 		}
-		if success == true {
+		if success {
 			if IsEqual(response, nil) {
 				panic(Error(Add(exchange.GetId(), " watch returned undefined response")))
 			}
@@ -110,7 +110,7 @@ func testWatchPositionsBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreEx
 			}()
 
 		}
-		if success2 == true {
+		if success2 {
 			Assert(IsArray(positionsForSymbols), Add(Add(Add(Add(exchange.GetId(), " "), method), " must return an array, returned "), exchange.Json(positionsForSymbols)))
 			// max theoretical 4 positions: two for one-way-mode and two for two-way mode
 			Assert((GetArrayLength(positionsForSymbols) <= 4), Add(Add(Add(Add(exchange.GetId(), " "), method), " positions length for particular symbol should be less than 4, returned "), exchange.Json(positionsForSymbols)))

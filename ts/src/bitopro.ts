@@ -944,14 +944,14 @@ export default class bitopro extends Exchange {
         return this.insertMissingCandles (sparse, timeframeInSeconds * 1000, alignedSince, limitResolved) as OHLCV[];
     }
 
-    insertMissingCandles (candles: any[], distanceInMs: number, since: Int, limit: number) {
+    insertMissingCandles (candles: any[], distanceInMs: number, since: Int, limit: number): any[] {
         // the exchange doesn't send zero volume candles so we emulate them instead
         // otherwise sending a limit arg leads to unexpected results
         const length = candles.length;
         if (length === 0) {
             return candles;
         }
-        const result: Dict[] = [];
+        const result: any[] = [];
         let copyFrom = candles[0];
         let timestamp: Int = undefined;
         if (since === undefined) {
@@ -1497,7 +1497,7 @@ export default class bitopro extends Exchange {
         const request: Dict = {
             'statusKind': 'DONE',
         };
-        return this.fetchOrders (symbol, since, limit, this.extend (request, params));
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     /**

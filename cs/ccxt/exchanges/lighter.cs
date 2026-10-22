@@ -791,7 +791,7 @@ public partial class lighter : Exchange
     public async virtual Task<bool> handleBuilderFeeApproval(object accountIndex, object apiKeyIndex)
     {
         bool? buildFee = this.safeBool(this.options, "builderFee", true);
-        if ((buildFee != true))
+        if (buildFee != true)
         {
             return false;
         }
@@ -1084,7 +1084,7 @@ public partial class lighter : Exchange
         request["order_expiry"] = orderExpiry;
         request["order_type"] = orderTypeNum;
         request["time_in_force"] = timeInForceNum;
-        request["reduce_only"] = ((reduceOnly == true)) ? 1 : 0;
+        request["reduce_only"] = reduceOnly == true ? 1 : 0;
         request["client_order_index"] = clientOrderId;
         request["base_amount"] = this.parseToInt(Precise.stringMul(amountStr, amountScale));
         request["avg_execution_price"] = this.parseToInt(Precise.stringMul(priceStr, priceScale));
@@ -3576,7 +3576,7 @@ public partial class lighter : Exchange
         // public trades use Lighter's taker-side convention
         if (((side == null)) && ((isMakerAsk != null)))
         {
-            side = ((isMakerAsk == true)) ? "buy" : "sell";
+            side = isMakerAsk == true ? "buy" : "sell";
         }
         string? takerOrMaker = null;
         if ((side != null) && (isMakerAsk != null))

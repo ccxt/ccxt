@@ -926,7 +926,7 @@ class coinbase(Exchange, ImplicitAPI):
         currencyType, paramsCurrencyType = self.handle_option_string_and_params(params, 'fetchWithdrawals', 'currencyType')
         if currencyType == 'crypto':
             results = await self.fetch_transactions_with_method('v2PrivateGetAccountsAccountIdTransactions', code, since, limit, paramsCurrencyType)
-            return self.filter_by_array(results, 'type', 'withdrawal', False)
+            return self.to_array(self.filter_by_array(results, 'type', 'withdrawal', False))
         return await self.fetch_transactions_with_method('v2PrivateGetAccountsAccountIdWithdrawals', code, since, limit, paramsCurrencyType)
 
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
@@ -946,7 +946,7 @@ class coinbase(Exchange, ImplicitAPI):
         currencyType, paramsCurrencyType = self.handle_option_string_and_params(params, 'fetchDeposits', 'currencyType')
         if currencyType == 'crypto':
             results = await self.fetch_transactions_with_method('v2PrivateGetAccountsAccountIdTransactions', code, since, limit, paramsCurrencyType)
-            return self.filter_by_array(results, 'type', 'deposit', False)
+            return self.to_array(self.filter_by_array(results, 'type', 'deposit', False))
         return await self.fetch_transactions_with_method('v2PrivateGetAccountsAccountIdDeposits', code, since, limit, paramsCurrencyType)
 
     async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
@@ -964,7 +964,7 @@ class coinbase(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         results = await self.fetch_transactions_with_method('v2PrivateGetAccountsAccountIdTransactions', code, since, limit, params)
-        return self.filter_by_array(results, 'type', ['deposit', 'withdrawal'], False)
+        return self.to_array(self.filter_by_array(results, 'type', ['deposit', 'withdrawal'], False))
 
     def parse_transaction_status(self, status: Str):
         statuses = {
@@ -1823,7 +1823,7 @@ class coinbase(Exchange, ImplicitAPI):
             'swap': isSwap,
             'future': not isSwap,
             'option': False,
-            'active': tradingDisabled is not True,
+            'active': not tradingDisabled,
             'contract': True,
             'linear': True,
             'inverse': False,
@@ -2437,7 +2437,7 @@ class coinbase(Exchange, ImplicitAPI):
         method = self.safe_string(self.options, 'fetchBalance', 'v3PrivateGetBrokerageAccounts')
         if (marketType == 'future') or (marketType == 'swap'):
             response = await self.v3PrivateGetBrokerageCfmBalanceSummary(self.extend(request, paramsMarketType))
-        elif (isV3 is True) or (method == 'v3PrivateGetBrokerageAccounts'):
+        elif (isV3) or (method == 'v3PrivateGetBrokerageAccounts'):
             request['limit'] = 250
             response = await self.v3PrivateGetBrokerageAccounts(self.extend(request, paramsMarketType))
             # an explicit params.cursor means the caller pages manually
@@ -2560,16 +2560,15 @@ class coinbase(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         ledger = self.parse_ledger(data, currency, since, limit)
         length = len(ledger)
-        if length == 0:
-            return ledger
-        lastIndex = length - 1
-        last = self.safe_dict(ledger, lastIndex)
-        pagination = self.safe_dict(response, 'pagination', {})
-        cursor = self.safe_string(pagination, 'next_starting_after')
-        if (cursor is not None) and (cursor != ''):
-            last['info']['next_starting_after'] = cursor
-            ledger[lastIndex] = last
-        return ledger
+        if length > 0:
+            lastIndex = length - 1
+            last = self.safe_dict(ledger, lastIndex)
+            pagination = self.safe_dict(response, 'pagination', {})
+            cursor = self.safe_string(pagination, 'next_starting_after')
+            if (cursor is not None) and (cursor != ''):
+                last['info']['next_starting_after'] = cursor
+                ledger[lastIndex] = last
+        return self.to_array(ledger)
 
     def parse_ledger_entry_status(self, status: Str) -> Str:
         types = {
@@ -2903,7 +2902,7 @@ class coinbase(Exchange, ImplicitAPI):
         for i in range(0, len(self.accounts)):
             account = self.accounts[i]
             if account['code'] == code:
-                return account['id']
+                return self.safe_string(account, 'id')
         return None
 
     def prepare_account_request(self, limit: Int = None, params: dict = {}) -> dict:
@@ -3129,7 +3128,7 @@ class coinbase(Exchange, ImplicitAPI):
         paramsOmitted = self.omit(paramsBase, ['timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'stop_price', 'stopDirection', 'stop_direction', 'clientOrderId', 'postOnly', 'post_only', 'end_time', 'marginMode'])
         preview = self.safe_bool_2(paramsOmitted, 'preview', 'test', False)
         response = None
-        if preview is True:
+        if preview:
             request = self.omit(request, 'client_order_id')
             response = await self.v3PrivatePostBrokerageOrdersPreview(self.extend(request, self.omit(paramsOmitted, ['preview', 'test'])))
         else:
@@ -3428,7 +3427,7 @@ class coinbase(Exchange, ImplicitAPI):
             request['price'] = self.price_to_precision(symbol, price)
         preview = self.safe_bool_2(params, 'preview', 'test', False)
         response = None
-        if preview is True:
+        if preview:
             response = await self.v3PrivatePostBrokerageOrdersEditPreview(self.extend(request, self.omit(params, ['preview', 'test'])))
         else:
             response = await self.v3PrivatePostBrokerageOrdersEdit(self.extend(request, params))
@@ -4869,7 +4868,7 @@ class coinbase(Exchange, ImplicitAPI):
         result = self.parse_portfolio_details(response)
         return result
 
-    def parse_portfolio_details(self, portfolioData: dict):
+    def parse_portfolio_details(self, portfolioData: dict) -> list[dict]:
         breakdown = self.safe_dict(portfolioData, 'breakdown')
         portfolioInfo = self.safe_dict(breakdown, 'portfolio', {})
         portfolioName = self.safe_string(portfolioInfo, 'name', 'Unknown')

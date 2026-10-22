@@ -1621,7 +1621,7 @@ class gemini(Exchange, ImplicitAPI):
                 elif timeInForce == 'PO':
                     request['options'] = ['maker-or-cancel']
             postOnly = self.safe_bool(params, 'postOnly', False)
-            if postOnly is True:
+            if postOnly:
                 request['options'] = ['maker-or-cancel']
             # allowing override for auction-only and indication-of-interest order options
             options = self.safe_string(params, 'options')
@@ -1899,7 +1899,7 @@ class gemini(Exchange, ImplicitAPI):
             await self.load_markets()
         indexedByNetwork = await self.fetch_deposit_addresses_by_network(code, params)
         networkCode = self.handle_network_code_and_params(params)[0]
-        return self.safe_value(indexedByNetwork, networkCode)
+        return self.safe_dict(indexedByNetwork, networkCode)
 
     async def fetch_deposit_addresses_by_network(self, code: str, params: dict = {}) -> DepositAddresses:
         """

@@ -2281,7 +2281,7 @@ public partial class weex : Exchange
         bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         // the demo trading API only provides the swap account, don't let the default spot type break a bare fetchBalance() call
         string? type = marketType;
-        if (((sandboxMode == true)) && ((requestedType == null)))
+        if ((sandboxMode == true) && ((requestedType == null)))
         {
             type = "swap";
         }
@@ -2354,7 +2354,7 @@ public partial class weex : Exchange
         {
             IDictionary<string, object> entry = this.safeDict(balances, i);
             string? currencyId = this.safeString(entry, "asset");
-            if (((sandboxMode == true)) && (currencyId == "SUSDT"))
+            if ((sandboxMode == true) && (currencyId == "SUSDT"))
             {
                 currencyId = "USDT"; // demo trading balances are denominated in the demo asset SUSDT
             }
@@ -2884,7 +2884,7 @@ public partial class weex : Exchange
         string? type = (string)typeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeparamsMarketTypeVariable[1]);
         bool? trigger = this.safeBool(paramsMarketType, "trigger", false);
-        if (((trigger == true)) && (id == null))
+        if ((trigger == true) && (id == null))
         {
             throw new ArgumentsRequired ((this.id + " cancelOrder() requires an id argument for trigger orders")) ;
         }
@@ -4972,7 +4972,7 @@ public partial class weex : Exchange
     {
         bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         object baseId = this.safeString(market, "baseId");
-        if (((sandboxMode == true)) && ((baseId != null)))
+        if ((sandboxMode == true) && ((baseId != null)))
         {
             // demo trading only has USDT-margined linear markets quoted in the demo asset SUSDT (e.g. BTCSUSDT), revisit if weex ever adds a non-USDT settle
             return ((string?)((object)(add(baseId, "SUSDT"))));
@@ -4991,7 +4991,7 @@ public partial class weex : Exchange
     public virtual string? fromSandboxMarketId(string? marketId)
     {
         bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-        if (((sandboxMode != true)) || ((marketId == null)))
+        if ((sandboxMode != true) || ((marketId == null)))
         {
             return ((string?)((object)(marketId)));
         }
@@ -5040,7 +5040,7 @@ public partial class weex : Exchange
         if (isPrivate)
         {
             bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-            if (((sandboxMode == true)) && ((path.IndexOf("capi/v3/sim/", StringComparison.Ordinal) != 0)))
+            if ((sandboxMode == true) && ((path.IndexOf("capi/v3/sim/", StringComparison.Ordinal) != 0)))
             {
                 throw new NotSupported ((((this.id + " ") + path) + " is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets")) ;
             }

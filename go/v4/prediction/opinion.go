@@ -1562,7 +1562,7 @@ func (this *Opinion) cancelOrderBody(ch chan ccxt.AsyncResult[map[string]any], i
 	// already cancelled, or unknown; don't invent a status the venue didn't report.
 	// error responses with an errno never reach this line, handleErrors throws on them
 	var status *string = func() *string {
-		if canceled != nil && *canceled == true {
+		if canceled != nil && *canceled {
 			return ccxt.SafeStringPtr("canceled")
 		}
 		return nil

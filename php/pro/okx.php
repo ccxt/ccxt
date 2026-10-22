@@ -959,7 +959,7 @@ class okx extends \ccxt\async\okx {
         $isTrigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
         $paramsOmitted = $this->omit($params, array( 'stop', 'trigger' ));
         $accessType = 'private';
-        if ($isTrigger === true) {
+        if ($isTrigger) {
             $accessType = 'business';
         }
         Async\await($this->authenticate(array( 'access' => $accessType )));
@@ -1934,12 +1934,12 @@ class okx extends \ccxt\async\okx {
             Async\await($this->load_markets());
         }
         $access = 'private';
-        if ($isTrigger === true) {
+        if ($isTrigger) {
             $access = 'business';
         }
         Async\await($this->authenticate(array( 'access' => $access )));
         $channel = 'orders';
-        if ($isTrigger === true) {
+        if ($isTrigger) {
             $channel = 'orders-algo';
         }
         $messageHash = $channel . '::myTrades';
@@ -2148,7 +2148,7 @@ class okx extends \ccxt\async\okx {
             Async\await($this->load_markets());
         }
         $accessType = 'private';
-        if ($isTrigger === true) {
+        if ($isTrigger) {
             $accessType = 'business';
         }
         Async\await($this->authenticate(array( 'access' => $accessType )));
@@ -2177,7 +2177,7 @@ class okx extends \ccxt\async\okx {
             'instType' => $uppercaseType,
         );
         $channel = 'orders';
-        if ($isTrigger === true) {
+        if ($isTrigger) {
             $channel = 'orders-algo';
         }
         $orders = Async\await($this->subscribe('private', $channel, $channel, $symbolResolved, $this->extend($request, $paramsMarginMode)));

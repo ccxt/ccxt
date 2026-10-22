@@ -1046,7 +1046,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         dex = self.safe_string(paramsValue2, 'dex')
         isSpot = ((type == 'spot') or (isUnifiedEnabled is True)) and (dex is None)
         topic = 'clearinghouseState'
-        if isSpot is True:
+        if isSpot:
             topic = 'spotState'
         messageHash = topic + '::balance'
         url = self.urls['api']['ws']['public']
@@ -1054,7 +1054,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             'type': topic,
             'user': userAddress,
         }
-        if isSpot is True:
+        if isSpot:
             if isUnifiedEnabled is True:
                 subscription['isPortfolioMargin'] = True
         else:
@@ -1095,7 +1095,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         dex = self.safe_string(paramsValue2, 'dex')
         isSpot = ((type == 'spot') or (isUnifiedEnabled is True)) and (dex is None)
         topic = 'clearinghouseState'
-        if isSpot is True:
+        if isSpot:
             topic = 'spotState'
         messageHash = 'unsubscribe' + ':' + topic
         request = {

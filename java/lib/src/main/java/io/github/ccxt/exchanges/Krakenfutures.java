@@ -914,7 +914,7 @@ public class Krakenfutures extends KrakenfuturesApi
         String baseVolume = null;
         String quoteVolume = null;
         Boolean isIndex = (Boolean) this.safeBool(marketResolved, "index", false);
-        if (!java.util.Objects.equals(isIndex, true))
+        if (!Boolean.TRUE.equals(isIndex))
         {
             if (java.util.Objects.equals(marketResolved.get("linear"), true))
             {
@@ -2149,7 +2149,7 @@ public class Krakenfutures extends KrakenfuturesApi
             Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
             Map<String, Object> response = null;
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
-            if (java.util.Objects.equals(isTrigger, true))
+            if (Boolean.TRUE.equals(isTrigger))
             {
                 response = (this.historyGetTriggers(this.extend(request, paramsOmitted))).join();
             } else
@@ -2227,7 +2227,7 @@ public class Krakenfutures extends KrakenfuturesApi
             Map<String, Object> response = null;
             Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
-            if (java.util.Objects.equals(isTrigger, true))
+            if (Boolean.TRUE.equals(isTrigger))
             {
                 response = (this.historyGetTriggers(this.extend(request, paramsOmitted))).join();
             } else

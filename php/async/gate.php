@@ -1249,11 +1249,11 @@ class gate extends Exchange {
     private function do_load_unified_status($params = array()) {
         /**
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * returns $unifiedAccount so the user can check if the unified account is enabled
+         * returns $unifiedAccount so the user can check if the $unified account is enabled
          *
          * @see https://www.gate.com/docs/developers/apiv4/#retrieve-user-account-information
          *
-         * @return {boolean} true or false if the enabled unified account is enabled or not and sets the $unifiedAccount option if it is null
+         * @return {boolean} true or false if the enabled $unified account is enabled or not and sets the $unifiedAccount option if it is null
          */
         $unifiedAccount = $this->safe_bool($this->options, 'unifiedAccount');
         if ($unifiedAccount === null) {
@@ -1279,7 +1279,8 @@ class gate extends Exchange {
                 $this->options['unifiedAccount'] = false;
             }
         }
-        return $this->options['unifiedAccount'];
+        $unified = $this->safe_bool($this->options, 'unifiedAccount') === true;
+        return $unified;
     }
 
     public function upgrade_unified_trade_account($params = array()): PromiseInterface {
@@ -2533,7 +2534,7 @@ class gate extends Exchange {
         $chainsIndexedByIdRaw = Async\await($this->fetch_deposit_addresses_by_network($code, $paramsNetworkCode));
         $chainsIndexedById = $chainsIndexedByIdRaw;
         $selectedNetworkIdOrCode = $this->select_network_key_from_networks($code, $networkCode, $chainsIndexedById, true);
-        return $chainsIndexedById[$selectedNetworkIdOrCode];
+        return $this->safe_dict($chainsIndexedById, $selectedNetworkIdOrCode);
     }
 
     public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
@@ -3963,8 +3964,7 @@ class gate extends Exchange {
         //          }
         //      ]
         //
-        $response = Async\await($this->fetch_my_trades($symbol, $since, $limit, array( 'order_id' => $id )));
-        return $response;
+        return Async\await($this->fetch_my_trades($symbol, $since, $limit, array( 'order_id' => $id )));
     }
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -4808,7 +4808,7 @@ class gate extends Exchange {
         $exchangeSpecificTimeInForce = $this->safe_string_lower_n($params, array( 'timeInForce', 'tif', 'time_in_force' ));
         list($postOnly, $paramsPostOnly) = $this->handle_post_only($type === 'market', $exchangeSpecificTimeInForce === 'poc', $params);
         $timeInForce = $this->handle_time_in_force($paramsPostOnly);
-        if ($postOnly === true) {
+        if ($postOnly) {
             $timeInForce = 'poc';
         }
         // we only omit the unified params here
@@ -4943,7 +4943,7 @@ class gate extends Exchange {
                 }
                 $request['text'] = $clientOrderId;
             } else {
-                if ($textIsRequired === true) {
+                if ($textIsRequired) {
                     // batchOrders requires text in the request
                     $request['text'] = 't-' . $this->uuid16();
                 }
@@ -5408,7 +5408,7 @@ class gate extends Exchange {
         //     }
         //
         $succeeded = $this->safe_bool($order, 'succeeded', true);
-        if ($succeeded !== true) {
+        if (!$succeeded) {
             // cancelOrders response
             return $this->safe_order(array(
                 'clientOrderId' => $this->safe_string($order, 'text'),
@@ -5620,19 +5620,19 @@ class gate extends Exchange {
         $trigger = $this->safe_bool_n($params, array( 'trigger', 'is_stop_order', 'stop' ), false);
         list($request, $requestParams) = $this->fetch_order_request($id, $symbol, $params);
         if ($type === 'spot' || $type === 'margin') {
-            if ($trigger === true) {
+            if ($trigger) {
                 $response = Async\await($this->privateSpotGetPriceOrdersOrderId($this->extend($request, $requestParams)));
             } else {
                 $response = Async\await($this->privateSpotGetOrdersOrderId($this->extend($request, $requestParams)));
             }
         } elseif ($type === 'swap') {
-            if ($trigger === true) {
+            if ($trigger) {
                 $response = Async\await($this->privateFuturesGetSettlePriceOrdersOrderId($this->extend($request, $requestParams)));
             } else {
                 $response = Async\await($this->privateFuturesGetSettleOrdersOrderId($this->extend($request, $requestParams)));
             }
         } elseif ($type === 'future') {
-            if ($trigger === true) {
+            if ($trigger) {
                 $response = Async\await($this->privateDeliveryGetSettlePriceOrdersOrderId($this->extend($request, $requestParams)));
             } else {
                 $response = Async\await($this->privateDeliveryGetSettleOrdersOrderId($this->extend($request, $requestParams)));
@@ -6008,19 +6008,19 @@ class gate extends Exchange {
         list($request, $requestParams) = ($type === 'spot' || $type === 'margin') ? $this->spot_order_prepare_request($market, $trigger, $query) : $this->prepare_request($market, $type, $query);
         $request['order_id'] = $id;
         if ($type === 'spot' || $type === 'margin') {
-            if ($trigger === true) {
+            if ($trigger) {
                 $response = Async\await($this->privateSpotDeletePriceOrdersOrderId($this->extend($request, $requestParams)));
             } else {
                 $response = Async\await($this->privateSpotDeleteOrdersOrderId($this->extend($request, $requestParams)));
             }
         } elseif ($type === 'swap') {
-            if ($trigger === true) {
+            if ($trigger) {
                 $response = Async\await($this->privateFuturesDeleteSettlePriceOrdersOrderId($this->extend($request, $requestParams)));
             } else {
                 $response = Async\await($this->privateFuturesDeleteSettleOrdersOrderId($this->extend($request, $requestParams)));
             }
         } elseif ($type === 'future') {
-            if ($trigger === true) {
+            if ($trigger) {
                 $response = Async\await($this->privateDeliveryDeleteSettlePriceOrdersOrderId($this->extend($request, $requestParams)));
             } else {
                 $response = Async\await($this->privateDeliveryDeleteSettleOrdersOrderId($this->extend($request, $requestParams)));
@@ -7362,7 +7362,7 @@ class gate extends Exchange {
         $bodyJson = null;
         $signedHeaders = null;
         $containsSettle = mb_strpos($path, 'settle') > -1;
-        if ($containsSettle && (str_ends_with($path, 'batch_cancel_orders') === true)) { // weird check to prevent $settle in php and converting {settle} to array(settle)
+        if ($containsSettle && (str_ends_with($path, 'batch_cancel_orders'))) { // weird check to prevent $settle in php and converting {settle} to array(settle)
             // special case where we need to extract the settle from the path
             // but the body is an array of strings
             $settle = $this->safe_dict($params, 0);

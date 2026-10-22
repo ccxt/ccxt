@@ -686,9 +686,9 @@ export default class deepcoin extends Exchange {
             request['after'] = until;
         }
         const calculateUntil = this.safeBool(paramsPaginate, 'calculateUntil', false);
-        const keysToOmit = (calculateUntil === true) ? ['price', 'until', 'calculateUntil'] : ['price', 'until'];
+        const keysToOmit = (calculateUntil) ? ['price', 'until', 'calculateUntil'] : ['price', 'until'];
         const paramsOmitted = this.omit(paramsPaginate, keysToOmit);
-        if (calculateUntil === true) {
+        if (calculateUntil) {
             if (since !== undefined) {
                 // the exchange do not have a since param for this endpoint
                 // we calculate until (after) for correct pagination
@@ -1220,16 +1220,17 @@ export default class deepcoin extends Exchange {
         const paramsOmitted = (network !== undefined) ? this.omit(params, 'network') : params;
         const addressess = await this.fetchDepositAddresses([code], paramsOmitted);
         const length = addressess.length;
-        let address = this.safeDict(addressess, 0, {});
+        let index = 0;
         if ((network !== undefined) && (length > 1)) {
+            // the last entry on the requested network wins
             for (let i = 0; i < length; i++) {
-                const entry = addressess[i];
-                if (entry['network'] === network) {
-                    address = entry;
+                const entryNetwork = this.safeString(this.safeDict(addressess, i, {}), 'network');
+                if (entryNetwork === network) {
+                    index = i;
                 }
             }
         }
-        return address;
+        return this.safeDict(addressess, index, {});
     }
     parseDepositAddress(response, currency = undefined) {
         //
@@ -1434,7 +1435,7 @@ export default class deepcoin extends Exchange {
         const transfer = this.parseTransfer(data, currency);
         const transferOptions = this.safeDict(this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest === true) {
+        if (fillResponseFromRequest) {
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
             transfer['amount'] = amount;
@@ -1659,7 +1660,7 @@ export default class deepcoin extends Exchange {
             request['mrgPosition'] = mrgPosition;
             let posSide = undefined;
             const reduceOnly = this.safeBool(paramsMrgPosition, 'reduceOnly', false);
-            if (reduceOnly === true) {
+            if (reduceOnly) {
                 if (side === 'buy') {
                     posSide = 'short';
                 }
@@ -1744,7 +1745,7 @@ export default class deepcoin extends Exchange {
         request['isCrossMargin'] = isCrossMargin;
         request['tdMode'] = marginModeOption;
         if (market['swap'] === true) {
-            if (reduceOnly === true) {
+            if (reduceOnly) {
                 if (side === 'buy') {
                     request['posSide'] = 'short';
                 }
@@ -1963,7 +1964,7 @@ export default class deepcoin extends Exchange {
             request['limit'] = limit; // default 100
         }
         let response = undefined;
-        if (trigger === true) {
+        if (trigger) {
             if (methodName !== 'fetchCanceledAndClosedOrders') {
                 throw new BadRequest(this.id + ' ' + methodName + '() does not support trigger orders');
             }
@@ -2122,7 +2123,7 @@ export default class deepcoin extends Exchange {
         const trigger = this.safeBool(params, 'trigger', false);
         const paramsOmitted = this.omit(params, 'trigger');
         let response = undefined;
-        if (trigger === true) {
+        if (trigger) {
             request['instType'] = this.convertToInstrumentType(market['type']);
             //
             //     {
@@ -2235,7 +2236,7 @@ export default class deepcoin extends Exchange {
         };
         let response = undefined;
         const trigger = this.safeBool(params, 'trigger', false);
-        if (trigger === true) {
+        if (trigger) {
             const paramsOmitted = this.omit(params, 'trigger');
             response = await this.privatePostDeepcoinTradeCancelTriggerOrder(this.extend(request, paramsOmitted));
         }

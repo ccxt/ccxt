@@ -1877,7 +1877,7 @@ export default class xt extends Exchange {
                 result[symbol] = ticker;
             }
         }
-        return this.filterByArray(result, 'symbol', symbolsNormalized);
+        return this.filterByArrayTickers(result, 'symbol', symbolsNormalized);
     }
     /**
      * @method
@@ -1969,7 +1969,7 @@ export default class xt extends Exchange {
                 result[symbol] = ticker;
             }
         }
-        return this.filterByArray(result, 'symbol', symbolsNormalized);
+        return this.filterByArrayTickers(result, 'symbol', symbolsNormalized);
     }
     parseTicker(ticker, market = undefined) {
         //
@@ -2660,7 +2660,7 @@ export default class xt extends Exchange {
             if (side === 'buy') {
                 const cost = this.safeString(paramsMarginMode, 'cost');
                 const createMarketBuyOrderRequiresPrice = this.safeBool(this.options, 'createMarketBuyOrderRequiresPrice', true);
-                if (createMarketBuyOrderRequiresPrice === true) {
+                if (createMarketBuyOrderRequiresPrice) {
                     if (price === undefined && (cost === undefined)) {
                         throw new InvalidOrder(this.id + ' createOrder() requires a price argument or cost in params for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
                     }
@@ -2693,7 +2693,7 @@ export default class xt extends Exchange {
             paramsWithoutCost = this.omit(paramsMarginMode, 'cost');
         }
         const [postOnly, paramsPostOnly] = this.handlePostOnly(type === 'market', timeInForce === 'GTX', paramsWithoutCost);
-        if (postOnly === true) {
+        if (postOnly) {
             timeInForce = 'GTX';
         }
         const paramsOmitted = this.omit(paramsPostOnly, ['timeInForce', 'postOnly']);
@@ -2726,7 +2726,7 @@ export default class xt extends Exchange {
         };
         let timeInForce = this.safeStringUpper(params, 'timeInForce');
         const [postOnly, paramsPostOnly] = this.handlePostOnly(type === 'market', timeInForce === 'GTX', params);
-        if (postOnly === true) {
+        if (postOnly) {
             timeInForce = 'GTX';
         }
         const paramsOmitted4 = this.omit(paramsPostOnly, ['timeInForce', 'postOnly']);
@@ -2736,14 +2736,14 @@ export default class xt extends Exchange {
         const reduceOnly = this.safeBool(paramsOmitted4, 'reduceOnly', false);
         if (side === 'buy') {
             let requestType = 'LONG';
-            if (reduceOnly === true) {
+            if (reduceOnly) {
                 requestType = 'SHORT';
             }
             request['positionSide'] = requestType;
         }
         else {
             let requestType = 'SHORT';
-            if (reduceOnly === true) {
+            if (reduceOnly) {
                 requestType = 'LONG';
             }
             request['positionSide'] = requestType;

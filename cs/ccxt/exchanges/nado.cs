@@ -1834,7 +1834,7 @@ public partial class nado : Exchange
                 bool? previousWithdraw = this.safeBool(previous, "can_withdraw", false);
                 bool? currentDeposit = this.safeBool(rawAsset, "can_deposit", false);
                 bool? currentWithdraw = this.safeBool(rawAsset, "can_withdraw", false);
-                if (((previousDeposit != true)) && ((previousWithdraw != true)) && (((currentDeposit == true)) || ((currentWithdraw == true))))
+                if ((previousDeposit != true) && (previousWithdraw != true) && ((currentDeposit == true) || (currentWithdraw == true)))
                 {
                     assetsByCode[(string)assetCode] = rawAsset;
                 }
@@ -1977,7 +1977,7 @@ public partial class nado : Exchange
             {
                 bool? previousDeposit = this.safeBool(previous, "deposit", false);
                 bool? previousWithdraw = this.safeBool(previous, "withdraw", false);
-                if (((previousDeposit != true)) && ((previousWithdraw != true)) && (((canDeposit == true)) || ((canWithdraw == true))))
+                if ((previousDeposit != true) && (previousWithdraw != true) && ((canDeposit == true) || (canWithdraw == true)))
                 {
                     result[(string)code] = parsed;
                 }
@@ -3265,7 +3265,7 @@ public partial class nado : Exchange
             appendix = Precise.stringAdd(appendix, Precise.stringMul(builder, "281474976710656")); // 1<<48
             appendix = Precise.stringAdd(appendix, Precise.stringMul(builderFeeRate, "274877906944")); // 1<<32
         }
-        if ((isTriggerOrder == true))
+        if (isTriggerOrder)
         {
             appendix = Precise.stringAdd(appendix, "4096");
         }

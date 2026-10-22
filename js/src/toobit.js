@@ -1552,7 +1552,7 @@ export default class toobit extends Exchange {
             results.push(ticker);
         }
         const symbolsNormalized = this.marketSymbols(symbols);
-        return this.filterByArray(results, 'symbol', symbolsNormalized);
+        return this.filterByArrayTickers(results, 'symbol', symbolsNormalized);
     }
     parseBidAskCustom(ticker) {
         // 's' is the exchange id and 't' a millisecond integer, the pair parseTicker
@@ -1835,7 +1835,7 @@ export default class toobit extends Exchange {
             request['quantity'] = this.amountToPrecision(symbol, amount);
         }
         const [isPostOnly, paramsPostOnly] = this.handlePostOnly(type === 'market', false, paramsCost);
-        if (isPostOnly === true) {
+        if (isPostOnly) {
             request['type'] = 'LIMIT_MAKER';
         }
         else {
@@ -1877,7 +1877,7 @@ export default class toobit extends Exchange {
             request['priceType'] = 'MARKET';
         }
         const [isPostOnly, paramsPostOnly] = this.handlePostOnly(type === 'market', false, paramsReduceOnly);
-        if (isPostOnly === true) {
+        if (isPostOnly) {
             request['timeInForce'] = 'LIMIT_MAKER';
         }
         const values = this.handleTriggerPricesAndParams(symbol, paramsPostOnly);

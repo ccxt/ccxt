@@ -965,7 +965,7 @@ export default class foxbit extends Exchange {
                 request['time_in_force'] = timeInForce;
             }
         }
-        if (postOnly === true) {
+        if (postOnly) {
             request['post_only'] = true;
         }
         if (triggerPrice !== undefined) {
@@ -1038,7 +1038,7 @@ export default class foxbit extends Exchange {
                 }
                 delete orderParams['timeInForce'];
             }
-            if (postOnly === true) {
+            if (postOnly) {
                 request['post_only'] = true;
                 delete orderParams['postOnly'];
             }

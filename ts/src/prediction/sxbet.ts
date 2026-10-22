@@ -576,8 +576,8 @@ export default class sxbet extends Exchange {
      * @param {object[]} rawMarkets the raw sx.bet market objects belonging to this fixture
      * @returns {object} an event structure
      */
-    parseEvent (fixtureId: string, rawMarkets: any[]): Dict {
-        const marketsList: Market[] = [];
+    parseEvent (fixtureId: string, rawMarkets: any[]): PredictionEvent {
+        const marketsList: any[] = [];
         let anyActive = false;
         let earliestGameTime = this.safeInteger ({}, 'gameTime');
         let teamOneName: Str = undefined;
@@ -1189,7 +1189,8 @@ export default class sxbet extends Exchange {
         } else {
             response = await this.sxbetPrivateDeleteOrdersV3All (rest);
         }
-        let result = this.parseSxbetCancelResponse (response);
+        let result: PredictionOrder[] = [];
+        result = this.arrayConcat (result, this.parseSxbetCancelResponse (response));
         // both paths paginate their async submission - keep going on the SAME route while more remain
         let hasMore = this.safeBool (this.safeDict (response, 'data', {}), 'hasMore', false);
         for (let guard = 0; guard < 50; guard++) {

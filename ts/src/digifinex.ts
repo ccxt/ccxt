@@ -3043,7 +3043,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         const data: Dict[] = this.safeList (response, 'data', []);
-        const addresses = this.parseDepositAddresses (data, [ currency['code'] ]);
+        const addresses = this.indexBy (this.parseDepositAddresses (data, [ currency['code'] ], false), 'currency');
         const address = this.safeDict (addresses, code);
         if (address === undefined) {
             throw new InvalidAddress (this.id + ' fetchDepositAddress() did not return an address for ' + code + ' - create the deposit address in the user settings on the exchange website first.');

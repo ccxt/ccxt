@@ -976,7 +976,7 @@ class BaseExchange(SyncExchange):
                 return content
         except Exception as e:
             errorMessage = self.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.'
-        if muteOnFailure is True:
+        if muteOnFailure:
             return None
         else:
             raise BadResponse(errorMessage)
@@ -1101,7 +1101,7 @@ class BaseExchange(SyncExchange):
         if self.has['fetchDepositWithdrawFees'] is None or self.has['fetchDepositWithdrawFees'] is False:
             raise NotSupported(self.id + ' fetchDepositWithdrawFee() is not supported yet')
         fees = await self.fetch_deposit_withdraw_fees([code], params)
-        return self.safe_value(fees, code)
+        return self.safe_dict(fees, code)
 
     async def fetch_cross_borrow_rate(self, code: str, params={}):
         await self.load_markets()
@@ -1249,12 +1249,11 @@ class BaseExchange(SyncExchange):
 
     async def fetch_deposit_address(self, code: str, params: dict = {}):
         if self.has['fetchDepositAddresses'] is not None and self.has['fetchDepositAddresses'] is not False:
-            depositAddresses = await self.fetch_deposit_addresses([code], params)
-            depositAddress = self.safe_value(depositAddresses, code)
-            if depositAddress is None:
+            depositAddressesList = await self.fetch_deposit_addresses([code], params)
+            depositAddresses = self.index_by(depositAddressesList, 'currency')
+            if self.safe_dict(depositAddresses, code) is None:
                 raise InvalidAddress(self.id + ' fetchDepositAddress() could not find a deposit address for ' + code + ', make sure you have created a corresponding deposit address in your wallet on the exchange website')
-            else:
-                return depositAddress
+            return self.safe_dict(depositAddresses, code)
         elif self.has['fetchDepositAddressesByNetwork'] is not None and self.has['fetchDepositAddressesByNetwork'] is not False:
             network = self.safe_string(params, 'network')
             paramsOmitted = self.omit(params, 'network')
@@ -1277,7 +1276,7 @@ class BaseExchange(SyncExchange):
         if serverTime is None:
             raise ExchangeError(self.id + ' loadTimeDifference() missing serverTime')
         self.options['timeDifference'] = after - serverTime
-        return self.options['timeDifference']
+        return self.parse_to_int(self.options['timeDifference'])
 
     async def fetch_market_leverage_tiers(self, symbol: str, params: dict = {}):
         if self.has['fetchLeverageTiers'] is not None and self.has['fetchLeverageTiers'] is not False:
@@ -1285,7 +1284,8 @@ class BaseExchange(SyncExchange):
             if market['contract'] is not True:
                 raise BadSymbol(self.id + ' fetchMarketLeverageTiers() supports contract markets only')
             tiers = await self.fetch_leverage_tiers([symbol])
-            return self.safe_value(tiers, symbol)
+            marketTiers = self.safe_list(tiers, symbol)
+            return marketTiers
         else:
             raise NotSupported(self.id + ' fetchMarketLeverageTiers() is not supported yet')
 
@@ -1768,8 +1768,7 @@ class Exchange(BaseExchange):
         :returns dict[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
         """
         if self.has['fetchPositionsHistory'] is not None and self.has['fetchPositionsHistory'] is not False:
-            positions = await self.fetchPositionsHistory([symbol], since, limit, params)
-            return positions
+            return await self.fetchPositionsHistory([symbol], since, limit, params)
         else:
             raise NotSupported(self.id + ' fetchPositionHistory () is not supported yet')
 
@@ -2237,7 +2236,7 @@ class Exchange(BaseExchange):
         # TODO: TypeScript: change method signature by replacing
         # Promise<string> with Promise<Order['status']>.
         order = await self.fetchOrder(id, symbol, params)
-        return order['status']
+        return self.safe_string(order, 'status')
 
     async def fetch_unified_order(self, order: object, params: dict = {}):
         return await self.fetchOrder(self.safe_string(order, 'id'), self.safe_string(order, 'symbol'), params)
@@ -2444,7 +2443,7 @@ class Exchange(BaseExchange):
         raise NotSupported(self.id + ' cancelAllOrders() is not supported yet')
 
     async def cancel_unified_order(self, order: Order, params: dict = {}):
-        return self.cancel_order(self.safe_string(order, 'id'), self.safe_string(order, 'symbol'), params)
+        return await self.cancel_order(self.safe_string(order, 'id'), self.safe_string(order, 'symbol'), params)
 
     async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}):
         if (self.has['fetchOpenOrders'] is not None and self.has['fetchOpenOrders'] is not False) and (self.has['fetchClosedOrders'] is not None and self.has['fetchClosedOrders'] is not False):

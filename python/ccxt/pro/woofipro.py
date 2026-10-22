@@ -651,7 +651,7 @@ class woofipro(ccxt.async_support.woofipro):
             await self.load_markets()
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
         topic = 'executionreport'
-        if trigger is True:
+        if trigger:
             topic = 'algoexecutionreport'
         paramsOmitted = self.omit(params, ['stop', 'trigger'])
         messageHash = topic
@@ -690,7 +690,7 @@ class woofipro(ccxt.async_support.woofipro):
             await self.load_markets()
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
         topic = 'executionreport'
-        if trigger is True:
+        if trigger:
             topic = 'algoexecutionreport'
         paramsOmitted = self.omit(params, 'stop')
         messageHash = 'myTrades'

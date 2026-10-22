@@ -858,7 +858,7 @@ public partial class deepcoin : Exchange
             request["after"] = until;
         }
         bool? calculateUntil = this.safeBool(paramsPaginate, "calculateUntil", false);
-        List<object> keysToOmit = ((calculateUntil == true)) ? new List<object>() {"price", "until", "calculateUntil"} : new List<object>() {"price", "until"};
+        List<object> keysToOmit = calculateUntil == true ? new List<object>() {"price", "until", "calculateUntil"} : new List<object>() {"price", "until"};
         Dictionary<string, object> paramsOmitted = this.omit(paramsPaginate, keysToOmit);
         if ((calculateUntil == true))
         {

@@ -429,7 +429,7 @@ impl KrakenCore {
         let mut postOnlyparamsPostOnlyVariable = self.handle_post_only(isMarket, Value::Bool(false), &[params]);
         let mut postOnly: Value = postOnlyparamsPostOnlyVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsPostOnly: Value = postOnlyparamsPostOnlyVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        if (postOnly.as_bool() == Some(true)) {
+        if is_true(&postOnly) {
             add_element_to_object(get_value_mut(&mut request, &Value::Str("params".into())), &Value::Str("post_only".into()), Value::Bool(true));
         }
         let mut clientOrderId: Value = self.safe_string_k(paramsPostOnly.clone(), "clientOrderId", &[]);

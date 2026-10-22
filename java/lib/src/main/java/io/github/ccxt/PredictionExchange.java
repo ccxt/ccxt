@@ -895,7 +895,7 @@ public Object describe()
                 Integer missingLength = ((List<?>)missing).size();
                 Boolean wasWarm = (!java.util.Objects.equals(this.outcomes, null)) && !this.isEmpty(this.outcomes);
                 Boolean loadAll = (Boolean) this.safeBool(this.options, "loadAllOutcomes", false);
-                if (((missingLength != null && missingLength > 0)) && (java.util.Objects.equals(loadAll, true)) && !Boolean.TRUE.equals(wasWarm) && !java.util.Objects.requireNonNullElse(reload, false))
+                if (((missingLength != null && missingLength > 0)) && Boolean.TRUE.equals(loadAll) && !Boolean.TRUE.equals(wasWarm) && !java.util.Objects.requireNonNullElse(reload, false))
                 {
                     // same trade-off as loadOutcome: on venues where the whole universe is one cheap
                     // request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
@@ -985,7 +985,7 @@ public Object describe()
                     }
                 }
                 Boolean loadAll = (Boolean) this.safeBool(this.options, "loadAllOutcomes", false);
-                if ((java.util.Objects.equals(loadAll, true)) && !Boolean.TRUE.equals(wasWarm))
+                if (Boolean.TRUE.equals(loadAll) && !Boolean.TRUE.equals(wasWarm))
                 {
                     // a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
                     // a miss on an already-warm cache is authoritative — the outcome genuinely isn't

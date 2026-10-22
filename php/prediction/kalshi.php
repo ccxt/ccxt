@@ -815,7 +815,7 @@ class kalshi extends Exchange {
         //
         $tradingActive = $this->safe_bool($response, 'trading_active', false);
         return array(
-            'status' => ($tradingActive === true) ? 'ok' : 'maintenance',
+            'status' => ($tradingActive) ? 'ok' : 'maintenance',
             'updated' => null,
             'eta' => null,
             'url' => null,
@@ -1539,7 +1539,7 @@ class kalshi extends Exchange {
         }
         $isTaker = $this->safe_bool($fill, 'is_taker', true);
         $takerOrMaker = 'maker';
-        if ($isTaker === true) {
+        if ($isTaker) {
             $takerOrMaker = 'taker';
         }
         $feeCost = $this->safe_number($fill, 'fee_cost');
@@ -1632,10 +1632,10 @@ class kalshi extends Exchange {
         $positions = $this->safe_list($response, 'market_positions', array());
         // filter by the requested outcomes' market tickers — a kalshi position is per market
         // ticker and covers both the YES and the NO leg
-        $parsed = $this->parse_prediction_positions($positions);
         if ($outcomesLength === 0) {
-            return $parsed;
+            return $this->parse_prediction_positions($positions);
         }
+        $parsed = $this->parse_prediction_positions($positions);
         $wantedTickers = array();
         if ($outcomes === null) {
             throw new ExchangeError($this->id . ' fetchPositions() missing outcomes');
@@ -2424,7 +2424,8 @@ class kalshi extends Exchange {
          */
         $request = array( 'event_ticker' => $ticker, 'with_nested_markets' => true );
         $response = Async\await($this->kalshiPublicGetEventsEventTicker($this->extend($request, $params)));
-        $fullEvent = $this->safe_dict($response, 'event', $response);
+        // a typed copy of the event row: the caller-facing dict is never the raw response
+        $fullEvent = $this->extend(array(), $this->safe_dict($response, 'event', $response));
         $nestedMarkets = $this->safe_list($fullEvent, 'markets');
         if ($nestedMarkets === null) {
             $fullEvent['markets'] = $this->safe_list($response, 'markets', array());
@@ -2577,7 +2578,7 @@ class kalshi extends Exchange {
         return $event;
     }
 
-    public function parse_event(array $rawEvent): mixed {
+    public function parse_event(array $rawEvent): array {
         /**
          * @ignore
          * parses a raw kalshi event object (with nested markets) into the unified CCXT event shape

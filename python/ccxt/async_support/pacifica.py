@@ -583,10 +583,10 @@ class pacifica(Exchange, ImplicitAPI):
         if self.isSandboxModeEnabled:  # At this stage, building codes are mostly only on the mainnet.
             return False
         buildFee = self.safe_bool(self.options, 'builderFee', True)
-        if buildFee is not True:
+        if not buildFee:
             return False  # skip if builder fee is not enabled
         approvedBuilderFee = self.safe_bool(self.options, 'approvedBuilderFee', False)
-        if approvedBuilderFee is True:
+        if approvedBuilderFee:
             return True  # skip if builder fee is already approved
         try:
             builder = self.safe_string(self.options, 'builderCode', 'CCXT')  # case sensitive
@@ -723,7 +723,7 @@ class pacifica(Exchange, ImplicitAPI):
             contractSize = self.parse_number('1')
             minLeverage = 1
             maxLeverage = self.safe_integer(market, 'max_leverage')
-            crossMargin = isolatedOnly is not True
+            crossMargin = not isolatedOnly
             isolatedMargin = True
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
@@ -916,7 +916,7 @@ class pacifica(Exchange, ImplicitAPI):
         isIsolated = self.safe_bool(setting, 'isolated', False)
         leverage = self.safe_integer(setting, 'leverage')
         marginMode = 'cross'
-        if isIsolated is True:
+        if isIsolated:
             marginMode = 'isolated'
         return {
             'info': setting,
@@ -970,7 +970,7 @@ class pacifica(Exchange, ImplicitAPI):
 
     async def load_account_settings(self, refresh: bool = False, params: dict = {}):
         settings = self.handle_option('loadAccountSettings', 'settings')
-        if (settings is None) or (refresh is True):
+        if (settings is None) or (refresh):
             self.options['settings'] = self.create_safe_dictionary()
             settings = await self.fetch_account_settings(params)
             self.options['settings'] = settings
@@ -1040,7 +1040,7 @@ class pacifica(Exchange, ImplicitAPI):
         # }
         isIsolated = self.safe_bool(setting, 'isolated', False)
         marginMode = 'cross'
-        if isIsolated is True:
+        if isIsolated:
             marginMode = 'isolated'
         return {
             'symbol': symbol,
@@ -1515,7 +1515,7 @@ class pacifica(Exchange, ImplicitAPI):
         #
         success = self.safe_bool(response, 'success', False)
         status = None
-        if success is not True:
+        if not success:
             status = 'rejected'
         else:
             status = 'open'
@@ -1727,7 +1727,7 @@ class pacifica(Exchange, ImplicitAPI):
             error = self.safe_string(order, 'error')
             success = self.safe_bool(order, 'success', False)
             status = None
-            if (error is not None) or (success is not True):
+            if (error is not None) or (not success):
                 status = 'rejected'
             else:
                 status = 'open'
@@ -1783,7 +1783,7 @@ class pacifica(Exchange, ImplicitAPI):
             error = self.safe_string(order, 'error')
             success = self.safe_bool(order, 'success', False)
             status = None
-            if (error is not None) or (success is not True):
+            if (error is not None) or (not success):
                 status = 'closed'
             else:
                 status = 'canceled'
@@ -1887,7 +1887,7 @@ class pacifica(Exchange, ImplicitAPI):
         isStopOrder = self.safe_bool_2(params, 'trigger', 'stop', False)
         paramsOmitted = self.omit(params, ['expiryWindow', 'trigger', 'stop', 'clientOrderId'])
         response = None
-        if isStopOrder is True:
+        if isStopOrder:
             response = await self.privatePostOrdersStopCancel(self.extend(request, paramsOmitted))
         else:
             response = await self.privatePostOrdersCancel(self.extend(request, paramsOmitted))
@@ -1900,7 +1900,7 @@ class pacifica(Exchange, ImplicitAPI):
         #
         success = self.safe_bool(response, 'success', False)
         status = 'closed'
-        if success is True:
+        if success:
             status = 'canceled'
         return self.safe_order({'id': id, 'status': status, 'info': response, 'symbol': symbol})
 
@@ -1908,7 +1908,7 @@ class pacifica(Exchange, ImplicitAPI):
         market = self.market(symbol)
         isStopOrder = self.safe_bool_2(params, 'trigger', 'stop', False)
         operationType = None
-        if isStopOrder is True:
+        if isStopOrder:
             operationType = 'cancel_stop_order'
         else:
             operationType = 'cancel_order'
@@ -2290,15 +2290,14 @@ class pacifica(Exchange, ImplicitAPI):
         # }
         #
         data = self.add_pagination_cursor_to_result(response)
-        orders = self.parse_orders(data, market, since, limit)
-        return orders
+        return self.parse_orders(data, market, since, limit)
 
     def add_pagination_cursor_to_result(self, response: dict) -> list[dict]:
         data = self.safe_list(response, 'data', [])
         paginationCursor = self.safe_string(response, 'next_cursor')
         hasMore = self.safe_bool(response, 'has_more', False)
         dataLength = len(data)
-        if hasMore is True:
+        if hasMore:
             if (paginationCursor is not None) and (dataLength > 0):
                 first = data[0]
                 first['next_cursor'] = paginationCursor
@@ -3247,7 +3246,7 @@ class pacifica(Exchange, ImplicitAPI):
         success = self.safe_bool(transfer, 'success')
         status = None
         if success is not None:
-            status = 'ok' if (success is True) else 'failed'
+            status = 'ok' if (success) else 'failed'
         return {
             'info': transfer,
             'id': None,
@@ -3553,7 +3552,7 @@ class pacifica(Exchange, ImplicitAPI):
                 builderCode = self.handle_option('postActionRequest', 'builderCode')
             if builderCode is not None:
                 isOperationSupportBuilder = self.safe_bool(self.options['builderSupportOperations'], operationType, False)
-                if isOperationSupportBuilder is True:
+                if isOperationSupportBuilder:
                     sigPayload['builder_code'] = builderCode
         expiryWindow, paramsExpiryWindow = self.handle_option_integer_and_params_2(params, 'postActionRequest', 'expiryWindow', 'expiry_window', 5000)
         timestamp = self.safe_integer(paramsExpiryWindow, 'timestamp', self.milliseconds())

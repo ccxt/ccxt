@@ -2626,12 +2626,11 @@ class extended extends Exchange {
     private function do_fetch_extended_account($params = array()) {
         $account = $this->safe_dict($this->options, 'account');
         if ($account !== null) {
-            return $account;
+            return $this->safe_dict($this->options, 'account', array());
         }
         $accountData = Async\await($this->fetch_account($params));
-        $account = $accountData['info'];
-        $this->options['account'] = $account;
-        return $account;
+        $this->options['account'] = $accountData['info'];
+        return $this->safe_dict($this->options, 'account', array());
     }
 
     public function create_order_settlement_data(bool $isBuy, string $amountString, string $priceString, $params = array()): array {

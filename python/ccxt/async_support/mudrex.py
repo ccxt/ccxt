@@ -220,7 +220,7 @@ class mudrex(Exchange, ImplicitAPI):
         if response is None or not isinstance(response, dict):
             return None
         success = self.safe_bool(response, 'success', True)
-        if success is not True:
+        if not success:
             errors = self.safe_list(response, 'errors', [])
             first = self.safe_dict(errors, 0, {})
             text = self.safe_string(first, 'text', self.json(response))
@@ -428,7 +428,7 @@ class mudrex(Exchange, ImplicitAPI):
         offset = 0
         pageLimit = 100
         paging = True
-        while(paging is True):
+        while(paging):
             q = self.extend({'limit': pageLimit, 'offset': offset}, params)
             response = await self.privateGetFutures(q)
             data = self.safe_value(response, 'data', [])
@@ -1075,10 +1075,10 @@ class mudrex(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
+        market = self.market(symbol)
         positionId = self.safe_string(params, 'position_id')
         amount = self.safe_value(params, 'amount')
         if positionId is None:
-            market = self.market(symbol)
             positions = await self.fetch_positions([symbol], params)
             for i in range(0, len(positions)):
                 p = positions[i]
@@ -1101,10 +1101,12 @@ class mudrex(Exchange, ImplicitAPI):
                 request['limit_price'] = lp
             partialParams = self.omit(params, ['order_type', 'limit_price', 'amount', 'position_id'])
             partialResponse = await self.privatePostFuturesPositionsPositionIdClosePartial(self.extend(request, partialParams))
-            return partialResponse
+            partialData = self.safe_dict(partialResponse, 'data', partialResponse)
+            return self.parse_order(partialData, market)
         closeParams = self.omit(params, ['position_id'])
         response = await self.privatePostFuturesPositionsPositionIdClose(self.extend(request, closeParams))
-        return response
+        data = self.safe_dict(response, 'data', response)
+        return self.parse_order(data, market)
 
     async def add_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
         """
@@ -1180,7 +1182,7 @@ class mudrex(Exchange, ImplicitAPI):
         calls = 0
         offset = 0
         paging = True
-        while(paging is True):
+        while(paging):
             request = {}
             if pageSize > 0:
                 request['limit'] = pageSize

@@ -2301,7 +2301,7 @@ func (this *Mexc) ParseTrade(trade any, optionalArgs ...any) Trade {
 			var buyerMaker *bool = this.SafeBool2(trade, "isBuyerMaker", "m")
 			if isMaker != nil {
 				takerOrMaker = SafeStringPtr(func() string {
-					if isMaker != nil && *isMaker == true {
+					if isMaker != nil && *isMaker {
 						return "maker"
 					}
 					return "taker"
@@ -2309,7 +2309,7 @@ func (this *Mexc) ParseTrade(trade any, optionalArgs ...any) Trade {
 			}
 			if isBuyer != nil {
 				side = SafeStringPtr(func() string {
-					if isBuyer != nil && *isBuyer == true {
+					if isBuyer != nil && *isBuyer {
 						return "buy"
 					}
 					return "sell"
@@ -2317,7 +2317,7 @@ func (this *Mexc) ParseTrade(trade any, optionalArgs ...any) Trade {
 			}
 			if buyerMaker != nil {
 				side = SafeStringPtr(func() string {
-					if buyerMaker != nil && *buyerMaker == true {
+					if buyerMaker != nil && *buyerMaker {
 						return "sell"
 					}
 					return "buy"
@@ -3152,7 +3152,7 @@ func (this *Mexc) CreateSpotOrderRequest(market any, typeVar any, side any, amou
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((IsEqual(typeVar, "market")), (IsEqual(typeVar, "LIMIT_MAKER")), paramsWithoutClientOrderId)
 	var postOnly bool = GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)
 	var paramsPostOnly map[string]any = MapTyped(postOnlyparamsPostOnlyVariable[1])
-	if postOnly == true {
+	if postOnly {
 		request["type"] = "LIMIT_MAKER"
 	}
 	var tif *string = this.SafeString(paramsPostOnly, "timeInForce")
@@ -3213,7 +3213,7 @@ func (this *Mexc) createSpotOrderBody(ch chan EndpointResult[map[string]any], ma
 	var paramsOmitted map[string]any = this.OmitDict(params, "test")
 	var request any = this.CreateSpotOrderRequest(market, typeVar, side, amount, price, marginMode, paramsOmitted)
 	var response map[string]any = nil
-	if test != nil && *test == true {
+	if test != nil && *test {
 
 		r1 := <-this.SpotPrivatePostOrderTest(request)
 		if r1.Err != nil {
@@ -3328,7 +3328,7 @@ func (this *Mexc) createSwapOrderBody(ch chan EndpointResult[map[string]any], ma
 	var postOnly bool = GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)
 	var paramsPostOnly map[string]any = MapTyped(postOnlyparamsPostOnlyVariable[1])
 	var orderType any = nil
-	if postOnly == true {
+	if postOnly {
 		orderType = 2
 	} else if IsEqual(typeVar, "limit") {
 		orderType = 1
@@ -3363,8 +3363,8 @@ func (this *Mexc) createSwapOrderBody(ch chan EndpointResult[map[string]any], ma
 	var reduceOnly *bool = this.SafeBool(paramsPostOnly, "reduceOnly", false)
 	var hedged *bool = this.SafeBool(paramsPostOnly, "hedged", false)
 	var sideInteger any = nil
-	if hedged != nil && *hedged == true {
-		if reduceOnly != nil && *reduceOnly == true {
+	if hedged != nil && *hedged {
+		if reduceOnly != nil && *reduceOnly {
 			sideInteger = func() int {
 				if side == "buy" {
 					return 4
@@ -3381,7 +3381,7 @@ func (this *Mexc) createSwapOrderBody(ch chan EndpointResult[map[string]any], ma
 		}
 		request["positionMode"] = 1
 	} else {
-		if reduceOnly != nil && *reduceOnly == true {
+		if reduceOnly != nil && *reduceOnly {
 			sideInteger = func() int {
 				if side == "buy" {
 					return 2
@@ -3399,7 +3399,7 @@ func (this *Mexc) createSwapOrderBody(ch chan EndpointResult[map[string]any], ma
 	}
 	request["side"] = sideInteger
 	var paramsReduceOnly map[string]any = func() map[string]any {
-		if reduceOnly != nil && *reduceOnly == true {
+		if reduceOnly != nil && *reduceOnly {
 			return this.OmitDict(paramsPostOnly, "reduceOnly")
 		}
 		return paramsPostOnly
@@ -5215,7 +5215,7 @@ func (this *Mexc) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...any
 	var isMargin *bool = this.SafeBool(paramsMarketType, "margin", false)
 	var paramsOmitted2 any = this.Omit(paramsMarketType, []any{"margin", "marginMode"})
 	var response map[string]any = nil
-	if (marginMode != nil) || (isMargin != nil && *isMargin == true) || (marketType == "margin") {
+	if (marginMode != nil) || (isMargin != nil && *isMargin) || (marketType == "margin") {
 		var parsedSymbols any = nil
 		var symbol *string = this.SafeString(paramsOmitted2, "symbol")
 		if symbol == nil {
@@ -7538,7 +7538,7 @@ func (this *Mexc) withdrawBody(ch chan EndpointResult[map[string]any], code stri
 	tagResolved := GetValue(tagResolvedparamsWithdrawTagVariable, 0)
 	var paramsWithdrawTag map[string]any = MapTyped(tagResolvedparamsWithdrawTagVariable[1])
 	var internal *bool = this.SafeBool(paramsWithdrawTag, "internal", false)
-	if internal != nil && *internal == true {
+	if internal != nil && *internal {
 		var paramsInternal map[string]any = this.OmitDict(paramsWithdrawTag, "internal")
 		var requestForInternal map[string]any = map[string]any{
 			"asset":     currency["id"],
@@ -8057,7 +8057,7 @@ func (this *Mexc) HandleMarginModeAndParams(methodName any, optionalArgs ...any)
 	var defaultType *string = this.SafeString(this.Options, "defaultType")
 	var isMargin *bool = this.SafeBool(params, "margin", false)
 	marginMode, paramsMarginMode := this.Exchange.HandleMarginModeAndParams(methodName, params, defaultValue)
-	if (defaultType != nil && *defaultType == "margin") || (isMargin != nil && *isMargin == true) {
+	if (defaultType != nil && *defaultType == "margin") || (isMargin != nil && *isMargin) {
 		return SafeStringPtr("isolated"), MapTyped(paramsMarginMode)
 	}
 	return SafeStringPtr(marginMode), MapTyped(paramsMarginMode)
@@ -8373,7 +8373,7 @@ func (this *Mexc) HandleErrors(code any, reason any, url any, method any, header
 	//     {"success":true, "code":0, "data":1634095541710}
 	//
 	var success *bool = this.SafeBool(response, "success", false) // v1
-	if success != nil && *success == true {
+	if success != nil && *success {
 		return nil
 	}
 	var responseCode *string = this.SafeString(response, "code")

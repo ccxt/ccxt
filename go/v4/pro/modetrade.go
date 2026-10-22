@@ -987,7 +987,7 @@ func (this *Modetrade) watchOrdersBody(ch chan ccxt.AsyncResult[[]any], optional
 	}
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger", false)
 	var topic string = "executionreport"
-	if trigger != nil && *trigger == true {
+	if trigger != nil && *trigger {
 		topic = "algoexecutionreport"
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stop", "trigger"})
@@ -1060,7 +1060,7 @@ func (this *Modetrade) watchMyTradesBody(ch chan ccxt.AsyncResult[[]any], option
 	}
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger", false)
 	var topic string = "executionreport"
-	if trigger != nil && *trigger == true {
+	if trigger != nil && *trigger {
 		topic = "algoexecutionreport"
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, "stop")

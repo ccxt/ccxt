@@ -760,7 +760,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         baseVolume = None
         quoteVolume = None
         isIndex = self.safe_bool(marketResolved, 'index', False)
-        if isIndex is not True:
+        if not isIndex:
             if marketResolved['linear'] is True:
                 baseVolume = volume
             elif marketResolved['inverse'] is True:
@@ -1727,7 +1727,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
         response: dict
         paramsOmitted = self.omit(params, ['trigger', 'stop'])
-        if isTrigger is True:
+        if isTrigger:
             response = await self.historyGetTriggers(self.extend(request, paramsOmitted))
         else:
             response = await self.historyGetOrders(self.extend(request, params))
@@ -1778,7 +1778,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         response: dict
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
         paramsOmitted = self.omit(params, ['trigger', 'stop'])
-        if isTrigger is True:
+        if isTrigger:
             response = await self.historyGetTriggers(self.extend(request, paramsOmitted))
         else:
             response = await self.historyGetOrders(self.extend(request, params))
@@ -2760,7 +2760,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 type = 'flex'
             else:
                 type = symbol
-        accountName = self.parse_account(type)
+        accountName = self.parse_kraken_account_name(type)
         accounts = self.safe_dict(response, 'accounts')
         account = self.safe_dict(accounts, accountName)
         if account is None:
@@ -3392,7 +3392,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             'status': self.safe_string(transfer, 'result'),
         }
 
-    def parse_account(self, account: object):
+    def parse_kraken_account_name(self, account: str) -> str:
         accountByType = {
             'main': 'cash',
             'funding': 'cash',
@@ -3450,13 +3450,13 @@ class krakenfutures(Exchange, ImplicitAPI):
         }
         response: dict
         if toAccount == 'spot':
-            if self.parse_account(fromAccount) != 'cash':
+            if self.parse_kraken_account_name(fromAccount) != 'cash':
                 raise BadRequest(self.id + ' transfer cannot transfer from ' + fromAccount + ' to ' + toAccount)
             request['currency'] = currency['id']
             response = await self.privatePostWithdrawal(self.extend(request, params))
         else:
-            request['fromAccount'] = self.parse_account(fromAccount)
-            request['toAccount'] = self.parse_account(toAccount)
+            request['fromAccount'] = self.parse_kraken_account_name(fromAccount)
+            request['toAccount'] = self.parse_kraken_account_name(toAccount)
             request['unit'] = currency['id']
             response = await self.privatePostTransfer(self.extend(request, params))
         #

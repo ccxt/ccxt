@@ -756,5 +756,5 @@ class blockchaincom(ccxt.async_support.blockchaincom):
                 'channel': 'auth',
                 'token': self.secret,
             }
-            return self.watch(url, messageHash, self.extend(request, params), messageHash)
+            return await self.watch(url, messageHash, self.extend(request, params), messageHash)
         return await future

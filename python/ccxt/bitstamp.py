@@ -825,7 +825,9 @@ class bitstamp(Exchange, ImplicitAPI):
                 'response': response,
                 'timestamp': now,
             })
-        return self.safe_value(self.options['fetchMarkets'], 'response')
+        cache = self.safe_dict(self.options, 'fetchMarkets', {})
+        markets = self.safe_list(cache, 'response', [])
+        return markets
 
     def fetch_currencies(self, params: dict = {}) -> Currencies:
         """

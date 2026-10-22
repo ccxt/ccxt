@@ -3242,16 +3242,16 @@ func (this *Bitget) watchPublicBody(ch chan ccxt.AsyncResult[any], uta any, mess
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var url any = func() any {
-		if uta == true {
+		if ccxt.EvalTruthy((uta)) {
 			return ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "utaPublic")
 		}
 		return ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public")
 	}()
 	var sandboxMode *bool = this.SafeBool2(this.Options, "sandboxMode", "sandbox", false)
-	if sandboxMode != nil && *sandboxMode == true {
+	if sandboxMode != nil && *sandboxMode {
 		var instType *string = this.SafeString(args, "instType")
 		if (instType == nil || *instType != "SCOIN-FUTURES") && (instType == nil || *instType != "SUSDT-FUTURES") && (instType == nil || *instType != "SUSDC-FUTURES") {
-			if uta == true {
+			if ccxt.EvalTruthy(uta) {
 				url = ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "demo"), "utaPublic")
 			} else {
 				url = ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "demo"), "public")
@@ -3282,16 +3282,16 @@ func (this *Bitget) unWatchPublicBody(ch chan ccxt.AsyncResult[any], uta any, me
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var url any = func() any {
-		if uta == true {
+		if ccxt.EvalTruthy((uta)) {
 			return ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "utaPublic")
 		}
 		return ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public")
 	}()
 	var sandboxMode *bool = this.SafeBool2(this.Options, "sandboxMode", "sandbox", false)
-	if sandboxMode != nil && *sandboxMode == true {
+	if sandboxMode != nil && *sandboxMode {
 		var instType *string = this.SafeString(args, "instType")
 		if (instType == nil || *instType != "SCOIN-FUTURES") && (instType == nil || *instType != "SUSDT-FUTURES") && (instType == nil || *instType != "SUSDC-FUTURES") {
-			if uta == true {
+			if ccxt.EvalTruthy(uta) {
 				url = ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "demo"), "utaPublic")
 			} else {
 				url = ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "demo"), "public")
@@ -3370,18 +3370,18 @@ func (this *Bitget) watchPublicMultipleBody(ch chan ccxt.AsyncResult[any], uta a
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var url any = func() any {
-		if uta == true {
+		if ccxt.EvalTruthy((uta)) {
 			return ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "utaPublic")
 		}
 		return ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public")
 	}()
 	var sandboxMode *bool = this.SafeBool2(this.Options, "sandboxMode", "sandbox", false)
-	if sandboxMode != nil && *sandboxMode == true {
+	if sandboxMode != nil && *sandboxMode {
 		var argsArrayFirst map[string]any = ccxt.SafeMapTyped(argsArray, 0)
 		var instType *string = this.SafeString(argsArrayFirst, "instType")
 		if (instType == nil || *instType != "SCOIN-FUTURES") && (instType == nil || *instType != "SUSDT-FUTURES") && (instType == nil || *instType != "SUSDC-FUTURES") {
 			url = func() any {
-				if uta == true {
+				if ccxt.EvalTruthy((uta)) {
 					return ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "demo"), "utaPublic")
 				}
 				return ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "demo"), "public")
@@ -3453,16 +3453,16 @@ func (this *Bitget) watchPrivateBody(ch chan ccxt.AsyncResult[any], uta any, mes
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var url any = func() any {
-		if uta == true {
+		if ccxt.EvalTruthy((uta)) {
 			return ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "utaPrivate")
 		}
 		return ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "private")
 	}()
 	var sandboxMode *bool = this.SafeBool2(this.Options, "sandboxMode", "sandbox", false)
-	if sandboxMode != nil && *sandboxMode == true {
+	if sandboxMode != nil && *sandboxMode {
 		var instType *string = this.SafeString(args, "instType")
 		if (instType == nil || *instType != "SCOIN-FUTURES") && (instType == nil || *instType != "SUSDT-FUTURES") && (instType == nil || *instType != "SUSDC-FUTURES") {
-			if uta == true {
+			if ccxt.EvalTruthy(uta) {
 				url = ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "demo"), "utaPrivate")
 			} else {
 				url = ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "demo"), "private")

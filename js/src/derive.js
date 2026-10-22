@@ -1897,7 +1897,7 @@ export default class derive extends Exchange {
         const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         // EIP712Domain (name "Matching", version "1.0", verifyingContract 0xeB8d770ec18DB98Db922E9D83260A585b9F0DeAD) precomputed for chainId 1 (mainnet) and 11155111 (sepolia testnet)
         let DOMAIN_SEPARATOR = 'da616dfabb88681b08e1592820a41d55ddc62d68de110e327ae99d734506fe19';
-        if (sandboxMode === true) {
+        if (sandboxMode) {
             DOMAIN_SEPARATOR = '24d674cd5f2b9d564691c51e9d88f649b99246a2244dd74ce27b96578d773e85';
         }
         const binaryDomainSeparator = this.base16ToBinary(DOMAIN_SEPARATOR);
@@ -2071,7 +2071,7 @@ export default class derive extends Exchange {
         request['signature'] = signature;
         const paramsOmitted = this.omit(paramsDeriveWalletAddress, ['reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'test', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trigger_price', 'stopLossPrice', 'takeProfitPrice', 'trigger_price_type']);
         let response;
-        if (test === true) {
+        if (test) {
             response = await this.privatePostOrderDebug(this.extend(request, paramsOmitted));
         }
         else {
@@ -2345,7 +2345,7 @@ export default class derive extends Exchange {
         }
         else {
             request['order_id'] = id;
-            if (isTrigger === true) {
+            if (isTrigger) {
                 response = await this.privatePostCancelTriggerOrder(this.extend(request, paramsOmitted));
             }
             else {
@@ -2608,7 +2608,7 @@ export default class derive extends Exchange {
             market = this.market(symbol);
         }
         let response;
-        if (isTrigger === true) {
+        if (isTrigger) {
             response = await this.privatePostGetTriggerOrders(this.extend(request, paramsDeriveSubaccountId));
         }
         else {

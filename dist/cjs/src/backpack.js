@@ -3191,12 +3191,11 @@ class backpack extends backpack$1["default"] {
             await this.loadMarkets();
         }
         const response = await this.privateGetApiV1Position(params);
-        const positions = this.parsePositions(response);
         if (this.isEmpty(symbols)) {
-            return positions;
+            return this.parsePositions(response);
         }
         const symbolsNormalized = this.marketSymbols(symbols);
-        return this.filterByArrayPositions(positions, 'symbol', symbolsNormalized);
+        return this.parsePositions(response, symbolsNormalized);
     }
     parsePosition(position, market = undefined) {
         //

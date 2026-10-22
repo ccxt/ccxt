@@ -2524,7 +2524,7 @@ public class Modetrade extends ModetradeApi
 
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
-            if ((!java.util.Objects.equals(trigger, true)) && (java.util.Objects.equals(symbol, null)))
+            if ((!Boolean.TRUE.equals(trigger)) && (java.util.Objects.equals(symbol, null)))
             {
                 throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
             }
@@ -2544,7 +2544,7 @@ public class Modetrade extends ModetradeApi
             Boolean isByClientOrder = !java.util.Objects.equals(clientOrderIdExchangeSpecific, null);
             Map<String, Object> paramsClientOrder = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
             Map<String, Object> response = null;
-            if (java.util.Objects.equals(trigger, true))
+            if (Boolean.TRUE.equals(trigger))
             {
                 if (Boolean.TRUE.equals(isByClientOrder))
                 {
@@ -2591,7 +2591,7 @@ public class Modetrade extends ModetradeApi
             {
                 extendParams.put("id", id);
             }
-            if (java.util.Objects.equals(trigger, true))
+            if (Boolean.TRUE.equals(trigger))
             {
                 return this.extend(this.parseOrder(response, (Map<String, Object>) null), extendParams);
             }
@@ -2743,7 +2743,7 @@ public class Modetrade extends ModetradeApi
             String clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "clOrdID", "clientOrderId", "client_order_id")));
             Map<String, Object> response = null;
-            if (java.util.Objects.equals(trigger, true))
+            if (Boolean.TRUE.equals(trigger))
             {
                 if (!java.util.Objects.equals(clientOrderId, null) && !java.util.Objects.equals(clientOrderId, ""))
                 {
@@ -2826,7 +2826,7 @@ public class Modetrade extends ModetradeApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Boolean isTrigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
-            Long maxLimit = (((java.util.Objects.equals(isTrigger, true)))) ? 100L : 500L;
+            Long maxLimit = ((Boolean.TRUE.equals(isTrigger))) ? 100L : 500L;
             Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOrders", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
@@ -2853,7 +2853,7 @@ public class Modetrade extends ModetradeApi
             {
                 request.put("size", maxLimit);
             }
-            if (java.util.Objects.equals(isTrigger, true))
+            if (Boolean.TRUE.equals(isTrigger))
             {
                 request.put("algo_type", "STOP");
             }
@@ -2861,7 +2861,7 @@ public class Modetrade extends ModetradeApi
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = null;
-            if (java.util.Objects.equals(isTrigger, true))
+            if (Boolean.TRUE.equals(isTrigger))
             {
                 response = (this.v1PrivateGetAlgoOrders(this.extend(requestUntil, paramsUntil))).join();
             } else
@@ -3960,7 +3960,7 @@ public class Modetrade extends ModetradeApi
             if (Boolean.TRUE.equals(isPostOrPut) && Boolean.TRUE.equals(isOrder))
             {
                 Boolean isSandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
-                if (!java.util.Objects.equals(isSandboxMode, true))
+                if (!Boolean.TRUE.equals(isSandboxMode))
                 {
                     String brokerId = this.safeString(this.options, "brokerId", "CCXTMODE");
                     if (java.util.Objects.equals(path, "batch-order"))

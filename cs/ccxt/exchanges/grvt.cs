@@ -813,7 +813,7 @@ public partial class grvt : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         bool? builderFee = this.safeBool(parameters, "builderFee", this.safeBool(this.options, "builderFee", true)); // we shouldn't omit here
-        if ((builderFee != true))
+        if (builderFee != true)
         {
             return ((bool?)((object)(false)));  // skip if builder fee is not enabled
         }
@@ -3832,7 +3832,7 @@ public partial class grvt : Exchange
             }
         }
         bool isPrivate = ((string)apiName).StartsWith("private");
-        if ((isPrivate == true))
+        if (isPrivate)
         {
             this.checkRequiredCredentials();
             if (queryString != "")

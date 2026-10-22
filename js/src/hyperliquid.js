@@ -1133,7 +1133,7 @@ export default class hyperliquid extends Exchange {
         const dex = this.safeString(paramsValue, 'dex');
         const isSpot = ((type === 'spot') || (isUnifiedEnabled === true)) && (dex === undefined);
         const request = {
-            'type': (isSpot === true) ? 'spotClearinghouseState' : 'clearinghouseState',
+            'type': (isSpot) ? 'spotClearinghouseState' : 'clearinghouseState',
             'user': userAddress,
         };
         const response = await this.publicPostInfo(this.extend(request, paramsValue));
@@ -1178,7 +1178,7 @@ export default class hyperliquid extends Exchange {
             for (let i = 0; i < balances.length; i++) {
                 const balance = this.safeDict(balances, i);
                 const unifiedCode = this.safeCurrencyCode(this.safeString(balance, 'coin'));
-                const code = (isSpot === true) ? this.updateSpotCurrencyCode(unifiedCode) : unifiedCode;
+                const code = (isSpot) ? this.updateSpotCurrencyCode(unifiedCode) : unifiedCode;
                 const account = this.account();
                 const total = this.safeString(balance, 'total');
                 const used = this.safeString(balance, 'hold');
@@ -1854,21 +1854,21 @@ export default class hyperliquid extends Exchange {
             'nonce': nonce,
             'signature': signature,
         };
-        let response = undefined;
+        let success = false;
         try {
-            response = await this.privatePostExchange(request);
-            return response;
+            await this.privatePostExchange(request);
+            success = true;
         }
         catch (e) {
-            response = undefined; // ignore this
+            success = false; // ignore this
         }
-        return response;
+        return success;
     }
     async approveBuilderFee(builder, maxFeeRate) {
         const nonce = this.incrementingNonce();
         const isSandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         const payload = {
-            'hyperliquidChain': (isSandboxMode === true) ? 'Testnet' : 'Mainnet',
+            'hyperliquidChain': (isSandboxMode) ? 'Testnet' : 'Mainnet',
             'maxFeeRate': maxFeeRate,
             'builder': builder,
             'nonce': nonce,
@@ -1910,7 +1910,7 @@ export default class hyperliquid extends Exchange {
     async handleBuilderFeeApproval() {
         const buildFee = this.safeBool(this.options, 'builderFee', true);
         const approvedBuilderFee = this.safeBool(this.options, 'approvedBuilderFee', false);
-        if (approvedBuilderFee === true) {
+        if (approvedBuilderFee) {
             return true; // skip if builder fee is already approved
         }
         try {
@@ -1918,7 +1918,7 @@ export default class hyperliquid extends Exchange {
             // when the user disables the builder fee (builderFee = false) we still approve and attach the builder,
             // but with a 0% fee rate, so orders remain attributed to the builder for statistics purposes only and the user is not charged
             let maxFeeRate = this.safeString(this.options, 'feeRate', '0.01%');
-            if (buildFee !== true) {
+            if (!buildFee) {
                 maxFeeRate = '0%';
             }
             await this.approveBuilderFee(builder, maxFeeRate);
@@ -1999,7 +1999,7 @@ export default class hyperliquid extends Exchange {
         const isSandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         const type = this.safeString(paramsPublicAddress, 'type', 'userSetAbstraction');
         const payload = {
-            'hyperliquidChain': (isSandboxMode === true) ? 'Testnet' : 'Mainnet',
+            'hyperliquidChain': (isSandboxMode) ? 'Testnet' : 'Mainnet',
             'user': userAddress,
             'abstraction': abstraction,
             'nonce': nonce,
@@ -2044,7 +2044,7 @@ export default class hyperliquid extends Exchange {
         const isSandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         const type = this.safeString(paramsPublicAddress, 'type', 'userDexAbstraction');
         const payload = {
-            'hyperliquidChain': (isSandboxMode === true) ? 'Testnet' : 'Mainnet',
+            'hyperliquidChain': (isSandboxMode) ? 'Testnet' : 'Mainnet',
             'user': userAddress,
             'enabled': enabled,
             'nonce': nonce,
@@ -2269,7 +2269,7 @@ export default class hyperliquid extends Exchange {
             defaultTimeInForce = 'ioc';
         }
         const postOnly = this.safeBool(params, 'postOnly', false);
-        if (postOnly === true) {
+        if (postOnly) {
             defaultTimeInForce = 'alo';
         }
         let timeInForce = this.safeStringLower(params, 'timeInForce', defaultTimeInForce);
@@ -2824,7 +2824,7 @@ export default class hyperliquid extends Exchange {
                 defaultTimeInForce = 'ioc';
             }
             const postOnly = this.safeBool(orderParams, 'postOnly', false);
-            if (postOnly === true) {
+            if (postOnly) {
                 defaultTimeInForce = 'alo';
             }
             let timeInForce = this.safeStringLower(orderParams, 'timeInForce', defaultTimeInForce);
@@ -4485,7 +4485,7 @@ export default class hyperliquid extends Exchange {
         else {
             const isSandboxMode = this.safeBool(this.options, 'sandboxMode', false);
             const payload = {
-                'hyperliquidChain': (isSandboxMode === true) ? 'Testnet' : 'Mainnet',
+                'hyperliquidChain': (isSandboxMode) ? 'Testnet' : 'Mainnet',
                 'destination': address,
                 'amount': amount.toString(),
                 'time': nonce,

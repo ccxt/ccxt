@@ -2791,7 +2791,7 @@ impl BitfinexCore {
         }
         let mut ioc: bool = timeInForce.as_deref() == Some("IOC");
         let mut fok: bool = timeInForce.as_deref() == Some("FOK");
-        let mut postOnly: bool = (postOnlyParam.as_bool() == Some(true)) || (timeInForce.as_deref() == Some("PO"));
+        let mut postOnly: bool = postOnlyParam.as_bool() == Some(true) || (timeInForce.as_deref() == Some("PO"));
         if (ioc || fok) && (price == Value::Null) {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument with IOC and FOK orders".into()))));
         }
@@ -2819,7 +2819,7 @@ impl BitfinexCore {
         if postOnly {
             flags = self.sum(&[flags.clone(), Value::Int(4096)]);
         }
-        if (reduceOnly.as_bool() == Some(true)) {
+        if reduceOnly.as_bool() == Some(true) {
             flags = self.sum(&[flags.clone(), Value::Int(1024)]);
         }
         if (flags.as_f64() != Some(0.0)) {
@@ -4129,7 +4129,7 @@ impl BitfinexCore {
     m
 })]);
         let mut includeFee: Value = self.safe_bool_k(withdrawOptions, "includeFee", &[Value::Bool(false)]);
-        if (includeFee.as_bool() == Some(true)) {
+        if includeFee.as_bool() == Some(true) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("fee_deduct".into(), Value::Int(1)); }
         }
         let __ws_arg_23 = self.extend(request, &[paramsOmitted2]);
@@ -5381,7 +5381,7 @@ impl BitfinexCore {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price_aux_limit".into(), self.price_to_precision(symbol.clone(), price.clone())); }
             }
         }
-        let mut postOnly: bool = (postOnlyParam.as_bool() == Some(true)) || (timeInForce.as_deref() == Some("PO"));
+        let mut postOnly: bool = postOnlyParam.as_bool() == Some(true) || (timeInForce.as_deref() == Some("PO"));
         if (type_var.as_str() != Some("market")) && (triggerPrice == Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), self.price_to_precision(symbol, price)); }
         }
@@ -5390,7 +5390,7 @@ impl BitfinexCore {
         if postOnly {
             flags = self.sum(&[flags.clone(), Value::Int(4096)]);
         }
-        if (reduceOnly.as_bool() == Some(true)) {
+        if reduceOnly.as_bool() == Some(true) {
             flags = self.sum(&[flags.clone(), Value::Int(1024)]);
         }
         if (flags.as_f64() != Some(0.0)) {

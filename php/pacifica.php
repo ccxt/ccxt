@@ -570,11 +570,11 @@ class pacifica extends Exchange {
             return false;
         }
         $buildFee = $this->safe_bool($this->options, 'builderFee', true);
-        if ($buildFee !== true) {
+        if (!$buildFee) {
             return false; // skip if builder fee is not enabled
         }
         $approvedBuilderFee = $this->safe_bool($this->options, 'approvedBuilderFee', false);
-        if ($approvedBuilderFee === true) {
+        if ($approvedBuilderFee) {
             return true; // skip if builder fee is already approved
         }
         try {
@@ -718,7 +718,7 @@ class pacifica extends Exchange {
             $contractSize = $this->parse_number('1');
             $minLeverage = 1;
             $maxLeverage = $this->safe_integer($market, 'max_leverage');
-            $crossMargin = $isolatedOnly !== true;
+            $crossMargin = !$isolatedOnly;
             $isolatedMargin = true;
         }
         $base = $this->safe_currency_code($baseId);
@@ -922,7 +922,7 @@ class pacifica extends Exchange {
         $isIsolated = $this->safe_bool($setting, 'isolated', false);
         $leverage = $this->safe_integer($setting, 'leverage');
         $marginMode = 'cross';
-        if ($isIsolated === true) {
+        if ($isIsolated) {
             $marginMode = 'isolated';
         }
         return array(
@@ -980,7 +980,7 @@ class pacifica extends Exchange {
 
     public function load_account_settings(bool $refresh = false, $params = array()) {
         $settings = $this->handle_option('loadAccountSettings', 'settings');
-        if (($settings === null) || ($refresh === true)) {
+        if (($settings === null) || ($refresh)) {
             $this->options['settings'] = $this->create_safe_dictionary();
             $settings = $this->fetch_account_settings($params);
             $this->options['settings'] = $settings;
@@ -1058,7 +1058,7 @@ class pacifica extends Exchange {
         // }
         $isIsolated = $this->safe_bool($setting, 'isolated', false);
         $marginMode = 'cross';
-        if ($isIsolated === true) {
+        if ($isIsolated) {
             $marginMode = 'isolated';
         }
         return array(
@@ -1564,7 +1564,7 @@ class pacifica extends Exchange {
         //
         $success = $this->safe_bool($response, 'success', false);
         $status = null;
-        if ($success !== true) {
+        if (!$success) {
             $status = 'rejected';
         } else {
             $status = 'open';
@@ -1798,7 +1798,7 @@ class pacifica extends Exchange {
             $error = $this->safe_string($order, 'error');
             $success = $this->safe_bool($order, 'success', false);
             $status = null;
-            if (($error !== null) || ($success !== true)) {
+            if (($error !== null) || (!$success)) {
                 $status = 'rejected';
             } else {
                 $status = 'open';
@@ -1859,7 +1859,7 @@ class pacifica extends Exchange {
             $error = $this->safe_string($order, 'error');
             $success = $this->safe_bool($order, 'success', false);
             $status = null;
-            if (($error !== null) || ($success !== true)) {
+            if (($error !== null) || (!$success)) {
                 $status = 'closed';
             } else {
                 $status = 'canceled';
@@ -1975,7 +1975,7 @@ class pacifica extends Exchange {
         $isStopOrder = $this->safe_bool_2($params, 'trigger', 'stop', false);
         $paramsOmitted = $this->omit($params, array( 'expiryWindow', 'trigger', 'stop', 'clientOrderId' ));
         $response = null;
-        if ($isStopOrder === true) {
+        if ($isStopOrder) {
             $response = $this->privatePostOrdersStopCancel($this->extend($request, $paramsOmitted));
         } else {
             $response = $this->privatePostOrdersCancel($this->extend($request, $paramsOmitted));
@@ -1989,7 +1989,7 @@ class pacifica extends Exchange {
         //
         $success = $this->safe_bool($response, 'success', false);
         $status = 'closed';
-        if ($success === true) {
+        if ($success) {
             $status = 'canceled';
         }
         return $this->safe_order(array( 'id' => $id, 'status' => $status, 'info' => $response, 'symbol' => $symbol ));
@@ -1999,7 +1999,7 @@ class pacifica extends Exchange {
         $market = $this->market($symbol);
         $isStopOrder = $this->safe_bool_2($params, 'trigger', 'stop', false);
         $operationType = null;
-        if ($isStopOrder === true) {
+        if ($isStopOrder) {
             $operationType = 'cancel_stop_order';
         } else {
             $operationType = 'cancel_order';
@@ -2354,13 +2354,13 @@ class pacifica extends Exchange {
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
-         * fetch all $orders
+         * fetch all orders
          *
          * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-order-history
          *
          * @param {string} $symbol unified $market $symbol
-         * @param {int} [$since] the earliest time in ms to fetch open $orders for
-         * @param {int} [$limit] the maximum number of open $orders structures to retrieve
+         * @param {int} [$since] the earliest time in ms to fetch open orders for
+         * @param {int} [$limit] the maximum number of open orders structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->account] will default to walletAddress if not provided
          * @param {string} [$params->cursor] pagination cursor from prev $request (manual use)
@@ -2416,8 +2416,7 @@ class pacifica extends Exchange {
         // }
         //
         $data = $this->add_pagination_cursor_to_result($response);
-        $orders = $this->parse_orders($data, $market, $since, $limit);
-        return $orders;
+        return $this->parse_orders($data, $market, $since, $limit);
     }
 
     public function add_pagination_cursor_to_result(array $response): array {
@@ -2425,7 +2424,7 @@ class pacifica extends Exchange {
         $paginationCursor = $this->safe_string($response, 'next_cursor');
         $hasMore = $this->safe_bool($response, 'has_more', false);
         $dataLength = count($data);
-        if ($hasMore === true) {
+        if ($hasMore) {
             if (($paginationCursor !== null) && ($dataLength > 0)) {
                 $first = $data[0];
                 $first['next_cursor'] = $paginationCursor;
@@ -3437,7 +3436,7 @@ class pacifica extends Exchange {
         $success = $this->safe_bool($transfer, 'success');
         $status = null;
         if ($success !== null) {
-            $status = ($success === true) ? 'ok' : 'failed';
+            $status = ($success) ? 'ok' : 'failed';
         }
         return array(
             'info' => $transfer,
@@ -3783,7 +3782,7 @@ class pacifica extends Exchange {
             }
             if ($builderCode !== null) {
                 $isOperationSupportBuilder = $this->safe_bool($this->options['builderSupportOperations'], $operationType, false);
-                if ($isOperationSupportBuilder === true) {
+                if ($isOperationSupportBuilder) {
                     $sigPayload['builder_code'] = $builderCode;
                 }
             }

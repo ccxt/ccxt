@@ -1056,7 +1056,7 @@ class alpaca extends Exchange {
             ), $market);
             $results[] = $ticker;
         }
-        return $this->filter_by_array($results, 'symbol', $symbolsNormalized);
+        return $this->filter_by_array_tickers($results, 'symbol', $symbolsNormalized);
     }
 
     public function generate_client_order_id(array $params): ?string {
@@ -1821,7 +1821,7 @@ class alpaca extends Exchange {
             $currency = $this->currency($code);
         }
         $sandboxMode = $this->isSandboxModeEnabled || $this->safe_bool($this->options, 'sandboxMode', false);
-        if ($sandboxMode === true) {
+        if ($sandboxMode) {
             // paper-trading hosts do not serve the crypto wallets api at all, so route
             // through the account activities ledger instead, filtered to transfer-like
             // entries, see https://github.com/ccxt/ccxt/issues/24847
@@ -1907,7 +1907,8 @@ class alpaca extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        return $this->fetch_transactions_helper('BOTH', $code, $since, $limit, $params);
+        $transactions = $this->fetch_transactions_helper('BOTH', $code, $since, $limit, $params);
+        return $this->to_array($transactions);
     }
 
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -1922,7 +1923,8 @@ class alpaca extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
-        return $this->fetch_transactions_helper('INCOMING', $code, $since, $limit, $params);
+        $transactions = $this->fetch_transactions_helper('INCOMING', $code, $since, $limit, $params);
+        return $this->to_array($transactions);
     }
 
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -1937,7 +1939,8 @@ class alpaca extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
-        return $this->fetch_transactions_helper('OUTGOING', $code, $since, $limit, $params);
+        $transactions = $this->fetch_transactions_helper('OUTGOING', $code, $since, $limit, $params);
+        return $this->to_array($transactions);
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {

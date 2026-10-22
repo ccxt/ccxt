@@ -3033,7 +3033,7 @@ public partial class phemex : Exchange
     {
         bool? isSwap = this.safeBool(market, "swap", false);
         bool hasPnl = ((order != null && ((IDictionary<string, object>)order).ContainsKey("closedPnl"))) || ((order != null && ((IDictionary<string, object>)order).ContainsKey("closedPnlRv"))) || ((order != null && ((IDictionary<string, object>)order).ContainsKey("totalPnlRv")));
-        if (((isSwap == true)) || hasPnl)
+        if ((isSwap == true) || hasPnl)
         {
             return new ccxt.Order(this.parseSwapOrder(order, market));
         }
@@ -3159,7 +3159,7 @@ public partial class phemex : Exchange
             orderParams = this.omit(orderParams, "hedged");
             string? posSide = this.safeStringLower(orderParams, "posSide");
             // a hedged reduceOnly order without posSide closes the opposite side
-            bool flipSide = ((posSide == null)) && ((hedged == true)) && (this.safeBool(orderParams, "reduceOnly", false) == true);
+            bool flipSide = ((posSide == null)) && (hedged == true) && (this.safeBool(orderParams, "reduceOnly", false) == true);
             string oppositeSide = ((side == "buy")) ? "sell" : "buy";
             string sideResolved = side;
             if (flipSide)
@@ -5425,7 +5425,7 @@ public partial class phemex : Exchange
         Dictionary<string, object> response = null;
         if ((((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDT") || (((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDC"))
         {
-            if (((isHedged != true)) && (longLeverageRr == null) && (shortLeverageRr == null))
+            if ((isHedged != true) && (longLeverageRr == null) && (shortLeverageRr == null))
             {
                 request["leverageRr"] = leverage;
             } else

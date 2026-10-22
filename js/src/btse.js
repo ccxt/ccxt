@@ -817,7 +817,7 @@ export default class btse extends Exchange {
         const maxLimit = 300;
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit);
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit);
         }
         const market = this.market(symbol);
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
@@ -872,8 +872,7 @@ export default class btse extends Exchange {
         //     }
         //
         const data = this.safeList(response, 'data', []);
-        const result = this.parseOHLCVs(data, market, timeframe, since, limit);
-        return result;
+        return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
         //
@@ -995,10 +994,10 @@ export default class btse extends Exchange {
         //     }
         //
         const data = this.safeList(response, 'data', []);
-        const rates = this.parseFundingRateHistories(data, market, since, limit);
         if (until === undefined) {
-            return rates;
+            return this.parseFundingRateHistories(data, market, since, limit);
         }
+        const rates = this.parseFundingRateHistories(data, market, since, limit);
         const result = [];
         for (let i = 0; i < rates.length; i++) {
             const rate = rates[i];
@@ -1251,7 +1250,8 @@ export default class btse extends Exchange {
             throw new BadRequest(this.id + ' fetchMarketLeverageTiers() supports contract markets only');
         }
         const result = await this.fetchLeverageTiers([symbol], params);
-        return result[symbol];
+        const tiers = this.safeList(result, symbol);
+        return tiers;
     }
     /**
      * @method
@@ -1593,10 +1593,10 @@ export default class btse extends Exchange {
         //     }
         //
         const data = this.safeList(response, 'data', []);
-        const trades = this.parseTrades(data, market, since, limit);
         if (until === undefined) {
-            return trades;
+            return this.parseTrades(data, market, since, limit);
         }
+        const trades = this.parseTrades(data, market, since, limit);
         const result = [];
         for (let i = 0; i < trades.length; i++) {
             const trade = trades[i];
@@ -1624,7 +1624,7 @@ export default class btse extends Exchange {
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
         const paginate = this.safeBool(params, 'paginate', false);
-        if (paginate === true) {
+        if (paginate) {
             return await this.fetchPaginatedCallDynamic('fetchMyTrades', symbol, since, limit, this.omit(params, 'paginate'));
         }
         let market = undefined;
@@ -2428,7 +2428,7 @@ export default class btse extends Exchange {
             request['orderPrice'] = this.priceToPrecision(symbol, price);
         }
         const isSlide = this.safeBool(query, 'slide', false);
-        if ((amount === undefined) && (price === undefined) && (triggerPrice === undefined) && (isSlide !== true)) {
+        if ((amount === undefined) && (price === undefined) && (triggerPrice === undefined) && (!isSlide)) {
             throw new ArgumentsRequired(this.id + ' editOrder() requires an amount argument, a price argument or a triggerPrice parameter');
         }
         let response = undefined;
@@ -3689,7 +3689,7 @@ export default class btse extends Exchange {
         //     {"status":400,"errorCode":-7,"message":"Authenticate failed","extraData":null}
         //
         const success = this.safeBool(response, 'success', true);
-        if (success !== true) {
+        if (!success) {
             const spotErrorCode = this.safeString(response, 'code');
             const spotMessage = this.safeString(response, 'msg');
             const feedback = this.id + ' ' + body;
@@ -3764,7 +3764,7 @@ export default class btse extends Exchange {
         // body like its POST and PUT counterparts, while the spot v4 and the
         // legacy apis keep DELETE params in the query string, verified live
         // in both directions
-        const isBodyDelete = (method === 'DELETE') && (path.startsWith('futures/api/v3/') === true);
+        const isBodyDelete = (method === 'DELETE') && (path.startsWith('futures/api/v3/'));
         let queryString = '';
         if (((method === 'GET') || (method === 'DELETE')) && !isBodyDelete) {
             if (Object.keys(query).length > 0) {
@@ -3787,7 +3787,7 @@ export default class btse extends Exchange {
             // sign the /api/v... remainder, while the public-api wallet, otc and markets
             // endpoints mount on the bare host and sign the full path with the leading slash
             let signPath = undefined;
-            if (path.startsWith('public-api/') === true) {
+            if (path.startsWith('public-api/')) {
                 signPath = '/' + path;
             }
             else {

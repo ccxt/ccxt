@@ -1921,7 +1921,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         {
             Map<String, Object> subscription = (Map<String, Object>) this.safeDict(subscriptionsById, id, new HashMap<String, Object>() {{}});
             unsubscribe = this.safeBool(subscription, "unsubscribe", false);
-            if (java.util.Objects.equals(unsubscribe, true))
+            if (Boolean.TRUE.equals(unsubscribe))
             {
                 this.handleUnSubscription(client, (Map<String, Object>) (subscription));
             }

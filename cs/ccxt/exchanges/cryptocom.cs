@@ -1727,7 +1727,7 @@ public partial class cryptocom : Exchange
             }
         }
         bool? postOnly = this.safeBool(paramsValue, "postOnly", false);
-        if (((postOnly == true)) || (timeInForce == "PO"))
+        if ((postOnly == true) || (timeInForce == "PO"))
         {
             request["exec_inst"] = new List<object>() {"POST_ONLY"};
             request["time_in_force"] = "GOOD_TILL_CANCEL";
@@ -1990,7 +1990,7 @@ public partial class cryptocom : Exchange
             }
         }
         bool? postOnly = this.safeBool(parameters, "postOnly", false);
-        if (((postOnly == true)) || (timeInForce == "PO"))
+        if ((postOnly == true) || (timeInForce == "PO"))
         {
             request["exec_inst"] = new List<object>() {"POST_ONLY"};
             request["time_in_force"] = "GOOD_TILL_CANCEL";
@@ -3198,7 +3198,7 @@ public partial class cryptocom : Exchange
             }
         } else
         {
-            if ((defaultType == "margin") || ((isMargin == true)))
+            if ((defaultType == "margin") || (isMargin == true))
             {
                 marginMode = "cross";
             }

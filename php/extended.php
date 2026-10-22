@@ -2491,15 +2491,14 @@ class extended extends Exchange {
         return $result;
     }
 
-    public function fetch_extended_account($params = array()): mixed {
+    public function fetch_extended_account($params = array()): array {
         $account = $this->safe_dict($this->options, 'account');
         if ($account !== null) {
-            return $account;
+            return $this->safe_dict($this->options, 'account', array());
         }
         $accountData = $this->fetch_account($params);
-        $account = $accountData['info'];
-        $this->options['account'] = $account;
-        return $account;
+        $this->options['account'] = $accountData['info'];
+        return $this->safe_dict($this->options, 'account', array());
     }
 
     public function create_order_settlement_data(bool $isBuy, string $amountString, string $priceString, $params = array()): array {

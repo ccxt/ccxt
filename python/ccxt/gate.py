@@ -1278,7 +1278,8 @@ class gate(Exchange, ImplicitAPI):
             except Exception as e:
                 # if the request fails, the unifiedAccount is disabled
                 self.options['unifiedAccount'] = False
-        return self.options['unifiedAccount']
+        unified = self.safe_bool(self.options, 'unifiedAccount') is True
+        return unified
 
     def upgrade_unified_trade_account(self, params: dict = {}) -> dict:
         return self.privateUnifiedPutUnifiedMode(params)
@@ -2396,7 +2397,7 @@ class gate(Exchange, ImplicitAPI):
         chainsIndexedByIdRaw = self.fetch_deposit_addresses_by_network(code, paramsNetworkCode)
         chainsIndexedById = chainsIndexedByIdRaw
         selectedNetworkIdOrCode = self.select_network_key_from_networks(code, networkCode, chainsIndexedById, True)
-        return chainsIndexedById[selectedNetworkIdOrCode]
+        return self.safe_dict(chainsIndexedById, selectedNetworkIdOrCode)
 
     def parse_deposit_address(self, depositAddress: dict, currency: Currency = None) -> DepositAddress:
         #
@@ -3674,8 +3675,7 @@ class gate(Exchange, ImplicitAPI):
         #          }
         #      ]
         #
-        response = self.fetch_my_trades(symbol, since, limit, {'order_id': id})
-        return response
+        return self.fetch_my_trades(symbol, since, limit, {'order_id': id})
 
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -4436,7 +4436,7 @@ class gate(Exchange, ImplicitAPI):
         exchangeSpecificTimeInForce = self.safe_string_lower_n(params, ['timeInForce', 'tif', 'time_in_force'])
         postOnly, paramsPostOnly = self.handle_post_only(type == 'market', exchangeSpecificTimeInForce == 'poc', params)
         timeInForce = self.handle_time_in_force(paramsPostOnly)
-        if postOnly is True:
+        if postOnly:
             timeInForce = 'poc'
         # we only omit the unified params here
         # this is because the other params will get extended into the request
@@ -4549,7 +4549,7 @@ class gate(Exchange, ImplicitAPI):
                     clientOrderId = 't-' + clientOrderId
                 request['text'] = clientOrderId
             else:
-                if textIsRequired is True:
+                if textIsRequired:
                     # batchOrders requires text in the request
                     request['text'] = 't-' + self.uuid16()
         else:
@@ -4973,7 +4973,7 @@ class gate(Exchange, ImplicitAPI):
         #     }
         #
         succeeded = self.safe_bool(order, 'succeeded', True)
-        if succeeded is not True:
+        if not succeeded:
             # cancelOrders response
             return self.safe_order({
                 'clientOrderId': self.safe_string(order, 'text'),
@@ -5157,17 +5157,17 @@ class gate(Exchange, ImplicitAPI):
         request, requestParams = self.fetch_order_request(id, symbol, params)
         response: dict
         if type == 'spot' or type == 'margin':
-            if trigger is True:
+            if trigger:
                 response = self.privateSpotGetPriceOrdersOrderId(self.extend(request, requestParams))
             else:
                 response = self.privateSpotGetOrdersOrderId(self.extend(request, requestParams))
         elif type == 'swap':
-            if trigger is True:
+            if trigger:
                 response = self.privateFuturesGetSettlePriceOrdersOrderId(self.extend(request, requestParams))
             else:
                 response = self.privateFuturesGetSettleOrdersOrderId(self.extend(request, requestParams))
         elif type == 'future':
-            if trigger is True:
+            if trigger:
                 response = self.privateDeliveryGetSettlePriceOrdersOrderId(self.extend(request, requestParams))
             else:
                 response = self.privateDeliveryGetSettleOrdersOrderId(self.extend(request, requestParams))
@@ -5498,17 +5498,17 @@ class gate(Exchange, ImplicitAPI):
         request['order_id'] = id
         response: dict
         if type == 'spot' or type == 'margin':
-            if trigger is True:
+            if trigger:
                 response = self.privateSpotDeletePriceOrdersOrderId(self.extend(request, requestParams))
             else:
                 response = self.privateSpotDeleteOrdersOrderId(self.extend(request, requestParams))
         elif type == 'swap':
-            if trigger is True:
+            if trigger:
                 response = self.privateFuturesDeleteSettlePriceOrdersOrderId(self.extend(request, requestParams))
             else:
                 response = self.privateFuturesDeleteSettleOrdersOrderId(self.extend(request, requestParams))
         elif type == 'future':
-            if trigger is True:
+            if trigger:
                 response = self.privateDeliveryDeleteSettlePriceOrdersOrderId(self.extend(request, requestParams))
             else:
                 response = self.privateDeliveryDeleteSettleOrdersOrderId(self.extend(request, requestParams))
@@ -6700,7 +6700,7 @@ class gate(Exchange, ImplicitAPI):
         bodyJson = None
         signedHeaders = None
         containsSettle = path.find('settle') > -1
-        if containsSettle and (path.endswith('batch_cancel_orders') is True):  # weird check to prevent $settle in php and converting {settle} to array(settle)
+        if containsSettle and (path.endswith('batch_cancel_orders')):  # weird check to prevent $settle in php and converting {settle} to array(settle)
             # special case where we need to extract the settle from the path
             # but the body is an array of strings
             settle = self.safe_dict(params, 0)

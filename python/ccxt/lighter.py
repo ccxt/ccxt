@@ -464,7 +464,8 @@ class lighter(Exchange, ImplicitAPI):
             return True
         signer = self.load_account(self.options['chainId'], self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex)
         self.handle_builder_fee_approval(accountIndex, apiKeyIndex)
-        return(signer is not None)
+        loaded = (signer is not None)
+        return loaded
 
     def handle_api_key_index(self, params: object, methodName1: str, optionName1: str, optionName2: str, defaultValue: object = None) -> list:
         apiKeyIndexOption, paramsApiKeyIndex = self.handle_option_and_params_2(params, methodName1, optionName1, optionName2, defaultValue)
@@ -605,10 +606,10 @@ class lighter(Exchange, ImplicitAPI):
 
     def handle_builder_fee_approval(self, accountIndex: float, apiKeyIndex: float) -> bool:
         buildFee = self.safe_bool(self.options, 'builderFee', True)
-        if buildFee is not True:
+        if not buildFee:
             return False
         approvedBuilderFee = self.safe_bool(self.options, 'approvedBuilderFee', False)
-        if approvedBuilderFee is True:
+        if approvedBuilderFee:
             return True
         standardTier = False
         try:
@@ -628,12 +629,13 @@ class lighter(Exchange, ImplicitAPI):
             return False
         return True
 
-    def check_if_standard_tier(self, accountIndex: float):
+    def check_if_standard_tier(self, accountIndex: float) -> bool:
         tiersForAccountIndexes = self.safe_dict(self.options, 'tiersForAccountIndexes', {})
         accountIndexStr = str(accountIndex)
         isStandardTier = self.safe_bool(tiersForAccountIndexes, accountIndexStr)
         if isStandardTier is not None:
-            return isStandardTier
+            cachedIsStandard = (isStandardTier is True)
+            return cachedIsStandard
         accountLimits = self.privateGetAccountLimits({'account_index': accountIndex})
         #
         #    {
@@ -813,7 +815,7 @@ class lighter(Exchange, ImplicitAPI):
         request['order_expiry'] = orderExpiry
         request['order_type'] = orderTypeNum
         request['time_in_force'] = timeInForceNum
-        request['reduce_only'] = 1 if (reduceOnly is True) else 0
+        request['reduce_only'] = 1 if (reduceOnly) else 0
         request['client_order_index'] = clientOrderId
         request['base_amount'] = self.parse_to_int(Precise.string_mul(amountStr, amountScale))
         request['avg_execution_price'] = self.parse_to_int(Precise.string_mul(priceStr, priceScale))
@@ -859,16 +861,16 @@ class lighter(Exchange, ImplicitAPI):
         if (accountIndex is None) or (apiKeyIndex is None):
             raise ArgumentsRequired(self.id + ' fetchNonce() requires accountIndex and apiKeyIndex.')
         if 'nonce' in params:
-            return self.safe_integer(params, 'nonce')
+            return self.parse_to_int(self.safe_integer(params, 'nonce'))
         nonceInOptions = self.safe_integer(self.options, 'nonce')
         if nonceInOptions is not None:
-            return nonceInOptions
+            return self.parse_to_int(nonceInOptions)
         # avoid skipNonce for l1 operations
         skipNonce = self.handle_option_bool_and_params(params, 'fetchNonce', 'skipNonce', True)[0]
         if skipNonce:
             return self.milliseconds()
         response = self.publicGetNextNonce({'account_index': accountIndex, 'api_key_index': apiKeyIndex})
-        return self.safe_integer(response, 'nonce')
+        return self.parse_to_int(self.safe_integer(response, 'nonce'))
 
     def sign_and_create_order(self, method: str, symbol: Str, type: OrderType, side: OrderSide, amount: Num, price: Num = None, params: dict = {}) -> list[object]:
         if self.markets is None:
@@ -2905,7 +2907,7 @@ class lighter(Exchange, ImplicitAPI):
                 orderId = self.safe_string(trade, 'bid_id')
         # public trades use Lighter's taker-side convention
         if (side is None) and (isMakerAsk is not None):
-            side = 'buy' if (isMakerAsk is True) else 'sell'
+            side = 'buy' if (isMakerAsk) else 'sell'
         takerOrMaker = None
         if side is not None and isMakerAsk is not None:
             isMaker = isMakerAsk if (side == 'sell') else not isMakerAsk

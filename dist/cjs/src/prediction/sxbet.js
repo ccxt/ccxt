@@ -776,7 +776,7 @@ class sxbet extends sxbet$1["default"] {
         }
         const proxy = await this.fetchSxbetProxy();
         const deployed = this.safeBool(proxy, 'deployed', false);
-        if (deployed !== true) {
+        if (!deployed) {
             await this.sxbetPrivatePostUserDeployProxy();
             // deployment is asynchronous - poll until the proxy exists
             for (let i = 0; i < 30; i++) {
@@ -879,7 +879,7 @@ class sxbet extends sxbet$1["default"] {
         // the venue has no post-only or trigger mechanics - reject the unified params instead
         // of forwarding fields the exchange would silently ignore
         const postOnly = this.safeBool(params, 'postOnly', false);
-        if (postOnly === true) {
+        if (postOnly) {
             throw new errors.NotSupported(this.id + ' createOrder() does not support postOnly - GTC orders may cross on entry');
         }
         const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stopLossPrice', 'takeProfitPrice']);
@@ -1174,11 +1174,12 @@ class sxbet extends sxbet$1["default"] {
         else {
             response = await this.sxbetPrivateDeleteOrdersV3All(rest);
         }
-        let result = this.parseSxbetCancelResponse(response);
+        let result = [];
+        result = this.arrayConcat(result, this.parseSxbetCancelResponse(response));
         // both paths paginate their async submission - keep going on the SAME route while more remain
         let hasMore = this.safeBool(this.safeDict(response, 'data', {}), 'hasMore', false);
         let guard = 0;
-        while ((hasMore === true) && (guard < 50)) {
+        while ((hasMore) && (guard < 50)) {
             let nextResponse = undefined;
             if (isEventScoped) {
                 const nextRequest = { 'eventId': eventId };
@@ -1486,7 +1487,7 @@ class sxbet extends sxbet$1["default"] {
         const isMaker = this.safeBool(fill, 'isMaker');
         let takerOrMaker = undefined;
         if (isMaker !== undefined) {
-            takerOrMaker = (isMaker === true) ? 'maker' : 'taker';
+            takerOrMaker = (isMaker) ? 'maker' : 'taker';
         }
         return this.safePredictionTrade({
             'id': this.safeString(fill, 'id'),

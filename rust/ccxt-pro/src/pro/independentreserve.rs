@@ -501,7 +501,7 @@ impl IndependentreserveCore {
             add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp));
         }
         let mut checksum: Value = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("checksum".into()), &[Value::Bool(true)]);
-        if (checksum.as_bool() == Some(true)) && (receivedSnapshot.as_bool() == Some(true)) {
+        if is_true(&(checksum)) && receivedSnapshot.as_bool() == Some(true) {
             let mut storedAsks: Value = get_value(&orderbook, &Value::Str("asks".into()));
             let mut storedBids: Value = get_value(&orderbook, &Value::Str("bids".into()));
             let mut asksLength: Value = get_array_length(&storedAsks);
@@ -535,7 +535,7 @@ impl IndependentreserveCore {
                 return;
             }
         }
-        if (receivedSnapshot.as_bool() == Some(true)) {
+        if receivedSnapshot.as_bool() == Some(true) {
             client.resolve(&[orderbook, messageHash]);
         }
 }

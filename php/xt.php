@@ -1869,7 +1869,7 @@ class xt extends Exchange {
                 $result[$symbol] = $ticker;
             }
         }
-        return $this->filter_by_array($result, 'symbol', $symbolsNormalized);
+        return $this->filter_by_array_tickers($result, 'symbol', $symbolsNormalized);
     }
 
     public function fetch_bids_asks(?array $symbols = null, $params = array()): array {
@@ -1960,7 +1960,7 @@ class xt extends Exchange {
                 $result[$symbol] = $ticker;
             }
         }
-        return $this->filter_by_array($result, 'symbol', $symbolsNormalized);
+        return $this->filter_by_array_tickers($result, 'symbol', $symbolsNormalized);
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -2646,7 +2646,7 @@ class xt extends Exchange {
             if ($side === 'buy') {
                 $cost = $this->safe_string($paramsMarginMode, 'cost');
                 $createMarketBuyOrderRequiresPrice = $this->safe_bool($this->options, 'createMarketBuyOrderRequiresPrice', true);
-                if ($createMarketBuyOrderRequiresPrice === true) {
+                if ($createMarketBuyOrderRequiresPrice) {
                     if ($price === null && ($cost === null)) {
                         throw new InvalidOrder($this->id . ' createOrder() requires a price argument or cost in params for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
                     } else {
@@ -2675,7 +2675,7 @@ class xt extends Exchange {
             $paramsWithoutCost = $this->omit($paramsMarginMode, 'cost');
         }
         list($postOnly, $paramsPostOnly) = $this->handle_post_only($type === 'market', $timeInForce === 'GTX', $paramsWithoutCost);
-        if ($postOnly === true) {
+        if ($postOnly) {
             $timeInForce = 'GTX';
         }
         $paramsOmitted = $this->omit($paramsPostOnly, array( 'timeInForce', 'postOnly' ));
@@ -2709,7 +2709,7 @@ class xt extends Exchange {
         );
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
         list($postOnly, $paramsPostOnly) = $this->handle_post_only($type === 'market', $timeInForce === 'GTX', $params);
-        if ($postOnly === true) {
+        if ($postOnly) {
             $timeInForce = 'GTX';
         }
         $paramsOmitted4 = $this->omit($paramsPostOnly, array( 'timeInForce', 'postOnly' ));
@@ -2719,13 +2719,13 @@ class xt extends Exchange {
         $reduceOnly = $this->safe_bool($paramsOmitted4, 'reduceOnly', false);
         if ($side === 'buy') {
             $requestType = 'LONG';
-            if ($reduceOnly === true) {
+            if ($reduceOnly) {
                 $requestType = 'SHORT';
             }
             $request['positionSide'] = $requestType;
         } else {
             $requestType = 'SHORT';
-            if ($reduceOnly === true) {
+            if ($reduceOnly) {
                 $requestType = 'LONG';
             }
             $request['positionSide'] = $requestType;

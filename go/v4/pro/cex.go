@@ -1019,7 +1019,7 @@ func (this *Cex) HandleOrderUpdate(client any, message map[string]any) {
 	}
 	ccxt.AddElementToObject(order, "remaining", remains)
 	var canceled *bool = this.SafeBool(data, "cancel", false)
-	if canceled != nil && *canceled == true {
+	if canceled != nil && *canceled {
 		ccxt.AddElementToObject(order, "status", "canceled")
 	}
 	if isTransaction {
@@ -1117,7 +1117,7 @@ func (this *Cex) ParseWsOrderUpdate(order map[string]any, optionalArgs ...any) a
 	}
 	var canceled *bool = this.SafeBool(order, "cancel", false)
 	var status string = "open"
-	if canceled != nil && *canceled == true {
+	if canceled != nil && *canceled {
 		status = "canceled"
 	} else if isTransaction {
 		status = "closed"

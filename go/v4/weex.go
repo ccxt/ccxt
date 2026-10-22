@@ -2651,12 +2651,12 @@ func (this *Weex) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...any
 	var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	// the demo trading API only provides the swap account, don't let the default spot type break a bare fetchBalance() call
 	var typeVar *string = marketType
-	if (sandboxMode != nil && *sandboxMode == true) && (requestedType == nil) {
+	if (sandboxMode != nil && *sandboxMode) && (requestedType == nil) {
 		typeVar = SafeStringPtr("swap")
 	}
 	var response any = nil
 	if typeVar != nil && *typeVar == "spot" {
-		if sandboxMode != nil && *sandboxMode == true {
+		if sandboxMode != nil && *sandboxMode {
 			panic(NotSupported(this.Id + " fetchBalance() only supports the swap account in sandbox mode, use params[\"type\"] = \"swap\""))
 		}
 		//
@@ -2703,7 +2703,7 @@ func (this *Weex) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...any
 		//         }
 		//     ]
 		//
-		if sandboxMode != nil && *sandboxMode == true {
+		if sandboxMode != nil && *sandboxMode {
 
 			r1 := <-this.ContractPrivateGetCapiV3SimBalance(paramsMarketType)
 			if r1.Err != nil {
@@ -2732,7 +2732,7 @@ func (this *Weex) ParseBalance(response any) map[string]any {
 	for i := 0; i < GetArrayLength(balances); i++ {
 		var entry map[string]any = SafeMapTyped(balances, i)
 		var currencyId *string = this.SafeString(entry, "asset")
-		if (sandboxMode != nil && *sandboxMode == true) && (currencyId != nil && *currencyId == "SUSDT") {
+		if (sandboxMode != nil && *sandboxMode) && (currencyId != nil && *currencyId == "SUSDT") {
 			currencyId = SafeStringPtr("USDT") // demo trading balances are denominated in the demo asset SUSDT
 		}
 		var code *string = this.SafeCurrencyCode(currencyId)
@@ -2913,7 +2913,7 @@ func (this *Weex) createOrderBody(ch chan AsyncResult[map[string]any], symbol st
 		return nil
 	} else {
 		var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
-		if sandboxMode != nil && *sandboxMode == true {
+		if sandboxMode != nil && *sandboxMode {
 			panic(NotSupported(this.Id + " createOrder() only supports swap markets in sandbox mode"))
 		}
 
@@ -3080,7 +3080,7 @@ func (this *Weex) createContractOrderBody(ch chan EndpointResult[map[string]any]
 	var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	var response map[string]any = nil
 	if triggerPrice != nil {
-		if sandboxMode != nil && *sandboxMode == true {
+		if sandboxMode != nil && *sandboxMode {
 			panic(NotSupported(this.Id + " createOrder() does not support stopLossPrice or takeProfitPrice orders in sandbox mode"))
 		}
 
@@ -3089,7 +3089,7 @@ func (this *Weex) createContractOrderBody(ch chan EndpointResult[map[string]any]
 			panic(r1.Err)
 		}
 		response = r1.Value
-	} else if sandboxMode != nil && *sandboxMode == true {
+	} else if sandboxMode != nil && *sandboxMode {
 
 		r2 := <-this.ContractPrivatePostCapiV3SimOrder(request)
 		if r2.Err != nil {
@@ -3323,7 +3323,7 @@ func (this *Weex) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, o
 	}
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("cancelOrder", market, params)
 	var trigger *bool = this.SafeBool(paramsMarketType, "trigger", false)
-	if (trigger != nil && *trigger == true) && (IsEqual(id, nil)) {
+	if (trigger != nil && *trigger) && (IsEqual(id, nil)) {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires an id argument for trigger orders"))
 	}
 	var request map[string]any = map[string]any{}
@@ -3356,7 +3356,7 @@ func (this *Weex) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, o
 			panic(r1.Err)
 		}
 		response = r1.Value
-	} else if trigger != nil && *trigger == true {
+	} else if trigger != nil && *trigger {
 
 		r2 := <-this.ContractPrivateDeleteCapiV3AlgoOrder(this.Extend(request, paramsOmitted))
 		if r2.Err != nil {
@@ -3433,7 +3433,7 @@ func (this *Weex) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs ...
 			panic(listEp3201.Err)
 		}
 		response = listEp3201.Value
-	} else if trigger != nil && *trigger == true {
+	} else if trigger != nil && *trigger {
 
 		listEp3204 := <-this.ContractPrivateDeleteCapiV3AlgoOpenOrders(this.Extend(request, paramsOmitted))
 		if listEp3204.Err != nil {
@@ -3734,7 +3734,7 @@ func (this *Weex) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...
 		}
 		requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsPaginate)
 		var trigger *bool = this.SafeBool(paramsUntil, "trigger", false)
-		if trigger != nil && *trigger == true {
+		if trigger != nil && *trigger {
 			var paramsOmitted map[string]any = this.OmitDict(paramsUntil, "trigger")
 			//
 			//     [
@@ -4131,7 +4131,7 @@ func (this *Weex) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]any], o
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsPaginate)
 	var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	var response []any = nil
-	if sandboxMode != nil && *sandboxMode == true {
+	if sandboxMode != nil && *sandboxMode {
 
 		listEp3809 := <-this.ContractPrivateGetCapiV3SimOrderHistory(this.Extend(requestUntil, paramsUntil))
 		if listEp3809.Err != nil {
@@ -4980,7 +4980,7 @@ func (this *Weex) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs ...a
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	var response []any = nil
-	if sandboxMode != nil && *sandboxMode == true {
+	if sandboxMode != nil && *sandboxMode {
 
 		listEp4592 := <-this.ContractPrivateGetCapiV3SimPositionAllPosition(params)
 		if listEp4592.Err != nil {
@@ -5059,7 +5059,7 @@ func (this *Weex) fetchPositionsForSymbolBody(ch chan AsyncResult[[]any], symbol
 	}
 	var market map[string]any = this.Market(symbol)
 	var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
-	if sandboxMode != nil && *sandboxMode == true {
+	if sandboxMode != nil && *sandboxMode {
 
 		r1 := <-this.FetchPositionsAsync([]any{market["symbol"]}, params)
 		if r1.Err != nil {
@@ -5989,7 +5989,7 @@ func (this *Weex) addMarginBody(ch chan AsyncResult[map[string]any], symbol stri
 func (this *Weex) ToSandboxMarketId(market any) any {
 	var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	var baseId *string = this.SafeString(market, "baseId")
-	if (sandboxMode != nil && *sandboxMode == true) && (baseId != nil) {
+	if (sandboxMode != nil && *sandboxMode) && (baseId != nil) {
 		// demo trading only has USDT-margined linear markets quoted in the demo asset SUSDT (e.g. BTCSUSDT), revisit if weex ever adds a non-USDT settle
 		return *baseId + "SUSDT"
 	}
@@ -6006,7 +6006,7 @@ func (this *Weex) ToSandboxMarketId(market any) any {
  */
 func (this *Weex) FromSandboxMarketId(marketId any) any {
 	var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
-	if (sandboxMode == nil || *sandboxMode != true) || (IsEqual(marketId, nil)) {
+	if (!(sandboxMode != nil && *sandboxMode)) || (IsEqual(marketId, nil)) {
 		return marketId
 	}
 	if (this.Markets_by_id != nil) && (InOp(this.Markets_by_id, marketId)) {
@@ -6047,7 +6047,7 @@ func (this *Weex) Sign(path string, optionalArgs ...any) any {
 	var requestHeaders map[string]any = nil
 	if isPrivate {
 		var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
-		if (sandboxMode != nil && *sandboxMode == true) && (strings.Index(path, "capi/v3/sim/") != 0) {
+		if (sandboxMode != nil && *sandboxMode) && (strings.Index(path, "capi/v3/sim/") != 0) {
 			panic(NotSupported(this.Id + " " + path + " is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets"))
 		}
 		this.CheckRequiredCredentials()

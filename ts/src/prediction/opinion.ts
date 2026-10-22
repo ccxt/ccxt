@@ -504,7 +504,7 @@ export default class opinion extends Exchange {
      * @param {object} rawEvent the raw opinion categorical market object
      * @returns {object} an event structure
      */
-    parseEvent (rawEvent: Dict): Dict {
+    parseEvent (rawEvent: Dict): PredictionEvent {
         // {
         //     "chainId": "56",
         //     "childMarkets": [
@@ -1463,10 +1463,10 @@ export default class opinion extends Exchange {
         const response = await this.opinionPrivateGetPositionsUserWalletAddress (this.extend (request, params));
         const result = this.safeDict (response, 'result', {});
         const positions = this.safeList (result, 'list', []);
-        const parsed = this.parsePredictionPositions (positions);
         if (outcomesLength === 0) {
-            return parsed;
+            return this.parsePredictionPositions (positions);
         }
+        const parsed = this.parsePredictionPositions (positions);
         const wantedTokenIds: Dict = {};
         // copy to a plain list so the strict null checks see one shape
         const outcomesList: string[] = (outcomes === undefined) ? [] : outcomes;

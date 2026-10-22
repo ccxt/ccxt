@@ -1804,10 +1804,10 @@ class digifinex(Exchange, ImplicitAPI):
             timeInForce = self.safe_string(paramsMarginMode, 'timeInForce')
             orderType = None
             if side == 'buy':
-                requestType = 4 if (reduceOnly is True) else 1
+                requestType = 4 if (reduceOnly) else 1
                 request['type'] = requestType
             else:
-                requestType = 3 if (reduceOnly is True) else 2
+                requestType = 3 if (reduceOnly) else 2
                 request['type'] = requestType
             if isLimitOrder:
                 orderType = 0
@@ -1825,7 +1825,7 @@ class digifinex(Exchange, ImplicitAPI):
             request['size'] = amount  # swap orders require the amount to be the number of contracts
             paramsRequest = self.omit(paramsMarginMode, ['reduceOnly', 'timeInForce', 'postOnly'])
         else:
-            postOnlyParsed = 1 if (postOnly is True) else 2
+            postOnlyParsed = 1 if (postOnly) else 2
             request['market'] = marketType
             suffix = ''
             if type == 'market':
@@ -2860,7 +2860,7 @@ class digifinex(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        addresses = self.parse_deposit_addresses(data, [currency['code']])
+        addresses = self.index_by(self.parse_deposit_addresses(data, [currency['code']], False), 'currency')
         address = self.safe_dict(addresses, code)
         if address is None:
             raise InvalidAddress(self.id + ' fetchDepositAddress() did not return an address for ' + code + ' - create the deposit address in the user settings on the exchange website first.')
@@ -4089,7 +4089,7 @@ class digifinex(Exchange, ImplicitAPI):
         if marginMode is not None:
             if marginMode != 'cross':
                 raise NotSupported(self.id + ' only cross margin is supported')
-        elif (defaultType == 'margin') or (isMargin is True):
+        elif (defaultType == 'margin') or (isMargin):
             return ['cross', paramsMarginMode]
         return [marginMode, paramsMarginMode]
 

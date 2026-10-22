@@ -613,7 +613,7 @@ export default class limitless extends Exchange {
         return result;
     }
 
-    parseEvent (event: Dict): any {
+    parseEvent (event: Dict): PredictionEvent {
         // {
         //    "groupId":"trump-out-as-president-before-2027-1768933068297",
         //    "title":"💎 Trump out as President before 2027?",

@@ -1046,6 +1046,7 @@ const TYPED_CORES: Record<string, string> = {
     'cancelUnifiedOrder': 'Order',
     'cancelUtaOrder': 'Order',
     'cancelUtaOrders': 'List<Order>',
+    'closePosition': 'Order',
     'createAmmOrder': 'PredictionOrder',
     'createApiKey': 'Dictionary<string, object>',
     'createContractOrder': 'Order',

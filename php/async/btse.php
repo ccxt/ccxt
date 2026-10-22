@@ -838,7 +838,7 @@ class btse extends Exchange {
         $maxLimit = 300;
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
-            return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, $maxLimit);
+            return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, $maxLimit));
         }
         $market = $this->market($symbol);
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
@@ -891,8 +891,7 @@ class btse extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
-        $result = $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
-        return $result;
+        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
@@ -1024,10 +1023,10 @@ class btse extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
-        $rates = $this->parse_funding_rate_histories($data, $market, $since, $limit);
         if ($until === null) {
-            return $rates;
+            return $this->parse_funding_rate_histories($data, $market, $since, $limit);
         }
+        $rates = $this->parse_funding_rate_histories($data, $market, $since, $limit);
         $result = array();
         for ($i = 0; $i < count($rates); $i++) {
             $rate = $rates[$i];
@@ -1286,7 +1285,7 @@ class btse extends Exchange {
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-tiers-structure leverage tiers structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-$tiers-structure leverage $tiers structure~
          */
         Async\await($this->load_markets());
         $market = $this->market($symbol);
@@ -1294,7 +1293,8 @@ class btse extends Exchange {
             throw new BadRequest($this->id . ' fetchMarketLeverageTiers() supports contract markets only');
         }
         $result = Async\await($this->fetch_leverage_tiers(array( $symbol ), $params));
-        return $result[$symbol];
+        $tiers = $this->safe_list($result, $symbol);
+        return $tiers;
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
@@ -1674,10 +1674,10 @@ class btse extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
-        $trades = $this->parse_trades($data, $market, $since, $limit);
         if ($until === null) {
-            return $trades;
+            return $this->parse_trades($data, $market, $since, $limit);
         }
+        $trades = $this->parse_trades($data, $market, $since, $limit);
         $result = array();
         for ($i = 0; $i < count($trades); $i++) {
             $trade = $trades[$i];
@@ -1710,7 +1710,7 @@ class btse extends Exchange {
          */
         Async\await($this->load_markets());
         $paginate = $this->safe_bool($params, 'paginate', false);
-        if ($paginate === true) {
+        if ($paginate) {
             return Async\await($this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $this->omit($params, 'paginate')));
         }
         $market = null;
@@ -2522,7 +2522,7 @@ class btse extends Exchange {
             $request['orderPrice'] = $this->price_to_precision($symbol, $price);
         }
         $isSlide = $this->safe_bool($query, 'slide', false);
-        if (($amount === null) && ($price === null) && ($triggerPrice === null) && ($isSlide !== true)) {
+        if (($amount === null) && ($price === null) && ($triggerPrice === null) && (!$isSlide)) {
             throw new ArgumentsRequired($this->id . ' editOrder() requires an amount argument, a price argument or a triggerPrice parameter');
         }
         $response = null;
@@ -3878,7 +3878,7 @@ class btse extends Exchange {
         //     {"status":400,"errorCode":-7,"message":"Authenticate failed","extraData":null}
         //
         $success = $this->safe_bool($response, 'success', true);
-        if ($success !== true) {
+        if (!$success) {
             $spotErrorCode = $this->safe_string($response, 'code');
             $spotMessage = $this->safe_string($response, 'msg');
             $feedback = $this->id . ' ' . $body;
@@ -3953,7 +3953,7 @@ class btse extends Exchange {
         // body like its POST and PUT counterparts, while the spot v4 and the
         // legacy apis keep DELETE params in the query string, verified live
         // in both directions
-        $isBodyDelete = ($method === 'DELETE') && (str_starts_with($path, 'futures/api/v3/') === true);
+        $isBodyDelete = ($method === 'DELETE') && (str_starts_with($path, 'futures/api/v3/'));
         $queryString = '';
         if ((($method === 'GET') || ($method === 'DELETE')) && !$isBodyDelete) {
             if (count($query) > 0) {
@@ -3975,7 +3975,7 @@ class btse extends Exchange {
             // sign the /api/v... remainder, while the public-api wallet, otc and markets
             // endpoints mount on the bare host and sign the full path with the leading slash
             $signPath = null;
-            if (str_starts_with($path, 'public-api/') === true) {
+            if (str_starts_with($path, 'public-api/')) {
                 $signPath = '/' . $path;
             } else {
                 $signPath = $this->clean_path($path);

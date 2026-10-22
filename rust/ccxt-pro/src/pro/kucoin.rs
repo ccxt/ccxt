@@ -459,7 +459,7 @@ impl KucoinCore {
     m
 }));
         let mut connectId: Value = Value::Str("public".into());
-        if (privateChannel.as_bool() == Some(true)) {
+        if is_true(&privateChannel) {
             connectId = Value::Str("private".into());
         }
         if is_true(&isFuturesMethod) {
@@ -584,7 +584,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut action: Value = Value::Str("subscribe".into());
         if (subscription != Value::Null) {
             let mut unsubscribe: Value = self.safe_bool_k(subscription.clone(), "unsubscribe", &[Value::Bool(false)]);
-            action = (if (unsubscribe.as_bool() == Some(true)) { Value::Str("unsubscribe".into()) } else { action.clone() });
+            action = (if unsubscribe.as_bool() == Some(true) { Value::Str("unsubscribe".into()) } else { action.clone() });
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -618,7 +618,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut action: Value = Value::Str("subscribe".into());
         if (subscription != Value::Null) {
             let mut unsubscribe: Value = self.safe_bool_k(subscription.clone(), "unsubscribe", &[Value::Bool(false)]);
-            action = (if (unsubscribe.as_bool() == Some(true)) { Value::Str("unsubscribe".into()) } else { action.clone() });
+            action = (if unsubscribe.as_bool() == Some(true) { Value::Str("unsubscribe".into()) } else { action.clone() });
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -983,7 +983,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut action: Value = Value::Str("subscribe".into());
         if (subscription != Value::Null) {
             let mut unsubscribe: Value = self.safe_bool_k(subscription.clone(), "unsubscribe", &[Value::Bool(false)]);
-            action = (if (unsubscribe.as_bool() == Some(true)) { Value::Str("unsubscribe".into()) } else { action.clone() });
+            action = (if unsubscribe.as_bool() == Some(true) { Value::Str("unsubscribe".into()) } else { action.clone() });
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2659,7 +2659,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.dispatch_ws_handler(&method, &[client.clone(), message, subscription.clone()]);
         }
         let mut isUnSub: Value = self.safe_bool_k(subscription.clone(), "unsubscribe", &[Value::Bool(false)]);
-        if (isUnSub.as_bool() == Some(true)) {
+        if isUnSub.as_bool() == Some(true) {
             let mut messageHashes: Value = self.safe_list_k(subscription.clone(), "messageHashes", &[Value::from(vec![])]);
             let mut subMessageHashes: Value = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::from(vec![])]);
             {
@@ -3518,7 +3518,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut options: Value = self.safe_dict_k(self.options.clone(), "watchBalance", &[]);
         let mut fetchBalanceSnapshot: Value = self.safe_bool_k(options.clone(), "fetchBalanceSnapshot", &[Value::Bool(false)]);
         let mut awaitBalanceSnapshot: Value = self.safe_bool_k(options, "awaitBalanceSnapshot", &[Value::Bool(true)]);
-        if (fetchBalanceSnapshot.as_bool() == Some(true)) && (awaitBalanceSnapshot.as_bool() == Some(true)) {
+        if fetchBalanceSnapshot.as_bool() == Some(true) && awaitBalanceSnapshot.as_bool() == Some(true) {
             crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str(format!("{}{}", uniformType, Value::Str(":fetchBalanceSnapshot".into())).into())])).await;
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", uniformType, Value::Str(":balance".into())).into());
@@ -3558,7 +3558,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut options: Value = self.safe_dict_k(self.options.clone(), "watchBalance", &[]);
         let mut fetchBalanceSnapshot: Value = self.safe_bool_k(options, "fetchBalanceSnapshot", &[Value::Bool(false)]);
-        if (fetchBalanceSnapshot.as_bool() == Some(true)) {
+        if fetchBalanceSnapshot.as_bool() == Some(true) {
             let mut messageHash: Value = Value::Str(format!("{}{}", type_var, Value::Str(":fetchBalanceSnapshot".into())).into());
             if !(in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
                 client.future(&[messageHash.clone()]);
@@ -4578,7 +4578,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.handle_subject(client.clone(), message.clone());
         }  else if (matches!(&message, Value::Dict(__d) if __d.contains_key("result"))) {
             let mut result: Value = (match __pro_message.get("result").cloned() { Some(__v) if matches!(__v, Value::Bool(_)) => __v, _ => Value::Bool(true) });
-            if (result.as_bool() != Some(true)) {
+            if !is_true(&result) {
                 self.handle_error_message(client.clone(), message.clone());
             }
             self.handle_subscription_status(client, message.clone());

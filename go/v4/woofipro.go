@@ -2981,7 +2981,7 @@ func (this *Woofipro) cancelOrderBody(ch chan AsyncResult[map[string]any], id an
 	_ = params
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger", false)
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stop", "trigger"})
-	if (trigger == nil || *trigger != true) && (symbol == nil) {
+	if (!(trigger != nil && *trigger)) && (symbol == nil) {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol argument"))
 	}
 	if this.Markets == nil {
@@ -3002,7 +3002,7 @@ func (this *Woofipro) cancelOrderBody(ch chan AsyncResult[map[string]any], id an
 	var clientOrderIdExchangeSpecific *string = this.SafeString(paramsOmitted, "client_order_id", clientOrderIdUnified)
 	var isByClientOrder bool = (clientOrderIdExchangeSpecific != nil)
 	var response map[string]any = nil
-	if trigger != nil && *trigger == true {
+	if trigger != nil && *trigger {
 		if isByClientOrder {
 			request["client_order_id"] = clientOrderIdExchangeSpecific
 			var paramsOmitted2 map[string]any = this.OmitDict(paramsOmitted, []any{"clOrdID", "clientOrderId", "client_order_id"})
@@ -3064,7 +3064,7 @@ func (this *Woofipro) cancelOrderBody(ch chan AsyncResult[map[string]any], id an
 	} else {
 		extendParams["id"] = id
 	}
-	if trigger != nil && *trigger == true {
+	if trigger != nil && *trigger {
 		var parsedResponse any = func() any {
 			if response == nil {
 				return map[string]any{}
@@ -3267,7 +3267,7 @@ func (this *Woofipro) fetchOrderBody(ch chan AsyncResult[map[string]any], id any
 	var clientOrderId *string = this.SafeStringN(params, []any{"clOrdID", "clientOrderId", "client_order_id"})
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stop", "trigger", "clOrdID", "clientOrderId", "client_order_id"})
 	var response map[string]any = nil
-	if trigger != nil && *trigger == true {
+	if trigger != nil && *trigger {
 		if (clientOrderId != nil) && (clientOrderId == nil || *clientOrderId != "") {
 			request["client_order_id"] = clientOrderId
 
@@ -3385,7 +3385,7 @@ func (this *Woofipro) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...
 	}
 	var isTrigger *bool = this.SafeBool2(params, "stop", "trigger", false)
 	var maxLimit int = func() int {
-		if isTrigger != nil && *isTrigger == true {
+		if isTrigger != nil && *isTrigger {
 			return 100
 		}
 		return 500
@@ -3420,12 +3420,12 @@ func (this *Woofipro) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...
 	} else {
 		request["size"] = maxLimit
 	}
-	if isTrigger != nil && *isTrigger == true {
+	if isTrigger != nil && *isTrigger {
 		request["algo_type"] = "STOP"
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end_t", request, paramsOmitted)
 	var response map[string]any = nil
-	if isTrigger != nil && *isTrigger == true {
+	if isTrigger != nil && *isTrigger {
 
 		r2 := <-this.V1PrivateGetAlgoOrders(this.Extend(requestUntil, paramsUntil))
 		if r2.Err != nil {
@@ -4548,7 +4548,7 @@ func (this *Woofipro) ParseMarginModification(data any, optionalArgs ...any) map
 		"total":      nil,
 		"code":       this.SafeString(market, "settle"),
 		"status": func() string {
-			if success != nil && *success == true {
+			if success != nil && *success {
 				return "ok"
 			}
 			return "failed"
@@ -5055,7 +5055,7 @@ func (this *Woofipro) Sign(path string, optionalArgs ...any) any {
 		this.CheckRequiredCredentials()
 		if ((method == "POST") || (method == "PUT")) && ((path == "algo/order") || (path == "order") || (path == "batch-order")) {
 			var isSandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
-			if isSandboxMode == nil || *isSandboxMode != true {
+			if !(isSandboxMode != nil && *isSandboxMode) {
 				var brokerId *string = this.SafeString(this.Options, "brokerId", "CCXT")
 				if path == "batch-order" {
 					var ordersList []any = SafeListTyped(requestParams, "orders")

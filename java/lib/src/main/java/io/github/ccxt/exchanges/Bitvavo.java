@@ -1070,7 +1070,7 @@ public class Bitvavo extends BitvavoApi
         String takerOrMaker = null;
         if (!java.util.Objects.equals(taker, null))
         {
-            takerOrMaker = (((java.util.Objects.equals(taker, true)))) ? "taker" : "maker";
+            takerOrMaker = ((Boolean.TRUE.equals(taker))) ? "taker" : "maker";
         }
         String feeCostString = this.safeString(trade, "fee");
         Map<String, Object> fee = null;

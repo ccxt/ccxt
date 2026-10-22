@@ -982,7 +982,7 @@ class whitebit extends \ccxt\async\whitebit {
             $market = $this->market($symbol);
             $marketId = $market['id'];
             $isSubscribed = $this->safe_bool($subscription, $marketId, false);
-            if ($isSubscribed !== true) {
+            if (!$isSubscribed) {
                 if ($marketId !== null) {
                     $subscription[$marketId] = true;
                 }

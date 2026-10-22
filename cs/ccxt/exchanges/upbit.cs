@@ -465,16 +465,16 @@ public partial class upbit : Exchange
         bool? walletLocked = this.safeBool(memberInfo, "wallet_locked");
         bool? locked = this.safeBool(memberInfo, "locked");
         bool active = true;
-        if (((canWithdraw != null)) && ((canWithdraw != true)))
+        if (((canWithdraw != null)) && (canWithdraw != true))
         {
             active = false;
         } else if (walletState != "working")
         {
             active = false;
-        } else if (((walletLocked != null)) && ((walletLocked == true)))
+        } else if (((walletLocked != null)) && (walletLocked == true))
         {
             active = false;
-        } else if (((locked != null)) && ((locked == true)))
+        } else if (((locked != null)) && (locked == true))
         {
             active = false;
         }

@@ -2648,7 +2648,7 @@ func (this *Hashkey) ParseTransaction(transaction any, optionalArgs ...any) map[
 	var status *string = this.SafeString(transaction, "status") // for fetchDeposits
 	if status == nil {
 		var success *bool = this.SafeBool(transaction, "success", false) // for withdraw
-		if success != nil && *success == true {
+		if success != nil && *success {
 			status = SafeStringPtr("ok")
 		} else {
 			var addressUrl *string = this.SafeString(transaction, "addressUrl") // for fetchWithdrawals
@@ -2774,7 +2774,7 @@ func (this *Hashkey) ParseTransfer(transfer any, optionalArgs ...any) map[string
 	var currencyId *string = this.SafeString(currency, "id")
 	var status *string = nil
 	var success *bool = this.SafeBool(transfer, "success", false)
-	if success != nil && *success == true {
+	if success != nil && *success {
 		status = SafeStringPtr("ok")
 	}
 	return map[string]any{

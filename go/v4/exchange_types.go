@@ -210,7 +210,7 @@ func listValueToTypedSlice(value any) []any {
 
 // MarketInterface struct
 type MarketInterface struct {
-	Info            map[string]any
+	Info            any
 	Market          *string
 	MarketType      *string
 	ExecutionModel  *string
@@ -294,7 +294,7 @@ func NewMarketInterface(data any) MarketInterface {
 	}
 
 	return MarketInterface{
-		Info:            m,
+		Info:            SafeValue(m, "info", nil),
 		Market:          SafeStringTyped(m, "market"),
 		MarketType:      SafeStringTyped(m, "marketType"),
 		ExecutionModel:  SafeStringTyped(m, "executionModel"),
@@ -459,11 +459,13 @@ type Limits struct {
 	Cost     MinMax
 	Leverage MinMax
 	Price    MinMax
+	Market   *MinMax
 }
 
 func NewLimits(data any) Limits {
 	m := MapOrEmpty(data)
 	var amount, cost, leverage, price MinMax
+	var market *MinMax
 	if v, ok := m["amount"]; ok {
 		amountValue := NewMinMax(MapOrEmpty(v))
 		amount = amountValue
@@ -480,11 +482,16 @@ func NewLimits(data any) Limits {
 		priceValue := NewMinMax(MapOrEmpty(v))
 		price = priceValue
 	}
+	if v, ok := m["market"]; ok && v != nil {
+		marketValue := NewMinMax(MapOrEmpty(v))
+		market = &marketValue
+	}
 	return Limits{
 		Amount:   amount,
 		Cost:     cost,
 		Leverage: leverage,
 		Price:    price,
+		Market:   market,
 	}
 }
 
@@ -837,11 +844,16 @@ func parseOrderBookEntries(orderbook map[string]any, key string) [][]float64 {
 				if pair, ok := entry.([]any); ok {
 					var floatPair []float64
 					for _, v := range pair {
-						if num, ok := derefScalar(v).(float64); ok {
+						switch num := derefScalar(v).(type) {
+						case float64:
 							floatPair = append(floatPair, num)
+						case int64:
+							floatPair = append(floatPair, float64(num))
+						case int:
+							floatPair = append(floatPair, float64(num))
 						}
 					}
-					if len(floatPair) == 2 { // Ensure bid/ask pairs have two values
+					if len(floatPair) >= 2 { // Ensure bid/ask pairs have at least two values
 						result = append(result, floatPair)
 					}
 				}
@@ -851,11 +863,16 @@ func parseOrderBookEntries(orderbook map[string]any, key string) [][]float64 {
 			for _, entry := range entries {
 				var floatPair []float64
 				for _, v := range entry {
-					if num, ok := derefScalar(v).(float64); ok {
+					switch num := derefScalar(v).(type) {
+					case float64:
 						floatPair = append(floatPair, num)
+					case int64:
+						floatPair = append(floatPair, float64(num))
+					case int:
+						floatPair = append(floatPair, float64(num))
 					}
 				}
-				if len(floatPair) == 2 { // Ensure bid/ask pairs have two values
+				if len(floatPair) >= 2 { // Ensure bid/ask pairs have at least two values
 					result = append(result, floatPair)
 				}
 			}
@@ -1022,7 +1039,8 @@ type Balances struct {
 	Free      map[string]*float64
 	Used      map[string]*float64
 	Total     map[string]*float64
-	Info      map[string]any
+	Debt      map[string]*float64
+	Info      any
 	Timestamp *int64
 	Datetime  *string
 }
@@ -1054,7 +1072,7 @@ func NewBalances(balancesData2 any) Balances {
 
 	for key, value := range balancesData {
 		// Skip non-balance fields
-		if key == "info" || key == "free" || key == "used" || key == "total" || key == "timestamp" || key == "datetime" {
+		if key == "info" || key == "free" || key == "used" || key == "total" || key == "debt" || key == "timestamp" || key == "datetime" {
 			continue
 		}
 
@@ -1096,14 +1114,28 @@ func NewBalances(balancesData2 any) Balances {
 		}
 	}
 
+	// Handle "debt" balances
+	var debtBalances map[string]*float64
+	if debtData, ok := balancesData["debt"].(map[string]any); ok {
+		debtBalances = make(map[string]*float64, len(debtData))
+		for key, value := range debtData {
+			if value == nil {
+				debtBalances[key] = nil
+			} else if floatValue, ok := derefScalar(value).(float64); ok {
+				debtBalances[key] = &floatValue
+			}
+		}
+	}
+
 	// Extract "info"
-	info := GetInfo(balancesData) // Assuming GetInfo is implemented
+	info := SafeValue(balancesData, "info", nil)
 
 	return Balances{
 		Balances:  balancesMap,
 		Free:      freeBalances,
 		Used:      usedBalances,
 		Total:     totalBalances,
+		Debt:      debtBalances,
 		Info:      info,
 		Timestamp: SafeInt64Typed(balancesData, "timestamp"),
 		Datetime:  SafeStringTyped(balancesData, "datetime"),
@@ -1181,7 +1213,7 @@ func (b *Balances) String() string {
 
 type FundingRate struct {
 	Symbol                   *string
-	Info                     map[string]any
+	Info                     any
 	Timestamp                *int64
 	Datetime                 *string
 	FundingRate              *float64
@@ -1205,7 +1237,7 @@ func NewFundingRate(fundingRateEntry2 any) FundingRate {
 	fundingRateEntry := fundingRateEntry2.(map[string]any)
 	return FundingRate{
 		Symbol:                   SafeStringTyped(fundingRateEntry, "symbol"),
-		Info:                     GetInfo(fundingRateEntry),
+		Info:                     SafeValue(fundingRateEntry, "info", nil),
 		Datetime:                 SafeStringTyped(fundingRateEntry, "datetime"),
 		Timestamp:                SafeInt64Typed(fundingRateEntry, "timestamp"),
 		FundingRate:              SafeFloatTyped(fundingRateEntry, "fundingRate"),
@@ -1550,7 +1582,7 @@ type OpenInterest struct {
 	QuoteVolume        *float64
 	Timestamp          *int64
 	Datetime           *string
-	Info               map[string]any
+	Info               any
 }
 
 func NewOpenInterest(data any) OpenInterest {
@@ -1562,7 +1594,7 @@ func NewOpenInterest(data any) OpenInterest {
 		QuoteVolume:        SafeFloatTyped(data, "quoteVolume"),
 		Timestamp:          SafeInt64Typed(data, "timestamp"),
 		Datetime:           SafeStringTyped(data, "datetime"),
-		Info:               GetInfo(data),
+		Info:               SafeValue(data, "info", nil),
 	}
 }
 
@@ -1765,7 +1797,7 @@ func (m *MarginModes) Set(key string, mode MarginMode) {
 }
 
 type Leverage struct {
-	Info          map[string]any
+	Info          any
 	Symbol        *string
 	MarginMode    *string
 	LongLeverage  *float64
@@ -1774,7 +1806,7 @@ type Leverage struct {
 
 func NewLeverage(data any) Leverage {
 	return Leverage{
-		Info:          GetInfo(data),
+		Info:          SafeValue(data, "info", nil),
 		Symbol:        SafeStringTyped(data, "symbol"),
 		MarginMode:    SafeStringTyped(data, "marginMode"),
 		LongLeverage:  SafeFloatTyped(data, "longLeverage"),
@@ -1835,13 +1867,13 @@ type Account struct {
 	Id   *string
 	Type *string
 	Code *string
-	Info map[string]any
+	Info any
 	Name *string
 }
 
 func NewAccount(data any) Account {
 	return Account{
-		Info: GetInfo(data),
+		Info: SafeValue(data, "info", nil),
 		Name: SafeStringTyped(data, "name"),
 		Id:   SafeStringTyped(data, "id"),
 		Type: SafeStringTyped(data, "type"),
@@ -2161,7 +2193,7 @@ type MarginLoan struct {
 	Symbol    *string
 	Timestamp *int64
 	Datetime  *string
-	Info      map[string]any
+	Info      any
 }
 
 func NewMarginLoan(data any) MarginLoan {
@@ -2172,7 +2204,7 @@ func NewMarginLoan(data any) MarginLoan {
 		Symbol:    SafeStringTyped(data, "symbol"),
 		Timestamp: SafeInt64Typed(data, "timestamp"),
 		Datetime:  SafeStringTyped(data, "datetime"),
-		Info:      GetInfo(data),
+		Info:      SafeValue(data, "info", nil),
 	}
 }
 
@@ -2181,7 +2213,7 @@ type Status struct {
 	Updated *int64
 	Eta     *int64
 	Url     *string
-	Info    map[string]any
+	Info    any
 }
 
 func NewStatus(data any) Status {
@@ -2190,18 +2222,18 @@ func NewStatus(data any) Status {
 		Updated: SafeInt64Typed(data, "updated"),
 		Eta:     SafeInt64Typed(data, "eta"),
 		Url:     SafeStringTyped(data, "url"),
-		Info:    GetInfo(data),
+		Info:    SafeValue(data, "info", nil),
 	}
 }
 
 type PositionModeInfo struct {
-	Info   map[string]any
+	Info   any
 	Hedged *bool
 }
 
 func NewPositionModeInfo(data any) PositionModeInfo {
 	return PositionModeInfo{
-		Info:   GetInfo(data),
+		Info:   SafeValue(data, "info", nil),
 		Hedged: SafeBoolTyped(data, "hedged"),
 	}
 }
@@ -2809,13 +2841,51 @@ func NewDepositWithdrawFeeNetwork(data any) DepositWithdrawFeeNetwork {
 	}
 }
 
+// DepositWithdrawFeeNetworkEntry
+
+type DepositWithdrawFeeNetworkEntry struct {
+	Deposit  *DepositWithdrawFeeNetwork
+	Withdraw *DepositWithdrawFeeNetwork
+}
+
+func NewDepositWithdrawFeeNetworkEntry(data any) DepositWithdrawFeeNetworkEntry {
+	if data == nil {
+		return DepositWithdrawFeeNetworkEntry{}
+	}
+	if syncMap, ok := data.(*sync.Map); ok {
+		data = SafeMapToMap(syncMap)
+	}
+	m, ok := data.(map[string]any)
+	if !ok {
+		return DepositWithdrawFeeNetworkEntry{}
+	}
+	var deposit *DepositWithdrawFeeNetwork
+	if v, ok := m["deposit"]; ok && derefScalar(v) != nil {
+		if depositMap, ok := v.(map[string]any); ok {
+			depositValue := NewDepositWithdrawFeeNetwork(depositMap)
+			deposit = &depositValue
+		}
+	}
+	var withdraw *DepositWithdrawFeeNetwork
+	if v, ok := m["withdraw"]; ok && derefScalar(v) != nil {
+		if withdrawMap, ok := v.(map[string]any); ok {
+			withdrawValue := NewDepositWithdrawFeeNetwork(withdrawMap)
+			withdraw = &withdrawValue
+		}
+	}
+	return DepositWithdrawFeeNetworkEntry{
+		Deposit:  deposit,
+		Withdraw: withdraw,
+	}
+}
+
 // DepositWithdrawFee
 
 type DepositWithdrawFee struct {
-	Info     map[string]any
+	Info     any
 	Withdraw *DepositWithdrawFeeNetwork
 	Deposit  *DepositWithdrawFeeNetwork
-	Networks map[string]DepositWithdrawFeeNetwork
+	Networks map[string]DepositWithdrawFeeNetworkEntry
 }
 
 func NewDepositWithdrawFee(data any) DepositWithdrawFee {
@@ -2829,7 +2899,7 @@ func NewDepositWithdrawFee(data any) DepositWithdrawFee {
 	if !ok {
 		return DepositWithdrawFee{}
 	}
-	info := GetInfo(m)
+	info := SafeValue(m, "info", nil)
 	if info == nil {
 		info = m
 	}
@@ -2847,12 +2917,12 @@ func NewDepositWithdrawFee(data any) DepositWithdrawFee {
 			deposit = &depositValue
 		}
 	}
-	networks := make(map[string]DepositWithdrawFeeNetwork)
+	networks := make(map[string]DepositWithdrawFeeNetworkEntry)
 	if v, ok := m["networks"]; ok && derefScalar(v) != nil {
 		if networksMap, ok := v.(map[string]any); ok {
 			for key, value := range networksMap {
 				if networkMap, ok := value.(map[string]any); ok {
-					networks[key] = NewDepositWithdrawFeeNetwork(networkMap)
+					networks[key] = NewDepositWithdrawFeeNetworkEntry(networkMap)
 				}
 			}
 		}

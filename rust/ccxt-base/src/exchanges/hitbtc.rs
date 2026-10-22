@@ -2194,7 +2194,7 @@ impl HitbtcCore {
         let mut taker: Value = self.safe_bool_k(trade.clone(), "taker", &[]);
         let mut takerOrMaker: Value = Value::Null;
         if (taker != Value::Null) {
-            takerOrMaker = (if (taker.as_bool() == Some(true)) { Value::Str("taker".into()) } else { Value::Str("maker".into()) });
+            takerOrMaker = (if taker.as_bool() == Some(true) { Value::Str("taker".into()) } else { Value::Str("maker".into()) });
         }  else {
             takerOrMaker = Value::Str("taker".into()); // the only case when `taker` field is missing, is public fetchTrades and it must be taker
         }
@@ -3804,7 +3804,7 @@ impl HitbtcCore {
     m
 })]);
         let mut includeFee: Value = self.safe_bool_k(withdrawOptions, "includeFee", &[Value::Bool(false)]);
-        if (includeFee.as_bool() == Some(true)) {
+        if includeFee.as_bool() == Some(true) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("include_fee".into(), Value::Bool(true)); }
         }
         let __ws_arg_56 = self.extend(request, &[paramsOmitted]);
@@ -4885,7 +4885,7 @@ impl HitbtcCore {
         let mut marginModeparamsMarginModeVariable = self.super_handle_margin_mode_and_params(methodName, params, defaultValue);
         let mut marginMode: Value = marginModeparamsMarginModeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        if (marginMode == Value::Null) && ((defaultType.as_deref() == Some("margin")) || (isMargin.as_bool() == Some(true))) {
+        if (marginMode == Value::Null) && ((defaultType.as_deref() == Some("margin")) || isMargin.as_bool() == Some(true)) {
             return Value::from(vec![Value::Str("isolated".into()), paramsMarginMode.clone()]);
         }
         return Value::from(vec![marginMode, paramsMarginMode]);

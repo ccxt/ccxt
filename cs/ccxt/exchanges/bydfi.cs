@@ -1518,14 +1518,14 @@ public partial class bydfi : Exchange
             query = this.omit(query, "reduceOnly");
             if ((side == "buy"))
             {
-                request["positionSide"] = ((reduceOnly == true)) ? "SHORT" : "LONG";
+                request["positionSide"] = reduceOnly == true ? "SHORT" : "LONG";
             } else if ((side == "sell"))
             {
-                request["positionSide"] = ((reduceOnly == true)) ? "LONG" : "SHORT";
+                request["positionSide"] = reduceOnly == true ? "LONG" : "SHORT";
             }
         }
         bool? closePosition = this.safeBool(query, "closePosition", false);
-        if ((closePosition != true))
+        if (closePosition != true)
         {
             query = this.omit(query, "closePosition");
             request["quantity"] = this.amountToPrecision(symbol, amount);

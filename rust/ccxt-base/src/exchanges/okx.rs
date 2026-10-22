@@ -4439,7 +4439,7 @@ impl OkxCore {
         // therefore we check the keys here
         // and fallback to generating the currencies from the markets
         let mut isSandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
-        if !(self.check_required_credentials(&[Value::Bool(false)]).as_bool() == Some(true)) || (isSandboxMode.as_bool() == Some(true)) {
+        if !(self.check_required_credentials(&[Value::Bool(false)]).as_bool() == Some(true)) || isSandboxMode.as_bool() == Some(true) {
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4725,7 +4725,7 @@ impl OkxCore {
         let mut last: Value = self.safe_string_k(ticker.clone(), "last", &[]);
         let mut open: Value = self.safe_string_k(ticker.clone(), "open24h", &[]);
         let mut spot: Value = self.safe_bool_k(marketResolved.clone(), "spot", &[Value::Bool(false)]);
-        let mut quoteVolume: Value = (if (spot.as_bool() == Some(true)) { self.safe_string_k(ticker.clone(), "volCcy24h", &[]) } else { Value::Null });
+        let mut quoteVolume: Value = (if spot.as_bool() == Some(true) { self.safe_string_k(ticker.clone(), "volCcy24h", &[]) } else { Value::Null });
         let mut baseVolume: Value = self.safe_string_k(ticker.clone(), "vol24h", &[]);
         let mut high: Value = self.safe_string_k(ticker.clone(), "high24h", &[]);
         let mut low: Value = self.safe_string_k(ticker.clone(), "low24h", &[]);
@@ -5780,12 +5780,12 @@ impl OkxCore {
             paramsReduceOnly = self.omit(paramsHedged, Value::Str("reduceOnly".into()), &[]);
         }
         if (spot.as_bool() == Some(true)) {
-            if (margin.as_bool() == Some(true)) {
+            if margin.as_bool() == Some(true) {
                 let mut defaultCurrency: Value = (if (side.as_str() == Some("buy")) { market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null) } else { market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null) });
                 let mut currency: Value = self.safe_string_k(params, "ccy", &[defaultCurrency]);
                 add_element_to_object(&mut request, &Value::Str("ccy".into()), self.safe_currency_code(currency, &[]));
             }
-            let mut tradeMode: Value = (if (margin.as_bool() == Some(true)) { marginMode.clone() } else { Value::Str("cash".into()) });
+            let mut tradeMode: Value = (if margin.as_bool() == Some(true) { marginMode.clone() } else { Value::Str("cash".into()) });
             add_element_to_object(&mut request, &Value::Str("tdMode".into()), tradeMode);
         }  else if (contract.as_bool() == Some(true)) {
             if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) || (market.as_map().and_then(|__m| __m.get("future")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
@@ -5818,7 +5818,7 @@ impl OkxCore {
         let mut marketIOC: bool = (matches!(&isMarketOrder, Value::Bool(true)) && ioc) || (type_var.as_str() == Some("optimal_limit_ioc"));
         let mut defaultTgtCcy: Value = self.safe_string_k(self.options.clone(), "tgtCcy", &[Value::Str("base_ccy".into())]);
         let mut tgtCcy: Value = self.safe_string_k(orderParams.clone(), "tgtCcy", &[defaultTgtCcy]);
-        if (contract.as_bool() != Some(true)) && (margin.as_bool() != Some(true)) {
+        if (contract.as_bool() != Some(true)) && (!(margin.as_bool() == Some(true))) {
             add_element_to_object(&mut request, &Value::Str("tgtCcy".into()), tgtCcy.clone());
         }
         if matches!(&isMarketOrder, Value::Bool(true)) || marketIOC {
@@ -6490,7 +6490,7 @@ impl OkxCore {
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
         let mut trailing: Value = self.safe_bool_k(params.clone(), "trailing", &[Value::Bool(false)]);
         let mut isTrigger: bool = trigger.as_bool() == Some(true);
-        if isTrigger || (trailing.as_bool() == Some(true)) {
+        if isTrigger || trailing.as_bool() == Some(true) {
             let mut orderInner: Value = self.cancel_orders(Value::from(vec![id.clone()]), &[symbol.clone(), params.clone()]).await;
             let mut canceledInner: Value = self.safe_dict(orderInner, Value::Int(0), &[]);
             return canceledInner;
@@ -6576,7 +6576,7 @@ impl OkxCore {
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
         let mut trailing: Value = self.safe_bool_k(params.clone(), "trailing", &[Value::Bool(false)]);
         let mut isTrigger: bool = trigger.as_bool() == Some(true);
-        if isTrigger || (trailing.as_bool() == Some(true)) {
+        if isTrigger || trailing.as_bool() == Some(true) {
             method = Value::Str("privatePostTradeCancelAlgos".into());
         }
         if (clientOrderIds == Value::Null) {
@@ -6599,7 +6599,7 @@ impl OkxCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1011: bool = true;
                 while { if !__for_first_1011 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1011 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&orderIds).as_f64().unwrap_or(f64::NAN) } {
-                if (trailing.as_bool() == Some(true)) || isTrigger {
+                if trailing.as_bool() == Some(true) || isTrigger {
                     append_to_array(&mut request, Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("algoId".to_string(), get_value(&orderIds, &i));
@@ -6621,7 +6621,7 @@ impl OkxCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1012: bool = true;
                 while { if !__for_first_1012 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1012 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&clientOrderIds).as_f64().unwrap_or(f64::NAN) } {
-                if (trailing.as_bool() == Some(true)) || isTrigger {
+                if trailing.as_bool() == Some(true) || isTrigger {
                     append_to_array(&mut request, Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("instId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -6712,8 +6712,8 @@ impl OkxCore {
         let mut method: Value = self.safe_string_k(params.clone(), "method", &[defaultMethod]);
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
         let mut trailing: Value = self.safe_bool_k(params.clone(), "trailing", &[Value::Bool(false)]);
-        let mut isStopOrTrailing: bool = (trigger.as_bool() == Some(true)) || (trailing.as_bool() == Some(true));
-        if (isStopOrTrailing) {
+        let mut isStopOrTrailing: bool = (trigger.as_bool() == Some(true)) || trailing.as_bool() == Some(true);
+        if isStopOrTrailing {
             method = Value::Str("privatePostTradeCancelAlgos".into());
         }
         {
@@ -6729,7 +6729,7 @@ impl OkxCore {
             }
             let mut market: Value = self.market(symbol);
             let mut idKey: Value = Value::Str("ordId".into());
-            if (isStopOrTrailing) {
+            if isStopOrTrailing {
                 idKey = Value::Str("algoId".into());
             }  else if (clientOrderId != Value::Null) {
                 idKey = Value::Str("clOrdId".into());
@@ -7375,10 +7375,10 @@ impl OkxCore {
         let mut trigger: Value = self.safe_bool2(paramsPaginate.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
         let mut trailing: Value = self.safe_bool_k(paramsPaginate.clone(), "trailing", &[Value::Bool(false)]);
         let mut isTrigger: bool = trigger.as_bool() == Some(true);
-        if (trailing.as_bool() == Some(true)) || isTrigger || ((ordType != Value::Null) && (in_op(&algoOrderTypes, &ordType))) {
+        if trailing.as_bool() == Some(true) || isTrigger || ((ordType != Value::Null) && (in_op(&algoOrderTypes, &ordType))) {
             method = Value::Str("privateGetTradeOrdersAlgoPending".into());
         }
-        if (trailing.as_bool() == Some(true)) {
+        if trailing.as_bool() == Some(true) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ordType".into(), Value::Str("move_order_stop".into())); }
         }  else if isTrigger && (ordType == Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ordType".into(), Value::Str("trigger".into())); }
@@ -7552,7 +7552,7 @@ impl OkxCore {
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
         let mut trailing: Value = self.safe_bool_k(params.clone(), "trailing", &[Value::Bool(false)]);
         let mut isTrigger: bool = trigger.as_bool() == Some(true);
-        if (trailing.as_bool() == Some(true)) {
+        if trailing.as_bool() == Some(true) {
             method = Value::Str("privateGetTradeOrdersAlgoHistory".into());
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ordType".into(), Value::Str("move_order_stop".into())); }
         }  else if isTrigger || ((ordType != Value::Null) && (in_op(&algoOrderTypes, &ordType))) {
@@ -7757,11 +7757,11 @@ impl OkxCore {
         let mut ordType: Value = self.safe_string_k(paramsPaginate.clone(), "ordType", &[]);
         let mut trigger: Value = self.safe_bool2(paramsPaginate.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
         let mut trailing: Value = self.safe_bool_k(paramsPaginate, "trailing", &[Value::Bool(false)]);
-        if (trailing.as_bool() == Some(true)) || (trigger.as_bool() == Some(true)) || ((ordType != Value::Null) && (in_op(&algoOrderTypes, &ordType))) {
+        if trailing.as_bool() == Some(true) || (trigger.as_bool() == Some(true)) || ((ordType != Value::Null) && (in_op(&algoOrderTypes, &ordType))) {
             method = Value::Str("privateGetTradeOrdersAlgoHistory".into());
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("state".into(), Value::Str("effective".into())); }
         }
-        if (trailing.as_bool() == Some(true)) {
+        if trailing.as_bool() == Some(true) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ordType".into(), Value::Str("move_order_stop".into())); }
         }  else if (trigger.as_bool() == Some(true)) {
             if (ordType == Value::Null) {

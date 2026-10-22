@@ -563,8 +563,7 @@ class coinbaseinternational extends Exchange {
         //     }
         //
         $instruments = $this->safe_list($response, 'result', array());
-        $parsedMarkets = $this->parse_markets($instruments);
-        return $parsedMarkets;
+        return $this->parse_markets($instruments);
     }
 
     public function parse_market(array $market): array {
@@ -1065,7 +1064,7 @@ class coinbaseinternational extends Exchange {
             $ticker = $this->fetch_ticker($symbol, $paramsResolved);
             $tickers[$symbol] = $ticker;
         }
-        return $this->filter_by_array($tickers, 'symbol', $symbolsResolved, true);
+        return $this->filter_by_array_tickers($tickers, 'symbol', $symbolsResolved);
     }
 
     public function fetch_ticker(string $symbol, $params = array()): array {
@@ -1855,7 +1854,7 @@ class coinbaseinternational extends Exchange {
 
     public function fetch_positions(?array $symbols = null, $params = array()): array {
         /**
-         * fetch all open $positions
+         * fetch all open positions
          *
          * @see https://docs.cdp.coinbase.com/api-reference/account-management/private-get_positions
          * @see https://docs.deribit.com/api-reference/account-management/private-get_positions
@@ -1904,12 +1903,11 @@ class coinbaseinternational extends Exchange {
         //     }
         //
         $result = $this->safe_list($response, 'result', array());
-        $positions = $this->parse_positions($result);
         if ($this->is_empty($symbols)) {
-            return $positions;
+            return $this->parse_positions($result);
         }
         $symbolsNormalized = $this->market_symbols($symbols);
-        return $this->filter_by_array_positions($positions, 'symbol', $symbolsNormalized);
+        return $this->parse_positions($result, $symbolsNormalized);
     }
 
     public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {

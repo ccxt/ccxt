@@ -1166,11 +1166,11 @@ impl LighterCore {
 
     pub async fn handle_builder_fee_approval(&mut self, mut accountIndex: Value, mut apiKeyIndex: Value) -> Value {
         let mut buildFee: Value = self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(true)]);
-        if (buildFee.as_bool() != Some(true)) {
+        if !(buildFee.as_bool() == Some(true)) {
             return Value::Bool(false);
         }
         let mut approvedBuilderFee: Value = self.safe_bool_k(self.options.clone(), "approvedBuilderFee", &[Value::Bool(false)]);
-        if (approvedBuilderFee.as_bool() == Some(true)) {
+        if approvedBuilderFee.as_bool() == Some(true) {
             return Value::Bool(true);
         }
         let mut standardTier: bool = false;
@@ -1474,7 +1474,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_expiry".into(), orderExpiry); }
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_type".into(), orderTypeNum); }
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("time_in_force".into(), timeInForceNum); }
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("reduce_only".into(), (if (reduceOnly.as_bool() == Some(true)) { Value::Int(1) } else { Value::Int(0) })); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("reduce_only".into(), (if reduceOnly.as_bool() == Some(true) { Value::Int(1) } else { Value::Int(0) })); }
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("client_order_index".into(), clientOrderId); }
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("base_amount".into(), self.parse_to_int(crate::precise::Precise::stringMul(&amountStr, &amountScale))); }
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("avg_execution_price".into(), self.parse_to_int(crate::precise::Precise::stringMul(&priceStr, &priceScale))); }
@@ -4143,7 +4143,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         // public trades use Lighter's taker-side convention
         if (side == Value::Null) && (isMakerAsk != Value::Null) {
-            side = (if (isMakerAsk.as_bool() == Some(true)) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
+            side = (if isMakerAsk.as_bool() == Some(true) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
         }
         let mut takerOrMaker: Value = Value::Null;
         if (side != Value::Null) && (isMakerAsk != Value::Null) {

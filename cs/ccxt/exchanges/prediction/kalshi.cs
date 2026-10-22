@@ -1007,7 +1007,7 @@ public partial class kalshi : PredictionExchange
         //     { "exchange_active": true, "trading_active": true }
         //
         bool? tradingActive = this.safeBool(response, "trading_active", false);
-        return ccxt.BaseExchange.ToStatus(new Dictionary<string, object>() {             { "status", ((tradingActive == true)) ? "ok" : "maintenance" },             { "updated", null },             { "eta", null },             { "url", null },             { "info", response },         });
+        return ccxt.BaseExchange.ToStatus(new Dictionary<string, object>() {             { "status", tradingActive == true ? "ok" : "maintenance" },             { "updated", null },             { "eta", null },             { "url", null },             { "info", response },         });
     }
 
     /**

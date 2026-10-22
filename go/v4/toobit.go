@@ -2349,7 +2349,7 @@ func (this *Toobit) CreateOrderRequest(symbol any, typeVar string, side string, 
 	var isPostOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((typeVar == "market"), false, paramsCost)
 	var isPostOnly bool = GetValueBool(isPostOnlyparamsPostOnlyVariable, 0, false)
 	var paramsPostOnly map[string]any = MapTyped(isPostOnlyparamsPostOnlyVariable[1])
-	if isPostOnly == true {
+	if isPostOnly {
 		request["type"] = "LIMIT_MAKER"
 	} else {
 		request["type"] = strings.ToUpper(typeVar)
@@ -2405,7 +2405,7 @@ func (this *Toobit) CreateContractOrderRequest(symbol any, typeVar string, side 
 	var isPostOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((typeVar == "market"), false, paramsReduceOnly)
 	var isPostOnly bool = GetValueBool(isPostOnlyparamsPostOnlyVariable, 0, false)
 	var paramsPostOnly map[string]any = MapTyped(isPostOnlyparamsPostOnlyVariable[1])
-	if isPostOnly == true {
+	if isPostOnly {
 		request["timeInForce"] = "LIMIT_MAKER"
 	}
 	var values []any = ArrayTyped(this.HandleTriggerPricesAndParams(symbol, paramsPostOnly))

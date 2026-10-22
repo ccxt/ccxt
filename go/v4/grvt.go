@@ -873,13 +873,13 @@ func (this *Grvt) initializeClientBody(ch chan AsyncResult[any], optionalArgs ..
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var builderFee *bool = this.SafeBool(params, "builderFee", this.SafeBool(this.Options, "builderFee", true)) // we shouldn't omit here
-	if builderFee == nil || *builderFee != true {
+	if !(builderFee != nil && *builderFee) {
 
 		ch <- AsyncResult[any]{Value: false} // skip if builder fee is not enabled
 		return nil
 	}
 	var approvedBuilderFee *bool = this.SafeBool(this.Options, "approvedBuilderFee", false)
-	if approvedBuilderFee != nil && *approvedBuilderFee == true {
+	if approvedBuilderFee != nil && *approvedBuilderFee {
 
 		ch <- AsyncResult[any]{Value: true} // skip if builder fee is already approved
 		return nil
@@ -2021,7 +2021,7 @@ func (this *Grvt) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ...an
 		AddElementToObject(requestUntilOptionString, "start_time", this.NumberToString(*since*1000000))
 	}
 	var useTransfersEndpoint *bool = this.SafeBool(this.Options, "useTransfersEndpointForDepositsWithdrawals", true)
-	if useTransfersEndpoint != nil && *useTransfersEndpoint == true {
+	if useTransfersEndpoint != nil && *useTransfersEndpoint {
 
 		r1 := <-this.InternalFetchTransfersAsync(this.Extend(requestUntilOptionString, paramsUntilOptionString), currency, since, limit)
 		if r1.Err != nil {
@@ -2113,7 +2113,7 @@ func (this *Grvt) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs ..
 		AddElementToObject(requestUntilOptionString, "start_time", this.NumberToString(*since*1000000))
 	}
 	var useTransfersEndpoint *bool = this.SafeBool(this.Options, "useTransfersEndpointForDepositsWithdrawals", true)
-	if useTransfersEndpoint != nil && *useTransfersEndpoint == true {
+	if useTransfersEndpoint != nil && *useTransfersEndpoint {
 
 		r2 := <-this.InternalFetchTransfersAsync(this.Extend(requestUntilOptionString, paramsUntilOptionString), currency, since, limit)
 		if r2.Err != nil {
@@ -2932,7 +2932,7 @@ func (this *Grvt) createOrderBody(ch chan AsyncResult[map[string]any], symbol st
 	}
 	var eipType string = "EIP712_ORDER_TYPE"
 	var builderFee *bool = this.SafeBool(paramsTrigger, "builderFee", this.SafeBool(this.Options, "builderFee", true))
-	if builderFee != nil && *builderFee == true {
+	if builderFee != nil && *builderFee {
 		eipType = "EIP712_ORDER_WITH_BUILDER_TYPE"
 		orderRequest["builder"] = this.SafeString(this.Options, "builder")
 		orderRequest["builder_fee"] = this.SafeString(this.Options, "builderRate")
@@ -4506,7 +4506,7 @@ func (this *Grvt) Sign(path string, optionalArgs ...any) any {
 		}
 	}
 	var isPrivate bool = strings.HasPrefix(*apiName, "private")
-	if isPrivate == true {
+	if isPrivate {
 		this.CheckRequiredCredentials()
 		if queryString != "" {
 			requestPath = requestPath + "?" + queryString

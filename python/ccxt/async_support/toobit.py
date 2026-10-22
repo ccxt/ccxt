@@ -1510,7 +1510,7 @@ class toobit(Exchange, ImplicitAPI):
             ticker = self.extend(parsedTicker, params)
             results.append(ticker)
         symbolsNormalized = self.market_symbols(symbols)
-        return self.filter_by_array(results, 'symbol', symbolsNormalized)
+        return self.filter_by_array_tickers(results, 'symbol', symbolsNormalized)
 
     def parse_bid_ask_custom(self, ticker: dict) -> dict:
         # 's' is the exchange id and 't' a millisecond integer, the pair parseTicker
@@ -1772,7 +1772,7 @@ class toobit(Exchange, ImplicitAPI):
         else:
             request['quantity'] = self.amount_to_precision(symbol, amount)
         isPostOnly, paramsPostOnly = self.handle_post_only(type == 'market', False, paramsCost)
-        if isPostOnly is True:
+        if isPostOnly:
             request['type'] = 'LIMIT_MAKER'
         else:
             request['type'] = type.upper()
@@ -1804,7 +1804,7 @@ class toobit(Exchange, ImplicitAPI):
             request['type'] = 'LIMIT'  # weird, but exchange works this way
             request['priceType'] = 'MARKET'
         isPostOnly, paramsPostOnly = self.handle_post_only(type == 'market', False, paramsReduceOnly)
-        if isPostOnly is True:
+        if isPostOnly:
             request['timeInForce'] = 'LIMIT_MAKER'
         values = self.handle_trigger_prices_and_params(symbol, paramsPostOnly)
         triggerPrice = values[0]

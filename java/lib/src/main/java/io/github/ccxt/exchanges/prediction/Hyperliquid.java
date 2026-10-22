@@ -1467,7 +1467,7 @@ public class Hyperliquid extends HyperliquidApi
             {
                 defaultTif = "Ioc";
             }
-            if (java.util.Objects.equals(postOnly, true))
+            if (Boolean.TRUE.equals(postOnly))
             {
                 defaultTif = "Alo";
             }
@@ -2607,11 +2607,12 @@ public class Hyperliquid extends HyperliquidApi
 
             Object nonce = this.incrementingNonce();
             Boolean isSandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
-            Map<String, Object> payload = new HashMap<String, Object>();
-            payload.put("hyperliquidChain", (((java.util.Objects.equals(isSandboxMode, true)))) ? "Testnet" : "Mainnet");
-            payload.put("maxFeeRate", maxFeeRate);
-            payload.put("builder", builder);
-            payload.put("nonce", nonce);
+            Map<String, Object> payload = new HashMap<String, Object>() {{
+                put( "hyperliquidChain", ((Boolean.TRUE.equals(isSandboxMode))) ? "Testnet" : "Mainnet" );
+                put( "maxFeeRate", maxFeeRate );
+                put( "builder", builder );
+                put( "nonce", nonce );
+            }};
             Object sig = this.buildApproveBuilderFeeSig((Map<String, Object>) (payload));
             Map<String, Object> action = new HashMap<String, Object>() {{
                 put( "hyperliquidChain", payload.get("hyperliquidChain") );
@@ -2642,7 +2643,7 @@ public class Hyperliquid extends HyperliquidApi
             // async for the PHP and typed transpilers, which mishandle an async body that never suspends
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Boolean buildFee = (Boolean) this.safeBool(this.options, "builderFee", false);
-            if (!java.util.Objects.equals(buildFee, true))
+            if (!Boolean.TRUE.equals(buildFee))
             {
                 return null;
             }
@@ -2705,7 +2706,7 @@ public class Hyperliquid extends HyperliquidApi
         Object apiGroup = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
         String baseUrl = null;
-        if (java.util.Objects.equals(sandboxMode, true))
+        if (Boolean.TRUE.equals(sandboxMode))
         {
             Map<String, Object> testUrls = (Map<String, Object>) this.safeDict(this.urls, "test", new HashMap<String, Object>() {{}});
             baseUrl = this.safeString(testUrls, apiGroup, this.safeString(testUrls, "public", ""));

@@ -556,7 +556,7 @@ class myriad extends Exchange {
          * @param {string[]} [$outcomes] unified $outcomes to filter by
          * @param {array} [$params] extra exchange-specific parameters
          * @param {string} [$params->address] the wallet $address to query, defaults to $this->walletAddress
-         * @return {array[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
+         * @return {array[]} a list of [prediction $position structures](https://docs.ccxt.com/#/?id=prediction-$position-structure)
          */
         // resolve the owner the same way fetchBalance does — derive from the configured privateKey
         // when no explicit walletAddress/param is set, so a privateKey-only config works for both
@@ -612,9 +612,12 @@ class myriad extends Exchange {
         $data = $this->safe_list($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
-            $result[] = $this->parse_prediction_position($data[$i]);
+            $position = $this->parse_prediction_position($data[$i]);
+            if (($outcomes === null) || $this->in_array($position['outcome'], $outcomes)) {
+                $result[] = $position;
+            }
         }
-        return $this->filter_by_array($result, 'outcome', $outcomes, false);
+        return $result;
     }
 
     public function parse_prediction_position(array $position, ?array $market = null): array {
@@ -874,7 +877,7 @@ class myriad extends Exchange {
         // the on-chain AMM path requires native gas and has not been verified end to end; keep it behind
         // an explicit opt-in so callers do not silently hit an untested signing/broadcast path
         $enableAmm = $this->safe_bool_2($params, 'enableAmm', 'enableAmmOrders', $this->safe_bool($this->options, 'enableAmmOrders', false));
-        if ($enableAmm !== true) {
+        if (!$enableAmm) {
             throw new NotSupported($this->id . ' createOrder() only supports the gasless order book; this market uses the on-chain AMM (needs native gas and is unverified) — pass params.enableAmm=true to opt in');
         }
         return Async\await($this->create_amm_order($outcome, $type, $side, $amount, $price, $this->omit($rest, array( 'enableAmm', 'enableAmmOrders' ))));
@@ -1108,7 +1111,7 @@ class myriad extends Exchange {
         // plain createOrder buy on the AMM is rejected so it can't misinterpret shares as collateral
         $sideLower = ($side !== null) ? strtolower($side) : null;
         $isCostDenominated = $this->safe_bool($params, 'costDenominated', false);
-        if (($sideLower === 'buy') && ($isCostDenominated !== true)) {
+        if (($sideLower === 'buy') && (!$isCostDenominated)) {
             throw new NotSupported($this->id . ' createOrder() market buy on the AMM sizes by collateral, not shares — use createMarketBuyOrderWithCost(outcome, collateral) for a dollar buy, or the default order book (omit enableAmm) for a share-denominated order');
         }
         if ($this->privateKey === null) {
@@ -1141,7 +1144,7 @@ class myriad extends Exchange {
         $txHashParam = $this->safe_string_2($params, 'transactionHash', 'txHash');
         $hasPreBroadcastTxHash = ($txHashParam !== null);
         $skipAllowance = $this->safe_bool($params, 'skipAllowance', $hasPreBroadcastTxHash);
-        if (($sideStr === 'buy') && ($tokenAddress !== null) && ($skipAllowance !== true)) {
+        if (($sideStr === 'buy') && ($tokenAddress !== null) && (!$skipAllowance)) {
             Async\await($this->ensure_erc20_allowance($rpcUrl, $networkId, $tokenAddress, $fromAddress, $predictionMarket));
         }
         $skipWaitForReceipt = $this->safe_bool($params, 'skipWaitForReceipt', $hasPreBroadcastTxHash);
@@ -1149,7 +1152,7 @@ class myriad extends Exchange {
         if ($txHash === null) {
             $txHash = Async\await($this->send_evm_transaction($rpcUrl, $this->parse_to_int($networkId), $fromAddress, $predictionMarket, '0x0', $calldata, $gasLimit));
         }
-        if ($skipWaitForReceipt !== true) {
+        if (!$skipWaitForReceipt) {
             Async\await($this->wait_for_transaction_receipt($rpcUrl, $txHash));
         }
         return $this->parse_trade_tx($txHash, $quote, $outcomeObj, $sideStr);
@@ -2126,7 +2129,7 @@ class myriad extends Exchange {
         ), $market);
     }
 
-    public function parse_market_to_event(array $raw, mixed $market): mixed {
+    public function parse_market_to_event(array $raw, mixed $market): array {
         /**
          * @ignore
          * wraps a parsed myriad $market into a unified event structure
@@ -2215,7 +2218,7 @@ class myriad extends Exchange {
                 if ($winnerRaw) {
                     $resolvedOutcome = $outcomeHandle;
                 }
-            } elseif ($voided === true) {
+            } elseif ($voided) {
                 $winnerRaw = false;
             }
             // effectively-final copies for the object literal below (Java cannot capture a
@@ -3118,7 +3121,7 @@ class myriad extends Exchange {
          * @return {array[]} an array of event structures
          */
         $allowUnscopedFetchEvents = $this->safe_bool($this->options, 'allowUnscopedFetchEvents', false);
-        if ($allowUnscopedFetchEvents !== true) {
+        if (!$allowUnscopedFetchEvents) {
             $this->require_event_query($params);
         }
         $queries = $this->parse_search_queries($params);
@@ -3234,7 +3237,7 @@ class myriad extends Exchange {
         return $this->apply_event_fetch_params($result, $postParams, $queries);
     }
 
-    public function parse_event(array $rawEvent): mixed {
+    public function parse_event(array $rawEvent): array {
         /**
          * @ignore
          * parses a raw myriad question object into the unified event shape with a nested markets list

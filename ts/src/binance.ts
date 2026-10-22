@@ -4987,7 +4987,7 @@ export default class binance extends Exchange {
             parsedTicker['symbol'] = tickerMarket['symbol'];
             results.push (parsedTicker);
         }
-        return this.filterByArray (results, 'symbol', symbols);
+        return this.filterByArrayTickers (results, 'symbol', symbols);
     }
 
     /**
@@ -5261,8 +5261,7 @@ export default class binance extends Exchange {
         //         }
         //     ]
         //
-        const candles = this.parseOHLCVs (this.toArray (response), market, timeframe, since, limitValue);
-        return candles;
+        return this.parseOHLCVs (this.toArray (response), market, timeframe, since, limitValue);
     }
 
     override parseTrade (trade: Dict, market: Market = undefined): Trade {
@@ -10957,7 +10956,7 @@ export default class binance extends Exchange {
             //       },
             //    ]
             //
-            const result: Dict = {};
+            const spotFees: Dict = {};
             if (response === undefined) {
                 throw new NullResponse (this.id + ' method() returned empty response');
             }
@@ -10966,10 +10965,10 @@ export default class binance extends Exchange {
                 const fee = this.parseTradingFee (fees[i]);
                 const symbol = fee['symbol'];
                 if (symbol !== undefined) {
-                    result[symbol] = fee;
+                    spotFees[symbol] = fee;
                 }
             }
-            return result;
+            return spotFees;
         } else if (isLinear) {
             //
             //     {
@@ -10997,7 +10996,7 @@ export default class binance extends Exchange {
                 throw new ExchangeError (this.id + ' markets not loaded');
             }
             const symbols = Object.keys (markets);
-            const result: Dict = {};
+            const linearFees: Dict = {};
             const feeTier = this.safeInteger (response, 'feeTier');
             const feeTiers = (this.fees as Dict)['linear']['trading']['tiers'];
             const maker = feeTiers['maker'][feeTier as number][1];
@@ -11006,7 +11005,7 @@ export default class binance extends Exchange {
                 const symbol = symbols[i];
                 const market = markets[symbol];
                 if (this.safeBool (market, 'linear', false)) {
-                    result[symbol] = {
+                    linearFees[symbol] = {
                         'info': {
                             'feeTier': feeTier,
                         },
@@ -11016,7 +11015,7 @@ export default class binance extends Exchange {
                     };
                 }
             }
-            return result;
+            return linearFees;
         } else if (isInverse) {
             //
             //     {
@@ -11032,7 +11031,7 @@ export default class binance extends Exchange {
                 throw new ExchangeError (this.id + ' markets not loaded');
             }
             const symbols = Object.keys (markets);
-            const result: Dict = {};
+            const inverseFees: Dict = {};
             const feeTier = this.safeInteger (response, 'feeTier');
             const feeTiers = (this.fees as Dict)['inverse']['trading']['tiers'];
             const maker = feeTiers['maker'][feeTier as number][1];
@@ -11041,7 +11040,7 @@ export default class binance extends Exchange {
                 const symbol = symbols[i];
                 const market = markets[symbol];
                 if (this.safeBool (market, 'inverse', false)) {
-                    result[symbol] = {
+                    inverseFees[symbol] = {
                         'info': {
                             'feeTier': feeTier,
                         },
@@ -11051,7 +11050,7 @@ export default class binance extends Exchange {
                     };
                 }
             }
-            return result;
+            return inverseFees;
         }
         throw new NotSupported (this.id + ' fetchTradingFees() is not supported for ' + type + ' markets');
     }

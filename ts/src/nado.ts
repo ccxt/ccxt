@@ -3081,17 +3081,14 @@ export default class nado extends Exchange {
     }
 
     async queryContracts (params: Dict = {}): Promise<Dict> {
-        const cachedContracts = this.safeDict (this.options, 'gatewayContracts');
-        if (cachedContracts !== undefined) {
-            return cachedContracts;
+        if (this.safeDict (this.options, 'gatewayContracts') === undefined) {
+            const request: Dict = {
+                'type': 'contracts',
+            };
+            const response = await this.gatewayPublicGetQuery (this.extend (request, params));
+            this.options['gatewayContracts'] = this.safeDict (response, 'data', {});
         }
-        const request: Dict = {
-            'type': 'contracts',
-        };
-        const response = await this.gatewayPublicGetQuery (this.extend (request, params));
-        const data = this.safeDict (response, 'data', {});
-        this.options['gatewayContracts'] = data;
-        return data;
+        return this.safeDict (this.options, 'gatewayContracts', {});
     }
 
     orderVerifyingContract (productId: Int): string {

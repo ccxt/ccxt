@@ -1377,8 +1377,7 @@ class bitso extends bitso$1["default"] {
         };
         const response = await this.privateGetOpenOrders(this.extend(request, paramsMarker));
         const payload = this.safeList(response, 'payload', []);
-        const orders = this.parseOrders(payload, market, since, limit);
-        return orders;
+        return this.parseOrders(payload, market, since, limit);
     }
     /**
      * @method
@@ -1992,7 +1991,7 @@ class bitso extends bitso$1["default"] {
                     success = false;
                 }
             }
-            if (success !== true) {
+            if (!success) {
                 const feedback = this.id + ' ' + this.json(response);
                 const error = this.safeDict(response, 'error');
                 if (error === undefined) {

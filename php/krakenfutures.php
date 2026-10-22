@@ -753,7 +753,7 @@ class krakenfutures extends Exchange {
         $baseVolume = null;
         $quoteVolume = null;
         $isIndex = $this->safe_bool($marketResolved, 'index', false);
-        if ($isIndex !== true) {
+        if (!$isIndex) {
             if ($marketResolved['linear'] === true) {
                 $baseVolume = $volume;
             } elseif ($marketResolved['inverse'] === true) {
@@ -1805,7 +1805,7 @@ class krakenfutures extends Exchange {
         }
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
         $paramsOmitted = $this->omit($params, array( 'trigger', 'stop' ));
-        if ($isTrigger === true) {
+        if ($isTrigger) {
             $response = $this->historyGetTriggers($this->extend($request, $paramsOmitted));
         } else {
             $response = $this->historyGetOrders($this->extend($request, $params));
@@ -1865,7 +1865,7 @@ class krakenfutures extends Exchange {
         }
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
         $paramsOmitted = $this->omit($params, array( 'trigger', 'stop' ));
-        if ($isTrigger === true) {
+        if ($isTrigger) {
             $response = $this->historyGetTriggers($this->extend($request, $paramsOmitted));
         } else {
             $response = $this->historyGetOrders($this->extend($request, $params));
@@ -2911,7 +2911,7 @@ class krakenfutures extends Exchange {
                 $type = $symbol;
             }
         }
-        $accountName = $this->parse_account($type);
+        $accountName = $this->parse_kraken_account_name($type);
         $accounts = $this->safe_dict($response, 'accounts');
         $account = $this->safe_dict($accounts, $accountName);
         if ($account === null) {
@@ -3591,7 +3591,7 @@ class krakenfutures extends Exchange {
         );
     }
 
-    public function parse_account(mixed $account) {
+    public function parse_kraken_account_name(string $account): string {
         $accountByType = array(
             'main' => 'cash',
             'funding' => 'cash',
@@ -3654,14 +3654,14 @@ class krakenfutures extends Exchange {
             'amount' => $amount,
         );
         if ($toAccount === 'spot') {
-            if ($this->parse_account($fromAccount) !== 'cash') {
+            if ($this->parse_kraken_account_name($fromAccount) !== 'cash') {
                 throw new BadRequest($this->id . ' transfer cannot transfer from ' . $fromAccount . ' to ' . $toAccount);
             }
             $request['currency'] = $currency['id'];
             $response = $this->privatePostWithdrawal($this->extend($request, $params));
         } else {
-            $request['fromAccount'] = $this->parse_account($fromAccount);
-            $request['toAccount'] = $this->parse_account($toAccount);
+            $request['fromAccount'] = $this->parse_kraken_account_name($fromAccount);
+            $request['toAccount'] = $this->parse_kraken_account_name($toAccount);
             $request['unit'] = $currency['id'];
             $response = $this->privatePostTransfer($this->extend($request, $params));
         }

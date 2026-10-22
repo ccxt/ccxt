@@ -138,7 +138,7 @@ class kraken extends \ccxt\async\kraken {
         }
         $isMarket = ($type === 'market');
         list($postOnly, $paramsPostOnly) = $this->handle_post_only($isMarket, false, $params);
-        if ($postOnly === true) {
+        if ($postOnly) {
             $request['params']['post_only'] = true;
         }
         $clientOrderId = $this->safe_string($paramsPostOnly, 'clientOrderId');

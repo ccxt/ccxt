@@ -678,7 +678,7 @@ class indodax extends Exchange {
             $parsed = $this->parse_ticker($rawTicker, $market);
             $parsedTickers[$marketId] = $parsed;
         }
-        return $this->filter_by_array($parsedTickers, 'symbol', $symbols);
+        return $this->filter_by_array_tickers($parsedTickers, 'symbol', $symbols);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -1544,9 +1544,7 @@ class indodax extends Exchange {
         $addresses = $this->safe_dict($data, 'address', array());
         $networks = $this->safe_dict($data, 'network', array());
         $addressKeys = is_array($addresses) ? array_keys($addresses) : array();
-        $result = array(
-            'info' => $data,
-        );
+        $result = array();
         for ($i = 0; $i < count($addressKeys); $i++) {
             $marketId = $addressKeys[$i];
             $code = $this->safe_currency_code($marketId);
@@ -1580,7 +1578,7 @@ class indodax extends Exchange {
                 }
                 $finalNetwork = $network; // java req
                 if ($code !== null) {
-                    $result[$code] = array(
+                    $result[] = array(
                         'info' => array(),
                         'currency' => $code,
                         'network' => $finalNetwork,
@@ -1590,7 +1588,7 @@ class indodax extends Exchange {
                 }
             }
         }
-        return $result;
+        return $this->to_array($result);
     }
 
     public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {

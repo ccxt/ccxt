@@ -1710,7 +1710,7 @@ class nado extends Exchange {
                 $previousWithdraw = $this->safe_bool($previous, 'can_withdraw', false);
                 $currentDeposit = $this->safe_bool($rawAsset, 'can_deposit', false);
                 $currentWithdraw = $this->safe_bool($rawAsset, 'can_withdraw', false);
-                if (($previousDeposit !== true) && ($previousWithdraw !== true) && (($currentDeposit === true) || ($currentWithdraw === true))) {
+                if ((!$previousDeposit) && (!$previousWithdraw) && (($currentDeposit) || ($currentWithdraw))) {
                     $assetsByCode[$assetCode] = $rawAsset;
                 }
             }
@@ -1841,7 +1841,7 @@ class nado extends Exchange {
             } else {
                 $previousDeposit = $this->safe_bool($previous, 'deposit', false);
                 $previousWithdraw = $this->safe_bool($previous, 'withdraw', false);
-                if (($previousDeposit !== true) && ($previousWithdraw !== true) && (($canDeposit === true) || ($canWithdraw === true))) {
+                if ((!$previousDeposit) && (!$previousWithdraw) && (($canDeposit) || ($canWithdraw))) {
                     $result[$code] = $parsed;
                 }
             }
@@ -3019,17 +3019,17 @@ class nado extends Exchange {
         if ($orderType !== 0) {
             $appendix = Precise::string_add($appendix, Precise::string_mul($this->number_to_string($orderType), '512'));
         }
-        if ($reduceOnly === true) {
+        if ($reduceOnly) {
             $appendix = Precise::string_add($appendix, '2048');
         }
         $buildFee = $this->safe_bool($this->options, 'builderFee', true);
-        if ($buildFee === true) {
+        if ($buildFee) {
             $builder = $this->safe_string($this->options, 'builder', '4500');
             $builderFeeRate = $this->safe_string($this->options, 'feeRate', '10'); // 10 units = 0.01%
             $appendix = Precise::string_add($appendix, Precise::string_mul($builder, '281474976710656')); // 1<<48
             $appendix = Precise::string_add($appendix, Precise::string_mul($builderFeeRate, '274877906944')); // 1<<32
         }
-        if ($isTriggerOrder === true) {
+        if ($isTriggerOrder) {
             $appendix = Precise::string_add($appendix, '4096');
         }
         return $appendix;
@@ -3052,17 +3052,14 @@ class nado extends Exchange {
     }
 
     public function query_contracts($params = array()): array {
-        $cachedContracts = $this->safe_dict($this->options, 'gatewayContracts');
-        if ($cachedContracts !== null) {
-            return $cachedContracts;
+        if ($this->safe_dict($this->options, 'gatewayContracts') === null) {
+            $request = array(
+                'type' => 'contracts',
+            );
+            $response = $this->gatewayPublicGetQuery($this->extend($request, $params));
+            $this->options['gatewayContracts'] = $this->safe_dict($response, 'data', array());
         }
-        $request = array(
-            'type' => 'contracts',
-        );
-        $response = $this->gatewayPublicGetQuery($this->extend($request, $params));
-        $data = $this->safe_dict($response, 'data', array());
-        $this->options['gatewayContracts'] = $data;
-        return $data;
+        return $this->safe_dict($this->options, 'gatewayContracts', array());
     }
 
     public function order_verifying_contract(?int $productId) {

@@ -1366,7 +1366,7 @@ impl ZaifCore {
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         let mut success: Value = self.safe_bool_k(response, "success", &[Value::Bool(true)]);
-        if (success.as_bool() != Some(true)) {
+        if !(success.as_bool() == Some(true)) {
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;

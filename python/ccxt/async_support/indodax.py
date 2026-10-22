@@ -640,7 +640,7 @@ class indodax(Exchange, ImplicitAPI):
             market = self.safe_market(marketId)
             parsed = self.parse_ticker(rawTicker, market)
             parsedTickers[marketId] = parsed
-        return self.filter_by_array(parsedTickers, 'symbol', symbols)
+        return self.filter_by_array_tickers(parsedTickers, 'symbol', symbols)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         timestamp = self.safe_timestamp(trade, 'date')
@@ -1401,9 +1401,7 @@ class indodax(Exchange, ImplicitAPI):
         addresses = self.safe_dict(data, 'address', {})
         networks = self.safe_dict(data, 'network', {})
         addressKeys = list(addresses.keys())
-        result = {
-            'info': data,
-        }
+        result = []
         for i in range(0, len(addressKeys)):
             marketId = addressKeys[i]
             code = self.safe_currency_code(marketId)
@@ -1430,14 +1428,14 @@ class indodax(Exchange, ImplicitAPI):
                             network = _netIdTmp.upper()
                 finalNetwork = network  # java req
                 if code is not None:
-                    result[code] = {
+                    result.append({
                         'info': {},
                         'currency': code,
                         'network': finalNetwork,
                         'address': address,
                         'tag': None,
-                    }
-        return result
+                    })
+        return self.to_array(result)
 
     def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         apiName = api[0]

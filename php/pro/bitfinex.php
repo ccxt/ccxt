@@ -74,7 +74,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         );
         $result = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash, array( 'checksum' => false )));
         $checksum = $this->safe_bool($this->options, 'checksum', true);
-        if (($checksum === true) && ($channel === 'book')) {
+        if (($checksum) && ($channel === 'book')) {
             $sub = $client->subscriptions[$messageHash];
             if (($sub !== null) && ($sub['checksum'] !== true)) {
                 $client->subscriptions[$messageHash]['checksum'] = true;

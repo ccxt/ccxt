@@ -300,7 +300,7 @@ func (this *Mudrex) HandleErrors(code any, reason any, url any, method any, head
 		return nil
 	}
 	var success *bool = this.SafeBool(response, "success", true)
-	if success == nil || *success != true {
+	if !(success != nil && *success) {
 		var errors []any = SafeListTyped(response, "errors")
 		var first map[string]any = SafeMapTyped(errors, 0)
 		var text *string = this.SafeString(first, "text", this.Json(response))
@@ -641,7 +641,7 @@ func (this *Mudrex) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...a
 	var offset any = 0
 	var pageLimit int = 100
 	var paging bool = true
-	for paging == true {
+	for paging {
 		var q map[string]any = this.Extend(map[string]any{
 			"limit":  pageLimit,
 			"offset": offset,
@@ -1957,7 +1957,7 @@ func (this *Mudrex) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...
 	var calls any = 0
 	var offset any = 0
 	var paging bool = true
-	for paging == true {
+	for paging {
 		var request map[string]any = map[string]any{}
 		if IsGreaterThan(pageSize, 0) {
 			request["limit"] = pageSize

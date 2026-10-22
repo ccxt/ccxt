@@ -1445,7 +1445,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Helpers.callDynamically(this, method, new Object[] {client, message, subscription});
         }
         Boolean isUnSubMessage = (Boolean) this.safeBool(subscription, "unsubscribe", false);
-        if (java.util.Objects.equals(isUnSubMessage, true))
+        if (Boolean.TRUE.equals(isUnSubMessage))
         {
             this.handleUnSubscription(client, (Map<String, Object>) (subscription));
         }
@@ -1702,7 +1702,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         });
 
     }
-    public CompletableFuture<Object> unWatchTrades(String symbol, Map<String, Object> parameters) // a flight is already in progress - wake when the leader
+    public CompletableFuture<Object> unWatchTrades(String symbol, Map<String, Object> parameters)
     {
         return this.unWatchTrades(symbol, (Object) (parameters));
     }
@@ -2917,7 +2917,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             String suffix = "";
             if (Boolean.TRUE.equals(isMarkPrice) && !Boolean.TRUE.equals(isOptionMarkPrice))
             {
-                suffix = (((java.util.Objects.equals(use1sFreq, true)))) ? "@1s" : "";
+                suffix = ((Boolean.TRUE.equals(use1sFreq))) ? "@1s" : "";
             }
             String unifiedPrefix = null;
             if (Boolean.TRUE.equals(isBidAsk))
@@ -3579,7 +3579,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     Boolean isIsolated = (Boolean) this.safeBool(parameters, "isIsolated", false);
                     Long validity = this.safeInteger(parameters, "validity");
                     Object request = new HashMap<String, Object>() {{}};
-                    if (java.util.Objects.equals(isIsolated, true))
+                    if (Boolean.TRUE.equals(isIsolated))
                     {
                         if (java.util.Objects.equals(symbol, null))
                         {
@@ -3665,7 +3665,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 renewParams.put("symbol", symbol);
             }
-            if (java.util.Objects.equals(isIsolated, true))
+            if (Boolean.TRUE.equals(isIsolated))
             {
                 renewParams.put("isIsolated", isIsolated);
             }
@@ -3976,7 +3976,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         }
         Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchBalance", (Object) null);
         Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
-        if (java.util.Objects.equals(fetchBalanceSnapshot, true))
+        if (Boolean.TRUE.equals(fetchBalanceSnapshot))
         {
             String messageHash = (type + ":fetchBalanceSnapshot");
             if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))
@@ -3998,7 +3998,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object parameters = Helpers.newMap(
                 "type", type
             );
-            if (java.util.Objects.equals(isPortfolioMargin, true))
+            if (Helpers.isTrue(isPortfolioMargin))
             {
                 ((Map<String, Object>)parameters).put("portfolioMargin", true);
             }
@@ -4327,7 +4327,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 } else if (java.util.Objects.equals(type, "option"))
                 {
                     Boolean demoMode = (Boolean) this.safeBool(this.options, "enableDemoTrading", false);
-                    if ((java.util.Objects.equals(demoMode, true)) || this.isSandboxModeEnabled)
+                    if (Boolean.TRUE.equals(demoMode) || this.isSandboxModeEnabled)
                     {
                         throw new NotSupported((this.id + " watchBalance() does not support option markets in demo/testnet mode")) ;
                     }
@@ -4341,7 +4341,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchBalance", (Object) null);
             Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
             Boolean awaitBalanceSnapshot = (Boolean) this.safeBool(options, "awaitBalanceSnapshot", true);
-            if ((java.util.Objects.equals(fetchBalanceSnapshot, true)) && (java.util.Objects.equals(awaitBalanceSnapshot, true)))
+            if (Boolean.TRUE.equals(fetchBalanceSnapshot) && Boolean.TRUE.equals(awaitBalanceSnapshot))
             {
                 client.future((type + ":fetchBalanceSnapshot")).getFuture().join();
             }
@@ -4614,9 +4614,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 put( "method", "order.place" );
                 put( "params", Binance.this.signParams(Helpers.toMapArg(Binance.this.extend(payload, paramsOmitted2))) );
             }};
-            if (java.util.Objects.equals(test, true))
+            if (Boolean.TRUE.equals(test))
             {
-                if (java.util.Objects.equals(sor, true))
+                if (Boolean.TRUE.equals(sor))
                 {
                     message.put("method", "sor.order.test");
                 } else
@@ -4961,7 +4961,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Boolean shouldUseAlgoOrder = (java.util.Objects.equals(market.get("linear"), true)) && ((java.util.Objects.equals(market.get("swap"), true)) || (java.util.Objects.equals(market.get("future"), true))) && (java.util.Objects.equals(isConditional, true));
             if (!java.util.Objects.equals(clientOrderId, null))
             {
-                if (java.util.Objects.equals(shouldUseAlgoOrder, true))
+                if (Boolean.TRUE.equals(shouldUseAlgoOrder))
                 {
                     payload.put("clientAlgoId", clientOrderId);
                 } else
@@ -4970,7 +4970,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 }
             } else
             {
-                if (java.util.Objects.equals(shouldUseAlgoOrder, true))
+                if (Boolean.TRUE.equals(shouldUseAlgoOrder))
                 {
                     payload.put("algoId", this.numberToString(id));
                 } else
@@ -4984,7 +4984,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 put( "method", "order.cancel" );
                 put( "params", Binance.this.signParams(Helpers.toMapArg(Binance.this.extend(payload, paramsOmitted))) );
             }};
-            if (java.util.Objects.equals(shouldUseAlgoOrder, true))
+            if (Boolean.TRUE.equals(shouldUseAlgoOrder))
             {
                 message.put("method", "algoOrder.cancel");
             }
@@ -5374,7 +5374,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 } else if (java.util.Objects.equals(type, "option"))
                 {
                     Boolean demoMode = (Boolean) this.safeBool(this.options, "enableDemoTrading", false);
-                    if ((java.util.Objects.equals(demoMode, true)) || this.isSandboxModeEnabled)
+                    if (Boolean.TRUE.equals(demoMode) || this.isSandboxModeEnabled)
                     {
                         throw new NotSupported((this.id + " watchOrders() does not support option markets in demo/testnet mode")) ;
                     }
@@ -6055,7 +6055,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             } else if (java.util.Objects.equals(type, "option"))
             {
                 Boolean demoMode = (Boolean) this.safeBool(this.options, "enableDemoTrading", false);
-                if ((java.util.Objects.equals(demoMode, true)) || this.isSandboxModeEnabled)
+                if (Boolean.TRUE.equals(demoMode) || this.isSandboxModeEnabled)
                 {
                     throw new NotSupported((this.id + " watchPositions() does not support option markets in demo/testnet mode")) ;
                 }
@@ -6120,7 +6120,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object parameters = Helpers.newMap(
                 "type", type
             );
-            if (java.util.Objects.equals(isPortfolioMargin, true))
+            if (Helpers.isTrue(isPortfolioMargin))
             {
                 ((Map<String, Object>)parameters).put("portfolioMargin", true);
             }
@@ -6582,7 +6582,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 } else if (java.util.Objects.equals(type, "option"))
                 {
                     Boolean demoMode = (Boolean) this.safeBool(this.options, "enableDemoTrading", false);
-                    if ((java.util.Objects.equals(demoMode, true)) || this.isSandboxModeEnabled)
+                    if (Boolean.TRUE.equals(demoMode) || this.isSandboxModeEnabled)
                     {
                         throw new NotSupported((this.id + " watchMyTrades() does not support option markets in demo/testnet mode")) ;
                     }

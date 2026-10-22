@@ -2258,7 +2258,7 @@ public partial class kraken : Exchange
         {
             List<object> parts = orderDescription.Split(new [] {" "}, StringSplitOptions.None).ToList<object>();
             side = this.safeString(parts, 0);
-            if ((isUsingCost != true))
+            if (isUsingCost != true)
             {
                 amount = this.safeString(parts, 1);
             } else
@@ -2567,7 +2567,7 @@ public partial class kraken : Exchange
         IList<object> postOnlyparamsPostOnlyVariable = (IList<object>)this.handlePostOnly(isMarket, false, paramsOmitted2);
         bool postOnly = (bool)postOnlyparamsPostOnlyVariable[0];
         IDictionary<string, object> paramsPostOnly = ((IDictionary<string, object>)postOnlyparamsPostOnlyVariable[1]);
-        if ((postOnly == true))
+        if (postOnly)
         {
             string extendedPostFlags = "post";
             if ((flags != null))

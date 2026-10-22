@@ -823,7 +823,7 @@ class btse(Exchange, ImplicitAPI):
         maxLimit = 300
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
-            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit)
+            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit)
         market = self.market(symbol)
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
         request = {
@@ -870,8 +870,7 @@ class btse(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        result = self.parse_ohlcvs(data, market, timeframe, since, limit)
-        return result
+        return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
@@ -986,9 +985,9 @@ class btse(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        rates = self.parse_funding_rate_histories(data, market, since, limit)
         if until is None:
-            return rates
+            return self.parse_funding_rate_histories(data, market, since, limit)
+        rates = self.parse_funding_rate_histories(data, market, since, limit)
         result = []
         for i in range(0, len(rates)):
             rate = rates[i]
@@ -1217,7 +1216,8 @@ class btse(Exchange, ImplicitAPI):
         if market['contract'] is not True:
             raise BadRequest(self.id + ' fetchMarketLeverageTiers() supports contract markets only')
         result = await self.fetch_leverage_tiers([symbol], params)
-        return result[symbol]
+        tiers = self.safe_list(result, symbol)
+        return tiers
 
     async def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
@@ -1546,9 +1546,9 @@ class btse(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        trades = self.parse_trades(data, market, since, limit)
         if until is None:
-            return trades
+            return self.parse_trades(data, market, since, limit)
+        trades = self.parse_trades(data, market, since, limit)
         result = []
         for i in range(0, len(trades)):
             trade = trades[i]
@@ -1574,7 +1574,7 @@ class btse(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         paginate = self.safe_bool(params, 'paginate', False)
-        if paginate is True:
+        if paginate:
             return await self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, self.omit(params, 'paginate'))
         market = None
         request = {}
@@ -2291,7 +2291,7 @@ class btse(Exchange, ImplicitAPI):
         if price is not None:
             request['orderPrice'] = self.price_to_precision(symbol, price)
         isSlide = self.safe_bool(query, 'slide', False)
-        if (amount is None) and (price is None) and (triggerPrice is None) and (isSlide is not True):
+        if (amount is None) and (price is None) and (triggerPrice is None) and (not isSlide):
             raise ArgumentsRequired(self.id + ' editOrder() requires an amount argument, a price argument or a triggerPrice parameter')
         response = None
         if market['spot'] is True:
@@ -3482,7 +3482,7 @@ class btse(Exchange, ImplicitAPI):
         #     {"status":400,"errorCode":-7,"message":"Authenticate failed","extraData":null}
         #
         success = self.safe_bool(response, 'success', True)
-        if success is not True:
+        if not success:
             spotErrorCode = self.safe_string(response, 'code')
             spotMessage = self.safe_string(response, 'msg')
             feedback = self.id + ' ' + body
@@ -3548,7 +3548,7 @@ class btse(Exchange, ImplicitAPI):
         # body like its POST and PUT counterparts, while the spot v4 and the
         # legacy apis keep DELETE params in the query string, verified live
         # in both directions
-        isBodyDelete = (method == 'DELETE') and (path.startswith('futures/api/v3/') is True)
+        isBodyDelete = (method == 'DELETE') and (path.startswith('futures/api/v3/'))
         queryString = ''
         if ((method == 'GET') or (method == 'DELETE')) and not isBodyDelete:
             if len(query) > 0:
@@ -3567,7 +3567,7 @@ class btse(Exchange, ImplicitAPI):
             # sign the /api/v... remainder, while the public-api wallet, otc and markets
             # endpoints mount on the bare host and sign the full path with the leading slash
             signPath = None
-            if path.startswith('public-api/') is True:
+            if path.startswith('public-api/'):
                 signPath = '/' + path
             else:
                 signPath = self.clean_path(path)

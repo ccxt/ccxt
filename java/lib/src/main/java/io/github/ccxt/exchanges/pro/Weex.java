@@ -124,7 +124,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             String id = this.requestId();
             String method = "SUBSCRIBE";
             Boolean unsubscribe = (Boolean) this.safeBool(subscription, "unsubscribe", false);
-            if (java.util.Objects.equals(unsubscribe, true))
+            if (Boolean.TRUE.equals(unsubscribe))
             {
                 method = "UNSUBSCRIBE";
             }
@@ -160,7 +160,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             this.authenticate(url);
             String method = "SUBSCRIBE";
             Boolean unsubscribe = (Boolean) this.safeBool(subscription, "unsubscribe", false);
-            if (java.util.Objects.equals(unsubscribe, true))
+            if (Boolean.TRUE.equals(unsubscribe))
             {
                 method = "UNSUBSCRIBE";
             }
@@ -1958,7 +1958,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchBalance", (Object) null);
             Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
             Boolean awaitBalanceSnapshot = (Boolean) this.safeBool(options, "awaitBalanceSnapshot", true);
-            if ((java.util.Objects.equals(fetchBalanceSnapshot, true)) && (java.util.Objects.equals(awaitBalanceSnapshot, true)))
+            if (Boolean.TRUE.equals(fetchBalanceSnapshot) && Boolean.TRUE.equals(awaitBalanceSnapshot))
             {
                 client.future((type + ":fetchBalanceSnapshot")).getFuture().join();
             }
@@ -1976,7 +1976,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         }
         Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchBalance", (Object) null);
         Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
-        if (java.util.Objects.equals(fetchBalanceSnapshot, true))
+        if (Boolean.TRUE.equals(fetchBalanceSnapshot))
         {
             String messageHash = (type + ":fetchBalanceSnapshot");
             if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))
@@ -2350,7 +2350,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         Map<String,Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
         Map<String, Object> subscription = (Map<String, Object>) this.safeDict(subscriptionsById, id, new HashMap<String, Object>() {{}});
         Boolean unsubscribe = (Boolean) this.safeBool(subscription, "unsubscribe", false);
-        if (java.util.Objects.equals(unsubscribe, true))
+        if (Boolean.TRUE.equals(unsubscribe))
         {
             Boolean subHashIsPrefix = (Boolean) this.safeBool(subscription, "subHashIsPrefix", false);
             List<Object> messageHashes = (List<Object>) this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
@@ -2376,7 +2376,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         //     }
         //
         Boolean result = (Boolean) this.safeBool(message, "result", true);
-        if (!java.util.Objects.equals(result, true))
+        if (!Boolean.TRUE.equals(result))
         {
             String msg = this.safeString(message, "msg", "");
             String feedback = ((this.id + " ") + this.json(message));

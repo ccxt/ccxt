@@ -2502,13 +2502,13 @@ export default class extended extends Exchange {
         return result;
     }
 
-    async fetchExtendedAccount (params: Dict = {}): Promise<any> {
+    async fetchExtendedAccount (params: Dict = {}): Promise<Dict> {
         const cachedAccount = this.safeDict (this.options, 'account');
         if (cachedAccount !== undefined) {
             return cachedAccount;
         }
         const accountData = await this.fetchAccount (params);
-        const account = accountData['info'];
+        const account = this.safeDict (accountData, 'info', {});
         this.options['account'] = account;
         return account;
     }

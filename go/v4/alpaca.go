@@ -2528,7 +2528,7 @@ func (this *Alpaca) fetchTransactionsHelperBody(ch chan AsyncResult[any], typeVa
 		currency = this.Currency(code)
 	}
 	var sandboxMode bool = this.IsSandboxModeEnabled || (*this.SafeBool(this.Options, "sandboxMode", false))
-	if sandboxMode == true {
+	if sandboxMode {
 		// paper-trading hosts do not serve the crypto wallets api at all, so route
 		// through the account activities ledger instead, filtered to transfer-like
 		// entries, see https://github.com/ccxt/ccxt/issues/24847

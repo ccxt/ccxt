@@ -1356,7 +1356,7 @@ class lbank extends Exchange {
         }
         // from spotPrivatePostSupplementUserInfo
         $isArray = (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)));
-        if ($isArray === true) {
+        if ($isArray) {
             for ($i = 0; $i < count($data); $i++) {
                 $item = $this->safe_dict($data, $i);
                 $currencyId = $this->safe_string($item, 'coin');
@@ -1658,7 +1658,7 @@ class lbank extends Exchange {
         );
         $ioc = ($timeInForce === 'IOC');
         $fok = ($timeInForce === 'FOK');
-        $maker = (($postOnly === true) || ($timeInForce === 'PO'));
+        $maker = (($postOnly) || ($timeInForce === 'PO'));
         if (($type === 'market') && ($ioc || $fok || $maker)) {
             throw new InvalidOrder($this->id . ' createOrder () does not allow market FOK, IOC, or postOnly orders. Only limit IOC, FOK, and postOnly orders are allowed');
         }
@@ -2687,20 +2687,17 @@ class lbank extends Exchange {
             $this->load_markets();
         }
         $isAuthorized = $this->check_required_credentials(false);
-        if ($isAuthorized === true) {
+        if ($isAuthorized) {
             $options = $this->safe_dict($this->options, 'fetchTransactionFees', array());
             $defaultMethod = $this->safe_string($options, 'method', 'fetchPrivateTransactionFees');
             $method = $this->safe_string($params, 'method', $defaultMethod);
             $paramsOmitted = $this->omit($params, 'method');
             if ($method === 'fetchPublicTransactionFees') {
-                $result = $this->fetch_public_transaction_fees($paramsOmitted);
-            } else {
-                $result = $this->fetch_private_transaction_fees($paramsOmitted);
+                return $this->fetch_public_transaction_fees($paramsOmitted);
             }
-        } else {
-            $result = $this->fetch_public_transaction_fees($params);
+            return $this->fetch_private_transaction_fees($paramsOmitted);
         }
-        return $result;
+        return $this->fetch_public_transaction_fees($params);
     }
 
     public function fetch_private_transaction_fees($params = array()): array {
@@ -2850,20 +2847,17 @@ class lbank extends Exchange {
             $this->load_markets();
         }
         $isAuthorized = $this->check_required_credentials(false);
-        if ($isAuthorized === true) {
+        if ($isAuthorized) {
             $options = $this->safe_dict($this->options, 'fetchDepositWithdrawFees', array());
             $defaultMethod = $this->safe_string($options, 'method', 'fetchPrivateDepositWithdrawFees');
             $method = $this->safe_string($params, 'method', $defaultMethod);
             $paramsOmitted = $this->omit($params, 'method');
             if ($method === 'fetchPublicDepositWithdrawFees') {
-                $response = $this->fetch_public_deposit_withdraw_fees($codes, $paramsOmitted);
-            } else {
-                $response = $this->fetch_private_deposit_withdraw_fees($codes, $paramsOmitted);
+                return $this->fetch_public_deposit_withdraw_fees($codes, $paramsOmitted);
             }
-        } else {
-            $response = $this->fetch_public_deposit_withdraw_fees($codes, $params);
+            return $this->fetch_private_deposit_withdraw_fees($codes, $paramsOmitted);
         }
-        return $response;
+        return $this->fetch_public_deposit_withdraw_fees($codes, $params);
     }
 
     public function fetch_private_deposit_withdraw_fees(?array $codes = null, $params = array()): array {
@@ -3105,7 +3099,7 @@ class lbank extends Exchange {
             if ($signatureMethod === 'RSA') {
                 $cacheSecretAsPem = $this->safe_bool($this->options, 'cacheSecretAsPem', true);
                 $pem = null;
-                if ($cacheSecretAsPem === true) {
+                if ($cacheSecretAsPem) {
                     $pem = $this->safe_string($this->options, 'pem');
                     if ($pem === null) {
                         $pem = $this->convert_secret_to_pem($this->encode($this->secret));

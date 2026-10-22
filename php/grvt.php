@@ -571,11 +571,11 @@ class grvt extends Exchange {
 
     public function initialize_client($params = array()): ?bool {
         $builderFee = $this->safe_bool($params, 'builderFee', $this->safe_bool($this->options, 'builderFee', true)); // we shouldn't omit here
-        if ($builderFee !== true) {
+        if (!$builderFee) {
             return false; // skip if builder fee is not enabled
         }
         $approvedBuilderFee = $this->safe_bool($this->options, 'approvedBuilderFee', false);
-        if ($approvedBuilderFee === true) {
+        if ($approvedBuilderFee) {
             return true; // skip if builder fee is already approved
         }
         $results = array( $this->privateTradingPostFullV1GetAuthorizedBuilders(), $this->load_account_infos() );
@@ -1444,7 +1444,7 @@ class grvt extends Exchange {
             $requestUntilOptionString['start_time'] = $this->number_to_string($since * 1000000);
         }
         $useTransfersEndpoint = $this->safe_bool($this->options, 'useTransfersEndpointForDepositsWithdrawals', true);
-        if ($useTransfersEndpoint === true) {
+        if ($useTransfersEndpoint) {
             $transfers = $this->internal_fetch_transfers($this->extend($requestUntilOptionString, $paramsUntilOptionString), $currency, $since, $limit);
             $filteredResults = $this->filter_transfers_by_type($transfers, 'deposit', true);
             $transactions = $this->get_list_from_object_values($filteredResults[0], 'info');
@@ -1501,7 +1501,7 @@ class grvt extends Exchange {
             $requestUntilOptionString['start_time'] = $this->number_to_string($since * 1000000);
         }
         $useTransfersEndpoint = $this->safe_bool($this->options, 'useTransfersEndpointForDepositsWithdrawals', true);
-        if ($useTransfersEndpoint === true) {
+        if ($useTransfersEndpoint) {
             $transfers = $this->internal_fetch_transfers($this->extend($requestUntilOptionString, $paramsUntilOptionString), $currency, $since, $limit);
             $filteredResults = $this->filter_transfers_by_type($transfers, 'withdrawal', true);
             $transactions = $this->get_list_from_object_values($filteredResults[0], 'info');
@@ -1751,7 +1751,7 @@ class grvt extends Exchange {
         $rows = $this->safe_list($response, 'result', array());
         $transfers = $this->parse_transfers($rows, $currency, $since, $limit);
         $filteredResults = $this->filter_transfers_by_type($transfers, 'internal', false);
-        return $filteredResults[1];
+        return $this->to_array($filteredResults[1]);
     }
 
     public function filter_transfers_by_type(mixed $transfers, string $transferType, $onlyMainAccount = true): mixed {
@@ -2124,7 +2124,7 @@ class grvt extends Exchange {
         }
         $eipType = 'EIP712_ORDER_TYPE';
         $builderFee = $this->safe_bool($paramsTrigger, 'builderFee', $this->safe_bool($this->options, 'builderFee', true));
-        if ($builderFee === true) {
+        if ($builderFee) {
             $eipType = 'EIP712_ORDER_WITH_BUILDER_TYPE';
             $orderRequest['builder'] = $this->safe_string($this->options, 'builder');
             $orderRequest['builder_fee'] = $this->safe_string($this->options, 'builderRate');
@@ -3335,7 +3335,7 @@ class grvt extends Exchange {
             }
         }
         $isPrivate = str_starts_with($apiName, 'private');
-        if ($isPrivate === true) {
+        if ($isPrivate) {
             $this->check_required_credentials();
             if ($queryString !== '') {
                 $requestPath = $requestPath . '?' . $queryString;

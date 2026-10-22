@@ -3335,7 +3335,7 @@ public partial class aster : Exchange
             triggerPriceIsRequired = true;
         } else if ((uppercaseType == "STOP_MARKET") || (uppercaseType == "TAKE_PROFIT_MARKET"))
         {
-            if ((closePosition != true))
+            if (closePosition != true)
             {
                 quantityIsRequired = true;
             }
@@ -5124,7 +5124,7 @@ public partial class aster : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         bool? builderFee = this.safeBool(parameters, "builderFee", this.safeBool(this.options, "builderFee", true)); // we shouldn't omit here
-        if ((builderFee != true))
+        if (builderFee != true)
         {
             return ((bool?)((object)(false)));  // skip if builder fee is not enabled
         }

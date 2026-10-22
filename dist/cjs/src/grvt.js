@@ -573,11 +573,11 @@ class grvt extends grvt$1["default"] {
     }
     async initializeClient(params = {}) {
         const builderFee = this.safeBool(params, 'builderFee', this.safeBool(this.options, 'builderFee', true)); // we shouldn't omit here
-        if (builderFee !== true) {
+        if (!builderFee) {
             return false; // skip if builder fee is not enabled
         }
         const approvedBuilderFee = this.safeBool(this.options, 'approvedBuilderFee', false);
-        if (approvedBuilderFee === true) {
+        if (approvedBuilderFee) {
             return true; // skip if builder fee is already approved
         }
         const results = await Promise.all([this.privateTradingPostFullV1GetAuthorizedBuilders(), this.loadAccountInfos()]);
@@ -1432,7 +1432,7 @@ class grvt extends grvt$1["default"] {
             requestUntilOptionString['start_time'] = this.numberToString(since * 1000000);
         }
         const useTransfersEndpoint = this.safeBool(this.options, 'useTransfersEndpointForDepositsWithdrawals', true);
-        if (useTransfersEndpoint === true) {
+        if (useTransfersEndpoint) {
             const transfers = await this.internalFetchTransfers(this.extend(requestUntilOptionString, paramsUntilOptionString), currency, since, limit);
             const filteredResults = this.filterTransfersByType(transfers, 'deposit', true);
             const transactions = this.getListFromObjectValues(filteredResults[0], 'info');
@@ -1490,7 +1490,7 @@ class grvt extends grvt$1["default"] {
             requestUntilOptionString['start_time'] = this.numberToString(since * 1000000);
         }
         const useTransfersEndpoint = this.safeBool(this.options, 'useTransfersEndpointForDepositsWithdrawals', true);
-        if (useTransfersEndpoint === true) {
+        if (useTransfersEndpoint) {
             const transfers = await this.internalFetchTransfers(this.extend(requestUntilOptionString, paramsUntilOptionString), currency, since, limit);
             const filteredResults = this.filterTransfersByType(transfers, 'withdrawal', true);
             const transactions = this.getListFromObjectValues(filteredResults[0], 'info');
@@ -1739,7 +1739,7 @@ class grvt extends grvt$1["default"] {
         const rows = this.safeList(response, 'result', []);
         const transfers = this.parseTransfers(rows, currency, since, limit);
         const filteredResults = this.filterTransfersByType(transfers, 'internal', false);
-        return filteredResults[1];
+        return this.toArray(filteredResults[1]);
     }
     filterTransfersByType(transfers, transferType, onlyMainAccount = true) {
         const matchedResults = [];
@@ -2118,7 +2118,7 @@ class grvt extends grvt$1["default"] {
         }
         let eipType = 'EIP712_ORDER_TYPE';
         const builderFee = this.safeBool(paramsTrigger, 'builderFee', this.safeBool(this.options, 'builderFee', true));
-        if (builderFee === true) {
+        if (builderFee) {
             eipType = 'EIP712_ORDER_WITH_BUILDER_TYPE';
             orderRequest['builder'] = this.safeString(this.options, 'builder');
             orderRequest['builder_fee'] = this.safeString(this.options, 'builderRate');
@@ -3310,7 +3310,7 @@ class grvt extends grvt$1["default"] {
             }
         }
         const isPrivate = apiName.startsWith('private');
-        if (isPrivate === true) {
+        if (isPrivate) {
             this.checkRequiredCredentials();
             if (queryString !== '') {
                 requestPath = requestPath + '?' + queryString;

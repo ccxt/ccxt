@@ -60,7 +60,7 @@ func testFetchCurrenciesBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreE
 			var deposit any = ccxt.DerefScalar(exchange.SafeBool(currency, "deposit"))
 			var isMicaCompliant any = ccxt.DerefScalar(exchange.SafeBool(exchange.GetOptions(), "mica", false))
 			var skipUsdtForMica bool = (isMicaCompliant == true) && (code == "USDT")
-			if EvalTruthy(exchange.InArray(code, requiredActiveCurrencies)) && !skipMajorCurrencyCheck && (skipUsdtForMica != true) {
+			if EvalTruthy(exchange.InArray(code, requiredActiveCurrencies)) && !skipMajorCurrencyCheck && (!skipUsdtForMica) {
 				Assert((withdraw == true) && (deposit == true), Add(Add(Add("Major currency ", code), " should have withdraw and deposit flags enabled ::: "), exchange.Json(currency)))
 			}
 		}

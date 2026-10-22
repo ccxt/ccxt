@@ -1068,7 +1068,7 @@ class bittrade(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         response = self.privateGetAccountAccounts(params)
-        return self.safe_list(response, 'data', [])
+        return self.to_array(self.safe_list(response, 'data', []))
 
     def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
@@ -1131,7 +1131,7 @@ class bittrade(Exchange, ImplicitAPI):
         countryDisabled = self.safe_bool(currency, 'country-disabled')
         visible = self.safe_bool(currency, 'visible', False)
         state = self.safe_string(currency, 'state')
-        active = (visible is True) and (depositEnabled is True) and (withdrawEnabled is True) and (state == 'online') and (countryDisabled is not True)
+        active = (visible) and (depositEnabled is True) and (withdrawEnabled is True) and (state == 'online') and (countryDisabled is not True)
         name = self.safe_string(currency, 'display-name')
         precision = self.parse_number(self.parse_precision(self.safe_string(currency, 'withdraw-precision')))
         return self.safe_currency_structure({

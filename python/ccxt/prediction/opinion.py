@@ -476,7 +476,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         self.index_event_outcomes(event)
         return event
 
-    def parse_event(self, rawEvent: dict) -> object:
+    def parse_event(self, rawEvent: dict) -> PredictionEvent:
         """
  @ignore
         parses a raw opinion categorical market(with nested childMarkets) into the unified event shape
@@ -1043,7 +1043,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         # a false result does NOT mean the order is still open — it may already be filled,
         # already cancelled, or unknown; don't invent a status the venue didn't report.
         # error responses with an errno never reach this line, handleErrors throws on them
-        status = 'canceled' if (canceled is True) else None
+        status = 'canceled' if (canceled) else None
         return self.safe_prediction_order({'id': id, 'status': status, 'info': response})
 
     def parse_order_status(self, status: Str) -> Str:
@@ -1356,9 +1356,9 @@ class opinion(PredictionExchange, ImplicitAPI):
         response = await self.opinionPrivateGetPositionsUserWalletAddress(self.extend(request, params))
         result = self.safe_dict(response, 'result', {})
         positions = self.safe_list(result, 'list', [])
-        parsed = self.parse_prediction_positions(positions)
         if outcomesLength == 0:
-            return parsed
+            return self.parse_prediction_positions(positions)
+        parsed = self.parse_prediction_positions(positions)
         wantedTokenIds = {}
         # copy to a plain list so the strict null checks see one shape
         outcomesList = [] if (outcomes is None) else outcomes

@@ -2210,7 +2210,7 @@ public class Bitfinex extends BitfinexApi
         }
         Boolean ioc = (java.util.Objects.equals(timeInForce, "IOC"));
         Boolean fok = (java.util.Objects.equals(timeInForce, "FOK"));
-        Boolean postOnly = ((java.util.Objects.equals(postOnlyParam, true)) || (java.util.Objects.equals(timeInForce, "PO")));
+        Boolean postOnly = (Boolean.TRUE.equals(postOnlyParam) || (java.util.Objects.equals(timeInForce, "PO")));
         if ((Boolean.TRUE.equals(ioc) || Boolean.TRUE.equals(fok)) && (java.util.Objects.equals(price, null)))
         {
             throw new InvalidOrder((this.id + " createOrder() requires a price argument with IOC and FOK orders")) ;
@@ -2245,7 +2245,7 @@ public class Bitfinex extends BitfinexApi
         {
             flags = this.sum(flags, 4096);
         }
-        if (java.util.Objects.equals(reduceOnly, true))
+        if (Boolean.TRUE.equals(reduceOnly))
         {
             flags = this.sum(flags, 1024);
         }
@@ -3488,7 +3488,7 @@ public class Bitfinex extends BitfinexApi
             }
             Map<String, Object> withdrawOptions = (Map<String, Object>) this.safeDict(this.options, "withdraw", new HashMap<String, Object>() {{}});
             Boolean includeFee = (Boolean) this.safeBool(withdrawOptions, "includeFee", false);
-            if (java.util.Objects.equals(includeFee, true))
+            if (Boolean.TRUE.equals(includeFee))
             {
                 request.put("fee_deduct", 1);
             }
@@ -4794,7 +4794,7 @@ public class Bitfinex extends BitfinexApi
                     request.put("price_aux_limit", this.priceToPrecision(symbol, price));
                 }
             }
-            Boolean postOnly = ((java.util.Objects.equals(postOnlyParam, true)) || (java.util.Objects.equals(timeInForce, "PO")));
+            Boolean postOnly = (Boolean.TRUE.equals(postOnlyParam) || (java.util.Objects.equals(timeInForce, "PO")));
             if ((!java.util.Objects.equals(type, "market")) && (java.util.Objects.equals(triggerPrice, null)))
             {
                 request.put("price", this.priceToPrecision(symbol, price));
@@ -4805,7 +4805,7 @@ public class Bitfinex extends BitfinexApi
             {
                 flags = this.sum(flags, 4096);
             }
-            if (java.util.Objects.equals(reduceOnly, true))
+            if (Boolean.TRUE.equals(reduceOnly))
             {
                 flags = this.sum(flags, 1024);
             }

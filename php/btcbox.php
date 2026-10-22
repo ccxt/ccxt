@@ -761,15 +761,13 @@ class btcbox extends Exchange {
         //      },
         // ]
         //
-        $orders = $this->parse_orders($response, $market, $since, $limit);
         // status (open/closed/canceled) is undefined
         // btcbox does not return status, but we know it's 'open' as we queried for open orders
+        $extra = array();
         if ($type === 'open') {
-            for ($i = 0; $i < count($orders); $i++) {
-                $orders[$i]['status'] = 'open';
-            }
+            $extra['status'] = 'open';
         }
-        return $orders;
+        return $this->parse_orders($response, $market, $since, $limit, $extra);
     }
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -847,7 +845,7 @@ class btcbox extends Exchange {
             return null; // resort to defaultErrorHandler
         }
         $result = $this->safe_bool($response, 'result');
-        if ($result === null || $result === true) {
+        if ($result === null || $result) {
             return null; // either public API (no error codes expected) or success
         }
         $code = $this->safe_string($response, 'code');

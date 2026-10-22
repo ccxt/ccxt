@@ -715,9 +715,9 @@ class deepcoin extends Exchange {
             $request['after'] = $until;
         }
         $calculateUntil = $this->safe_bool($paramsPaginate, 'calculateUntil', false);
-        $keysToOmit = ($calculateUntil === true) ? array( 'price', 'until', 'calculateUntil' ) : array( 'price', 'until' );
+        $keysToOmit = ($calculateUntil) ? array( 'price', 'until', 'calculateUntil' ) : array( 'price', 'until' );
         $paramsOmitted = $this->omit($paramsPaginate, $keysToOmit);
-        if ($calculateUntil === true) {
+        if ($calculateUntil) {
             if ($since !== null) {
                 // the exchange do not have a since param for this endpoint
                 // we calculate until (after) for correct pagination
@@ -1264,14 +1264,14 @@ class deepcoin extends Exchange {
 
     private function do_fetch_deposit_address(string $code, $params = array()) {
         /**
-         * fetch the deposit $address for a currency associated with this account
+         * fetch the deposit address for a currency associated with this account
          *
          * @see https://www.deepcoin.com/docs/assets/chainlist
          *
          * @param {string} $code unified currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->network] unified $network $code for deposit chain
-         * @return {array} an ~@link https://docs.ccxt.com/?id=$address-structure $address structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1288,16 +1288,17 @@ class deepcoin extends Exchange {
         $paramsOmitted = ($network !== null) ? $this->omit($params, 'network') : $params;
         $addressess = Async\await($this->fetch_deposit_addresses(array( $code ), $paramsOmitted));
         $length = count($addressess);
-        $address = $this->safe_dict($addressess, 0, array());
+        $index = 0;
         if (($network !== null) && ($length > 1)) {
+            // the last entry on the requested network wins
             for ($i = 0; $i < $length; $i++) {
-                $entry = $addressess[$i];
-                if ($entry['network'] === $network) {
-                    $address = $entry;
+                $entryNetwork = $this->safe_string($this->safe_dict($addressess, $i, array()), 'network');
+                if ($entryNetwork === $network) {
+                    $index = $i;
                 }
             }
         }
-        return $address;
+        return $this->safe_dict($addressess, $index, array());
     }
 
     public function parse_deposit_address(array $response, ?array $currency = null): array {
@@ -1514,7 +1515,7 @@ class deepcoin extends Exchange {
         $transfer = $this->parse_transfer($data, $currency);
         $transferOptions = $this->safe_dict($this->options, 'transfer', array());
         $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
-        if ($fillResponseFromRequest === true) {
+        if ($fillResponseFromRequest) {
             $transfer['fromAccount'] = $fromAccount;
             $transfer['toAccount'] = $toAccount;
             $transfer['amount'] = $amount;
@@ -1739,7 +1740,7 @@ class deepcoin extends Exchange {
             $request['mrgPosition'] = $mrgPosition;
             $posSide = null;
             $reduceOnly = $this->safe_bool($paramsMrgPosition, 'reduceOnly', false);
-            if ($reduceOnly === true) {
+            if ($reduceOnly) {
                 if ($side === 'buy') {
                     $posSide = 'short';
                 } elseif ($side === 'sell') {
@@ -1819,7 +1820,7 @@ class deepcoin extends Exchange {
         $request['isCrossMargin'] = $isCrossMargin;
         $request['tdMode'] = $marginModeOption;
         if ($market['swap'] === true) {
-            if ($reduceOnly === true) {
+            if ($reduceOnly) {
                 if ($side === 'buy') {
                     $request['posSide'] = 'short';
                 } elseif ($side === 'sell') {
@@ -2060,7 +2061,7 @@ class deepcoin extends Exchange {
             $request['limit'] = $limit; // default 100
         }
         $response = null;
-        if ($trigger === true) {
+        if ($trigger) {
             if ($methodName !== 'fetchCanceledAndClosedOrders') {
                 throw new BadRequest($this->id . ' ' . $methodName . '() does not support trigger orders');
             }
@@ -2233,7 +2234,7 @@ class deepcoin extends Exchange {
         $trigger = $this->safe_bool($params, 'trigger', false);
         $paramsOmitted = $this->omit($params, 'trigger');
         $response = null;
-        if ($trigger === true) {
+        if ($trigger) {
             $request['instType'] = $this->convert_to_instrument_type($market['type']);
             //
             //     {
@@ -2350,7 +2351,7 @@ class deepcoin extends Exchange {
         );
         $response = null;
         $trigger = $this->safe_bool($params, 'trigger', false);
-        if ($trigger === true) {
+        if ($trigger) {
             $paramsOmitted = $this->omit($params, 'trigger');
             $response = Async\await($this->privatePostDeepcoinTradeCancelTriggerOrder($this->extend($request, $paramsOmitted)));
         } else {

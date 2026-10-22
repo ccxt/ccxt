@@ -6494,7 +6494,7 @@ impl BybitCore {
         let mut amount: Value = Value::Null;
         let mut cost: Value = Value::Null;
         let mut qtyIsQuote: bool = (marketResolved.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && (type_var.as_str() == Some("market")) && ((marketUnit.as_deref() == Some("quoteCoin")) || ((marketUnit.is_none()) && (side.as_str() == Some("buy"))));
-        if (qtyIsQuote) {
+        if qtyIsQuote {
             // qty is denominated in the quote currency, safeOrder derives amount from filled + remaining
             cost = self.safe_string_k(order.clone(), "cumExecValue", &[]);
         }  else {
@@ -6867,7 +6867,7 @@ impl BybitCore {
             let mut timeInForce: Option<String> = self.safe_string_lower_k(query.clone(), "timeInForce", &[]).as_str().map(str::to_owned); // this is same as exchange specific param
             let mut postOnly: Value = Value::Null;
             { let __destr_tmp = self.handle_post_only(isMarket, Value::Bool(timeInForce.as_deref() == Some("postonly")), &[query.clone()]); postOnly = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); query = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-            if (postOnly.as_bool() == Some(true)) {
+            if is_true(&postOnly) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("timeInForce".into(), Value::Str("PostOnly".into())); }
             }  else if (timeInForce.as_deref() == Some("gtc")) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("timeInForce".into(), Value::Str("GTC".into())); }
@@ -7023,7 +7023,7 @@ impl BybitCore {
                 }
             }
         }
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) && (hedged.as_bool() == Some(true)) {
+        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) && hedged.as_bool() == Some(true) {
             if (reduceOnly.as_bool() == Some(true)) {
                 query = self.omit(query.clone(), Value::Str("reduceOnly".into()), &[]);
             }
@@ -7371,7 +7371,7 @@ impl BybitCore {
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             // only works for spot market
             let mut isTrigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderFilter".into(), (if (isTrigger.as_bool() == Some(true)) { Value::Str("StopOrder".into()) } else { Value::Str("Order".into()) })); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderFilter".into(), (if isTrigger.as_bool() == Some(true) { Value::Str("StopOrder".into()) } else { Value::Str("Order".into()) })); }
         }
         if (id != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderId".into(), id); }
@@ -7758,7 +7758,7 @@ impl BybitCore {
         }
         let mut isTrigger: Value = self.safe_bool2(paramsValue.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]);
         let mut paramsOmitted: Value = self.omit(paramsValue, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
-        if (isTrigger.as_bool() == Some(true)) {
+        if isTrigger.as_bool() == Some(true) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderFilter".into(), Value::Str("StopOrder".into())); }
         }
         let __ws_arg_28 = self.extend(request, &[paramsOmitted]);
@@ -7844,7 +7844,7 @@ impl BybitCore {
         let mut length: f64 = ((result.len() as i64) as f64);
         if (length == 0.0) {
             let mut isTrigger: Value = self.safe_bool2(params, Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]);
-            let mut extra: Value = (if (isTrigger.as_bool() == Some(true)) { Value::Str("".into()) } else { Value::Str(" If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true".into()) });
+            let mut extra: Value = (if isTrigger.as_bool() == Some(true) { Value::Str("".into()) } else { Value::Str(" If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true".into()) });
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Order ".into()), to_string_val(&id)).into()), Value::Str(" was not found.".into())).into()), extra)));
         }
         if length > ((1i64) as f64) {
@@ -8033,7 +8033,7 @@ impl BybitCore {
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("category".into(), type_var); }
         let mut isTrigger: Value = self.safe_bool2(paramsValue.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]);
         let mut paramsOmitted: Value = self.omit(paramsValue, Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]);
-        if (isTrigger.as_bool() == Some(true)) {
+        if isTrigger.as_bool() == Some(true) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderFilter".into(), Value::Str("StopOrder".into())); }
         }
         if (limit != Value::Null) {
@@ -8140,7 +8140,7 @@ impl BybitCore {
         let mut length: f64 = ((result.len() as i64) as f64);
         if (length == 0.0) {
             let mut isTrigger: Value = self.safe_bool2(params, Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]);
-            let mut extra: Value = (if (isTrigger.as_bool() == Some(true)) { Value::Str("".into()) } else { Value::Str(" If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true".into()) });
+            let mut extra: Value = (if isTrigger.as_bool() == Some(true) { Value::Str("".into()) } else { Value::Str(" If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true".into()) });
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Order ".into()), to_string_val(&id)).into()), Value::Str(" was not found.".into())).into()), extra)));
         }
         if length > ((1i64) as f64) {
@@ -8187,7 +8187,7 @@ impl BybitCore {
         let mut length: f64 = ((result.len() as i64) as f64);
         if (length == 0.0) {
             let mut isTrigger: Value = self.safe_bool2(params, Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]);
-            let mut extra: Value = (if (isTrigger.as_bool() == Some(true)) { Value::Str("".into()) } else { Value::Str(" If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true".into()) });
+            let mut extra: Value = (if isTrigger.as_bool() == Some(true) { Value::Str("".into()) } else { Value::Str(" If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true".into()) });
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Order ".into()), to_string_val(&id)).into()), Value::Str(" was not found.".into())).into()), extra)));
         }
         if length > ((1i64) as f64) {
@@ -8248,7 +8248,7 @@ impl BybitCore {
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("category".into(), type_var); }
         let mut isTrigger: Value = self.safe_bool2(paramsValue.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]);
         let mut paramsOmitted: Value = self.omit(paramsValue, Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]);
-        if (isTrigger.as_bool() == Some(true)) {
+        if isTrigger.as_bool() == Some(true) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderFilter".into(), Value::Str("StopOrder".into())); }
         }
         if (limit != Value::Null) {
@@ -8474,7 +8474,7 @@ impl BybitCore {
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("category".into(), type_var); }
         let mut isTrigger: Value = self.safe_bool2(paramsValue.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]);
         let mut paramsOmitted: Value = self.omit(paramsValue, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
-        if (isTrigger.as_bool() == Some(true)) {
+        if isTrigger.as_bool() == Some(true) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderFilter".into(), Value::Str("StopOrder".into())); }
         }
         if (limit != Value::Null) {

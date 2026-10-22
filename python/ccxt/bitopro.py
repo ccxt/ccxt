@@ -913,7 +913,7 @@ class bitopro(Exchange, ImplicitAPI):
         sparse = self.parse_ohlcvs(data, market, timeframe, since, limitResolved)
         return self.insert_missing_candles(sparse, timeframeInSeconds, alignedSince, limitResolved)
 
-    def insert_missing_candles(self, candles: object, distance: float, since: Int, limit: float):
+    def insert_missing_candles(self, candles: object, distance: float, since: Int, limit: float) -> list[object]:
         # the exchange doesn't send zero volume candles so we emulate them instead
         # otherwise sending a limit arg leads to unexpected results
         length = len(candles)

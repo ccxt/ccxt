@@ -3904,7 +3904,7 @@ class bybit(Exchange, ImplicitAPI):
         amount = None
         cost = None
         qtyIsQuote = (marketResolved['spot'] is True) and (type == 'market') and ((marketUnit == 'quoteCoin') or ((marketUnit is None) and (side == 'buy')))
-        if qtyIsQuote is True:
+        if qtyIsQuote:
             # qty is denominated in the quote currency, safeOrder derives amount from filled + remaining
             cost = self.safe_string(order, 'cumExecValue')
         else:
@@ -4075,7 +4075,7 @@ class bybit(Exchange, ImplicitAPI):
         orderRequest = self.create_order_request(symbol, type, side, amount, price, params, enableUnifiedAccount)
         switchToOco = (isStopLossOrder and isTakeProfitOrder) or self.safe_bool(params, 'tradingStopEndpoint', False)
         defaultMethod = None
-        if (isTrailingOrder or (switchToOco is True)) and (market['spot'] is not True):
+        if (isTrailingOrder or (switchToOco)) and (market['spot'] is not True):
             defaultMethod = 'privatePostV5PositionTradingStop'
         else:
             defaultMethod = 'privatePostV5OrderCreate'
@@ -4153,7 +4153,7 @@ class bybit(Exchange, ImplicitAPI):
         isBuy = side == 'buy'
         switchToOco = (isStopLossOrder and isTakeProfitOrder) or self.safe_bool(params, 'tradingStopEndpoint', False)
         defaultMethod = None
-        if isTrailingOrder or (switchToOco is True):
+        if isTrailingOrder or (switchToOco):
             defaultMethod = 'privatePostV5PositionTradingStop'
         else:
             defaultMethod = 'privatePostV5OrderCreate'
@@ -4218,7 +4218,7 @@ class bybit(Exchange, ImplicitAPI):
             timeInForce = self.safe_string_lower(query, 'timeInForce')  # this is same as exchange specific param
             postOnly = None
             postOnly, query = self.handle_post_only(isMarket, timeInForce == 'postonly', query)
-            if postOnly is True:
+            if postOnly:
                 request['timeInForce'] = 'PostOnly'
             elif timeInForce == 'gtc':
                 request['timeInForce'] = 'GTC'
@@ -4344,7 +4344,7 @@ class bybit(Exchange, ImplicitAPI):
                 # for spot market, we need to add this
                 if (market['spot'] is True) and isMarketOrder:
                     raise InvalidOrder(self.id + ' createOrder(): attached takeProfit is not supported for spot market orders')
-        if (market['spot'] is not True) and (hedged is True):
+        if (market['spot'] is not True) and (hedged):
             if reduceOnly is True:
                 query = self.omit(query, 'reduceOnly')
             # a reduce-only order closes the position on the opposite side
@@ -4659,7 +4659,7 @@ class bybit(Exchange, ImplicitAPI):
         if market['spot'] is True:
             # only works for spot market
             isTrigger = self.safe_bool_2(params, 'stop', 'trigger', False)
-            request['orderFilter'] = 'StopOrder' if (isTrigger is True) else 'Order'
+            request['orderFilter'] = 'StopOrder' if (isTrigger) else 'Order'
         if id is not None:  # The user can also use argument params["orderLinkId"]
             request['orderId'] = id
         paramsOmitted = self.omit(params, ['stop', 'trigger']) if (market['spot'] is True) else params
@@ -4940,7 +4940,7 @@ class bybit(Exchange, ImplicitAPI):
                 request['settleCoin'] = self.safe_string(paramsValue, 'settleCoin', defaultSettle)
         isTrigger = self.safe_bool_2(paramsValue, 'stop', 'trigger', False)
         paramsOmitted = self.omit(paramsValue, ['stop', 'trigger'])
-        if isTrigger is True:
+        if isTrigger:
             request['orderFilter'] = 'StopOrder'
         response = self.privatePostV5OrderCancelAll(self.extend(request, paramsOmitted))
         #
@@ -5002,11 +5002,11 @@ class bybit(Exchange, ImplicitAPI):
         length = len(result)
         if length == 0:
             isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
-            extra = '' if (isTrigger is True) else ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = True'
+            extra = '' if (isTrigger) else ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = True'
             raise OrderNotFound('Order ' + str(id) + ' was not found.' + extra)
         if length > 1:
             raise InvalidOrder(self.id + ' returned more than one order')
-        return self.safe_value(result, 0)
+        return self.safe_dict(result, 0)
 
     def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -5137,7 +5137,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         request['category'] = type
         isTrigger = self.safe_bool_2(paramsValue, 'trigger', 'stop', False)
         paramsOmitted = self.omit(paramsValue, ['trigger', 'stop'])
-        if isTrigger is True:
+        if isTrigger:
             request['orderFilter'] = 'StopOrder'
         if limit is not None:
             request['limit'] = limit
@@ -5227,11 +5227,12 @@ classic accounts only/ spot not supported*  fetches information on an order made
         length = len(result)
         if length == 0:
             isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
-            extra = '' if (isTrigger is True) else ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = True'
+            extra = '' if (isTrigger) else ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = True'
             raise OrderNotFound('Order ' + str(id) + ' was not found.' + extra)
         if length > 1:
             raise InvalidOrder(self.id + ' returned more than one order')
-        return self.safe_value(result, 0)
+        order = self.safe_dict(result, 0)
+        return order
 
     def fetch_open_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -5260,11 +5261,12 @@ classic accounts only/ spot not supported*  fetches information on an order made
         length = len(result)
         if length == 0:
             isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
-            extra = '' if (isTrigger is True) else ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = True'
+            extra = '' if (isTrigger) else ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = True'
             raise OrderNotFound('Order ' + str(id) + ' was not found.' + extra)
         if length > 1:
             raise InvalidOrder(self.id + ' returned more than one order')
-        return self.safe_value(result, 0)
+        order = self.safe_dict(result, 0)
+        return order
 
     def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -5299,7 +5301,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         request['category'] = type
         isTrigger = self.safe_bool_2(paramsValue, 'trigger', 'stop', False)
         paramsOmitted = self.omit(paramsValue, ['trigger', 'stop'])
-        if isTrigger is True:
+        if isTrigger:
             request['orderFilter'] = 'StopOrder'
         if limit is not None:
             request['limit'] = limit
@@ -5470,7 +5472,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         request['category'] = type
         isTrigger = self.safe_bool_2(paramsValue, 'stop', 'trigger', False)
         paramsOmitted = self.omit(paramsValue, ['stop', 'trigger'])
-        if isTrigger is True:
+        if isTrigger:
             request['orderFilter'] = 'StopOrder'
         if limit is not None:
             request['limit'] = limit
@@ -5727,7 +5729,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         networkCode, paramsOmited = self.handle_network_code_and_params(params)
         indexedAddresses = self.fetch_deposit_addresses_by_network(code, paramsOmited)
         selectedNetworkCode = self.select_network_key_from_networks(currency['code'], networkCode, indexedAddresses, True)
-        return self.safe_value(indexedAddresses, selectedNetworkCode)
+        return self.safe_dict(indexedAddresses, selectedNetworkCode)
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
@@ -8395,7 +8397,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'nextPageCursor': cursorValue,
         }
         result[lastIndex] = last
-        return result
+        return self.to_array(result)
 
     def fetch_leverage_tiers(self, symbols: Strings = None, params: dict = {}) -> LeverageTiers:
         """

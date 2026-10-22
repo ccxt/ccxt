@@ -206,7 +206,7 @@ class bybit extends bybit$1["default"] {
             const unified = await this.isUnifiedEnabled();
             const isUnifiedMargin = this.safeBool(unified, 0, false);
             const isUnifiedAccount = this.safeBool(unified, 1, false);
-            if (isUsdcSettled && (isUnifiedMargin !== true) && (isUnifiedAccount !== true)) {
+            if (isUsdcSettled && (!isUnifiedMargin) && (!isUnifiedAccount)) {
                 url = url[accessibility]['usdc'];
             }
             else {
@@ -2074,7 +2074,7 @@ class bybit extends bybit$1["default"] {
             'spot': 'outboundAccountInfo',
             'unified': 'wallet',
         };
-        if (isUnifiedAccount === true) {
+        if (isUnifiedAccount) {
             // unified account
             if (subType === 'inverse') {
                 messageHash += ':contract';
@@ -2083,7 +2083,7 @@ class bybit extends bybit$1["default"] {
                 messageHash += ':unified';
             }
         }
-        if ((isUnifiedMargin !== true) && (isUnifiedAccount !== true)) {
+        if ((!isUnifiedMargin) && (!isUnifiedAccount)) {
             // normal account using v5
             if (type === 'spot') {
                 messageHash += ':spot';
@@ -2092,7 +2092,7 @@ class bybit extends bybit$1["default"] {
                 messageHash += ':contract';
             }
         }
-        if (isUnifiedMargin === true) {
+        if (isUnifiedMargin) {
             // unified margin account using v5
             if (type === 'spot') {
                 messageHash += ':spot';
@@ -2509,7 +2509,7 @@ class bybit extends bybit$1["default"] {
                 throw new errors.ExchangeError(feedback);
             }
             const success = this.safeBool(message, 'success');
-            if ((success !== undefined) && (success !== true)) {
+            if ((success !== undefined) && (!success)) {
                 const ret_msg = this.safeString(message, 'ret_msg');
                 const request = this.safeDict(message, 'request', {});
                 const op = this.safeString(request, 'op');

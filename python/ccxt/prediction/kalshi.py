@@ -742,7 +742,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         #
         tradingActive = self.safe_bool(response, 'trading_active', False)
         return {
-            'status': 'ok' if (tradingActive is True) else 'maintenance',
+            'status': 'ok' if (tradingActive) else 'maintenance',
             'updated': None,
             'eta': None,
             'url': None,
@@ -1381,7 +1381,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             cost = price * amount
         isTaker = self.safe_bool(fill, 'is_taker', True)
         takerOrMaker = 'maker'
-        if isTaker is True:
+        if isTaker:
             takerOrMaker = 'taker'
         feeCost = self.safe_number(fill, 'fee_cost')
         fee = None
@@ -1458,9 +1458,9 @@ class kalshi(PredictionExchange, ImplicitAPI):
         positions = self.safe_list(response, 'market_positions', [])
         # filter by the requested outcomes' market tickers — a kalshi position is per market
         # ticker and covers both the YES and the NO leg
-        parsed = self.parse_prediction_positions(positions)
         if outcomesLength == 0:
-            return parsed
+            return self.parse_prediction_positions(positions)
+        parsed = self.parse_prediction_positions(positions)
         wantedTickers = {}
         if outcomes is None:
             raise ExchangeError(self.id + ' fetchPositions() missing outcomes')
@@ -2112,7 +2112,8 @@ class kalshi(PredictionExchange, ImplicitAPI):
         """
         request = {'event_ticker': ticker, 'with_nested_markets': True}
         response = await self.kalshiPublicGetEventsEventTicker(self.extend(request, params))
-        fullEvent = self.safe_dict(response, 'event', response)
+        # a typed copy of the event row: the caller-facing dict is never the raw response
+        fullEvent = self.extend({}, self.safe_dict(response, 'event', response))
         nestedMarkets = self.safe_list(fullEvent, 'markets')
         if nestedMarkets is None:
             fullEvent['markets'] = self.safe_list(response, 'markets', [])
@@ -2228,7 +2229,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         self.index_event_outcomes(event)
         return event
 
-    def parse_event(self, rawEvent: dict) -> object:
+    def parse_event(self, rawEvent: dict) -> PredictionEvent:
         """
  @ignore
         parses a raw kalshi event object(with nested markets) into the unified CCXT event shape

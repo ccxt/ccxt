@@ -1734,7 +1734,7 @@ func (this *Lbank) ParseBalance(response any) map[string]any {
 	}
 	// from spotPrivatePostSupplementUserInfo
 	var isArray bool = false
-	if isArray == true {
+	if isArray {
 		for i := 0; i < GetArrayLength(data); i++ {
 			var item map[string]any = SafeMapTyped(data, i)
 			var currencyId *string = this.SafeString(item, "coin")
@@ -2198,7 +2198,7 @@ func (this *Lbank) createOrderBody(ch chan AsyncResult[map[string]any], symbol s
 	}
 	var ioc bool = (timeInForce != nil && *timeInForce == "IOC")
 	var fok bool = (timeInForce != nil && *timeInForce == "FOK")
-	var maker bool = ((postOnly != nil && *postOnly == true) || (timeInForce != nil && *timeInForce == "PO"))
+	var maker bool = ((postOnly != nil && *postOnly) || (timeInForce != nil && *timeInForce == "PO"))
 	if (typeVar == "market") && (ioc || fok || maker) {
 		panic(InvalidOrder(this.Id + " createOrder () does not allow market FOK, IOC, or postOnly orders. Only limit IOC, FOK, and postOnly orders are allowed"))
 	}
@@ -3605,7 +3605,7 @@ func (this *Lbank) fetchTransactionFeesBody(ch chan AsyncResult[any], optionalAr
 	}
 	var isAuthorized bool = this.CheckRequiredCredentials(false)
 	var result any = nil
-	if isAuthorized == true {
+	if isAuthorized {
 		var options map[string]any = SafeMapTyped(this.Options, "fetchTransactionFees")
 		var defaultMethod *string = this.SafeString(options, "method", "fetchPrivateTransactionFees")
 		var method *string = this.SafeString(params, "method", defaultMethod)
@@ -3841,7 +3841,7 @@ func (this *Lbank) fetchDepositWithdrawFeesBody(ch chan AsyncResult[any], option
 	}
 	var isAuthorized bool = this.CheckRequiredCredentials(false)
 	var response any = nil
-	if isAuthorized == true {
+	if isAuthorized {
 		var options map[string]any = SafeMapTyped(this.Options, "fetchDepositWithdrawFees")
 		var defaultMethod *string = this.SafeString(options, "method", "fetchPrivateDepositWithdrawFees")
 		var method *string = this.SafeString(params, "method", defaultMethod)
@@ -4171,7 +4171,7 @@ func (this *Lbank) Sign(path string, optionalArgs ...any) any {
 		if signatureMethod == "RSA" {
 			var cacheSecretAsPem *bool = this.SafeBool(this.Options, "cacheSecretAsPem", true)
 			var pem any = nil
-			if cacheSecretAsPem != nil && *cacheSecretAsPem == true {
+			if cacheSecretAsPem != nil && *cacheSecretAsPem {
 				pem = DerefScalar(this.SafeString(this.Options, "pem"))
 				if IsEqual(pem, nil) {
 					pem = this.ConvertSecretToPem(this.Encode(this.Secret))

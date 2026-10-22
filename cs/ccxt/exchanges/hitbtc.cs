@@ -1565,7 +1565,7 @@ public partial class hitbtc : Exchange
         string? takerOrMaker = null;
         if ((taker != null))
         {
-            takerOrMaker = ((taker == true)) ? "taker" : "maker";
+            takerOrMaker = taker == true ? "taker" : "maker";
         } else
         {
             takerOrMaker = "taker"; // the only case when `taker` field is missing, is public fetchTrades and it must be taker
@@ -4244,7 +4244,7 @@ public partial class hitbtc : Exchange
         (string?, object) marginModeparamsMarginModeVariable = base.handleMarginModeAndParams(methodName, parameters, defaultValue);
         string? marginMode = marginModeparamsMarginModeVariable.Item1;
         IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
-        if (((marginMode == null)) && ((defaultType == "margin") || ((isMargin == true))))
+        if (((marginMode == null)) && ((defaultType == "margin") || (isMargin == true)))
         {
             return ("isolated", paramsMarginMode);
         }

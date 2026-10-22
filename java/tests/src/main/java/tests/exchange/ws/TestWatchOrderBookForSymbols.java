@@ -45,7 +45,7 @@ public class TestWatchOrderBookForSymbols extends BaseTest {
                 succeeded = false;
             }
             currentTime = exchange.milliseconds();
-            if ((java.util.Objects.equals(succeeded, true)) && (!java.util.Objects.equals(response, null)))
+            if (Boolean.TRUE.equals(succeeded) && (!java.util.Objects.equals(response, null)))
             {
                 TestOrderBook.testOrderBook(exchange, skippedProperties, method, response, null);
                 TestSharedMethods.AssertInArray(exchange, skippedProperties, method, response, "symbol", symbols);

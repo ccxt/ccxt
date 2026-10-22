@@ -112,8 +112,8 @@ class bydfi extends \ccxt\async\bydfi {
         );
         $unsubscribe = $this->safe_bool($params, 'unsubscribe', false);
         $method = 'SUBSCRIBE';
-        $paramsOmitted = ($unsubscribe === true) ? $this->omit($params, 'unsubscribe') : $params;
-        if ($unsubscribe === true) {
+        $paramsOmitted = ($unsubscribe) ? $this->omit($params, 'unsubscribe') : $params;
+        if ($unsubscribe) {
             $method = 'UNSUBSCRIBE';
             $subscriptionParams['unsubscribe'] = true;
             $subscriptionParams['messageHashes'] = $messageHashes;
@@ -968,7 +968,7 @@ class bydfi extends \ccxt\async\bydfi {
         $options = $this->safe_dict($this->options, 'watchBalance');
         $fetchBalanceSnapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', false);
         $awaitBalanceSnapshot = $this->safe_bool($options, 'awaitBalanceSnapshot', true);
-        if (($fetchBalanceSnapshot === true) && ($awaitBalanceSnapshot === true)) {
+        if (($fetchBalanceSnapshot) && ($awaitBalanceSnapshot)) {
             Async\await($client->future('fetchBalanceSnapshot'));
         }
         $messageHash = 'balance';
@@ -978,7 +978,7 @@ class bydfi extends \ccxt\async\bydfi {
     public function fetch_balance_snapshot(Client $client) {
         $options = $this->safe_dict($this->options, 'watchBalance');
         $fetchBalanceSnapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', false);
-        if ($fetchBalanceSnapshot === true) {
+        if ($fetchBalanceSnapshot) {
             $messageHash = 'fetchBalanceSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);
@@ -1082,7 +1082,7 @@ class bydfi extends \ccxt\async\bydfi {
         $subscriptionsById = $this->index_by($client->subscriptions, 'id');
         $subscription = $this->safe_dict($subscriptionsById, $id, array());
         $isUnSubMessage = $this->safe_bool($subscription, 'unsubscribe', false);
-        if ($isUnSubMessage === true) {
+        if ($isUnSubMessage) {
             $this->handle_un_subscription($client, $subscription);
         }
         return $message;

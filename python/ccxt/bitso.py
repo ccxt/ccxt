@@ -1331,8 +1331,7 @@ class bitso(Exchange, ImplicitAPI):
         }
         response = self.privateGetOpenOrders(self.extend(request, paramsMarker))
         payload = self.safe_list(response, 'payload', [])
-        orders = self.parse_orders(payload, market, since, limit)
-        return orders
+        return self.parse_orders(payload, market, since, limit)
 
     def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -1907,7 +1906,7 @@ class bitso(Exchange, ImplicitAPI):
                     success = True
                 else:
                     success = False
-            if success is not True:
+            if not success:
                 feedback = self.id + ' ' + self.json(response)
                 error = self.safe_dict(response, 'error')
                 if error is None:

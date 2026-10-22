@@ -1326,7 +1326,7 @@ class dydx extends Exchange {
         Async\await($this->load_dydx_protos());
         $dydxAccount = $this->safe_dict($this->options, 'dydxAccount');
         if ($dydxAccount !== null) {
-            return $dydxAccount;
+            return $this->safe_dict($this->options, 'dydxAccount', array());
         }
         if ($this->walletAddress === null) {
             throw new ArgumentsRequired($this->id . ' fetchDydxAccount() requires the walletAddress to be set using the dydx chain address eg => dydx1cpb4tedmwq304c2kc9pwzjwq0sc6z2a4tasxrz');
@@ -1357,7 +1357,7 @@ class dydx extends Exchange {
             'key' => $account['pub_key']['key'],
         );
         $this->options['dydxAccount'] = $account;
-        return $account;
+        return $this->safe_dict($this->options, 'dydxAccount', array());
     }
 
     public function pow(string $n, ?string $m) {
@@ -1635,7 +1635,7 @@ class dydx extends Exchange {
          */
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
         $paramsOmitted = $this->omit($params, array( 'trigger', 'stop' ));
-        if (($isTrigger !== true) && ($symbol === null)) {
+        if ((!$isTrigger) && ($symbol === null)) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
@@ -1654,7 +1654,7 @@ class dydx extends Exchange {
         $goodTillBlockTimeInSeconds = 2592000;
         list($goodTillBlockTimeInSecondsOption, $paramsGoodTillBlockTimeInSeconds) = $this->handle_option_integer_and_params($paramsOmitted, 'cancelOrder', 'goodTillBlockTimeInSeconds', $goodTillBlockTimeInSeconds); // default is 30 days
         $goodTillBlockTime = null;
-        $defaultOrderFlags = ($isTrigger === true) ? 32 : 64;
+        $defaultOrderFlags = ($isTrigger) ? 32 : 64;
         $orderFlags = $this->safe_integer($paramsGoodTillBlockTimeInSeconds, 'orderFlags', $defaultOrderFlags);
         $subAccountId = 0;
         $subAccountIdOption = $this->handle_option_integer_and_params($paramsGoodTillBlockTimeInSeconds, 'cancelOrder', 'subAccountId', $subAccountId)[0];
@@ -2409,7 +2409,8 @@ class dydx extends Exchange {
         //     ]
         // }
         //
-        return $this->safe_list($response, 'transfers', array());
+        $transfers = $this->safe_list($response, 'transfers', array());
+        return $transfers;
     }
 
     public function fetch_accounts($params = array()): PromiseInterface {

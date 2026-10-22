@@ -1782,7 +1782,7 @@ class gemini extends Exchange {
                 }
             }
             $postOnly = $this->safe_bool($params, 'postOnly', false);
-            if ($postOnly === true) {
+            if ($postOnly) {
                 $request['options'] = array( 'maker-or-cancel' );
             }
             // allowing override for auction-only and indication-of-interest order options
@@ -2105,7 +2105,7 @@ class gemini extends Exchange {
         }
         $indexedByNetwork = Async\await($this->fetch_deposit_addresses_by_network($code, $params));
         $networkCode = $this->handle_network_code_and_params($params)[0];
-        return $this->safe_value($indexedByNetwork, $networkCode);
+        return $this->safe_dict($indexedByNetwork, $networkCode);
     }
 
     public function fetch_deposit_addresses_by_network(string $code, $params = array()): PromiseInterface {

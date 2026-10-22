@@ -503,15 +503,13 @@ public class Polymarket extends PolymarketApi
             //     }
             //
             Boolean cancelOnly = (Boolean) this.safeBool(response, "cancel_only", false);
-            {
-                HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
-                h2kMap0.put("status", (((java.util.Objects.equals(cancelOnly, true)))) ? "maintenance" : "ok");
-                h2kMap0.put("updated", null);
-                h2kMap0.put("eta", null);
-                h2kMap0.put("url", null);
-                h2kMap0.put("info", response);
-                return h2kMap0;
-            }
+            return new HashMap<String, Object>() {{
+                put( "status", ((Boolean.TRUE.equals(cancelOnly))) ? "maintenance" : "ok" );
+                put( "updated", null );
+                put( "eta", null );
+                put( "url", null );
+                put( "info", response );
+            }};
         }).thenApply(Status::new);
 
     }
@@ -1090,7 +1088,7 @@ public class Polymarket extends PolymarketApi
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isTaker, null))
         {
-            takerOrMaker = (((java.util.Objects.equals(isTaker, true)))) ? "taker" : "maker";
+            takerOrMaker = ((Boolean.TRUE.equals(isTaker))) ? "taker" : "maker";
         }
         String feeCost = this.safeString(trade, "fee");
         Map<String, Object> fee = null;
@@ -1601,7 +1599,7 @@ public class Polymarket extends PolymarketApi
         {
             priceString = this.priceToPrecision(symbol, price);
         }
-        Boolean reduceOnlyValue = (((java.util.Objects.equals(reduceOnly, true)))) ? true : null;
+        Boolean reduceOnlyValue = ((Boolean.TRUE.equals(reduceOnly))) ? true : null;
         // the signable row is positional - iid, buy, p, qty, tif, po, ro, c,
         // trigger - undefined entries are removed and later entries shift left,
         // the venue rebuilds the same compact array from the body to verify
@@ -1626,11 +1624,11 @@ public class Polymarket extends PolymarketApi
             entry.put("c", clientOrderId);
         }
         {
-            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
-            h2kMap1.put("signable", signable);
-            h2kMap1.put("entry", entry);
-            h2kMap1.put("params", paramsOmitted);
-            return h2kMap1;
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("signable", signable);
+            h2kMap0.put("entry", entry);
+            h2kMap0.put("params", paramsOmitted);
+            return h2kMap0;
         }
     }
 
@@ -2111,7 +2109,7 @@ public class Polymarket extends PolymarketApi
         String side = null;
         if (!java.util.Objects.equals(isBuy, null))
         {
-            side = (((java.util.Objects.equals(isBuy, true)))) ? "buy" : "sell";
+            side = ((Boolean.TRUE.equals(isBuy))) ? "buy" : "sell";
         }
         String price = this.omitZero(this.safeString2(order, "price", "p"));
         String type = null;
@@ -2313,7 +2311,7 @@ public class Polymarket extends PolymarketApi
         String marginMode = null;
         if (!java.util.Objects.equals(isCross, null))
         {
-            marginMode = (((java.util.Objects.equals(isCross, true)))) ? "cross" : "isolated";
+            marginMode = ((Boolean.TRUE.equals(isCross))) ? "cross" : "isolated";
         }
         Long timestamp = this.safeInteger(position, "timestamp");
         String roe = this.safeString(position, "return_on_equity");
@@ -2705,28 +2703,28 @@ public class Polymarket extends PolymarketApi
             );
         }
         {
-            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
-            h2kMap2.put("info", transaction);
-            h2kMap2.put("id", withdrawId);
-            h2kMap2.put("txid", txid);
-            h2kMap2.put("timestamp", timestamp);
-            h2kMap2.put("datetime", this.iso8601(timestamp));
-            h2kMap2.put("network", null);
-            h2kMap2.put("address", null);
-            h2kMap2.put("addressTo", this.safeString(transaction, "to"));
-            h2kMap2.put("addressFrom", this.safeString(transaction, "from"));
-            h2kMap2.put("tag", null);
-            h2kMap2.put("tagTo", null);
-            h2kMap2.put("tagFrom", null);
-            h2kMap2.put("type", type);
-            h2kMap2.put("amount", this.safeNumber(transaction, "amount", (Object) null));
-            h2kMap2.put("currency", code);
-            h2kMap2.put("status", this.parseTransactionStatus(this.safeString(transaction, "status")));
-            h2kMap2.put("updated", this.safeInteger(transaction, "confirmed_timestamp"));
-            h2kMap2.put("comment", null);
-            h2kMap2.put("internal", false);
-            h2kMap2.put("fee", fee);
-            return h2kMap2;
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("info", transaction);
+            h2kMap1.put("id", withdrawId);
+            h2kMap1.put("txid", txid);
+            h2kMap1.put("timestamp", timestamp);
+            h2kMap1.put("datetime", this.iso8601(timestamp));
+            h2kMap1.put("network", null);
+            h2kMap1.put("address", null);
+            h2kMap1.put("addressTo", this.safeString(transaction, "to"));
+            h2kMap1.put("addressFrom", this.safeString(transaction, "from"));
+            h2kMap1.put("tag", null);
+            h2kMap1.put("tagTo", null);
+            h2kMap1.put("tagFrom", null);
+            h2kMap1.put("type", type);
+            h2kMap1.put("amount", this.safeNumber(transaction, "amount", (Object) null));
+            h2kMap1.put("currency", code);
+            h2kMap1.put("status", this.parseTransactionStatus(this.safeString(transaction, "status")));
+            h2kMap1.put("updated", this.safeInteger(transaction, "confirmed_timestamp"));
+            h2kMap1.put("comment", null);
+            h2kMap1.put("internal", false);
+            h2kMap1.put("fee", fee);
+            return h2kMap1;
         }
     }
 
@@ -2976,17 +2974,17 @@ public class Polymarket extends PolymarketApi
         String marginMode = null;
         if (!java.util.Objects.equals(isCross, null))
         {
-            marginMode = (((java.util.Objects.equals(isCross, true)))) ? "cross" : "isolated";
+            marginMode = ((Boolean.TRUE.equals(isCross))) ? "cross" : "isolated";
         }
         Long value = this.safeInteger(leverage, "leverage");
         {
-            HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
-            h2kMap3.put("info", leverage);
-            h2kMap3.put("symbol", marketResolved.get("symbol"));
-            h2kMap3.put("marginMode", marginMode);
-            h2kMap3.put("longLeverage", value);
-            h2kMap3.put("shortLeverage", value);
-            return h2kMap3;
+            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+            h2kMap2.put("info", leverage);
+            h2kMap2.put("symbol", marketResolved.get("symbol"));
+            h2kMap2.put("marginMode", marginMode);
+            h2kMap2.put("longLeverage", value);
+            h2kMap2.put("shortLeverage", value);
+            return h2kMap2;
         }
     }
 
@@ -3150,18 +3148,18 @@ public class Polymarket extends PolymarketApi
             //     { "status": "ok" }
             //
             {
-                HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
-                h2kMap4.put("info", response);
-                h2kMap4.put("symbol", market.get("symbol"));
-                h2kMap4.put("type", type);
-                h2kMap4.put("marginMode", "isolated");
-                h2kMap4.put("amount", this.parseNumber(amountString));
-                h2kMap4.put("total", null);
-                h2kMap4.put("code", market.get("settle"));
-                h2kMap4.put("status", "ok");
-                h2kMap4.put("timestamp", null);
-                h2kMap4.put("datetime", null);
-                return h2kMap4;
+                HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
+                h2kMap3.put("info", response);
+                h2kMap3.put("symbol", market.get("symbol"));
+                h2kMap3.put("type", type);
+                h2kMap3.put("marginMode", "isolated");
+                h2kMap3.put("amount", this.parseNumber(amountString));
+                h2kMap3.put("total", null);
+                h2kMap3.put("code", market.get("settle"));
+                h2kMap3.put("status", "ok");
+                h2kMap3.put("timestamp", null);
+                h2kMap3.put("datetime", null);
+                return h2kMap3;
             }
         });
 
@@ -3544,12 +3542,12 @@ public class Polymarket extends PolymarketApi
             }
         }
         {
-            HashMap<String, Object> h2kMap5 = new HashMap<String, Object>();
-            h2kMap5.put("url", url);
-            h2kMap5.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap5.put("body", bodyResolved);
-            h2kMap5.put("headers", headersResolved);
-            return h2kMap5;
+            HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
+            h2kMap4.put("url", url);
+            h2kMap4.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap4.put("body", bodyResolved);
+            h2kMap4.put("headers", headersResolved);
+            return h2kMap4;
         }
     }
 

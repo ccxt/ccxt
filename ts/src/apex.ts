@@ -1335,13 +1335,13 @@ export default class apex extends Exchange {
         return seeds;
     }
 
-    async getAccountId () {
+    async getAccountId (): Promise<Str> {
         const accountId = this.safeString (this.options, 'accountId', '0');
         if (accountId === '0') {
             const accountData = await this.fetchAccount ();
             this.options['accountId'] = this.safeString (accountData, 'id', '0');
         }
-        return this.options['accountId'];
+        return this.safeString (this.options, 'accountId');
     }
 
     /**

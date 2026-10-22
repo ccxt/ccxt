@@ -1275,7 +1275,7 @@ class coinone extends Exchange {
                 $result[$code] = $depositAddress;
             }
         }
-        return $result;
+        return $this->to_array($result);
     }
 
     public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {

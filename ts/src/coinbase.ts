@@ -962,7 +962,7 @@ export default class coinbase extends Exchange {
         const [ currencyType, paramsCurrencyType ] = this.handleOptionStringAndParams (params, 'fetchWithdrawals', 'currencyType');
         if (currencyType === 'crypto') {
             const results = await this.fetchTransactionsWithMethod ('v2PrivateGetAccountsAccountIdTransactions', code, since, limit, paramsCurrencyType);
-            return this.filterByArray (results, 'type', 'withdrawal', false);
+            return this.toArray (this.filterByArray (results, 'type', 'withdrawal', false));
         }
         return await this.fetchTransactionsWithMethod ('v2PrivateGetAccountsAccountIdWithdrawals', code, since, limit, paramsCurrencyType);
     }
@@ -984,7 +984,7 @@ export default class coinbase extends Exchange {
         const [ currencyType, paramsCurrencyType ] = this.handleOptionStringAndParams (params, 'fetchDeposits', 'currencyType');
         if (currencyType === 'crypto') {
             const results = await this.fetchTransactionsWithMethod ('v2PrivateGetAccountsAccountIdTransactions', code, since, limit, paramsCurrencyType);
-            return this.filterByArray (results, 'type', 'deposit', false);
+            return this.toArray (this.filterByArray (results, 'type', 'deposit', false));
         }
         return await this.fetchTransactionsWithMethod ('v2PrivateGetAccountsAccountIdDeposits', code, since, limit, paramsCurrencyType);
     }
@@ -1005,7 +1005,7 @@ export default class coinbase extends Exchange {
             await this.loadMarkets ();
         }
         const results = await this.fetchTransactionsWithMethod ('v2PrivateGetAccountsAccountIdTransactions', code, since, limit, params);
-        return this.filterByArray (results, 'type', [ 'deposit', 'withdrawal' ], false);
+        return this.toArray (this.filterByArray (results, 'type', [ 'deposit', 'withdrawal' ], false));
     }
 
     parseTransactionStatus (status: Str): Str {
@@ -2696,18 +2696,17 @@ export default class coinbase extends Exchange {
         const data: Dict[] = this.safeList (response, 'data', []);
         const ledger = this.parseLedger (data, currency, since, limit);
         const length = ledger.length;
-        if (length === 0) {
-            return ledger;
+        if (length > 0) {
+            const lastIndex = length - 1;
+            const last = this.safeDict (ledger, lastIndex) as LedgerEntry;
+            const pagination = this.safeDict (response, 'pagination', {});
+            const cursor = this.safeString (pagination, 'next_starting_after');
+            if ((cursor !== undefined) && (cursor !== '')) {
+                last['info']['next_starting_after'] = cursor;
+                ledger[lastIndex] = last;
+            }
         }
-        const lastIndex = length - 1;
-        const last = this.safeDict (ledger, lastIndex) as LedgerEntry;
-        const pagination = this.safeDict (response, 'pagination', {});
-        const cursor = this.safeString (pagination, 'next_starting_after');
-        if ((cursor !== undefined) && (cursor !== '')) {
-            last['info']['next_starting_after'] = cursor;
-            ledger[lastIndex] = last;
-        }
-        return ledger;
+        return this.toArray (ledger);
     }
 
     parseLedgerEntryStatus (status: Str): Str {
@@ -3050,7 +3049,7 @@ export default class coinbase extends Exchange {
         for (let i = 0; i < this.accounts.length; i++) {
             const account = this.accounts[i];
             if (this.safeString (account, 'code') === code) {
-                return account['id'];
+                return this.safeString (account, 'id');
             }
         }
         return undefined;

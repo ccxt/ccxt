@@ -1890,7 +1890,7 @@ public class Paradex extends ParadexApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> systemConfig = (this.getSystemConfig()).join();
-            if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(l1, false), true))
+            if (java.util.Objects.requireNonNullElse(l1, false))
             {
                 Map<String, Object> l1D = new HashMap<String, Object>() {{
                     put( "name", "Paradex" );

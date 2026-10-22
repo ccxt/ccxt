@@ -3843,7 +3843,7 @@ class BaseExchange(object):
         self.init_rest_rate_limiter()
         # sanbox mode
         isSandbox = self.safe_bool_2(self.options, 'sandbox', 'testnet', False)
-        if isSandbox is True:
+        if isSandbox:
             self.set_sandbox_mode(isSandbox)
         # compatibility for sandbox/testnet options in userConfig
         if (self.safe_bool(userConfig, 'sandbox', False)) or (self.safe_bool(userConfig, 'testnet', False)):
@@ -4557,7 +4557,7 @@ class BaseExchange(object):
         if average is None:
             if (filled is not None) and (cost is not None) and Precise.string_gt(filled, '0'):
                 filledTimesContractSize = Precise.string_mul(filled, contractSize)
-                if inverse is True:
+                if inverse:
                     average = Precise.string_div(filledTimesContractSize, cost)
                 else:
                     average = Precise.string_div(cost, filledTimesContractSize)
@@ -4576,7 +4576,7 @@ class BaseExchange(object):
                 multiplyPrice = average
             # contract trading
             filledTimesContractSize = Precise.string_mul(filled, contractSize)
-            if inverse is True:
+            if inverse:
                 cost = Precise.string_div(filledTimesContractSize, multiplyPrice)
             else:
                 cost = Precise.string_mul(filledTimesContractSize, multiplyPrice)
@@ -4771,7 +4771,7 @@ class BaseExchange(object):
             multiplyPrice = price
             if contractSize is not None:
                 inverse = self.safe_bool(market, 'inverse', False)
-                if inverse is True:
+                if inverse:
                     multiplyPrice = Precise.string_div('1', price)
                 multiplyPrice = Precise.string_mul(multiplyPrice, contractSize)
             cost = Precise.string_mul(multiplyPrice, amount)
@@ -5160,7 +5160,7 @@ class BaseExchange(object):
                 return content
         except Exception as e:
             errorMessage = self.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.'
-        if muteOnFailure is True:
+        if muteOnFailure:
             return None
         else:
             raise BadResponse(errorMessage)
@@ -5453,7 +5453,7 @@ class BaseExchange(object):
                 market = self.safe_market(id, None, None, 'swap')
                 symbol = market['symbol']
                 contract = self.safe_bool(market, 'contract', False)
-                if (contract is True) and (noSymbols or ((symbolsNormalized is not None) and self.in_array(symbol, symbolsNormalized))):
+                if (contract) and (noSymbols or ((symbolsNormalized is not None) and self.in_array(symbol, symbolsNormalized))):
                     tiers[symbol] = self.parse_market_leverage_tiers(item, market)
         else:
             keys = list(response.keys())
@@ -5463,7 +5463,7 @@ class BaseExchange(object):
                 market = self.safe_market(marketId, None, None, 'swap')
                 symbol = market['symbol']
                 contract = self.safe_bool(market, 'contract', False)
-                if (contract is True) and (noSymbols or ((symbolsNormalized is not None) and self.in_array(symbol, symbolsNormalized))):
+                if (contract) and (noSymbols or ((symbolsNormalized is not None) and self.in_array(symbol, symbolsNormalized))):
                     tiers[symbol] = self.parse_market_leverage_tiers(item, market)
         return tiers
 
@@ -6041,7 +6041,7 @@ class BaseExchange(object):
             candle = ohlcv_length - 1
             if price is None:
                 raise ArgumentsRequired(self.id + ' buildOHLCVC() requires a price argument')
-            if (skipZeroPrices is True) and not (price > 0) and not (price < 0):
+            if (skipZeroPrices) and not (price > 0) and not (price < 0):
                 continue
             isNewCandle = candle == -1
             if not isNewCandle:
@@ -6235,7 +6235,7 @@ class BaseExchange(object):
         if self.has['fetchDepositWithdrawFees'] is None or self.has['fetchDepositWithdrawFees'] is False:
             raise NotSupported(self.id + ' fetchDepositWithdrawFee() is not supported yet')
         fees = self.fetch_deposit_withdraw_fees([code], params)
-        return self.safe_value(fees, code)
+        return self.safe_dict(fees, code)
 
     def get_supported_mapping(self, key: Str, mapping: dict = {}):
         if key is None:
@@ -6598,12 +6598,11 @@ class BaseExchange(object):
 
     def fetch_deposit_address(self, code: str, params: dict = {}):
         if self.has['fetchDepositAddresses'] is not None and self.has['fetchDepositAddresses'] is not False:
-            depositAddresses = self.fetch_deposit_addresses([code], params)
-            depositAddress = self.safe_value(depositAddresses, code)
-            if depositAddress is None:
+            depositAddressesList = self.fetch_deposit_addresses([code], params)
+            depositAddresses = self.index_by(depositAddressesList, 'currency')
+            if self.safe_dict(depositAddresses, code) is None:
                 raise InvalidAddress(self.id + ' fetchDepositAddress() could not find a deposit address for ' + code + ', make sure you have created a corresponding deposit address in your wallet on the exchange website')
-            else:
-                return depositAddress
+            return self.safe_dict(depositAddresses, code)
         elif self.has['fetchDepositAddressesByNetwork'] is not None and self.has['fetchDepositAddressesByNetwork'] is not False:
             network = self.safe_string(params, 'network')
             paramsOmitted = self.omit(params, 'network')
@@ -6833,7 +6832,7 @@ class BaseExchange(object):
         if serverTime is None:
             raise ExchangeError(self.id + ' loadTimeDifference() missing serverTime')
         self.options['timeDifference'] = after - serverTime
-        return self.options['timeDifference']
+        return self.parse_to_int(self.options['timeDifference'])
 
     def implode_hostname(self, url: str):
         return self.implode_params(url, {'hostname': self.hostname})
@@ -6844,7 +6843,8 @@ class BaseExchange(object):
             if market['contract'] is not True:
                 raise BadSymbol(self.id + ' fetchMarketLeverageTiers() supports contract markets only')
             tiers = self.fetch_leverage_tiers([symbol])
-            return self.safe_value(tiers, symbol)
+            marketTiers = self.safe_list(tiers, symbol)
+            return marketTiers
         else:
             raise NotSupported(self.id + ' fetchMarketLeverageTiers() is not supported yet')
 
@@ -6898,7 +6898,7 @@ class BaseExchange(object):
                 priceData = self.extend(self.parse_last_price(pricesData[marketId], market), params)
                 results.append(priceData)
         symbolsNormalized = self.market_symbols(symbols)
-        return self.filter_by_array(results, 'symbol', symbolsNormalized)
+        return self.index_by(self.filter_by_array(results, 'symbol', symbolsNormalized, False), 'symbol')
 
     def parse_tickers(self, tickers: object, symbols: Strings = None, params: dict = {}):
         #
@@ -6946,9 +6946,9 @@ class BaseExchange(object):
             address = self.extend(self.parse_deposit_address(addresses[i]), params)
             result.append(address)
         if codes is not None:
-            result = self.filter_by_array(result, 'currency', codes, False)
+            result = self.to_array(self.filter_by_array(result, 'currency', codes, False))
         if indexed:
-            result = self.filter_by_array(result, 'currency', None, indexed)
+            result = self.to_array(self.filter_by_array(result, 'currency', None, indexed))
         return result
 
     def parse_borrow_interests(self, response: object, market: Market = None):
@@ -7086,11 +7086,11 @@ class BaseExchange(object):
         ioc = timeInForce == 'IOC'
         fok = timeInForce == 'FOK'
         timeInForcePostOnly = timeInForce == 'PO'
-        if postOnly is not True:
+        if not postOnly:
             postOnly = timeInForcePostOnly
-        if postOnly is not True:
+        if not postOnly:
             postOnly = exchangeSpecificParam
-        if postOnly is True:
+        if postOnly:
             if ioc or fok:
                 raise InvalidOrder(self.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce)
             elif isMarketOrder:
@@ -7113,11 +7113,11 @@ class BaseExchange(object):
         ioc = timeInForce == 'IOC'
         fok = timeInForce == 'FOK'
         po = timeInForce == 'PO'
-        if postOnly is not True:
+        if not postOnly:
             postOnly = po
-        if postOnly is not True:
+        if not postOnly:
             postOnly = exchangeSpecificPostOnlyOption
-        if postOnly is True:
+        if postOnly:
             if ioc or fok:
                 raise InvalidOrder(self.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce)
             elif isMarketOrder:
@@ -7154,7 +7154,7 @@ class BaseExchange(object):
             parsed = self.parse_open_interest(entry)
             if parsed['symbol'] is not None:
                 result[parsed['symbol']] = parsed
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.index_by(self.filter_by_array(result, 'symbol', symbols, False), 'symbol')
 
     def parse_open_interests_history(self, response: object, market: Market = None, since: Int = None, limit: Int = None):
         interests = []
@@ -7456,7 +7456,7 @@ class BaseExchange(object):
  @ignore
         Typed wrapper for filterByArray that returns a list of ADL Ranks
         """
-        return self.filter_by_array(objects, key, values, indexed)
+        return self.to_array(self.filter_by_array(objects, key, values, indexed))
 
     def create_ohlcv_object(self, symbol: str, timeframe: str, data: object):
         res = {}
@@ -7857,7 +7857,7 @@ class BaseExchange(object):
                 greek = self.extend(parsed, params)
                 results.append(greek)
         symbolsNormalized = self.market_symbols(symbols)
-        return self.filter_by_array(results, 'symbol', symbolsNormalized)
+        return self.index_by(self.filter_by_array(results, 'symbol', symbolsNormalized, False), 'symbol')
 
     def parse_option(self, chain: dict, currency: Currency = None, market: Market = None):
         raise NotSupported(self.id + ' parseOption () is not supported yet')
@@ -8233,8 +8233,7 @@ class Exchange(BaseExchange):
         :returns dict[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
         """
         if self.has['fetchPositionsHistory'] is not None and self.has['fetchPositionsHistory'] is not False:
-            positions = self.fetchPositionsHistory([symbol], since, limit, params)
-            return positions
+            return self.fetchPositionsHistory([symbol], since, limit, params)
         else:
             raise NotSupported(self.id + ' fetchPositionHistory () is not supported yet')
 
@@ -8702,7 +8701,7 @@ class Exchange(BaseExchange):
         # TODO: TypeScript: change method signature by replacing
         # Promise<string> with Promise<Order['status']>.
         order = self.fetchOrder(id, symbol, params)
-        return order['status']
+        return self.safe_string(order, 'status')
 
     def fetch_unified_order(self, order: object, params: dict = {}):
         return self.fetchOrder(self.safe_string(order, 'id'), self.safe_string(order, 'symbol'), params)

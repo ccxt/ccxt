@@ -398,7 +398,7 @@ class polymarket(Exchange, ImplicitAPI):
         #
         cancelOnly = self.safe_bool(response, 'cancel_only', False)
         return {
-            'status': 'maintenance' if (cancelOnly is True) else 'ok',
+            'status': 'maintenance' if (cancelOnly) else 'ok',
             'updated': None,
             'eta': None,
             'url': None,
@@ -876,7 +876,7 @@ class polymarket(Exchange, ImplicitAPI):
         isTaker = self.safe_bool(trade, 'taker')
         takerOrMaker = None
         if isTaker is not None:
-            takerOrMaker = 'taker' if (isTaker is True) else 'maker'
+            takerOrMaker = 'taker' if (isTaker) else 'maker'
         feeCost = self.safe_string(trade, 'fee')
         fee = None
         if feeCost is not None:
@@ -1004,7 +1004,7 @@ class polymarket(Exchange, ImplicitAPI):
         symbolsNormalized = self.market_symbols(symbols)
         response = self.publicGetInfoTickers(params)
         result = self.parse_funding_rates(response)
-        return self.filter_by_array(result, 'symbol', symbolsNormalized)
+        return self.index_by(self.filter_by_array(result, 'symbol', symbolsNormalized, False), 'symbol')
 
     def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
         #
@@ -1139,7 +1139,7 @@ class polymarket(Exchange, ImplicitAPI):
         symbolsNormalized = self.market_symbols(symbols)
         response = self.publicGetInfoTickers(params)
         result = self.parse_open_interests(response)
-        return self.filter_by_array(result, 'symbol', symbolsNormalized)
+        return self.index_by(self.filter_by_array(result, 'symbol', symbolsNormalized, False), 'symbol')
 
     def parse_open_interest(self, interest: object, market: Market = None):
         #
@@ -1258,7 +1258,7 @@ class polymarket(Exchange, ImplicitAPI):
         priceString = None
         if price is not None:
             priceString = self.price_to_precision(symbol, price)
-        reduceOnlyValue = True if (reduceOnly is True) else None
+        reduceOnlyValue = True if (reduceOnly) else None
         # the signable row is positional - iid, buy, p, qty, tif, po, ro, c,
         # trigger - undefined entries are removed and later entries shift left,
         # the venue rebuilds the same compact array from the body to verify
@@ -1652,7 +1652,7 @@ class polymarket(Exchange, ImplicitAPI):
         isBuy = self.safe_bool(order, 'buy')
         side = None
         if isBuy is not None:
-            side = 'buy' if (isBuy is True) else 'sell'
+            side = 'buy' if (isBuy) else 'sell'
         price = self.omit_zero(self.safe_string_2(order, 'price', 'p'))
         type = None
         tif = self.safe_string(order, 'tif')
@@ -1804,7 +1804,7 @@ class polymarket(Exchange, ImplicitAPI):
         isCross = self.safe_bool(position, 'cross')
         marginMode = None
         if isCross is not None:
-            marginMode = 'cross' if (isCross is True) else 'isolated'
+            marginMode = 'cross' if (isCross) else 'isolated'
         timestamp = self.safe_integer(position, 'timestamp')
         roe = self.safe_string(position, 'return_on_equity')
         percentage = None
@@ -2299,7 +2299,7 @@ class polymarket(Exchange, ImplicitAPI):
         isCross = self.safe_bool(leverage, 'cross')
         marginMode = None
         if isCross is not None:
-            marginMode = 'cross' if (isCross is True) else 'isolated'
+            marginMode = 'cross' if (isCross) else 'isolated'
         value = self.safe_integer(leverage, 'leverage')
         return {
             'info': leverage,

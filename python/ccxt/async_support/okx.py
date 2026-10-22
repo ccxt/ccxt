@@ -2031,7 +2031,7 @@ class okx(Exchange, ImplicitAPI):
         # therefore we check the keys here
         # and fallback to generating the currencies from the markets
         isSandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
-        if not self.check_required_credentials(False) or (isSandboxMode is True):
+        if not self.check_required_credentials(False) or (isSandboxMode):
             return {}
         #
         # has['fetchCurrencies'] is currently set to true, but an unauthorized request returns
@@ -2256,7 +2256,7 @@ class okx(Exchange, ImplicitAPI):
         last = self.safe_string(ticker, 'last')
         open = self.safe_string(ticker, 'open24h')
         spot = self.safe_bool(marketResolved, 'spot', False)
-        quoteVolume = self.safe_string(ticker, 'volCcy24h') if (spot is True) else None
+        quoteVolume = self.safe_string(ticker, 'volCcy24h') if (spot) else None
         baseVolume = self.safe_string(ticker, 'vol24h')
         high = self.safe_string(ticker, 'high24h')
         low = self.safe_string(ticker, 'low24h')
@@ -3185,11 +3185,11 @@ class okx(Exchange, ImplicitAPI):
         if omitReduceOnly:
             paramsReduceOnly = self.omit(paramsHedged, 'reduceOnly')
         if spot is True:
-            if margin is True:
+            if margin:
                 defaultCurrency = market['quote'] if (side == 'buy') else market['base']
                 currency = self.safe_string(params, 'ccy', defaultCurrency)
                 request['ccy'] = self.safe_currency_code(currency)
-            tradeMode = marginMode if (margin is True) else 'cash'
+            tradeMode = marginMode if (margin) else 'cash'
             request['tdMode'] = tradeMode
         elif contract is True:
             if (market['swap'] is True) or (market['future'] is True):
@@ -3215,7 +3215,7 @@ class okx(Exchange, ImplicitAPI):
         marketIOC = (isMarketOrder and ioc) or (type == 'optimal_limit_ioc')
         defaultTgtCcy = self.safe_string(self.options, 'tgtCcy', 'base_ccy')
         tgtCcy = self.safe_string(orderParams, 'tgtCcy', defaultTgtCcy)
-        if (contract is not True) and (margin is not True):
+        if (contract is not True) and (not margin):
             request['tgtCcy'] = tgtCcy
         if isMarketOrder or marketIOC:
             request['ordType'] = 'market'
@@ -3724,7 +3724,7 @@ class okx(Exchange, ImplicitAPI):
         trigger = self.safe_bool_2(params, 'stop', 'trigger')
         trailing = self.safe_bool(params, 'trailing', False)
         isTrigger = (trigger is True)
-        if isTrigger or (trailing is True):
+        if isTrigger or (trailing):
             orderInner = await self.cancel_orders([id], symbol, params)
             canceledInner = self.safe_dict(orderInner, 0)
             return canceledInner
@@ -3787,7 +3787,7 @@ class okx(Exchange, ImplicitAPI):
         trigger = self.safe_bool_2(params, 'stop', 'trigger')
         trailing = self.safe_bool(params, 'trailing', False)
         isTrigger = (trigger is True)
-        if isTrigger or (trailing is True):
+        if isTrigger or (trailing):
             method = 'privatePostTradeCancelAlgos'
         if clientOrderIds is None:
             orderIds = self.parse_ids(ids)
@@ -3798,7 +3798,7 @@ class okx(Exchange, ImplicitAPI):
                         'instId': market['id'],
                     })
             for i in range(0, len(orderIds)):
-                if (trailing is True) or isTrigger:
+                if (trailing) or isTrigger:
                     request.append({
                         'algoId': orderIds[i],
                         'instId': market['id'],
@@ -3810,7 +3810,7 @@ class okx(Exchange, ImplicitAPI):
                     })
         else:
             for i in range(0, len(clientOrderIds)):
-                if (trailing is True) or isTrigger:
+                if (trailing) or isTrigger:
                     request.append({
                         'instId': market['id'],
                         'algoClOrdId': clientOrderIds[i],
@@ -3881,8 +3881,8 @@ class okx(Exchange, ImplicitAPI):
         method = self.safe_string(params, 'method', defaultMethod)
         trigger = self.safe_bool_2(params, 'stop', 'trigger')
         trailing = self.safe_bool(params, 'trailing', False)
-        isStopOrTrailing = (trigger is True) or (trailing is True)
-        if isStopOrTrailing is True:
+        isStopOrTrailing = (trigger is True) or (trailing)
+        if isStopOrTrailing:
             method = 'privatePostTradeCancelAlgos'
         for i in range(0, len(orders)):
             order = self.safe_dict(orders, i)
@@ -3893,7 +3893,7 @@ class okx(Exchange, ImplicitAPI):
                 raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol for each order')
             market = self.market(symbol)
             idKey = 'ordId'
-            if isStopOrTrailing is True:
+            if isStopOrTrailing:
                 idKey = 'algoId'
             elif clientOrderId is not None:
                 idKey = 'clOrdId'
@@ -4470,9 +4470,9 @@ class okx(Exchange, ImplicitAPI):
         trigger = self.safe_bool_2(paramsPaginate, 'stop', 'trigger')
         trailing = self.safe_bool(paramsPaginate, 'trailing', False)
         isTrigger = (trigger is True)
-        if (trailing is True) or isTrigger or ((ordType is not None) and (ordType in algoOrderTypes)):
+        if (trailing) or isTrigger or ((ordType is not None) and (ordType in algoOrderTypes)):
             method = 'privateGetTradeOrdersAlgoPending'
-        if trailing is True:
+        if trailing:
             request['ordType'] = 'move_order_stop'
         elif isTrigger and (ordType is None):
             request['ordType'] = 'trigger'
@@ -4630,7 +4630,7 @@ class okx(Exchange, ImplicitAPI):
         trigger = self.safe_bool_2(params, 'stop', 'trigger')
         trailing = self.safe_bool(params, 'trailing', False)
         isTrigger = (trigger is True)
-        if trailing is True:
+        if trailing:
             method = 'privateGetTradeOrdersAlgoHistory'
             request['ordType'] = 'move_order_stop'
         elif isTrigger or ((ordType is not None) and (ordType in algoOrderTypes)):
@@ -4811,10 +4811,10 @@ class okx(Exchange, ImplicitAPI):
         ordType = self.safe_string(paramsPaginate, 'ordType')
         trigger = self.safe_bool_2(paramsPaginate, 'stop', 'trigger')
         trailing = self.safe_bool(paramsPaginate, 'trailing', False)
-        if (trailing is True) or (trigger is True) or ((ordType is not None) and (ordType in algoOrderTypes)):
+        if (trailing) or (trigger is True) or ((ordType is not None) and (ordType in algoOrderTypes)):
             method = 'privateGetTradeOrdersAlgoHistory'
             request['state'] = 'effective'
-        if trailing is True:
+        if trailing:
             request['ordType'] = 'move_order_stop'
         elif trigger is True:
             if ordType is None:
@@ -5383,7 +5383,7 @@ class okx(Exchange, ImplicitAPI):
             return result
         codeNetwork = self.network_id_to_code(codeValue, codeValue)
         if (codeNetwork is not None) and (codeNetwork in response):
-            return response[codeNetwork]
+            return self.safe_dict(response, codeNetwork)
         # if the network is not specified, return the first address
         keys = list(response.keys())
         first = self.safe_string(keys, 0, '')
@@ -8270,7 +8270,7 @@ class okx(Exchange, ImplicitAPI):
         #     }
         #
         underlyings = self.safe_list(response, 'data', [])
-        return underlyings[0]
+        return self.to_array(self.safe_list(underlyings, 0, []))
 
     async def fetch_greeks(self, symbol: str, params: dict = {}) -> Greeks:
         """

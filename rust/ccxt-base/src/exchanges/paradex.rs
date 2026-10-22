@@ -2430,7 +2430,7 @@ impl ParadexCore {
     pub async fn prepare_paradex_domain(&mut self, optional_args: &[Value]) -> Value {
         let mut l1 = get_arg(optional_args, 0, Value::Bool(false));
         let mut systemConfig: Value = self.get_system_config().await;
-        if (l1.as_bool() == Some(true)) {
+        if is_true(&l1) {
             let mut l1D: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("name".to_string(), Value::Str("Paradex".into()));

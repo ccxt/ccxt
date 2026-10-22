@@ -1273,7 +1273,7 @@ class hyperliquid extends Exchange {
         if ($isMarket) {
             $defaultTif = 'Ioc';
         }
-        if ($postOnly === true) {
+        if ($postOnly) {
             $defaultTif = 'Alo';
         }
         $tif = $this->capitalize($this->safe_string_lower($params, 'timeInForce', $defaultTif)); // eslint-disable-line
@@ -2026,7 +2026,7 @@ class hyperliquid extends Exchange {
         return $this->apply_event_fetch_params($events, $params, $queries);
     }
 
-    public function parse_event(array $raw): mixed {
+    public function parse_event(array $raw): array {
         /**
          * @ignore
          * parses a grouped set of outcome $markets into a unified prediction event object
@@ -2230,7 +2230,7 @@ class hyperliquid extends Exchange {
         $nonce = $this->incrementing_nonce();
         $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         $payload = array(
-            'hyperliquidChain' => ($isSandboxMode === true) ? 'Testnet' : 'Mainnet',
+            'hyperliquidChain' => ($isSandboxMode) ? 'Testnet' : 'Mainnet',
             'maxFeeRate' => $maxFeeRate,
             'builder' => $builder,
             'nonce' => $nonce,
@@ -2263,7 +2263,7 @@ class hyperliquid extends Exchange {
         // async for the PHP and typed transpilers, which mishandle an async body that never suspends
         Async\await($this->load_markets());
         $buildFee = $this->safe_bool($this->options, 'builderFee', false);
-        if ($buildFee !== true) {
+        if (!$buildFee) {
             return null;
         }
         if ($this->safe_bool($this->options, 'approvedBuilderFee', false)) {
@@ -2308,7 +2308,7 @@ class hyperliquid extends Exchange {
     public function sign(string $path, array $api = array('public'), $method = 'POST', $params = array()) {
         $apiGroup = $api[0];
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-        if ($sandboxMode === true) {
+        if ($sandboxMode) {
             $testUrls = $this->safe_dict($this->urls, 'test', array());
             $baseUrl = $this->safe_string($testUrls, $apiGroup, $this->safe_string($testUrls, 'public', ''));
         } else {

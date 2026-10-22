@@ -397,7 +397,7 @@ func (this *Pacifica) cancelOrdersWsBody(ch chan ccxt.AsyncResult[any], ids any,
 		var orderId *string = this.SafeString(order, "i")
 		var clientOrderId *string = this.SafeString(order, "I")
 		var status string
-		if (error != nil) || (success == nil || *success != true) {
+		if (error != nil) || (!(success != nil && *success)) {
 			status = "closed"
 		} else {
 			status = "canceled"

@@ -2210,7 +2210,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m
             })]);
             unsubscribe = self.safe_bool_k(subscription.clone(), "unsubscribe", &[Value::Bool(false)]);
-            if (unsubscribe.as_bool() == Some(true)) {
+            if unsubscribe.as_bool() == Some(true) {
                 self.handle_un_subscription(client, subscription);
             }
         }

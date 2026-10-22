@@ -419,7 +419,7 @@ class limitless extends Exchange {
         // market is tradeable only while it is FUNDED and not yet expired
         $isExpired = $this->safe_bool($raw, 'expired', false);
         $marketStatus = $this->safe_string($raw, 'status');
-        $active = ($isExpired !== true) && ($marketStatus === 'FUNDED');
+        $active = (!$isExpired) && ($marketStatus === 'FUNDED');
         // expiry is a ms timestamp string (`expirationTimestamp`); `deadline`/`expiresAt` do not exist
         $expiryTimestamp = $this->safe_integer($raw, 'expirationTimestamp');
         // limitless reports lifetime volume (human-readable in `volumeFormatted`), not a 24h figure
@@ -599,7 +599,7 @@ class limitless extends Exchange {
         return $result;
     }
 
-    public function parse_event(array $event): mixed {
+    public function parse_event(array $event): array {
         // {
         //    "groupId":"trump-out-as-president-before-2027-1768933068297",
         //    "title":"💎 Trump out as President before 2027?",

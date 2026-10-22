@@ -942,7 +942,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             let mut missingLength: Value = Value::Int(missing.len() as i64);
             let mut wasWarm: bool = (self.pred().outcomes.clone() != Value::Null) && !(self.is_empty(self.pred().outcomes.clone()).as_bool() == Some(true));
             let mut loadAll: Value = self.safe_bool_k(self.options.clone(), "loadAllOutcomes", &[Value::Bool(false)]);
-            if (missingLength.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) && (loadAll.as_bool() == Some(true)) && !wasWarm && !is_true(&reload) {
+            if (missingLength.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) && loadAll.as_bool() == Some(true) && !wasWarm && !is_true(&reload) {
                 // same trade-off as loadOutcome: on venues where the whole universe is one cheap
                 // request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
                 self.load_outcomes(&[]).await;
@@ -1027,7 +1027,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                 }
             }
             let mut loadAll: Value = self.safe_bool_k(self.options.clone(), "loadAllOutcomes", &[Value::Bool(false)]);
-            if (loadAll.as_bool() == Some(true)) && !wasWarm {
+            if loadAll.as_bool() == Some(true) && !wasWarm {
                 // a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
                 // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
                 // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching

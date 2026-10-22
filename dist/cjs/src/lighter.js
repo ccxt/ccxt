@@ -476,7 +476,8 @@ class lighter extends lighter$1["default"] {
         }
         signer = await this.loadAccount(this.options['chainId'], this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex);
         await this.handleBuilderFeeApproval(accountIndex, apiKeyIndex);
-        return (signer !== undefined);
+        const loaded = (signer !== undefined);
+        return loaded;
     }
     handleApiKeyIndex(params, methodName1, optionName1, optionName2, defaultValue = undefined) {
         const [apiKeyIndexOption, paramsApiKeyIndex] = this.handleOptionAndParams2(params, methodName1, optionName1, optionName2, defaultValue);
@@ -632,11 +633,11 @@ class lighter extends lighter$1["default"] {
     }
     async handleBuilderFeeApproval(accountIndex, apiKeyIndex) {
         const buildFee = this.safeBool(this.options, 'builderFee', true);
-        if (buildFee !== true) {
+        if (!buildFee) {
             return false;
         }
         const approvedBuilderFee = this.safeBool(this.options, 'approvedBuilderFee', false);
-        if (approvedBuilderFee === true) {
+        if (approvedBuilderFee) {
             return true;
         }
         let standardTier = false;
@@ -667,7 +668,8 @@ class lighter extends lighter$1["default"] {
         const accountIndexStr = accountIndex.toString();
         const isStandardTier = this.safeBool(tiersForAccountIndexes, accountIndexStr);
         if (isStandardTier !== undefined) {
-            return isStandardTier;
+            const cachedIsStandard = (isStandardTier === true);
+            return cachedIsStandard;
         }
         const accountLimits = await this.privateGetAccountLimits({ 'account_index': accountIndex });
         //
@@ -871,7 +873,7 @@ class lighter extends lighter$1["default"] {
         request['order_expiry'] = orderExpiry;
         request['order_type'] = orderTypeNum;
         request['time_in_force'] = timeInForceNum;
-        request['reduce_only'] = (reduceOnly === true) ? 1 : 0;
+        request['reduce_only'] = (reduceOnly) ? 1 : 0;
         request['client_order_index'] = clientOrderId;
         request['base_amount'] = this.parseToInt(Precise["default"].stringMul(amountStr, amountScale));
         request['avg_execution_price'] = this.parseToInt(Precise["default"].stringMul(priceStr, priceScale));
@@ -924,11 +926,11 @@ class lighter extends lighter$1["default"] {
             throw new errors.ArgumentsRequired(this.id + ' fetchNonce() requires accountIndex and apiKeyIndex.');
         }
         if ('nonce' in params) {
-            return this.safeInteger(params, 'nonce');
+            return this.parseToInt(this.safeInteger(params, 'nonce'));
         }
         const nonceInOptions = this.safeInteger(this.options, 'nonce');
         if (nonceInOptions !== undefined) {
-            return nonceInOptions;
+            return this.parseToInt(nonceInOptions);
         }
         // avoid skipNonce for l1 operations
         const skipNonce = this.handleOptionBoolAndParams(params, 'fetchNonce', 'skipNonce', true)[0];
@@ -936,7 +938,7 @@ class lighter extends lighter$1["default"] {
             return this.milliseconds();
         }
         const response = await this.publicGetNextNonce({ 'account_index': accountIndex, 'api_key_index': apiKeyIndex });
-        return this.safeInteger(response, 'nonce');
+        return this.parseToInt(this.safeInteger(response, 'nonce'));
     }
     async signAndCreateOrder(method, symbol, type, side, amount, price = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -3085,7 +3087,7 @@ class lighter extends lighter$1["default"] {
         }
         // public trades use Lighter's taker-side convention
         if ((side === undefined) && (isMakerAsk !== undefined)) {
-            side = (isMakerAsk === true) ? 'buy' : 'sell';
+            side = (isMakerAsk) ? 'buy' : 'sell';
         }
         let takerOrMaker = undefined;
         if (side !== undefined && isMakerAsk !== undefined) {

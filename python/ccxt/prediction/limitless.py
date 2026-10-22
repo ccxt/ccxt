@@ -396,7 +396,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         # market is tradeable only while it is FUNDED and not yet expired
         isExpired = self.safe_bool(raw, 'expired', False)
         marketStatus = self.safe_string(raw, 'status')
-        active = (isExpired is not True) and (marketStatus == 'FUNDED')
+        active = (not isExpired) and (marketStatus == 'FUNDED')
         # expiry is a ms timestamp string (`expirationTimestamp`); `deadline`/`expiresAt` do not exist
         expiryTimestamp = self.safe_integer(raw, 'expirationTimestamp')
         # limitless reports lifetime volume (human-readable in `volumeFormatted`), not a 24h figure
@@ -562,7 +562,7 @@ class limitless(PredictionExchange, ImplicitAPI):
                 result.append(raw)
         return result
 
-    def parse_event(self, event: dict) -> object:
+    def parse_event(self, event: dict) -> PredictionEvent:
         # {
         #    "groupId":"trump-out-as-president-before-2027-1768933068297",
         #    "title":"💎 Trump out as President before 2027?",

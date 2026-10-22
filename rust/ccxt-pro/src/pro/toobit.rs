@@ -1044,7 +1044,7 @@ impl ToobitCore {
         //     }
         //
         let mut isSnapshot: Value = (match __pro_message.get("f").cloned() { Some(__v) if matches!(__v, Value::Bool(_)) => __v, _ => Value::Bool(false) });
-        if (isSnapshot.as_bool() == Some(true)) {
+        if is_true(&isSnapshot) {
             self.set_order_book_snapshot(client.clone(), message.clone(), Value::Str("diffDepth".into()));
             return;
         }

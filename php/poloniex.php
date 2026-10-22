@@ -1657,8 +1657,7 @@ class poloniex extends Exchange {
         //         }
         //     ]
         //
-        $result = $this->parse_trades($response, $market, $since, $limit);
-        return $result;
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function parse_order_status(?string $status) {
@@ -2600,7 +2599,9 @@ class poloniex extends Exchange {
         $this->load_markets();
         $orders = $this->fetch_open_orders($symbol, null, null, $params);
         $indexed = $this->index_by($orders, 'id');
-        return (is_array($indexed) && array_key_exists($id ?? '', $indexed)) ? 'open' : 'closed';
+        $statuses = array( 'true' => 'open', 'false' => 'closed' );
+        $found = (is_array($indexed) && array_key_exists($id ?? '', $indexed)) ? 'true' : 'false';
+        return $this->safe_string($statuses, $found);
     }
 
     public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {

@@ -1228,7 +1228,7 @@ class dydx(Exchange, ImplicitAPI):
         self.load_dydx_protos()
         dydxAccount = self.safe_dict(self.options, 'dydxAccount')
         if dydxAccount is not None:
-            return dydxAccount
+            return self.safe_dict(self.options, 'dydxAccount', {})
         if self.walletAddress is None:
             raise ArgumentsRequired(self.id + ' fetchDydxAccount() requires the walletAddress to be set using the dydx chain address eg: dydx1cpb4tedmwq304c2kc9pwzjwq0sc6z2a4tasxrz')
         if not self.walletAddress.startswith('dydx'):
@@ -1256,7 +1256,7 @@ class dydx(Exchange, ImplicitAPI):
             'key': account['pub_key']['key'],
         }
         self.options['dydxAccount'] = account
-        return account
+        return self.safe_dict(self.options, 'dydxAccount', {})
 
     def pow(self, n: str, m: Str):
         r = Precise.string_mul(n, '1')
@@ -1498,7 +1498,7 @@ class dydx(Exchange, ImplicitAPI):
         """
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
         paramsOmitted = self.omit(params, ['trigger', 'stop'])
-        if (isTrigger is not True) and (symbol is None):
+        if (not isTrigger) and (symbol is None):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         if self.markets is None:
             self.load_markets()
@@ -1513,7 +1513,7 @@ class dydx(Exchange, ImplicitAPI):
         goodTillBlockTimeInSeconds = 2592000
         goodTillBlockTimeInSecondsOption, paramsGoodTillBlockTimeInSeconds = self.handle_option_integer_and_params(paramsOmitted, 'cancelOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds)  # default is 30 days
         goodTillBlockTime = None
-        defaultOrderFlags = 32 if (isTrigger is True) else 64
+        defaultOrderFlags = 32 if (isTrigger) else 64
         orderFlags = self.safe_integer(paramsGoodTillBlockTimeInSeconds, 'orderFlags', defaultOrderFlags)
         subAccountId = 0
         subAccountIdOption = self.handle_option_integer_and_params(paramsGoodTillBlockTimeInSeconds, 'cancelOrder', 'subAccountId', subAccountId)[0]
@@ -2173,7 +2173,8 @@ class dydx(Exchange, ImplicitAPI):
         #     ]
         # }
         #
-        return self.safe_list(response, 'transfers', [])
+        transfers = self.safe_list(response, 'transfers', [])
+        return transfers
 
     def fetch_accounts(self, params: dict = {}) -> list[Account]:
         """

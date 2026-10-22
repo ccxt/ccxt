@@ -992,8 +992,9 @@ class binance extends \ccxt\async\binance {
         $subscription = array(
             'method' => array($this, 'handle_fetch_order_book'),
         );
-        $orderbook = Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
-        $orderbook['symbol'] = $market['symbol'];
+        $snapshot = Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
+        $snapshot['symbol'] = $market['symbol'];
+        $orderbook = $this->order_book($snapshot);
         return $orderbook;
     }
 
@@ -1269,7 +1270,7 @@ class binance extends \ccxt\async\binance {
             $method($client, $message, $subscription);
         }
         $isUnSubMessage = $this->safe_bool($subscription, 'unsubscribe', false);
-        if ($isUnSubMessage === true) {
+        if ($isUnSubMessage) {
             $this->handle_un_subscription($client, $subscription);
         }
         return $message;
@@ -2534,7 +2535,7 @@ class binance extends \ccxt\async\binance {
         $unsubscribeMessageHashes = array();
         $suffix = '';
         if ($isMarkPrice && !$isOptionMarkPrice) {
-            $suffix = ($use1sFreq === true) ? '@1s' : '';
+            $suffix = ($use1sFreq) ? '@1s' : '';
         }
         $unifiedPrefix = null;
         if ($isBidAsk) {
@@ -3119,7 +3120,7 @@ class binance extends \ccxt\async\binance {
                 $isIsolated = $this->safe_bool($params, 'isIsolated', false);
                 $validity = $this->safe_integer($params, 'validity');
                 $request = array();
-                if ($isIsolated === true) {
+                if ($isIsolated) {
                     if ($symbol === null) {
                         throw new ArgumentsRequired($this->id . ' ensureUserDataStreamWsSubscribeListenToken() requires a symbol argument for isolated margin mode');
                     }
@@ -3193,7 +3194,7 @@ class binance extends \ccxt\async\binance {
         if ($symbol !== null) {
             $renewParams['symbol'] = $symbol;
         }
-        if ($isIsolated === true) {
+        if ($isIsolated) {
             $renewParams['isIsolated'] = $isIsolated;
         }
         if ($validity !== null) {
@@ -3440,7 +3441,7 @@ class binance extends \ccxt\async\binance {
         }
         $options = $this->safe_dict($this->options, 'watchBalance');
         $fetchBalanceSnapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', false);
-        if ($fetchBalanceSnapshot === true) {
+        if ($fetchBalanceSnapshot) {
             $messageHash = $type . ':fetchBalanceSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);
@@ -3459,7 +3460,7 @@ class binance extends \ccxt\async\binance {
         $params = array(
             'type' => $type,
         );
-        if ($isPortfolioMargin === true) {
+        if ($isPortfolioMargin) {
             $params['portfolioMargin'] = true;
         }
         $response = Async\await($this->fetch_balance($params));
@@ -3738,7 +3739,7 @@ class binance extends \ccxt\async\binance {
                 $urlType = 'papi';
             } elseif ($type === 'option') {
                 $demoMode = $this->safe_bool($this->options, 'enableDemoTrading', false);
-                if (($demoMode === true) || $this->isSandboxModeEnabled) {
+                if (($demoMode) || $this->isSandboxModeEnabled) {
                     throw new NotSupported($this->id . ' watchBalance() does not support option markets in demo/testnet mode');
                 }
                 $urlType = 'optionPrivate';
@@ -3751,7 +3752,7 @@ class binance extends \ccxt\async\binance {
         $options = $this->safe_dict($this->options, 'watchBalance');
         $fetchBalanceSnapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', false);
         $awaitBalanceSnapshot = $this->safe_bool($options, 'awaitBalanceSnapshot', true);
-        if (($fetchBalanceSnapshot === true) && ($awaitBalanceSnapshot === true)) {
+        if (($fetchBalanceSnapshot) && ($awaitBalanceSnapshot)) {
             Async\await($client->future($type . ':fetchBalanceSnapshot'));
         }
         $messageHash = $type . ':balance';
@@ -3985,8 +3986,8 @@ class binance extends \ccxt\async\binance {
             'method' => 'order.place',
             'params' => $this->sign_params($this->extend($payload, $paramsOmitted2)),
         );
-        if ($test === true) {
-            if ($sor === true) {
+        if ($test) {
+            if ($sor) {
                 $message['method'] = 'sor.order.test';
             } else {
                 $message['method'] = 'order.test';
@@ -4307,13 +4308,13 @@ class binance extends \ccxt\async\binance {
         $clientOrderId = $this->safe_string_n($paramsReturnRateLimits, array( 'clientAlgoId', 'origClientOrderId', 'clientOrderId' ));
         $shouldUseAlgoOrder = ($market['linear'] === true) && (($market['swap'] === true) || ($market['future'] === true)) && ($isConditional === true);
         if ($clientOrderId !== null) {
-            if ($shouldUseAlgoOrder === true) {
+            if ($shouldUseAlgoOrder) {
                 $payload['clientAlgoId'] = $clientOrderId;
             } else {
                 $payload['origClientOrderId'] = $clientOrderId;
             }
         } else {
-            if ($shouldUseAlgoOrder === true) {
+            if ($shouldUseAlgoOrder) {
                 $payload['algoId'] = $this->number_to_string($id);
             } else {
                 $payload['orderId'] = $this->number_to_string($id);
@@ -4325,7 +4326,7 @@ class binance extends \ccxt\async\binance {
             'method' => 'order.cancel',
             'params' => $this->sign_params($this->extend($payload, $paramsOmitted)),
         );
-        if ($shouldUseAlgoOrder === true) {
+        if ($shouldUseAlgoOrder) {
             $message['method'] = 'algoOrder.cancel';
         }
         $subscription = array(
@@ -4653,7 +4654,7 @@ class binance extends \ccxt\async\binance {
                 $urlType = 'papi';
             } elseif ($type === 'option') {
                 $demoMode = $this->safe_bool($this->options, 'enableDemoTrading', false);
-                if (($demoMode === true) || $this->isSandboxModeEnabled) {
+                if (($demoMode) || $this->isSandboxModeEnabled) {
                     throw new NotSupported($this->id . ' watchOrders() does not support option markets in demo/testnet mode');
                 }
                 $urlType = 'optionPrivate';
@@ -5291,7 +5292,7 @@ class binance extends \ccxt\async\binance {
             $urlType = 'papi';
         } elseif ($type === 'option') {
             $demoMode = $this->safe_bool($this->options, 'enableDemoTrading', false);
-            if (($demoMode === true) || $this->isSandboxModeEnabled) {
+            if (($demoMode) || $this->isSandboxModeEnabled) {
                 throw new NotSupported($this->id . ' watchPositions() does not support option markets in demo/testnet mode');
             }
             $urlType = 'optionPrivate';
@@ -5344,7 +5345,7 @@ class binance extends \ccxt\async\binance {
         $params = array(
             'type' => $type,
         );
-        if ($isPortfolioMargin === true) {
+        if ($isPortfolioMargin) {
             $params['portfolioMargin'] = true;
         }
         $positions = Async\await($this->fetch_positions(null, $params));
@@ -5746,7 +5747,7 @@ class binance extends \ccxt\async\binance {
                 $urlType = 'papi';
             } elseif ($type === 'option') {
                 $demoMode = $this->safe_bool($this->options, 'enableDemoTrading', false);
-                if (($demoMode === true) || $this->isSandboxModeEnabled) {
+                if (($demoMode) || $this->isSandboxModeEnabled) {
                     throw new NotSupported($this->id . ' watchMyTrades() does not support option markets in demo/testnet mode');
                 }
                 $urlType = 'optionPrivate';

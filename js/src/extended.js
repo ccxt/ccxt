@@ -2449,14 +2449,13 @@ export default class extended extends Exchange {
         return result;
     }
     async fetchExtendedAccount(params = {}) {
-        let account = this.safeDict(this.options, 'account');
+        const account = this.safeDict(this.options, 'account');
         if (account !== undefined) {
-            return account;
+            return this.safeDict(this.options, 'account', {});
         }
         const accountData = await this.fetchAccount(params);
-        account = accountData['info'];
-        this.options['account'] = account;
-        return account;
+        this.options['account'] = accountData['info'];
+        return this.safeDict(this.options, 'account', {});
     }
     createOrderSettlementData(isBuy, amountString, priceString, params = {}) {
         const totalFee = this.safeString(params, 'totalFee');

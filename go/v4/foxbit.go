@@ -1335,7 +1335,7 @@ func (this *Foxbit) createOrderBody(ch chan AsyncResult[map[string]any], symbol 
 			request["time_in_force"] = timeInForce
 		}
 	}
-	if postOnly != nil && *postOnly == true {
+	if postOnly != nil && *postOnly {
 		request["post_only"] = true
 	}
 	if triggerPrice != nil {
@@ -1427,7 +1427,7 @@ func (this *Foxbit) createOrdersBody(ch chan AsyncResult[any], orders any, optio
 			}
 			Remove(orderParams, "timeInForce")
 		}
-		if postOnly != nil && *postOnly == true {
+		if postOnly != nil && *postOnly {
 			request["post_only"] = true
 			Remove(orderParams, "postOnly")
 		}

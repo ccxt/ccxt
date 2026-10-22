@@ -1416,13 +1416,13 @@ class bitso extends Exchange {
 
     private function do_fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = 25, $params = array()) {
         /**
-         * fetch all unfilled currently open $orders
+         * fetch all unfilled currently open orders
          *
-         * @see https://docs.bitso.com/bitso-api/docs/list-open-$orders
+         * @see https://docs.bitso.com/bitso-api/docs/list-open-orders
          *
          * @param {string} $symbol unified $market $symbol
-         * @param {int} [$since] the earliest time in ms to fetch open $orders for
-         * @param {int} [$limit] the maximum number of  open $orders structures to retrieve
+         * @param {int} [$since] the earliest time in ms to fetch open orders for
+         * @param {int} [$limit] the maximum number of  open orders structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
@@ -1452,8 +1452,7 @@ class bitso extends Exchange {
         );
         $response = Async\await($this->privateGetOpenOrders($this->extend($request, $paramsMarker)));
         $payload = $this->safe_list($response, 'payload', array());
-        $orders = $this->parse_orders($payload, $market, $since, $limit);
-        return $orders;
+        return $this->parse_orders($payload, $market, $since, $limit);
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
@@ -2108,7 +2107,7 @@ class bitso extends Exchange {
                     $success = false;
                 }
             }
-            if ($success !== true) {
+            if (!$success) {
                 $feedback = $this->id . ' ' . $this->json($response);
                 $error = $this->safe_dict($response, 'error');
                 if ($error === null) {

@@ -2756,7 +2756,7 @@ impl BitsoCore {
                     success = Value::Bool(false);
                 }
             }
-            if (success.as_bool() != Some(true)) {
+            if !(success.as_bool() == Some(true)) {
                 let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&response)).into());
                 let mut error: Value = self.safe_dict_k(response, "error", &[]);
                 if (error == Value::Null) {

@@ -2559,7 +2559,7 @@ func (this *Bingx) HandleSubscriptionStatus(client any, message any) any {
 	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
 	var subscription any = this.SafeDict(subscriptionsById, id, map[string]any{})
 	var isUnSubMessage *bool = this.SafeBool(subscription, "unsubscribe", false)
-	if isUnSubMessage != nil && *isUnSubMessage == true {
+	if isUnSubMessage != nil && *isUnSubMessage {
 		this.HandleUnSubscription(client, subscription)
 	}
 	return message

@@ -1220,7 +1220,7 @@ impl CexCore {
         }
         add_element_to_object(&mut order, &Value::Str("remaining".into()), remains);
         let mut canceled: Value = self.safe_bool_k(data.clone(), "cancel", &[Value::Bool(false)]);
-        if (canceled.as_bool() == Some(true)) {
+        if canceled.as_bool() == Some(true) {
             add_element_to_object(&mut order, &Value::Str("status".into()), Value::Str("canceled".into()));
         }
         if isTransaction {
@@ -1320,7 +1320,7 @@ impl CexCore {
         }
         let mut canceled: Value = self.safe_bool_k(order.clone(), "cancel", &[Value::Bool(false)]);
         let mut status: Value = Value::Str("open".into());
-        if (canceled.as_bool() == Some(true)) {
+        if canceled.as_bool() == Some(true) {
             status = Value::Str("canceled".into());
         }  else if isTransaction {
             status = Value::Str("closed".into());

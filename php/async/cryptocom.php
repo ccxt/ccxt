@@ -1444,7 +1444,7 @@ class cryptocom extends Exchange {
             }
         }
         $postOnly = $this->safe_bool($paramsValue, 'postOnly', false);
-        if (($postOnly === true) || ($timeInForce === 'PO')) {
+        if (($postOnly) || ($timeInForce === 'PO')) {
             $request['exec_inst'] = array( 'POST_ONLY' );
             $request['time_in_force'] = 'GOOD_TILL_CANCEL';
         }
@@ -1672,7 +1672,7 @@ class cryptocom extends Exchange {
             }
         }
         $postOnly = $this->safe_bool($params, 'postOnly', false);
-        if (($postOnly === true) || ($timeInForce === 'PO')) {
+        if (($postOnly) || ($timeInForce === 'PO')) {
             $request['exec_inst'] = array( 'POST_ONLY' );
             $request['time_in_force'] = 'GOOD_TILL_CANCEL';
         }
@@ -2262,11 +2262,11 @@ class cryptocom extends Exchange {
         if ($networkParam !== null) {
             $network = $this->safe_string($this->networkAliases, $networkParam, $networkParam);
             if (is_array($depositAddresses) && array_key_exists($network ?? '', $depositAddresses)) {
-                return $depositAddresses[$network];
+                return $this->safe_dict($depositAddresses, $network);
             }
         }
         $keys = is_array($depositAddresses) ? array_keys($depositAddresses) : array();
-        return $depositAddresses[$keys[0]];
+        return $this->safe_dict($depositAddresses, $this->safe_string($keys, 0));
     }
 
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -2793,7 +2793,7 @@ class cryptocom extends Exchange {
                 throw new NotSupported($this->id . ' only cross margin is supported');
             }
         } else {
-            if (($defaultType === 'margin') || ($isMargin === true)) {
+            if (($defaultType === 'margin') || ($isMargin)) {
                 $marginMode = 'cross';
             }
         }

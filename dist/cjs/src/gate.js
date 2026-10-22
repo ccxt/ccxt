@@ -1266,7 +1266,8 @@ class gate extends gate$1["default"] {
                 this.options['unifiedAccount'] = false;
             }
         }
-        return this.options['unifiedAccount'];
+        const unified = this.safeBool(this.options, 'unifiedAccount') === true;
+        return unified;
     }
     async upgradeUnifiedTradeAccount(params = {}) {
         return await this.privateUnifiedPutUnifiedMode(params);
@@ -2457,7 +2458,7 @@ class gate extends gate$1["default"] {
         const chainsIndexedByIdRaw = await this.fetchDepositAddressesByNetwork(code, paramsNetworkCode);
         const chainsIndexedById = chainsIndexedByIdRaw;
         const selectedNetworkIdOrCode = this.selectNetworkKeyFromNetworks(code, networkCode, chainsIndexedById, true);
-        return chainsIndexedById[selectedNetworkIdOrCode];
+        return this.safeDict(chainsIndexedById, selectedNetworkIdOrCode);
     }
     parseDepositAddress(depositAddress, currency = undefined) {
         //
@@ -3849,8 +3850,7 @@ class gate extends gate$1["default"] {
         //          }
         //      ]
         //
-        const response = await this.fetchMyTrades(symbol, since, limit, { 'order_id': id });
-        return response;
+        return await this.fetchMyTrades(symbol, since, limit, { 'order_id': id });
     }
     /**
      * @method
@@ -4672,7 +4672,7 @@ class gate extends gate$1["default"] {
         const exchangeSpecificTimeInForce = this.safeStringLowerN(params, ['timeInForce', 'tif', 'time_in_force']);
         const [postOnly, paramsPostOnly] = this.handlePostOnly(type === 'market', exchangeSpecificTimeInForce === 'poc', params);
         let timeInForce = this.handleTimeInForce(paramsPostOnly);
-        if (postOnly === true) {
+        if (postOnly) {
             timeInForce = 'poc';
         }
         // we only omit the unified params here
@@ -4815,7 +4815,7 @@ class gate extends gate$1["default"] {
                 request['text'] = clientOrderId;
             }
             else {
-                if (textIsRequired === true) {
+                if (textIsRequired) {
                     // batchOrders requires text in the request
                     request['text'] = 't-' + this.uuid16();
                 }
@@ -5277,7 +5277,7 @@ class gate extends gate$1["default"] {
         //     }
         //
         const succeeded = this.safeBool(order, 'succeeded', true);
-        if (succeeded !== true) {
+        if (!succeeded) {
             // cancelOrders response
             return this.safeOrder({
                 'clientOrderId': this.safeString(order, 'text'),
@@ -5487,7 +5487,7 @@ class gate extends gate$1["default"] {
         const [request, requestParams] = this.fetchOrderRequest(id, symbol, params);
         let response;
         if (type === 'spot' || type === 'margin') {
-            if (trigger === true) {
+            if (trigger) {
                 response = await this.privateSpotGetPriceOrdersOrderId(this.extend(request, requestParams));
             }
             else {
@@ -5495,7 +5495,7 @@ class gate extends gate$1["default"] {
             }
         }
         else if (type === 'swap') {
-            if (trigger === true) {
+            if (trigger) {
                 response = await this.privateFuturesGetSettlePriceOrdersOrderId(this.extend(request, requestParams));
             }
             else {
@@ -5503,7 +5503,7 @@ class gate extends gate$1["default"] {
             }
         }
         else if (type === 'future') {
-            if (trigger === true) {
+            if (trigger) {
                 response = await this.privateDeliveryGetSettlePriceOrdersOrderId(this.extend(request, requestParams));
             }
             else {
@@ -5871,7 +5871,7 @@ class gate extends gate$1["default"] {
         request['order_id'] = id;
         let response;
         if (type === 'spot' || type === 'margin') {
-            if (trigger === true) {
+            if (trigger) {
                 response = await this.privateSpotDeletePriceOrdersOrderId(this.extend(request, requestParams));
             }
             else {
@@ -5879,7 +5879,7 @@ class gate extends gate$1["default"] {
             }
         }
         else if (type === 'swap') {
-            if (trigger === true) {
+            if (trigger) {
                 response = await this.privateFuturesDeleteSettlePriceOrdersOrderId(this.extend(request, requestParams));
             }
             else {
@@ -5887,7 +5887,7 @@ class gate extends gate$1["default"] {
             }
         }
         else if (type === 'future') {
-            if (trigger === true) {
+            if (trigger) {
                 response = await this.privateDeliveryDeleteSettlePriceOrdersOrderId(this.extend(request, requestParams));
             }
             else {
@@ -7186,7 +7186,7 @@ class gate extends gate$1["default"] {
         let bodyJson = undefined;
         let signedHeaders = undefined;
         const containsSettle = path.indexOf('settle') > -1;
-        if (containsSettle && (path.endsWith('batch_cancel_orders') === true)) { // weird check to prevent $settle in php and converting {settle} to array(settle)
+        if (containsSettle && (path.endsWith('batch_cancel_orders'))) { // weird check to prevent $settle in php and converting {settle} to array(settle)
             // special case where we need to extract the settle from the path
             // but the body is an array of strings
             const settle = this.safeDict(params, 0);

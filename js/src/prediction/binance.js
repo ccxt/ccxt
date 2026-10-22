@@ -260,7 +260,7 @@ export default class binance extends Exchange {
                 collected.push(pageTopics[i]);
             }
             const hasMore = this.safeBool(response, 'hasMore', false);
-            if ((hasMore !== true) || (pageTopicsLength < reqLimit)) {
+            if ((!hasMore) || (pageTopicsLength < reqLimit)) {
                 break;
             }
             offset = this.sum(offset, pageTopicsLength);
@@ -338,7 +338,7 @@ export default class binance extends Exchange {
      */
     async fetchEvents(params = {}) {
         const allowUnscopedFetchEvents = this.safeBool(this.options, 'allowUnscopedFetchEvents', false);
-        if (allowUnscopedFetchEvents !== true) {
+        if (!allowUnscopedFetchEvents) {
             this.requireEventQuery(params);
         }
         const queries = this.parseSearchQueries(params);
@@ -1282,10 +1282,10 @@ export default class binance extends Exchange {
         // }
         //
         const data = this.safeList(response, 'positions', []);
-        const positions = this.parsePredictionPositions(data);
         if (outcomes === undefined) {
-            return positions;
+            return this.parsePredictionPositions(data);
         }
+        const positions = this.parsePredictionPositions(data);
         const filtered = [];
         const positionsLength = positions.length;
         for (let i = 0; i < positionsLength; i++) {
@@ -1563,9 +1563,8 @@ export default class binance extends Exchange {
      * @returns {object} a wallet
      */
     async fetchWallet(methodName, params = {}) {
-        let cachedWallet = this.safeDict(this.options, 'wallet');
-        if (cachedWallet !== undefined) {
-            return cachedWallet;
+        if (this.safeDict(this.options, 'wallet') !== undefined) {
+            return this.safeDict(this.options, 'wallet');
         }
         const walletAddress = this.handleOptionStringAndParams(params, methodName, 'walletAddress', this.walletAddress)[0];
         const response = await this.sapiPrivateGetWalletList();
@@ -1582,23 +1581,18 @@ export default class binance extends Exchange {
         //
         const wallets = this.safeList(response, 'wallets', []);
         if (walletAddress === undefined) {
-            cachedWallet = this.safeDict(wallets, 0);
-            this.options['wallet'] = cachedWallet;
-            return cachedWallet;
+            this.options['wallet'] = this.safeDict(wallets, 0);
+            return this.safeDict(this.options, 'wallet');
         }
         const walletLength = wallets.length;
         for (let i = 0; i < walletLength; i++) {
             const w = this.safeString(wallets[i], 'walletAddress', '');
             if (w === walletAddress) {
-                cachedWallet = wallets[i];
-                break;
+                this.options['wallet'] = wallets[i];
+                return this.safeDict(this.options, 'wallet');
             }
         }
-        if (cachedWallet === undefined) {
-            throw new NotSupported(this.id + 'fetchWallet could\'n find wallet ' + walletAddress);
-        }
-        this.options['wallet'] = cachedWallet;
-        return cachedWallet;
+        throw new NotSupported(this.id + 'fetchWallet could\'n find wallet ' + walletAddress);
     }
     /**
      * @method

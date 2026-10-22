@@ -1476,7 +1476,7 @@ export default class bitopro extends Exchange {
         const request = {
             'statusKind': 'DONE',
         };
-        return this.fetchOrders(symbol, since, limit, this.extend(request, params));
+        return await this.fetchOrders(symbol, since, limit, this.extend(request, params));
     }
     /**
      * @method

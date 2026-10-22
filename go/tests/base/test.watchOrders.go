@@ -58,7 +58,7 @@ func testWatchOrdersBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExcha
 			}()
 
 		}
-		if success == true {
+		if success {
 			if IsEqual(response, nil) {
 				panic(Error(Add(exchange.GetId(), " watch returned undefined response")))
 			}

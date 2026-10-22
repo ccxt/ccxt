@@ -1472,7 +1472,7 @@ impl TokocryptoCore {
         let mut buyerMaker: Value = self.safe_bool2(trade.clone(), Value::Str("m".into()), Value::Str("isBuyerMaker".into()), &[]);
         let mut takerOrMaker: Value = Value::Null;
         if (buyerMaker != Value::Null) {
-            side = (if (buyerMaker.as_bool() == Some(true)) { Value::Str("sell".into()) } else { Value::Str("buy".into()) }); // this is reversed intentionally
+            side = (if buyerMaker.as_bool() == Some(true) { Value::Str("sell".into()) } else { Value::Str("buy".into()) }); // this is reversed intentionally
             takerOrMaker = Value::Str("taker".into());
         }  else if (matches!(&trade, Value::Dict(__d) if __d.contains_key("side"))) {
             side = self.safe_string_lower_k(trade.clone(), "side", &[]);
@@ -2299,16 +2299,16 @@ impl TokocryptoCore {
         let mut postOnly: Value = postOnlyparamsPostOnlyVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsPostOnly: Value = postOnlyparamsPostOnlyVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         // only supported for spot/margin api
-        let mut typeResolved: Value = (if (postOnly.as_bool() == Some(true)) { Value::Str("LIMIT_MAKER".into()) } else { type_var.clone() });
+        let mut typeResolved: Value = (if is_true(&(postOnly)) { Value::Str("LIMIT_MAKER".into()) } else { type_var.clone() });
         // post only is expressed by the order type here, not by a time force
-        let mut timeInForceResolved: Value = (if (postOnly.as_bool() == Some(true)) { Value::Null } else { requestedTimeInForce });
+        let mut timeInForceResolved: Value = (if is_true(&(postOnly)) { Value::Null } else { requestedTimeInForce });
         let mut initialUppercaseType: Value = to_upper(&typeResolved);
         let mut uppercaseType: Value = initialUppercaseType.clone();
         let mut triggerPrice: Value = self.safe_value2(params, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
         let mut triggerKeys: Value = (if (triggerPrice != Value::Null) { Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into())]) } else { Value::from(vec![]) });
         let mut paramsRequest: Value = self.omit(paramsPostOnly, self.array_concat(Value::from(vec![Value::Str("clientId".into()), Value::Str("clientOrderId".into()), Value::Str("timeInForce".into())]), triggerKeys), &[]);
         if (triggerPrice != Value::Null) {
-            if (postOnly.as_bool() == Some(true)) {
+            if is_true(&postOnly) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support post only trigger orders, the venue has no post only trigger order type".into()))));
             }
             if (uppercaseType.as_str() == Some("MARKET")) {
@@ -3417,7 +3417,7 @@ impl TokocryptoCore {
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         let mut success: Value = self.safe_bool_k(response.clone(), "success", &[Value::Bool(true)]);
         let mut parsedMessage: Value = Value::Null;
-        if (success.as_bool() != Some(true)) {
+        if !(success.as_bool() == Some(true)) {
             let mut messageInner: Value = self.safe_string_k(response.clone(), "msg", &[]);
             if (messageInner != Value::Null) {
                 let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
@@ -3456,7 +3456,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), error, feedback.clone());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
-        if (success.as_bool() != Some(true)) {
+        if !(success.as_bool() == Some(true)) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body)));
         }
         return Value::Null;

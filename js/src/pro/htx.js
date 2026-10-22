@@ -742,12 +742,12 @@ export default class htx extends htxRest {
         }
         const spotConditon = (market['spot'] === true) && (prevSeqNum === orderbook['nonce']);
         const nonSpotCondition = (market['contract'] === true) && (version !== undefined) && (version - 1 === orderbook['nonce']);
-        if ((spotConditon === true) || (nonSpotCondition === true)) {
+        if ((spotConditon) || (nonSpotCondition)) {
             const asks = this.safeList(tick, 'asks', []);
             const bids = this.safeList(tick, 'bids', []);
             this.handleDeltas(orderbook['asks'], asks);
             this.handleDeltas(orderbook['bids'], bids);
-            orderbook['nonce'] = (spotConditon === true) ? seqNum : version;
+            orderbook['nonce'] = (spotConditon) ? seqNum : version;
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601(timestamp);
         }
@@ -1581,7 +1581,7 @@ export default class htx extends htxRest {
         const aggressor = this.safeBool(trade, 'aggressor');
         let takerOrMaker = undefined;
         if (aggressor !== undefined) {
-            takerOrMaker = (aggressor === true) ? 'taker' : 'maker';
+            takerOrMaker = (aggressor) ? 'taker' : 'maker';
         }
         return this.safeTrade({
             'info': trade,
@@ -1858,7 +1858,7 @@ export default class htx extends htxRest {
             let prefix = 'accounts';
             messageHash = prefix;
             if (subType === 'linear') {
-                if (isUnifiedAccount === true) {
+                if (isUnifiedAccount) {
                     // usdt contracts account
                     prefix = 'accounts_unify';
                     messageHash = prefix;
@@ -2821,7 +2821,7 @@ export default class htx extends htxRest {
         const aggressor = this.safeBool(trade, 'aggressor');
         let takerOrMaker = undefined;
         if (aggressor !== undefined) {
-            takerOrMaker = (aggressor === true) ? 'taker' : 'maker';
+            takerOrMaker = (aggressor) ? 'taker' : 'maker';
         }
         else {
             takerOrMaker = this.safeStringLower(trade, 'role');

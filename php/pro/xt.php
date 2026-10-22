@@ -443,11 +443,7 @@ class xt extends \ccxt\async\xt {
             throw new NotSupported($this->id . ' unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only');
         }
         $messageHash = 'unsubscribe::' . $name;
-        $tickers = Async\await($this->un_subscribe($messageHash, $name, 'public', 'unWatchTickers', 'ticker', null, $symbols, $params));
-        if ($this->newUpdates) {
-            return $tickers;
-        }
-        return $this->filter_by_array($this->tickers, 'symbol', $symbols);
+        return Async\await($this->un_subscribe($messageHash, $name, 'public', 'unWatchTickers', 'ticker', null, $symbols, $params));
     }
 
     public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1730,7 +1726,7 @@ class xt extends \ccxt\async\xt {
         if ($id !== null) {
             $subscription = $this->safe_dict($subscriptionsById, $id, array());
             $unsubscribe = $this->safe_bool($subscription, 'unsubscribe', false);
-            if ($unsubscribe === true) {
+            if ($unsubscribe) {
                 $this->handle_un_subscription($client, $subscription);
             }
         }

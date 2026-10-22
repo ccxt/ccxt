@@ -3510,7 +3510,7 @@ func (this *Xt) createSpotOrderBody(ch chan EndpointResult[map[string]any], symb
 		if side == "buy" {
 			var cost *string = this.SafeString(paramsMarginMode, "cost")
 			var createMarketBuyOrderRequiresPrice *bool = this.SafeBool(this.Options, "createMarketBuyOrderRequiresPrice", true)
-			if createMarketBuyOrderRequiresPrice != nil && *createMarketBuyOrderRequiresPrice == true {
+			if createMarketBuyOrderRequiresPrice != nil && *createMarketBuyOrderRequiresPrice {
 				if (price == nil) && (cost == nil) {
 					panic(InvalidOrder(this.Id + " createOrder() requires a price argument or cost in params for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter"))
 				} else {
@@ -3546,7 +3546,7 @@ func (this *Xt) createSpotOrderBody(ch chan EndpointResult[map[string]any], symb
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((typeVar == "market"), (timeInForce != nil && *timeInForce == "GTX"), paramsWithoutCost)
 	var postOnly bool = GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)
 	var paramsPostOnly map[string]any = MapTyped(postOnlyparamsPostOnlyVariable[1])
-	if postOnly == true {
+	if postOnly {
 		timeInForce = SafeStringPtr("GTX")
 	}
 	var paramsOmitted map[string]any = this.OmitDict(paramsPostOnly, []any{"timeInForce", "postOnly"})
@@ -3604,7 +3604,7 @@ func (this *Xt) createContractOrderBody(ch chan EndpointResult[map[string]any], 
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((typeVar == "market"), (timeInForce != nil && *timeInForce == "GTX"), params)
 	var postOnly bool = GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)
 	var paramsPostOnly map[string]any = MapTyped(postOnlyparamsPostOnlyVariable[1])
-	if postOnly == true {
+	if postOnly {
 		timeInForce = SafeStringPtr("GTX")
 	}
 	var paramsOmitted4 map[string]any = this.OmitDict(paramsPostOnly, []any{"timeInForce", "postOnly"})
@@ -3614,13 +3614,13 @@ func (this *Xt) createContractOrderBody(ch chan EndpointResult[map[string]any], 
 	var reduceOnly *bool = this.SafeBool(paramsOmitted4, "reduceOnly", false)
 	if IsEqual(side, "buy") {
 		var requestType string = "LONG"
-		if reduceOnly != nil && *reduceOnly == true {
+		if reduceOnly != nil && *reduceOnly {
 			requestType = "SHORT"
 		}
 		request["positionSide"] = requestType
 	} else {
 		var requestType string = "SHORT"
-		if reduceOnly != nil && *reduceOnly == true {
+		if reduceOnly != nil && *reduceOnly {
 			requestType = "LONG"
 		}
 		request["positionSide"] = requestType

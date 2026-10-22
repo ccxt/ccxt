@@ -334,7 +334,7 @@ public partial class pacifica : ccxt.pacifica
             string? orderId = this.safeString(order, "i");
             string? clientOrderId = this.safeString(order, "I");
             string? status = null;
-            if (((error != null)) || ((success != true)))
+            if (((error != null)) || (success != true))
             {
                 status = "closed";
             } else

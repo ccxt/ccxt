@@ -419,7 +419,7 @@ class p2b(ccxt.async_support.p2b):
         if orderbook is None:
             self.orderbooks[symbol] = self.order_book({}, limit)
             orderbook = self.orderbooks[symbol]
-        if isFullUpdate is True:
+        if isFullUpdate:
             # the first parameter signals whether the message carries all
             # records or only the changed ones, a full set replaces the book,
             # otherwise stale levels that left the depth window would linger

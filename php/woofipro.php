@@ -1327,7 +1327,7 @@ class woofipro extends Exchange {
             $interest = $this->extend(array( 'timestamp' => $timestamp ), $row);
             $result[] = $this->parse_open_interest($interest);
         }
-        return $this->filter_by_array($result, 'symbol', $symbolsNormalized);
+        return $this->index_by($this->filter_by_array($result, 'symbol', $symbolsNormalized, false), 'symbol');
     }
 
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -2155,7 +2155,7 @@ class woofipro extends Exchange {
          */
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
         $paramsOmitted = $this->omit($params, array( 'stop', 'trigger' ));
-        if (($trigger !== true) && ($symbol === null)) {
+        if ((!$trigger) && ($symbol === null)) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
@@ -2172,7 +2172,7 @@ class woofipro extends Exchange {
         $clientOrderIdExchangeSpecific = $this->safe_string($paramsOmitted, 'client_order_id', $clientOrderIdUnified);
         $isByClientOrder = $clientOrderIdExchangeSpecific !== null;
         $response = null;
-        if ($trigger === true) {
+        if ($trigger) {
             if ($isByClientOrder) {
                 $request['client_order_id'] = $clientOrderIdExchangeSpecific;
                 $paramsOmitted2 = $this->omit($paramsOmitted, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
@@ -2212,7 +2212,7 @@ class woofipro extends Exchange {
         } else {
             $extendParams['id'] = $id;
         }
-        if ($trigger === true) {
+        if ($trigger) {
             $parsedResponse = ($response === null) ? array() : $response;
             return $this->extend($this->parse_order($parsedResponse), $extendParams);
         }
@@ -2339,7 +2339,7 @@ class woofipro extends Exchange {
         $clientOrderId = $this->safe_string_n($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
         $paramsOmitted = $this->omit($params, array( 'stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id' ));
         $response = null;
-        if ($trigger === true) {
+        if ($trigger) {
             if ($clientOrderId !== null && $clientOrderId !== '') {
                 $request['client_order_id'] = $clientOrderId;
                 $response = $this->v1PrivateGetAlgoClientOrderClientOrderId($this->extend($request, $paramsOmitted));
@@ -2410,7 +2410,7 @@ class woofipro extends Exchange {
             $this->load_markets();
         }
         $isTrigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
-        $maxLimit = ($isTrigger === true) ? 100 : 500;
+        $maxLimit = ($isTrigger) ? 100 : 500;
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOrders', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_incremental('fetchOrders', $symbol, $since, $limit, $paramsPaginate, 'page', $maxLimit);
@@ -2430,12 +2430,12 @@ class woofipro extends Exchange {
         } else {
             $request['size'] = $maxLimit;
         }
-        if ($isTrigger === true) {
+        if ($isTrigger) {
             $request['algo_type'] = 'STOP';
         }
         list($requestUntil, $paramsUntil) = $this->handle_until_option('end_t', $request, $paramsOmitted);
         $response = null;
-        if ($isTrigger === true) {
+        if ($isTrigger) {
             $response = $this->v1PrivateGetAlgoOrders($this->extend($requestUntil, $paramsUntil));
         } else {
             $response = $this->v1PrivateGetOrders($this->extend($requestUntil, $paramsUntil));
@@ -3153,7 +3153,7 @@ class woofipro extends Exchange {
             'amount' => null,
             'total' => null,
             'code' => $this->safe_string($market, 'settle'),
-            'status' => ($success === true) ? 'ok' : 'failed',
+            'status' => ($success) ? 'ok' : 'failed',
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
         );
@@ -3502,7 +3502,7 @@ class woofipro extends Exchange {
             $this->check_required_credentials();
             if (($method === 'POST' || $method === 'PUT') && ($path === 'algo/order' || $path === 'order' || $path === 'batch-order')) {
                 $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-                if ($isSandboxMode !== true) {
+                if (!$isSandboxMode) {
                     $brokerId = $this->safe_string($this->options, 'brokerId', 'CCXT');
                     if ($path === 'batch-order') {
                         $ordersList = $this->safe_list($requestParams, 'orders', array());

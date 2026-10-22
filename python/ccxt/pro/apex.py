@@ -908,7 +908,7 @@ class apex(ccxt.async_support.apex):
                 self.throw_broadly_matched_exception(self.exceptions['broad'], msg, feedback)
                 raise ExchangeError(feedback)
             success = self.safe_bool(message, 'success')
-            if (success is not None) and (success is not True):
+            if (success is not None) and (not success):
                 ret_msg = self.safe_string(message, 'ret_msg')
                 request = self.safe_dict(message, 'request', {})
                 op = self.safe_string(request, 'op')

@@ -1093,7 +1093,7 @@ public class Zaif extends ZaifApi
             throw new ExchangeError(feedback) ;
         }
         Boolean success = (Boolean) this.safeBool(response, "success", true);
-        if (!java.util.Objects.equals(success, true))
+        if (!Boolean.TRUE.equals(success))
         {
             throw new ExchangeError(feedback) ;
         }

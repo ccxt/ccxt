@@ -541,7 +541,7 @@ impl MudrexCore {
             return Value::Null;
         }
         let mut success: Value = self.safe_bool_k(response.clone(), "success", &[Value::Bool(true)]);
-        if (success.as_bool() != Some(true)) {
+        if !(success.as_bool() == Some(true)) {
             let mut errors: Value = self.safe_list_k(response.clone(), "errors", &[Value::from(vec![])]);
             let mut first: Value = self.safe_dict(errors, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -841,7 +841,7 @@ impl MudrexCore {
         let mut offset: Value = Value::Int(0);
         let mut pageLimit: Value = Value::Int(100);
         let mut paging: bool = true;
-        while (paging) {
+        while paging {
             let mut q: Value = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("limit".to_string(), pageLimit.clone());
@@ -1937,7 +1937,7 @@ impl MudrexCore {
         let mut calls: Value = Value::Int(0);
         let mut offset: Value = Value::Int(0);
         let mut paging: bool = true;
-        while (paging) {
+        while paging {
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m

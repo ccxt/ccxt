@@ -2097,12 +2097,12 @@ class weex extends Exchange {
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         // the demo trading API only provides the swap account, don't let the default spot type break a bare fetchBalance() call
         $type = $marketType;
-        if (($sandboxMode === true) && ($requestedType === null)) {
+        if (($sandboxMode) && ($requestedType === null)) {
             $type = 'swap';
         }
         $response = null;
         if ($type === 'spot') {
-            if ($sandboxMode === true) {
+            if ($sandboxMode) {
                 throw new NotSupported($this->id . ' fetchBalance() only supports the swap account in sandbox mode, use params["type"] = "swap"');
             }
             //
@@ -2144,7 +2144,7 @@ class weex extends Exchange {
             //         }
             //     ]
             //
-            if ($sandboxMode === true) {
+            if ($sandboxMode) {
                 $response = Async\await($this->contractPrivateGetCapiV3SimBalance($paramsMarketType));
             } else {
                 $response = Async\await($this->contractPrivateGetCapiV3AccountBalance($paramsMarketType));
@@ -2162,7 +2162,7 @@ class weex extends Exchange {
         for ($i = 0; $i < count($balances); $i++) {
             $entry = $this->safe_dict($balances, $i);
             $currencyId = $this->safe_string($entry, 'asset');
-            if (($sandboxMode === true) && ($currencyId === 'SUSDT')) {
+            if (($sandboxMode) && ($currencyId === 'SUSDT')) {
                 $currencyId = 'USDT'; // demo trading balances are denominated in the demo asset SUSDT
             }
             $code = $this->safe_currency_code($currencyId);
@@ -2288,7 +2288,7 @@ class weex extends Exchange {
             return Async\await($this->create_contract_order($symbol, $type, $side, $amount, $price, $params));
         } else {
             $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-            if ($sandboxMode === true) {
+            if ($sandboxMode) {
                 throw new NotSupported($this->id . ' createOrder() only supports swap markets in sandbox mode');
             }
             return Async\await($this->create_spot_order($symbol, $type, $side, $amount, $price, $params));
@@ -2411,11 +2411,11 @@ class weex extends Exchange {
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         $response = null;
         if ($triggerPrice !== null) {
-            if ($sandboxMode === true) {
+            if ($sandboxMode) {
                 throw new NotSupported($this->id . ' createOrder() does not support stopLossPrice or takeProfitPrice orders in sandbox mode');
             }
             $response = Async\await($this->contractPrivatePostCapiV3AlgoOrder($request));
-        } elseif ($sandboxMode === true) {
+        } elseif ($sandboxMode) {
             $response = Async\await($this->contractPrivatePostCapiV3SimOrder($request));
         } else {
             $response = Async\await($this->contractPrivatePostCapiV3Order($request));
@@ -2619,7 +2619,7 @@ class weex extends Exchange {
         }
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
         $trigger = $this->safe_bool($paramsMarketType, 'trigger', false);
-        if (($trigger === true) && $id === null) {
+        if (($trigger) && $id === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires an id argument for trigger orders');
         }
         $request = array();
@@ -2647,7 +2647,7 @@ class weex extends Exchange {
             //     }
             //
             $response = Async\await($this->privateDeleteApiV3Order($this->extend($request, $paramsOmitted)));
-        } elseif ($trigger === true) {
+        } elseif ($trigger) {
             $response = Async\await($this->contractPrivateDeleteCapiV3AlgoOrder($this->extend($request, $paramsOmitted)));
         } else {
             $response = Async\await($this->contractPrivateDeleteCapiV3Order($this->extend($request, $paramsOmitted)));
@@ -2696,7 +2696,7 @@ class weex extends Exchange {
                 throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a symbol argument for spot markets');
             }
             $response = Async\await($this->privateDeleteApiV3OpenOrders($this->extend($request, $paramsOmitted)));
-        } elseif ($trigger === true) {
+        } elseif ($trigger) {
             $response = Async\await($this->contractPrivateDeleteCapiV3AlgoOpenOrders($this->extend($request, $paramsOmitted)));
         } else {
             $response = Async\await($this->contractPrivateDeleteCapiV3AllOpenOrders($this->extend($request, $paramsOmitted)));
@@ -2908,7 +2908,7 @@ class weex extends Exchange {
             }
             list($requestUntil, $paramsUntil) = $this->handle_until_option('endTime', $request, $paramsPaginate);
             $trigger = $this->safe_bool($paramsUntil, 'trigger', false);
-            if ($trigger === true) {
+            if ($trigger) {
                 $paramsOmitted = $this->omit($paramsUntil, 'trigger');
                 //
                 //     [
@@ -3172,7 +3172,7 @@ class weex extends Exchange {
         list($requestUntil, $paramsUntil) = $this->handle_until_option('endTime', $request, $paramsPaginate);
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         $response = null;
-        if ($sandboxMode === true) {
+        if ($sandboxMode) {
             $response = Async\await($this->contractPrivateGetCapiV3SimOrderHistory($this->extend($requestUntil, $paramsUntil)));
         } else {
             $response = Async\await($this->contractPrivateGetCapiV3OrderHistory($this->extend($requestUntil, $paramsUntil)));
@@ -3836,7 +3836,7 @@ class weex extends Exchange {
         $symbolsNormalized = $this->market_symbols($symbols);
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         $response = null;
-        if ($sandboxMode === true) {
+        if ($sandboxMode) {
             $response = Async\await($this->contractPrivateGetCapiV3SimPositionAllPosition($params));
         } else {
             $response = Async\await($this->contractPrivateGetCapiV3AccountPositionAllPosition($params));
@@ -3882,7 +3882,7 @@ class weex extends Exchange {
         }
         $market = $this->market($symbol);
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-        if ($sandboxMode === true) {
+        if ($sandboxMode) {
             // the demo trading API does not provide a single-position endpoint
             return Async\await($this->fetch_positions(array( $market['symbol'] ), $params));
         }
@@ -4067,7 +4067,7 @@ class weex extends Exchange {
          * @param {string} $symbol Unified CCXT $market $symbol
          * @param {string} [$side] not used by current exchange
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -4077,8 +4077,8 @@ class weex extends Exchange {
             'symbol' => $market['id'],
         );
         $response = Async\await($this->contractPrivatePostCapiV3ClosePositions($this->extend($request, $params)));
-        $orders = $this->parse_orders($response, $market);
-        return $this->safe_dict($orders, 0);
+        $order = $this->safe_dict($response, 0, array());
+        return $this->parse_order($order, $market);
     }
 
     public function fetch_trading_fee(string $symbol, $params = array()): PromiseInterface {
@@ -4550,7 +4550,7 @@ class weex extends Exchange {
          */
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         $baseId = $this->safe_string($market, 'baseId');
-        if (($sandboxMode === true) && ($baseId !== null)) {
+        if (($sandboxMode) && ($baseId !== null)) {
             // demo trading only has USDT-margined linear markets quoted in the demo asset SUSDT (e.g. BTCSUSDT), revisit if weex ever adds a non-USDT settle
             return $baseId . 'SUSDT';
         }
@@ -4565,7 +4565,7 @@ class weex extends Exchange {
          * @return {string} the live market id
          */
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-        if (($sandboxMode !== true) || ($marketId === null)) {
+        if ((!$sandboxMode) || ($marketId === null)) {
             return $marketId;
         }
         if (($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id))) {
@@ -4602,7 +4602,7 @@ class weex extends Exchange {
         $requestHeaders = null;
         if ($isPrivate) {
             $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-            if (($sandboxMode === true) && (mb_strpos($path, 'capi/v3/sim/') !== 0)) {
+            if (($sandboxMode) && (mb_strpos($path, 'capi/v3/sim/') !== 0)) {
                 // guard against accidental live private calls with sandbox mode enabled, the demo trading API only provides the capi/v3/sim/ endpoints
                 throw new NotSupported($this->id . ' ' . $path . ' is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets');
             }

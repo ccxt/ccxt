@@ -1320,7 +1320,7 @@ export default class apex extends Exchange {
             const accountData = await this.fetchAccount();
             this.options['accountId'] = this.safeString(accountData, 'id', '0');
         }
-        return this.options['accountId'];
+        return this.safeString(this.options, 'accountId');
     }
     /**
      * @method

@@ -2052,7 +2052,7 @@ public partial class toobit : Exchange
         IList<object> isPostOnlyparamsPostOnlyVariable = (IList<object>)this.handlePostOnly((type == "market"), false, paramsCost);
         bool isPostOnly = (bool)isPostOnlyparamsPostOnlyVariable[0];
         IDictionary<string, object> paramsPostOnly = ((IDictionary<string, object>)isPostOnlyparamsPostOnlyVariable[1]);
-        if ((isPostOnly == true))
+        if (isPostOnly)
         {
             request["type"] = "LIMIT_MAKER";
         } else
@@ -2107,7 +2107,7 @@ public partial class toobit : Exchange
         IList<object> isPostOnlyparamsPostOnlyVariable = (IList<object>)this.handlePostOnly((type == "market"), false, paramsReduceOnly);
         bool isPostOnly = (bool)isPostOnlyparamsPostOnlyVariable[0];
         IDictionary<string, object> paramsPostOnly = ((IDictionary<string, object>)isPostOnlyparamsPostOnlyVariable[1]);
-        if ((isPostOnly == true))
+        if (isPostOnly)
         {
             request["timeInForce"] = "LIMIT_MAKER";
         }

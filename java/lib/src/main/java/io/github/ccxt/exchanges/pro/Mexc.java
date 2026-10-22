@@ -571,7 +571,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("unsubscribed")));
             String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "spot");
             String method = "SUBSCRIPTION";
-            if (java.util.Objects.equals(unsubscribed, true))
+            if (Boolean.TRUE.equals(unsubscribed))
             {
                 method = "UNSUBSCRIPTION";
             }
@@ -2326,7 +2326,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             Client client = this.client(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "spot"));
             String messageHash = "authenticate:listenKey";
             Boolean isFetching = (Boolean) this.safeBool(this.options, "listenKeyFetching", false);
-            if (java.util.Objects.equals(isFetching, true))
+            if (Boolean.TRUE.equals(isFetching))
             {
                 client.future(messageHash).getFuture().join();
                 return this.safeString(this.options, "listenKey");

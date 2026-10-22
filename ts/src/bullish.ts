@@ -2277,7 +2277,7 @@ export default class bullish extends Exchange {
         return this.safeString (statuses, status as string, status);
     }
 
-    async loadAccount (params: Dict = {}): Promise<string> {
+    async loadAccount (params: Dict = {}): Promise<Str> {
         const [ tradingAccountIdOption, paramsTradingAccountId ] = this.handleOptionStringAndParams (params, 'loadAccount', 'tradingAccountId');
         let tradingAccountId: Str = tradingAccountIdOption;
         if (tradingAccountId === undefined) {
@@ -2296,7 +2296,7 @@ export default class bullish extends Exchange {
             throw new ArgumentsRequired (this.id + ' loadAccount() requires a tradingAccountId parameter in options["tradingAccountId"] or params["tradingAccountId"], fetchAccounts() was not able to find the Primary account');
         }
         this.options['tradingAccountId'] = tradingAccountId;
-        return tradingAccountId;
+        return this.safeString (this.options, 'tradingAccountId');
     }
 
     /**

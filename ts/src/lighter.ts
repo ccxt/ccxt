@@ -471,7 +471,8 @@ export default class lighter extends Exchange {
         }
         signer = await this.loadAccount (this.options['chainId'], this.getLighterPrivateKey (strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex);
         await this.handleBuilderFeeApproval (accountIndex, (apiKeyIndex as number));
-        return (signer !== undefined);
+        const loaded: boolean = (signer !== undefined);
+        return loaded;
     }
 
     handleApiKeyIndex (params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue: any = undefined): [Int, Dict] {
@@ -669,7 +670,8 @@ export default class lighter extends Exchange {
         const accountIndexStr = accountIndex.toString ();
         const isStandardTier = this.safeBool (tiersForAccountIndexes, accountIndexStr);
         if (isStandardTier !== undefined) {
-            return isStandardTier;
+            const cachedIsStandard: boolean = (isStandardTier === true);
+            return cachedIsStandard;
         }
         const accountLimits = await this.privateGetAccountLimits ({ 'account_index': accountIndex });
         //
@@ -922,11 +924,11 @@ export default class lighter extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchNonce() requires accountIndex and apiKeyIndex.');
         }
         if ('nonce' in params) {
-            return this.safeInteger (params, 'nonce');
+            return this.parseToInt (this.safeInteger (params, 'nonce'));
         }
         const nonceInOptions = this.safeInteger (this.options, 'nonce');
         if (nonceInOptions !== undefined) {
-            return nonceInOptions;
+            return this.parseToInt (nonceInOptions);
         }
         // avoid skipNonce for l1 operations
         const skipNonce = this.handleOptionBoolAndParams (params, 'fetchNonce', 'skipNonce', true)[0];
@@ -934,7 +936,7 @@ export default class lighter extends Exchange {
             return this.milliseconds ();
         }
         const response = await this.publicGetNextNonce ({ 'account_index': accountIndex, 'api_key_index': apiKeyIndex });
-        return this.safeInteger (response, 'nonce');
+        return this.parseToInt (this.safeInteger (response, 'nonce'));
     }
 
     async signAndCreateOrder (method: string, symbol: Str, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params: Dict = {}): Promise<any[]> {

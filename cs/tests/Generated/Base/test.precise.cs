@@ -206,23 +206,23 @@ public partial class BaseTest
             Assert(isEqual(Precise.stringMax("1", null), null));
             Assert(isEqual(Precise.stringMax(null, null), null));
             // bool false
-            Assert(isEqual(Precise.stringEquals(null, "1"), false));
-            Assert(isEqual(Precise.stringEquals("1", null), false));
-            Assert(isEqual(Precise.stringEquals(null, null), false));
-            Assert(isEqual(Precise.stringEq(null, "1"), false));
-            Assert(isEqual(Precise.stringEq("1", null), false));
-            Assert(isEqual(Precise.stringEq(null, null), false));
-            Assert(isEqual(Precise.stringGt(null, "1"), false));
-            Assert(isEqual(Precise.stringGt("1", null), false));
-            Assert(isEqual(Precise.stringGt(null, null), false));
-            Assert(isEqual(Precise.stringGe(null, "1"), false));
-            Assert(isEqual(Precise.stringGe("1", null), false));
-            Assert(isEqual(Precise.stringGe(null, null), false));
-            Assert(isEqual(Precise.stringLt(null, "1"), false));
-            Assert(isEqual(Precise.stringLt("1", null), false));
-            Assert(isEqual(Precise.stringLt(null, null), false));
-            Assert(isEqual(Precise.stringLe(null, "1"), false));
-            Assert(isEqual(Precise.stringLe("1", null), false));
-            Assert(isEqual(Precise.stringLe(null, null), false));
+            Assert(!Precise.stringEquals(null, "1"));
+            Assert(!Precise.stringEquals("1", null));
+            Assert(!Precise.stringEquals(null, null));
+            Assert(!Precise.stringEq(null, "1"));
+            Assert(!Precise.stringEq("1", null));
+            Assert(!Precise.stringEq(null, null));
+            Assert(!Precise.stringGt(null, "1"));
+            Assert(!Precise.stringGt("1", null));
+            Assert(!Precise.stringGt(null, null));
+            Assert(!Precise.stringGe(null, "1"));
+            Assert(!Precise.stringGe("1", null));
+            Assert(!Precise.stringGe(null, null));
+            Assert(!Precise.stringLt(null, "1"));
+            Assert(!Precise.stringLt("1", null));
+            Assert(!Precise.stringLt(null, null));
+            Assert(!Precise.stringLe(null, "1"));
+            Assert(!Precise.stringLe("1", null));
+            Assert(!Precise.stringLe(null, null));
         }
 }

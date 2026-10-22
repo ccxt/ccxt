@@ -938,7 +938,7 @@ class coinbase extends Exchange {
         list($currencyType, $paramsCurrencyType) = $this->handle_option_string_and_params($params, 'fetchWithdrawals', 'currencyType');
         if ($currencyType === 'crypto') {
             $results = $this->fetch_transactions_with_method('v2PrivateGetAccountsAccountIdTransactions', $code, $since, $limit, $paramsCurrencyType);
-            return $this->filter_by_array($results, 'type', 'withdrawal', false);
+            return $this->to_array($this->filter_by_array($results, 'type', 'withdrawal', false));
         }
         return $this->fetch_transactions_with_method('v2PrivateGetAccountsAccountIdWithdrawals', $code, $since, $limit, $paramsCurrencyType);
     }
@@ -960,7 +960,7 @@ class coinbase extends Exchange {
         list($currencyType, $paramsCurrencyType) = $this->handle_option_string_and_params($params, 'fetchDeposits', 'currencyType');
         if ($currencyType === 'crypto') {
             $results = $this->fetch_transactions_with_method('v2PrivateGetAccountsAccountIdTransactions', $code, $since, $limit, $paramsCurrencyType);
-            return $this->filter_by_array($results, 'type', 'deposit', false);
+            return $this->to_array($this->filter_by_array($results, 'type', 'deposit', false));
         }
         return $this->fetch_transactions_with_method('v2PrivateGetAccountsAccountIdDeposits', $code, $since, $limit, $paramsCurrencyType);
     }
@@ -981,7 +981,7 @@ class coinbase extends Exchange {
             $this->load_markets();
         }
         $results = $this->fetch_transactions_with_method('v2PrivateGetAccountsAccountIdTransactions', $code, $since, $limit, $params);
-        return $this->filter_by_array($results, 'type', array( 'deposit', 'withdrawal' ), false);
+        return $this->to_array($this->filter_by_array($results, 'type', array( 'deposit', 'withdrawal' ), false));
     }
 
     public function parse_transaction_status(?string $status) {
@@ -1883,7 +1883,7 @@ class coinbase extends Exchange {
             'swap' => $isSwap,
             'future' => !$isSwap,
             'option' => false,
-            'active' => $tradingDisabled !== true,
+            'active' => !$tradingDisabled,
             'contract' => true,
             'linear' => true,
             'inverse' => false,
@@ -2542,7 +2542,7 @@ class coinbase extends Exchange {
         $method = $this->safe_string($this->options, 'fetchBalance', 'v3PrivateGetBrokerageAccounts');
         if (($marketType === 'future') || ($marketType === 'swap')) {
             $response = $this->v3PrivateGetBrokerageCfmBalanceSummary($this->extend($request, $paramsMarketType));
-        } elseif (($isV3 === true) || ($method === 'v3PrivateGetBrokerageAccounts')) {
+        } elseif (($isV3) || ($method === 'v3PrivateGetBrokerageAccounts')) {
             $request['limit'] = 250;
             $response = $this->v3PrivateGetBrokerageAccounts($this->extend($request, $paramsMarketType));
             // an explicit params.cursor means the caller pages manually
@@ -2672,18 +2672,17 @@ class coinbase extends Exchange {
         $data = $this->safe_list($response, 'data', array());
         $ledger = $this->parse_ledger($data, $currency, $since, $limit);
         $length = count($ledger);
-        if ($length === 0) {
-            return $ledger;
+        if ($length > 0) {
+            $lastIndex = $length - 1;
+            $last = $this->safe_dict($ledger, $lastIndex);
+            $pagination = $this->safe_dict($response, 'pagination', array());
+            $cursor = $this->safe_string($pagination, 'next_starting_after');
+            if (($cursor !== null) && ($cursor !== '')) {
+                $last['info']['next_starting_after'] = $cursor;
+                $ledger[$lastIndex] = $last;
+            }
         }
-        $lastIndex = $length - 1;
-        $last = $this->safe_dict($ledger, $lastIndex);
-        $pagination = $this->safe_dict($response, 'pagination', array());
-        $cursor = $this->safe_string($pagination, 'next_starting_after');
-        if (($cursor !== null) && ($cursor !== '')) {
-            $last['info']['next_starting_after'] = $cursor;
-            $ledger[$lastIndex] = $last;
-        }
-        return $ledger;
+        return $this->to_array($ledger);
     }
 
     public function parse_ledger_entry_status(?string $status): ?string {
@@ -3026,7 +3025,7 @@ class coinbase extends Exchange {
         for ($i = 0; $i < count($this->accounts); $i++) {
             $account = $this->accounts[$i];
             if ($account['code'] === $code) {
-                return $account['id'];
+                return $this->safe_string($account, 'id');
             }
         }
         return null;
@@ -3285,7 +3284,7 @@ class coinbase extends Exchange {
         $paramsOmitted = $this->omit($paramsBase, array( 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'stop_price', 'stopDirection', 'stop_direction', 'clientOrderId', 'postOnly', 'post_only', 'end_time', 'marginMode' ));
         $preview = $this->safe_bool_2($paramsOmitted, 'preview', 'test', false);
         $response = null;
-        if ($preview === true) {
+        if ($preview) {
             $request = $this->omit($request, 'client_order_id');
             $response = $this->v3PrivatePostBrokerageOrdersPreview($this->extend($request, $this->omit($paramsOmitted, array( 'preview', 'test' ))));
         } else {
@@ -3606,7 +3605,7 @@ class coinbase extends Exchange {
         }
         $preview = $this->safe_bool_2($params, 'preview', 'test', false);
         $response = null;
-        if ($preview === true) {
+        if ($preview) {
             $response = $this->v3PrivatePostBrokerageOrdersEditPreview($this->extend($request, $this->omit($params, array( 'preview', 'test' ))));
         } else {
             $response = $this->v3PrivatePostBrokerageOrdersEdit($this->extend($request, $params));
@@ -5160,7 +5159,7 @@ class coinbase extends Exchange {
         return $result;
     }
 
-    public function parse_portfolio_details(array $portfolioData) {
+    public function parse_portfolio_details(array $portfolioData): array {
         $breakdown = $this->safe_dict($portfolioData, 'breakdown');
         $portfolioInfo = $this->safe_dict($breakdown, 'portfolio', array());
         $portfolioName = $this->safe_string($portfolioInfo, 'name', 'Unknown');

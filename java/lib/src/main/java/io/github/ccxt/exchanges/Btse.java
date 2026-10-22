@@ -1910,7 +1910,7 @@ public class Btse extends BtseApi
 
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Boolean paginate = (Boolean) this.safeBool(parameters, "paginate", false);
-            if (java.util.Objects.equals(paginate, true))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(this.omit(parameters, "paginate")), (Long) null, true)).join();
             }
@@ -2839,7 +2839,7 @@ public class Btse extends BtseApi
                 request.put("orderPrice", this.priceToPrecision(symbol, price));
             }
             Boolean isSlide = (Boolean) this.safeBool(query, "slide", false);
-            if ((java.util.Objects.equals(amount, null)) && (java.util.Objects.equals(price, null)) && (java.util.Objects.equals(triggerPrice, null)) && (!java.util.Objects.equals(isSlide, true)))
+            if ((java.util.Objects.equals(amount, null)) && (java.util.Objects.equals(price, null)) && (java.util.Objects.equals(triggerPrice, null)) && (!Boolean.TRUE.equals(isSlide)))
             {
                 throw new ArgumentsRequired((this.id + " editOrder() requires an amount argument, a price argument or a triggerPrice parameter")) ;
             }
@@ -4338,7 +4338,7 @@ public class Btse extends BtseApi
         //     {"status":400,"errorCode":-7,"message":"Authenticate failed","extraData":null}
         //
         Boolean success = (Boolean) this.safeBool(response, "success", true);
-        if (!java.util.Objects.equals(success, true))
+        if (!Boolean.TRUE.equals(success))
         {
             String spotErrorCode = this.safeString(response, "code");
             String spotMessage = this.safeString(response, "msg");
@@ -4423,7 +4423,7 @@ public class Btse extends BtseApi
         // body like its POST and PUT counterparts, while the spot v4 and the
         // legacy apis keep DELETE params in the query string, verified live
         // in both directions
-        Boolean isBodyDelete = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE")) && (java.util.Objects.equals(((String)path).startsWith("futures/api/v3/"), true));
+        Boolean isBodyDelete = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE")) && (((String)path).startsWith("futures/api/v3/"));
         String queryString = "";
         if (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"))) && !Boolean.TRUE.equals(isBodyDelete))
         {
@@ -4450,7 +4450,7 @@ public class Btse extends BtseApi
             // sign the /api/v... remainder, while the public-api wallet, otc and markets
             // endpoints mount on the bare host and sign the full path with the leading slash
             Object signPath = null;
-            if (java.util.Objects.equals(((String)path).startsWith("public-api/"), true))
+            if (((String)path).startsWith("public-api/"))
             {
                 signPath = ("/" + path);
             } else

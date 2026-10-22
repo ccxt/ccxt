@@ -123,12 +123,12 @@ func (this *Bydfi) watchPublicBody(ch chan ccxt.AsyncResult[any], messageHashes 
 	var unsubscribe *bool = this.SafeBool(params, "unsubscribe", false)
 	var method string = "SUBSCRIBE"
 	var paramsOmitted map[string]any = func() map[string]any {
-		if unsubscribe != nil && *unsubscribe == true {
+		if unsubscribe != nil && *unsubscribe {
 			return this.OmitDict(params, "unsubscribe")
 		}
 		return params
 	}()
-	if unsubscribe != nil && *unsubscribe == true {
+	if unsubscribe != nil && *unsubscribe {
 		method = "UNSUBSCRIBE"
 		subscriptionParams["unsubscribe"] = true
 		subscriptionParams["messageHashes"] = messageHashes
@@ -1312,7 +1312,7 @@ func (this *Bydfi) watchBalanceBody(ch chan ccxt.AsyncResult[map[string]any], op
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBalance")
 	var fetchBalanceSnapshot *bool = this.SafeBool(options, "fetchBalanceSnapshot", false)
 	var awaitBalanceSnapshot *bool = this.SafeBool(options, "awaitBalanceSnapshot", true)
-	if (fetchBalanceSnapshot != nil && *fetchBalanceSnapshot == true) && (awaitBalanceSnapshot != nil && *awaitBalanceSnapshot == true) {
+	if (fetchBalanceSnapshot != nil && *fetchBalanceSnapshot) && (awaitBalanceSnapshot != nil && *awaitBalanceSnapshot) {
 
 		r1 := <-client.(ccxt.ClientInterface).Future("fetchBalanceSnapshot")
 		if r1.Err != nil {
@@ -1341,7 +1341,7 @@ func (this *Bydfi) watchBalanceBody(ch chan ccxt.AsyncResult[map[string]any], op
 func (this *Bydfi) FetchBalanceSnapshot(client any) {
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBalance")
 	var fetchBalanceSnapshot *bool = this.SafeBool(options, "fetchBalanceSnapshot", false)
-	if fetchBalanceSnapshot != nil && *fetchBalanceSnapshot == true {
+	if fetchBalanceSnapshot != nil && *fetchBalanceSnapshot {
 		var messageHash string = "fetchBalanceSnapshot"
 		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; !ok {
 			client.(ccxt.ClientInterface).Future(messageHash)
@@ -1451,7 +1451,7 @@ func (this *Bydfi) HandleSubscriptionStatus(client any, message any) any {
 	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
 	var subscription any = this.SafeDict(subscriptionsById, id, map[string]any{})
 	var isUnSubMessage *bool = this.SafeBool(subscription, "unsubscribe", false)
-	if isUnSubMessage != nil && *isUnSubMessage == true {
+	if isUnSubMessage != nil && *isUnSubMessage {
 		this.HandleUnSubscription(client, subscription)
 	}
 	return message

@@ -2121,7 +2121,7 @@ class kraken extends Exchange {
         if ($orderDescription !== null) {
             $parts = explode(' ', $orderDescription);
             $side = $this->safe_string($parts, 0);
-            if ($isUsingCost !== true) {
+            if (!$isUsingCost) {
                 $amount = $this->safe_string($parts, 1);
             } else {
                 $cost = $this->safe_string($parts, 1);
@@ -2369,7 +2369,7 @@ class kraken extends Exchange {
         }
         $isMarket = ($type === 'market');
         list($postOnly, $paramsPostOnly) = $this->handle_post_only($isMarket, false, $paramsOmitted2);
-        if ($postOnly === true) {
+        if ($postOnly) {
             $extendedPostFlags = 'post';
             if ($flags !== null) {
                 $extendedPostFlags = $flags . ',post';
@@ -2430,7 +2430,7 @@ class kraken extends Exchange {
         $isMarket = ($type === 'market');
         $postOnly = null;
         list($postOnly, $paramsOmitted) = $this->handle_post_only($isMarket, false, $paramsOmitted);
-        if ($postOnly === true) {
+        if ($postOnly) {
             $request['post_only'] = 'true'; // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
         }
         if ($amount !== null) {
@@ -3473,7 +3473,8 @@ class kraken extends Exchange {
         //         ]
         //     }
         //
-        return $this->safe_value($response, 'result');
+        $result = $this->safe_list($response, 'result', array());
+        return $result;
     }
 
     public function fetch_deposit_address(string $code, $params = array()): PromiseInterface {

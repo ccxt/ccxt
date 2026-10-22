@@ -1220,7 +1220,7 @@ class coinone(Exchange, ImplicitAPI):
                 depositAddress['info'] = [address, value]
             if code is not None:
                 result[code] = depositAddress
-        return result
+        return self.to_array(result)
 
     def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         apiName = api[0]

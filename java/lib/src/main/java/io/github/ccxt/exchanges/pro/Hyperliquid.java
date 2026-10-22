@@ -1339,7 +1339,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             String dex = this.safeString(paramsValue2, "dex");
             Boolean isSpot = ((java.util.Objects.equals(type, "spot")) || (java.util.Objects.equals(isUnifiedEnabled, true))) && (java.util.Objects.equals(dex, null));
             String topic = "clearinghouseState";
-            if (java.util.Objects.equals(isSpot, true))
+            if (Boolean.TRUE.equals(isSpot))
             {
                 topic = "spotState";
             }
@@ -1348,7 +1348,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             Map<String, Object> subscription = new HashMap<String, Object>();
             subscription.put("type", topic);
             subscription.put("user", userAddress);
-            if (java.util.Objects.equals(isSpot, true))
+            if (Boolean.TRUE.equals(isSpot))
             {
                 if (java.util.Objects.equals(isUnifiedEnabled, true))
                 {
@@ -1407,7 +1407,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             String dex = this.safeString(paramsValue2, "dex");
             Boolean isSpot = ((java.util.Objects.equals(type, "spot")) || (java.util.Objects.equals(isUnifiedEnabled, true))) && (java.util.Objects.equals(dex, null));
             String topic = "clearinghouseState";
-            if (java.util.Objects.equals(isSpot, true))
+            if (Boolean.TRUE.equals(isSpot))
             {
                 topic = "spotState";
             }

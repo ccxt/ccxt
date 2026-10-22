@@ -643,7 +643,7 @@ class indodax extends indodax$1["default"] {
             const parsed = this.parseTicker(rawTicker, market);
             parsedTickers[marketId] = parsed;
         }
-        return this.filterByArray(parsedTickers, 'symbol', symbols);
+        return this.filterByArrayTickers(parsedTickers, 'symbol', symbols);
     }
     parseTrade(trade, market = undefined) {
         const timestamp = this.safeTimestamp(trade, 'date');
@@ -1450,9 +1450,7 @@ class indodax extends indodax$1["default"] {
         const addresses = this.safeDict(data, 'address', {});
         const networks = this.safeDict(data, 'network', {});
         const addressKeys = Object.keys(addresses);
-        const result = {
-            'info': data,
-        };
+        const result = [];
         for (let i = 0; i < addressKeys.length; i++) {
             const marketId = addressKeys[i];
             const code = this.safeCurrencyCode(marketId);
@@ -1487,17 +1485,17 @@ class indodax extends indodax$1["default"] {
                 }
                 const finalNetwork = network; // java req
                 if (code !== undefined) {
-                    result[code] = {
+                    result.push({
                         'info': {},
                         'currency': code,
                         'network': finalNetwork,
                         'address': address,
                         'tag': undefined,
-                    };
+                    });
                 }
             }
         }
-        return result;
+        return this.toArray(result);
     }
     sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];

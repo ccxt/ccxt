@@ -1357,7 +1357,7 @@ class cryptocom(Exchange, ImplicitAPI):
             else:
                 request['time_in_force'] = timeInForce
         postOnly = self.safe_bool(paramsValue, 'postOnly', False)
-        if (postOnly is True) or (timeInForce == 'PO'):
+        if (postOnly) or (timeInForce == 'PO'):
             request['exec_inst'] = ['POST_ONLY']
             request['time_in_force'] = 'GOOD_TILL_CANCEL'
         triggerPrice = self.safe_string_n(paramsValue, ['stopPrice', 'triggerPrice', 'ref_price'])
@@ -1554,7 +1554,7 @@ class cryptocom(Exchange, ImplicitAPI):
             else:
                 request['time_in_force'] = timeInForce
         postOnly = self.safe_bool(params, 'postOnly', False)
-        if (postOnly is True) or (timeInForce == 'PO'):
+        if (postOnly) or (timeInForce == 'PO'):
             request['exec_inst'] = ['POST_ONLY']
             request['time_in_force'] = 'GOOD_TILL_CANCEL'
         triggerPrice = self.safe_string_n(params, ['stopPrice', 'triggerPrice', 'ref_price'])
@@ -2049,9 +2049,9 @@ class cryptocom(Exchange, ImplicitAPI):
         if networkParam is not None:
             network = self.safe_string(self.networkAliases, networkParam, networkParam)
             if network in depositAddresses:
-                return depositAddresses[network]
+                return self.safe_dict(depositAddresses, network)
         keys = list(depositAddresses.keys())
-        return depositAddresses[keys[0]]
+        return self.safe_dict(depositAddresses, self.safe_string(keys, 0))
 
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
@@ -2541,7 +2541,7 @@ class cryptocom(Exchange, ImplicitAPI):
             if marginMode != 'cross':
                 raise NotSupported(self.id + ' only cross margin is supported')
         else:
-            if (defaultType == 'margin') or (isMargin is True):
+            if (defaultType == 'margin') or (isMargin):
                 marginMode = 'cross'
         return [marginMode, paramsMarginMode]
 

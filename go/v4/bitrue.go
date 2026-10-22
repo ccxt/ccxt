@@ -4141,7 +4141,7 @@ func (this *Bitrue) HandleErrors(code any, reason any, url any, method any, head
 	// response in format {'msg': 'The coin does not exist.', 'success': true/false}
 	var success *bool = this.SafeBool(response, "success", true)
 	var parsedMessage any = nil
-	if success == nil || *success != true {
+	if !(success != nil && *success) {
 		var messageInner *string = this.SafeString(response, "msg")
 		if messageInner != nil {
 
@@ -4197,7 +4197,7 @@ func (this *Bitrue) HandleErrors(code any, reason any, url any, method any, head
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], error, feedback)
 		panic(ExchangeError(feedback))
 	}
-	if success == nil || *success != true {
+	if !(success != nil && *success) {
 		panic(ExchangeError(this.Id + " " + body))
 	}
 	return nil

@@ -1793,7 +1793,7 @@ class bitfinex extends bitfinex$1["default"] {
         }
         const ioc = (timeInForce === 'IOC');
         const fok = (timeInForce === 'FOK');
-        const postOnly = ((postOnlyParam === true) || (timeInForce === 'PO'));
+        const postOnly = ((postOnlyParam) || (timeInForce === 'PO'));
         if ((ioc || fok) && (price === undefined)) {
             throw new errors.InvalidOrder(this.id + ' createOrder() requires a price argument with IOC and FOK orders');
         }
@@ -1820,7 +1820,7 @@ class bitfinex extends bitfinex$1["default"] {
         if (postOnly) {
             flags = this.sum(flags, 4096);
         }
-        if (reduceOnly === true) {
+        if (reduceOnly) {
             flags = this.sum(flags, 1024);
         }
         if (flags !== 0) {
@@ -2147,7 +2147,7 @@ class bitfinex extends bitfinex$1["default"] {
             'id': [parseInt(id)],
         };
         const orders = await this.fetchOpenOrders(symbol, undefined, undefined, this.extend(request, params));
-        const order = this.safeValue(orders, 0);
+        const order = this.safeDict(orders, 0);
         if (order === undefined) {
             throw new errors.OrderNotFound(this.id + ' order ' + id + ' not found');
         }
@@ -2169,7 +2169,7 @@ class bitfinex extends bitfinex$1["default"] {
             'id': [parseInt(id)],
         };
         const orders = await this.fetchClosedOrders(symbol, undefined, undefined, this.extend(request, params));
-        const order = this.safeValue(orders, 0);
+        const order = this.safeDict(orders, 0);
         if (order === undefined) {
             throw new errors.OrderNotFound(this.id + ' order ' + id + ' not found');
         }
@@ -2868,7 +2868,7 @@ class bitfinex extends bitfinex$1["default"] {
         }
         const withdrawOptions = this.safeDict(this.options, 'withdraw', {});
         const includeFee = this.safeBool(withdrawOptions, 'includeFee', false);
-        if (includeFee === true) {
+        if (includeFee) {
             request['fee_deduct'] = 1;
         }
         const response = await this.privatePostAuthWWithdraw(this.extend(request, paramsOmitted2));
@@ -3994,7 +3994,7 @@ class bitfinex extends bitfinex$1["default"] {
                 request['price_aux_limit'] = this.priceToPrecision(symbol, price);
             }
         }
-        const postOnly = ((postOnlyParam === true) || (timeInForce === 'PO'));
+        const postOnly = ((postOnlyParam) || (timeInForce === 'PO'));
         if ((type !== 'market') && (triggerPrice === undefined)) {
             request['price'] = this.priceToPrecision(symbol, price);
         }
@@ -4003,7 +4003,7 @@ class bitfinex extends bitfinex$1["default"] {
         if (postOnly) {
             flags = this.sum(flags, 4096);
         }
-        if (reduceOnly === true) {
+        if (reduceOnly) {
             flags = this.sum(flags, 1024);
         }
         if (flags !== 0) {

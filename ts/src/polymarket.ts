@@ -1027,7 +1027,7 @@ export default class polymarket extends Exchange {
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const response = await this.publicGetInfoTickers (params);
         const result = this.parseFundingRates (response);
-        return this.filterByArray (result, 'symbol', symbolsNormalized);
+        return this.indexBy (this.filterByArray (result, 'symbol', symbolsNormalized, false), 'symbol');
     }
 
     override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
@@ -1172,7 +1172,7 @@ export default class polymarket extends Exchange {
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const response = await this.publicGetInfoTickers (params);
         const result = this.parseOpenInterests (response);
-        return this.filterByArray (result, 'symbol', symbolsNormalized);
+        return this.indexBy (this.filterByArray (result, 'symbol', symbolsNormalized, false), 'symbol');
     }
 
     override parseOpenInterest (interest: any, market: Market = undefined) {

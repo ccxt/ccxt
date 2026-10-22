@@ -1642,7 +1642,7 @@ class nado(Exchange, ImplicitAPI):
                 previousWithdraw = self.safe_bool(previous, 'can_withdraw', False)
                 currentDeposit = self.safe_bool(rawAsset, 'can_deposit', False)
                 currentWithdraw = self.safe_bool(rawAsset, 'can_withdraw', False)
-                if (previousDeposit is not True) and (previousWithdraw is not True) and ((currentDeposit is True) or (currentWithdraw is True)):
+                if (not previousDeposit) and (not previousWithdraw) and ((currentDeposit) or (currentWithdraw)):
                     assetsByCode[assetCode] = rawAsset
         markets = []
         for i in range(0, len(symbols)):
@@ -1763,7 +1763,7 @@ class nado(Exchange, ImplicitAPI):
             else:
                 previousDeposit = self.safe_bool(previous, 'deposit', False)
                 previousWithdraw = self.safe_bool(previous, 'withdraw', False)
-                if (previousDeposit is not True) and (previousWithdraw is not True) and ((canDeposit is True) or (canWithdraw is True)):
+                if (not previousDeposit) and (not previousWithdraw) and ((canDeposit) or (canWithdraw)):
                     result[code] = parsed
         return result
 
@@ -2861,15 +2861,15 @@ class nado(Exchange, ImplicitAPI):
         appendix = '1'  # version
         if orderType != 0:
             appendix = Precise.string_add(appendix, Precise.string_mul(self.number_to_string(orderType), '512'))
-        if reduceOnly is True:
+        if reduceOnly:
             appendix = Precise.string_add(appendix, '2048')
         buildFee = self.safe_bool(self.options, 'builderFee', True)
-        if buildFee is True:
+        if buildFee:
             builder = self.safe_string(self.options, 'builder', '4500')
             builderFeeRate = self.safe_string(self.options, 'feeRate', '10')  # 10 units = 0.01%
             appendix = Precise.string_add(appendix, Precise.string_mul(builder, '281474976710656'))  # 1<<48
             appendix = Precise.string_add(appendix, Precise.string_mul(builderFeeRate, '274877906944'))  # 1<<32
-        if isTriggerOrder is True:
+        if isTriggerOrder:
             appendix = Precise.string_add(appendix, '4096')
         return appendix
 
@@ -2886,16 +2886,13 @@ class nado(Exchange, ImplicitAPI):
         return '0x' + address + self.pad_hex(encoded, 24, False)
 
     def query_contracts(self, params: dict = {}) -> dict:
-        cachedContracts = self.safe_dict(self.options, 'gatewayContracts')
-        if cachedContracts is not None:
-            return cachedContracts
-        request = {
-            'type': 'contracts',
-        }
-        response = self.gatewayPublicGetQuery(self.extend(request, params))
-        data = self.safe_dict(response, 'data', {})
-        self.options['gatewayContracts'] = data
-        return data
+        if self.safe_dict(self.options, 'gatewayContracts') is None:
+            request = {
+                'type': 'contracts',
+            }
+            response = self.gatewayPublicGetQuery(self.extend(request, params))
+            self.options['gatewayContracts'] = self.safe_dict(response, 'data', {})
+        return self.safe_dict(self.options, 'gatewayContracts', {})
 
     def order_verifying_contract(self, productId: Int):
         return '0x' + self.pad_hex(self.int_to_base16(productId), 40)

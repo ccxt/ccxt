@@ -2815,12 +2815,12 @@ impl WeexCore {
         let mut sandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
         // the demo trading API only provides the swap account, don't let the default spot type break a bare fetchBalance() call
         let mut type_var: Value = marketType;
-        if (sandboxMode.as_bool() == Some(true)) && (requestedType.is_none()) {
+        if sandboxMode.as_bool() == Some(true) && (requestedType.is_none()) {
             type_var = Value::Str("swap".into());
         }
         let mut response: Value = Value::Null;
         if (type_var.as_str() == Some("spot")) {
-            if (sandboxMode.as_bool() == Some(true)) {
+            if sandboxMode.as_bool() == Some(true) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchBalance() only supports the swap account in sandbox mode, use params[\"type\"] = \"swap\"".into()))));
             }
             //
@@ -2862,7 +2862,7 @@ impl WeexCore {
             //         }
             //     ]
             //
-            if (sandboxMode.as_bool() == Some(true)) {
+            if sandboxMode.as_bool() == Some(true) {
                 response = self.contract_private_get_capi_v3_sim_balance(&[paramsMarketType.clone()]).await;
             }  else {
                 response = self.contract_private_get_capi_v3_account_balance(&[paramsMarketType]).await;
@@ -2887,7 +2887,7 @@ impl WeexCore {
             while { if !__for_first_1137 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1137 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
             let mut entry: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "asset", &[]);
-            if (sandboxMode.as_bool() == Some(true)) && (currencyId.as_str() == Some("SUSDT")) {
+            if sandboxMode.as_bool() == Some(true) && (currencyId.as_str() == Some("SUSDT")) {
                 currencyId = Value::Str("USDT".into()); // demo trading balances are denominated in the demo asset SUSDT
             }
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
@@ -3023,7 +3023,7 @@ impl WeexCore {
             return self.create_contract_order(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
         }  else {
             let mut sandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
-            if (sandboxMode.as_bool() == Some(true)) {
+            if sandboxMode.as_bool() == Some(true) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder() only supports swap markets in sandbox mode".into()))));
             }
             return self.create_spot_order(symbol, type_var, side, amount, &[price, params]).await;
@@ -3160,11 +3160,11 @@ impl WeexCore {
         let mut sandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
         let mut response: Value = Value::Null;
         if (triggerPrice.is_some()) {
-            if (sandboxMode.as_bool() == Some(true)) {
+            if sandboxMode.as_bool() == Some(true) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support stopLossPrice or takeProfitPrice orders in sandbox mode".into()))));
             }
             response = self.contract_private_post_capi_v3_algo_order(&[request.clone()]).await;
-        }  else if (sandboxMode.as_bool() == Some(true)) {
+        }  else if sandboxMode.as_bool() == Some(true) {
             response = self.contract_private_post_capi_v3_sim_order(&[request.clone()]).await;
         }  else {
             response = self.contract_private_post_capi_v3_order(&[request]).await;
@@ -3390,7 +3390,7 @@ impl WeexCore {
         let mut type_var: Value = type_varparamsMarketTypeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut trigger: Value = self.safe_bool_k(paramsMarketType.clone(), "trigger", &[Value::Bool(false)]);
-        if (trigger.as_bool() == Some(true)) && (id == Value::Null) {
+        if trigger.as_bool() == Some(true) && (id == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires an id argument for trigger orders".into()))));
         }
         let mut request: Value = Value::Map({
@@ -3422,7 +3422,7 @@ impl WeexCore {
             //
             let __ws_arg_16 = self.extend(request.clone(), &[paramsOmitted.clone()]);
             response = self.private_delete_api_v3_order(&[__ws_arg_16]).await;
-        }  else if (trigger.as_bool() == Some(true)) {
+        }  else if trigger.as_bool() == Some(true) {
             let __ws_arg_17 = self.extend(request.clone(), &[paramsOmitted.clone()]);
             response = self.contract_private_delete_capi_v3_algo_order(&[__ws_arg_17]).await;
         }  else {
@@ -3482,7 +3482,7 @@ impl WeexCore {
             }
             let __ws_arg_19 = self.extend(request.clone(), &[paramsOmitted.clone()]);
             response = self.private_delete_api_v3_open_orders(&[__ws_arg_19]).await;
-        }  else if (trigger.as_bool() == Some(true)) {
+        }  else if trigger.as_bool() == Some(true) {
             let __ws_arg_20 = self.extend(request.clone(), &[paramsOmitted.clone()]);
             response = self.contract_private_delete_capi_v3_algo_open_orders(&[__ws_arg_20]).await;
         }  else {
@@ -3735,7 +3735,7 @@ impl WeexCore {
             let mut requestUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
             let mut paramsUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
             let mut trigger: Value = self.safe_bool_k(paramsUntil.clone(), "trigger", &[Value::Bool(false)]);
-            if (trigger.as_bool() == Some(true)) {
+            if trigger.as_bool() == Some(true) {
                 let mut paramsOmitted: Value = self.omit(paramsUntil.clone(), Value::Str("trigger".into()), &[]);
                 //
                 //     [
@@ -4023,7 +4023,7 @@ impl WeexCore {
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut sandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
         let mut response: Value = Value::Null;
-        if (sandboxMode.as_bool() == Some(true)) {
+        if sandboxMode.as_bool() == Some(true) {
             let __ws_arg_30 = self.extend(requestUntil.clone(), &[paramsUntil.clone()]);
             response = self.contract_private_get_capi_v3_sim_order_history(&[__ws_arg_30]).await;
         }  else {
@@ -4756,7 +4756,7 @@ impl WeexCore {
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
         let mut sandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
         let mut response: Value = Value::Null;
-        if (sandboxMode.as_bool() == Some(true)) {
+        if sandboxMode.as_bool() == Some(true) {
             response = self.contract_private_get_capi_v3_sim_position_all_position(&[params.clone()]).await;
         }  else {
             response = self.contract_private_get_capi_v3_account_position_all_position(&[params]).await;
@@ -4806,7 +4806,7 @@ impl WeexCore {
         }
         let mut market: Value = self.market(symbol);
         let mut sandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
-        if (sandboxMode.as_bool() == Some(true)) {
+        if sandboxMode.as_bool() == Some(true) {
             return self.fetch_positions(&[Value::from(vec![market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)]), params.clone()]).await;
         }
         let mut request: Value = Value::Map({
@@ -5578,7 +5578,7 @@ impl WeexCore {
         let market = market.as_map().unwrap_or(&__market_empty);
         let mut sandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
         let mut baseId: Value = (match market.get("baseId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        if (sandboxMode.as_bool() == Some(true)) && (baseId != Value::Null) {
+        if sandboxMode.as_bool() == Some(true) && (baseId != Value::Null) {
             return Value::Str(format!("{}{}", baseId, Value::Str("SUSDT".into())).into()).as_str().map(str::to_owned);
         }
         return (match market.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
@@ -5594,7 +5594,7 @@ impl WeexCore {
  */
     pub fn from_sandbox_market_id(&self, mut marketId: Value) -> Option<String> {
         let mut sandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
-        if (sandboxMode.as_bool() != Some(true)) || (marketId == Value::Null) {
+        if (!(sandboxMode.as_bool() == Some(true))) || (marketId == Value::Null) {
             return marketId.as_str().map(str::to_owned);
         }
         if (self.markets_by_id.clone() != Value::Null) && (in_op(&self.markets_by_id, &marketId)) {
@@ -5639,7 +5639,7 @@ impl WeexCore {
         let mut requestHeaders: Value = Value::Null;
         if isPrivate {
             let mut sandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
-            if (sandboxMode.as_bool() == Some(true)) && (Value::Int(path.as_str().and_then(|__s| __s.find("capi/v3/sim/")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() != Some(0.0)) {
+            if sandboxMode.as_bool() == Some(true) && (Value::Int(path.as_str().and_then(|__s| __s.find("capi/v3/sim/")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() != Some(0.0)) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), path).into()), Value::Str(" is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets".into()))));
             }
             self.check_required_credentials(&[]);

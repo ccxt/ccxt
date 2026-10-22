@@ -114,7 +114,7 @@ func (this *Weex) subscribePublicBody(ch chan ccxt.AsyncResult[any], messageHash
 	var id any = this.RequestId()
 	var method string = "SUBSCRIBE"
 	var unsubscribe *bool = this.SafeBool(subscription, "unsubscribe", false)
-	if unsubscribe != nil && *unsubscribe == true {
+	if unsubscribe != nil && *unsubscribe {
 		method = "UNSUBSCRIBE"
 	}
 	var message map[string]any = map[string]any{
@@ -160,7 +160,7 @@ func (this *Weex) subscribePrivateBody(ch chan ccxt.AsyncResult[any], messageHas
 	this.Authenticate(url)
 	var method string = "SUBSCRIBE"
 	var unsubscribe *bool = this.SafeBool(subscription, "unsubscribe", false)
-	if unsubscribe != nil && *unsubscribe == true {
+	if unsubscribe != nil && *unsubscribe {
 		method = "UNSUBSCRIBE"
 	}
 	var id any = this.RequestId()
@@ -2209,7 +2209,7 @@ func (this *Weex) watchBalanceBody(ch chan ccxt.AsyncResult[map[string]any], opt
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBalance")
 	var fetchBalanceSnapshot *bool = this.SafeBool(options, "fetchBalanceSnapshot", false)
 	var awaitBalanceSnapshot *bool = this.SafeBool(options, "awaitBalanceSnapshot", true)
-	if (fetchBalanceSnapshot != nil && *fetchBalanceSnapshot == true) && (awaitBalanceSnapshot != nil && *awaitBalanceSnapshot == true) {
+	if (fetchBalanceSnapshot != nil && *fetchBalanceSnapshot) && (awaitBalanceSnapshot != nil && *awaitBalanceSnapshot) {
 
 		r1 := <-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchBalanceSnapshot"))
 		if r1.Err != nil {
@@ -2241,7 +2241,7 @@ func (this *Weex) SetBalanceCache(client any, typeVar any) {
 	}
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBalance")
 	var fetchBalanceSnapshot *bool = this.SafeBool(options, "fetchBalanceSnapshot", false)
-	if fetchBalanceSnapshot != nil && *fetchBalanceSnapshot == true {
+	if fetchBalanceSnapshot != nil && *fetchBalanceSnapshot {
 		var messageHash any = ccxt.Add(typeVar, ":fetchBalanceSnapshot")
 		if !(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
 			client.(ccxt.ClientInterface).Future(messageHash)
@@ -2657,7 +2657,7 @@ func (this *Weex) HandleSubscriptionStatus(client any, message any) any {
 	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
 	var subscription any = this.SafeDict(subscriptionsById, id, map[string]any{})
 	var unsubscribe *bool = this.SafeBool(subscription, "unsubscribe", false)
-	if unsubscribe != nil && *unsubscribe == true {
+	if unsubscribe != nil && *unsubscribe {
 		var subHashIsPrefix *bool = this.SafeBool(subscription, "subHashIsPrefix", false)
 		var messageHashes []any = ccxt.SafeListTyped(subscription, "messageHashes")
 		var subHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
@@ -2679,7 +2679,7 @@ func (this *Weex) HandleErrorMessage(client any, message any) any {
 	//     }
 	//
 	var result *bool = this.SafeBool(message, "result", true)
-	if result == nil || *result != true {
+	if !(result != nil && *result) {
 		var msg *string = this.SafeString(message, "msg", "")
 		var feedback string = this.Id + " " + this.Json(message)
 

@@ -790,7 +790,7 @@ class kalshi extends kalshi$1["default"] {
         //
         const tradingActive = this.safeBool(response, 'trading_active', false);
         return {
-            'status': (tradingActive === true) ? 'ok' : 'maintenance',
+            'status': (tradingActive) ? 'ok' : 'maintenance',
             'updated': undefined,
             'eta': undefined,
             'url': undefined,
@@ -1498,7 +1498,7 @@ class kalshi extends kalshi$1["default"] {
         }
         const isTaker = this.safeBool(fill, 'is_taker', true);
         let takerOrMaker = 'maker';
-        if (isTaker === true) {
+        if (isTaker) {
             takerOrMaker = 'taker';
         }
         const feeCost = this.safeNumber(fill, 'fee_cost');
@@ -1582,10 +1582,10 @@ class kalshi extends kalshi$1["default"] {
         const positions = this.safeList(response, 'market_positions', []);
         // filter by the requested outcomes' market tickers — a kalshi position is per market
         // ticker and covers both the YES and the NO leg
-        const parsed = this.parsePredictionPositions(positions);
         if (outcomesLength === 0) {
-            return parsed;
+            return this.parsePredictionPositions(positions);
         }
+        const parsed = this.parsePredictionPositions(positions);
         const wantedTickers = {};
         if (outcomes === undefined) {
             throw new errors.ExchangeError(this.id + ' fetchPositions() missing outcomes');
@@ -2332,7 +2332,8 @@ class kalshi extends kalshi$1["default"] {
     async fetchRawEventByTicker(ticker, params = {}) {
         const request = { 'event_ticker': ticker, 'with_nested_markets': true };
         const response = await this.kalshiPublicGetEventsEventTicker(this.extend(request, params));
-        const fullEvent = this.safeDict(response, 'event', response);
+        // a typed copy of the event row: the caller-facing dict is never the raw response
+        const fullEvent = this.extend({}, this.safeDict(response, 'event', response));
         const nestedMarkets = this.safeList(fullEvent, 'markets');
         if (nestedMarkets === undefined) {
             fullEvent['markets'] = this.safeList(response, 'markets', []);

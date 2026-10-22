@@ -2027,9 +2027,9 @@ class predictfun(PredictionExchange, ImplicitAPI):
         #     }
         #
         rows = self.safe_list(response, 'data', [])
-        parsed = self.parse_prediction_positions(rows)
         if outcomesLength == 0:
-            return parsed
+            return self.parse_prediction_positions(rows)
+        parsed = self.parse_prediction_positions(rows)
         # the venue filters by marketId only, so a set of outcome handles is applied here
         wanted = {}
         wantedOutcomes = self.to_array(outcomes)

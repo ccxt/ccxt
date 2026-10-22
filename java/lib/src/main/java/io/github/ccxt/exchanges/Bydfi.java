@@ -884,7 +884,7 @@ public class Bydfi extends BydfiApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Boolean paginate = (Boolean) this.safeBool(parameters, "paginate", false);
-            if (java.util.Objects.equals(paginate, true))
+            if (Boolean.TRUE.equals(paginate))
             {
                 Long maxLimit = 500L;
                 Map<String, Object> paramsPaginate = this.extend(this.omit(parameters, "paginate"), new HashMap<String, Object>() {{
@@ -1591,14 +1591,14 @@ public class Bydfi extends BydfiApi
             query = this.omit(query, "reduceOnly");
             if (java.util.Objects.equals(side, "buy"))
             {
-                request.put("positionSide", (((java.util.Objects.equals(reduceOnly, true)))) ? "SHORT" : "LONG");
+                request.put("positionSide", ((Boolean.TRUE.equals(reduceOnly))) ? "SHORT" : "LONG");
             } else if (java.util.Objects.equals(side, "sell"))
             {
-                request.put("positionSide", (((java.util.Objects.equals(reduceOnly, true)))) ? "LONG" : "SHORT");
+                request.put("positionSide", ((Boolean.TRUE.equals(reduceOnly))) ? "LONG" : "SHORT");
             }
         }
         Boolean closePosition = (Boolean) this.safeBool(query, "closePosition", false);
-        if (!java.util.Objects.equals(closePosition, true))
+        if (!Boolean.TRUE.equals(closePosition))
         {
             query = this.omit(query, "closePosition");
             request.put("quantity", this.amountToPrecision(symbol, amount));
@@ -2056,7 +2056,7 @@ public class Bydfi extends BydfiApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Boolean paginate = (Boolean) this.safeBool(parameters, "paginate", false);
-            if (java.util.Objects.equals(paginate, true))
+            if (Boolean.TRUE.equals(paginate))
             {
                 Long maxLimit = 500L;
                 Map<String, Object> paramsPaginate = this.extend(this.omit(parameters, "paginate"), new HashMap<String, Object>() {{
@@ -3184,7 +3184,7 @@ public class Bydfi extends BydfiApi
             Object transfer = this.parseTransfer(response, currency);
             Map<String, Object> transferOptions = (Map<String, Object>) this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
             Boolean fillResponseFromRequest = (Boolean) this.safeBool(transferOptions, "fillResponseFromRequest", true);
-            if (java.util.Objects.equals(fillResponseFromRequest, true))
+            if (Boolean.TRUE.equals(fillResponseFromRequest))
             {
                 ((Map<String, Object>)transfer).put("currency", code);
                 ((Map<String, Object>)transfer).put("fromAccount", fromAccount);
@@ -3223,7 +3223,7 @@ public class Bydfi extends BydfiApi
             }
             Map<String, Object> currency = this.currency((String) (code));
             Boolean paginate = (Boolean) this.safeBool(parameters, "paginate", false);
-            if (java.util.Objects.equals(paginate, true))
+            if (Boolean.TRUE.equals(paginate))
             {
                 Long maxLimit = 50L;
                 Map<String, Object> paramsPaginate = this.extend(this.omit(parameters, "paginate"), new HashMap<String, Object>() {{
@@ -3387,7 +3387,7 @@ public class Bydfi extends BydfiApi
             }
             Map<String, Object> currency = this.currency((String) (code));
             Boolean paginate = (Boolean) this.safeBool(parameters, "paginate", false);
-            if (java.util.Objects.equals(paginate, true))
+            if (Boolean.TRUE.equals(paginate))
             {
                 Long maxLimit = 50L;
                 Map<String, Object> paramsPaginate = this.extend(this.omit(parameters, "paginate"), new HashMap<String, Object>() {{

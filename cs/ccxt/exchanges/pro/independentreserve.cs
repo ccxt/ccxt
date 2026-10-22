@@ -242,7 +242,7 @@ public partial class independentreserve : ccxt.independentreserve
             orderbook["datetime"] = this.iso8601(timestamp);
         }
         bool checksum = ((bool)this.handleOption("watchOrderBook", "checksum", true));
-        if (((checksum == true)) && ((receivedSnapshot == true)))
+        if ((checksum) && (receivedSnapshot == true))
         {
             ccxt.pro.IAsks storedAsks = orderbook?.asks;
             ccxt.pro.IBids storedBids = orderbook?.bids;

@@ -3343,7 +3343,7 @@ class backpack extends Exchange {
 
     private function do_fetch_positions(?array $symbols = null, $params = array()) {
         /**
-         * fetches derivative $positions
+         * fetches derivative positions
          *
          * @see https://docs.backpack.exchange/#tag/Futures/operation/get_positions
          *
@@ -3355,12 +3355,11 @@ class backpack extends Exchange {
             Async\await($this->load_markets());
         }
         $response = Async\await($this->privateGetApiV1Position($params));
-        $positions = $this->parse_positions($response);
         if ($this->is_empty($symbols)) {
-            return $positions;
+            return $this->parse_positions($response);
         }
         $symbolsNormalized = $this->market_symbols($symbols);
-        return $this->filter_by_array_positions($positions, 'symbol', $symbolsNormalized);
+        return $this->parse_positions($response, $symbolsNormalized);
     }
 
     public function parse_position(array $position, ?array $market = null): array {

@@ -230,7 +230,7 @@ class mudrex extends Exchange {
             return null;
         }
         $success = $this->safe_bool($response, 'success', true);
-        if ($success !== true) {
+        if (!$success) {
             $errors = $this->safe_list($response, 'errors', array());
             $first = $this->safe_dict($errors, 0, array());
             $text = $this->safe_string($first, 'text', $this->json($response));
@@ -480,7 +480,7 @@ class mudrex extends Exchange {
         $offset = 0;
         $pageLimit = 100;
         $paging = true;
-        while ($paging === true) {
+        while ($paging) {
             $q = $this->extend(array( 'limit' => $pageLimit, 'offset' => $offset ), $params);
             $response = Async\await($this->privateGetFutures($q));
             $data = $this->safe_value($response, 'data', array());
@@ -1255,10 +1255,10 @@ class mudrex extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
+        $market = $this->market($symbol);
         $positionId = $this->safe_string($params, 'position_id');
         $amount = $this->safe_value($params, 'amount');
         if ($positionId === null) {
-            $market = $this->market($symbol);
             $positions = Async\await($this->fetch_positions(array( $symbol ), $params));
             for ($i = 0; $i < count($positions); $i++) {
                 $p = $positions[$i];
@@ -1287,11 +1287,13 @@ class mudrex extends Exchange {
             }
             $partialParams = $this->omit($params, array( 'order_type', 'limit_price', 'amount', 'position_id' ));
             $partialResponse = Async\await($this->privatePostFuturesPositionsPositionIdClosePartial($this->extend($request, $partialParams)));
-            return $partialResponse;
+            $partialData = $this->safe_dict($partialResponse, 'data', $partialResponse);
+            return $this->parse_order($partialData, $market);
         }
         $closeParams = $this->omit($params, array( 'position_id' ));
         $response = Async\await($this->privatePostFuturesPositionsPositionIdClose($this->extend($request, $closeParams)));
-        return $response;
+        $data = $this->safe_dict($response, 'data', $response);
+        return $this->parse_order($data, $market);
     }
 
     public function add_margin(string $symbol, float $amount, $params = array()): PromiseInterface {
@@ -1390,7 +1392,7 @@ class mudrex extends Exchange {
         $calls = 0;
         $offset = 0;
         $paging = true;
-        while ($paging === true) {
+        while ($paging) {
             $request = array();
             if ($pageSize > 0) {
                 $request['limit'] = $pageSize;

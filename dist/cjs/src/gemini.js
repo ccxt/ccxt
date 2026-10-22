@@ -1697,7 +1697,7 @@ class gemini extends gemini$1["default"] {
                 }
             }
             const postOnly = this.safeBool(params, 'postOnly', false);
-            if (postOnly === true) {
+            if (postOnly) {
                 request['options'] = ['maker-or-cancel'];
             }
             // allowing override for auction-only and indication-of-interest order options
@@ -1991,7 +1991,7 @@ class gemini extends gemini$1["default"] {
         }
         const indexedByNetwork = await this.fetchDepositAddressesByNetwork(code, params);
         const networkCode = this.handleNetworkCodeAndParams(params)[0];
-        return this.safeValue(indexedByNetwork, networkCode);
+        return this.safeDict(indexedByNetwork, networkCode);
     }
     /**
      * @method

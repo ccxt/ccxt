@@ -1809,7 +1809,7 @@ public class Bullish extends BullishApi
             (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.handleToken(new HashMap<String, Object>() {{}})))).join();
             Object tradingAccountId = (this.loadAccount(parameters)).join();
             Boolean paginate = (Boolean) this.safeBool(parameters, "paginate", false);
-            if (java.util.Objects.equals(paginate, true))
+            if (Boolean.TRUE.equals(paginate))
             {
                 Object paramsPagination = this.handlePaginationParams("fetchOrders", since, parameters);
                 return (this.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, Helpers.toMapArg(paramsPagination), 100L, true)).join();
@@ -2231,7 +2231,7 @@ public class Bullish extends BullishApi
                 request.put("type", ((String)type).toUpperCase());
             }
             Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", false);
-            if (java.util.Objects.equals(postOnly, true))
+            if (Boolean.TRUE.equals(postOnly))
             {
                 request.put("type", "POST_ONLY");
             }
@@ -2243,7 +2243,7 @@ public class Bullish extends BullishApi
             {
                 request.put("price", this.priceToPrecision(symbol, price));
             }
-            Map<String, Object> paramsOmitted = (((java.util.Objects.equals(postOnly, true)))) ? this.omit(parameters, "postOnly") : parameters;
+            Map<String, Object> paramsOmitted = ((Boolean.TRUE.equals(postOnly))) ? this.omit(parameters, "postOnly") : parameters;
             Map<String, Object> response = (this.privatePostV2Command(this.extend(request, paramsOmitted))).join();
             return this.parseOrder(response, market);
         }).thenApply(Order::new);
@@ -3235,7 +3235,7 @@ public class Bullish extends BullishApi
             Map<String, Object> transferOptions = (Map<String, Object>) this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
             Boolean fillResponseFromRequest = (Boolean) this.safeBool(transferOptions, "fillResponseFromRequest", true);
             Object transfer = this.parseTransfer(response, currency);
-            if (java.util.Objects.equals(fillResponseFromRequest, true))
+            if (Boolean.TRUE.equals(fillResponseFromRequest))
             {
                 ((Map<String, Object>)transfer).put("fromAccount", fromAccount);
                 ((Map<String, Object>)transfer).put("toAccount", toAccount);

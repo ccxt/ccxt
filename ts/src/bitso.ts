@@ -1395,8 +1395,7 @@ export default class bitso extends Exchange {
         };
         const response = await this.privateGetOpenOrders (this.extend (request, paramsMarker));
         const payload: Dict[] = this.safeList (response, 'payload', []);
-        const orders = this.parseOrders (payload, market, since, limit);
-        return orders;
+        return this.parseOrders (payload, market, since, limit);
     }
 
     /**

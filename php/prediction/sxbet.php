@@ -587,7 +587,7 @@ class sxbet extends Exchange {
         return false;
     }
 
-    public function parse_event(string $fixtureId, array $rawMarkets): mixed {
+    public function parse_event(string $fixtureId, array $rawMarkets): array {
         /**
          * @ignore
          * groups a fixture's $raw markets (all sharing one sportXeventId) into one unified event structure
@@ -807,7 +807,7 @@ class sxbet extends Exchange {
         }
         $proxy = Async\await($this->fetch_sxbet_proxy());
         $deployed = $this->safe_bool($proxy, 'deployed', false);
-        if ($deployed !== true) {
+        if (!$deployed) {
             Async\await($this->sxbetPrivatePostUserDeployProxy());
             // deployment is asynchronous - poll until the proxy exists
             for ($i = 0; $i < 30; $i++) {
@@ -915,7 +915,7 @@ class sxbet extends Exchange {
         // the venue has no post-only or trigger mechanics - reject the unified params instead
         // of forwarding fields the exchange would silently ignore
         $postOnly = $this->safe_bool($params, 'postOnly', false);
-        if ($postOnly === true) {
+        if ($postOnly) {
             throw new NotSupported($this->id . ' createOrder() does not support postOnly - GTC orders may cross on entry');
         }
         $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
@@ -1220,11 +1220,12 @@ class sxbet extends Exchange {
         } else {
             $response = Async\await($this->sxbetPrivateDeleteOrdersV3All($rest));
         }
-        $result = $this->parse_sxbet_cancel_response($response);
+        $result = array();
+        $result = $this->array_concat($result, $this->parse_sxbet_cancel_response($response));
         // both paths paginate their async submission - keep going on the SAME route while more remain
         $hasMore = $this->safe_bool($this->safe_dict($response, 'data', array()), 'hasMore', false);
         $guard = 0;
-        while (($hasMore === true) && ($guard < 50)) {
+        while (($hasMore) && ($guard < 50)) {
             $nextResponse = null;
             if ($isEventScoped) {
                 $nextRequest = array( 'eventId' => $eventId );
@@ -1549,7 +1550,7 @@ class sxbet extends Exchange {
         $isMaker = $this->safe_bool($fill, 'isMaker');
         $takerOrMaker = null;
         if ($isMaker !== null) {
-            $takerOrMaker = ($isMaker === true) ? 'maker' : 'taker';
+            $takerOrMaker = ($isMaker) ? 'maker' : 'taker';
         }
         return $this->safe_prediction_trade(array(
             'id' => $this->safe_string($fill, 'id'),

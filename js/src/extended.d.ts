@@ -361,7 +361,7 @@ export default class extended extends Exchange {
     fetchPositionsHistory(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
     parsePosition(position: Dict, market?: Market): Position;
     getExtendedStarkAmount(amount: string, resolution: Int, roundUp?: boolean): string;
-    fetchExtendedAccount(params?: {}): Promise<any>;
+    fetchExtendedAccount(params?: {}): Promise<Dict>;
     createOrderSettlementData(isBuy: boolean, amountString: string, priceString: string, params?: Dict): Dict;
     createWithdrawalSettlementData(address: string, amountString: string, currency: Currency, account: Dict, params?: Dict): Dict;
     createTransferSettlementData(amountString: string, currency: Currency, account: Dict, toVault: string, toL2Key: string, params?: Dict): Dict;
