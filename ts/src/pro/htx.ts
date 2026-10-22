@@ -1500,7 +1500,7 @@ export default class htx extends htxRest {
             };
         }
         const avgPrice = this.safeString (order, 'trade_avg_price');
-        const rawTrades = this.safeValue (order, 'trade');
+        const rawTrades = this.safeList (order, 'trade');
         let typeSideParts: string[] = [];
         let type: Str = undefined;
         if (typeSide !== undefined) {
