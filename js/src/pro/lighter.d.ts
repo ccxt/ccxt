@@ -10,7 +10,7 @@ export default class lighter extends lighterRest {
     unsubscribe(messageHash: string, params?: Dict): Promise<any>;
     subscribePrivate(messageHash: string, params?: Dict): Promise<any>;
     handleDelta(bookside: any, delta: any): void;
-    handleDeltas(bookside: any, deltas: any): void;
+    handleDeltas(bookside: any, deltas: any[]): void;
     handleOrderBookMessage(client: Client, message: Dict, orderbook: WsOrderBook): WsOrderBook;
     handleOrderBook(client: Client, message: Dict): void;
     /**

@@ -146,7 +146,7 @@ export default class bitget extends bitgetRest {
     handleOrderBook(client: Client, message: Dict): void;
     handleCheckSumError(client: Client, symbol: string, messageHash: string): Promise<void>;
     handleDelta(bookside: any, delta: any): void;
-    handleDeltas(bookside: any, deltas: any): void;
+    handleDeltas(bookside: any, deltas: any[]): void;
     /**
      * @method
      * @name bitget#watchTrades
@@ -271,7 +271,7 @@ export default class bitget extends bitgetRest {
     handleBalance(client: Client, message: Dict): void;
     watchPublic(uta: boolean, messageHash: string, args: Dict, params?: Dict): Promise<any>;
     unWatchPublic(uta: boolean, messageHash: string, args: Dict, params?: Dict): Promise<any>;
-    unWatchPrivate(uta: any, messageHash: any, args: any, params?: {}): Promise<any>;
+    unWatchPrivate(uta: any, messageHash: any, args: any, params?: Dict): Promise<any>;
     watchPublicMultiple(uta: boolean, messageHashes: string[], argsArray: any[], params?: Dict): Promise<any>;
     authenticate(params?: Dict): Promise<any>;
     watchPrivate(uta: boolean, messageHash: string, subscriptionHash: string, args: Dict, params?: Dict): Promise<any>;

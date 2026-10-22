@@ -1,5 +1,5 @@
 import Exchange from './abstract/nado.js';
-import type { Balances, Currencies, Currency, Dict, FundingHistory, FundingRate, FundingRates, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, Status, OpenInterest, OpenInterests } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, NullableDict, FundingHistory, FundingRate, FundingRates, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, Status, OpenInterest, OpenInterests } from './base/types.js';
 /**
  * @class nado
  * @augments Exchange
@@ -459,7 +459,7 @@ export default class nado extends Exchange {
         id: Str;
         amount: number | undefined;
     };
-    parseOpenInterest(interest: any, market?: Market): OpenInterest;
+    parseOpenInterest(interest: NullableDict, market?: Market): OpenInterest;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     parseCurrency(rawCurrency: Dict): Currency;
     parseBalance(response: any): Balances;

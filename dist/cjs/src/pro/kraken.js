@@ -1062,7 +1062,7 @@ class kraken extends kraken$1["default"] {
         const integer = this.safeString(parts, 0, '');
         const decimals = this.safeString(parts, 1, '');
         let joinedResult = integer + decimals;
-        while ((joinedResult.length > 0) && (joinedResult[0] === '0')) {
+        while (joinedResult.startsWith('0')) {
             joinedResult = joinedResult.slice(1);
         }
         return joinedResult;

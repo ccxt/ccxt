@@ -2561,7 +2561,8 @@ class sxbet extends sxbet$1["default"] {
         //
         const rowsLength = rows.length;
         for (let i = 0; i < rowsLength; i++) {
-            const row = this.safeDict(rows[i], 'trade', rows[i]);
+            const rawRow = rows[i];
+            const row = this.safeDict(rawRow, 'trade', rawRow);
             const trade = this.parseSxbetV3PublicTrade(row);
             const sym = this.safeString(trade, 'outcome');
             if (sym === undefined) {
@@ -2612,7 +2613,8 @@ class sxbet extends sxbet$1["default"] {
         //
         const rowsLength = rows.length;
         for (let i = 0; i < rowsLength; i++) {
-            const row = this.safeDict(rows[i], 'fill', rows[i]);
+            const rawRow = rows[i];
+            const row = this.safeDict(rawRow, 'fill', rawRow);
             const trade = this.parseSxbetV3Fill(row);
             const sym = this.safeString(trade, 'outcome');
             if (sym === undefined) {
@@ -2660,7 +2662,8 @@ class sxbet extends sxbet$1["default"] {
         //
         const rowsLength = rows.length;
         for (let i = 0; i < rowsLength; i++) {
-            const row = this.safeDict(rows[i], 'order', rows[i]);
+            const rawRow = rows[i];
+            const row = this.safeDict(rawRow, 'order', rawRow);
             const order = this.parsePredictionOrder(row);
             if (this.orders === undefined) {
                 const cacheLimit = this.safeInteger(this.options, 'ordersLimit', 1000);

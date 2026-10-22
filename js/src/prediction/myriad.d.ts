@@ -591,7 +591,7 @@ export default class myriad extends Exchange {
     pong(client: Client, message?: any): Promise<void>;
     subscribeMyriadChannel(messageHash: string, channel: string, params?: Dict): Promise<any>;
     handleMessage(client: any, message: any): void;
-    handleCentrifugoFrame(client: Client, msg: any): void;
+    handleCentrifugoFrame(client: Client, msg: Dict): void;
     /**
      * @method
      * @name myriad#watchOrderBook

@@ -1,5 +1,5 @@
 import Exchange from './abstract/hitbtc.js';
-import type { TransferEntry, Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order, OrderBook, Dict, List, Position, Str, Trade, Balances, Transaction, MarginMode, Tickers, Strings, Market, Currency, CurrencyInterface, MarginModes, Leverage, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, int, FundingRate, FundingRates, DepositAddress, OrderBooks, OpenInterest, OpenInterests, DepositWithdrawFees } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order, OrderBook, Dict, NullableDict, List, Position, Str, Trade, Balances, Transaction, MarginMode, Tickers, Strings, Market, Currency, CurrencyInterface, MarginModes, Leverage, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, int, FundingRate, FundingRates, DepositAddress, OrderBooks, OpenInterest, OpenInterests, DepositWithdrawFees } from './base/types.js';
 /**
  * @class hitbtc
  * @augments Exchange
@@ -435,7 +435,7 @@ export default class hitbtc extends Exchange {
      */
     fetchPosition(symbol: string, params?: Dict): Promise<Position>;
     parsePosition(position: Dict, market?: Market): Position;
-    parseOpenInterest(interest: any, market?: Market): OpenInterest;
+    parseOpenInterest(interest: NullableDict, market?: Market): OpenInterest;
     /**
      * @method
      * @name hitbtc#fetchOpenInterests
@@ -532,7 +532,7 @@ export default class hitbtc extends Exchange {
      * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     fetchDepositWithdrawFees(codes?: Strings, params?: Dict): Promise<DepositWithdrawFees>;
-    parseDepositWithdrawFee(fee: any, currency?: Currency): any;
+    parseDepositWithdrawFee(fee: NullableDict, currency?: Currency): any;
     /**
      * @method
      * @name hitbtc#closePosition

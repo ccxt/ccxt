@@ -491,7 +491,7 @@ export default class sxbet extends Exchange {
     pong(client: Client, message?: any): Promise<void>;
     subscribeSxbetChannel(messageHash: string, channel: string): Promise<any>;
     handleMessage(client: Client, message: any): void;
-    handleCentrifugoFrame(client: Client, msg: any): void;
+    handleCentrifugoFrame(client: Client, msg: Dict): void;
     /**
      * @method
      * @name sxbet#watchOrderBook

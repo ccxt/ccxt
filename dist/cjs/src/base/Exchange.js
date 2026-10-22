@@ -5890,7 +5890,11 @@ class BaseExchange {
      * @method
      * @ignore
      * @name Exchange#incrementingNonce
-     * @description returns a strictly-increasing nonce for venues that reject duplicate nonces per signer; the unit is whatever nonce () returns — the base default is seconds, so a venue that does not override nonce () gets a second-resolution counter that drifts ahead of wall clock under load, while venues needing milliseconds override nonce () as hyperliquid does. The counter is per exchange instance, so it narrows the duplicate-nonce race but does not remove it across instances or processes.
+     * @description returns a strictly-increasing nonce for venues that reject duplicate nonces per signer;
+     * the unit is whatever nonce () returns — the base default is seconds, so a venue that does not override
+     * nonce () gets a second-resolution counter that drifts ahead of wall clock under load, while venues
+     * needing milliseconds override nonce () as hyperliquid does. The counter is per exchange instance,
+     * so it narrows the duplicate-nonce race but does not remove it across instances or processes.
      * @returns {int} a strictly-increasing nonce in the unit returned by nonce ()
      */
     incrementingNonce() {
@@ -7387,17 +7391,11 @@ class BaseExchange {
          * @returns {boolean} true if a post only order, false otherwise
          */
         const timeInForce = this.safeStringUpper(params, 'timeInForce');
-        let postOnly = this.safeBool2(params, 'postOnly', 'post_only', false);
         // we assume timeInForce is uppercase from safeStringUpper (params, 'timeInForce')
         const ioc = timeInForce === 'IOC';
         const fok = timeInForce === 'FOK';
         const timeInForcePostOnly = timeInForce === 'PO';
-        if (!postOnly) {
-            postOnly = timeInForcePostOnly;
-        }
-        if (!postOnly) {
-            postOnly = exchangeSpecificParam;
-        }
+        const postOnly = this.safeBool2(params, 'postOnly', 'post_only', false) || timeInForcePostOnly || exchangeSpecificParam;
         if (postOnly) {
             if (ioc || fok) {
                 throw new errors.InvalidOrder(this.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce);
@@ -7423,16 +7421,10 @@ class BaseExchange {
          * @returns {Array}
          */
         const timeInForce = this.safeStringUpper(params, 'timeInForce');
-        let postOnly = this.safeBool(params, 'postOnly', false);
         const ioc = timeInForce === 'IOC';
         const fok = timeInForce === 'FOK';
         const po = timeInForce === 'PO';
-        if (!postOnly) {
-            postOnly = po;
-        }
-        if (!postOnly) {
-            postOnly = exchangeSpecificPostOnlyOption;
-        }
+        const postOnly = this.safeBool(params, 'postOnly', false) || po || exchangeSpecificPostOnlyOption;
         if (postOnly) {
             if (ioc || fok) {
                 throw new errors.InvalidOrder(this.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce);
@@ -8183,7 +8175,7 @@ class BaseExchange {
         return this.filterBySinceLimit(sorted, since, limit, key);
     }
     sortCursorPaginatedResult(result) {
-        const first = this.safeValue(result, 0);
+        const first = this.safeDict(result, 0);
         if (first !== undefined) {
             if ('timestamp' in first) {
                 return this.sortBy(result, 'timestamp', true);
