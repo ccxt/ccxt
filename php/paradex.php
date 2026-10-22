@@ -1462,7 +1462,7 @@ class paradex extends Exchange {
 
     public function prepare_paradex_domain(bool $l1 = false): array {
         $systemConfig = $this->get_system_config();
-        if ($l1 === true) {
+        if ($l1) {
             $l1D = array(
                 'name' => 'Paradex',
                 'chainId' => $systemConfig['l1_chain_id'],

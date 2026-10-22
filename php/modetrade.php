@@ -2015,7 +2015,7 @@ class modetrade extends Exchange {
          */
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
         $paramsOmitted = $this->omit($params, array( 'stop', 'trigger' ));
-        if (($trigger !== true) && ($symbol === null)) {
+        if ((!$trigger) && ($symbol === null)) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
@@ -2032,7 +2032,7 @@ class modetrade extends Exchange {
         $clientOrderIdExchangeSpecific = $this->safe_string($paramsOmitted, 'client_order_id', $clientOrderIdUnified);
         $isByClientOrder = $clientOrderIdExchangeSpecific !== null;
         $paramsClientOrder = $this->omit($paramsOmitted, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
-        if ($trigger === true) {
+        if ($trigger) {
             if ($isByClientOrder) {
                 $request['client_order_id'] = $clientOrderIdExchangeSpecific;
                 $response = $this->v1PrivateDeleteAlgoClientOrder($this->extend($request, $paramsClientOrder));
@@ -2070,7 +2070,7 @@ class modetrade extends Exchange {
         } else {
             $extendParams['id'] = $id;
         }
-        if ($trigger === true) {
+        if ($trigger) {
             return $this->extend($this->parse_order($response), $extendParams);
         }
         $data = $this->safe_dict($response, 'data', array());
@@ -2194,7 +2194,7 @@ class modetrade extends Exchange {
         $request = array();
         $clientOrderId = $this->safe_string_n($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
         $paramsOmitted = $this->omit($params, array( 'stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id' ));
-        if ($trigger === true) {
+        if ($trigger) {
             if ($clientOrderId !== null && $clientOrderId !== '') {
                 $request['client_order_id'] = $clientOrderId;
                 $response = $this->v1PrivateGetAlgoClientOrderClientOrderId($this->extend($request, $paramsOmitted));
@@ -2264,7 +2264,7 @@ class modetrade extends Exchange {
             $this->load_markets();
         }
         $isTrigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
-        $maxLimit = ($isTrigger === true) ? 100 : 500;
+        $maxLimit = ($isTrigger) ? 100 : 500;
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOrders', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_incremental('fetchOrders', $symbol, $since, $limit, $paramsPaginate, 'page', $maxLimit);
@@ -2284,11 +2284,11 @@ class modetrade extends Exchange {
         } else {
             $request['size'] = $maxLimit;
         }
-        if ($isTrigger === true) {
+        if ($isTrigger) {
             $request['algo_type'] = 'STOP';
         }
         list($requestUntil, $paramsUntil) = $this->handle_until_option('end_t', $request, $paramsOmitted);
-        if ($isTrigger === true) {
+        if ($isTrigger) {
             $response = $this->v1PrivateGetAlgoOrders($this->extend($requestUntil, $paramsUntil));
         } else {
             $response = $this->v1PrivateGetOrders($this->extend($requestUntil, $paramsUntil));
@@ -3216,7 +3216,7 @@ class modetrade extends Exchange {
             $isOrder = $path === 'algo/order' || $path === 'order' || $path === 'batch-order';
             if ($isPostOrPut && $isOrder) {
                 $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-                if ($isSandboxMode !== true) {
+                if (!$isSandboxMode) {
                     $brokerId = $this->safe_string($this->options, 'brokerId', 'CCXTMODE');
                     if ($path === 'batch-order') {
                         $ordersList = $this->safe_list($paramsSorted, 'orders', array());

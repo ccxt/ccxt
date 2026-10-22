@@ -1966,7 +1966,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         //
         $messageHash = 'authenticated';
         $authenticated = $this->safe_bool($message, 'authenticated', false);
-        if ($authenticated === true) {
+        if ($authenticated) {
             // we resolve the future here permanently so authentication only happens once
             $client->resolve($message, $messageHash);
         } else {

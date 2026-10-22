@@ -715,9 +715,9 @@ class deepcoin extends Exchange {
             $request['after'] = $until;
         }
         $calculateUntil = $this->safe_bool($paramsPaginate, 'calculateUntil', false);
-        $keysToOmit = ($calculateUntil === true) ? array( 'price', 'until', 'calculateUntil' ) : array( 'price', 'until' );
+        $keysToOmit = ($calculateUntil) ? array( 'price', 'until', 'calculateUntil' ) : array( 'price', 'until' );
         $paramsOmitted = $this->omit($paramsPaginate, $keysToOmit);
-        if ($calculateUntil === true) {
+        if ($calculateUntil) {
             if ($since !== null) {
                 // the exchange do not have a since param for this endpoint
                 // we calculate until (after) for correct pagination
@@ -1514,7 +1514,7 @@ class deepcoin extends Exchange {
         $transfer = $this->parse_transfer($data, $currency);
         $transferOptions = $this->safe_dict($this->options, 'transfer', array());
         $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
-        if ($fillResponseFromRequest === true) {
+        if ($fillResponseFromRequest) {
             $transfer['fromAccount'] = $fromAccount;
             $transfer['toAccount'] = $toAccount;
             $transfer['amount'] = $amount;
@@ -1739,7 +1739,7 @@ class deepcoin extends Exchange {
             $request['mrgPosition'] = $mrgPosition;
             $posSide = null;
             $reduceOnly = $this->safe_bool($paramsMrgPosition, 'reduceOnly', false);
-            if ($reduceOnly === true) {
+            if ($reduceOnly) {
                 if ($side === 'buy') {
                     $posSide = 'short';
                 } elseif ($side === 'sell') {
@@ -1819,7 +1819,7 @@ class deepcoin extends Exchange {
         $request['isCrossMargin'] = $isCrossMargin;
         $request['tdMode'] = $marginModeOption;
         if ($market['swap'] === true) {
-            if ($reduceOnly === true) {
+            if ($reduceOnly) {
                 if ($side === 'buy') {
                     $request['posSide'] = 'short';
                 } elseif ($side === 'sell') {
@@ -2060,7 +2060,7 @@ class deepcoin extends Exchange {
             $request['limit'] = $limit; // default 100
         }
         $response = null;
-        if ($trigger === true) {
+        if ($trigger) {
             if ($methodName !== 'fetchCanceledAndClosedOrders') {
                 throw new BadRequest($this->id . ' ' . $methodName . '() does not support trigger orders');
             }
@@ -2233,7 +2233,7 @@ class deepcoin extends Exchange {
         $trigger = $this->safe_bool($params, 'trigger', false);
         $paramsOmitted = $this->omit($params, 'trigger');
         $response = null;
-        if ($trigger === true) {
+        if ($trigger) {
             $request['instType'] = $this->convert_to_instrument_type($market['type']);
             //
             //     {
@@ -2350,7 +2350,7 @@ class deepcoin extends Exchange {
         );
         $response = null;
         $trigger = $this->safe_bool($params, 'trigger', false);
-        if ($trigger === true) {
+        if ($trigger) {
             $paramsOmitted = $this->omit($params, 'trigger');
             $response = Async\await($this->privatePostDeepcoinTradeCancelTriggerOrder($this->extend($request, $paramsOmitted)));
         } else {

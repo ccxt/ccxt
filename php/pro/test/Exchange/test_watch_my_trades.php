@@ -29,7 +29,7 @@ function test_watch_my_trades($exchange, $skipped_properties, $symbol) {
                 // continue;
                 $success = false;
             }
-            if ($success === true) {
+            if ($success) {
                 assert_non_emtpy_array($exchange, $skipped_properties, $method, $response, $symbol);
                 $now = $exchange->milliseconds();
                 for ($i = 0; $i < count($response); $i++) {

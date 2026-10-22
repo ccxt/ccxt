@@ -2685,12 +2685,12 @@ class bitget extends \ccxt\async\bitget {
     }
 
     private function do_watch_public(bool $uta, string $messageHash, array $args, $params = array()) {
-        $url = ($uta === true) ? $this->urls['api']['ws']['utaPublic'] : $this->urls['api']['ws']['public'];
+        $url = ($uta) ? $this->urls['api']['ws']['utaPublic'] : $this->urls['api']['ws']['public'];
         $sandboxMode = $this->safe_bool_2($this->options, 'sandboxMode', 'sandbox', false);
-        if ($sandboxMode === true) {
+        if ($sandboxMode) {
             $instType = $this->safe_string($args, 'instType');
             if (($instType !== 'SCOIN-FUTURES') && ($instType !== 'SUSDT-FUTURES') && ($instType !== 'SUSDC-FUTURES')) {
-                if ($uta === true) {
+                if ($uta) {
                     $url = $this->urls['api']['demo']['utaPublic'];
                 } else {
                     $url = $this->urls['api']['demo']['public'];
@@ -2710,12 +2710,12 @@ class bitget extends \ccxt\async\bitget {
     }
 
     private function do_un_watch_public(bool $uta, string $messageHash, array $args, $params = array()) {
-        $url = ($uta === true) ? $this->urls['api']['ws']['utaPublic'] : $this->urls['api']['ws']['public'];
+        $url = ($uta) ? $this->urls['api']['ws']['utaPublic'] : $this->urls['api']['ws']['public'];
         $sandboxMode = $this->safe_bool_2($this->options, 'sandboxMode', 'sandbox', false);
-        if ($sandboxMode === true) {
+        if ($sandboxMode) {
             $instType = $this->safe_string($args, 'instType');
             if (($instType !== 'SCOIN-FUTURES') && ($instType !== 'SUSDT-FUTURES') && ($instType !== 'SUSDC-FUTURES')) {
-                if ($uta === true) {
+                if ($uta) {
                     $url = $this->urls['api']['demo']['utaPublic'];
                 } else {
                     $url = $this->urls['api']['demo']['public'];
@@ -2762,13 +2762,13 @@ class bitget extends \ccxt\async\bitget {
     }
 
     private function do_watch_public_multiple(bool $uta, array $messageHashes, array $argsArray, $params = array()) {
-        $url = ($uta === true) ? $this->urls['api']['ws']['utaPublic'] : $this->urls['api']['ws']['public'];
+        $url = ($uta) ? $this->urls['api']['ws']['utaPublic'] : $this->urls['api']['ws']['public'];
         $sandboxMode = $this->safe_bool_2($this->options, 'sandboxMode', 'sandbox', false);
-        if ($sandboxMode === true) {
+        if ($sandboxMode) {
             $argsArrayFirst = $this->safe_dict($argsArray, 0, array());
             $instType = $this->safe_string($argsArrayFirst, 'instType');
             if (($instType !== 'SCOIN-FUTURES') && ($instType !== 'SUSDT-FUTURES') && ($instType !== 'SUSDC-FUTURES')) {
-                $url = ($uta === true) ? $this->urls['api']['demo']['utaPublic'] : $this->urls['api']['demo']['public'];
+                $url = ($uta) ? $this->urls['api']['demo']['utaPublic'] : $this->urls['api']['demo']['public'];
             }
         }
         $request = array(
@@ -2817,12 +2817,12 @@ class bitget extends \ccxt\async\bitget {
     }
 
     private function do_watch_private(bool $uta, string $messageHash, string $subscriptionHash, array $args, $params = array()) {
-        $url = ($uta === true) ? $this->urls['api']['ws']['utaPrivate'] : $this->urls['api']['ws']['private'];
+        $url = ($uta) ? $this->urls['api']['ws']['utaPrivate'] : $this->urls['api']['ws']['private'];
         $sandboxMode = $this->safe_bool_2($this->options, 'sandboxMode', 'sandbox', false);
-        if ($sandboxMode === true) {
+        if ($sandboxMode) {
             $instType = $this->safe_string($args, 'instType');
             if (($instType !== 'SCOIN-FUTURES') && ($instType !== 'SUSDT-FUTURES') && ($instType !== 'SUSDC-FUTURES')) {
-                if ($uta === true) {
+                if ($uta) {
                     $url = $this->urls['api']['demo']['utaPrivate'];
                 } else {
                     $url = $this->urls['api']['demo']['private'];

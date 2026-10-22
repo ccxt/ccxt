@@ -4044,7 +4044,7 @@ class bybit extends Exchange {
         $amount = null;
         $cost = null;
         $qtyIsQuote = ($marketResolved['spot'] === true) && ($type === 'market') && (($marketUnit === 'quoteCoin') || (($marketUnit === null) && ($side === 'buy')));
-        if ($qtyIsQuote === true) {
+        if ($qtyIsQuote) {
             // qty is denominated in the quote currency, safeOrder derives amount from filled + remaining
             $cost = $this->safe_string($order, 'cumExecValue');
         } else {
@@ -4233,7 +4233,7 @@ class bybit extends Exchange {
         $orderRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $params, $enableUnifiedAccount);
         $switchToOco = ($isStopLossOrder && $isTakeProfitOrder) || $this->safe_bool($params, 'tradingStopEndpoint', false);
         $defaultMethod = null;
-        if (($isTrailingOrder || ($switchToOco === true)) && ($market['spot'] !== true)) {
+        if (($isTrailingOrder || ($switchToOco)) && ($market['spot'] !== true)) {
             $defaultMethod = 'privatePostV5PositionTradingStop';
         } else {
             $defaultMethod = 'privatePostV5OrderCreate';
@@ -4315,7 +4315,7 @@ class bybit extends Exchange {
         $isBuy = $side === 'buy';
         $switchToOco = ($isStopLossOrder && $isTakeProfitOrder) || $this->safe_bool($params, 'tradingStopEndpoint', false);
         $defaultMethod = null;
-        if ($isTrailingOrder || ($switchToOco === true)) {
+        if ($isTrailingOrder || ($switchToOco)) {
             $defaultMethod = 'privatePostV5PositionTradingStop';
         } else {
             $defaultMethod = 'privatePostV5OrderCreate';
@@ -4393,7 +4393,7 @@ class bybit extends Exchange {
             $timeInForce = $this->safe_string_lower($query, 'timeInForce'); // this is same as exchange specific param
             $postOnly = null;
             list($postOnly, $query) = $this->handle_post_only($isMarket, $timeInForce === 'postonly', $query);
-            if ($postOnly === true) {
+            if ($postOnly) {
                 $request['timeInForce'] = 'PostOnly';
             } elseif ($timeInForce === 'gtc') {
                 $request['timeInForce'] = 'GTC';
@@ -4549,7 +4549,7 @@ class bybit extends Exchange {
                 }
             }
         }
-        if (($market['spot'] !== true) && ($hedged === true)) {
+        if (($market['spot'] !== true) && ($hedged)) {
             if ($reduceOnly === true) {
                 $query = $this->omit($query, 'reduceOnly');
             }
@@ -4894,7 +4894,7 @@ class bybit extends Exchange {
         if ($market['spot'] === true) {
             // only works for spot market
             $isTrigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
-            $request['orderFilter'] = ($isTrigger === true) ? 'StopOrder' : 'Order';
+            $request['orderFilter'] = ($isTrigger) ? 'StopOrder' : 'Order';
         }
         if ($id !== null) { // The user can also use argument params["orderLinkId"]
             $request['orderId'] = $id;
@@ -5203,7 +5203,7 @@ class bybit extends Exchange {
         }
         $isTrigger = $this->safe_bool_2($paramsValue, 'stop', 'trigger', false);
         $paramsOmitted = $this->omit($paramsValue, array( 'stop', 'trigger' ));
-        if ($isTrigger === true) {
+        if ($isTrigger) {
             $request['orderFilter'] = 'StopOrder';
         }
         $response = $this->privatePostV5OrderCancelAll($this->extend($request, $paramsOmitted));
@@ -5271,7 +5271,7 @@ class bybit extends Exchange {
         $length = count($result);
         if ($length === 0) {
             $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
-            $extra = ($isTrigger === true) ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
+            $extra = ($isTrigger) ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
             throw new OrderNotFound('Order ' . (string) $id . ' was not found.' . $extra);
         }
         if ($length > 1) {
@@ -5420,7 +5420,7 @@ class bybit extends Exchange {
         $request['category'] = $type;
         $isTrigger = $this->safe_bool_2($paramsValue, 'trigger', 'stop', false);
         $paramsOmitted = $this->omit($paramsValue, array( 'trigger', 'stop' ));
-        if ($isTrigger === true) {
+        if ($isTrigger) {
             $request['orderFilter'] = 'StopOrder';
         }
         if ($limit !== null) {
@@ -5516,7 +5516,7 @@ class bybit extends Exchange {
         $length = count($result);
         if ($length === 0) {
             $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
-            $extra = ($isTrigger === true) ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
+            $extra = ($isTrigger) ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
             throw new OrderNotFound('Order ' . (string) $id . ' was not found.' . $extra);
         }
         if ($length > 1) {
@@ -5553,7 +5553,7 @@ class bybit extends Exchange {
         $length = count($result);
         if ($length === 0) {
             $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
-            $extra = ($isTrigger === true) ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
+            $extra = ($isTrigger) ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
             throw new OrderNotFound('Order ' . (string) $id . ' was not found.' . $extra);
         }
         if ($length > 1) {
@@ -5598,7 +5598,7 @@ class bybit extends Exchange {
         $request['category'] = $type;
         $isTrigger = $this->safe_bool_2($paramsValue, 'trigger', 'stop', false);
         $paramsOmitted = $this->omit($paramsValue, array( 'trigger', 'stop' ));
-        if ($isTrigger === true) {
+        if ($isTrigger) {
             $request['orderFilter'] = 'StopOrder';
         }
         if ($limit !== null) {
@@ -5783,7 +5783,7 @@ class bybit extends Exchange {
         $request['category'] = $type;
         $isTrigger = $this->safe_bool_2($paramsValue, 'stop', 'trigger', false);
         $paramsOmitted = $this->omit($paramsValue, array( 'stop', 'trigger' ));
-        if ($isTrigger === true) {
+        if ($isTrigger) {
             $request['orderFilter'] = 'StopOrder';
         }
         if ($limit !== null) {

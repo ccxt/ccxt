@@ -1146,7 +1146,7 @@ class whitebit extends Exchange {
             $hasAmountLimits = ($amountLimits !== null) && ($amountLimits !== null) && $this->safe_number($amountLimits, 'min') !== null && $this->safe_number($amountLimits, 'max') !== null;
             $hasPriceLimits = ($priceLimits !== null) && ($priceLimits !== null) && $this->safe_number($priceLimits, 'min') !== null && $this->safe_number($priceLimits, 'max') !== null;
             $hasCostLimits = ($costLimits !== null) && ($costLimits !== null) && $this->safe_number($costLimits, 'min') !== null && $this->safe_number($costLimits, 'max') !== null;
-            if (($hasAmountLimits === true) && ($hasPriceLimits === true) && ($hasCostLimits === true)) {
+            if (($hasAmountLimits) && ($hasPriceLimits) && ($hasCostLimits)) {
                 $result[$symbol] = array(
                     'info' => $market,
                     'limits' => array(
@@ -1520,7 +1520,7 @@ class whitebit extends Exchange {
             $request['market'] = $market['id'];
         }
         // Try active orders first (if enabled)
-        if ($checkActive === true) {
+        if ($checkActive) {
             try {
                 $response = Async\await($this->v4PrivatePostOrders($this->extend($request, $paramsOmitted)));
                 // Search for order in active orders response (array format)
@@ -1541,7 +1541,7 @@ class whitebit extends Exchange {
             }
         }
         // Try executed orders (if enabled)
-        if ($checkExecuted === true) {
+        if ($checkExecuted) {
             try {
                 $response = Async\await($this->v4PrivatePostTradeAccountOrderHistory($this->extend($request, $paramsOmitted)));
                 // Search for order in executed orders response (object format)
@@ -4555,7 +4555,7 @@ class whitebit extends Exchange {
             }
             // {"success":false,"message":{"limit":["limit must be less than or equal to 100"]},"result":null}
             $success = $this->safe_bool($response, 'success', true);
-            if ($success !== true) {
+            if (!$success) {
                 $errMsg = $this->safe_dict($response, 'message', array());
                 $errKeys = is_array($errMsg) ? array_keys($errMsg) : array();
                 $errKeysLength = count($errKeys);

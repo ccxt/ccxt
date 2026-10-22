@@ -106,7 +106,7 @@ class kucoin extends \ccxt\async\kucoin {
 
     private function do_negotiate(bool $privateChannel, bool $isFuturesMethod = false, $params = array()) {
         $connectId = 'public';
-        if ($privateChannel === true) {
+        if ($privateChannel) {
             $connectId = 'private';
         }
         if ($isFuturesMethod) {
@@ -226,7 +226,7 @@ class kucoin extends \ccxt\async\kucoin {
         $action = 'subscribe';
         if ($subscription !== null) {
             $unsubscribe = $this->safe_bool($subscription, 'unsubscribe', false);
-            $action = ($unsubscribe === true) ? 'unsubscribe' : $action;
+            $action = ($unsubscribe) ? 'unsubscribe' : $action;
         }
         $request = array(
             'id' => $requestId,
@@ -254,7 +254,7 @@ class kucoin extends \ccxt\async\kucoin {
         $action = 'subscribe';
         if ($subscription !== null) {
             $unsubscribe = $this->safe_bool($subscription, 'unsubscribe', false);
-            $action = ($unsubscribe === true) ? 'unsubscribe' : $action;
+            $action = ($unsubscribe) ? 'unsubscribe' : $action;
         }
         $request = array(
             'id' => $requestId,
@@ -557,7 +557,7 @@ class kucoin extends \ccxt\async\kucoin {
         $action = 'subscribe';
         if ($subscription !== null) {
             $unsubscribe = $this->safe_bool($subscription, 'unsubscribe', false);
-            $action = ($unsubscribe === true) ? 'unsubscribe' : $action;
+            $action = ($unsubscribe) ? 'unsubscribe' : $action;
         }
         $request = array(
             'id' => $requestId,
@@ -2019,7 +2019,7 @@ class kucoin extends \ccxt\async\kucoin {
             $method($client, $message, $subscription);
         }
         $isUnSub = $this->safe_bool($subscription, 'unsubscribe', false);
-        if ($isUnSub === true) {
+        if ($isUnSub) {
             $messageHashes = $this->safe_list($subscription, 'messageHashes', array());
             $subMessageHashes = $this->safe_list($subscription, 'subMessageHashes', array());
             for ($i = 0; $i < count($messageHashes); $i++) {
@@ -2794,7 +2794,7 @@ class kucoin extends \ccxt\async\kucoin {
         $options = $this->safe_dict($this->options, 'watchBalance');
         $fetchBalanceSnapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', false);
         $awaitBalanceSnapshot = $this->safe_bool($options, 'awaitBalanceSnapshot', true);
-        if (($fetchBalanceSnapshot === true) && ($awaitBalanceSnapshot === true)) {
+        if (($fetchBalanceSnapshot) && ($awaitBalanceSnapshot)) {
             Async\await($client->future($uniformType . ':fetchBalanceSnapshot'));
         }
         $messageHash = $uniformType . ':balance';
@@ -2827,7 +2827,7 @@ class kucoin extends \ccxt\async\kucoin {
         }
         $options = $this->safe_dict($this->options, 'watchBalance');
         $fetchBalanceSnapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', false);
-        if ($fetchBalanceSnapshot === true) {
+        if ($fetchBalanceSnapshot) {
             $messageHash = $type . ':fetchBalanceSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);
@@ -3732,7 +3732,7 @@ class kucoin extends \ccxt\async\kucoin {
             $this->handle_subject($client, $message);
         } elseif (is_array($message) && array_key_exists('result' ?? '', $message)) { // subscription uta messages
             $result = $this->safe_bool($message, 'result', true);
-            if ($result !== true) {
+            if (!$result) {
                 $this->handle_error_message($client, $message);
             }
             $this->handle_subscription_status($client, $message);

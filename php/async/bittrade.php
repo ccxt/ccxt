@@ -1230,7 +1230,7 @@ class bittrade extends Exchange {
         $countryDisabled = $this->safe_bool($currency, 'country-disabled');
         $visible = $this->safe_bool($currency, 'visible', false);
         $state = $this->safe_string($currency, 'state');
-        $active = ($visible === true) && ($depositEnabled === true) && ($withdrawEnabled === true) && ($state === 'online') && ($countryDisabled !== true);
+        $active = ($visible) && ($depositEnabled === true) && ($withdrawEnabled === true) && ($state === 'online') && ($countryDisabled !== true);
         $name = $this->safe_string($currency, 'display-name');
         $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'withdraw-precision')));
         return $this->safe_currency_structure(array(

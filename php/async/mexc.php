@@ -1838,13 +1838,13 @@ class mexc extends Exchange {
                 $isMaker = $this->safe_bool($trade, 'isMaker');
                 $buyerMaker = $this->safe_bool_2($trade, 'isBuyerMaker', 'm');
                 if ($isMaker !== null) {
-                    $takerOrMaker = ($isMaker === true) ? 'maker' : 'taker';
+                    $takerOrMaker = ($isMaker) ? 'maker' : 'taker';
                 }
                 if ($isBuyer !== null) {
-                    $side = ($isBuyer === true) ? 'buy' : 'sell';
+                    $side = ($isBuyer) ? 'buy' : 'sell';
                 }
                 if ($buyerMaker !== null) {
-                    $side = ($buyerMaker === true) ? 'sell' : 'buy';
+                    $side = ($buyerMaker) ? 'sell' : 'buy';
                     $takerOrMaker = 'taker';
                 }
                 $feeAsset = $this->safe_string($trade, 'commissionAsset');
@@ -2513,7 +2513,7 @@ class mexc extends Exchange {
             }
         }
         list($postOnly, $paramsPostOnly) = $this->handle_post_only($type === 'market', $type === 'LIMIT_MAKER', $paramsWithoutClientOrderId);
-        if ($postOnly === true) {
+        if ($postOnly) {
             $request['type'] = 'LIMIT_MAKER';
         }
         $tif = $this->safe_string($paramsPostOnly, 'timeInForce');
@@ -2555,7 +2555,7 @@ class mexc extends Exchange {
         $test = $this->safe_bool($params, 'test', false);
         $paramsOmitted = $this->omit($params, 'test');
         $request = $this->create_spot_order_request($market, $type, $side, $amount, $price, $marginMode, $paramsOmitted);
-        if ($test === true) {
+        if ($test) {
             $response = Async\await($this->spotPrivatePostOrderTest($request));
         } else {
             $response = Async\await($this->spotPrivatePostOrder($request));
@@ -2643,7 +2643,7 @@ class mexc extends Exchange {
         }
         list($postOnly, $paramsPostOnly) = $this->handle_post_only($type === 'market', $type === 2, $params);
         $orderType = null;
-        if ($postOnly === true) {
+        if ($postOnly) {
             $orderType = 2;
         } elseif ($type === 'limit') {
             $orderType = 1;
@@ -2689,22 +2689,22 @@ class mexc extends Exchange {
         $reduceOnly = $this->safe_bool($paramsPostOnly, 'reduceOnly', false);
         $hedged = $this->safe_bool($paramsPostOnly, 'hedged', false);
         $sideInteger = null;
-        if ($hedged === true) {
-            if ($reduceOnly === true) {
+        if ($hedged) {
+            if ($reduceOnly) {
                 $sideInteger = ($side === 'buy') ? 4 : 2;  // close short, close long
             } else {
                 $sideInteger = ($side === 'buy') ? 1 : 3;
             }
             $request['positionMode'] = 1;
         } else {
-            if ($reduceOnly === true) {
+            if ($reduceOnly) {
                 $sideInteger = ($side === 'buy') ? 2 : 4;
             } else {
                 $sideInteger = ($side === 'buy') ? 1 : 3;
             }
         }
         $request['side'] = $sideInteger;
-        $paramsReduceOnly = ($reduceOnly === true) ? $this->omit($paramsPostOnly, 'reduceOnly') : $paramsPostOnly; // hedged mode does not accept this parameter
+        $paramsReduceOnly = ($reduceOnly) ? $this->omit($paramsPostOnly, 'reduceOnly') : $paramsPostOnly; // hedged mode does not accept this parameter
         $clientOrderId = $this->safe_string_2($paramsReduceOnly, 'clientOrderId', 'externalOid');
         if ($clientOrderId !== null) {
             $request['externalOid'] = $clientOrderId;
@@ -4223,7 +4223,7 @@ class mexc extends Exchange {
         $marginMode = $this->safe_string($paramsMarketType, 'marginMode');
         $isMargin = $this->safe_bool($paramsMarketType, 'margin', false);
         $paramsOmitted2 = $this->omit($paramsMarketType, array( 'margin', 'marginMode' ));
-        if (($marginMode !== null) || ($isMargin === true) || ($marketType === 'margin')) {
+        if (($marginMode !== null) || ($isMargin) || ($marketType === 'margin')) {
             $parsedSymbols = null;
             $symbol = $this->safe_string($paramsOmitted2, 'symbol');
             if ($symbol === null) {
@@ -6064,7 +6064,7 @@ class mexc extends Exchange {
         $currency = $this->currency($code);
         list($tagResolved, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
         $internal = $this->safe_bool($paramsWithdrawTag, 'internal', false);
-        if ($internal === true) {
+        if ($internal) {
             $paramsInternal = $this->omit($paramsWithdrawTag, 'internal');
             $requestForInternal = array(
                 'asset' => $currency['id'],
@@ -6463,7 +6463,7 @@ class mexc extends Exchange {
         $defaultType = $this->safe_string($this->options, 'defaultType');
         $isMargin = $this->safe_bool($params, 'margin', false);
         list($marginMode, $paramsMarginMode) = parent::handle_margin_mode_and_params($methodName, $params, $defaultValue);
-        if (($defaultType === 'margin') || ($isMargin === true)) {
+        if (($defaultType === 'margin') || ($isMargin)) {
             return array( 'isolated', $paramsMarginMode );
         }
         return array( $marginMode, $paramsMarginMode );
@@ -6711,7 +6711,7 @@ class mexc extends Exchange {
         //     {"success":true, "code":0, "data":1634095541710}
         //
         $success = $this->safe_bool($response, 'success', false); // v1
-        if ($success === true) {
+        if ($success) {
             return null;
         }
         $responseCode = $this->safe_string($response, 'code');

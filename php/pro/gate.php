@@ -643,7 +643,7 @@ class gate extends \ccxt\async\gate {
             $this->orderbooks[$symbol] = $this->order_book(array(), 1000);
         }
         $orderbook = $this->orderbooks[$symbol];
-        if ($full === true) {
+        if ($full) {
             $snapshopt = $this->parse_order_book($result, $symbol, null, 'b', 'a');
             $snapshopt['nonce'] = $this->safe_integer($result, 'u');
             $snapshopt['timestamp'] = $this->safe_integer($result, 't');

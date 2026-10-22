@@ -1566,7 +1566,7 @@ class dydx extends Exchange {
          */
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
         $paramsOmitted = $this->omit($params, array( 'trigger', 'stop' ));
-        if (($isTrigger !== true) && ($symbol === null)) {
+        if ((!$isTrigger) && ($symbol === null)) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
@@ -1585,7 +1585,7 @@ class dydx extends Exchange {
         $goodTillBlockTimeInSeconds = 2592000;
         list($goodTillBlockTimeInSecondsOption, $paramsGoodTillBlockTimeInSeconds) = $this->handle_option_integer_and_params($paramsOmitted, 'cancelOrder', 'goodTillBlockTimeInSeconds', $goodTillBlockTimeInSeconds); // default is 30 days
         $goodTillBlockTime = null;
-        $defaultOrderFlags = ($isTrigger === true) ? 32 : 64;
+        $defaultOrderFlags = ($isTrigger) ? 32 : 64;
         $orderFlags = $this->safe_integer($paramsGoodTillBlockTimeInSeconds, 'orderFlags', $defaultOrderFlags);
         $subAccountId = 0;
         $subAccountIdOption = $this->handle_option_integer_and_params($paramsGoodTillBlockTimeInSeconds, 'cancelOrder', 'subAccountId', $subAccountId)[0];

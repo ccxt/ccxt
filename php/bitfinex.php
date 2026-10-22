@@ -1802,7 +1802,7 @@ class bitfinex extends Exchange {
         }
         $ioc = ($timeInForce === 'IOC');
         $fok = ($timeInForce === 'FOK');
-        $postOnly = (($postOnlyParam === true) || ($timeInForce === 'PO'));
+        $postOnly = (($postOnlyParam) || ($timeInForce === 'PO'));
         if (($ioc || $fok) && ($price === null)) {
             throw new InvalidOrder($this->id . ' createOrder() requires a price argument with IOC and FOK orders');
         }
@@ -1828,7 +1828,7 @@ class bitfinex extends Exchange {
         if ($postOnly) {
             $flags = $this->sum($flags, 4096);
         }
-        if ($reduceOnly === true) {
+        if ($reduceOnly) {
             $flags = $this->sum($flags, 1024);
         }
         if ($flags !== 0) {
@@ -2880,7 +2880,7 @@ class bitfinex extends Exchange {
         }
         $withdrawOptions = $this->safe_dict($this->options, 'withdraw', array());
         $includeFee = $this->safe_bool($withdrawOptions, 'includeFee', false);
-        if ($includeFee === true) {
+        if ($includeFee) {
             $request['fee_deduct'] = 1;
         }
         $response = $this->privatePostAuthWWithdraw($this->extend($request, $paramsOmitted2));
@@ -4014,7 +4014,7 @@ class bitfinex extends Exchange {
                 $request['price_aux_limit'] = $this->price_to_precision($symbol, $price);
             }
         }
-        $postOnly = (($postOnlyParam === true) || ($timeInForce === 'PO'));
+        $postOnly = (($postOnlyParam) || ($timeInForce === 'PO'));
         if (($type !== 'market') && ($triggerPrice === null)) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
@@ -4023,7 +4023,7 @@ class bitfinex extends Exchange {
         if ($postOnly) {
             $flags = $this->sum($flags, 4096);
         }
-        if ($reduceOnly === true) {
+        if ($reduceOnly) {
             $flags = $this->sum($flags, 1024);
         }
         if ($flags !== 0) {

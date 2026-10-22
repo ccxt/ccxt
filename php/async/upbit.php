@@ -364,13 +364,13 @@ class upbit extends Exchange {
         $walletLocked = $this->safe_bool($memberInfo, 'wallet_locked');
         $locked = $this->safe_bool($memberInfo, 'locked');
         $active = true;
-        if (($canWithdraw !== null) && ($canWithdraw !== true)) {
+        if (($canWithdraw !== null) && (!$canWithdraw)) {
             $active = false;
         } elseif ($walletState !== 'working') {
             $active = false;
-        } elseif (($walletLocked !== null) && ($walletLocked === true)) {
+        } elseif (($walletLocked !== null) && ($walletLocked)) {
             $active = false;
-        } elseif (($locked !== null) && ($locked === true)) {
+        } elseif (($locked !== null) && ($locked)) {
             $active = false;
         }
         $maxOnetimeWithdrawal = $this->safe_string($withdrawLimits, 'onetime');
@@ -1426,7 +1426,7 @@ class upbit extends Exchange {
             throw new ArgumentsRequired($this->id . ' createOrder() requires a timeInForce parameter for best type orders');
         }
         $paramsRequest = $this->omit($paramsOrdType, array( 'timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'cost', 'selfTradePrevention', 'smp_type', 'test' ));
-        if ($test === true) {
+        if ($test) {
             $response = Async\await($this->privatePostOrdersTest($this->extend($request, $paramsRequest)));
         } else {
             $response = Async\await($this->privatePostOrders($this->extend($request, $paramsRequest)));

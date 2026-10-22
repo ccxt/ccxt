@@ -781,7 +781,7 @@ class krakenfutures extends Exchange {
         $baseVolume = null;
         $quoteVolume = null;
         $isIndex = $this->safe_bool($marketResolved, 'index', false);
-        if ($isIndex !== true) {
+        if (!$isIndex) {
             if ($marketResolved['linear'] === true) {
                 $baseVolume = $volume;
             } elseif ($marketResolved['inverse'] === true) {
@@ -1889,7 +1889,7 @@ class krakenfutures extends Exchange {
         }
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
         $paramsOmitted = $this->omit($params, array( 'trigger', 'stop' ));
-        if ($isTrigger === true) {
+        if ($isTrigger) {
             $response = Async\await($this->historyGetTriggers($this->extend($request, $paramsOmitted)));
         } else {
             $response = Async\await($this->historyGetOrders($this->extend($request, $params)));
@@ -1953,7 +1953,7 @@ class krakenfutures extends Exchange {
         }
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
         $paramsOmitted = $this->omit($params, array( 'trigger', 'stop' ));
-        if ($isTrigger === true) {
+        if ($isTrigger) {
             $response = Async\await($this->historyGetTriggers($this->extend($request, $paramsOmitted)));
         } else {
             $response = Async\await($this->historyGetOrders($this->extend($request, $params)));

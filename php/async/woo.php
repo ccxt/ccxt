@@ -1698,7 +1698,7 @@ class woo extends Exchange {
         }
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
         $paramsOmitted = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent', 'trigger', 'stop' ));
-        $isConditional = ($isTrigger === true) || $isTrailing || ($triggerPrice !== null) || ($this->safe_value($paramsOmitted, 'childOrders') !== null);
+        $isConditional = ($isTrigger) || $isTrailing || ($triggerPrice !== null) || ($this->safe_value($paramsOmitted, 'childOrders') !== null);
         $response = null;
         if ($isConditional) {
             if ($isByClientOrder) {
@@ -1753,7 +1753,7 @@ class woo extends Exchange {
          */
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
         $paramsOmitted = $this->omit($params, array( 'trigger', 'stop' ));
-        if (($isTrigger !== true) && ($symbol === null)) {
+        if ((!$isTrigger) && ($symbol === null)) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
@@ -1769,7 +1769,7 @@ class woo extends Exchange {
         $paramsOmitted2 = $this->omit($paramsOmitted, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
         $isByClientOrder = $clientOrderIdExchangeSpecific !== null;
         $response = null;
-        if ($isTrigger === true) {
+        if ($isTrigger) {
             if ($isByClientOrder) {
                 $request['clientAlgoOrderId'] = $clientOrderIdExchangeSpecific;
             } else {
@@ -3393,7 +3393,7 @@ class woo extends Exchange {
         $transfer = $this->parse_transfer($data, $currency);
         $transferOptions = $this->safe_dict($this->options, 'transfer', array());
         $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
-        if ($fillResponseFromRequest === true) {
+        if ($fillResponseFromRequest) {
             $transfer['amount'] = $amount;
             $transfer['fromAccount'] = $fromAccount;
             $transfer['toAccount'] = $toAccount;
@@ -3676,7 +3676,7 @@ class woo extends Exchange {
             $this->check_required_credentials();
             if ($method === 'POST' && ($path === 'trade/algoOrder' || $path === 'trade/order')) {
                 $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-                if ($isSandboxMode !== true) {
+                if (!$isSandboxMode) {
                     $applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
                     $brokerId = $this->safe_string($this->options, 'brokerId', $applicationId);
                     $isTrigger = mb_strpos($path, 'algo') > -1;

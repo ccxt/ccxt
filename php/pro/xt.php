@@ -1730,7 +1730,7 @@ class xt extends \ccxt\async\xt {
         if ($id !== null) {
             $subscription = $this->safe_dict($subscriptionsById, $id, array());
             $unsubscribe = $this->safe_bool($subscription, 'unsubscribe', false);
-            if ($unsubscribe === true) {
+            if ($unsubscribe) {
                 $this->handle_un_subscription($client, $subscription);
             }
         }

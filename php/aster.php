@@ -2845,7 +2845,7 @@ class aster extends Exchange {
             $priceIsRequired = true;
             $triggerPriceIsRequired = true;
         } elseif (($uppercaseType === 'STOP_MARKET') || ($uppercaseType === 'TAKE_PROFIT_MARKET')) {
-            if ($closePosition !== true) {
+            if (!$closePosition) {
                 $quantityIsRequired = true;
             }
             $triggerPriceIsRequired = true;
@@ -4422,11 +4422,11 @@ class aster extends Exchange {
 
     public function initialize_client($params = array()): ?bool {
         $builderFee = $this->safe_bool($params, 'builderFee', $this->safe_bool($this->options, 'builderFee', true)); // we shouldn't omit here
-        if ($builderFee !== true) {
+        if (!$builderFee) {
             return false; // skip if builder fee is not enabled
         }
         $approvedBuilderFee = $this->safe_bool($this->options, 'approvedBuilderFee', false);
-        if ($approvedBuilderFee === true) {
+        if ($approvedBuilderFee) {
             return true; // skip if builder fee is already approved
         }
         $result = $this->fapiPrivateGetV3Builder();

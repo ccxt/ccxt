@@ -1999,7 +1999,7 @@ class derive extends Exchange {
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         // EIP712Domain (name "Matching", version "1.0", verifyingContract 0xeB8d770ec18DB98Db922E9D83260A585b9F0DeAD) precomputed for chainId 1 (mainnet) and 11155111 (sepolia testnet)
         $DOMAIN_SEPARATOR = 'da616dfabb88681b08e1592820a41d55ddc62d68de110e327ae99d734506fe19';
-        if ($sandboxMode === true) {
+        if ($sandboxMode) {
             $DOMAIN_SEPARATOR = '24d674cd5f2b9d564691c51e9d88f649b99246a2244dd74ce27b96578d773e85';
         }
         $binaryDomainSeparator = $this->base16_to_binary($DOMAIN_SEPARATOR);
@@ -2179,7 +2179,7 @@ class derive extends Exchange {
         }
         $request['signature'] = $signature;
         $paramsOmitted = $this->omit($paramsDeriveWalletAddress, array( 'reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'test', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trigger_price', 'stopLossPrice', 'takeProfitPrice', 'trigger_price_type' ));
-        if ($test === true) {
+        if ($test) {
             $response = Async\await($this->privatePostOrderDebug($this->extend($request, $paramsOmitted)));
         } else {
             $response = Async\await($this->privatePostOrder($this->extend($request, $paramsOmitted)));
@@ -2459,7 +2459,7 @@ class derive extends Exchange {
             $response = Async\await($this->privatePostCancelByLabel($this->extend($request, $paramsLabel)));
         } else {
             $request['order_id'] = $id;
-            if ($isTrigger === true) {
+            if ($isTrigger) {
                 $response = Async\await($this->privatePostCancelTriggerOrder($this->extend($request, $paramsOmitted)));
             } else {
                 $response = Async\await($this->privatePostCancel($this->extend($request, $paramsOmitted)));
@@ -2737,7 +2737,7 @@ class derive extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        if ($isTrigger === true) {
+        if ($isTrigger) {
             $response = Async\await($this->privatePostGetTriggerOrders($this->extend($request, $paramsDeriveSubaccountId)));
         } else {
             $response = Async\await($this->privatePostGetOpenOrders($this->extend($request, $paramsDeriveSubaccountId)));

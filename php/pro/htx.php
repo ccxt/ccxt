@@ -799,12 +799,12 @@ class htx extends \ccxt\async\htx {
         }
         $spotConditon = ($market['spot'] === true) && ($prevSeqNum === $orderbook['nonce']);
         $nonSpotCondition = ($market['contract'] === true) && ($version !== null) && ($version - 1 === $orderbook['nonce']);
-        if (($spotConditon === true) || ($nonSpotCondition === true)) {
+        if (($spotConditon) || ($nonSpotCondition)) {
             $asks = $this->safe_list($tick, 'asks', array());
             $bids = $this->safe_list($tick, 'bids', array());
             $this->handle_deltas($orderbook['asks'], $asks);
             $this->handle_deltas($orderbook['bids'], $bids);
-            $orderbook['nonce'] = ($spotConditon === true) ? $seqNum : $version;
+            $orderbook['nonce'] = ($spotConditon) ? $seqNum : $version;
             $orderbook['timestamp'] = $timestamp;
             $orderbook['datetime'] = $this->iso8601($timestamp);
         }
@@ -1639,7 +1639,7 @@ class htx extends \ccxt\async\htx {
         $aggressor = $this->safe_bool($trade, 'aggressor');
         $takerOrMaker = null;
         if ($aggressor !== null) {
-            $takerOrMaker = ($aggressor === true) ? 'taker' : 'maker';
+            $takerOrMaker = ($aggressor) ? 'taker' : 'maker';
         }
         return $this->safe_trade(array(
             'info' => $trade,
@@ -1924,7 +1924,7 @@ class htx extends \ccxt\async\htx {
             $prefix = 'accounts';
             $messageHash = $prefix;
             if ($subType === 'linear') {
-                if ($isUnifiedAccount === true) {
+                if ($isUnifiedAccount) {
                     // usdt contracts account
                     $prefix = 'accounts_unify';
                     $messageHash = $prefix;
@@ -2884,7 +2884,7 @@ class htx extends \ccxt\async\htx {
         $aggressor = $this->safe_bool($trade, 'aggressor');
         $takerOrMaker = null;
         if ($aggressor !== null) {
-            $takerOrMaker = ($aggressor === true) ? 'taker' : 'maker';
+            $takerOrMaker = ($aggressor) ? 'taker' : 'maker';
         } else {
             $takerOrMaker = $this->safe_string_lower($trade, 'role');
         }
