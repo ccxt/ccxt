@@ -484,6 +484,34 @@ exchange.cancel_order(order['id'], 'SPCX.US/USDC')
 
 Markets ending in `.RFQ` (for example `AAPL.US.RFQ/USDC`) are quote-based: `create_order` with `type = 'market'` requests a quote and executes it, and an optional `price` acts as the worst price you accept. With the option set, `fetch_balance()` returns only your stock holdings. To trade crypto again from the same instance, set `exchange.options['stock'] = False`.
 
+### How to trade stocks at Bitget?
+
+Bitget lists tokenized US stocks as spot markets of its unified trading account (UTA). In CCXT they are regular spot markets flagged with `market['stock'] = true`, with symbols such as `RGOOGL/USDT`. Set the `stock` option once when creating the exchange and every call on that instance targets the stock markets.
+
+- Instantiate the exchange with the `stock` option, then load markets and balances as usual:
+
+```
+exchange = ccxt.bitget({
+    'apiKey': 'xxx',
+    'secret': 'xxx',
+    'password': 'xxx',
+    'options': { 'stock': True },
+})
+markets = exchange.load_markets()
+balance = exchange.fetch_balance()
+```
+
+- Market data, orders and cancels then work like any other spot market:
+
+```
+ticker = exchange.fetch_ticker('RGOOGL/USDT')
+orderbook = exchange.fetch_order_book('RGOOGL/USDT')
+order = exchange.create_order('RGOOGL/USDT', 'limit', 'buy', 1, 150)
+exchange.cancel_order(order['id'], 'RGOOGL/USDT')
+```
+
+The option applies to every method of that instance, so keep a separate instance without it for crypto trading. A few venue limits apply to stock markets: `fetch_order_book` and `fetch_trades` are private endpoints that need an API key whitelisted for stock trading, `fetch_order_book` takes no `limit`, `fetch_trades` takes no `since` or `paginate`, and only market and limit orders are supported, so trigger, stop-loss, take-profit and trailing orders are rejected.
+
 ## How to use the Prediction Exchanges in CCXT?
 
 Prediction-market exchanges (Polymarket, Kalshi, Hyperliquid, Limitless, Myriad) live in their own `prediction` namespace and work like any other CCXT exchange, with one key difference: instead of a market `symbol` you address an **outcome** — a handle of the form `MARKET:LABEL` (for example `TRUMP_WIN_2024:YES`). Wherever an outcome is accepted you can pass either the unified handle or the venue's raw `outcomeId` (a Polymarket token id, a Kalshi ticker, ...) — both resolve to the same outcome. Prices are probabilities between 0 and 1, amounts are shares, and costs are in the collateral currency (usually USDC/USD).
