@@ -2716,7 +2716,7 @@ export default class gate extends Exchange {
         return this.parseDepositWithdrawFees (response, codes, 'currency');
     }
 
-    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined): any {
+    override parseDepositWithdrawFee (fee: NullableDict, currency: Currency = undefined): any {
         //
         //    {
         //        "currency": "MTN",
@@ -6698,7 +6698,7 @@ export default class gate extends Exchange {
             throw new BadRequest (this.id + ' fetchLeverageTiers only supports swap and future');
         }
         const requestedLimit = this.safeInteger (requestParams, 'limit', 100);
-        const limit: Int = (requestedLimit === undefined) ? 100 : Math.max (1, Math.min (requestedLimit, 100));
+        const limit = this.parseToInt ((requestedLimit === undefined) ? 100 : Math.max (1, Math.min (requestedLimit, 100)));
         let offset = this.safeInteger (requestParams, 'offset', 0);
         const contract = this.safeString (requestParams, 'contract', '');
         const paramsOmitted = this.omit (requestParams, [ 'limit', 'offset' ]);
@@ -7153,7 +7153,7 @@ export default class gate extends Exchange {
         return this.milliseconds () - timeDifference;
     }
 
-    override sign (path: string, api: string[] = [], method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] = [], method: string = 'GET', params: Dict = {}): Dict {
         const authentication = api[0]; // public, private
         const type = api[1]; // spot, margin, future, delivery
         let query = this.omit (params, this.extractParams (path));
@@ -7419,7 +7419,7 @@ export default class gate extends Exchange {
         return this.parseOpenInterestsHistory (response, market, since, limit);
     }
 
-    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
+    override parseOpenInterest (interest: NullableDict, market: Market = undefined): OpenInterest {
         //
         //    {
         //        "long_liq_size": "0",

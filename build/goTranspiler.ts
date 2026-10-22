@@ -22,7 +22,7 @@ import os from 'os';
 import { isMainEntry } from "./transpile.js";
 import { goGofmtBinarySpacing } from "./goGofmtLayout.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
-import { goNativeArithmetic, g10kArithSelfTest, hx4G17SelfTest, hx4G18NativeCompare, hx4G18SelfTest, hx4G23Comparisons, hx4G23SelfTest, hx4G26SelfTest, hx4G27Comparisons, hx4G27SelfTest, hx4G30Arith, hx4G30SelfTest, hx4G31Divide, hx4G31Check, hx4G32Comparisons, hx4G32SelfTest, hx4G35InlineMulSub, hx4G35Check, hx4G36Inline, hx4G36Check, hx4G37InlineComparisons, hx4G37Check, hx4G40InlineIsEqual, hx4G40Check, hx4G42InlineTypeChecks, hx4G42Check, hx4G43Inline, hx4G43Check, hx4G45InlineStr, hx4G45Check, hx4G46InlineParse, hx4G46Check } from './go-native-arith.js';
+import { goNativeArithmetic, g10kArithSelfTest, hx4G17SelfTest, hx4G18NativeCompare, hx4G18SelfTest, hx4G23Comparisons, hx4G23SelfTest, hx4G26SelfTest, hx4G27Comparisons, hx4G27SelfTest, hx4G30Arith, hx4G30SelfTest, hx4G31Divide, hx4G31Check, hx4G32Comparisons, hx4G32SelfTest, hx4G35InlineMulSub, hx4G35Check, hx4G36Inline, hx4G36Check, hx4G36AddImport, hx4G37InlineComparisons, hx4G37Check, hx4G40InlineIsEqual, hx4G40Check, hx4G42InlineTypeChecks, hx4G42Check, hx5X26CaseAffix, hx5X26Check, hx4G45InlineStr, hx4G45Check, hx5X29ParseNative, hx5X29Check } from './go-native-arith.js';
 import { installCcxtGoLocalTypes, installCcxtGoIndexableTypes, CCXT_GO_HELPER_RETURN_TYPES, CCXT_GO_BOOL_METHOD_NAMES, CCXT_GO_STRING_PTR_METHOD_NAMES } from './go-local-types.js';
 
 type dict = { [key: string]: string };
@@ -2702,6 +2702,7 @@ function formatGoSource (filePath: string, content: string): string {
     hx4G34TupleSlotNeverNil.file = undefined;  // hx4 G34
     content = g10kInopClientMaps (content);
     content = hx4G07FieldInOp (content);
+    content = hx5P28BaseFieldReads (content);  // hx5 P28
     content = h2kG13NativeKeysAndRemove (content);
     content = g10kTypepredIsArray (content);
     content = g10kArrNativeRemove (content);
@@ -4103,16 +4104,15 @@ function overwriteFileAndFolder (path: string, content: string) {
     if (path.endsWith ('.go')) {
         content = hx4G05DropRedundantTyped (goStructReturnsPass (content));
         content = hx4G37InlineComparisons (content);  // hx4 G37: last, after every typed comparison pass
-        content = hx4G41InlineInOp (content);  // hx4 G41: after every typed InOp pass
     }
     content = path.endsWith ('.go') ? hx4G35InlineMulSub (content) : content;  // hx4 G35
     // layout last: the passes above splice operands (derefs, natives) after spacing and the
     // comment columns were computed; recompute both from the final text
     if (path.endsWith ('.go')) {
         content = hx4G36Inline (content, hx4G36Aligner ());  // hx4 G36
-        content = hx4G43Inline (content, hx4G36Aligner ());  // hx4 G43
-        content = hx4G44StringHelpers (content, hx4G36Aligner ());  // hx4 G44
-        content = hx4G46InlineParse (content, hx4G36Aligner ());  // hx4 G46
+        content = hx5X26CaseAffix (content);  // hx5 X26
+        content = hx5X27StringHelpers (content);  // hx5 X27
+        content = hx5X29ParseNative (content);  // hx5 X29
         content = hx4G42InlineTypeChecks (content, hx4G36Aligner ());  // hx4 G42
         content = hx4G40InlineIsEqual (content, hx4G36Aligner ());  // hx4 G40: last, after every typed IsEqual pass
         // hx4 G45 after the spacing pass: its line-local lexer misreads a `}(args) + x` continuation
@@ -6379,7 +6379,7 @@ ${constStatements.join('\n')}
             // this is the one generated .go write that does not go through
             // overwriteFileAndFolder()/formatGoSource(), so guard its async cores here
             // (and add the element-access assertions formatGoSource would have added)
-            fs.writeFileSync (goPredictionBase, hx4G41InlineInOp (hx4G37InlineComparisons (alignGoTrailingComments (hx4G40InlineIsEqual (hx4G42InlineTypeChecks (hx4G46InlineParse (hx4G45InlineStr (hx4G44StringHelpers (hx4G43Inline (hx4G36Inline (hx4G35InlineMulSub (goGofmtSplicedText (goGofmtNestedParens (hx4G20BaseNativePasses (hx4G07FieldInOp (goChan3Pass (goErrValuePass (goChanCarrierPass (assertTypedElementAccess (guardMultiSendCores (retypeGoProvenParseMethods (normalizeGoFileHeader (file)))))))))))), hx4G36Aligner ()), hx4G36Aligner ()), hx4G36Aligner ()), hx4G36Aligner ()), hx4G36Aligner ()), hx4G36Aligner ()), hx4G36Aligner ())))))
+            fs.writeFileSync (goPredictionBase, (hx4G37InlineComparisons (alignGoTrailingComments (hx4G40InlineIsEqual (hx4G42InlineTypeChecks (hx5X29ParseNative (hx4G45InlineStr (hx5X27StringHelpers (hx5X26CaseAffix (hx4G36Inline (hx4G35InlineMulSub (goGofmtSplicedText (goGofmtNestedParens (hx4G20BaseNativePasses (hx4G07FieldInOp (goChan3Pass (goErrValuePass (goChanCarrierPass (assertTypedElementAccess (guardMultiSendCores (retypeGoProvenParseMethods (normalizeGoFileHeader (file)))))))))))), hx4G36Aligner ()))), hx4G36Aligner ())), hx4G36Aligner ()), hx4G36Aligner ())))))
             log.green ('Transpiled prediction base methods to', (goPredictionBase as any).yellow)
         }
     }
@@ -8904,7 +8904,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ()).concat (hx4G35Check ()).concat (hx4G36Wired ()).concat (hx4G37Check ()).concat (hx4G38Check ()).concat (hx4G39Check ()).concat (hx4G40Check (hx4G36Aligner ())).concat (hx4G40Wired ()).concat (hx4G41Check ()).concat (hx4G42Check (hx4G36Aligner ())).concat (hx4G43Check (hx4G36Aligner ())).concat (hx4G43Wired ()).concat (hx4G44Check ()).concat (hx4G45Check (hx4G36Aligner ())).concat (hx4G45Wired ()).concat (hx4G46Check (hx4G36Aligner ())).concat (hx4G46Wired ());
+        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ()).concat (hx4G35Check ()).concat (hx4G36Wired ()).concat (hx4G37Check ()).concat (hx4G38Check ()).concat (hx4G39Check ()).concat (hx4G40Check (hx4G36Aligner ())).concat (hx4G40Wired ()).concat (hx4G41Check ()).concat (hx4G42Check (hx4G36Aligner ())).concat (hx5X26Check ()).concat (hx4G43Wired ()).concat (hx5X27Check ()).concat (hx4G45Check (hx4G36Aligner ())).concat (hx4G45Wired ()).concat (hx5X29Check ()).concat (hx5X29Wired ()).concat (hx5X32StrParamSelfTest ()).concat (hx5P28Check ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -12459,7 +12459,7 @@ function g13AnnotatedSelfTest (): string[] {
         const go = t.transpileGoByPath (path.join (src, 'ex.ts')).content;
         const ok = (cond: boolean, msg: string) => { if (!cond) { problems.push ('hx4 G13: ' + msg); } };
         ok (go.includes ('func (this *ex) Rows(xs []any) []any {'), 'Dict[] return of a slice local prints []any');
-        ok (go.includes ('func (this *ex) Request(p any) map[string]any {'), 'Dict return of a map-literal local prints map[string]any');
+        ok (go.includes ('func (this *ex) Request(p *string) map[string]any {'), 'Dict return of a map-literal local prints map[string]any');
         ok (go.includes ('func (this *ex) Rebound(o any) any {'), 'a local rebound to an any value keeps the any return');
         ok (/\tvar id \*string = nil\n\tif side == "buy"/.test (go), 'Str local written only as *string is *string');
         ok (/func \(this \*ex\) Pick2\(o any\) any \{\n\tvar id any = nil/.test (go), 'Str local written from any keeps the box');
@@ -13131,6 +13131,7 @@ function hx4G20BaseNativePasses (content: string): string {
     content = hx4G29Pass (content);  // hx4 G29
     hx4G34TupleSlotNeverNil.file = undefined;  // hx4 G34
     content = h2kG13NativeKeysAndRemove (hx4G07FieldInOp (g10kInopClientMaps (content)));
+    content = hx5P28BaseFieldReads (content);  // hx5 P28
     content = hx4G38Pass (hx4G33IsEqual (hx4G28IsEqualSafe (content)));  // hx4 G28, G33, G38
     return g10kLenNative (goNativeStringAdds (hx4G32Comparisons (hx4G31Divide (hx4G27Comparisons (hx4G23Comparisons (hx4G18NativeCompare (hx4G30Arith (content))))))));  // hx4 G27..G32
     return g10kLenNative (goNativeStringAdds (goNativeArithmetic (content)));
@@ -13953,12 +13954,25 @@ function hx4G36Aligner (): any {
 }
 
 function hx4G36Wired (): string[] {
+    // hx5 X30: proven operands go native, unproven ones keep the helper call, never an inline closure
     const dir = fs.mkdtempSync (path.join (os.tmpdir (), 'hx4-G36-'));
     const file = path.join (dir, 'x.go');
     try {
-        overwriteFileAndFolder (file, 'package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n\nfunc (this *X) F(a any) any {\n\treturn Divide(a, 3)\n}\n');
+        overwriteFileAndFolder (file, 'package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n\nfunc (this *X) F(a any, b any) any {\n\tvar n int64 = 5\n\tif IsLessThan(n, 10) {\n\t\treturn Multiply(a, 2)\n\t}\n\tif IsGreaterThan(a, b) {\n\t\treturn Subtract(a, b)\n\t}\n\treturn OpNeg(Divide(a, 3))\n}\n');
         const out = fs.readFileSync (file, 'utf8');
-        return (out.includes ('Divide(') || !out.includes ('import "reflect"')) ? [ 'hx4 G36: not wired into overwriteFileAndFolder: ' + out ] : [];
+        const problems: string[] = [];
+        if (/func\((?:a, b|v) any\) (?:any|bool|float64) \{/.test (out) || out.includes ('import "reflect"')) {
+            problems.push ('hx4 G36: inline closure emitted: ' + out);
+        }
+        for (const want of [ 'Multiply(a, 2)', 'IsGreaterThan(a, b)', 'Subtract(a, b)', 'OpNeg(Divide(a, 3))' ]) {
+            if (!out.includes (want)) {
+                problems.push ('hx4 G36: unproven call lost its helper (' + want + '): ' + out);
+            }
+        }
+        if (out.includes ('IsLessThan(n, 10)')) {
+            problems.push ('hx4 G36: proven int64 comparison not native: ' + out);
+        }
+        return problems;
     } finally {
         fs.rmSync (dir, { 'recursive': true, 'force': true });
     }
@@ -14149,220 +14163,17 @@ function hx4G39PointerValue (lines: string[], value: string, valueMasked: string
     return wrap (value);
 }
 
-// hx4 G40
+// hx4 G40 (hx5 X23: an unproven IsEqual stays the helper call; a typed map against nil becomes `m == nil`)
 function hx4G40Wired (): string[] {
     const dir = fs.mkdtempSync (path.join (os.tmpdir (), 'hx4-G40-'));
     const file = path.join (dir, 'x.go');
     try {
-        overwriteFileAndFolder (file, 'package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n\nfunc (this *X) F(a any) any {\n\treturn IsEqual(a, "x")\n}\n');
+        overwriteFileAndFolder (file, 'package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n\nfunc (this *X) F(a any, m map[string]any) any {\n\tif IsEqual(m, nil) {\n\t\treturn nil\n\t}\n\treturn IsEqual(a, "x")\n}\n');
         const out = fs.readFileSync (file, 'utf8');
-        return (out.includes ('IsEqual(') || !out.includes ('import "reflect"')) ? [ 'hx4 G40: not wired into overwriteFileAndFolder: ' + out ] : [];
+        return (!out.includes ('return IsEqual(a, "x")') || !out.includes ('\tif m == nil {\n') || out.includes ('reflect') || out.includes ('func(a')) ? [ 'hx4 G40: not wired into overwriteFileAndFolder: ' + out ] : [];
     } finally {
         fs.rmSync (dir, { 'recursive': true, 'force': true });
     }
-}
-
-// hx4 G41
-// Last tier for InOp: every call no typed pass proved becomes `func(a, b any) bool {..}(X, Y)`, the helper's
-// own dispatch inlined (derefScalar, numeric-key veto, map/sync.Map/order-book/cache-map arms, same map lock).
-// IsZero equals IsNil on the pointer/map/slice kinds it sees; spelled so census regexes skip it.
-function hx4G41InOpBody (pkg: string): string {
-    const lock = (s: string) => [ '\t' + pkg + 'AddElementMu.Lock()', '\t' + s, '\t' + pkg + 'AddElementMu.Unlock()' ];
-    const cacheArm = (t: string) => [ 'case ' + t + ':', '\tif s, ok := b.(string); ok {', ...lock ('_, ok = v[s]').map ((l) => '\t' + l), '\t\treturn ok', '\t}' ];
-    return [
-        'for _, p := range []*any{&a, &b} {',
-        '\tfor {',
-        '\t\tswitch (*p).(type) {',
-        '\t\tcase *string, *int64, *float64, *bool, *int, *[]string, *[]any, *map[string]any, *any:',
-        '\t\t\tr := reflect.ValueOf(*p)',
-        '\t\t\t_, again := (*p).(*any)',
-        '\t\t\tif *p = nil; !r.IsZero() {',
-        '\t\t\t\t*p = r.Elem().Interface()',
-        '\t\t\t}',
-        '\t\t\tif again && *p != nil {',
-        '\t\t\t\tcontinue',
-        '\t\t\t}',
-        '\t\tcase map[string]any, []any, []string:',
-        '\t\t\tif reflect.ValueOf(*p).IsZero() {',
-        '\t\t\t\t*p = nil',
-        '\t\t\t}',
-        '\t\t}',
-        '\t\tbreak',
-        '\t}',
-        '}',
-        'if a == nil || b == nil {',
-        '\treturn false',
-        '}',
-        'switch b.(type) {',
-        'case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64:',
-        '\treturn false',
-        '}',
-        'switch v := a.(type) {',
-        'case map[string]any:',
-        ...lock ('_, ok := v[b.(string)]'),
-        '\treturn ok',
-        'case *sync.Map:',
-        '\tif s, ok := b.(string); ok && v != nil {',
-        '\t\t_, ok = v.Load(s)',
-        '\t\treturn ok',
-        '\t}',
-        'case ' + pkg + 'OrderBookInterface:',
-        '\tread := v.GetValue',
-        '\tswitch b {',
-        '\tcase "asks", "bids", "timestamp", "datetime", "nonce":',
-        '\t\treturn true',
-        '\tcase "outcome", "outcomeId", "market":',
-        '\t\treturn read("outcome", nil) != nil',
-        '\tcase "symbol":',
-        '\t\treturn read("outcome", nil) == nil',
-        '\t}',
-        ...cacheArm ('map[string]map[string]*' + pkg + 'ArrayCacheByTimestamp'),
-        ...cacheArm ('map[string]*' + pkg + 'ArrayCacheByTimestamp'),
-        ...cacheArm ('map[string]*' + pkg + 'ArrayCache'),
-        ...cacheArm ('map[string]*' + pkg + 'ArrayCacheBySymbolBySide'),
-        '}',
-        'return false',
-    ].join ('\n');
-}
-
-function hx4G41AddImport (content: string, name: string): string {
-    if (new RegExp ('^import "' + name + '"$|^\\s*"' + name + '"$', 'm').test (content)) {
-        return content;
-    }
-    const lines = content.split ('\n');
-    const at = lines.findIndex ((l) => l.startsWith ('// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md'));
-    if (at < 0) {
-        return content;
-    }
-    lines.splice (at + 2, 0, 'import "' + name + '"', '');
-    return lines.join ('\n');
-}
-
-// a parameter named like a predeclared type shadows it in the whole function, so every bare use of
-// that identifier there is the parameter: rename it (`string` -> `stringParam`) so the inlined body can name the type
-function hx4G41RenameShadowParams (content: string): string {
-    const masked = goTextMaskLiteralsAndComments (content);
-    const out: string[] = [];
-    let last = 0;
-    for (const m of masked.matchAll (/^func [^\n]*\{$/gm)) {
-        const start = m.index as number;
-        const end = masked.indexOf ('\n}', start);
-        if (end < 0) {
-            continue;
-        }
-        const params = /^func (?:\([^)]*\) )?\w+\(([^)]*)\)/.exec (m[0]);
-        if (params === null) {
-            continue;
-        }
-        const shadowed = [ ...params[1].matchAll (/(?:^|,)\s*(string|bool|any|int|int64|float64)\s+[\w*[\]]/g) ].map ((p) => p[1]);
-        let fnText = content.slice (start, end);
-        const fnMasked = masked.slice (start, end);
-        for (const name of shadowed) {
-            const fresh = name + 'Param';
-            if (new RegExp ('\\b' + fresh + '\\b').test (fnMasked)) {
-                continue;
-            }
-            const rx = new RegExp ('(?<![\\w.])' + name + '(?!\\w)', 'g');
-            let rebuilt = '';
-            let at = 0;
-            for (const r of fnMasked.matchAll (rx)) {
-                rebuilt += fnText.slice (at, r.index) + fresh;
-                at = (r.index as number) + name.length;
-            }
-            fnText = rebuilt + fnText.slice (at);
-        }
-        if (shadowed.length > 0) {
-            out.push (content.slice (last, start), fnText);
-            last = end;
-        }
-    }
-    out.push (content.slice (last));
-    return out.join ('');
-}
-
-function hx4G41InlineInOp (content: string): string {
-    const rx = /(?<![\w.])(?:ccxt\.)?InOp\(/g;
-    if ((content.indexOf ('PLEASE DO NOT EDIT THIS FILE') < 0) || !rx.test (content)) {
-        return content;
-    }
-    rx.lastIndex = 0;
-    const local = /^package ccxt$/m.test (content);
-    const pkg = local ? '' : 'ccxt.';
-    if (!local && !/^import (?:ccxt )?"github\.com\/ccxt\/ccxt\/go\/v4"$/m.test (content)) {
-        return content;
-    }
-    content = hx4G41RenameShadowParams (content);
-    let masked = goTextMaskLiteralsAndComments (content);
-    // a local/param named like a package or predeclared type the inlined body uses would shadow it
-    const names = '(?:sync|reflect|ccxt|AddElementMu|OrderBookInterface|ArrayCache\\w*|string|bool|any|u?int(?:8|16|32|64)?|float(?:32|64)|nil|true|false)';
-    const shadowRx = new RegExp ('(?<![\\w.])' + names + '[ \\t]*(?::=|,[\\w \\t,]*:=)|\\bvar[ \\t]+' + names + '\\b|[(,][ \\t]*' + names + '[ \\t]+[\\w*[\\]]');
-    const original = masked;
-    const funcOf = (at: number) => {
-        const s = original.lastIndexOf ('\nfunc ', at);
-        const e = original.indexOf ('\n}', at);
-        return original.slice (s < 0 ? 0 : s, e < 0 ? original.length : e);
-    };
-    const calls = [ ...masked.matchAll (rx) ].map ((m) => ({ 'start': m.index as number, 'open': (m.index as number) + m[0].length - 1 }));
-    calls.sort ((x, y) => y.start - x.start);
-    let text = content;
-    let changed = false;
-    for (const call of calls) {
-        let depth = 0;
-        let close = -1;
-        const commas: number[] = [];
-        for (let i = call.open; i < masked.length; i++) {
-            const c = masked[i];
-            if ((c === '(') || (c === '[') || (c === '{')) { depth++; }
-            else if ((c === ')') || (c === ']') || (c === '}')) { depth--; if (depth === 0) { close = i; break; } }
-            else if ((c === ',') && (depth === 1)) { commas.push (i); }
-        }
-        if ((close < 0) || (commas.length !== 1) || shadowRx.test (funcOf (call.start))) {
-            continue;
-        }
-        const x = text.slice (call.open + 1, commas[0]).trim ();
-        const y = text.slice (commas[0] + 1, close).trim ();
-        const lineStart = text.lastIndexOf ('\n', call.start) + 1;
-        const indent = (/^\t*/.exec (text.slice (lineStart)) as RegExpExecArray)[0];
-        const body = hx4G41InOpBody (pkg).split ('\n').map ((l) => indent + '\t' + l).join ('\n');
-        const native = 'func(a, b any) bool {\n' + body + '\n' + indent + '}(' + x + ', ' + y + ')';
-        text = text.slice (0, call.start) + native + text.slice (close + 1);
-        masked = masked.slice (0, call.start) + goTextMaskLiteralsAndComments (native) + masked.slice (close + 1);
-        changed = true;
-    }
-    return changed ? hx4G41AddImport (hx4G41AddImport (text, 'sync'), 'reflect') : text;
-}
-
-function hx4G41Check (): string[] {
-    const problems: string[] = [];
-    const head = 'package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n\n';
-    const out = hx4G41InlineInOp (head + 'func (this *K) F(o any, n any) any {\n\tif InOp(o, "a, b") && !InOp(GetValue(o, n), n) {\n\t}\n\treturn nil\n}\n');
-    if (/InOp\(/.test (out.replace (/\/\/[^\n]*/g, '')) || !out.includes ('import "reflect"\n') || !out.includes ('import "sync"\n') || !out.includes ('\t}(o, "a, b") && !func(a, b any) bool {\n') || !out.includes ('\t\t\tAddElementMu.Lock()\n') || out.includes ('ccxt.')) {
-        problems.push ('hx4 G41: ccxt package shape: ' + out);
-    }
-    const pro = hx4G41InlineInOp ('package ccxtpro\n\nimport ccxt "github.com/ccxt/ccxt/go/v4"\nimport "sync"\n\n' + head.slice (14) + 'func (this *K) F(c any, h any) bool {\n\treturn ccxt.InOp(this.Orderbooks, h)\n}\n');
-    if (pro.includes ('InOp(') || !pro.includes ('\t\t\tccxt.AddElementMu.Lock()\n') || !pro.includes ('case ccxt.OrderBookInterface:') || !pro.includes ('}(this.Orderbooks, h)') || (pro.split ('import "sync"').length !== 2)) {
-        problems.push ('hx4 G41: pro shape: ' + pro);
-    }
-    const shadow = head + 'func F(m any) any {\n\tvar sync bool = true\n\treturn InOp(m, "x") && sync\n}\n';
-    if (hx4G41InlineInOp (shadow) !== shadow) {
-        problems.push ('hx4 G41: shadowed sync rewritten');
-    }
-    const param = hx4G41InlineInOp (head + 'func (this *X) F(m any, string any) any {\n\tif IsEqual(string, nil) {\n\t\treturn "string"\n\t}\n\treturn InOp(m, string)\n}\n');
-    if (param.includes ('InOp(') || !param.includes ('F(m any, stringParam any)') || !param.includes ('IsEqual(stringParam, nil)') || !param.includes ('return "string"') || !param.includes ('}(m, stringParam)')) {
-        problems.push ('hx4 G41: parameter named string not renamed: ' + param);
-    }
-    const dir = fs.mkdtempSync (path.join (os.tmpdir (), 'hx4-G41-'));
-    try {
-        const file = path.join (dir, 'x.go');
-        overwriteFileAndFolder (file, head + 'func (this *X) F(a any) any {\n\treturn InOp(a, "k")\n}\n');
-        const wired = fs.readFileSync (file, 'utf8');
-        if (wired.includes ('InOp(')) {
-            problems.push ('hx4 G41: not wired into overwriteFileAndFolder: ' + wired);
-        }
-    } finally {
-        fs.rmSync (dir, { 'recursive': true, 'force': true });
-    }
-    return problems;
 }
 
 // hx4 G43
@@ -14370,90 +14181,108 @@ function hx4G43Wired (): string[] {
     const dir = fs.mkdtempSync (path.join (os.tmpdir (), 'hx4-G43-'));
     const file = path.join (dir, 'x.go');
     try {
-        overwriteFileAndFolder (file, 'package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n\nfunc (this *X) F(a any) any {\n\treturn ToUpper(a)\n}\n');
+        overwriteFileAndFolder (file, 'package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n\nfunc (this *X) F(a any, s string) any {\n\treturn ToUpper(a) + ToUpper(s)\n}\n');
         const out = fs.readFileSync (file, 'utf8');
-        return (out.includes ('ToUpper(a)') || !out.includes ('import "strings"')) ? [ 'hx4 G43: not wired into overwriteFileAndFolder: ' + out ] : [];
+        // hx5 X26: proven `string` goes native in plain spelling, the `any` operand keeps the helper, no closure
+        return (!out.includes ('return ToUpper(a) + strings.ToUpper(s)') || !out.includes ('import "strings"') || out.includes ('func(v any)')) ? [ 'hx5 X26: not wired into overwriteFileAndFolder: ' + out ] : [];
     } finally {
         fs.rmSync (dir, { 'recursive': true, 'force': true });
     }
 }
 
-// hx4 G44
-// Last tier for Split/Join/Replace: a proven `string`/`[]string` local takes the stdlib call directly; any other operand
-// gets an inline closure repeating exchange_helpers.go (derefScalar, ToString incl. its map/slice/func text, then the
-// strings.* call). Stdlib calls are parenthesised so census regexes never read them as the helpers.
-function HX4G44_PKGS (): string[] {
-    return [ 'fmt', 'math', 'reflect', 'strings' ];
-}
-function HX4G44_DEREF (): string[] {
-    return [
-    'd := func(v any) any {',
-    '\tfor {',
-    '\t\tswitch p := v.(type) {',
-    '\t\tcase *any:',
-    '\t\t\tif p == nil {',
-    '\t\t\t\treturn nil',
-    '\t\t\t}',
-    '\t\t\tv = *p',
-    '\t\t\tcontinue',
-    '\t\tcase *string, *int64, *float64, *bool, *int, *[]string, *[]any, *map[string]any:',
-    '\t\t\tif r := reflect.ValueOf(p); !r.IsZero() {',
-    '\t\t\t\treturn r.Elem().Interface()',
-    '\t\t\t}',
-    '\t\t\treturn nil',
-    '\t\tcase map[string]any, []any, []string:',
-    '\t\t\tif reflect.ValueOf(p).IsZero() {',
-    '\t\t\t\treturn nil',
-    '\t\t\t}',
-    '\t\t}',
-    '\t\treturn v',
-    '\t}',
-    '}',
-];
-}
-function HX4G44_TOSTRING (): string[] {
-    return [
-    'var s func(v any) string',
-    's = func(v any) string {',
-    '\tv = d(v)',
-    '\tswitch x := v.(type) {',
-    '\tcase string:',
-    '\t\treturn x',
-    '\tcase int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:',
-    '\t\treturn fmt.Sprintf("%d", x)',
-    '\tcase float64:',
-    '\t\tif x == math.Trunc(x) {',
-    '\t\t\treturn fmt.Sprintf("%d", int(x))',
-    '\t\t}',
-    '\t\treturn fmt.Sprintf("%f", x)',
-    '\tcase float32:',
-    '\t\treturn fmt.Sprintf("%f", x)',
-    '\tcase bool:',
-    '\t\treturn fmt.Sprintf("%t", x)',
-    '\t}',
-    '\tr := reflect.ValueOf(v)',
-    '\tswitch r.Kind() {',
-    '\tcase reflect.Map:',
-    '\t\tout := "{"',
-    '\t\tfor _, k := range r.MapKeys() {',
-    '\t\t\tout += fmt.Sprintf("%v: %v, ", s(k.Interface()), s(r.MapIndex(k).Interface()))',
-    '\t\t}',
-    '\t\treturn (strings.TrimSuffix)(out, ", ") + "}"',
-    '\tcase reflect.Slice, reflect.Array:',
-    '\t\tout := "["',
-    '\t\tfor i := 0; i < r.Len(); i++ {',
-    '\t\t\tout += fmt.Sprintf("%v, ", s(r.Index(i).Interface()))',
-    '\t\t}',
-    '\t\treturn (strings.TrimSuffix)(out, ", ") + "]"',
-    '\tcase reflect.Func:',
-    '\t\treturn fmt.Sprintf("Function: %v", r.Type().String())',
-    '\t}',
-    '\treturn fmt.Sprintf("%v", v)',
-    '}',
-];
+// hx4 G45
+function hx4G45Wired (): string[] {
+    const dir = fs.mkdtempSync (path.join (os.tmpdir (), 'hx4-G45-'));
+    const file = path.join (dir, 'x.go');
+    try {
+        // hx5 X28: proven string operands go native, the any operand keeps the helper call
+        overwriteFileAndFolder (file, 'package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n\nfunc (this *X) F(a any, s string) any {\n\treturn GetIndexOf(s, "/") + GetLength(s) + GetLength(a)\n}\n');
+        const out = fs.readFileSync (file, 'utf8');
+        return (!out.includes ('strings.Index(s, "/") + len(s) + GetLength(a)') || !out.includes ('import "strings"') || /func\(/.test (out)) ? [ 'hx5 X28: G45 not wired into overwriteFileAndFolder: ' + out ] : [];
+    } finally {
+        fs.rmSync (dir, { 'recursive': true, 'force': true });
+    }
 }
 
-function hx4G44Close (masked: string, open: number): number {
+// hx5 X29
+function hx5X29Wired (): string[] {
+    const dir = fs.mkdtempSync (path.join (os.tmpdir (), 'hx5-X29-'));
+    const file = path.join (dir, 'x.go');
+    try {
+        overwriteFileAndFolder (file, 'package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n\nfunc (this *X) F(a any, s string) any {\n\treturn this.G(ToString(a), ToString(s))\n}\n');
+        const out = fs.readFileSync (file, 'utf8');
+        return (!out.includes ('this.G(ToString(a), s)') || out.includes ('func(v any)')) ? [ 'hx5 X29: not wired into overwriteFileAndFolder: ' + out ] : [];
+    } finally {
+        fs.rmSync (dir, { 'recursive': true, 'force': true });
+    }
+}
+
+// hx5 X24
+// InOp has exactly two outcomes: goNativeInOp / g10kInopClientMaps / hx4G07FieldInOp emit `_, ok := m[k]`
+// on a proven map[string]any read receiver with a proven string key; every other site keeps the
+// InOp(dict, key) helper call (nil/numeric keys, *sync.Map, order books, cache maps, addElementMu lock).
+// The hx4 G41 inline `func(a, b any) bool {..}(X, Y)` closure is gone: no pass may paste the helper body.
+function hx4G41Check (): string[] {
+    const problems: string[] = [];
+    const head = 'package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n\n';
+    const dir = fs.mkdtempSync (path.join (os.tmpdir (), 'hx5-X24-'));
+    try {
+        const cases = [
+            head + 'func (this *X) F(a any) any {\n\treturn InOp(a, "k")\n}\n',
+            'package ccxtpro\n\nimport ccxt "github.com/ccxt/ccxt/go/v4"\n\n' + head.slice (14) + 'func (this *K) F(c any, h any) bool {\n\treturn ccxt.InOp(this.Orderbooks, h)\n}\n',
+            head + 'func (this *K) F(o any, n any) any {\n\tif InOp(o, "a, b") && !InOp(GetValue(o, n), n) {\n\t}\n\treturn nil\n}\n',
+        ];
+        for (const [ i, src ] of cases.entries ()) {
+            const file = path.join (dir, 'x' + i + '.go');
+            overwriteFileAndFolder (file, src);
+            const out = fs.readFileSync (file, 'utf8');
+            if (/func\(a, b any\) bool|AddElementMu|import "reflect"/.test (out) || !/InOp\(/.test (out)) {
+                problems.push ('hx5 X24: unproven InOp must stay a helper call: ' + out);
+            }
+        }
+    } finally {
+        fs.rmSync (dir, { 'recursive': true, 'force': true });
+    }
+    return problems;
+}
+
+// hx5 X32
+// a nullable `Str` parameter whose callers pass `*string` or a proven Go `string` prints `*string`;
+// the string callers are boxed with SafeStringPtr (never nil); any other caller keeps the `any` box
+function hx5X32StrParamSelfTest (): string[] {
+    const problems: string[] = [];
+    const tmp = fs.mkdtempSync (path.join (os.tmpdir (), 'hx5-X32-'));
+    try {
+        const src = path.join (tmp, 'ts', 'src');
+        fs.mkdirSync (path.join (src, 'base'), { 'recursive': true });
+        fs.writeFileSync (path.join (src, 'base', 'Exchange.ts'), 'export type Dict = { [key: string]: any };\nexport type Str = string | undefined;\n'
+            + 'export class Exchange {\n    safeString (a, b, c?): Str { return undefined; }\n}\n');
+        fs.writeFileSync (path.join (src, 'ex.ts'), 'import { Exchange, Dict, Str } from \'./base/Exchange\';\nexport class ex extends Exchange {\n'
+            + '    req (symbol: Str, side: Str): Dict { const r: Dict = {}; if (side === \'buy\') { r[\'s\'] = 1; } if (symbol !== undefined) { r[\'y\'] = 2; } return r; }\n'
+            + '    boxed (side: Str): Dict { const r: Dict = {}; if (side === \'buy\') { r[\'s\'] = 1; } return r; }\n'
+            + '    use (o: Dict, raw) { const s: string = \'BTC\'; const p = this.safeString (o, \'p\'); this.boxed (raw); return [ this.req (s, p), this.req (p, \'sell\') ]; }\n}\n');
+        const t = new Transpiler ({ 'verbose': false, 'go': {} });
+        installCcxtGoLocalTypes (t.goTranspiler);
+        installCcxtGoIndexableTypes (t.goTranspiler);
+        const go = t.transpileGoByPath (path.join (src, 'ex.ts')).content;
+        const ok = (cond: boolean, msg: string) => { if (!cond) { problems.push ('hx5 X32: ' + msg + '\n' + go); } };
+        ok (go.includes ('func (this *ex) Req(symbol *string, side *string) map[string]any {'), 'string/*string callers type the Str params');
+        ok (go.includes ('this.Req(SafeStringPtr(s), p)') && go.includes ('this.Req(p, SafeStringPtr("sell"))'), 'string arguments are boxed with SafeStringPtr');
+        ok (go.includes ('func (this *ex) Boxed(side any) map[string]any {') && go.includes ('this.Boxed(raw)'), 'an any caller keeps the box');
+        ok (!/IsEqual\(side, "buy"\)/.test (go.split ('func (this *ex) Boxed')[0]), 'typed param compares natively');
+    } catch (e: any) {
+        problems.push ('hx5 X32 threw: ' + e.message);
+    } finally {
+        fs.rmSync (tmp, { 'recursive': true, 'force': true });
+    }
+    return problems;
+}
+
+// hx5 X27
+// Split/Join/Replace: a proven non-pointer `string` (Split/Replace subject) or `[]string` (Join subject) whose other
+// operands are string literals or proven `string`s takes the plain stdlib call; every other site keeps the helper
+// call exactly as emitted. Operands are moved verbatim, so each is still evaluated once.
+function hx5X27Close (masked: string, open: number): number {
     let depth = 0;
     for (let i = open; i < masked.length; i++) {
         const c = masked[i];
@@ -14462,7 +14291,7 @@ function hx4G44Close (masked: string, open: number): number {
     return -1;
 }
 
-function hx4G44Args (masked: string, open: number, close: number): number[][] {
+function hx5X27Args (masked: string, open: number, close: number): number[][] {
     const spans: number[][] = [];
     let depth = 0;
     let start = open + 1;
@@ -14474,89 +14303,27 @@ function hx4G44Args (masked: string, open: number, close: number): number[][] {
     return spans;
 }
 
-// the single Go type every declaration of `name` has in this func chunk (masked), or undefined
-function hx4G44DeclType (chunk: string, name: string): string | undefined {
-    const sig = chunk.slice (0, chunk.indexOf ('{') + 1);
-    if (new RegExp ('\\b' + name + '\\b').test (sig) || new RegExp ('(?<![\\w.])' + name + '\\s*(?:,[\\w\\s,]*)?:=|,\\s*' + name + '\\s*(?:,[\\w\\s,]*)?:=|\\bfunc\\s*\\([^)]*\\b' + name + '\\b|\\brange\\b[^\\n]*\\b' + name + '\\b').test (chunk)) {
+// the single static Go type of `name` in this func chunk (masked): its parameter type or every `var name T`
+// declaration agreeing; undefined when any `:=`, range, or func-literal binding could rebind it to another type
+function hx5X27DeclType (chunk: string, name: string): string | undefined {
+    const brace = chunk.indexOf ('{');
+    const sig = chunk.slice (0, brace + 1);
+    const body = chunk.slice (brace + 1);
+    if (new RegExp ('(?<![\\w.])' + name + '\\s*(?:,[\\w\\s,]*)?:=|,\\s*' + name + '\\s*(?:,[\\w\\s,]*)?:=|\\bfunc\\s*\\([^)]*\\b' + name + '\\b|\\brange\\b[^\\n]*\\b' + name + '\\b').test (body)) {
         return undefined;
     }
-    const types = [ ...chunk.matchAll (new RegExp ('\\bvar ' + name + ' ([^=\\n]+?)\\s*(?:=|\\n)', 'g')) ].map ((m) => m[1].trim ());
+    const types = [ ...body.matchAll (new RegExp ('\\bvar ' + name + ' ([^=\\n]+?)\\s*(?:=|\\n)', 'g')) ].map ((m) => m[1].trim ());
+    if (new RegExp ('\\b' + name + '\\b').test (sig)) {
+        const param = new RegExp ('[(,]\\s*' + name + '((?:\\s*,\\s*\\w+)*)\\s+([^,()]+?)\\s*[,)]').exec (sig);
+        if (!param) {
+            return undefined;
+        }
+        types.push (param[2].trim ());
+    }
     return ((types.length > 0) && types.every ((t) => t === types[0])) ? types[0] : undefined;
 }
 
-function hx4G44Closure (helper: string, lits: boolean[], indent: string): { head: string, body: string[] } {
-    const needS = (helper !== 'Split') || !lits[1];
-    const pre = [ ...HX4G44_DEREF (), ...(needS ? HX4G44_TOSTRING () : []) ];
-    const p = (i: number, n: string) => n + ' ' + (lits[i] ? 'string' : 'any');
-    const v = (i: number, n: string) => (lits[i] ? n : 's(' + n + ')');
-    let head: string;
-    let body: string[];
-    if (helper === 'Split') {
-        head = 'func(a any, ' + p (1, 'b') + ') []string {';
-        body = [ 'x, ok := d(a).(string)', 'if !ok {', '\treturn nil', '}', 'return (strings.Split)(x, ' + v (1, 'b') + ')' ];
-    } else if (helper === 'Join') {
-        head = 'func(a any, ' + p (1, 'b') + ') string {';
-        body = [ 'switch x := d(a).(type) {', 'case []string:', '\treturn (strings.Join)(x, ' + v (1, 'b') + ')', 'case []any:', '\tparts := []string{}',
-            '\tfor _, e := range x {', '\t\tparts = append(parts, s(e))', '\t}', '\treturn (strings.Join)(parts, ' + v (1, 'b') + ')', '}', 'return ""' ];
-    } else {
-        head = 'func(a any, ' + p (1, 'b') + ', ' + p (2, 'c') + ') string {';
-        body = [ 'return (strings.ReplaceAll)(s(a), ' + v (1, 'b') + ', ' + v (2, 'c') + ')' ];
-    }
-    return { head, 'body': [ ...pre, ...body ].map ((l) => indent + '\t' + l) };
-}
-
-function hx4G44AddImport (content: string, pkg: string): string {
-    if (new RegExp ('^import \"' + pkg + '\"$|^\\s+\"' + pkg + '\"$', 'm').test (content)) {
-        return content;
-    }
-    const lines = content.split ('\n');
-    const at = lines.findIndex ((l) => l.startsWith ('// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md'));
-    if (at < 0) {
-        return content;
-    }
-    lines.splice (at + 2, 0, 'import "' + pkg + '"', '');
-    return lines.join ('\n');
-}
-
-// gofmt ends an alignment section at a multi-line keyed entry: re-align the literal holding line `at`
-function hx4G44Realign (lines: string[], at: number, aligner: any): void {
-    const ind = /^\t*/.exec (lines[at])[0].length;
-    const depth = (l: string) => /^\t*/.exec (l)[0].length;
-    let top = at;
-    while ((top > 0) && (lines[top - 1].trim () !== '') && (depth (lines[top - 1]) >= ind)) { top--; }
-    let bottom = at;
-    while ((bottom + 1 < lines.length) && (lines[bottom + 1].trim () !== '') && (depth (lines[bottom + 1]) >= ind)) { bottom++; }
-    if ((top === 0) || !/\{$/.test (lines[top - 1]) || (depth (lines[top - 1]) !== ind - 1) || (lines[bottom + 1] === undefined) || !/^\t*\}/.test (lines[bottom + 1]) || (depth (lines[bottom + 1]) !== ind - 1)) {
-        return;
-    }
-    const entries: string[][] = [];
-    for (let k = top; k <= bottom; k++) {
-        const l = lines[k];
-        if ((depth (l) === ind) && !/^\t*[})\]]/.test (l)) {
-            if (!/^\t*"(?:[^"\\]|\\.)*": /.test (l)) { return; }
-            entries.push ([ l ]);
-        } else if (entries.length === 0) {
-            return;
-        } else {
-            entries[entries.length - 1].push (l);
-        }
-    }
-    if (entries.some ((e) => !e[e.length - 1].replace (/\s*\/\/.*$/, '').trimEnd ().endsWith (','))) {
-        return;
-    }
-    const texts = entries.map ((e) => {
-        const all = [ e[0].replace (/^(\t*"(?:[^"\\]|\\.)*":) +/, '$1 '), ...e.slice (1) ];
-        const last = all[all.length - 1];
-        const ci = aligner.findGoTrailingCommentStart (last);
-        const code = (ci < 0) ? last.trimEnd () : last.slice (0, ci).trimEnd ();
-        const bare = code.endsWith (',') ? code.slice (0, -1) : code;
-        all[all.length - 1] = (ci < 0) ? bare : bare + ' ' + last.slice (ci).trimEnd ();
-        return all.join ('\n');
-    });
-    lines.splice (top, bottom - top + 1, ...aligner.alignGoCompositeEntries (texts).join ('\n').split ('\n'));
-}
-
-export function hx4G44StringHelpers (content: string, aligner?: any): string {
+export function hx5X27StringHelpers (content: string): string {
     if ((content.indexOf ('IT IS GENERATED AND WILL BE OVERWRITTEN') < 0) || (content.indexOf ('// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md') < 0)) {
         return content;
     }
@@ -14565,108 +14332,165 @@ export function hx4G44StringHelpers (content: string, aligner?: any): string {
     const calls = [ ...masked.matchAll (rx) ].map ((m) => ({ 'start': m.index as number, 'helper': m[1], 'open': (m.index as number) + m[0].length - 1 }))
         .filter ((c) => !/\bfunc\s*(?:\([^)]*\)\s*)?$/.test (masked.slice (Math.max (0, c.start - 80), c.start)));
     calls.sort ((x, y) => y.start - x.start);
-    const shadow = new RegExp ('(?<![\\w.])(?:' + HX4G44_PKGS ().join ('|') + ')\\s*(?::=|,\\s*\\w+\\s*:?=)|\\bvar (?:' + HX4G44_PKGS ().join ('|') + ')\\b|[(,]\\s*(?:' + HX4G44_PKGS ().join ('|') + ')\\s+[\\w*[]');
+    const shadow = /(?<![\w.])strings\s*(?::=|,\s*\w+\s*:?=)|\bvar strings\b|[(,]\s*strings\s+[\w*[]/;
     let text = content;
-    const used = new Set<string> ();
-    let marked = false;
-    const MARK = '\u0001hx4G44\u0001';
+    let used = false;
     for (const call of calls) {
-        const close = hx4G44Close (masked, call.open);
+        const close = hx5X27Close (masked, call.open);
         if (close < 0) { continue; }
-        const spans = hx4G44Args (masked, call.open, close);
+        const spans = hx5X27Args (masked, call.open, close);
         if ((spans.length !== ((call.helper === 'Replace') ? 3 : 2)) || spans.some (([ s, e ]) => text.slice (s, e).trim () === '')) { continue; }
         const fnStart = masked.lastIndexOf ('\nfunc ', call.start) + 1;
         const fnEnd = masked.indexOf ('\n}\n', call.start);
         const chunk = masked.slice (fnStart, (fnEnd < 0) ? masked.length : fnEnd + 2);
+        if (shadow.test (chunk)) { continue; }
         const args = spans.map (([ s, e ]) => text.slice (s, e).trim ());
-        const lits = args.map ((a) => /^"(?:[^"\\\n]|\\.)*"$|^`[^`]*`$/.test (a));
-        const lineStart = text.lastIndexOf ('\n', call.start - 1) + 1;
-        const indent = /^\t*/.exec (text.slice (lineStart))[0];
-        let native: string;
-        const recv = /^\w+$/.test (args[0]) ? hx4G44DeclType (chunk, args[0]) : undefined;
-        const tier1 = lits.slice (1).every ((l) => l) && (((call.helper === 'Join') && (recv === '[]string')) || ((call.helper !== 'Join') && (recv === 'string')));
-        if (tier1) {
-            native = '(strings.' + ((call.helper === 'Replace') ? 'ReplaceAll' : call.helper) + ')(' + args.join (', ') + ')';
-        } else {
-            if (shadow.test (chunk)) { continue; }
-            const tpl = hx4G44Closure (call.helper, lits, indent);
-            native = tpl.head + '\n' + tpl.body.join ('\n') + '\n' + indent + '}(' + args.join (', ') + ')';
-        }
-        for (const pkg of HX4G44_PKGS ()) {
-            if (new RegExp ('\\b' + pkg + '\\.').test (native)) { used.add (pkg); }
-        }
-        const maskedNative = goTextMaskLiteralsAndComments (native);
-        const keyed = !tier1 && (aligner !== undefined) && /^\t*"(?:[^"\\]|\\.)*":/.test (text.slice (lineStart, call.start));
-        if (keyed) {
-            native = MARK + native;
-            marked = true;
-        }
+        const typeOf = (a: string) => (/^"(?:[^"\\\n]|\\.)*"$|^`[^`]*`$/.test (a) ? 'string' : (/^\w+$/.test (a) ? hx5X27DeclType (chunk, a) : undefined));
+        const subject = (call.helper === 'Join') ? '[]string' : 'string';
+        if ((typeOf (args[0]) !== subject) || args.slice (1).some ((a) => typeOf (a) !== 'string')) { continue; }
+        const native = 'strings.' + ((call.helper === 'Replace') ? 'ReplaceAll' : call.helper) + '(' + args.join (', ') + ')';
         text = text.slice (0, call.start) + native + text.slice (close + 1);
-        masked = masked.slice (0, call.start) + (keyed ? ' '.repeat (MARK.length) : '') + maskedNative + masked.slice (close + 1);
+        masked = masked.slice (0, call.start) + goTextMaskLiteralsAndComments (native) + masked.slice (close + 1);
+        used = true;
     }
-    if (marked) {
-        const lines = text.split ('\n');
-        for (let k = lines.length - 1; k >= 0; k--) {
-            if (lines[k].includes (MARK)) {
-                lines[k] = lines[k].split (MARK).join ('');
-                hx4G44Realign (lines, k, aligner);
-            }
-        }
-        text = lines.join ('\n');
-    }
-    for (const pkg of [ ...HX4G44_PKGS () ].reverse ()) {
-        if (used.has (pkg)) {
-            text = hx4G44AddImport (text, pkg);
-        }
-    }
-    return text;
+    return used ? hx4G36AddImport (text, 'strings') : text;
 }
 
-function hx4G44Check (): string[] {
+function hx5X27Check (): string[] {
     const problems: string[] = [];
     const head = 'package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n\n';
-    const run = (body: string) => hx4G44StringHelpers (head + 'func (this *K) F(a any, b any) any {\n' + body + '\n}\n', hx4G36Aligner ());
-    const out = run ('\tvar ids []string = ObjectKeys(a)\n\tvar x string = Join(ids, ",")\n\tvar y []string = ccxt.Split(a, "-")\n\treturn Replace(Join(a, b), "x", "")');
-    if (/(?<![\w.])(?:ccxt\.)?(Split|Join|Replace)\(/.test (out) || !out.includes ('(strings.Join)(ids, ",")') || !out.includes ('}(a, "-")') || !out.includes ('import "fmt"\n') || !out.includes ('return (strings.ReplaceAll)(s(a), b, c)')) {
-        problems.push ('hx4 G44: shape: ' + out);
+    const run = (body: string, sig = 'a any, b any') => hx5X27StringHelpers (head + 'func (this *K) F(' + sig + ') any {\n' + body + '\n}\n');
+    // proven local subject + literal operands: plain stdlib call, no parens, import added
+    const out = run ('\tvar ids []string = ObjectKeys(a)\n\tvar x string = Join(ids, ",")\n\tvar y []string = ccxt.Split(x, "-")\n\treturn Replace(Join(a, b), "x", "")');
+    if (!out.includes ('var x string = strings.Join(ids, ",")') || !out.includes ('var y []string = strings.Split(x, "-")') || !out.includes ('return Replace(Join(a, b), "x", "")') || !out.includes ('import "strings"\n') || out.includes ('func(') || out.includes ('(strings.')) {
+        problems.push ('hx5 X27: shape: ' + out);
     }
-    const shadow = run ('\tstrings := a\n\treturn Split(strings, b)');
-    if (!shadow.includes ('return Split(strings, b)')) {
-        problems.push ('hx4 G44: shadowed strings rewritten');
+    // widened proof: `string` / grouped parameters and proven-string separators
+    const par = run ('\treturn Replace(s, sep, "")', 'a any, s, sep string');
+    if (!par.includes ('return strings.ReplaceAll(s, sep, "")')) {
+        problems.push ('hx5 X27: string parameter not proven: ' + par);
     }
-    const lit = run ('\treturn map[string]any{\n\t\t"a": 1,\n\t\t"symbols": Join(a, ","),\n\t\t"longer": 3,\n\t}');
-    if (!lit.includes ('\t\t"a": 1,\n\t\t"symbols": func(a any, b string) string {') || !lit.includes ('}(a, ","),\n\t\t"longer": 3,')) {
-        problems.push ('hx4 G44: composite literal not re-aligned: ' + lit);
+    // unproven: *string, any, := rebinding, call-expression subject, unproven separator -> helper call left alone
+    const keep = [
+        run ('\tvar m *string = this.SafeString(a, "m")\n\treturn Split(m, "_")'),
+        run ('\treturn Split(a, "_")'),
+        run ('\tvar s string = "x"\n\tif true {\n\t\ts := a\n\t\t_ = s\n\t}\n\treturn Split(s, "_")'),
+        run ('\treturn Split(ToString(a), "_")'),
+        run ('\tvar s string = "x"\n\treturn Split(s, b)'),
+        run ('\tstrings := a\n\tvar s string = "x"\n\treturn Split(s, "_")'),
+    ];
+    for (const k of keep) {
+        if (!k.includes ('return Split(') || k.includes ('func(') || k.includes ('import "strings"')) {
+            problems.push ('hx5 X27: unproven site not left as the helper call: ' + k);
+        }
+    }
+    if (run ('\tvar ids []string = nil\n\treturn Join(ids, ",")') !== hx5X27StringHelpers (run ('\tvar ids []string = nil\n\treturn Join(ids, ",")'))) {
+        problems.push ('hx5 X27: not idempotent');
     }
     const hand = 'package ccxt\n\nfunc Join(slice any, sep any) string {\n\treturn Join(slice, sep)\n}\n';
-    if (hx4G44StringHelpers (hand) !== hand) {
-        problems.push ('hx4 G44: hand-written file rewritten');
+    if (hx5X27StringHelpers (hand) !== hand) {
+        problems.push ('hx5 X27: hand-written file rewritten');
     }
     return problems;
 }
 
-// hx4 G45
-function hx4G45Wired (): string[] {
-    const dir = fs.mkdtempSync (path.join (os.tmpdir (), 'hx4-G45-'));
-    const file = path.join (dir, 'x.go');
-    try {
-        overwriteFileAndFolder (file, 'package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n\nfunc (this *X) F(a any) any {\n\treturn Slice(a, 0, GetLength(a))\n}\n');
-        const out = fs.readFileSync (file, 'utf8');
-        return (/(?<![\w.])(Slice|GetLength)\(/.test (out) || !out.includes ('import "reflect"')) ? [ 'hx4 G45: not wired into overwriteFileAndFolder: ' + out ] : [];
-    } finally {
-        fs.rmSync (dir, { 'recursive': true, 'force': true });
+// hx5 P28
+// GetValue(this.<F>, k) -> this.<F>[k] for the base fields Go declares `map[string]any` and every writer keeps a
+// plain map of plain values (Has, Features, Timeframes, Urls; go/v4/exchange.go + exchange_options.go). Options and
+// MarketsById are *sync.Map and never match. A nil map indexes to nil like the helper; k must be a literal or a
+// single-declared `string` (GetValue answers nil for a nil key, which `m[k]` cannot express). A file that assigns the
+// whole field from anything but a map literal keeps the helper for that field.
+function hx5P28BaseFieldReads (content: string): string {
+    const fieldRx = /(?<![\w.])(?:ccxt\.)?GetValue\(this\.(?:Has|Features|Timeframes|Urls), /;
+    if (!fieldRx.test (content)) {
+        return content;
     }
+    const lines = content.split ('\n');
+    const masked = goTextMaskLiteralsAndComments (content).split ('\n');
+    if (lines.length !== masked.length) {
+        return content;
+    }
+    const maskedAll = masked.join ('\n');
+    const fields = [ 'Has', 'Features', 'Timeframes', 'Urls' ].filter ((f) => {
+        const writes = [ ...maskedAll.matchAll (new RegExp ('(?<![\\w.])this\\.' + f + '\\s*=(?!=)\\s*([^\\n]*)', 'g')) ];
+        return writes.every ((w) => /^map\[string\]any\{/.test (w[1]));
+    });
+    if (fields.length === 0) {
+        return content;
+    }
+    const callRx = new RegExp ('(?<![\\w.])(?:ccxt\\.)?GetValue\\(this\\.(' + fields.join ('|') + '), (\\w+|"[^"\\\\\\n]*")\\)', 'g');
+    let start = -1;
+    let maskedFunc = '';
+    let offsets: number[] = [];
+    for (let k = 0; k < lines.length; k++) {
+        if (lines[k].startsWith ('func ')) {
+            start = lines[k].startsWith ('func (this *') ? k : -1;
+            let end = k;
+            while ((end < lines.length) && (lines[end] !== '}')) {
+                end++;
+            }
+            maskedFunc = masked.slice (k, end + 1).join ('\n');
+            offsets = [];
+            let o = 0;
+            for (let j = k; (j <= end) && (j < lines.length); j++) {
+                offsets.push (o);
+                o += masked[j].length + 1;
+            }
+            continue;
+        }
+        if (lines[k] === '}') {
+            start = -1;
+            continue;
+        }
+        if ((start < 0) || !masked[k].includes ('GetValue(this.')) {
+            continue;
+        }
+        const line = lines[k];
+        const mk = masked[k];
+        lines[k] = line.replace (callRx, ((m: string, field: string, key: string, off: number) => {
+            if (mk.slice (off, off + m.length).indexOf ('GetValue(this.') < 0) {
+                return m; // inside a string literal or comment
+            }
+            if (!key.startsWith ('"')) {
+                const decl = goAccessSingleDeclaration (maskedFunc, lines[start], key);
+                if ((decl === undefined) || (decl.type !== 'string') || ((decl.index !== undefined) && (decl.index >= offsets[k - start]))) {
+                    return m;
+                }
+            }
+            return 'this.' + field + '[' + key + ']';
+        }) as any);
+        masked[k] = goTextMaskLiteralsAndComments (lines[k]);
+    }
+    return lines.join ('\n');
 }
 
-// hx4 G46
-function hx4G46Wired (): string[] {
-    const dir = fs.mkdtempSync (path.join (os.tmpdir (), 'hx4-G46-'));
-    const file = path.join (dir, 'x.go');
+function hx5P28Check (): string[] {
+    const problems: string[] = [];
+    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push ('hx5 P28: ' + message); } };
     try {
-        overwriteFileAndFolder (file, 'package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n\nfunc (this *X) F(a any) any {\n\treturn ToString(a)\n}\n');
-        const out = fs.readFileSync (file, 'utf8');
-        return (out.includes ('ToString(') || !out.includes ('import "fmt"')) ? [ 'hx4 G46: not wired into overwriteFileAndFolder: ' + out ] : [];
-    } finally {
-        fs.rmSync (dir, { 'recursive': true, 'force': true });
+        const f = (sig: string, body: string, extra = '') => hx5P28BaseFieldReads ('package ccxt\n' + extra + 'func (this *X) H(' + sig + ') any {\n' + body + '\treturn nil\n}\n');
+        ok (f ('timeframe string', '\tvar r any = GetValue(this.Timeframes, timeframe)\n').includes ('\tvar r any = this.Timeframes[timeframe]\n'), 'string param key');
+        ok (f ('', '\turl := this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), "public"))\n').includes ('GetValue(this.Urls["api"], "public")'), 'literal key, outer GetValue kept');
+        ok (f ('', '\tvar m string = "spot"\n\tif IsEqual(ccxt.GetValue(this.Features, m), nil) {\n\t}\n').includes ('IsEqual(this.Features[m], nil)'), 'string local key, ccxt prefix');
+        ok (f ('', '\tvar a any = GetValue(this.Has, "x")\n', 'func (this *X) G() {\n\tthis.Features = map[string]any{}\n}\n').includes ('this.Has["x"]'), 'map-literal field write keeps proof');
+        for (const keep of [
+            f ('source any', '\tvar r any = GetValue(this.Has, source)\n'),
+            f ('m *string', '\tvar r any = GetValue(this.Features, m)\n'),
+            f ('', '\tvar r any = GetValue(this.Options, "x")\n'),
+            f ('', '\tvar r any = GetValue(this.MarketsById, "x")\n'),
+            f ('', '\tvar r any = GetValue(this.Balance, "x")\n'),
+            f ('', '\tvar r any = GetValue(this.Orderbooks, "x")\n'),
+            f ('', '\tvar r any = GetValue(this.Urls, s)\n\tvar s string = "a"\n'),
+            f ('', '\tvar r any = GetValue(this.Urls, "api")\n', 'func (this *X) G(u any) {\n\tthis.Urls = u.(map[string]any)\n}\n'),
+            f ('', '\tvar r string = "GetValue(this.Has, \\"x\\")"\n'),
+            hx5P28BaseFieldReads ('func H(this any) any {\n\treturn GetValue(this.Urls, "a")\n}\n'),
+        ]) {
+            ok (keep.includes ('GetValue('), 'keeps GetValue: ' + keep);
+        }
+        const once = f ('t string', '\tvar r any = GetValue(this.Timeframes, t)\n');
+        ok (hx5P28BaseFieldReads (once) === once, 'idempotent');
+    } catch (e) {
+        problems.push ('hx5 P28 threw: ' + e.message);
     }
+    return problems;
 }

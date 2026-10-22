@@ -2229,7 +2229,7 @@ export default class sxbet extends Exchange {
         this.handleCentrifugoFrame (client, message);
     }
 
-    handleCentrifugoFrame (client: Client, msg: any) {
+    handleCentrifugoFrame (client: Client, msg: Dict) {
         const keys = Object.keys (msg);
         const keysLength = keys.length;
         if (keysLength === 0) {
@@ -2594,7 +2594,8 @@ export default class sxbet extends Exchange {
         //
         const rowsLength = rows.length;
         for (let i = 0; i < rowsLength; i++) {
-            const row = this.safeDict (rows[i], 'trade', rows[i]);
+            const rawRow = rows[i];
+            const row = this.safeDict (rawRow, 'trade', rawRow);
             const trade = this.parseSxbetV3PublicTrade (row);
             const sym = this.safeString (trade, 'outcome');
             if (sym === undefined) {
@@ -2647,7 +2648,8 @@ export default class sxbet extends Exchange {
         //
         const rowsLength = rows.length;
         for (let i = 0; i < rowsLength; i++) {
-            const row = this.safeDict (rows[i], 'fill', rows[i]);
+            const rawRow = rows[i];
+            const row = this.safeDict (rawRow, 'fill', rawRow);
             const trade = this.parseSxbetV3Fill (row);
             const sym = this.safeString (trade, 'outcome');
             if (sym === undefined) {
@@ -2697,7 +2699,8 @@ export default class sxbet extends Exchange {
         //
         const rowsLength = rows.length;
         for (let i = 0; i < rowsLength; i++) {
-            const row = this.safeDict (rows[i], 'order', rows[i]);
+            const rawRow = rows[i];
+            const row = this.safeDict (rawRow, 'order', rawRow);
             const order = this.parsePredictionOrder (row);
             if (this.orders === undefined) {
                 const cacheLimit = this.safeInteger (this.options, 'ordersLimit', 1000);
@@ -2754,7 +2757,7 @@ export default class sxbet extends Exchange {
      * @param {object} params the request parameters
      * @returns {object} a dict with url, method, body and headers
      */
-    override sign (path: string, api: string[] = [ 'sxbet' ], method = 'GET', params: Dict = {}) {
+    override sign (path: string, api: string[] = [ 'sxbet' ], method: string = 'GET', params: Dict = {}) {
         const apiGroup: string = api[0];
         const accessLevel: string = this.safeString (api, 1, 'public');
         if ((accessLevel === 'private') && (this.apiKey === undefined)) {

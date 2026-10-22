@@ -280,7 +280,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [question] linked question object from outcomeMeta
      * @returns {string} the parent market outcome
      */
-    buildOutcomeParentSymbol (desc: Dict, outcomeId: number, name = '', question: Dict = {}): string {
+    buildOutcomeParentSymbol (desc: Dict, outcomeId: number, name: string = '', question: Dict = {}): string {
         const underlying = this.safeString (desc, 'underlying');
         if ((underlying !== undefined) && (underlying !== '')) {
             const targetPrice = this.safeString (desc, 'targetPrice');
@@ -2120,7 +2120,7 @@ export default class hyperliquid extends Exchange {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64));
     }
 
-    constructPhantomAgent (hash: any, isTestnet = true): Dict {
+    constructPhantomAgent (hash: any, isTestnet: boolean = true): Dict {
         let source: Str = 'a';
         if (isTestnet) {
             source = 'b';
@@ -2277,7 +2277,7 @@ export default class hyperliquid extends Exchange {
         return normalized.toLowerCase ();
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'POST', params: Dict = {}) {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'POST', params: Dict = {}) {
         const apiGroup = api[0];
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let baseUrl: string;
