@@ -12415,7 +12415,7 @@ impl std::ops::DerefMut for ${coreName} {
     }
 
     // hx4 R28 — last pass: `is_equal(&A, &B)` prints `runtime::is_equal`'s own match inline; `is_true(&E)`
-    // becomes `E.is_truthy()` when E is proven `Value` (typed local/param, base field, `-> Value` callee),
+    // (hx5 X38) stays the helper unless E is a proven bool:
     // `(E)` when E is a top-level bool expression, a `: bool` local or a `-> bool` callee; else the helper stays.
     private _r28Rets: Map<string, Set<string>> | null = null;
     private r28Rets(content: string): Map<string, Set<string>> {
@@ -12525,10 +12525,12 @@ impl std::ops::DerefMut for ${coreName} {
             let text: string | undefined;
             if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(e)) {
                 const t = identType(e, start);
-                if (t === 'Value') text = `${e}.is_truthy()`;
-                else if (t === 'bool') text = e;
+                // hx5 X38: a `Value` local is not a proven bool -> helper stays,
+                // unless its only binding is a `Value::Bool(..)` box never reassigned.
+                if (t === 'bool') text = e;
+                else if (t === 'Value' && this.x38BoolBoxedLocal(masked.slice(...regionOf(start)), e)) text = `${e}.as_bool() == Some(true)`;
             } else if (/^self\.[A-Za-z_][A-Za-z0-9_]*$/.test(e)) {
-                if (fields.has(e.slice(5)) && !new RegExp(`\\bpub ${e.slice(5)}:`).test(masked)) text = `${e}.is_truthy()`;
+                // hx5 X38: base `Value` fields are not proven bools -> `is_true(&self.f)` stays.
             } else if (this.r28BoolExpr(e)) {
                 text = `(${e})`;
             } else {
@@ -12536,8 +12538,8 @@ impl std::ops::DerefMut for ${coreName} {
                 if (cm !== null && this.closeParenAt(e, cm[0].length - 1) === e.length - 1) {
                     fnReturns ??= this.r28Rets(content);
                     const rets = fnReturns.get(cm[1]);
-                    if (rets !== undefined && rets.size === 1 && rets.has('Value')) text = `${e}.is_truthy()`;
-                    else if (rets !== undefined && rets.size === 1 && rets.has('bool')) text = `(${e})`;
+                    // hx5 X38: `-> Value` callees keep the helper; only `-> bool` is native.
+                    if (rets !== undefined && rets.size === 1 && rets.has('bool')) text = `(${e})`;
                 }
             }
             if (text !== undefined) rewrites.push({ start, end: close + 1, text });
@@ -12740,6 +12742,18 @@ impl std::ops::DerefMut for ${coreName} {
         }
         return content;
     }
+
+    // hx5 X38 — `let [mut ]x[: Value] = Value::Bool(..)` as the only binding, never reassigned
+    // (no `x = `, no `&mut x`, no `set_value(&mut x`): x can only hold a bool.
+    x38BoolBoxedLocal(region: string, name: string): boolean {
+        const decls = [...region.matchAll(new RegExp(`\\blet (?:mut )?${name}\\b\\s*(?::\\s*Value\\s*)?=\\s*([^;]*);`, 'g'))];
+        if (decls.length !== 1) return false;
+        const rhs = decls[0][1].trim();
+        if (!/^Value::Bool\(/.test(rhs) || this.closeParenAt(rhs, 'Value::Bool'.length) !== rhs.length - 1) return false;
+        if (new RegExp(`(?<![A-Za-z0-9_.])${name}\\s*(?:=(?!=)|\\+=|-=)|&mut ${name}\\b|\\b${name}\\.(?:set|insert|push)`).test(region.replace(decls[0][0], ''))) return false;
+        return true;
+    }
+
 }
 
 // ── CLI entry point ───────────────────────────────────────────────────────────
