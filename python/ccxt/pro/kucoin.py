@@ -99,7 +99,7 @@ class kucoin(ccxt.async_support.kucoin):
 
     async def negotiate(self, privateChannel: bool, isFuturesMethod: bool = False, params: dict = {}):
         connectId = 'public'
-        if privateChannel is True:
+        if privateChannel:
             connectId = 'private'
         if isFuturesMethod:
             connectId += 'Futures'
@@ -196,7 +196,7 @@ class kucoin(ccxt.async_support.kucoin):
         action = 'subscribe'
         if subscription is not None:
             unsubscribe = self.safe_bool(subscription, 'unsubscribe', False)
-            action = 'unsubscribe' if (unsubscribe is True) else action
+            action = 'unsubscribe' if (unsubscribe) else action
         request = {
             'id': requestId,
             'action': action,
@@ -217,7 +217,7 @@ class kucoin(ccxt.async_support.kucoin):
         action = 'subscribe'
         if subscription is not None:
             unsubscribe = self.safe_bool(subscription, 'unsubscribe', False)
-            action = 'unsubscribe' if (unsubscribe is True) else action
+            action = 'unsubscribe' if (unsubscribe) else action
         request = {
             'id': requestId,
             'action': action,
@@ -453,7 +453,7 @@ class kucoin(ccxt.async_support.kucoin):
         action = 'subscribe'
         if subscription is not None:
             unsubscribe = self.safe_bool(subscription, 'unsubscribe', False)
-            action = 'unsubscribe' if (unsubscribe is True) else action
+            action = 'unsubscribe' if (unsubscribe) else action
         request = {
             'id': requestId,
             'action': action,
@@ -1744,7 +1744,7 @@ class kucoin(ccxt.async_support.kucoin):
         if method is not None:
             method(client, message, subscription)
         isUnSub = self.safe_bool(subscription, 'unsubscribe', False)
-        if isUnSub is True:
+        if isUnSub:
             messageHashes = self.safe_list(subscription, 'messageHashes', [])
             subMessageHashes = self.safe_list(subscription, 'subMessageHashes', [])
             for i in range(0, len(messageHashes)):
@@ -2449,7 +2449,7 @@ class kucoin(ccxt.async_support.kucoin):
         options = self.safe_dict(self.options, 'watchBalance')
         fetchBalanceSnapshot = self.safe_bool(options, 'fetchBalanceSnapshot', False)
         awaitBalanceSnapshot = self.safe_bool(options, 'awaitBalanceSnapshot', True)
-        if (fetchBalanceSnapshot is True) and (awaitBalanceSnapshot is True):
+        if (fetchBalanceSnapshot) and (awaitBalanceSnapshot):
             await client.future(uniformType + ':fetchBalanceSnapshot')
         messageHash = uniformType + ':balance'
         if utaOption:
@@ -2477,7 +2477,7 @@ class kucoin(ccxt.async_support.kucoin):
             return
         options = self.safe_dict(self.options, 'watchBalance')
         fetchBalanceSnapshot = self.safe_bool(options, 'fetchBalanceSnapshot', False)
-        if fetchBalanceSnapshot is True:
+        if fetchBalanceSnapshot:
             messageHash = type + ':fetchBalanceSnapshot'
             if not (messageHash in client.futures):
                 client.future(messageHash)
@@ -3277,7 +3277,7 @@ class kucoin(ccxt.async_support.kucoin):
             self.handle_subject(client, message)
         elif 'result' in message:  # subscription uta messages
             result = self.safe_bool(message, 'result', True)
-            if result is not True:
+            if not result:
                 self.handle_error_message(client, message)
             self.handle_subscription_status(client, message)
 

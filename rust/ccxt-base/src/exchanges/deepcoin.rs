@@ -1319,9 +1319,9 @@ impl DeepcoinCore {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("after".into(), until.clone()); }
         }
         let mut calculateUntil: Value = self.safe_bool_k(paramsPaginate.clone(), "calculateUntil", &[Value::Bool(false)]);
-        let mut keysToOmit: Value = (if (calculateUntil.as_bool() == Some(true)) { Value::from(vec![Value::Str("price".into()), Value::Str("until".into()), Value::Str("calculateUntil".into())]) } else { Value::from(vec![Value::Str("price".into()), Value::Str("until".into())]) });
+        let mut keysToOmit: Value = (if calculateUntil.as_bool() == Some(true) { Value::from(vec![Value::Str("price".into()), Value::Str("until".into()), Value::Str("calculateUntil".into())]) } else { Value::from(vec![Value::Str("price".into()), Value::Str("until".into())]) });
         let mut paramsOmitted: Value = self.omit(paramsPaginate, keysToOmit, &[]);
-        if (calculateUntil.as_bool() == Some(true)) {
+        if calculateUntil.as_bool() == Some(true) {
             if (since != Value::Null) {
                 // the exchange do not have a since param for this endpoint
                 // we calculate until (after) for correct pagination
@@ -2273,7 +2273,7 @@ impl DeepcoinCore {
     m
 })]);
         let mut fillResponseFromRequest: Value = self.safe_bool_k(transferOptions, "fillResponseFromRequest", &[Value::Bool(true)]);
-        if (fillResponseFromRequest.as_bool() == Some(true)) {
+        if fillResponseFromRequest.as_bool() == Some(true) {
             add_element_to_object(&mut transfer, &Value::Str("fromAccount".into()), fromAccount);
             add_element_to_object(&mut transfer, &Value::Str("toAccount".into()), toAccount);
             add_element_to_object(&mut transfer, &Value::Str("amount".into()), amount);
@@ -2529,7 +2529,7 @@ impl DeepcoinCore {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("mrgPosition".into(), mrgPosition); }
             let mut posSide: Value = Value::Null;
             let mut reduceOnly: Value = self.safe_bool_k(paramsMrgPosition, "reduceOnly", &[Value::Bool(false)]);
-            if (reduceOnly.as_bool() == Some(true)) {
+            if reduceOnly.as_bool() == Some(true) {
                 if (side.as_str() == Some("buy")) {
                     posSide = Value::Str("short".into());
                 }  else if (side.as_str() == Some("sell")) {
@@ -2616,7 +2616,7 @@ impl DeepcoinCore {
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("isCrossMargin".into(), isCrossMargin); }
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("tdMode".into(), marginModeOption); }
         if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-            if (reduceOnly.as_bool() == Some(true)) {
+            if reduceOnly.as_bool() == Some(true) {
                 if (side.as_str() == Some("buy")) {
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("posSide".into(), Value::Str("short".into())); }
                 }  else if (side.as_str() == Some("sell")) {
@@ -2919,7 +2919,7 @@ impl DeepcoinCore {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }; // default 100
         }
         let mut response: Value = Value::Null;
-        if (trigger.as_bool() == Some(true)) {
+        if trigger.as_bool() == Some(true) {
             if (methodName.as_str() != Some("fetchCanceledAndClosedOrders")) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodName).into()), Value::Str("() does not support trigger orders".into()))));
             }
@@ -3127,7 +3127,7 @@ impl DeepcoinCore {
         let mut trigger: Value = self.safe_bool_k(params.clone(), "trigger", &[Value::Bool(false)]);
         let mut paramsOmitted: Value = self.omit(params.clone(), Value::Str("trigger".into()), &[]);
         let mut response: Value = Value::Null;
-        if (trigger.as_bool() == Some(true)) {
+        if trigger.as_bool() == Some(true) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("instType".into(), self.convert_to_instrument_type(market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null)).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)); }
             //
             //     {
@@ -3255,7 +3255,7 @@ impl DeepcoinCore {
         });
         let mut response: Value = Value::Null;
         let mut trigger: Value = self.safe_bool_k(params.clone(), "trigger", &[Value::Bool(false)]);
-        if (trigger.as_bool() == Some(true)) {
+        if trigger.as_bool() == Some(true) {
             let mut paramsOmitted: Value = self.omit(params.clone(), Value::Str("trigger".into()), &[]);
             let __ws_arg_25 = self.extend(request.clone(), &[paramsOmitted]);
             response = self.private_post_deepcoin_trade_cancel_trigger_order(&[__ws_arg_25]).await;

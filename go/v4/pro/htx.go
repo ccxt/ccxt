@@ -1003,13 +1003,13 @@ func (this *Htx) HandleOrderBookMessage(client any, message any) {
 	}
 	var spotConditon bool = (market["spot"] == true) && (ccxt.IsEqual(prevSeqNum, ccxt.GetValue(orderbook, "nonce")))
 	var nonSpotCondition bool = (market["contract"] == true) && (version != nil) && (ccxt.IsEqual(*version-1, ccxt.GetValue(orderbook, "nonce")))
-	if (spotConditon == true) || (nonSpotCondition == true) {
+	if (spotConditon) || (nonSpotCondition) {
 		var asks []any = ccxt.SafeListTypedDefault(tick, "asks", []any{})
 		var bids []any = ccxt.SafeListTypedDefault(tick, "bids", []any{})
 		this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), asks)
 		this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), bids)
 		ccxt.AddElementToObject(orderbook, "nonce", func() any {
-			if spotConditon == true {
+			if spotConditon {
 				return seqNum
 			}
 			return version
@@ -1994,7 +1994,7 @@ func (this *Htx) ParseOrderTrade(trade map[string]any, optionalArgs ...any) any 
 	var takerOrMaker *string = nil
 	if aggressor != nil {
 		takerOrMaker = ccxt.SafeStringPtr(func() string {
-			if aggressor != nil && *aggressor == true {
+			if aggressor != nil && *aggressor {
 				return "taker"
 			}
 			return "maker"
@@ -2392,7 +2392,7 @@ func (this *Htx) watchBalanceBody(ch chan ccxt.AsyncResult[map[string]any], opti
 		var prefix any = "accounts"
 		messageHash = prefix
 		if subType != nil && *subType == "linear" {
-			if isUnifiedAccount != nil && *isUnifiedAccount == true {
+			if isUnifiedAccount != nil && *isUnifiedAccount {
 				// usdt contracts account
 				prefix = "accounts_unify"
 				messageHash = prefix
@@ -3484,7 +3484,7 @@ func (this *Htx) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var takerOrMaker *string = nil
 	if aggressor != nil {
 		takerOrMaker = ccxt.SafeStringPtr(func() string {
-			if aggressor != nil && *aggressor == true {
+			if aggressor != nil && *aggressor {
 				return "taker"
 			}
 			return "maker"

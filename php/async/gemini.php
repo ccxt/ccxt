@@ -1782,7 +1782,7 @@ class gemini extends Exchange {
                 }
             }
             $postOnly = $this->safe_bool($params, 'postOnly', false);
-            if ($postOnly === true) {
+            if ($postOnly) {
                 $request['options'] = array( 'maker-or-cancel' );
             }
             // allowing override for auction-only and indication-of-interest order options

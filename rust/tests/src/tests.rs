@@ -1625,10 +1625,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut watchOrderBookSkips: Value = self.get_skips(exchange.clone(), Value::Str("watchOrderBook".into()));
         let mut fetchOrderBookSkips: Value = self.get_skips(exchange.clone(), Value::Str("fetchOrderBook".into()));
         // ensure with hardcoded list of required methods
-        if is_true(&self.wsTests) && (exchange.safe_bool(get_value(&exchange, &Value::Str("has".into())), Value::Str("watchOrderBook".into()), &[Value::Bool(false)]).as_bool() != Some(true)) && !matches!(&watchOrderBookSkips, Value::Str(_)) {
+        if is_true(&self.wsTests) && (!matches!(exchange.safe_bool(get_value(&exchange, &Value::Str("has".into())), Value::Str("watchOrderBook".into()), &[Value::Bool(false)]), Value::Bool(true))) && !matches!(&watchOrderBookSkips, Value::Str(_)) {
             dump(&[Value::Str("[TEST_FAILURE] Method \"watchOrderBook\" is not set in \"has\", please check the \"has\" property of exchange".into())]);
             exitScript(Value::Int(1));
-        }  else if !is_true(&self.wsTests) && (exchange.safe_bool(get_value(&exchange, &Value::Str("has".into())), Value::Str("fetchOrderBook".into()), &[Value::Bool(false)]).as_bool() != Some(true)) && !matches!(&fetchOrderBookSkips, Value::Str(_)) {
+        }  else if !is_true(&self.wsTests) && (!matches!(exchange.safe_bool(get_value(&exchange, &Value::Str("has".into())), Value::Str("fetchOrderBook".into()), &[Value::Bool(false)]), Value::Bool(true))) && !matches!(&fetchOrderBookSkips, Value::Str(_)) {
             dump(&[Value::Str("[TEST_FAILURE] Method \"fetchOrderBook\" is not set in \"has\", please check the \"has\" property of exchange".into())]);
             exitScript(Value::Int(1));
         }
@@ -2557,7 +2557,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 // and would leak state across entries otherwise
                 let mut exchange: Value = self.init_offline_exchange(exchangeName.clone(), &[Value::Bool(true)]);
                 let mut isDisabled: Value = exchange.safe_bool(result.clone(), Value::Str("disabled".into()), &[Value::Bool(false)]);
-                if (isDisabled.as_bool() == Some(true)) {
+                if is_true(&isDisabled) {
                     continue;
                 }
                 let mut disabledString: Value = exchange.safe_string(result.clone(), Value::Str("disabled".into()), &[Value::Str("".into())]);
@@ -2813,7 +2813,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     continue;
                 }
                 let mut isDisabled: Value = exchange.safe_bool(result.clone(), Value::Str("disabled".into()), &[Value::Bool(false)]);
-                if (isDisabled.as_bool() == Some(true)) {
+                if is_true(&isDisabled) {
                     continue;
                 }
                 let mut disabledString: Value = exchange.safe_string(result.clone(), Value::Str("disabled".into()), &[Value::Str("".into())]);
@@ -2821,11 +2821,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     continue;
                 }
                 let mut isDisabledCSharp: Value = exchange.safe_bool(result.clone(), Value::Str("disabledCS".into()), &[Value::Bool(false)]);
-                if (isDisabledCSharp.as_bool() == Some(true)) && (self.lang.as_str() == Some("C#")) {
+                if is_true(&(isDisabledCSharp)) && (self.lang.as_str() == Some("C#")) {
                     continue;
                 }
                 let mut isDisabledGo: Value = exchange.safe_bool(result.clone(), Value::Str("disabledGO".into()), &[Value::Bool(false)]);
-                if (isDisabledGo.as_bool() == Some(true)) && (self.lang.as_str() == Some("GO")) {
+                if is_true(&(isDisabledGo)) && (self.lang.as_str() == Some("GO")) {
                     continue;
                 }
                 let mut isDisabledRust: Value = exchange.safe_bool(result.clone(), Value::Str("disabledRS".into()), &[Value::Bool(false)]);
@@ -2833,7 +2833,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     continue;
                 }
                 let mut isDisabledJava: Value = exchange.safe_bool(result.clone(), Value::Str("disabledJava".into()), &[Value::Bool(false)]);
-                if (isDisabledJava.as_bool() == Some(true)) && (self.lang.as_str() == Some("java")) {
+                if is_true(&(isDisabledJava)) && (self.lang.as_str() == Some("java")) {
                     continue;
                 }
                 let mut type_var: Value = exchange.safe_string(exchangeData.clone(), Value::Str("outputType".into()), &[]);
@@ -2920,22 +2920,22 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let __eeo1 = exchange.deep_extend(oldExchangeOptions.clone(), &[testExchangeOptions.clone()]);
                 exchange.extend_exchange_options(__eeo1);
                 let mut isDisabled: Value = exchange.safe_bool(result.clone(), Value::Str("disabled".into()), &[Value::Bool(false)]);
-                if (isDisabled.as_bool() == Some(true)) {
+                if is_true(&isDisabled) {
                     continue;
                 }
                 let mut isDisabledCSharp: Value = exchange.safe_bool(result.clone(), Value::Str("disabledCS".into()), &[Value::Bool(false)]);
-                if (isDisabledCSharp.as_bool() == Some(true)) && (self.lang.as_str() == Some("C#")) {
+                if is_true(&(isDisabledCSharp)) && (self.lang.as_str() == Some("C#")) {
                     continue;
                 }
                 let mut isDisabledPHP: Value = exchange.safe_bool(result.clone(), Value::Str("disabledPHP".into()), &[Value::Bool(false)]);
-                if (isDisabledPHP.as_bool() == Some(true)) && (self.lang.as_str() == Some("PHP")) {
+                if is_true(&(isDisabledPHP)) && (self.lang.as_str() == Some("PHP")) {
                     continue;
                 }
                 if (testName != Value::Null) && (!is_equal(&testName, &description)) {
                     continue;
                 }
                 let mut isDisabledGO: Value = exchange.safe_bool(result.clone(), Value::Str("disabledGO".into()), &[Value::Bool(false)]);
-                if (isDisabledGO.as_bool() == Some(true)) && (self.lang.as_str() == Some("GO")) {
+                if is_true(&(isDisabledGO)) && (self.lang.as_str() == Some("GO")) {
                     continue;
                 }
                 let mut isDisabledRust: Value = exchange.safe_bool(result.clone(), Value::Str("disabledRS".into()), &[Value::Bool(false)]);
@@ -2943,7 +2943,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     continue;
                 }
                 let mut isDisabledJava: Value = exchange.safe_bool(result.clone(), Value::Str("disabledJava".into()), &[Value::Bool(false)]);
-                if (isDisabledJava.as_bool() == Some(true)) && (self.lang.as_str() == Some("java")) {
+                if is_true(&(isDisabledJava)) && (self.lang.as_str() == Some("java")) {
                     continue;
                 }
                 let mut skipKeys: Value = self.effective_skip_keys(exchange.clone(), exchangeData.clone(), result.clone());
@@ -3008,27 +3008,27 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // prediction-market exchanges exist only in the async namespaces in python/php,
         // so their fixtures declare asyncOnly and the sync harness skips them
         let mut isAsyncOnly: Value = exchange.safe_bool(exchangeData.clone(), Value::Str("asyncOnly".into()), &[Value::Bool(false)]);
-        if (isAsyncOnly.as_bool() == Some(true)) && is_true(&isSync()) {
+        if is_true(&(isAsyncOnly)) && is_true(&isSync()) {
             dump(&[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[TEST_WARNING] Exchange ".into()), exchangeName).into()), Value::Str(" is async-only, skipped by the sync test harness".into())).into())]);
             return Value::Bool(true);
         }
         let mut isDisabledPy: Value = exchange.safe_bool(exchangeData.clone(), Value::Str("disabledPy".into()), &[Value::Bool(false)]);
-        if (isDisabledPy.as_bool() == Some(true)) && (self.lang.as_str() == Some("PY")) {
+        if is_true(&(isDisabledPy)) && (self.lang.as_str() == Some("PY")) {
             dump(&[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[TEST_WARNING] Exchange ".into()), exchangeName).into()), Value::Str(" is disabled in python".into())).into())]);
             return Value::Bool(true);
         }
         let mut isDisabledPHP: Value = exchange.safe_bool(exchangeData.clone(), Value::Str("disabledPHP".into()), &[Value::Bool(false)]);
-        if (isDisabledPHP.as_bool() == Some(true)) && (self.lang.as_str() == Some("PHP")) {
+        if is_true(&(isDisabledPHP)) && (self.lang.as_str() == Some("PHP")) {
             dump(&[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[TEST_WARNING] Exchange ".into()), exchangeName).into()), Value::Str(" is disabled in php".into())).into())]);
             return Value::Bool(true);
         }
         let mut isDisabledCSharp: Value = exchange.safe_bool(exchangeData.clone(), Value::Str("disabledCS".into()), &[Value::Bool(false)]);
-        if (isDisabledCSharp.as_bool() == Some(true)) && (self.lang.as_str() == Some("C#")) {
+        if is_true(&(isDisabledCSharp)) && (self.lang.as_str() == Some("C#")) {
             dump(&[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[TEST_WARNING] Exchange ".into()), exchangeName).into()), Value::Str(" is disabled in c#".into())).into())]);
             return Value::Bool(true);
         }
         let mut isDisabledGO: Value = exchange.safe_bool(exchangeData.clone(), Value::Str("disabledGO".into()), &[Value::Bool(false)]);
-        if (isDisabledGO.as_bool() == Some(true)) && (self.lang.as_str() == Some("GO")) {
+        if is_true(&(isDisabledGO)) && (self.lang.as_str() == Some("GO")) {
             dump(&[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[TEST_WARNING] Exchange ".into()), exchangeName).into()), Value::Str(" is disabled in go".into())).into())]);
             return Value::Bool(true);
         }
@@ -3038,7 +3038,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return Value::Bool(true);
         }
         let mut isDisabledJava: Value = exchange.safe_bool(exchangeData.clone(), Value::Str("disabledJava".into()), &[Value::Bool(false)]);
-        if (isDisabledJava.as_bool() == Some(true)) && (self.lang.as_str() == Some("java")) {
+        if is_true(&(isDisabledJava)) && (self.lang.as_str() == Some("java")) {
             dump(&[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[TEST_WARNING] Exchange ".into()), exchangeName).into()), Value::Str(" is disabled in java".into())).into())]);
             return Value::Bool(true);
         }
@@ -3405,7 +3405,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         })]);
         let mut inverseConditionalClientOrderId: Value = exchange.safe_string(inverseConditionalBatchOrder.clone(), Value::Str("newClientOrderId".into()), &[]);
         assert((inverseConditionalClientOrderId != Value::Null), &[Value::Str("binance createOrders - inverse conditional order must send newClientOrderId".into())]);
-        assert((Value::Bool(starts_with(&inverseConditionalClientOrderId, &inverseSwapId)).as_bool() == Some(true)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance createOrders - inverse conditional clientOrderId: ".into()), inverseConditionalClientOrderId).into()), Value::Str(" does not start with inverseSwapId".into())).into()), inverseSwapId).into())]);
+        assert((starts_with(&inverseConditionalClientOrderId, &inverseSwapId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance createOrders - inverse conditional clientOrderId: ".into()), inverseConditionalClientOrderId).into()), Value::Str(" does not start with inverseSwapId".into())).into()), inverseSwapId).into())]);
         // quarterly futures use the prefix of their fapi/dapi side, not the inverse one
         let mut linearFutureOrderRequest: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3444,7 +3444,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut optionClientOrderId: Value = exchange.safe_string(optionOrderRequest.clone(), Value::Str("clientOrderId".into()), &[]);
         assert((optionClientOrderId != Value::Null), &[Value::Str("binance - option order must send clientOrderId".into())]);
-        assert((Value::Bool(starts_with(&optionClientOrderId, &inverseSwapId)).as_bool() == Some(true)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - option clientOrderId: ".into()), optionClientOrderId).into()), Value::Str(" does not start with the option broker id ".into())).into()), inverseSwapId).into())]);
+        assert((starts_with(&optionClientOrderId, &inverseSwapId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - option clientOrderId: ".into()), optionClientOrderId).into()), Value::Str(" does not start with the option broker id ".into())).into()), inverseSwapId).into())]);
         // the implicit order endpoints inject the broker id of their api section
         // skipped in the sync flavours: callExchangeMethodDynamically is async-only there
         if !is_true(&isSync()) {
@@ -3499,7 +3499,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             })]);
             let mut implicitDapiBatchClientOrderId: Value = exchange.safe_string(implicitDapiBatchOrder.clone(), Value::Str("newClientOrderId".into()), &[]);
             assert((implicitDapiBatchClientOrderId != Value::Null), &[Value::Str("binance - implicit dapi batch order must inject newClientOrderId".into())]);
-            assert((Value::Bool(starts_with(&implicitDapiBatchClientOrderId, &inverseSwapId)).as_bool() == Some(true)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - implicit dapi batch clientOrderId: ".into()), implicitDapiBatchClientOrderId).into()), Value::Str(" does not start with inverseSwapId".into())).into()), inverseSwapId).into())]);
+            assert((starts_with(&implicitDapiBatchClientOrderId, &inverseSwapId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - implicit dapi batch clientOrderId: ".into()), implicitDapiBatchClientOrderId).into()), Value::Str(" does not start with inverseSwapId".into())).into()), inverseSwapId).into())]);
             // the implicit algo order endpoints take clientAlgoId instead of newClientOrderId
             let mut implicitFapiAlgoOrderRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -3524,7 +3524,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             let mut implicitFapiClientAlgoId: Value = exchange.safe_string(implicitFapiAlgoOrderRequest.clone(), Value::Str("clientAlgoId".into()), &[]);
             assert((implicitFapiClientAlgoId != Value::Null), &[Value::Str("binance - implicit fapi algo order must inject clientAlgoId".into())]);
-            assert((Value::Bool(starts_with(&implicitFapiClientAlgoId, &swapId)).as_bool() == Some(true)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - implicit fapi clientAlgoId: ".into()), implicitFapiClientAlgoId).into()), Value::Str(" does not start with swapId".into())).into()), swapId).into())]);
+            assert((starts_with(&implicitFapiClientAlgoId, &swapId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - implicit fapi clientAlgoId: ".into()), implicitFapiClientAlgoId).into()), Value::Str(" does not start with swapId".into())).into()), swapId).into())]);
             // the papi order endpoints resolve the broker id from the path, not from the api section
             let mut implicitPapiUmOrderRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -3547,7 +3547,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             let mut implicitPapiUmClientOrderId: Value = exchange.safe_string(implicitPapiUmOrderRequest.clone(), Value::Str("newClientOrderId".into()), &[]);
             assert((implicitPapiUmClientOrderId != Value::Null), &[Value::Str("binance - implicit papi um order must inject newClientOrderId".into())]);
-            assert((Value::Bool(starts_with(&implicitPapiUmClientOrderId, &swapId)).as_bool() == Some(true)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - implicit papi um clientOrderId: ".into()), implicitPapiUmClientOrderId).into()), Value::Str(" does not start with swapId".into())).into()), swapId).into())]);
+            assert((starts_with(&implicitPapiUmClientOrderId, &swapId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - implicit papi um clientOrderId: ".into()), implicitPapiUmClientOrderId).into()), Value::Str(" does not start with swapId".into())).into()), swapId).into())]);
             let mut implicitPapiCmOrderRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -3569,7 +3569,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             let mut implicitPapiCmClientOrderId: Value = exchange.safe_string(implicitPapiCmOrderRequest.clone(), Value::Str("newClientOrderId".into()), &[]);
             assert((implicitPapiCmClientOrderId != Value::Null), &[Value::Str("binance - implicit papi cm order must inject newClientOrderId".into())]);
-            assert((Value::Bool(starts_with(&implicitPapiCmClientOrderId, &inverseSwapId)).as_bool() == Some(true)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - implicit papi cm clientOrderId: ".into()), implicitPapiCmClientOrderId).into()), Value::Str(" does not start with inverseSwapId".into())).into()), inverseSwapId).into())]);
+            assert((starts_with(&implicitPapiCmClientOrderId, &inverseSwapId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - implicit papi cm clientOrderId: ".into()), implicitPapiCmClientOrderId).into()), Value::Str(" does not start with inverseSwapId".into())).into()), inverseSwapId).into())]);
             let mut implicitPapiMarginOrderRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -3591,7 +3591,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             let mut implicitPapiMarginClientOrderId: Value = exchange.safe_string(implicitPapiMarginOrderRequest.clone(), Value::Str("newClientOrderId".into()), &[]);
             assert((implicitPapiMarginClientOrderId != Value::Null), &[Value::Str("binance - implicit papi margin order must inject newClientOrderId".into())]);
-            assert((Value::Bool(starts_with(&implicitPapiMarginClientOrderId, &spotId)).as_bool() == Some(true)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - implicit papi margin clientOrderId: ".into()), implicitPapiMarginClientOrderId).into()), Value::Str(" does not start with spotId".into())).into()), spotId).into())]);
+            assert((starts_with(&implicitPapiMarginClientOrderId, &spotId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - implicit papi margin clientOrderId: ".into()), implicitPapiMarginClientOrderId).into()), Value::Str(" does not start with spotId".into())).into()), spotId).into())]);
             let mut implicitSapiMarginOrderRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -3613,7 +3613,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             let mut implicitSapiMarginClientOrderId: Value = exchange.safe_string(implicitSapiMarginOrderRequest.clone(), Value::Str("newClientOrderId".into()), &[]);
             assert((implicitSapiMarginClientOrderId != Value::Null), &[Value::Str("binance - implicit sapi margin order must inject newClientOrderId".into())]);
-            assert((Value::Bool(starts_with(&implicitSapiMarginClientOrderId, &spotId)).as_bool() == Some(true)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - implicit sapi margin clientOrderId: ".into()), implicitSapiMarginClientOrderId).into()), Value::Str(" does not start with spotId".into())).into()), spotId).into())]);
+            assert((starts_with(&implicitSapiMarginClientOrderId, &spotId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - implicit sapi margin clientOrderId: ".into()), implicitSapiMarginClientOrderId).into()), Value::Str(" does not start with spotId".into())).into()), spotId).into())]);
             // the papi um algo order endpoint takes clientAlgoId
             let mut implicitPapiUmAlgoOrderRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -3638,7 +3638,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             let mut implicitPapiUmClientAlgoId: Value = exchange.safe_string(implicitPapiUmAlgoOrderRequest.clone(), Value::Str("clientAlgoId".into()), &[]);
             assert((implicitPapiUmClientAlgoId != Value::Null), &[Value::Str("binance - implicit papi um algo order must inject clientAlgoId".into())]);
-            assert((Value::Bool(starts_with(&implicitPapiUmClientAlgoId, &swapId)).as_bool() == Some(true)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - implicit papi um clientAlgoId: ".into()), implicitPapiUmClientAlgoId).into()), Value::Str(" does not start with swapId".into())).into()), swapId).into())]);
+            assert((starts_with(&implicitPapiUmClientAlgoId, &swapId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - implicit papi um clientAlgoId: ".into()), implicitPapiUmClientAlgoId).into()), Value::Str(" does not start with swapId".into())).into()), swapId).into())]);
             // the papi cm conditional order endpoint takes newClientStrategyId
             let mut implicitPapiCmConditionalOrderRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -3662,7 +3662,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             let mut implicitPapiCmStrategyId: Value = exchange.safe_string(implicitPapiCmConditionalOrderRequest.clone(), Value::Str("newClientStrategyId".into()), &[]);
             assert((implicitPapiCmStrategyId != Value::Null), &[Value::Str("binance - implicit papi cm conditional order must inject newClientStrategyId".into())]);
-            assert((Value::Bool(starts_with(&implicitPapiCmStrategyId, &inverseSwapId)).as_bool() == Some(true)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - implicit papi cm newClientStrategyId: ".into()), implicitPapiCmStrategyId).into()), Value::Str(" does not start with inverseSwapId".into())).into()), inverseSwapId).into())]);
+            assert((starts_with(&implicitPapiCmStrategyId, &inverseSwapId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - implicit papi cm newClientStrategyId: ".into()), implicitPapiCmStrategyId).into()), Value::Str(" does not start with inverseSwapId".into())).into()), inverseSwapId).into())]);
             let mut implicitPapiUmConditionalOrderRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -3685,7 +3685,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             let mut implicitPapiUmStrategyId: Value = exchange.safe_string(implicitPapiUmConditionalOrderRequest.clone(), Value::Str("newClientStrategyId".into()), &[]);
             assert((implicitPapiUmStrategyId != Value::Null), &[Value::Str("binance - implicit papi um conditional order must inject newClientStrategyId".into())]);
-            assert((Value::Bool(starts_with(&implicitPapiUmStrategyId, &swapId)).as_bool() == Some(true)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - implicit papi um newClientStrategyId: ".into()), implicitPapiUmStrategyId).into()), Value::Str(" does not start with swapId".into())).into()), swapId).into())]);
+            assert((starts_with(&implicitPapiUmStrategyId, &swapId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - implicit papi um newClientStrategyId: ".into()), implicitPapiUmStrategyId).into()), Value::Str(" does not start with swapId".into())).into()), swapId).into())]);
             // the eapi order endpoints take clientOrderId
             let mut implicitEapiOrderRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -3707,7 +3707,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             let mut implicitEapiClientOrderId: Value = exchange.safe_string(implicitEapiOrderRequest.clone(), Value::Str("clientOrderId".into()), &[]);
             assert((implicitEapiClientOrderId != Value::Null), &[Value::Str("binance - implicit eapi order must inject clientOrderId".into())]);
-            assert((Value::Bool(starts_with(&implicitEapiClientOrderId, &inverseSwapId)).as_bool() == Some(true)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - implicit eapi clientOrderId: ".into()), implicitEapiClientOrderId).into()), Value::Str(" does not start with the option broker id ".into())).into()), inverseSwapId).into())]);
+            assert((starts_with(&implicitEapiClientOrderId, &inverseSwapId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - implicit eapi clientOrderId: ".into()), implicitEapiClientOrderId).into()), Value::Str(" does not start with the option broker id ".into())).into()), inverseSwapId).into())]);
             let mut implicitEapiBatchRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -3737,7 +3737,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             })]);
             let mut implicitEapiBatchClientOrderId: Value = exchange.safe_string(implicitEapiBatchOrder.clone(), Value::Str("clientOrderId".into()), &[]);
             assert((implicitEapiBatchClientOrderId != Value::Null), &[Value::Str("binance - implicit eapi batch order must inject clientOrderId".into())]);
-            assert((Value::Bool(starts_with(&implicitEapiBatchClientOrderId, &inverseSwapId)).as_bool() == Some(true)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - implicit eapi batch clientOrderId: ".into()), implicitEapiBatchClientOrderId).into()), Value::Str(" does not start with the option broker id ".into())).into()), inverseSwapId).into())]);
+            assert((starts_with(&implicitEapiBatchClientOrderId, &inverseSwapId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - implicit eapi batch clientOrderId: ".into()), implicitEapiBatchClientOrderId).into()), Value::Str(" does not start with the option broker id ".into())).into()), inverseSwapId).into())]);
             // the equity order endpoint takes clientOrderId
             let mut implicitEquityOrderRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -3760,7 +3760,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             let mut implicitEquityClientOrderId: Value = exchange.safe_string(implicitEquityOrderRequest.clone(), Value::Str("clientOrderId".into()), &[]);
             assert((implicitEquityClientOrderId != Value::Null), &[Value::Str("binance - implicit equity order must inject clientOrderId".into())]);
-            assert((Value::Bool(starts_with(&implicitEquityClientOrderId, &spotId)).as_bool() == Some(true)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - implicit equity clientOrderId: ".into()), implicitEquityClientOrderId).into()), Value::Str(" does not start with spotId".into())).into()), spotId).into())]);
+            assert((starts_with(&implicitEquityClientOrderId, &spotId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - implicit equity clientOrderId: ".into()), implicitEquityClientOrderId).into()), Value::Str(" does not start with spotId".into())).into()), spotId).into())]);
             // the order list endpoints inject a listClientOrderId and one client order id per leg
             let mut implicitOcoListRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -3786,9 +3786,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut ocoAboveClientOrderId: Value = exchange.safe_string(implicitOcoListRequest.clone(), Value::Str("aboveClientOrderId".into()), &[]);
             let mut ocoBelowClientOrderId: Value = exchange.safe_string(implicitOcoListRequest.clone(), Value::Str("belowClientOrderId".into()), &[]);
             assert((ocoListClientOrderId != Value::Null), &[Value::Str("binance - implicit oco list must inject listClientOrderId".into())]);
-            assert((Value::Bool(starts_with(&ocoListClientOrderId, &spotId)).as_bool() == Some(true)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - implicit oco listClientOrderId: ".into()), ocoListClientOrderId).into()), Value::Str(" does not start with spotId".into())).into()), spotId).into())]);
-            assert(((ocoAboveClientOrderId != Value::Null) && (Value::Bool(starts_with(&ocoAboveClientOrderId, &spotId)).as_bool() == Some(true))), &[Value::Str("binance - implicit oco aboveClientOrderId must inject the spot broker id".into())]);
-            assert(((ocoBelowClientOrderId != Value::Null) && (Value::Bool(starts_with(&ocoBelowClientOrderId, &spotId)).as_bool() == Some(true))), &[Value::Str("binance - implicit oco belowClientOrderId must inject the spot broker id".into())]);
+            assert((starts_with(&ocoListClientOrderId, &spotId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - implicit oco listClientOrderId: ".into()), ocoListClientOrderId).into()), Value::Str(" does not start with spotId".into())).into()), spotId).into())]);
+            assert(((ocoAboveClientOrderId != Value::Null) && (starts_with(&ocoAboveClientOrderId, &spotId))), &[Value::Str("binance - implicit oco aboveClientOrderId must inject the spot broker id".into())]);
+            assert(((ocoBelowClientOrderId != Value::Null) && (starts_with(&ocoBelowClientOrderId, &spotId))), &[Value::Str("binance - implicit oco belowClientOrderId must inject the spot broker id".into())]);
             let mut implicitOtocoListRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -3816,9 +3816,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut otocoWorkingClientOrderId: Value = exchange.safe_string(implicitOtocoListRequest.clone(), Value::Str("workingClientOrderId".into()), &[]);
             let mut otocoPendingAboveClientOrderId: Value = exchange.safe_string(implicitOtocoListRequest.clone(), Value::Str("pendingAboveClientOrderId".into()), &[]);
             let mut otocoPendingBelowClientOrderId: Value = exchange.safe_string(implicitOtocoListRequest.clone(), Value::Str("pendingBelowClientOrderId".into()), &[]);
-            assert(((otocoWorkingClientOrderId != Value::Null) && (Value::Bool(starts_with(&otocoWorkingClientOrderId, &spotId)).as_bool() == Some(true))), &[Value::Str("binance - implicit otoco workingClientOrderId must inject the spot broker id".into())]);
-            assert(((otocoPendingAboveClientOrderId != Value::Null) && (Value::Bool(starts_with(&otocoPendingAboveClientOrderId, &spotId)).as_bool() == Some(true))), &[Value::Str("binance - implicit otoco pendingAboveClientOrderId must inject the spot broker id".into())]);
-            assert(((otocoPendingBelowClientOrderId != Value::Null) && (Value::Bool(starts_with(&otocoPendingBelowClientOrderId, &spotId)).as_bool() == Some(true))), &[Value::Str("binance - implicit otoco pendingBelowClientOrderId must inject the spot broker id".into())]);
+            assert(((otocoWorkingClientOrderId != Value::Null) && (starts_with(&otocoWorkingClientOrderId, &spotId))), &[Value::Str("binance - implicit otoco workingClientOrderId must inject the spot broker id".into())]);
+            assert(((otocoPendingAboveClientOrderId != Value::Null) && (starts_with(&otocoPendingAboveClientOrderId, &spotId))), &[Value::Str("binance - implicit otoco pendingAboveClientOrderId must inject the spot broker id".into())]);
+            assert(((otocoPendingBelowClientOrderId != Value::Null) && (starts_with(&otocoPendingBelowClientOrderId, &spotId))), &[Value::Str("binance - implicit otoco pendingBelowClientOrderId must inject the spot broker id".into())]);
             let mut implicitSapiMarginOcoRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -3839,8 +3839,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             let mut sapiMarginOcoLimitClientOrderId: Value = exchange.safe_string(implicitSapiMarginOcoRequest.clone(), Value::Str("limitClientOrderId".into()), &[]);
             let mut sapiMarginOcoStopClientOrderId: Value = exchange.safe_string(implicitSapiMarginOcoRequest.clone(), Value::Str("stopClientOrderId".into()), &[]);
-            assert(((sapiMarginOcoLimitClientOrderId != Value::Null) && (Value::Bool(starts_with(&sapiMarginOcoLimitClientOrderId, &spotId)).as_bool() == Some(true))), &[Value::Str("binance - implicit sapi margin oco limitClientOrderId must inject the spot broker id".into())]);
-            assert(((sapiMarginOcoStopClientOrderId != Value::Null) && (Value::Bool(starts_with(&sapiMarginOcoStopClientOrderId, &spotId)).as_bool() == Some(true))), &[Value::Str("binance - implicit sapi margin oco stopClientOrderId must inject the spot broker id".into())]);
+            assert(((sapiMarginOcoLimitClientOrderId != Value::Null) && (starts_with(&sapiMarginOcoLimitClientOrderId, &spotId))), &[Value::Str("binance - implicit sapi margin oco limitClientOrderId must inject the spot broker id".into())]);
+            assert(((sapiMarginOcoStopClientOrderId != Value::Null) && (starts_with(&sapiMarginOcoStopClientOrderId, &spotId))), &[Value::Str("binance - implicit sapi margin oco stopClientOrderId must inject the spot broker id".into())]);
             let mut implicitPapiMarginOcoRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -3860,11 +3860,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 implicitPapiMarginOcoRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
             }
             let mut papiMarginOcoListClientOrderId: Value = exchange.safe_string(implicitPapiMarginOcoRequest.clone(), Value::Str("listClientOrderId".into()), &[]);
-            assert(((papiMarginOcoListClientOrderId != Value::Null) && (Value::Bool(starts_with(&papiMarginOcoListClientOrderId, &spotId)).as_bool() == Some(true))), &[Value::Str("binance - implicit papi margin oco listClientOrderId must inject the spot broker id".into())]);
+            assert(((papiMarginOcoListClientOrderId != Value::Null) && (starts_with(&papiMarginOcoListClientOrderId, &spotId))), &[Value::Str("binance - implicit papi margin oco listClientOrderId must inject the spot broker id".into())]);
             let mut papiMarginOcoLimitClientOrderId: Value = exchange.safe_string(implicitPapiMarginOcoRequest.clone(), Value::Str("limitClientOrderId".into()), &[]);
             let mut papiMarginOcoStopClientOrderId: Value = exchange.safe_string(implicitPapiMarginOcoRequest.clone(), Value::Str("stopClientOrderId".into()), &[]);
-            assert(((papiMarginOcoLimitClientOrderId != Value::Null) && (Value::Bool(starts_with(&papiMarginOcoLimitClientOrderId, &spotId)).as_bool() == Some(true))), &[Value::Str("binance - implicit papi margin oco limitClientOrderId must inject the spot broker id".into())]);
-            assert(((papiMarginOcoStopClientOrderId != Value::Null) && (Value::Bool(starts_with(&papiMarginOcoStopClientOrderId, &spotId)).as_bool() == Some(true))), &[Value::Str("binance - implicit papi margin oco stopClientOrderId must inject the spot broker id".into())]);
+            assert(((papiMarginOcoLimitClientOrderId != Value::Null) && (starts_with(&papiMarginOcoLimitClientOrderId, &spotId))), &[Value::Str("binance - implicit papi margin oco limitClientOrderId must inject the spot broker id".into())]);
+            assert(((papiMarginOcoStopClientOrderId != Value::Null) && (starts_with(&papiMarginOcoStopClientOrderId, &spotId))), &[Value::Str("binance - implicit papi margin oco stopClientOrderId must inject the spot broker id".into())]);
             let mut implicitLegacyOcoRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -3886,9 +3886,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut legacyOcoListClientOrderId: Value = exchange.safe_string(implicitLegacyOcoRequest.clone(), Value::Str("listClientOrderId".into()), &[]);
             let mut legacyOcoLimitClientOrderId: Value = exchange.safe_string(implicitLegacyOcoRequest.clone(), Value::Str("limitClientOrderId".into()), &[]);
             let mut legacyOcoStopClientOrderId: Value = exchange.safe_string(implicitLegacyOcoRequest.clone(), Value::Str("stopClientOrderId".into()), &[]);
-            assert(((legacyOcoListClientOrderId != Value::Null) && (Value::Bool(starts_with(&legacyOcoListClientOrderId, &spotId)).as_bool() == Some(true))), &[Value::Str("binance - implicit legacy oco listClientOrderId must inject the spot broker id".into())]);
-            assert(((legacyOcoLimitClientOrderId != Value::Null) && (Value::Bool(starts_with(&legacyOcoLimitClientOrderId, &spotId)).as_bool() == Some(true))), &[Value::Str("binance - implicit legacy oco limitClientOrderId must inject the spot broker id".into())]);
-            assert(((legacyOcoStopClientOrderId != Value::Null) && (Value::Bool(starts_with(&legacyOcoStopClientOrderId, &spotId)).as_bool() == Some(true))), &[Value::Str("binance - implicit legacy oco stopClientOrderId must inject the spot broker id".into())]);
+            assert(((legacyOcoListClientOrderId != Value::Null) && (starts_with(&legacyOcoListClientOrderId, &spotId))), &[Value::Str("binance - implicit legacy oco listClientOrderId must inject the spot broker id".into())]);
+            assert(((legacyOcoLimitClientOrderId != Value::Null) && (starts_with(&legacyOcoLimitClientOrderId, &spotId))), &[Value::Str("binance - implicit legacy oco limitClientOrderId must inject the spot broker id".into())]);
+            assert(((legacyOcoStopClientOrderId != Value::Null) && (starts_with(&legacyOcoStopClientOrderId, &spotId))), &[Value::Str("binance - implicit legacy oco stopClientOrderId must inject the spot broker id".into())]);
             let mut implicitOtoListRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -3913,9 +3913,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut otoListClientOrderId: Value = exchange.safe_string(implicitOtoListRequest.clone(), Value::Str("listClientOrderId".into()), &[]);
             let mut otoWorkingClientOrderId: Value = exchange.safe_string(implicitOtoListRequest.clone(), Value::Str("workingClientOrderId".into()), &[]);
             let mut otoPendingClientOrderId: Value = exchange.safe_string(implicitOtoListRequest.clone(), Value::Str("pendingClientOrderId".into()), &[]);
-            assert(((otoListClientOrderId != Value::Null) && (Value::Bool(starts_with(&otoListClientOrderId, &spotId)).as_bool() == Some(true))), &[Value::Str("binance - implicit oto listClientOrderId must inject the spot broker id".into())]);
-            assert(((otoWorkingClientOrderId != Value::Null) && (Value::Bool(starts_with(&otoWorkingClientOrderId, &spotId)).as_bool() == Some(true))), &[Value::Str("binance - implicit oto workingClientOrderId must inject the spot broker id".into())]);
-            assert(((otoPendingClientOrderId != Value::Null) && (Value::Bool(starts_with(&otoPendingClientOrderId, &spotId)).as_bool() == Some(true))), &[Value::Str("binance - implicit oto pendingClientOrderId must inject the spot broker id".into())]);
+            assert(((otoListClientOrderId != Value::Null) && (starts_with(&otoListClientOrderId, &spotId))), &[Value::Str("binance - implicit oto listClientOrderId must inject the spot broker id".into())]);
+            assert(((otoWorkingClientOrderId != Value::Null) && (starts_with(&otoWorkingClientOrderId, &spotId))), &[Value::Str("binance - implicit oto workingClientOrderId must inject the spot broker id".into())]);
+            assert(((otoPendingClientOrderId != Value::Null) && (starts_with(&otoPendingClientOrderId, &spotId))), &[Value::Str("binance - implicit oto pendingClientOrderId must inject the spot broker id".into())]);
             let mut implicitOpoListRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -3940,9 +3940,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut opoListClientOrderId: Value = exchange.safe_string(implicitOpoListRequest.clone(), Value::Str("listClientOrderId".into()), &[]);
             let mut opoWorkingClientOrderId: Value = exchange.safe_string(implicitOpoListRequest.clone(), Value::Str("workingClientOrderId".into()), &[]);
             let mut opoPendingClientOrderId: Value = exchange.safe_string(implicitOpoListRequest.clone(), Value::Str("pendingClientOrderId".into()), &[]);
-            assert(((opoListClientOrderId != Value::Null) && (Value::Bool(starts_with(&opoListClientOrderId, &spotId)).as_bool() == Some(true))), &[Value::Str("binance - implicit opo listClientOrderId must inject the spot broker id".into())]);
-            assert(((opoWorkingClientOrderId != Value::Null) && (Value::Bool(starts_with(&opoWorkingClientOrderId, &spotId)).as_bool() == Some(true))), &[Value::Str("binance - implicit opo workingClientOrderId must inject the spot broker id".into())]);
-            assert(((opoPendingClientOrderId != Value::Null) && (Value::Bool(starts_with(&opoPendingClientOrderId, &spotId)).as_bool() == Some(true))), &[Value::Str("binance - implicit opo pendingClientOrderId must inject the spot broker id".into())]);
+            assert(((opoListClientOrderId != Value::Null) && (starts_with(&opoListClientOrderId, &spotId))), &[Value::Str("binance - implicit opo listClientOrderId must inject the spot broker id".into())]);
+            assert(((opoWorkingClientOrderId != Value::Null) && (starts_with(&opoWorkingClientOrderId, &spotId))), &[Value::Str("binance - implicit opo workingClientOrderId must inject the spot broker id".into())]);
+            assert(((opoPendingClientOrderId != Value::Null) && (starts_with(&opoPendingClientOrderId, &spotId))), &[Value::Str("binance - implicit opo pendingClientOrderId must inject the spot broker id".into())]);
             let mut implicitOpocoListRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -3971,10 +3971,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut opocoWorkingClientOrderId: Value = exchange.safe_string(implicitOpocoListRequest.clone(), Value::Str("workingClientOrderId".into()), &[]);
             let mut opocoPendingAboveClientOrderId: Value = exchange.safe_string(implicitOpocoListRequest.clone(), Value::Str("pendingAboveClientOrderId".into()), &[]);
             let mut opocoPendingBelowClientOrderId: Value = exchange.safe_string(implicitOpocoListRequest.clone(), Value::Str("pendingBelowClientOrderId".into()), &[]);
-            assert(((opocoListClientOrderId != Value::Null) && (Value::Bool(starts_with(&opocoListClientOrderId, &spotId)).as_bool() == Some(true))), &[Value::Str("binance - implicit opoco listClientOrderId must inject the spot broker id".into())]);
-            assert(((opocoWorkingClientOrderId != Value::Null) && (Value::Bool(starts_with(&opocoWorkingClientOrderId, &spotId)).as_bool() == Some(true))), &[Value::Str("binance - implicit opoco workingClientOrderId must inject the spot broker id".into())]);
-            assert(((opocoPendingAboveClientOrderId != Value::Null) && (Value::Bool(starts_with(&opocoPendingAboveClientOrderId, &spotId)).as_bool() == Some(true))), &[Value::Str("binance - implicit opoco pendingAboveClientOrderId must inject the spot broker id".into())]);
-            assert(((opocoPendingBelowClientOrderId != Value::Null) && (Value::Bool(starts_with(&opocoPendingBelowClientOrderId, &spotId)).as_bool() == Some(true))), &[Value::Str("binance - implicit opoco pendingBelowClientOrderId must inject the spot broker id".into())]);
+            assert(((opocoListClientOrderId != Value::Null) && (starts_with(&opocoListClientOrderId, &spotId))), &[Value::Str("binance - implicit opoco listClientOrderId must inject the spot broker id".into())]);
+            assert(((opocoWorkingClientOrderId != Value::Null) && (starts_with(&opocoWorkingClientOrderId, &spotId))), &[Value::Str("binance - implicit opoco workingClientOrderId must inject the spot broker id".into())]);
+            assert(((opocoPendingAboveClientOrderId != Value::Null) && (starts_with(&opocoPendingAboveClientOrderId, &spotId))), &[Value::Str("binance - implicit opoco pendingAboveClientOrderId must inject the spot broker id".into())]);
+            assert(((opocoPendingBelowClientOrderId != Value::Null) && (starts_with(&opocoPendingBelowClientOrderId, &spotId))), &[Value::Str("binance - implicit opoco pendingBelowClientOrderId must inject the spot broker id".into())]);
             // the cancel-replace endpoint creates a new order and takes newClientOrderId for it
             let mut implicitCancelReplaceRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -3999,7 +3999,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             let mut cancelReplaceClientOrderId: Value = exchange.safe_string(implicitCancelReplaceRequest.clone(), Value::Str("newClientOrderId".into()), &[]);
             assert((cancelReplaceClientOrderId != Value::Null), &[Value::Str("binance - implicit cancel-replace must inject newClientOrderId".into())]);
-            assert((Value::Bool(starts_with(&cancelReplaceClientOrderId, &spotId)).as_bool() == Some(true)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - implicit cancel-replace newClientOrderId: ".into()), cancelReplaceClientOrderId).into()), Value::Str(" does not start with spotId".into())).into()), spotId).into())]);
+            assert((starts_with(&cancelReplaceClientOrderId, &spotId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - implicit cancel-replace newClientOrderId: ".into()), cancelReplaceClientOrderId).into()), Value::Str(" does not start with spotId".into())).into()), spotId).into())]);
         }
         if !is_true(&isSync()) {
             close(exchange.clone()).await;

@@ -790,7 +790,7 @@ class kalshi extends kalshi$1["default"] {
         //
         const tradingActive = this.safeBool(response, 'trading_active', false);
         return {
-            'status': (tradingActive === true) ? 'ok' : 'maintenance',
+            'status': (tradingActive) ? 'ok' : 'maintenance',
             'updated': undefined,
             'eta': undefined,
             'url': undefined,
@@ -1498,7 +1498,7 @@ class kalshi extends kalshi$1["default"] {
         }
         const isTaker = this.safeBool(fill, 'is_taker', true);
         let takerOrMaker = 'maker';
-        if (isTaker === true) {
+        if (isTaker) {
             takerOrMaker = 'taker';
         }
         const feeCost = this.safeNumber(fill, 'fee_cost');

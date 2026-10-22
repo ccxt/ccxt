@@ -1507,7 +1507,7 @@ class hitbtc extends Exchange {
         $taker = $this->safe_bool($trade, 'taker');
         $takerOrMaker = null;
         if ($taker !== null) {
-            $takerOrMaker = ($taker === true) ? 'taker' : 'maker';
+            $takerOrMaker = ($taker) ? 'taker' : 'maker';
         } else {
             $takerOrMaker = 'taker'; // the only case when `taker` field is missing, is public fetchTrades and it must be taker
         }
@@ -2985,7 +2985,7 @@ class hitbtc extends Exchange {
         }
         $withdrawOptions = $this->safe_dict($this->options, 'withdraw', array());
         $includeFee = $this->safe_bool($withdrawOptions, 'includeFee', false);
-        if ($includeFee === true) {
+        if ($includeFee) {
             $request['include_fee'] = true;
         }
         $response = Async\await($this->privatePostWalletCryptoWithdraw($this->extend($request, $paramsOmitted)));
@@ -4016,7 +4016,7 @@ class hitbtc extends Exchange {
         $defaultType = $this->safe_string($this->options, 'defaultType');
         $isMargin = $this->safe_bool($params, 'margin', false);
         list($marginMode, $paramsMarginMode) = parent::handle_margin_mode_and_params($methodName, $params, $defaultValue);
-        if (($marginMode === null) && (($defaultType === 'margin') || ($isMargin === true))) {
+        if (($marginMode === null) && (($defaultType === 'margin') || ($isMargin))) {
             return array( 'isolated', $paramsMarginMode );
         }
         return array( $marginMode, $paramsMarginMode );

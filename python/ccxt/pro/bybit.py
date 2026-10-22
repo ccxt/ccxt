@@ -211,7 +211,7 @@ class bybit(ccxt.async_support.bybit):
             unified = await self.isUnifiedEnabled()
             isUnifiedMargin = self.safe_bool(unified, 0, False)
             isUnifiedAccount = self.safe_bool(unified, 1, False)
-            if isUsdcSettled and (isUnifiedMargin is not True) and (isUnifiedAccount is not True):
+            if isUsdcSettled and (not isUnifiedMargin) and (not isUnifiedAccount):
                 url = url[accessibility]['usdc']
             else:
                 url = url[accessibility]['contract']
@@ -1954,19 +1954,19 @@ class bybit(ccxt.async_support.bybit):
             'spot': 'outboundAccountInfo',
             'unified': 'wallet',
         }
-        if isUnifiedAccount is True:
+        if isUnifiedAccount:
             # unified account
             if subType == 'inverse':
                 messageHash += ':contract'
             else:
                 messageHash += ':unified'
-        if (isUnifiedMargin is not True) and (isUnifiedAccount is not True):
+        if (not isUnifiedMargin) and (not isUnifiedAccount):
             # normal account using v5
             if type == 'spot':
                 messageHash += ':spot'
             else:
                 messageHash += ':contract'
-        if isUnifiedMargin is True:
+        if isUnifiedMargin:
             # unified margin account using v5
             if type == 'spot':
                 messageHash += ':spot'
@@ -2351,7 +2351,7 @@ class bybit(ccxt.async_support.bybit):
                 self.throw_broadly_matched_exception(self.exceptions['broad'], msg, feedback)
                 raise ExchangeError(feedback)
             success = self.safe_bool(message, 'success')
-            if (success is not None) and (success is not True):
+            if (success is not None) and (not success):
                 ret_msg = self.safe_string(message, 'ret_msg')
                 request = self.safe_dict(message, 'request', {})
                 op = self.safe_string(request, 'op')

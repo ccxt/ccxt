@@ -2041,7 +2041,7 @@ class okx extends okx$1["default"] {
         // therefore we check the keys here
         // and fallback to generating the currencies from the markets
         const isSandboxMode = this.safeBool(this.options, 'sandboxMode', false);
-        if (!this.checkRequiredCredentials(false) || (isSandboxMode === true)) {
+        if (!this.checkRequiredCredentials(false) || (isSandboxMode)) {
             return {};
         }
         //
@@ -2277,7 +2277,7 @@ class okx extends okx$1["default"] {
         const last = this.safeString(ticker, 'last');
         const open = this.safeString(ticker, 'open24h');
         const spot = this.safeBool(marketResolved, 'spot', false);
-        const quoteVolume = (spot === true) ? this.safeString(ticker, 'volCcy24h') : undefined;
+        const quoteVolume = (spot) ? this.safeString(ticker, 'volCcy24h') : undefined;
         const baseVolume = this.safeString(ticker, 'vol24h');
         const high = this.safeString(ticker, 'high24h');
         const low = this.safeString(ticker, 'low24h');
@@ -3277,12 +3277,12 @@ class okx extends okx$1["default"] {
             paramsReduceOnly = this.omit(paramsHedged, 'reduceOnly');
         }
         if (spot === true) {
-            if (margin === true) {
+            if (margin) {
                 const defaultCurrency = (side === 'buy') ? market['quote'] : market['base'];
                 const currency = this.safeString(params, 'ccy', defaultCurrency);
                 request['ccy'] = this.safeCurrencyCode(currency);
             }
-            const tradeMode = (margin === true) ? marginMode : 'cash';
+            const tradeMode = (margin) ? marginMode : 'cash';
             request['tdMode'] = tradeMode;
         }
         else if (contract === true) {
@@ -3316,7 +3316,7 @@ class okx extends okx$1["default"] {
         const marketIOC = (isMarketOrder && ioc) || (type === 'optimal_limit_ioc');
         const defaultTgtCcy = this.safeString(this.options, 'tgtCcy', 'base_ccy');
         const tgtCcy = this.safeString(orderParams, 'tgtCcy', defaultTgtCcy);
-        if ((contract !== true) && (margin !== true)) {
+        if ((contract !== true) && (!margin)) {
             request['tgtCcy'] = tgtCcy;
         }
         if (isMarketOrder || marketIOC) {
@@ -3926,7 +3926,7 @@ class okx extends okx$1["default"] {
         const trigger = this.safeBool2(params, 'stop', 'trigger');
         const trailing = this.safeBool(params, 'trailing', false);
         const isTrigger = (trigger === true);
-        if (isTrigger || (trailing === true)) {
+        if (isTrigger || (trailing)) {
             const orderInner = await this.cancelOrders([id], symbol, params);
             const canceledInner = this.safeDict(orderInner, 0);
             return canceledInner;
@@ -3999,7 +3999,7 @@ class okx extends okx$1["default"] {
         const trigger = this.safeBool2(params, 'stop', 'trigger');
         const trailing = this.safeBool(params, 'trailing', false);
         const isTrigger = (trigger === true);
-        if (isTrigger || (trailing === true)) {
+        if (isTrigger || (trailing)) {
             method = 'privatePostTradeCancelAlgos';
         }
         if (clientOrderIds === undefined) {
@@ -4013,7 +4013,7 @@ class okx extends okx$1["default"] {
                 }
             }
             for (let i = 0; i < orderIds.length; i++) {
-                if ((trailing === true) || isTrigger) {
+                if ((trailing) || isTrigger) {
                     request.push({
                         'algoId': orderIds[i],
                         'instId': market['id'],
@@ -4029,7 +4029,7 @@ class okx extends okx$1["default"] {
         }
         else {
             for (let i = 0; i < clientOrderIds.length; i++) {
-                if ((trailing === true) || isTrigger) {
+                if ((trailing) || isTrigger) {
                     request.push({
                         'instId': market['id'],
                         'algoClOrdId': clientOrderIds[i],
@@ -4107,8 +4107,8 @@ class okx extends okx$1["default"] {
         let method = this.safeString(params, 'method', defaultMethod);
         const trigger = this.safeBool2(params, 'stop', 'trigger');
         const trailing = this.safeBool(params, 'trailing', false);
-        const isStopOrTrailing = (trigger === true) || (trailing === true);
-        if (isStopOrTrailing === true) {
+        const isStopOrTrailing = (trigger === true) || (trailing);
+        if (isStopOrTrailing) {
             method = 'privatePostTradeCancelAlgos';
         }
         for (let i = 0; i < orders.length; i++) {
@@ -4121,7 +4121,7 @@ class okx extends okx$1["default"] {
             }
             const market = this.market(symbol);
             let idKey = 'ordId';
-            if (isStopOrTrailing === true) {
+            if (isStopOrTrailing) {
                 idKey = 'algoId';
             }
             else if (clientOrderId !== undefined) {
@@ -4733,10 +4733,10 @@ class okx extends okx$1["default"] {
         const trigger = this.safeBool2(paramsPaginate, 'stop', 'trigger');
         const trailing = this.safeBool(paramsPaginate, 'trailing', false);
         const isTrigger = (trigger === true);
-        if ((trailing === true) || isTrigger || ((ordType !== undefined) && (ordType in algoOrderTypes))) {
+        if ((trailing) || isTrigger || ((ordType !== undefined) && (ordType in algoOrderTypes))) {
             method = 'privateGetTradeOrdersAlgoPending';
         }
-        if (trailing === true) {
+        if (trailing) {
             request['ordType'] = 'move_order_stop';
         }
         else if (isTrigger && (ordType === undefined)) {
@@ -4901,7 +4901,7 @@ class okx extends okx$1["default"] {
         const trigger = this.safeBool2(params, 'stop', 'trigger');
         const trailing = this.safeBool(params, 'trailing', false);
         const isTrigger = (trigger === true);
-        if (trailing === true) {
+        if (trailing) {
             method = 'privateGetTradeOrdersAlgoHistory';
             request['ordType'] = 'move_order_stop';
         }
@@ -5096,11 +5096,11 @@ class okx extends okx$1["default"] {
         const ordType = this.safeString(paramsPaginate, 'ordType');
         const trigger = this.safeBool2(paramsPaginate, 'stop', 'trigger');
         const trailing = this.safeBool(paramsPaginate, 'trailing', false);
-        if ((trailing === true) || (trigger === true) || ((ordType !== undefined) && (ordType in algoOrderTypes))) {
+        if ((trailing) || (trigger === true) || ((ordType !== undefined) && (ordType in algoOrderTypes))) {
             method = 'privateGetTradeOrdersAlgoHistory';
             request['state'] = 'effective';
         }
-        if (trailing === true) {
+        if (trailing) {
             request['ordType'] = 'move_order_stop';
         }
         else if (trigger === true) {

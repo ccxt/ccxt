@@ -1188,7 +1188,7 @@ impl SxbetCore {
         }
         let mut proxy: Value = self.fetch_sxbet_proxy().await;
         let mut deployed: Value = self.safe_bool_k(proxy, "deployed", &[Value::Bool(false)]);
-        if (deployed.as_bool() != Some(true)) {
+        if !(deployed.as_bool() == Some(true)) {
             self.sxbet_private_post_user_deploy_proxy(&[]).await;
             {
                                 let mut i: Value = Value::Int(0);
@@ -1362,7 +1362,7 @@ impl SxbetCore {
         // the venue has no post-only or trigger mechanics - reject the unified params instead
         // of forwarding fields the exchange would silently ignore
         let mut postOnly: Value = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]);
-        if (postOnly.as_bool() == Some(true)) {
+        if postOnly.as_bool() == Some(true) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support postOnly - GTC orders may cross on entry".into()))));
         }
         let mut triggerPrice: Option<String> = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into())]), &[]).as_str().map(str::to_owned);
@@ -1797,7 +1797,7 @@ impl SxbetCore {
     m
 })]), Value::Str("hasMore".into()), &[Value::Bool(false)]);
         let mut guard: Value = Value::Int(0);
-        while (hasMore.as_bool() == Some(true)) && (guard.as_f64().unwrap_or(f64::NAN) < ((50i64) as f64)) {
+        while hasMore.as_bool() == Some(true) && (guard.as_f64().unwrap_or(f64::NAN) < ((50i64) as f64)) {
             let mut nextResponse: Value = Value::Null;
             if isEventScoped {
                 let mut nextRequest: Value = Value::Map({
@@ -2206,7 +2206,7 @@ impl SxbetCore {
         let mut isMaker: Value = self.safe_bool_k(fill.clone(), "isMaker", &[]);
         let mut takerOrMaker: Value = Value::Null;
         if (isMaker != Value::Null) {
-            takerOrMaker = (if (isMaker.as_bool() == Some(true)) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
+            takerOrMaker = (if isMaker.as_bool() == Some(true) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
         }
         return self.safe_prediction_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();

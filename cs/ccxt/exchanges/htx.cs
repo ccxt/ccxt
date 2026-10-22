@@ -4796,7 +4796,7 @@ public partial class htx : Exchange
             object paramsClientOrderId = ((clientOrderId != null)) ? this.omit(paramsOmitted, new List<object>() {"client_order_id", "clientOrderId", "algo_client_order_id"}) : paramsOmitted;
             if ((clientOrderId == null))
             {
-                if ((isAlgo == true))
+                if (isAlgo)
                 {
                     request["algo_id"] = id;
                 } else
@@ -4805,7 +4805,7 @@ public partial class htx : Exchange
                 }
             } else
             {
-                if ((isAlgo == true))
+                if (isAlgo)
                 {
                     request["algo_client_order_id"] = clientOrderId;
                 } else
@@ -4815,7 +4815,7 @@ public partial class htx : Exchange
             }
             if ((this.safeBool(market, "linear", false) == true))
             {
-                if ((isAlgo == true))
+                if (isAlgo)
                 {
                     if ((trigger == true))
                     {
@@ -5105,7 +5105,7 @@ public partial class htx : Exchange
         bool? stopLoss = this.safeBool(parameters, "stopLoss");
         bool? takeProfit = this.safeBool(parameters, "takeProfit");
         bool? trailing = this.safeBool(parameters, "trailing", false);
-        bool isAlgo = (((trigger == true)) || ((stopLoss == true)) || ((takeProfit == true)) || ((stopLossTakeProfit == true)) || ((trailing == true)));
+        bool isAlgo = (((trigger == true)) || ((stopLoss == true)) || ((takeProfit == true)) || ((stopLossTakeProfit == true)) || (trailing == true));
         object paramsOmitted = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"});
         if ((since != null))
         {
@@ -5125,7 +5125,7 @@ public partial class htx : Exchange
             IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
             request["margin_mode"] = ((marginMode == null)) ? "cross" : marginMode;
             request["contract_code"] = (market.ContainsKey("id") ? market["id"] : null);
-            if ((isAlgo == true))
+            if (isAlgo)
             {
                 if ((trigger == true))
                 {
@@ -5215,8 +5215,8 @@ public partial class htx : Exchange
             bool? stopLoss = this.safeBool(parameters, "stopLoss");
             bool? takeProfit = this.safeBool(parameters, "takeProfit");
             bool? trailing = this.safeBool(parameters, "trailing", false);
-            bool isAlgo = (((trigger == true)) || ((stopLoss == true)) || ((takeProfit == true)) || ((stopLossTakeProfit == true)) || ((trailing == true)));
-            if ((isAlgo == true))
+            bool isAlgo = (((trigger == true)) || ((stopLoss == true)) || ((takeProfit == true)) || ((stopLossTakeProfit == true)) || (trailing == true));
+            if (isAlgo)
             {
                 request["states"] = "effective";
             } else
@@ -5338,8 +5338,8 @@ public partial class htx : Exchange
                 bool? stopLoss = this.safeBool(paramsMarketType, "stopLoss");
                 bool? takeProfit = this.safeBool(paramsMarketType, "takeProfit");
                 bool? trailing = this.safeBool(paramsMarketType, "trailing", false);
-                bool isAlgo = (((trigger == true)) || ((stopLoss == true)) || ((takeProfit == true)) || ((stopLossTakeProfit == true)) || ((trailing == true)));
-                if ((isAlgo == true))
+                bool isAlgo = (((trigger == true)) || ((stopLoss == true)) || ((takeProfit == true)) || ((stopLossTakeProfit == true)) || (trailing == true));
+                if (isAlgo)
                 {
                     request["states"] = "canceled";
                 } else
@@ -5499,7 +5499,7 @@ public partial class htx : Exchange
             Dictionary<string, object> paramsOmitted = this.omit(paramsSubType, new List<object>() {"stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"});
             if (isLinear)
             {
-                if (((trigger == true)) || ((trailing == true)) || ((stopLossTakeProfit == true)) || ((stopLoss == true)) || ((takeProfit == true)))
+                if (((trigger == true)) || (trailing == true) || ((stopLossTakeProfit == true)) || ((stopLoss == true)) || ((takeProfit == true)))
                 {
                     if ((trigger == true))
                     {
@@ -6069,7 +6069,7 @@ public partial class htx : Exchange
         string? contractCode = this.safeString(order, "contract_code");
         bool isLinearOrder = ((contractCode != null)) && ((marketResolved != null)) && (((GetValue(marketResolved, "linear") as bool?) == true)) && (((GetValue(marketResolved, "spot") as bool?) != true));
         object type = null;
-        if ((isLinearOrder == true))
+        if (isLinearOrder)
         {
             type = this.safeString(order, "type");
             if (((type == null)) || ((type is "tp")) || ((type is "sl")) || ((type is "tpsl")))
@@ -6101,7 +6101,7 @@ public partial class htx : Exchange
         string? clientOrderId = this.safeStringN(order, new List<object>() {"client_order_id", ("client-or" + "der-id"), "algo_client_order_id"}); // transpiler regex trick for php issue
         string? cost = null;
         string? amount = null;
-        if (((type != null)) && (((string)type).IndexOf("market", StringComparison.Ordinal) >= 0) && ((isLinearOrder != true)))
+        if (((type != null)) && (((string)type).IndexOf("market", StringComparison.Ordinal) >= 0) && (!isLinearOrder))
         {
             cost = this.safeString(order, "field-cash-amount");
         } else
@@ -6133,7 +6133,7 @@ public partial class htx : Exchange
         string? average = this.safeString(order, "trade_avg_price");
         object trades = this.safeValue(order, "trades");
         bool? reduceOnly = null;
-        if ((isLinearOrder == true))
+        if (isLinearOrder)
         {
             reduceOnly = this.safeBool(order, "reduce_only");
         } else
@@ -6300,7 +6300,7 @@ public partial class htx : Exchange
         IList<object> postOnlyparamsPostOnlyVariable = (IList<object>)this.handlePostOnly(orderType == "market", orderType == "limit-maker", paramsMarginMode);
         bool postOnly = (bool)postOnlyparamsPostOnlyVariable[0];
         IDictionary<string, object> paramsPostOnly = ((IDictionary<string, object>)postOnlyparamsPostOnlyVariable[1]);
-        if ((postOnly == true))
+        if (postOnly)
         {
             orderType = "limit-maker";
         }
@@ -6426,7 +6426,7 @@ public partial class htx : Exchange
         IList<object> postOnlyparamsPostOnlyVariable = (IList<object>)this.handlePostOnly((type == "market"), (type == "post_only"), parameters);
         bool postOnly = (bool)postOnlyparamsPostOnlyVariable[0];
         IDictionary<string, object> paramsPostOnly = ((IDictionary<string, object>)postOnlyparamsPostOnlyVariable[1]);
-        object orderType = ((postOnly == true)) ? "post_only" : type;
+        object orderType = isTrue((postOnly)) ? "post_only" : type;
         IList<object> subTypeparamsSubTypeVariable = (IList<object>)this.handleSubTypeAndParams("createOrder", market, paramsPostOnly);
         string? subType = (string)subTypeparamsSubTypeVariable[0];
         IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeparamsSubTypeVariable[1]);
@@ -7083,7 +7083,7 @@ public partial class htx : Exchange
                 throw new ArgumentsRequired ((this.id + " cancelOrder() requires a symbol argument")) ;
             }
             string? clientOrderId = this.safeStringN(query, new List<object>() {"client_order_id", "clientOrderId", "algo_client_order_id"});
-            if (!(isLinear && (((trigger == true)) || ((stopLossTakeProfit == true)) || ((trailing == true)))))
+            if (!(isLinear && (((trigger == true)) || ((stopLossTakeProfit == true)) || (trailing == true))))
             {
                 if ((clientOrderId == null))
                 {
@@ -7103,7 +7103,7 @@ public partial class htx : Exchange
             }
             if (isLinear)
             {
-                if (((trigger == true)) || ((stopLossTakeProfit == true)) || ((trailing == true)))
+                if (((trigger == true)) || ((stopLossTakeProfit == true)) || (trailing == true))
                 {
                     Dictionary<string, object> requestItem = new Dictionary<string, object>() {
                         { "contract_code", this.safeString(market, "id") },
@@ -7211,7 +7211,7 @@ public partial class htx : Exchange
         IDictionary<string, object> result = null;
         if (isLinear)
         {
-            if (((trigger == true)) || ((stopLossTakeProfit == true)) || ((trailing == true)))
+            if (((trigger == true)) || ((stopLossTakeProfit == true)) || (trailing == true))
             {
                 List<object> data = this.safeList(response, "data", new List<object>() {});
                 result = this.safeDict(data, 0, new Dictionary<string, object>() {});
@@ -7651,7 +7651,7 @@ public partial class htx : Exchange
             //         "ts": "1683435723755"
             //     }
             //
-            if ((this.safeBool(market, "linear", false) == true) && (((trigger != true)) && ((trailing != true)) && ((stopLossTakeProfit != true))))
+            if ((this.safeBool(market, "linear", false) == true) && (((trigger != true)) && (trailing != true) && ((stopLossTakeProfit != true))))
             {
                 return ccxt.BaseExchange.ToOrderList(this.parseCancelOrders(response));
             }

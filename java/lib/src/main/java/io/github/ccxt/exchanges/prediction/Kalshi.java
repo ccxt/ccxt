@@ -1063,15 +1063,13 @@ public class Kalshi extends KalshiApi
             //     { "exchange_active": true, "trading_active": true }
             //
             Boolean tradingActive = (Boolean) this.safeBool(response, "trading_active", false);
-            {
-                HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
-                h2kMap1.put("status", (((java.util.Objects.equals(tradingActive, true)))) ? "ok" : "maintenance");
-                h2kMap1.put("updated", null);
-                h2kMap1.put("eta", null);
-                h2kMap1.put("url", null);
-                h2kMap1.put("info", response);
-                return h2kMap1;
-            }
+            return new HashMap<String, Object>() {{
+                put( "status", ((Boolean.TRUE.equals(tradingActive))) ? "ok" : "maintenance" );
+                put( "updated", null );
+                put( "eta", null );
+                put( "url", null );
+                put( "info", response );
+            }};
         }).thenApply(Status::new);
 
     }
@@ -1878,7 +1876,7 @@ public class Kalshi extends KalshiApi
         }
         Boolean isTaker = (Boolean) this.safeBool(fill, "is_taker", true);
         String takerOrMaker = "maker";
-        if (java.util.Objects.equals(isTaker, true))
+        if (Boolean.TRUE.equals(isTaker))
         {
             takerOrMaker = "taker";
         }
@@ -2146,23 +2144,23 @@ public class Kalshi extends KalshiApi
         }
         Long ts = this.parse8601(this.safeString(settlement, "settled_time"));
         {
-            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
-            h2kMap2.put("info", settlement);
-            h2kMap2.put("id", ticker);
-            h2kMap2.put("timestamp", ts);
-            h2kMap2.put("datetime", this.iso8601(ts));
-            h2kMap2.put("outcome", this.safeString(mkt, "outcome", heldTicker));
-            h2kMap2.put("outcomeId", this.safeString2(mkt, "outcomeId", "id", heldTicker));
-            h2kMap2.put("market", this.safeString2(mkt, "market", "outcome"));
-            h2kMap2.put("event", null);
-            h2kMap2.put("result", marketResult);
-            h2kMap2.put("won", won);
-            h2kMap2.put("amount", ((Boolean.TRUE.equals(heldYes))) ? yesCount : noCount);
-            h2kMap2.put("price", ((Boolean.TRUE.equals(won))) ? 1 : 0);
-            h2kMap2.put("cost", cost);
-            h2kMap2.put("payout", payout);
-            h2kMap2.put("pnl", pnl);
-            return h2kMap2;
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("info", settlement);
+            h2kMap1.put("id", ticker);
+            h2kMap1.put("timestamp", ts);
+            h2kMap1.put("datetime", this.iso8601(ts));
+            h2kMap1.put("outcome", this.safeString(mkt, "outcome", heldTicker));
+            h2kMap1.put("outcomeId", this.safeString2(mkt, "outcomeId", "id", heldTicker));
+            h2kMap1.put("market", this.safeString2(mkt, "market", "outcome"));
+            h2kMap1.put("event", null);
+            h2kMap1.put("result", marketResult);
+            h2kMap1.put("won", won);
+            h2kMap1.put("amount", ((Boolean.TRUE.equals(heldYes))) ? yesCount : noCount);
+            h2kMap1.put("price", ((Boolean.TRUE.equals(won))) ? 1 : 0);
+            h2kMap1.put("cost", cost);
+            h2kMap1.put("payout", payout);
+            h2kMap1.put("pnl", pnl);
+            return h2kMap1;
         }
     }
 
@@ -3334,12 +3332,12 @@ public class Kalshi extends KalshiApi
             }
         }
         {
-            HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
-            h2kMap3.put("url", url);
-            h2kMap3.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap3.put("body", bodyValue);
-            h2kMap3.put("headers", headersValue);
-            return h2kMap3;
+            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+            h2kMap2.put("url", url);
+            h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap2.put("body", bodyValue);
+            h2kMap2.put("headers", headersValue);
+            return h2kMap2;
         }
     }
 }

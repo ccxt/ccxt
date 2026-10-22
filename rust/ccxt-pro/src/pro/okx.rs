@@ -1477,7 +1477,7 @@ impl OkxCore {
         let mut isTrigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
         let mut accessType: Value = Value::Str("private".into());
-        if (isTrigger.as_bool() == Some(true)) {
+        if isTrigger.as_bool() == Some(true) {
             accessType = Value::Str("business".into());
         }
         self.authenticate(&[Value::Map({
@@ -2638,7 +2638,7 @@ impl OkxCore {
             self.load_markets(&[]).await;
         }
         let mut access: Value = Value::Str("private".into());
-        if (isTrigger.as_bool() == Some(true)) {
+        if isTrigger.as_bool() == Some(true) {
             access = Value::Str("business".into());
         }
         self.authenticate(&[Value::Map({
@@ -2647,7 +2647,7 @@ impl OkxCore {
     m
 })]).await;
         let mut channel: Value = Value::Str("orders".into());
-        if (isTrigger.as_bool() == Some(true)) {
+        if isTrigger.as_bool() == Some(true) {
             channel = Value::Str("orders-algo".into());
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", channel, Value::Str("::myTrades".into())).into());
@@ -2889,7 +2889,7 @@ impl OkxCore {
             self.load_markets(&[]).await;
         }
         let mut accessType: Value = Value::Str("private".into());
-        if (isTrigger.as_bool() == Some(true)) {
+        if isTrigger.as_bool() == Some(true) {
             accessType = Value::Str("business".into());
         }
         self.authenticate(&[Value::Map({
@@ -2926,7 +2926,7 @@ impl OkxCore {
             m
         });
         let mut channel: Value = Value::Str("orders".into());
-        if (isTrigger.as_bool() == Some(true)) {
+        if isTrigger.as_bool() == Some(true) {
             channel = Value::Str("orders-algo".into());
         }
         let __ws_arg_3 = self.extend(request, &[paramsMarginMode]);

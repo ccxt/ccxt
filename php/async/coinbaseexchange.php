@@ -1676,7 +1676,7 @@ class coinbaseexchange extends Exchange {
             $request['time_in_force'] = $timeInForce;
         }
         $postOnly = $this->safe_bool_2($params, 'postOnly', 'post_only', false);
-        if ($postOnly === true) {
+        if ($postOnly) {
             $request['post_only'] = true;
         }
         $paramsOmitted = $this->omit($params, array( 'timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'clientOrderId', 'client_oid', 'postOnly', 'post_only', 'triggerPrice' ));

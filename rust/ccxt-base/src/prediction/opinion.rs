@@ -1743,7 +1743,7 @@ impl OpinionCore {
         // a false result does NOT mean the order is still open — it may already be filled,
         // already cancelled, or unknown; don't invent a status the venue didn't report.
         // error responses with an errno never reach this line, handleErrors throws on them
-        let mut status: Value = (if (canceled.as_bool() == Some(true)) { Value::Str("canceled".into()) } else { Value::Null });
+        let mut status: Value = (if canceled.as_bool() == Some(true) { Value::Str("canceled".into()) } else { Value::Null });
         return self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id);

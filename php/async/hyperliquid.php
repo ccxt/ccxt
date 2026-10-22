@@ -1185,7 +1185,7 @@ class hyperliquid extends Exchange {
         $dex = $this->safe_string($paramsValue, 'dex');
         $isSpot = (($type === 'spot') || ($isUnifiedEnabled === true)) && ($dex === null);
         $request = array(
-            'type' => ($isSpot === true) ? 'spotClearinghouseState' : 'clearinghouseState',
+            'type' => ($isSpot) ? 'spotClearinghouseState' : 'clearinghouseState',
             'user' => $userAddress,
         );
         $response = Async\await($this->publicPostInfo($this->extend($request, $paramsValue)));
@@ -1230,7 +1230,7 @@ class hyperliquid extends Exchange {
             for ($i = 0; $i < count($balances); $i++) {
                 $balance = $this->safe_dict($balances, $i);
                 $unifiedCode = $this->safe_currency_code($this->safe_string($balance, 'coin'));
-                $code = ($isSpot === true) ? $this->update_spot_currency_code($unifiedCode) : $unifiedCode;
+                $code = ($isSpot) ? $this->update_spot_currency_code($unifiedCode) : $unifiedCode;
                 $account = $this->account();
                 $total = $this->safe_string($balance, 'total');
                 $used = $this->safe_string($balance, 'hold');
@@ -1974,7 +1974,7 @@ class hyperliquid extends Exchange {
         $nonce = $this->incrementing_nonce();
         $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         $payload = array(
-            'hyperliquidChain' => ($isSandboxMode === true) ? 'Testnet' : 'Mainnet',
+            'hyperliquidChain' => ($isSandboxMode) ? 'Testnet' : 'Mainnet',
             'maxFeeRate' => $maxFeeRate,
             'builder' => $builder,
             'nonce' => $nonce,
@@ -2025,7 +2025,7 @@ class hyperliquid extends Exchange {
     private function do_handle_builder_fee_approval() {
         $buildFee = $this->safe_bool($this->options, 'builderFee', true);
         $approvedBuilderFee = $this->safe_bool($this->options, 'approvedBuilderFee', false);
-        if ($approvedBuilderFee === true) {
+        if ($approvedBuilderFee) {
             return true; // skip if builder fee is already approved
         }
         try {
@@ -2033,7 +2033,7 @@ class hyperliquid extends Exchange {
             // when the user disables the builder fee (builderFee = false) we still approve and attach the builder,
             // but with a 0% fee rate, so orders remain attributed to the builder for statistics purposes only and the user is not charged
             $maxFeeRate = $this->safe_string($this->options, 'feeRate', '0.01%');
-            if ($buildFee !== true) {
+            if (!$buildFee) {
                 $maxFeeRate = '0%';
             }
             Async\await($this->approve_builder_fee($builder, $maxFeeRate));
@@ -2122,7 +2122,7 @@ class hyperliquid extends Exchange {
         $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         $type = $this->safe_string($paramsPublicAddress, 'type', 'userSetAbstraction');
         $payload = array(
-            'hyperliquidChain' => ($isSandboxMode === true) ? 'Testnet' : 'Mainnet',
+            'hyperliquidChain' => ($isSandboxMode) ? 'Testnet' : 'Mainnet',
             'user' => $userAddress,
             'abstraction' => $abstraction,
             'nonce' => $nonce,
@@ -2170,7 +2170,7 @@ class hyperliquid extends Exchange {
         $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         $type = $this->safe_string($paramsPublicAddress, 'type', 'userDexAbstraction');
         $payload = array(
-            'hyperliquidChain' => ($isSandboxMode === true) ? 'Testnet' : 'Mainnet',
+            'hyperliquidChain' => ($isSandboxMode) ? 'Testnet' : 'Mainnet',
             'user' => $userAddress,
             'enabled' => $enabled,
             'nonce' => $nonce,
@@ -2411,7 +2411,7 @@ class hyperliquid extends Exchange {
             $defaultTimeInForce = 'ioc';
         }
         $postOnly = $this->safe_bool($params, 'postOnly', false);
-        if ($postOnly === true) {
+        if ($postOnly) {
             $defaultTimeInForce = 'alo';
         }
         $timeInForce = $this->safe_string_lower($params, 'timeInForce', $defaultTimeInForce);
@@ -2980,7 +2980,7 @@ class hyperliquid extends Exchange {
                 $defaultTimeInForce = 'ioc';
             }
             $postOnly = $this->safe_bool($orderParams, 'postOnly', false);
-            if ($postOnly === true) {
+            if ($postOnly) {
                 $defaultTimeInForce = 'alo';
             }
             $timeInForce = $this->safe_string_lower($orderParams, 'timeInForce', $defaultTimeInForce);
@@ -4726,7 +4726,7 @@ class hyperliquid extends Exchange {
         } else {
             $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
             $payload = array(
-                'hyperliquidChain' => ($isSandboxMode === true) ? 'Testnet' : 'Mainnet',
+                'hyperliquidChain' => ($isSandboxMode) ? 'Testnet' : 'Mainnet',
                 'destination' => $address,
                 'amount' => (string) $amount,
                 'time' => $nonce,

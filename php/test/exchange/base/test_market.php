@@ -166,7 +166,7 @@ function test_market($exchange, $skipped_properties, $method, $market) {
         assert(($contract !== true) && ($linear === null) && ($inverse === null) && ($option !== true) && ($swap !== true) && ($future !== true), 'for spot market, none of contract/linear/inverse/option/swap/future should be set' . $log_text);
     } else {
         // if not spot, any of the below should be true
-        assert(($contract === true) && (($future === true) || ($swap === true) || ($option === true) || ($is_index === true)), 'for non-spot markets, any of (future/swap/option/index) should be set' . $log_text);
+        assert(($contract === true) && (($future === true) || ($swap === true) || ($option === true) || ($is_index)), 'for non-spot markets, any of (future/swap/option/index) should be set' . $log_text);
     }
     $contract_size = $exchange->safe_string($market, 'contractSize');
     // contract fields
@@ -196,7 +196,7 @@ function test_market($exchange, $skipped_properties, $method, $market) {
     }
     // future, swap and option should be mutually exclusive
     if ($market['future'] === true) {
-        assert(($market['swap'] !== true) && ($market['option'] !== true) && ($is_index !== true), 'market swap and option must be false when "future" is true' . $log_text);
+        assert(($market['swap'] !== true) && ($market['option'] !== true) && (!$is_index), 'market swap and option must be false when "future" is true' . $log_text);
     } elseif ($market['swap'] === true) {
         assert(($future !== true) && ($option !== true), 'market future and option must be false when "swap" is true' . $log_text);
     } elseif ($market['option'] === true) {

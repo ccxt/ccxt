@@ -743,7 +743,7 @@ class hashkey extends hashkey$1["default"] {
         }
         const options = this.safeDict(this.options, 'watchBalance');
         const snapshot = this.safeBool(options, 'fetchBalanceSnapshot', true);
-        if (snapshot === true) {
+        if (snapshot) {
             const messageHash = type + ':' + 'fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future(messageHash);

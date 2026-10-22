@@ -787,7 +787,7 @@ export default class blofin extends Exchange {
         const last = this.safeString(ticker, 'last');
         const open = this.safeString(ticker, 'open24h');
         const spot = this.safeBool(marketResolved, 'spot', false);
-        const quoteVolume = (spot === true) ? this.safeString(ticker, 'volCurrency24h') : undefined;
+        const quoteVolume = (spot) ? this.safeString(ticker, 'volCurrency24h') : undefined;
         const baseVolume = this.safeString(ticker, 'vol24h');
         const high = this.safeString(ticker, 'high24h');
         const low = this.safeString(ticker, 'low24h');
@@ -1377,7 +1377,7 @@ export default class blofin extends Exchange {
         const triggerPriceSlTp = this.safeString2(query, 'stopLossPrice', 'takeProfitPrice');
         const timeInForce = this.safeString(query, 'timeInForce', 'GTC');
         const isHedged = this.safeBool(query, 'hedged', false);
-        if (isHedged === true) {
+        if (isHedged) {
             request['positionSide'] = (side === 'buy') ? 'long' : 'short';
         }
         const isMarketOrder = type === 'market';
@@ -1636,7 +1636,7 @@ export default class blofin extends Exchange {
         const market = this.market(symbol);
         const hedged = this.safeBool(params, 'hedged', false);
         let positionSide = 'net';
-        if (hedged === true) {
+        if (hedged) {
             positionSide = (side === 'buy') ? 'short' : 'long';
         }
         const request = {
@@ -1723,23 +1723,23 @@ export default class blofin extends Exchange {
             request['clientOrderId'] = clientOrderId;
         }
         else {
-            if ((isTrigger !== true) && (isTpsl !== true)) {
+            if ((!isTrigger) && (!isTpsl)) {
                 request['orderId'] = id.toString();
             }
-            else if (isTpsl === true) {
+            else if (isTpsl) {
                 request['tpslId'] = id.toString();
             }
-            else if (isTrigger === true) {
+            else if (isTrigger) {
                 request['algoId'] = id.toString();
             }
         }
         const query = this.omit(params, ['orderId', 'clientOrderId', 'stop', 'trigger', 'tpsl']);
-        if (isTpsl === true) {
+        if (isTpsl) {
             const tpslResponse = await this.cancelOrders([id], symbol, params);
             const first = this.safeDict(tpslResponse, 0);
             return first;
         }
-        else if (isTrigger === true) {
+        else if (isTrigger) {
             const triggerResponse = await this.privatePostTradeCancelAlgo(this.extend(request, query));
             const triggerData = this.safeDict(triggerResponse, 'data');
             return this.parseOrder(triggerData, market);
@@ -1816,10 +1816,10 @@ export default class blofin extends Exchange {
         const [method, paramsMethod] = this.handleOptionStringAndParams(paramsPaginate, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersPending');
         const query = this.omit(paramsMethod, ['method', 'stop', 'trigger', 'tpsl', 'TPSL']);
         let response;
-        if ((isTpSl === true) || (method === 'privateGetTradeOrdersTpslPending')) {
+        if ((isTpSl) || (method === 'privateGetTradeOrdersTpslPending')) {
             response = await this.privateGetTradeOrdersTpslPending(this.extend(request, query));
         }
-        else if ((isTrigger === true) || (method === 'privateGetTradeOrdersAlgoPending')) {
+        else if ((isTrigger) || (method === 'privateGetTradeOrdersAlgoPending')) {
             request['orderType'] = 'trigger';
             response = await this.privateGetTradeOrdersAlgoPending(this.extend(request, query));
         }
@@ -3255,7 +3255,7 @@ export default class blofin extends Exchange {
         const [method, paramsMethod] = this.handleOptionStringAndParams(paramsPaginate, 'fetchClosedOrders', 'method', 'privateGetTradeOrdersHistory');
         const query = this.omit(paramsMethod, ['method', 'stop', 'trigger', 'tpsl', 'TPSL']);
         let response;
-        if ((isTrigger === true) || (method === 'privateGetTradeOrdersTpslHistory')) {
+        if ((isTrigger) || (method === 'privateGetTradeOrdersTpslHistory')) {
             response = await this.privateGetTradeOrdersTpslHistory(this.extend(request, query));
         }
         else {

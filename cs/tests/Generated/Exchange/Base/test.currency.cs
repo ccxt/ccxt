@@ -22,7 +22,7 @@ public partial class testMainClass : BaseTest
         // todo: info key needs to be added in base, when exchange does not have fetchCurrencies
         bool isNative = (!isEqual(getValue(exchange.has, "fetchCurrencies"), null)) && (!isEqual(getValue(exchange.has, "fetchCurrencies"), false)) && (!isEqual(getValue(exchange.has, "fetchCurrencies"), "emulated"));
         string? currencyType = exchange.safeString(entry, "type");
-        if ((isNative == true))
+        if (isNative)
         {
             format["info"] = new Dictionary<string, object>() {};
             // todo: 'name': 'Bitcoin', // uppercase string, base currency, 2 or more letters

@@ -728,7 +728,7 @@ class bydfi extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = $this->safe_bool($params, 'paginate', false);
-        if ($paginate === true) {
+        if ($paginate) {
             $maxLimit = 500;
             $paramsPaginate = $this->extend($this->omit($params, 'paginate'), array( 'paginationDirection' => 'backward' ));
             $paginatedResponse = Async\await($this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $paramsPaginate, $maxLimit, true));
@@ -1377,13 +1377,13 @@ class bydfi extends Exchange {
         if ($hedged) {
             $query = $this->omit($query, 'reduceOnly');
             if ($side === 'buy') {
-                $request['positionSide'] = ($reduceOnly === true) ? 'SHORT' : 'LONG';
+                $request['positionSide'] = ($reduceOnly) ? 'SHORT' : 'LONG';
             } elseif ($side === 'sell') {
-                $request['positionSide'] = ($reduceOnly === true) ? 'LONG' : 'SHORT';
+                $request['positionSide'] = ($reduceOnly) ? 'LONG' : 'SHORT';
             }
         }
         $closePosition = $this->safe_bool($query, 'closePosition', false);
-        if ($closePosition !== true) {
+        if (!$closePosition) {
             $query = $this->omit($query, 'closePosition');
             $request['quantity'] = $this->amount_to_precision($symbol, $amount);
         } elseif (($typeValue !== 'STOP_MARKET') && ($typeValue !== 'TAKE_PROFIT_MARKET')) {
@@ -1777,7 +1777,7 @@ class bydfi extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = $this->safe_bool($params, 'paginate', false);
-        if ($paginate === true) {
+        if ($paginate) {
             $maxLimit = 500;
             $paramsPaginate = $this->extend($this->omit($params, 'paginate'), array( 'paginationDirection' => 'backward' ));
             $paginatedResponse = Async\await($this->fetch_paginated_call_dynamic('fetchCanceledAndClosedOrders', $symbol, $since, $limit, $paramsPaginate, $maxLimit, true));
@@ -2790,7 +2790,7 @@ class bydfi extends Exchange {
         $transfer = $this->parse_transfer($response, $currency);
         $transferOptions = $this->safe_dict($this->options, 'transfer', array());
         $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
-        if ($fillResponseFromRequest === true) {
+        if ($fillResponseFromRequest) {
             $transfer['currency'] = $code;
             $transfer['fromAccount'] = $fromAccount;
             $transfer['toAccount'] = $toAccount;
@@ -2824,7 +2824,7 @@ class bydfi extends Exchange {
         }
         $currency = $this->currency($code);
         $paginate = $this->safe_bool($params, 'paginate', false);
-        if ($paginate === true) {
+        if ($paginate) {
             $maxLimit = 50;
             $paramsPaginate = $this->extend($this->omit($params, 'paginate'), array( 'paginationDirection' => 'backward' ));
             $paginatedResponse = Async\await($this->fetch_paginated_call_dynamic('fetchTransfers', $this->safe_string($currency, 'code'), $since, $limit, $paramsPaginate, $maxLimit, true));
@@ -2971,7 +2971,7 @@ class bydfi extends Exchange {
         }
         $currency = $this->currency($code);
         $paginate = $this->safe_bool($params, 'paginate', false);
-        if ($paginate === true) {
+        if ($paginate) {
             $maxLimit = 50;
             $paramsPaginate = $this->extend($this->omit($params, 'paginate'), array( 'paginationDirection' => 'backward' ));
             $paginatedResponse = Async\await($this->fetch_paginated_call_dynamic($methodName, $this->safe_string($currency, 'code'), $since, $limit, $paramsPaginate, $maxLimit, true));

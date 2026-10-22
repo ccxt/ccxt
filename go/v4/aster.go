@@ -3868,7 +3868,7 @@ func (this *Aster) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 		priceIsRequired = true
 		triggerPriceIsRequired = true
 	} else if (uppercaseType == "STOP_MARKET") || (uppercaseType == "TAKE_PROFIT_MARKET") {
-		if closePosition == nil || *closePosition != true {
+		if !(closePosition != nil && *closePosition) {
 			quantityIsRequired = true
 		}
 		triggerPriceIsRequired = true
@@ -6060,13 +6060,13 @@ func (this *Aster) initializeClientBody(ch chan AsyncResult[any], optionalArgs .
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var builderFee *bool = this.SafeBool(params, "builderFee", this.SafeBool(this.Options, "builderFee", true)) // we shouldn't omit here
-	if builderFee == nil || *builderFee != true {
+	if !(builderFee != nil && *builderFee) {
 
 		ch <- AsyncResult[any]{Value: false} // skip if builder fee is not enabled
 		return nil
 	}
 	var approvedBuilderFee *bool = this.SafeBool(this.Options, "approvedBuilderFee", false)
-	if approvedBuilderFee != nil && *approvedBuilderFee == true {
+	if approvedBuilderFee != nil && *approvedBuilderFee {
 
 		ch <- AsyncResult[any]{Value: true} // skip if builder fee is already approved
 		return nil

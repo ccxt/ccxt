@@ -1375,7 +1375,7 @@ export default class p2b extends Exchange {
         //     {"success":true,"errorCode":"","message":"","result":{...},"cache_time":1787611797.535462,"current_time":1787611797.535973}
         //
         const success = this.safeBool(response, 'success', true);
-        if (success !== true) {
+        if (!success) {
             const errorCode = this.safeString(response, 'errorCode');
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);

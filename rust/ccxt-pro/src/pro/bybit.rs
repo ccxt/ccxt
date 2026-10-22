@@ -579,7 +579,7 @@ impl BybitCore {
             let mut unified: Value = self.parent.is_unified_enabled(&[]).await;
             let mut isUnifiedMargin: Value = self.safe_bool(unified.clone(), Value::Int(0), &[Value::Bool(false)]);
             let mut isUnifiedAccount: Value = self.safe_bool(unified, Value::Int(1), &[Value::Bool(false)]);
-            if isUsdcSettled.as_bool() == Some(true) && (isUnifiedMargin.as_bool() != Some(true)) && (isUnifiedAccount.as_bool() != Some(true)) {
+            if isUsdcSettled.as_bool() == Some(true) && (!(isUnifiedMargin.as_bool() == Some(true))) && (!(isUnifiedAccount.as_bool() == Some(true))) {
                 url = crate::value::get_value_k(&get_value(&url, &accessibility), "usdc");
             }  else {
                 url = crate::value::get_value_k(&get_value(&url, &accessibility), "contract");
@@ -2894,7 +2894,7 @@ impl BybitCore {
                 m.insert("unified".to_string(), Value::Str("wallet".into()));
             m
         });
-        if (isUnifiedAccount.as_bool() == Some(true)) {
+        if isUnifiedAccount.as_bool() == Some(true) {
             // unified account
             if (subType.as_str() == Some("inverse")) {
                 messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(":contract".into())).into());
@@ -2902,7 +2902,7 @@ impl BybitCore {
                 messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(":unified".into())).into());
             }
         }
-        if (isUnifiedMargin.as_bool() != Some(true)) && (isUnifiedAccount.as_bool() != Some(true)) {
+        if (!(isUnifiedMargin.as_bool() == Some(true))) && (!(isUnifiedAccount.as_bool() == Some(true))) {
             // normal account using v5
             if (type_var.as_str() == Some("spot")) {
                 messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(":spot".into())).into());
@@ -2910,7 +2910,7 @@ impl BybitCore {
                 messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(":contract".into())).into());
             }
         }
-        if (isUnifiedMargin.as_bool() == Some(true)) {
+        if isUnifiedMargin.as_bool() == Some(true) {
             // unified margin account using v5
             if (type_var.as_str() == Some("spot")) {
                 messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(":spot".into())).into());
@@ -3415,7 +3415,7 @@ impl BybitCore {
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
             let mut success: Value = (match __pro_message.get("success").cloned() { Some(__v) if matches!(__v, Value::Bool(_)) => __v, _ => Value::Null });
-            if (success != Value::Null) && (success.as_bool() != Some(true)) {
+            if (success != Value::Null) && (!is_true(&success)) {
                 let mut ret_msg: Value = (match __pro_message.get("ret_msg").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
                 let mut request: Value = (match __pro_message.get("request").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
     let mut m = indexmap::IndexMap::new();

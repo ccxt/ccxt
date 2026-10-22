@@ -1090,7 +1090,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         $status = null;
         if ($isCancelled !== null) {
             $unparsedOrder = $this->safe_value($order, 'order');
-            if ($isCancelled === true) {
+            if ($isCancelled) {
                 $status = 'cancelled';
             }
         }

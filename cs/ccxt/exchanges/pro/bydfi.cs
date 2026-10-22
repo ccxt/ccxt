@@ -105,7 +105,7 @@ public partial class bydfi : ccxt.bydfi
         };
         bool? unsubscribe = this.safeBool(parameters, "unsubscribe", false);
         string method = "SUBSCRIBE";
-        object paramsOmitted = ((unsubscribe == true)) ? this.omit(parameters, "unsubscribe") : parameters;
+        object paramsOmitted = unsubscribe == true ? this.omit(parameters, "unsubscribe") : parameters;
         if ((unsubscribe == true))
         {
             method = "UNSUBSCRIBE";
@@ -1017,7 +1017,7 @@ public partial class bydfi : ccxt.bydfi
         IDictionary<string, object> options = this.safeDict(this.options, "watchBalance");
         bool? fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
         bool? awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
-        if (((fetchBalanceSnapshot == true)) && ((awaitBalanceSnapshot == true)))
+        if ((fetchBalanceSnapshot == true) && (awaitBalanceSnapshot == true))
         {
             await client.future("fetchBalanceSnapshot");
         }

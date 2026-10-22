@@ -2078,7 +2078,7 @@ class okx extends Exchange {
         // therefore we check the keys here
         // and fallback to generating the currencies from the markets
         $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-        if (!$this->check_required_credentials(false) || ($isSandboxMode === true)) {
+        if (!$this->check_required_credentials(false) || ($isSandboxMode)) {
             return array();
         }
         //
@@ -2318,7 +2318,7 @@ class okx extends Exchange {
         $last = $this->safe_string($ticker, 'last');
         $open = $this->safe_string($ticker, 'open24h');
         $spot = $this->safe_bool($marketResolved, 'spot', false);
-        $quoteVolume = ($spot === true) ? $this->safe_string($ticker, 'volCcy24h') : null;
+        $quoteVolume = ($spot) ? $this->safe_string($ticker, 'volCcy24h') : null;
         $baseVolume = $this->safe_string($ticker, 'vol24h');
         $high = $this->safe_string($ticker, 'high24h');
         $low = $this->safe_string($ticker, 'low24h');
@@ -3363,12 +3363,12 @@ class okx extends Exchange {
             $paramsReduceOnly = $this->omit($paramsHedged, 'reduceOnly');
         }
         if ($spot === true) {
-            if ($margin === true) {
+            if ($margin) {
                 $defaultCurrency = ($side === 'buy') ? $market['quote'] : $market['base'];
                 $currency = $this->safe_string($params, 'ccy', $defaultCurrency);
                 $request['ccy'] = $this->safe_currency_code($currency);
             }
-            $tradeMode = ($margin === true) ? $marginMode : 'cash';
+            $tradeMode = ($margin) ? $marginMode : 'cash';
             $request['tdMode'] = $tradeMode;
         } elseif ($contract === true) {
             if (($market['swap'] === true) || ($market['future'] === true)) {
@@ -3399,7 +3399,7 @@ class okx extends Exchange {
         $marketIOC = ($isMarketOrder && $ioc) || ($type === 'optimal_limit_ioc');
         $defaultTgtCcy = $this->safe_string($this->options, 'tgtCcy', 'base_ccy');
         $tgtCcy = $this->safe_string($orderParams, 'tgtCcy', $defaultTgtCcy);
-        if (($contract !== true) && ($margin !== true)) {
+        if (($contract !== true) && (!$margin)) {
             $request['tgtCcy'] = $tgtCcy;
         }
         if ($isMarketOrder || $marketIOC) {
@@ -4007,7 +4007,7 @@ class okx extends Exchange {
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $trailing = $this->safe_bool($params, 'trailing', false);
         $isTrigger = ($trigger === true);
-        if ($isTrigger || ($trailing === true)) {
+        if ($isTrigger || ($trailing)) {
             $orderInner = Async\await($this->cancel_orders(array( $id ), $symbol, $params));
             $canceledInner = $this->safe_dict($orderInner, 0);
             return $canceledInner;
@@ -4082,7 +4082,7 @@ class okx extends Exchange {
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $trailing = $this->safe_bool($params, 'trailing', false);
         $isTrigger = ($trigger === true);
-        if ($isTrigger || ($trailing === true)) {
+        if ($isTrigger || ($trailing)) {
             $method = 'privatePostTradeCancelAlgos';
         }
         if ($clientOrderIds === null) {
@@ -4096,7 +4096,7 @@ class okx extends Exchange {
                 }
             }
             for ($i = 0; $i < count($orderIds); $i++) {
-                if (($trailing === true) || $isTrigger) {
+                if (($trailing) || $isTrigger) {
                     $request[] = array(
                         'algoId' => $orderIds[$i],
                         'instId' => $market['id'],
@@ -4110,7 +4110,7 @@ class okx extends Exchange {
             }
         } else {
             for ($i = 0; $i < count($clientOrderIds); $i++) {
-                if (($trailing === true) || $isTrigger) {
+                if (($trailing) || $isTrigger) {
                     $request[] = array(
                         'instId' => $market['id'],
                         'algoClOrdId' => $clientOrderIds[$i],
@@ -4190,8 +4190,8 @@ class okx extends Exchange {
         $method = $this->safe_string($params, 'method', $defaultMethod);
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $trailing = $this->safe_bool($params, 'trailing', false);
-        $isStopOrTrailing = ($trigger === true) || ($trailing === true);
-        if ($isStopOrTrailing === true) {
+        $isStopOrTrailing = ($trigger === true) || ($trailing);
+        if ($isStopOrTrailing) {
             $method = 'privatePostTradeCancelAlgos';
         }
         for ($i = 0; $i < count($orders); $i++) {
@@ -4204,7 +4204,7 @@ class okx extends Exchange {
             }
             $market = $this->market($symbol);
             $idKey = 'ordId';
-            if ($isStopOrTrailing === true) {
+            if ($isStopOrTrailing) {
                 $idKey = 'algoId';
             } elseif ($clientOrderId !== null) {
                 $idKey = 'clOrdId';
@@ -4821,10 +4821,10 @@ class okx extends Exchange {
         $trigger = $this->safe_bool_2($paramsPaginate, 'stop', 'trigger');
         $trailing = $this->safe_bool($paramsPaginate, 'trailing', false);
         $isTrigger = ($trigger === true);
-        if (($trailing === true) || $isTrigger || (($ordType !== null) && (is_array($algoOrderTypes) && array_key_exists($ordType ?? '', $algoOrderTypes)))) {
+        if (($trailing) || $isTrigger || (($ordType !== null) && (is_array($algoOrderTypes) && array_key_exists($ordType ?? '', $algoOrderTypes)))) {
             $method = 'privateGetTradeOrdersAlgoPending';
         }
-        if ($trailing === true) {
+        if ($trailing) {
             $request['ordType'] = 'move_order_stop';
         } elseif ($isTrigger && ($ordType === null)) {
             $request['ordType'] = 'trigger';
@@ -4990,7 +4990,7 @@ class okx extends Exchange {
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $trailing = $this->safe_bool($params, 'trailing', false);
         $isTrigger = ($trigger === true);
-        if ($trailing === true) {
+        if ($trailing) {
             $method = 'privateGetTradeOrdersAlgoHistory';
             $request['ordType'] = 'move_order_stop';
         } elseif ($isTrigger || (($ordType !== null) && (is_array($algoOrderTypes) && array_key_exists($ordType ?? '', $algoOrderTypes)))) {
@@ -5185,11 +5185,11 @@ class okx extends Exchange {
         $ordType = $this->safe_string($paramsPaginate, 'ordType');
         $trigger = $this->safe_bool_2($paramsPaginate, 'stop', 'trigger');
         $trailing = $this->safe_bool($paramsPaginate, 'trailing', false);
-        if (($trailing === true) || ($trigger === true) || (($ordType !== null) && (is_array($algoOrderTypes) && array_key_exists($ordType ?? '', $algoOrderTypes)))) {
+        if (($trailing) || ($trigger === true) || (($ordType !== null) && (is_array($algoOrderTypes) && array_key_exists($ordType ?? '', $algoOrderTypes)))) {
             $method = 'privateGetTradeOrdersAlgoHistory';
             $request['state'] = 'effective';
         }
-        if ($trailing === true) {
+        if ($trailing) {
             $request['ordType'] = 'move_order_stop';
         } elseif ($trigger === true) {
             if ($ordType === null) {

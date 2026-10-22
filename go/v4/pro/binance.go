@@ -1518,7 +1518,7 @@ func (this *Binance) HandleSubscriptionStatus(client any, message any) any {
 		ccxt.CallDynamically(method, client, message, subscription)
 	}
 	var isUnSubMessage *bool = this.SafeBool(subscription, "unsubscribe", false)
-	if isUnSubMessage != nil && *isUnSubMessage == true {
+	if isUnSubMessage != nil && *isUnSubMessage {
 		this.HandleUnSubscription(client, subscription)
 	}
 	return message
@@ -3375,7 +3375,7 @@ func (this *Binance) watchMultiTickerHelperBody(ch chan ccxt.AsyncResult[any], m
 	var suffix string = ""
 	if isMarkPrice && !isOptionMarkPrice {
 		suffix = func() string {
-			if use1sFreq != nil && *use1sFreq == true {
+			if use1sFreq != nil && *use1sFreq {
 				return "@1s"
 			}
 			return ""
@@ -4050,7 +4050,7 @@ func (this *Binance) ensureUserDataStreamWsSubscribeListenTokenBody(ch chan ccxt
 				var isIsolated *bool = this.SafeBool(params, "isIsolated", false)
 				var validity *int64 = this.SafeInteger(params, "validity")
 				var request map[string]any = map[string]any{}
-				if isIsolated != nil && *isIsolated == true {
+				if isIsolated != nil && *isIsolated {
 					if symbol == nil {
 						panic(ccxt.ArgumentsRequired(this.Id + " ensureUserDataStreamWsSubscribeListenToken() requires a symbol argument for isolated margin mode"))
 					}
@@ -4137,7 +4137,7 @@ func (this *Binance) renewListenTokenBody(ch chan ccxt.AsyncResult[any], optiona
 	if symbol != nil {
 		renewParams["symbol"] = symbol
 	}
-	if isIsolated != nil && *isIsolated == true {
+	if isIsolated != nil && *isIsolated {
 		renewParams["isIsolated"] = isIsolated
 	}
 	if validity != nil {
@@ -4514,7 +4514,7 @@ func (this *Binance) SetBalanceCache(client any, typeVar any, optionalArgs ...an
 	}
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBalance")
 	var fetchBalanceSnapshot *bool = this.SafeBool(options, "fetchBalanceSnapshot", false)
-	if fetchBalanceSnapshot != nil && *fetchBalanceSnapshot == true {
+	if fetchBalanceSnapshot != nil && *fetchBalanceSnapshot {
 		var messageHash any = ccxt.Add(typeVar, ":fetchBalanceSnapshot")
 		if !(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
 			client.(ccxt.ClientInterface).Future(messageHash)
@@ -4535,7 +4535,7 @@ func (this *Binance) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[any], clie
 	var params map[string]any = map[string]any{
 		"type": typeVar,
 	}
-	if isPortfolioMargin == true {
+	if ccxt.EvalTruthy(isPortfolioMargin) {
 		params["portfolioMargin"] = true
 	}
 
@@ -4906,7 +4906,7 @@ func (this *Binance) watchBalanceBody(ch chan ccxt.AsyncResult[map[string]any], 
 			urlType = "papi"
 		} else if typeVar == "option" {
 			var demoMode *bool = this.SafeBool(this.Options, "enableDemoTrading", false)
-			if (demoMode != nil && *demoMode == true) || this.IsSandboxModeEnabled {
+			if (demoMode != nil && *demoMode) || this.IsSandboxModeEnabled {
 				panic(ccxt.NotSupported(this.Id + " watchBalance() does not support option markets in demo/testnet mode"))
 			}
 			urlType = "optionPrivate"
@@ -4919,7 +4919,7 @@ func (this *Binance) watchBalanceBody(ch chan ccxt.AsyncResult[map[string]any], 
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBalance")
 	var fetchBalanceSnapshot *bool = this.SafeBool(options, "fetchBalanceSnapshot", false)
 	var awaitBalanceSnapshot *bool = this.SafeBool(options, "awaitBalanceSnapshot", true)
-	if (fetchBalanceSnapshot != nil && *fetchBalanceSnapshot == true) && (awaitBalanceSnapshot != nil && *awaitBalanceSnapshot == true) {
+	if (fetchBalanceSnapshot != nil && *fetchBalanceSnapshot) && (awaitBalanceSnapshot != nil && *awaitBalanceSnapshot) {
 
 		r2 := <-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchBalanceSnapshot"))
 		if r2.Err != nil {
@@ -5195,8 +5195,8 @@ func (this *Binance) createOrderWsBody(ch chan ccxt.AsyncResult[map[string]any],
 		"method": "order.place",
 		"params": this.SignParams(this.Extend(payload, paramsOmitted2)),
 	}
-	if test != nil && *test == true {
-		if sor != nil && *sor == true {
+	if test != nil && *test {
+		if sor != nil && *sor {
 			message["method"] = "sor.order.test"
 		} else {
 			message["method"] = "order.test"
@@ -5576,13 +5576,13 @@ func (this *Binance) cancelOrderWsBody(ch chan ccxt.AsyncResult[map[string]any],
 	var clientOrderId *string = this.SafeStringN(paramsReturnRateLimits, []any{"clientAlgoId", "origClientOrderId", "clientOrderId"})
 	var shouldUseAlgoOrder bool = (market["linear"] == true) && ((market["swap"] == true) || (market["future"] == true)) && (isConditional != nil && *isConditional == true)
 	if clientOrderId != nil {
-		if shouldUseAlgoOrder == true {
+		if shouldUseAlgoOrder {
 			payload["clientAlgoId"] = clientOrderId
 		} else {
 			payload["origClientOrderId"] = clientOrderId
 		}
 	} else {
-		if shouldUseAlgoOrder == true {
+		if shouldUseAlgoOrder {
 			payload["algoId"] = this.NumberToString(id)
 		} else {
 			payload["orderId"] = this.NumberToString(id)
@@ -5594,7 +5594,7 @@ func (this *Binance) cancelOrderWsBody(ch chan ccxt.AsyncResult[map[string]any],
 		"method": "order.cancel",
 		"params": this.SignParams(this.Extend(payload, paramsOmitted)),
 	}
-	if shouldUseAlgoOrder == true {
+	if shouldUseAlgoOrder {
 		message["method"] = "algoOrder.cancel"
 	}
 	var subscription map[string]any = map[string]any{
@@ -6088,7 +6088,7 @@ func (this *Binance) watchOrdersBody(ch chan ccxt.AsyncResult[[]any], optionalAr
 			urlType = "papi"
 		} else if typeVar == "option" {
 			var demoMode *bool = this.SafeBool(this.Options, "enableDemoTrading", false)
-			if (demoMode != nil && *demoMode == true) || this.IsSandboxModeEnabled {
+			if (demoMode != nil && *demoMode) || this.IsSandboxModeEnabled {
 				panic(ccxt.NotSupported(this.Id + " watchOrders() does not support option markets in demo/testnet mode"))
 			}
 			urlType = "optionPrivate"
@@ -6775,7 +6775,7 @@ func (this *Binance) watchPositionsBody(ch chan ccxt.AsyncResult[[]any], optiona
 		urlType = "papi"
 	} else if ccxt.IsEqual(typeVar, "option") {
 		var demoMode *bool = this.SafeBool(this.Options, "enableDemoTrading", false)
-		if (demoMode != nil && *demoMode == true) || this.IsSandboxModeEnabled {
+		if (demoMode != nil && *demoMode) || this.IsSandboxModeEnabled {
 			panic(ccxt.NotSupported(this.Id + " watchPositions() does not support option markets in demo/testnet mode"))
 		}
 		urlType = "optionPrivate"
@@ -6859,7 +6859,7 @@ func (this *Binance) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[any], cl
 	var params map[string]any = map[string]any{
 		"type": typeVar,
 	}
-	if isPortfolioMargin == true {
+	if ccxt.EvalTruthy(isPortfolioMargin) {
 		params["portfolioMargin"] = true
 	}
 
@@ -7354,7 +7354,7 @@ func (this *Binance) watchMyTradesBody(ch chan ccxt.AsyncResult[[]any], optional
 			urlType = "papi"
 		} else if typeVar == "option" {
 			var demoMode *bool = this.SafeBool(this.Options, "enableDemoTrading", false)
-			if (demoMode != nil && *demoMode == true) || this.IsSandboxModeEnabled {
+			if (demoMode != nil && *demoMode) || this.IsSandboxModeEnabled {
 				panic(ccxt.NotSupported(this.Id + " watchMyTrades() does not support option markets in demo/testnet mode"))
 			}
 			urlType = "optionPrivate"

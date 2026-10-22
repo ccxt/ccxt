@@ -4673,7 +4673,7 @@ export default class gate extends Exchange {
         const exchangeSpecificTimeInForce = this.safeStringLowerN(params, ['timeInForce', 'tif', 'time_in_force']);
         const [postOnly, paramsPostOnly] = this.handlePostOnly(type === 'market', exchangeSpecificTimeInForce === 'poc', params);
         let timeInForce = this.handleTimeInForce(paramsPostOnly);
-        if (postOnly === true) {
+        if (postOnly) {
             timeInForce = 'poc';
         }
         // we only omit the unified params here
@@ -4816,7 +4816,7 @@ export default class gate extends Exchange {
                 request['text'] = clientOrderId;
             }
             else {
-                if (textIsRequired === true) {
+                if (textIsRequired) {
                     // batchOrders requires text in the request
                     request['text'] = 't-' + this.uuid16();
                 }
@@ -5278,7 +5278,7 @@ export default class gate extends Exchange {
         //     }
         //
         const succeeded = this.safeBool(order, 'succeeded', true);
-        if (succeeded !== true) {
+        if (!succeeded) {
             // cancelOrders response
             return this.safeOrder({
                 'clientOrderId': this.safeString(order, 'text'),
@@ -5488,7 +5488,7 @@ export default class gate extends Exchange {
         const [request, requestParams] = this.fetchOrderRequest(id, symbol, params);
         let response;
         if (type === 'spot' || type === 'margin') {
-            if (trigger === true) {
+            if (trigger) {
                 response = await this.privateSpotGetPriceOrdersOrderId(this.extend(request, requestParams));
             }
             else {
@@ -5496,7 +5496,7 @@ export default class gate extends Exchange {
             }
         }
         else if (type === 'swap') {
-            if (trigger === true) {
+            if (trigger) {
                 response = await this.privateFuturesGetSettlePriceOrdersOrderId(this.extend(request, requestParams));
             }
             else {
@@ -5504,7 +5504,7 @@ export default class gate extends Exchange {
             }
         }
         else if (type === 'future') {
-            if (trigger === true) {
+            if (trigger) {
                 response = await this.privateDeliveryGetSettlePriceOrdersOrderId(this.extend(request, requestParams));
             }
             else {
@@ -5872,7 +5872,7 @@ export default class gate extends Exchange {
         request['order_id'] = id;
         let response;
         if (type === 'spot' || type === 'margin') {
-            if (trigger === true) {
+            if (trigger) {
                 response = await this.privateSpotDeletePriceOrdersOrderId(this.extend(request, requestParams));
             }
             else {
@@ -5880,7 +5880,7 @@ export default class gate extends Exchange {
             }
         }
         else if (type === 'swap') {
-            if (trigger === true) {
+            if (trigger) {
                 response = await this.privateFuturesDeleteSettlePriceOrdersOrderId(this.extend(request, requestParams));
             }
             else {
@@ -5888,7 +5888,7 @@ export default class gate extends Exchange {
             }
         }
         else if (type === 'future') {
-            if (trigger === true) {
+            if (trigger) {
                 response = await this.privateDeliveryDeleteSettlePriceOrdersOrderId(this.extend(request, requestParams));
             }
             else {
@@ -7187,7 +7187,7 @@ export default class gate extends Exchange {
         let bodyJson = undefined;
         let signedHeaders = undefined;
         const containsSettle = path.indexOf('settle') > -1;
-        if (containsSettle && (path.endsWith('batch_cancel_orders') === true)) { // weird check to prevent $settle in php and converting {settle} to array(settle)
+        if (containsSettle && (path.endsWith('batch_cancel_orders'))) { // weird check to prevent $settle in php and converting {settle} to array(settle)
             // special case where we need to extract the settle from the path
             // but the body is an array of strings
             const settle = this.safeDict(params, 0);

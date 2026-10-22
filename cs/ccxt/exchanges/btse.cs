@@ -2711,7 +2711,7 @@ public partial class btse : Exchange
             request["orderPrice"] = this.priceToPrecision(symbol, price);
         }
         bool? isSlide = this.safeBool(query, "slide", false);
-        if (((amount == null)) && ((price == null)) && ((triggerPrice == null)) && ((isSlide != true)))
+        if (((amount == null)) && ((price == null)) && ((triggerPrice == null)) && (isSlide != true))
         {
             throw new ArgumentsRequired ((this.id + " editOrder() requires an amount argument, a price argument or a triggerPrice parameter")) ;
         }
@@ -4119,7 +4119,7 @@ public partial class btse : Exchange
         //     {"status":400,"errorCode":-7,"message":"Authenticate failed","extraData":null}
         //
         bool? success = this.safeBool(response, "success", true);
-        if ((success != true))
+        if (success != true)
         {
             string? spotErrorCode = this.safeString(response, "code");
             string? spotMessage = this.safeString(response, "msg");
@@ -4207,7 +4207,7 @@ public partial class btse : Exchange
         // body like its POST and PUT counterparts, while the spot v4 and the
         // legacy apis keep DELETE params in the query string, verified live
         // in both directions
-        bool isBodyDelete = ((method == "DELETE")) && ((path.StartsWith("futures/api/v3/") == true));
+        bool isBodyDelete = ((method == "DELETE")) && (path.StartsWith("futures/api/v3/"));
         string queryString = "";
         if ((((method == "GET")) || ((method == "DELETE"))) && !isBodyDelete)
         {
@@ -4234,7 +4234,7 @@ public partial class btse : Exchange
             // sign the /api/v... remainder, while the public-api wallet, otc and markets
             // endpoints mount on the bare host and sign the full path with the leading slash
             string? signPath = null;
-            if ((path.StartsWith("public-api/") == true))
+            if (path.StartsWith("public-api/"))
             {
                 signPath = ("/" + path);
             } else

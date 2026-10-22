@@ -403,7 +403,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 String symbol = (symbolsList == null || i < 0 || i >= symbolsList.size() ? null : symbolsList.get(i));
                 Map<String, Object> market = this.market(symbol);
                 String suffix = "";
-                if (java.util.Objects.equals(use1sFreq, true))
+                if (Boolean.TRUE.equals(use1sFreq))
                 {
                     suffix = "@1s";
                 }
@@ -476,7 +476,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 String symbol = (symbolsList == null || i < 0 || i >= symbolsList.size() ? null : symbolsList.get(i));
                 Map<String, Object> market = this.market(symbol);
                 String suffix = "";
-                if (java.util.Objects.equals(use1sFreq, true))
+                if (Boolean.TRUE.equals(use1sFreq))
                 {
                     suffix = "@1s";
                 }
@@ -1755,7 +1755,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchBalance", (Object) null);
             Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
             Boolean awaitBalanceSnapshot = (Boolean) this.safeBool(options, "awaitBalanceSnapshot", true);
-            if ((java.util.Objects.equals(fetchBalanceSnapshot, true)) && (java.util.Objects.equals(awaitBalanceSnapshot, true)))
+            if (Boolean.TRUE.equals(fetchBalanceSnapshot) && Boolean.TRUE.equals(awaitBalanceSnapshot))
             {
                 client.future((typeMarketType + ":fetchBalanceSnapshot")).getFuture().join();
             }
@@ -1774,7 +1774,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         }
         Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchBalance", (Object) null);
         Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
-        if (java.util.Objects.equals(fetchBalanceSnapshot, true))
+        if (Boolean.TRUE.equals(fetchBalanceSnapshot))
         {
             String messageHash = (type + ":fetchBalanceSnapshot");
             if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))

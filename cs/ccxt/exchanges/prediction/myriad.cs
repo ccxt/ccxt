@@ -961,7 +961,7 @@ public partial class myriad : PredictionExchange
         // the on-chain AMM path requires native gas and has not been verified end to end; keep it behind
         // an explicit opt-in so callers do not silently hit an untested signing/broadcast path
         bool? enableAmm = this.safeBool2(parameters, "enableAmm", "enableAmmOrders", this.safeBool(this.options, "enableAmmOrders", false));
-        if ((enableAmm != true))
+        if (enableAmm != true)
         {
             throw new NotSupported ((this.id + " createOrder() only supports the gasless order book; this market uses the on-chain AMM (needs native gas and is unverified) — pass params.enableAmm=true to opt in")) ;
         }
@@ -1217,7 +1217,7 @@ public partial class myriad : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         string? sideLower = ((side != null)) ? side.ToLower() : null;
         bool? isCostDenominated = this.safeBool(parameters, "costDenominated", false);
-        if ((sideLower == "buy") && ((isCostDenominated != true)))
+        if ((sideLower == "buy") && (isCostDenominated != true))
         {
             throw new NotSupported ((this.id + " createOrder() market buy on the AMM sizes by collateral, not shares — use createMarketBuyOrderWithCost(outcome, collateral) for a dollar buy, or the default order book (omit enableAmm) for a share-denominated order")) ;
         }
@@ -1255,7 +1255,7 @@ public partial class myriad : PredictionExchange
         string? txHashParam = this.safeString2(parameters, "transactionHash", "txHash");
         bool hasPreBroadcastTxHash = ((txHashParam != null));
         bool? skipAllowance = this.safeBool(parameters, "skipAllowance", hasPreBroadcastTxHash);
-        if ((sideStr == "buy") && ((tokenAddress != null)) && ((skipAllowance != true)))
+        if ((sideStr == "buy") && ((tokenAddress != null)) && (skipAllowance != true))
         {
             await this.ensureErc20Allowance(rpcUrl, networkId, tokenAddress, fromAddress, predictionMarket);
         }
@@ -1265,7 +1265,7 @@ public partial class myriad : PredictionExchange
         {
             txHash = await this.sendEvmTransaction(rpcUrl, this.parseToInt(networkId), fromAddress, predictionMarket, "0x0", calldata, gasLimit);
         }
-        if ((skipWaitForReceipt != true))
+        if (skipWaitForReceipt != true)
         {
             await this.waitForTransactionReceipt(rpcUrl, txHash);
         }
@@ -3400,7 +3400,7 @@ public partial class myriad : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         bool? allowUnscopedFetchEvents = this.safeBool(this.options, "allowUnscopedFetchEvents", false);
-        if ((allowUnscopedFetchEvents != true))
+        if (allowUnscopedFetchEvents != true)
         {
             this.requireEventQuery(parameters);
         }

@@ -847,7 +847,7 @@ class btcbox extends Exchange {
             return null; // resort to defaultErrorHandler
         }
         $result = $this->safe_bool($response, 'result');
-        if ($result === null || $result === true) {
+        if ($result === null || $result) {
             return null; // either public API (no error codes expected) or success
         }
         $code = $this->safe_string($response, 'code');

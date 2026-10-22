@@ -976,7 +976,7 @@ class BaseExchange(SyncExchange):
                 return content
         except Exception as e:
             errorMessage = self.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.'
-        if muteOnFailure is True:
+        if muteOnFailure:
             return None
         else:
             raise BadResponse(errorMessage)

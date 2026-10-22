@@ -1419,7 +1419,7 @@ public partial class whitebit : Exchange
             bool hasAmountLimits = ((amountLimits != null)) && ((amountLimits != null)) && !isEqual(this.safeNumber(amountLimits, "min"), null) && !isEqual(this.safeNumber(amountLimits, "max"), null);
             bool hasPriceLimits = ((priceLimits != null)) && ((priceLimits != null)) && !isEqual(this.safeNumber(priceLimits, "min"), null) && !isEqual(this.safeNumber(priceLimits, "max"), null);
             bool hasCostLimits = ((costLimits != null)) && ((costLimits != null)) && !isEqual(this.safeNumber(costLimits, "min"), null) && !isEqual(this.safeNumber(costLimits, "max"), null);
-            if (((hasAmountLimits == true)) && ((hasPriceLimits == true)) && ((hasCostLimits == true)))
+            if ((hasAmountLimits) && (hasPriceLimits) && (hasCostLimits))
             {
                 result[(string)symbol] = new Dictionary<string, object>() {
                     { "info", market },
@@ -4997,7 +4997,7 @@ public partial class whitebit : Exchange
             }
             // {"success":false,"message":{"limit":["limit must be less than or equal to 100"]},"result":null}
             bool? success = this.safeBool(response, "success", true);
-            if ((success != true))
+            if (success != true)
             {
                 IDictionary<string, object> errMsg = this.safeDict(response, "message", new Dictionary<string, object>() {});
                 List<object> errKeys = new List<object>(errMsg.Keys);

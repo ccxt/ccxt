@@ -244,7 +244,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 Object unified = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
                 Boolean isUnifiedMargin = (Boolean) this.safeBool(unified, 0, false);
                 Boolean isUnifiedAccount = (Boolean) this.safeBool(unified, 1, false);
-                if (Boolean.TRUE.equals(isUsdcSettled) && (!java.util.Objects.equals(isUnifiedMargin, true)) && (!java.util.Objects.equals(isUnifiedAccount, true)))
+                if (Boolean.TRUE.equals(isUsdcSettled) && (!Boolean.TRUE.equals(isUnifiedMargin)) && (!Boolean.TRUE.equals(isUnifiedAccount)))
                 {
                     url = Helpers.GetValue(Helpers.GetValue(url, accessibility), "usdc");
                 } else
@@ -2477,7 +2477,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 put( "spot", "outboundAccountInfo" );
                 put( "unified", "wallet" );
             }};
-            if (java.util.Objects.equals(isUnifiedAccount, true))
+            if (Boolean.TRUE.equals(isUnifiedAccount))
             {
                 // unified account
                 if (java.util.Objects.equals(subType, "inverse"))
@@ -2488,7 +2488,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                     messageHash = (messageHash + ":unified");
                 }
             }
-            if ((!java.util.Objects.equals(isUnifiedMargin, true)) && (!java.util.Objects.equals(isUnifiedAccount, true)))
+            if ((!Boolean.TRUE.equals(isUnifiedMargin)) && (!Boolean.TRUE.equals(isUnifiedAccount)))
             {
                 // normal account using v5
                 if (java.util.Objects.equals(type, "spot"))
@@ -2499,7 +2499,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                     messageHash = (messageHash + ":contract");
                 }
             }
-            if (java.util.Objects.equals(isUnifiedMargin, true))
+            if (Boolean.TRUE.equals(isUnifiedMargin))
             {
                 // unified margin account using v5
                 if (java.util.Objects.equals(type, "spot"))
@@ -2970,7 +2970,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 throw new ExchangeError(feedback) ;
             }
             Boolean success = (Boolean) this.safeBool(message, "success", (Object) null);
-            if ((!java.util.Objects.equals(success, null)) && (!java.util.Objects.equals(success, true)))
+            if ((!java.util.Objects.equals(success, null)) && (!Boolean.TRUE.equals(success)))
             {
                 String ret_msg = this.safeString(message, "ret_msg");
                 Map<String, Object> request = (Map<String, Object>) this.safeDict(message, "request", new HashMap<String, Object>() {{}});

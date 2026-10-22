@@ -1823,7 +1823,7 @@ public class Bigone extends BigoneApi
             Boolean exchangeSpecificParam = (Boolean) this.safeBool(parameters, "post_only", false);
             Boolean postOnly = null;
             Object query = null;
-            List<Object> postOnlyqueryVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(uppercaseType, "MARKET"), java.util.Objects.equals(exchangeSpecificParam, true), parameters);
+            List<Object> postOnlyqueryVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(uppercaseType, "MARKET"), exchangeSpecificParam, parameters);
             postOnly = (Boolean) ((List<Object>) postOnlyqueryVariable).get(0);
             query = ((List<Object>) postOnlyqueryVariable).get(1);
             String triggerPrice = this.safeStringN(query, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop_price")));
@@ -1841,7 +1841,7 @@ public class Bigone extends BigoneApi
                     {
                         request.put("immediate_or_cancel", true);
                     }
-                    if (java.util.Objects.equals(postOnly, true))
+                    if (Boolean.TRUE.equals(postOnly))
                     {
                         request.put("post_only", true);
                     }
@@ -2635,7 +2635,7 @@ public class Bigone extends BigoneApi
             Object transfer = this.parseTransfer(response, currency);
             Map<String, Object> transferOptions = (Map<String, Object>) this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
             Boolean fillResponseFromRequest = (Boolean) this.safeBool(transferOptions, "fillResponseFromRequest", true);
-            if (java.util.Objects.equals(fillResponseFromRequest, true))
+            if (Boolean.TRUE.equals(fillResponseFromRequest))
             {
                 ((Map<String, Object>)transfer).put("fromAccount", fromAccount);
                 ((Map<String, Object>)transfer).put("toAccount", toAccount);

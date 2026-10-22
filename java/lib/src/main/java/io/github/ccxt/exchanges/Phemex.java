@@ -3100,7 +3100,7 @@ public class Phemex extends PhemexApi
     {
         Boolean isSwap = (Boolean) this.safeBool(market, "swap", false);
         Boolean hasPnl = (((Map<?, ?>)order).containsKey("closedPnl")) || (((Map<?, ?>)order).containsKey("closedPnlRv")) || (((Map<?, ?>)order).containsKey("totalPnlRv"));
-        if ((java.util.Objects.equals(isSwap, true)) || Boolean.TRUE.equals(hasPnl))
+        if (Boolean.TRUE.equals(isSwap) || Boolean.TRUE.equals(hasPnl))
         {
             return this.parseSwapOrder((Map<String, Object>) (order), market);
         }
@@ -3227,7 +3227,7 @@ public class Phemex extends PhemexApi
                 orderParams = this.omit(orderParams, "hedged");
                 String posSide = this.safeStringLower(orderParams, "posSide");
                 // a hedged reduceOnly order without posSide closes the opposite side
-                Boolean flipSide = (java.util.Objects.equals(posSide, null)) && (java.util.Objects.equals(hedged, true)) && Boolean.TRUE.equals((this.safeBool(orderParams, "reduceOnly", false)));
+                Boolean flipSide = (java.util.Objects.equals(posSide, null)) && Boolean.TRUE.equals(hedged) && Boolean.TRUE.equals((this.safeBool(orderParams, "reduceOnly", false)));
                 String oppositeSide = (((java.util.Objects.equals(side, "buy")))) ? "sell" : "buy";
                 String sideResolved = side;
                 if (Boolean.TRUE.equals(flipSide))
@@ -3236,7 +3236,7 @@ public class Phemex extends PhemexApi
                 }
                 if (java.util.Objects.equals(posSide, null))
                 {
-                    if (java.util.Objects.equals(hedged, true))
+                    if (Boolean.TRUE.equals(hedged))
                     {
                         if (Boolean.TRUE.equals(flipSide))
                         {
@@ -3658,7 +3658,7 @@ public class Phemex extends PhemexApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
             }};
-            if (java.util.Objects.equals(trigger, true))
+            if (Boolean.TRUE.equals(trigger))
             {
                 request.put("untriggerred", trigger);
             }
@@ -5584,7 +5584,7 @@ public class Phemex extends PhemexApi
             Object response = null;
             if (java.util.Objects.equals(market.get("settle"), "USDT") || java.util.Objects.equals(market.get("settle"), "USDC"))
             {
-                if ((!java.util.Objects.equals(isHedged, true)) && java.util.Objects.equals(longLeverageRr, null) && java.util.Objects.equals(shortLeverageRr, null))
+                if ((!Boolean.TRUE.equals(isHedged)) && java.util.Objects.equals(longLeverageRr, null) && java.util.Objects.equals(shortLeverageRr, null))
                 {
                     request.put("leverageRr", leverage);
                 } else
@@ -5685,7 +5685,7 @@ public class Phemex extends PhemexApi
             }
             Map<String, Object> transferOptions = (Map<String, Object>) this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
             Boolean fillResponseFromRequest = (Boolean) this.safeBool(transferOptions, "fillResponseFromRequest", true);
-            if (java.util.Objects.equals(fillResponseFromRequest, true))
+            if (Boolean.TRUE.equals(fillResponseFromRequest))
             {
                 if (java.util.Objects.equals(((Map<String, Object>)transfer).get("fromAccount"), null))
                 {

@@ -1275,7 +1275,7 @@ func (this *Hyperliquid) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs
 	var isSpot bool = ((typeVar != nil && *typeVar == "spot") || (isUnifiedEnabled == true)) && (dex == nil)
 	var request map[string]any = map[string]any{
 		"type": func() string {
-			if isSpot == true {
+			if isSpot {
 				return "spotClearinghouseState"
 			}
 			return "clearinghouseState"
@@ -1332,7 +1332,7 @@ func (this *Hyperliquid) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs
 			var balance map[string]any = SafeMapTyped(balances, i)
 			var unifiedCode *string = this.SafeCurrencyCode(this.SafeString(balance, "coin"))
 			var code any = func() any {
-				if isSpot == true {
+				if isSpot {
 					return this.UpdateSpotCurrencyCode(unifiedCode)
 				}
 				return unifiedCode
@@ -2324,7 +2324,7 @@ func (this *Hyperliquid) approveBuilderFeeBody(ch chan AsyncResult[any], builder
 	var isSandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	var payload map[string]any = map[string]any{
 		"hyperliquidChain": func() string {
-			if isSandboxMode != nil && *isSandboxMode == true {
+			if isSandboxMode != nil && *isSandboxMode {
 				return "Testnet"
 			}
 			return "Mainnet"
@@ -2419,7 +2419,7 @@ func (this *Hyperliquid) handleBuilderFeeApprovalBody(ch chan EndpointResult[boo
 	defer ReturnPanicErrorT(ch)
 	var buildFee *bool = this.SafeBool(this.Options, "builderFee", true)
 	var approvedBuilderFee *bool = this.SafeBool(this.Options, "approvedBuilderFee", false)
-	if approvedBuilderFee != nil && *approvedBuilderFee == true {
+	if approvedBuilderFee != nil && *approvedBuilderFee {
 
 		ch <- EndpointResult[bool]{Value: true, Raw: true} // skip if builder fee is already approved
 		return nil
@@ -2444,7 +2444,7 @@ func (this *Hyperliquid) handleBuilderFeeApprovalBody(ch chan EndpointResult[boo
 			// when the user disables the builder fee (builderFee = false) we still approve and attach the builder,
 			// but with a 0% fee rate, so orders remain attributed to the builder for statistics purposes only and the user is not charged
 			var maxFeeRate *string = this.SafeString(this.Options, "feeRate", "0.01%")
-			if buildFee == nil || *buildFee != true {
+			if !(buildFee != nil && *buildFee) {
 				maxFeeRate = SafeStringPtr("0%")
 			}
 
@@ -2595,7 +2595,7 @@ func (this *Hyperliquid) setUserAbstractionBody(ch chan AsyncResult[any], abstra
 	var typeVar *string = this.SafeString(paramsPublicAddress, "type", "userSetAbstraction")
 	var payload map[string]any = map[string]any{
 		"hyperliquidChain": func() string {
-			if isSandboxMode != nil && *isSandboxMode == true {
+			if isSandboxMode != nil && *isSandboxMode {
 				return "Testnet"
 			}
 			return "Mainnet"
@@ -2663,7 +2663,7 @@ func (this *Hyperliquid) enableUserDexAbstractionBody(ch chan AsyncResult[any], 
 	var typeVar *string = this.SafeString(paramsPublicAddress, "type", "userDexAbstraction")
 	var payload map[string]any = map[string]any{
 		"hyperliquidChain": func() string {
-			if isSandboxMode != nil && *isSandboxMode == true {
+			if isSandboxMode != nil && *isSandboxMode {
 				return "Testnet"
 			}
 			return "Mainnet"
@@ -3003,7 +3003,7 @@ func (this *Hyperliquid) CreateOrderRequest(symbol any, typeVar any, side any, a
 		defaultTimeInForce = "ioc"
 	}
 	var postOnly *bool = this.SafeBool(params, "postOnly", false)
-	if postOnly != nil && *postOnly == true {
+	if postOnly != nil && *postOnly {
 		defaultTimeInForce = "alo"
 	}
 	var timeInForce *string = this.SafeStringLower(params, "timeInForce", defaultTimeInForce)
@@ -3734,7 +3734,7 @@ func (this *Hyperliquid) EditOrdersRequest(orders any, optionalArgs ...any) any 
 			defaultTimeInForce = "ioc"
 		}
 		var postOnly *bool = this.SafeBool(orderParams, "postOnly", false)
-		if postOnly != nil && *postOnly == true {
+		if postOnly != nil && *postOnly {
 			defaultTimeInForce = "alo"
 		}
 		var timeInForce *string = this.SafeStringLower(orderParams, "timeInForce", defaultTimeInForce)
@@ -6051,7 +6051,7 @@ func (this *Hyperliquid) withdrawBody(ch chan EndpointResult[map[string]any], co
 		var isSandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 		var payload map[string]any = map[string]any{
 			"hyperliquidChain": func() string {
-				if isSandboxMode != nil && *isSandboxMode == true {
+				if isSandboxMode != nil && *isSandboxMode {
 					return "Testnet"
 				}
 				return "Mainnet"

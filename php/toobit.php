@@ -1842,7 +1842,7 @@ class toobit extends Exchange {
             $request['quantity'] = $this->amount_to_precision($symbol, $amount);
         }
         list($isPostOnly, $paramsPostOnly) = $this->handle_post_only($type === 'market', false, $paramsCost);
-        if ($isPostOnly === true) {
+        if ($isPostOnly) {
             $request['type'] = 'LIMIT_MAKER';
         } else {
             $request['type'] = strtoupper($type);
@@ -1881,7 +1881,7 @@ class toobit extends Exchange {
             $request['priceType'] = 'MARKET';
         }
         list($isPostOnly, $paramsPostOnly) = $this->handle_post_only($type === 'market', false, $paramsReduceOnly);
-        if ($isPostOnly === true) {
+        if ($isPostOnly) {
             $request['timeInForce'] = 'LIMIT_MAKER';
         }
         $values = $this->handle_trigger_prices_and_params($symbol, $paramsPostOnly);

@@ -1154,7 +1154,7 @@ func (this *Kalshi) fetchStatusBody(ch chan ccxt.EndpointResult[map[string]any],
 
 	chValue := map[string]any{
 		"status": func() string {
-			if tradingActive != nil && *tradingActive == true {
+			if tradingActive != nil && *tradingActive {
 				return "ok"
 			}
 			return "maintenance"
@@ -2175,7 +2175,7 @@ func (this *Kalshi) ParseMyTrade(fill any, optionalArgs ...any) any {
 	}
 	var isTaker *bool = this.SafeBool(fill, "is_taker", true)
 	var takerOrMaker string = "maker"
-	if isTaker != nil && *isTaker == true {
+	if isTaker != nil && *isTaker {
 		takerOrMaker = "taker"
 	}
 	var feeCost *float64 = this.SafeNumber(fill, "fee_cost")

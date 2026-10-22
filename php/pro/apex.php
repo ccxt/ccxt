@@ -1045,7 +1045,7 @@ class apex extends \ccxt\async\apex {
                 throw new ExchangeError($feedback);
             }
             $success = $this->safe_bool($message, 'success');
-            if (($success !== null) && ($success !== true)) {
+            if (($success !== null) && (!$success)) {
                 $ret_msg = $this->safe_string($message, 'ret_msg');
                 $request = $this->safe_dict($message, 'request', array());
                 $op = $this->safe_string($request, 'op');

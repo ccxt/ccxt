@@ -875,7 +875,7 @@ class bingx(Exchange, ImplicitAPI):
         if not self.check_required_credentials(False):
             return {}
         isSandbox = self.safe_bool(self.options, 'sandboxMode', False)
-        if isSandbox is True:
+        if isSandbox:
             return {}
         response = await self.walletsV1PrivateGetCapitalConfigGetall(params)
         #
@@ -1186,7 +1186,7 @@ class bingx(Exchange, ImplicitAPI):
         """
         requests = [self.fetch_swap_markets(params)]
         isSandbox = self.safe_bool(self.options, 'sandboxMode', False)
-        if isSandbox is not True:
+        if not isSandbox:
             requests.append(self.fetch_inverse_swap_markets(params))
             requests.append(self.fetch_spot_markets(params))  # sandbox is swap only
         promises = await asyncio.gather(*requests)
@@ -2039,7 +2039,7 @@ class bingx(Exchange, ImplicitAPI):
         symbol = self.safe_symbol(id, market, '-', 'swap')
         openInterest = self.safe_number(interest, 'openInterest')
         inverse = self.safe_bool(market, 'inverse', False)
-        isInverse = (inverse is True)
+        isInverse = (inverse)
         openInterestAmount = openInterest if isInverse else None
         openInterestValue = None if isInverse else openInterest
         return self.safe_open_interest({
@@ -3105,7 +3105,7 @@ class bingx(Exchange, ImplicitAPI):
             request[exchangeClientOrderId] = clientOrderId
         timeInForce = self.safe_string_upper(paramsMarketType, 'timeInForce')
         postOnly, paramsPostOnly = self.handle_post_only(isMarketOrder, timeInForce == 'PostOnly', paramsMarketType)
-        if (postOnly is True) or (timeInForce == 'PostOnly'):
+        if (postOnly) or (timeInForce == 'PostOnly'):
             request['timeInForce'] = 'PostOnly'
         elif timeInForce == 'IOC':
             request['timeInForce'] = 'IOC'
@@ -3258,9 +3258,9 @@ class bingx(Exchange, ImplicitAPI):
                     request['takeProfit'] = self.json(tpRequest)
             positionSide = None
             hedged = self.safe_bool(paramsTakeProfit, 'hedged', False)
-            paramsOrder = self.omit(paramsTakeProfit, 'reduceOnly') if (hedged is True) else paramsTakeProfit
-            if hedged is True:
-                if reduceOnly is True:
+            paramsOrder = self.omit(paramsTakeProfit, 'reduceOnly') if (hedged) else paramsTakeProfit
+            if hedged:
+                if reduceOnly:
                     positionSide = 'SHORT' if (side == 'buy') else 'LONG'
                 else:
                     positionSide = 'LONG' if (side == 'buy') else 'SHORT'
@@ -3270,7 +3270,7 @@ class bingx(Exchange, ImplicitAPI):
             closePosition = self.safe_bool(paramsOrder, 'closePosition', False)
             if cost is not None:
                 request['quoteOrderQty'] = self.parse_to_numeric(self.cost_to_precision(symbol, cost))
-            elif closePosition is not True:
+            elif not closePosition:
                 amountReq = amount
                 if market['inverse'] is not True:
                     amountReq = self.parse_to_numeric(self.amount_to_precision(symbol, amount))
@@ -3325,7 +3325,7 @@ class bingx(Exchange, ImplicitAPI):
         request = self.create_order_request(symbol, type, side, amount, price, paramsOmitted)
         response: dict | string
         if market['swap'] is True:
-            if test is True:
+            if test:
                 response = await self.swapV2PrivatePostTradeOrderTest(request)
             elif market['inverse'] is True:
                 response = await self.cswapV1PrivatePostTradeOrder(request)
@@ -3468,7 +3468,7 @@ class bingx(Exchange, ImplicitAPI):
             response = await self.swapV2PrivatePostTradeBatchOrders(request)
         else:
             sync = self.safe_bool(params, 'sync', False)
-            if sync is True:
+            if sync:
                 request['sync'] = True
             request['data'] = self.json(ordersRequests)
             response = await self.spotV1PrivatePostTradeBatchOrders(request)
@@ -3961,7 +3961,7 @@ class bingx(Exchange, ImplicitAPI):
         paramsOmitted = self.omit(params, 'twap')
         response: dict
         market = None
-        if isTwapOrder is True:
+        if isTwapOrder:
             twapRequest = {
                 'mainOrderId': id,
             }
@@ -4428,7 +4428,7 @@ class bingx(Exchange, ImplicitAPI):
         paramsOmitted = self.omit(params, 'twap')
         response = None
         market = None
-        if isTwapOrder is True:
+        if isTwapOrder:
             twapRequest = {
                 'mainOrderId': id,
             }
@@ -4696,7 +4696,7 @@ class bingx(Exchange, ImplicitAPI):
         else:
             isTwapOrder = self.safe_bool(paramsSubType, 'twap', False)
             paramsOmitted = self.omit(paramsSubType, 'twap')
-            if isTwapOrder is True:
+            if isTwapOrder:
                 response = await self.swapV1PrivateGetTwapOpenOrders(self.extend(request, paramsOmitted))
             elif subType == 'inverse':
                 response = await self.cswapV1PrivateGetTradeOpenOrders(self.extend(request, paramsOmitted))
@@ -4958,7 +4958,7 @@ class bingx(Exchange, ImplicitAPI):
         else:
             isTwapOrder = self.safe_bool(paramsStandard, 'twap', False)
             paramsOmitted = self.omit(paramsStandard, 'twap')
-            if isTwapOrder is True:
+            if isTwapOrder:
                 request['pageIndex'] = 1
                 request['pageSize'] = 100 if (limit is None) else limit
                 request['startTime'] = 1 if (since is None) else since
@@ -6825,7 +6825,7 @@ class bingx(Exchange, ImplicitAPI):
         access = section[2]
         isSandbox = self.safe_bool(self.options, 'sandboxMode', False)
         url = self.implode_hostname(self.urls['api'][type])
-        if (isSandbox is True) and url is None:
+        if (isSandbox) and url is None:
             raise NotSupported(self.id + ' does not have a testnet/sandbox URL for ' + type + ' endpoints')
         pathValue = self.implode_params(path, params)
         versionIsTransfer = (version == 'transfer')

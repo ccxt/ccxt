@@ -1035,7 +1035,7 @@ public partial class whitebit : ccxt.whitebit
             Dictionary<string, object> market = this.market(symbol);
             string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
             bool? isSubscribed = this.safeBool(subscription, marketId, false);
-            if ((isSubscribed != true))
+            if (isSubscribed != true)
             {
                 if ((marketId != null))
                 {

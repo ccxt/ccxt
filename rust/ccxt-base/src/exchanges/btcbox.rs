@@ -1250,7 +1250,7 @@ impl BtcboxCore {
             return Value::Null;
         }
         let mut result: Value = self.safe_bool_k(response.clone(), "result", &[]);
-        if (result == Value::Null) || (result.as_bool() == Some(true)) {
+        if (result == Value::Null) || result.as_bool() == Some(true) {
             return Value::Null;
         }
         let mut code: Value = self.safe_string_k(response, "code", &[]);

@@ -815,7 +815,7 @@ class kalshi extends Exchange {
         //
         $tradingActive = $this->safe_bool($response, 'trading_active', false);
         return array(
-            'status' => ($tradingActive === true) ? 'ok' : 'maintenance',
+            'status' => ($tradingActive) ? 'ok' : 'maintenance',
             'updated' => null,
             'eta' => null,
             'url' => null,
@@ -1539,7 +1539,7 @@ class kalshi extends Exchange {
         }
         $isTaker = $this->safe_bool($fill, 'is_taker', true);
         $takerOrMaker = 'maker';
-        if ($isTaker === true) {
+        if ($isTaker) {
             $takerOrMaker = 'taker';
         }
         $feeCost = $this->safe_number($fill, 'fee_cost');

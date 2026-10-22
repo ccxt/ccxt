@@ -2500,7 +2500,7 @@ impl WhitebitCore {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("market".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         // Try active orders first (if enabled)
-        if (checkActive.as_bool() == Some(true)) {
+        if checkActive.as_bool() == Some(true) {
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 let __ws_arg_1 = self.extend(request.clone(), &[paramsOmitted.clone()]);
                 let mut response: Value = self.v4_private_post_orders(&[__ws_arg_1]).await;
@@ -2527,7 +2527,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
              } }
         }
         // Try executed orders (if enabled)
-        if (checkExecuted.as_bool() == Some(true)) {
+        if checkExecuted.as_bool() == Some(true) {
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 let __ws_arg_2 = self.extend(request, &[paramsOmitted]);
                 let mut response: Value = self.v4_private_post_trade_account_order_history(&[__ws_arg_2]).await;
@@ -5849,7 +5849,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
             // {"success":false,"message":{"limit":["limit must be less than or equal to 100"]},"result":null}
             let mut success: Value = self.safe_bool_k(response.clone(), "success", &[Value::Bool(true)]);
-            if (success.as_bool() != Some(true)) {
+            if !(success.as_bool() == Some(true)) {
                 let mut errMsg: Value = self.safe_dict_k(response, "message", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

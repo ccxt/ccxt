@@ -1932,7 +1932,7 @@ func (this *Bigone) createOrderBody(ch chan AsyncResult[map[string]any], symbol 
 	var exchangeSpecificParam *bool = this.SafeBool(params, "post_only", false)
 	var postOnly any = nil
 	var query any = nil
-	var postOnlyqueryVariable []any = this.HandlePostOnly((uppercaseType == "MARKET"), (exchangeSpecificParam != nil && *exchangeSpecificParam == true), params)
+	var postOnlyqueryVariable []any = this.HandlePostOnly((uppercaseType == "MARKET"), exchangeSpecificParam, params)
 	postOnly = postOnlyqueryVariable[0]
 	query = postOnlyqueryVariable[1]
 	var triggerPrice *string = this.SafeStringN(query, []any{"triggerPrice", "stopPrice", "stop_price"})
@@ -2915,7 +2915,7 @@ func (this *Bigone) transferBody(ch chan AsyncResult[map[string]any], code strin
 	var transfer map[string]any = this.ParseTransfer(response, currency)
 	var transferOptions map[string]any = SafeMapTyped(this.Options, "transfer")
 	var fillResponseFromRequest *bool = this.SafeBool(transferOptions, "fillResponseFromRequest", true)
-	if fillResponseFromRequest != nil && *fillResponseFromRequest == true {
+	if fillResponseFromRequest != nil && *fillResponseFromRequest {
 		transfer["fromAccount"] = fromAccount
 		transfer["toAccount"] = toAccount
 		transfer["amount"] = amount

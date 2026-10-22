@@ -1623,7 +1623,7 @@ class btse extends btse$1["default"] {
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
         const paginate = this.safeBool(params, 'paginate', false);
-        if (paginate === true) {
+        if (paginate) {
             return await this.fetchPaginatedCallDynamic('fetchMyTrades', symbol, since, limit, this.omit(params, 'paginate'));
         }
         let market = undefined;
@@ -2427,7 +2427,7 @@ class btse extends btse$1["default"] {
             request['orderPrice'] = this.priceToPrecision(symbol, price);
         }
         const isSlide = this.safeBool(query, 'slide', false);
-        if ((amount === undefined) && (price === undefined) && (triggerPrice === undefined) && (isSlide !== true)) {
+        if ((amount === undefined) && (price === undefined) && (triggerPrice === undefined) && (!isSlide)) {
             throw new errors.ArgumentsRequired(this.id + ' editOrder() requires an amount argument, a price argument or a triggerPrice parameter');
         }
         let response = undefined;
@@ -3688,7 +3688,7 @@ class btse extends btse$1["default"] {
         //     {"status":400,"errorCode":-7,"message":"Authenticate failed","extraData":null}
         //
         const success = this.safeBool(response, 'success', true);
-        if (success !== true) {
+        if (!success) {
             const spotErrorCode = this.safeString(response, 'code');
             const spotMessage = this.safeString(response, 'msg');
             const feedback = this.id + ' ' + body;
@@ -3763,7 +3763,7 @@ class btse extends btse$1["default"] {
         // body like its POST and PUT counterparts, while the spot v4 and the
         // legacy apis keep DELETE params in the query string, verified live
         // in both directions
-        const isBodyDelete = (method === 'DELETE') && (path.startsWith('futures/api/v3/') === true);
+        const isBodyDelete = (method === 'DELETE') && (path.startsWith('futures/api/v3/'));
         let queryString = '';
         if (((method === 'GET') || (method === 'DELETE')) && !isBodyDelete) {
             if (Object.keys(query).length > 0) {
@@ -3786,7 +3786,7 @@ class btse extends btse$1["default"] {
             // sign the /api/v... remainder, while the public-api wallet, otc and markets
             // endpoints mount on the bare host and sign the full path with the leading slash
             let signPath = undefined;
-            if (path.startsWith('public-api/') === true) {
+            if (path.startsWith('public-api/')) {
                 signPath = '/' + path;
             }
             else {

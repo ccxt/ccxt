@@ -2363,7 +2363,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
         let mut postOnly: Value = self.safe_bool_k(paramsValue.clone(), "postOnly", &[Value::Bool(false)]);
-        if (postOnly.as_bool() == Some(true)) || (timeInForce.as_str() == Some("PO")) {
+        if postOnly.as_bool() == Some(true) || (timeInForce.as_str() == Some("PO")) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("exec_inst".into(), Value::from(vec![Value::Str("POST_ONLY".into())])); }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("time_in_force".into(), Value::Str("GOOD_TILL_CANCEL".into())); }
         }
@@ -2622,7 +2622,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
         let mut postOnly: Value = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]);
-        if (postOnly.as_bool() == Some(true)) || (timeInForce.as_str() == Some("PO")) {
+        if postOnly.as_bool() == Some(true) || (timeInForce.as_str() == Some("PO")) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("exec_inst".into(), Value::from(vec![Value::Str("POST_ONLY".into())])); }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("time_in_force".into(), Value::Str("GOOD_TILL_CANCEL".into())); }
         }
@@ -3929,7 +3929,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" only cross margin is supported".into()))));
             }
         }  else {
-            if (defaultType.as_deref() == Some("margin")) || (isMargin.as_bool() == Some(true)) {
+            if (defaultType.as_deref() == Some("margin")) || isMargin.as_bool() == Some(true) {
                 marginMode = Value::Str("cross".into());
             }
         }

@@ -2407,7 +2407,7 @@ public partial class modetrade : Exchange
         parameters ??= new Dictionary<string, object>();
         bool? trigger = this.safeBool2(parameters, "stop", "trigger", false);
         object paramsOmitted = this.omit(parameters, new List<object>() {"stop", "trigger"});
-        if (((trigger != true)) && ((symbol == null)))
+        if ((trigger != true) && ((symbol == null)))
         {
             throw new ArgumentsRequired ((this.id + " cancelOrder() requires a symbol argument")) ;
         }
@@ -2691,7 +2691,7 @@ public partial class modetrade : Exchange
             await this.loadMarkets();
         }
         bool? isTrigger = this.safeBool2(parameters, "stop", "trigger", false);
-        int maxLimit = ((isTrigger == true)) ? 100 : 500;
+        int maxLimit = isTrigger == true ? 100 : 500;
         (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
@@ -3763,7 +3763,7 @@ public partial class modetrade : Exchange
             if (isPostOrPut && isOrder)
             {
                 bool? isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
-                if ((isSandboxMode != true))
+                if (isSandboxMode != true)
                 {
                     string? brokerId = this.safeString(this.options, "brokerId", "CCXTMODE");
                     if ((path == "batch-order"))

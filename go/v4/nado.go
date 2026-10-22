@@ -2355,7 +2355,7 @@ func (this *Nado) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...any
 			var previousWithdraw *bool = this.SafeBool(previous, "can_withdraw", false)
 			var currentDeposit *bool = this.SafeBool(rawAsset, "can_deposit", false)
 			var currentWithdraw *bool = this.SafeBool(rawAsset, "can_withdraw", false)
-			if (previousDeposit == nil || *previousDeposit != true) && (previousWithdraw == nil || *previousWithdraw != true) && ((currentDeposit != nil && *currentDeposit == true) || (currentWithdraw != nil && *currentWithdraw == true)) {
+			if (!(previousDeposit != nil && *previousDeposit)) && (!(previousWithdraw != nil && *previousWithdraw)) && ((currentDeposit != nil && *currentDeposit) || (currentWithdraw != nil && *currentWithdraw)) {
 				AddElementToObject(assetsByCode, assetCode, rawAsset)
 			}
 		}
@@ -2537,7 +2537,7 @@ func (this *Nado) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs ...
 		} else {
 			var previousDeposit *bool = this.SafeBool(previous, "deposit", false)
 			var previousWithdraw *bool = this.SafeBool(previous, "withdraw", false)
-			if (previousDeposit == nil || *previousDeposit != true) && (previousWithdraw == nil || *previousWithdraw != true) && ((canDeposit != nil && *canDeposit == true) || (canWithdraw != nil && *canWithdraw == true)) {
+			if (!(previousDeposit != nil && *previousDeposit)) && (!(previousWithdraw != nil && *previousWithdraw)) && ((canDeposit != nil && *canDeposit) || (canWithdraw != nil && *canWithdraw)) {
 				AddElementToObject(result, code, parsed)
 			}
 		}
@@ -4000,17 +4000,17 @@ func (this *Nado) CreateOrderAppendix(isTriggerOrder any, optionalArgs ...any) a
 	if orderType != 0 {
 		appendix = Precise.StringAdd(appendix, Precise.StringMul(this.NumberToString(orderType), "512"))
 	}
-	if reduceOnly != nil && *reduceOnly == true {
+	if reduceOnly != nil && *reduceOnly {
 		appendix = Precise.StringAdd(appendix, "2048")
 	}
 	var buildFee *bool = this.SafeBool(this.Options, "builderFee", true)
-	if buildFee != nil && *buildFee == true {
+	if buildFee != nil && *buildFee {
 		var builder *string = this.SafeString(this.Options, "builder", "4500")
 		var builderFeeRate *string = this.SafeString(this.Options, "feeRate", "10")               // 10 units = 0.01%
 		appendix = Precise.StringAdd(appendix, Precise.StringMul(builder, "281474976710656"))     // 1<<48
 		appendix = Precise.StringAdd(appendix, Precise.StringMul(builderFeeRate, "274877906944")) // 1<<32
 	}
-	if isTriggerOrder == true {
+	if EvalTruthy(isTriggerOrder) {
 		appendix = Precise.StringAdd(appendix, "4096")
 	}
 	return appendix

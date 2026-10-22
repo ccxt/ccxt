@@ -1785,7 +1785,7 @@ public partial class dydx : Exchange
         parameters ??= new Dictionary<string, object>();
         bool? isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
         object paramsOmitted = this.omit(parameters, new List<object>() {"trigger", "stop"});
-        if (((isTrigger != true)) && ((symbol == null)))
+        if ((isTrigger != true) && ((symbol == null)))
         {
             throw new ArgumentsRequired ((this.id + " cancelOrder() requires a symbol argument")) ;
         }
@@ -1810,7 +1810,7 @@ public partial class dydx : Exchange
         Int64? goodTillBlockTimeInSecondsOption = goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable.Item1;
         IDictionary<string, object> paramsGoodTillBlockTimeInSeconds = ((IDictionary<string, object>)goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable.Item2); // default is 30 days
         object goodTillBlockTime = null;
-        int defaultOrderFlags = ((isTrigger == true)) ? 32 : 64;
+        int defaultOrderFlags = isTrigger == true ? 32 : 64;
         Int64? orderFlags = this.safeInteger(paramsGoodTillBlockTimeInSeconds, "orderFlags", defaultOrderFlags);
         int subAccountId = 0;
         Int64? subAccountIdOption = this.handleOptionIntegerAndParams(paramsGoodTillBlockTimeInSeconds, "cancelOrder", "subAccountId", subAccountId).Item1;

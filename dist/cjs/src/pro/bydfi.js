@@ -100,8 +100,8 @@ class bydfi extends bydfi$1["default"] {
         };
         const unsubscribe = this.safeBool(params, 'unsubscribe', false);
         let method = 'SUBSCRIBE';
-        const paramsOmitted = (unsubscribe === true) ? this.omit(params, 'unsubscribe') : params;
-        if (unsubscribe === true) {
+        const paramsOmitted = (unsubscribe) ? this.omit(params, 'unsubscribe') : params;
+        if (unsubscribe) {
             method = 'UNSUBSCRIBE';
             subscriptionParams['unsubscribe'] = true;
             subscriptionParams['messageHashes'] = messageHashes;
@@ -882,7 +882,7 @@ class bydfi extends bydfi$1["default"] {
         const options = this.safeDict(this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool(options, 'fetchBalanceSnapshot', false);
         const awaitBalanceSnapshot = this.safeBool(options, 'awaitBalanceSnapshot', true);
-        if ((fetchBalanceSnapshot === true) && (awaitBalanceSnapshot === true)) {
+        if ((fetchBalanceSnapshot) && (awaitBalanceSnapshot)) {
             await client.future('fetchBalanceSnapshot');
         }
         const messageHash = 'balance';
@@ -891,7 +891,7 @@ class bydfi extends bydfi$1["default"] {
     fetchBalanceSnapshot(client) {
         const options = this.safeDict(this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool(options, 'fetchBalanceSnapshot', false);
-        if (fetchBalanceSnapshot === true) {
+        if (fetchBalanceSnapshot) {
             const messageHash = 'fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future(messageHash);
@@ -988,7 +988,7 @@ class bydfi extends bydfi$1["default"] {
         const subscriptionsById = this.indexBy(client.subscriptions, 'id');
         const subscription = this.safeDict(subscriptionsById, id, {});
         const isUnSubMessage = this.safeBool(subscription, 'unsubscribe', false);
-        if (isUnSubMessage === true) {
+        if (isUnSubMessage) {
             this.handleUnSubscription(client, subscription);
         }
         return message;

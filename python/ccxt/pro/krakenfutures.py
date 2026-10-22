@@ -957,7 +957,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         status = None
         if isCancelled is not None:
             unparsedOrder = self.safe_value(order, 'order')
-            if isCancelled is True:
+            if isCancelled:
                 status = 'cancelled'
         marketId = self.safe_string(unparsedOrder, 'instrument')
         timestamp = self.safe_string(unparsedOrder, 'time')

@@ -2861,7 +2861,7 @@ class aster extends aster$1["default"] {
             triggerPriceIsRequired = true;
         }
         else if ((uppercaseType === 'STOP_MARKET') || (uppercaseType === 'TAKE_PROFIT_MARKET')) {
-            if (closePosition !== true) {
+            if (!closePosition) {
                 quantityIsRequired = true;
             }
             triggerPriceIsRequired = true;
@@ -4431,11 +4431,11 @@ class aster extends aster$1["default"] {
     }
     async initializeClient(params = {}) {
         const builderFee = this.safeBool(params, 'builderFee', this.safeBool(this.options, 'builderFee', true)); // we shouldn't omit here
-        if (builderFee !== true) {
+        if (!builderFee) {
             return false; // skip if builder fee is not enabled
         }
         const approvedBuilderFee = this.safeBool(this.options, 'approvedBuilderFee', false);
-        if (approvedBuilderFee === true) {
+        if (approvedBuilderFee) {
             return true; // skip if builder fee is already approved
         }
         const result = await this.fapiPrivateGetV3Builder();

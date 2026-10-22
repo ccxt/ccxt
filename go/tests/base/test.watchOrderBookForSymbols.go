@@ -56,7 +56,7 @@ func testWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[any], exchange cc
 
 		}
 		currentTime = exchange.Milliseconds()
-		if (succeeded == true) && (!IsEqual(response, nil)) {
+		if (succeeded) && (!IsEqual(response, nil)) {
 			TestOrderBook(exchange, skippedProperties, method, response, nil)
 			AssertInArray(exchange, skippedProperties, method, response, "symbol", symbols)
 			var elapsed int64 = currentTime - startTime

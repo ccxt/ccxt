@@ -1209,7 +1209,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $dex = $this->safe_string($paramsValue2, 'dex');
         $isSpot = (($type === 'spot') || ($isUnifiedEnabled === true)) && ($dex === null);
         $topic = 'clearinghouseState';
-        if ($isSpot === true) {
+        if ($isSpot) {
             $topic = 'spotState';
         }
         $messageHash = $topic . '::balance';
@@ -1218,7 +1218,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
             'type' => $topic,
             'user' => $userAddress,
         );
-        if ($isSpot === true) {
+        if ($isSpot) {
             if ($isUnifiedEnabled === true) {
                 $subscription['isPortfolioMargin'] = true;
             }
@@ -1268,7 +1268,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $dex = $this->safe_string($paramsValue2, 'dex');
         $isSpot = (($type === 'spot') || ($isUnifiedEnabled === true)) && ($dex === null);
         $topic = 'clearinghouseState';
-        if ($isSpot === true) {
+        if ($isSpot) {
             $topic = 'spotState';
         }
         $messageHash = 'unsubscribe' . ':' . $topic;

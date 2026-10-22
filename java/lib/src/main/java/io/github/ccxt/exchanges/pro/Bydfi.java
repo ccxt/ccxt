@@ -134,8 +134,8 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             }};
             Boolean unsubscribe = (Boolean) this.safeBool(parameters, "unsubscribe", false);
             String method = "SUBSCRIBE";
-            Map<String, Object> paramsOmitted = (((java.util.Objects.equals(unsubscribe, true)))) ? this.omit(parameters, "unsubscribe") : parameters;
-            if (java.util.Objects.equals(unsubscribe, true))
+            Map<String, Object> paramsOmitted = ((Boolean.TRUE.equals(unsubscribe))) ? this.omit(parameters, "unsubscribe") : parameters;
+            if (Boolean.TRUE.equals(unsubscribe))
             {
                 method = "UNSUBSCRIBE";
                 subscriptionParams.put("unsubscribe", true);
@@ -1121,7 +1121,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchBalance", (Object) null);
             Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
             Boolean awaitBalanceSnapshot = (Boolean) this.safeBool(options, "awaitBalanceSnapshot", true);
-            if ((java.util.Objects.equals(fetchBalanceSnapshot, true)) && (java.util.Objects.equals(awaitBalanceSnapshot, true)))
+            if (Boolean.TRUE.equals(fetchBalanceSnapshot) && Boolean.TRUE.equals(awaitBalanceSnapshot))
             {
                 client.future("fetchBalanceSnapshot").getFuture().join();
             }
@@ -1135,7 +1135,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
     {
         Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchBalance", (Object) null);
         Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
-        if (java.util.Objects.equals(fetchBalanceSnapshot, true))
+        if (Boolean.TRUE.equals(fetchBalanceSnapshot))
         {
             String messageHash = "fetchBalanceSnapshot";
             if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))
@@ -1249,7 +1249,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         Map<String,Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
         Map<String, Object> subscription = (Map<String, Object>) this.safeDict(subscriptionsById, id, new HashMap<String, Object>() {{}});
         Boolean isUnSubMessage = (Boolean) this.safeBool(subscription, "unsubscribe", false);
-        if (java.util.Objects.equals(isUnSubMessage, true))
+        if (Boolean.TRUE.equals(isUnSubMessage))
         {
             this.handleUnSubscription(client, (Map<String, Object>) (subscription));
         }

@@ -2572,7 +2572,7 @@ class phemex(Exchange, ImplicitAPI):
     def parse_order(self, order: dict, market: Market = None) -> Order:
         isSwap = self.safe_bool(market, 'swap', False)
         hasPnl = ('closedPnl' in order) or ('closedPnlRv' in order) or ('totalPnlRv' in order)
-        if (isSwap is True) or hasPnl:
+        if (isSwap) or hasPnl:
             return self.parse_swap_order(order, market)
         return self.parse_spot_order(order, market)
 
@@ -2685,13 +2685,13 @@ class phemex(Exchange, ImplicitAPI):
             orderParams = self.omit(orderParams, 'hedged')
             posSide = self.safe_string_lower(orderParams, 'posSide')
             # a hedged reduceOnly order without posSide closes the opposite side
-            flipSide = (posSide is None) and (hedged is True) and (self.safe_bool(orderParams, 'reduceOnly', False))
+            flipSide = (posSide is None) and (hedged) and (self.safe_bool(orderParams, 'reduceOnly', False))
             oppositeSide = 'sell' if (side == 'buy') else 'buy'
             sideResolved = side
             if flipSide:
                 sideResolved = oppositeSide
             if posSide is None:
-                if hedged is True:
+                if hedged:
                     if flipSide:
                         orderParams = self.omit(orderParams, 'reduceOnly')
                     posSide = 'Long' if (sideResolved == 'buy') else 'Short'
@@ -2982,7 +2982,7 @@ class phemex(Exchange, ImplicitAPI):
             # 'untriggerred': false, // false to cancel non-conditional orders, true to cancel conditional orders
             # 'text': 'up to 40 characters max',
         }
-        if trigger is True:
+        if trigger:
             request['untriggerred'] = trigger
         response: dict
         if market['settle'] == 'USDT' or market['settle'] == 'USDC':
@@ -4542,7 +4542,7 @@ class phemex(Exchange, ImplicitAPI):
         }
         response: dict
         if market['settle'] == 'USDT' or market['settle'] == 'USDC':
-            if (isHedged is not True) and longLeverageRr is None and shortLeverageRr is None:
+            if (not isHedged) and longLeverageRr is None and shortLeverageRr is None:
                 request['leverageRr'] = leverage
             else:
                 longVar = longLeverageRr if (longLeverageRr is not None) else leverage
@@ -4625,7 +4625,7 @@ class phemex(Exchange, ImplicitAPI):
             transfer = self.parse_transfer(response)
         transferOptions = self.safe_dict(self.options, 'transfer', {})
         fillResponseFromRequest = self.safe_bool(transferOptions, 'fillResponseFromRequest', True)
-        if fillResponseFromRequest is True:
+        if fillResponseFromRequest:
             if transfer['fromAccount'] is None:
                 transfer['fromAccount'] = fromAccount
             if transfer['toAccount'] is None:

@@ -1084,7 +1084,7 @@ class tokocrypto extends Exchange {
         $buyerMaker = $this->safe_bool_2($trade, 'm', 'isBuyerMaker');
         $takerOrMaker = null;
         if ($buyerMaker !== null) {
-            $side = ($buyerMaker === true) ? 'sell' : 'buy'; // this is reversed intentionally
+            $side = ($buyerMaker) ? 'sell' : 'buy'; // this is reversed intentionally
             $takerOrMaker = 'taker';
         } elseif (is_array($trade) && array_key_exists('side' ?? '', $trade)) {
             $side = $this->safe_string_lower($trade, 'side');
@@ -1889,16 +1889,16 @@ class tokocrypto extends Exchange {
         $isPostOnlyTimeInForce = ($requestedTimeInForce === 'GTX');
         list($postOnly, $paramsPostOnly) = $this->handle_post_only($isMarketOrder, $isPostOnlyTimeInForce, $params);
         // only supported for spot/margin api
-        $typeResolved = ($postOnly === true) ? 'LIMIT_MAKER' : $type;
+        $typeResolved = ($postOnly) ? 'LIMIT_MAKER' : $type;
         // post only is expressed by the order type here, not by a time force
-        $timeInForceResolved = ($postOnly === true) ? null : $requestedTimeInForce;
+        $timeInForceResolved = ($postOnly) ? null : $requestedTimeInForce;
         $initialUppercaseType = strtoupper($typeResolved);
         $uppercaseType = $initialUppercaseType;
         $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
         $triggerKeys = ($triggerPrice !== null) ? array( 'triggerPrice', 'stopPrice' ) : array();
         $paramsRequest = $this->omit($paramsPostOnly, $this->array_concat(array( 'clientId', 'clientOrderId', 'timeInForce' ), $triggerKeys));
         if ($triggerPrice !== null) {
-            if ($postOnly === true) {
+            if ($postOnly) {
                 throw new InvalidOrder($this->id . ' createOrder() does not support post only trigger orders, the venue has no post only trigger order type');
             }
             if ($uppercaseType === 'MARKET') {
@@ -2849,7 +2849,7 @@ class tokocrypto extends Exchange {
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         $success = $this->safe_bool($response, 'success', true);
         $parsedMessage = null;
-        if ($success !== true) {
+        if (!$success) {
             $messageInner = $this->safe_string($response, 'msg');
             if ($messageInner !== null) {
                 try {
@@ -2892,7 +2892,7 @@ class tokocrypto extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $feedback);
             throw new ExchangeError($feedback);
         }
-        if ($success !== true) {
+        if (!$success) {
             throw new ExchangeError($this->id . ' ' . $body);
         }
         return null;

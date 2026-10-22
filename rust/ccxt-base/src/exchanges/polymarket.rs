@@ -792,7 +792,7 @@ impl PolymarketCore {
         let mut cancelOnly: Value = self.safe_bool_k(response.clone(), "cancel_only", &[Value::Bool(false)]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("status".to_string(), (if (cancelOnly.as_bool() == Some(true)) { Value::Str("maintenance".into()) } else { Value::Str("ok".into()) }));
+        m.insert("status".to_string(), (if cancelOnly.as_bool() == Some(true) { Value::Str("maintenance".into()) } else { Value::Str("ok".into()) }));
         m.insert("updated".to_string(), Value::Null);
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
@@ -1375,7 +1375,7 @@ impl PolymarketCore {
         let mut isTaker: Value = self.safe_bool_k(trade.clone(), "taker", &[]);
         let mut takerOrMaker: Value = Value::Null;
         if (isTaker != Value::Null) {
-            takerOrMaker = (if (isTaker.as_bool() == Some(true)) { Value::Str("taker".into()) } else { Value::Str("maker".into()) });
+            takerOrMaker = (if isTaker.as_bool() == Some(true) { Value::Str("taker".into()) } else { Value::Str("maker".into()) });
         }
         let mut feeCost: Value = self.safe_string_k(trade.clone(), "fee", &[]);
         let mut fee: Value = Value::Null;
@@ -1884,7 +1884,7 @@ impl PolymarketCore {
         if (price != Value::Null) {
             priceString = self.price_to_precision(symbol, price);
         }
-        let mut reduceOnlyValue: Value = (if (reduceOnly.as_bool() == Some(true)) { Value::Bool(true) } else { Value::Null });
+        let mut reduceOnlyValue: Value = (if reduceOnly.as_bool() == Some(true) { Value::Bool(true) } else { Value::Null });
         // the signable row is positional - iid, buy, p, qty, tif, po, ro, c,
         // trigger - undefined entries are removed and later entries shift left,
         // the venue rebuilds the same compact array from the body to verify
@@ -2410,7 +2410,7 @@ impl PolymarketCore {
         let mut isBuy: Value = self.safe_bool_k(order.clone(), "buy", &[]);
         let mut side: Value = Value::Null;
         if (isBuy != Value::Null) {
-            side = (if (isBuy.as_bool() == Some(true)) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
+            side = (if isBuy.as_bool() == Some(true) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
         }
         let mut price: Value = self.omit_zero(self.safe_string2(order.clone(), Value::Str("price".into()), Value::Str("p".into()), &[]));
         let mut type_var: Value = Value::Null;
@@ -2609,7 +2609,7 @@ impl PolymarketCore {
         let mut isCross: Value = self.safe_bool_k(position.clone(), "cross", &[]);
         let mut marginMode: Value = Value::Null;
         if (isCross != Value::Null) {
-            marginMode = (if (isCross.as_bool() == Some(true)) { Value::Str("cross".into()) } else { Value::Str("isolated".into()) });
+            marginMode = (if isCross.as_bool() == Some(true) { Value::Str("cross".into()) } else { Value::Str("isolated".into()) });
         }
         let mut timestamp: Value = self.safe_integer_k(position.clone(), "timestamp", &[]);
         let mut roe: Value = self.safe_string_k(position.clone(), "return_on_equity", &[]);
@@ -3309,7 +3309,7 @@ impl PolymarketCore {
         let mut isCross: Value = self.safe_bool_k(leverage.clone(), "cross", &[]);
         let mut marginMode: Value = Value::Null;
         if (isCross != Value::Null) {
-            marginMode = (if (isCross.as_bool() == Some(true)) { Value::Str("cross".into()) } else { Value::Str("isolated".into()) });
+            marginMode = (if isCross.as_bool() == Some(true) { Value::Str("cross".into()) } else { Value::Str("isolated".into()) });
         }
         let mut value: Value = self.safe_integer_k(leverage.clone(), "leverage", &[]);
         return Value::Map({

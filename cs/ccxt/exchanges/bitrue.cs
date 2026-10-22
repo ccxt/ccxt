@@ -3632,7 +3632,7 @@ public partial class bitrue : Exchange
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         bool? success = this.safeBool(response, "success", true);
         object parsedMessage = null;
-        if ((success != true))
+        if (success != true)
         {
             string? messageInner = this.safeString(response, "msg");
             if ((messageInner != null))
@@ -3675,7 +3675,7 @@ public partial class bitrue : Exchange
             this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), error, feedback);
             throw new ExchangeError (feedback) ;
         }
-        if ((success != true))
+        if (success != true)
         {
             throw new ExchangeError ((string)((this.id + " ") + (body))) ;
         }

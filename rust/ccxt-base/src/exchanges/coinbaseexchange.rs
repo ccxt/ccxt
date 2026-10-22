@@ -2360,7 +2360,7 @@ impl CoinbaseexchangeCore {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("time_in_force".into(), timeInForce); }
         }
         let mut postOnly: Value = self.safe_bool2(params.clone(), Value::Str("postOnly".into()), Value::Str("post_only".into()), &[Value::Bool(false)]);
-        if (postOnly.as_bool() == Some(true)) {
+        if postOnly.as_bool() == Some(true) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("post_only".into(), Value::Bool(true)); }
         }
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), Value::Str("stopPrice".into()), Value::Str("stop_price".into()), Value::Str("clientOrderId".into()), Value::Str("client_oid".into()), Value::Str("postOnly".into()), Value::Str("post_only".into()), Value::Str("triggerPrice".into())]), &[]);

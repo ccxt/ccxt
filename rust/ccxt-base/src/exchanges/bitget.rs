@@ -5911,12 +5911,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 })]);
                     let mut entrySymbol: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
                     let mut entryBorrowable: Value = self.safe_bool_k(entry.clone(), "isBorrowable", &[Value::Bool(true)]);
-                    if (entryBorrowable.as_bool() == Some(true)) && matches!(self.safe_bool_k(entry.clone(), "isCrossBorrowable", &[Value::Bool(true)]), Value::Bool(true)) {
+                    if entryBorrowable.as_bool() == Some(true) && matches!(self.safe_bool_k(entry.clone(), "isCrossBorrowable", &[Value::Bool(true)]), Value::Bool(true)) {
                         append_to_array(&mut crossKeys, entrySymbol.clone());
                     }
                     let mut isolatedBase: Value = self.safe_bool_k(entry.clone(), "isIsolatedBaseBorrowable", &[Value::Bool(true)]);
                     let mut isolatedQuote: Value = self.safe_bool2(entry, Value::Str("isIsolatedQuotedBorrowable".into()), Value::Str("isIsolatedQuoteBorrowable".into()), &[Value::Bool(true)]);
-                    if (entryBorrowable.as_bool() == Some(true)) && ((isolatedBase.as_bool() == Some(true)) || (isolatedQuote.as_bool() == Some(true))) {
+                    if entryBorrowable.as_bool() == Some(true) && (isolatedBase.as_bool() == Some(true) || isolatedQuote.as_bool() == Some(true)) {
                         append_to_array(&mut isolatedKeys, entrySymbol);
                     }
                 }
@@ -7083,7 +7083,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })]);
         let mut fillResponseFromRequest: Value = self.safe_bool_k(withdrawOptions, "fillResponseFromRequest", &[Value::Bool(true)]);
-        if (fillResponseFromRequest.as_bool() == Some(true)) {
+        if fillResponseFromRequest.as_bool() == Some(true) {
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("currency".into(), code); }
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("amount".into(), amount); }
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("tag".into(), tag); }
@@ -8657,7 +8657,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m
             });
             if (marketType.as_str() == Some("spot")) {
-                if (marginMode != Value::Null) || (utaMargin.as_bool() == Some(true)) {
+                if (marginMode != Value::Null) || utaMargin.as_bool() == Some(true) {
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("category".into(), Value::Str("MARGIN".into())); }
                 }  else {
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("category".into(), Value::Str("SPOT".into())); }
@@ -8712,7 +8712,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (marketType.as_str() == Some("spot")) {
             let mut margin: Value = self.safe_bool_k(paramsMarginMode.clone(), "margin", &[Value::Bool(false)]);
             paramsMarginMode = self.omit(paramsMarginMode.clone(), Value::Str("margin".into()), &[]);
-            if (marginMode != Value::Null) || (margin.as_bool() == Some(true)) {
+            if (marginMode != Value::Null) || margin.as_bool() == Some(true) {
                 response = self.public_margin_get_v2_margin_currencies(&[paramsMarginMode.clone()]).await;
             }  else {
                 response = self.public_spot_get_v2_spot_public_symbols(&[paramsMarginMode.clone()]).await;
@@ -8909,7 +8909,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             maxLimitForHistoryEndpoint = Value::Int(100); // the uta history endpoint rejects a limit above 100
         }
         if is_true(&paginate) {
-            let mut limitForPagination: Value = (if (useHistoryEndpointForPagination.as_bool() == Some(true)) { maxLimitForHistoryEndpoint.clone() } else { maxLimitForRecentEndpoint.clone() });
+            let mut limitForPagination: Value = (if useHistoryEndpointForPagination.as_bool() == Some(true) { maxLimitForHistoryEndpoint.clone() } else { maxLimitForRecentEndpoint.clone() });
             let mut paramsWithUta: Value = self.extend(paramsUTA.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("uta".to_string(), uta.clone());
@@ -9003,7 +9003,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         // if historical endpoint is needed, we should re-set the variables
         let mut historicalEndpointNeeded: bool = false;
-        if ((calculatedStartTime != Value::Null) && calculatedStartTime.as_f64().unwrap_or(f64::NAN) <= recentEndpointBoundaryTs.as_f64().unwrap_or(f64::NAN)) || (useHistoryEndpoint.as_bool() == Some(true)) {
+        if ((calculatedStartTime != Value::Null) && calculatedStartTime.as_f64().unwrap_or(f64::NAN) <= recentEndpointBoundaryTs.as_f64().unwrap_or(f64::NAN)) || useHistoryEndpoint.as_bool() == Some(true) {
             historicalEndpointNeeded = true;
             // only for "historical-candles" - ensure we use correct max limit
             limitResolved = crate::runtime::Math::min(&limitResolved, &maxLimitForHistoryEndpoint);
@@ -10025,7 +10025,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (timeInForce != Value::Null) {
                 timeInForce = to_upper(&timeInForce);
             }
-            if (postOnly.as_bool() == Some(true)) {
+            if is_true(&postOnly) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("timeInForce".into(), Value::Str("post_only".into())); }
             }  else if (timeInForce.as_str() == Some("GTC")) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("timeInForce".into(), Value::Str("gtc".into())); }
@@ -10038,7 +10038,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut reduceOnly: Value = self.safe_bool_k(paramsProductType.clone(), "reduceOnly", &[Value::Bool(false)]);
         let mut hedged: Value = Value::Null;
         { let __destr_tmp = self.handle_param_bool(paramsProductType.clone(), Value::Str("hedged".into()), &[Value::Bool(false)]); hedged = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); paramsProductType = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        if (reduceOnly.as_bool() == Some(true)) {
+        if reduceOnly.as_bool() == Some(true) {
             if (hedged.as_bool() == Some(true)) || isStopLossOrTakeProfitTrigger {
                 let mut reduceOnlyPosSide: Value = Value::Str("short".into());
                 if (side.as_str() == Some("sell")) {
@@ -10135,7 +10135,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (timeInForce != Value::Null) {
             timeInForce = to_upper(&timeInForce);
         }
-        if (postOnly.as_bool() == Some(true)) {
+        if is_true(&postOnly) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("force".into(), Value::Str("post_only".into())); }
         }  else if (timeInForce.as_str() == Some("GTC")) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("force".into(), Value::Str("GTC".into())); }
@@ -10244,7 +10244,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 }
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("marginMode".into(), marginModeRequest); }
                 let mut requestSide: Value = side.clone();
-                if (reduceOnly.as_bool() == Some(true)) {
+                if reduceOnly.as_bool() == Some(true) {
                     if (hedged.as_bool() != Some(true)) {
                         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("reduceOnly".into(), Value::Str("YES".into())); }
                     }  else {
@@ -10645,7 +10645,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut cost: Value = self.safe_string_k(paramsOmitted.clone(), "cost", &[]);
             paramsOmitted = self.omit(paramsOmitted.clone(), Value::Str("cost".into()), &[]);
             let mut editMarketBuyOrderRequiresPrice: Value = self.safe_bool_k(self.options.clone(), "editMarketBuyOrderRequiresPrice", &[Value::Bool(true)]);
-            if ((editMarketBuyOrderRequiresPrice.as_bool() == Some(true)) || (cost != Value::Null)) && isMarketOrder && (side.as_str() == Some("buy")) {
+            if (editMarketBuyOrderRequiresPrice.as_bool() == Some(true) || (cost != Value::Null)) && isMarketOrder && (side.as_str() == Some("buy")) {
                 if (price == Value::Null) && (cost == Value::Null) {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively provide `cost` in the params".into()))));
                 }  else {
@@ -13356,7 +13356,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut method: Value = Value::Null;
         let mut useHistoryEndpoint: Value = self.safe_bool_k(paramsPaginate.clone(), "useHistoryEndpoint", &[Value::Bool(false)]);
-        if (useHistoryEndpoint.as_bool() == Some(true)) {
+        if useHistoryEndpoint.as_bool() == Some(true) {
             method = Value::Str("privateMixGetV2MixPositionHistoryPosition".into());
         }  else {
             { let __destr_tmp = self.handle_option_string_and_params(paramsPaginate.clone(), Value::Str("fetchPositions".into()), Value::Str("method".into()), &[Value::Str("privateMixGetV2MixPositionAllPosition".into())]); method = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); paramsPaginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
@@ -16975,7 +16975,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut headersResult: Value = requestHeaders;
         let mut sandboxMode: Value = self.safe_bool2(self.options.clone(), Value::Str("sandboxMode".into()), Value::Str("sandbox".into()), &[Value::Bool(false)]);
-        if (sandboxMode.as_bool() == Some(true)) && (path.as_str() != Some("v2/public/time")) && (path.as_str() != Some("v3/market/current-fund-rate")) {
+        if sandboxMode.as_bool() == Some(true) && (path.as_str() != Some("v2/public/time")) && (path.as_str() != Some("v3/market/current-fund-rate")) {
             // https://github.com/ccxt/ccxt/issues/25252#issuecomment-2662742336
             if (headersResult == Value::Null) {
                 headersResult = Value::Map({

@@ -2721,7 +2721,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut isSandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
         let mut payload: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("hyperliquidChain".to_string(), (if (isSandboxMode.as_bool() == Some(true)) { Value::Str("Testnet".into()) } else { Value::Str("Mainnet".into()) }));
+                m.insert("hyperliquidChain".to_string(), (if isSandboxMode.as_bool() == Some(true) { Value::Str("Testnet".into()) } else { Value::Str("Mainnet".into()) }));
                 m.insert("maxFeeRate".to_string(), maxFeeRate);
                 m.insert("builder".to_string(), builder);
                 m.insert("nonce".to_string(), nonce.clone());
@@ -2769,7 +2769,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub async fn handle_builder_fee_approval(&mut self) -> Value {
         let mut buildFee: Value = self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(true)]);
         let mut approvedBuilderFee: Value = self.safe_bool_k(self.options.clone(), "approvedBuilderFee", &[Value::Bool(false)]);
-        if (approvedBuilderFee.as_bool() == Some(true)) {
+        if approvedBuilderFee.as_bool() == Some(true) {
             return Value::Bool(true);
         }
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
@@ -2777,7 +2777,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // when the user disables the builder fee (builderFee = false) we still approve and attach the builder,
             // but with a 0% fee rate, so orders remain attributed to the builder for statistics purposes only and the user is not charged
             let mut maxFeeRate: Value = self.safe_string_k(self.options.clone(), "feeRate", &[Value::Str("0.01%".into())]);
-            if (buildFee.as_bool() != Some(true)) {
+            if !(buildFee.as_bool() == Some(true)) {
                 maxFeeRate = Value::Str("0%".into());
             }
             self.approve_builder_fee(builder, maxFeeRate).await;
@@ -2885,7 +2885,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut type_var: Value = self.safe_string_k(paramsPublicAddress, "type", &[Value::Str("userSetAbstraction".into())]);
         let mut payload: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("hyperliquidChain".to_string(), (if (isSandboxMode.as_bool() == Some(true)) { Value::Str("Testnet".into()) } else { Value::Str("Mainnet".into()) }));
+                m.insert("hyperliquidChain".to_string(), (if isSandboxMode.as_bool() == Some(true) { Value::Str("Testnet".into()) } else { Value::Str("Mainnet".into()) }));
                 m.insert("user".to_string(), userAddress);
                 m.insert("abstraction".to_string(), abstraction);
                 m.insert("nonce".to_string(), nonce.clone());
@@ -2937,7 +2937,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut type_var: Value = self.safe_string_k(paramsPublicAddress, "type", &[Value::Str("userDexAbstraction".into())]);
         let mut payload: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("hyperliquidChain".to_string(), (if (isSandboxMode.as_bool() == Some(true)) { Value::Str("Testnet".into()) } else { Value::Str("Mainnet".into()) }));
+                m.insert("hyperliquidChain".to_string(), (if isSandboxMode.as_bool() == Some(true) { Value::Str("Testnet".into()) } else { Value::Str("Mainnet".into()) }));
                 m.insert("user".to_string(), userAddress);
                 m.insert("enabled".to_string(), enabled);
                 m.insert("nonce".to_string(), nonce.clone());
@@ -3240,7 +3240,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             defaultTimeInForce = Value::Str("ioc".into());
         }
         let mut postOnly: Value = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]);
-        if (postOnly.as_bool() == Some(true)) {
+        if postOnly.as_bool() == Some(true) {
             defaultTimeInForce = Value::Str("alo".into());
         }
         let mut timeInForce: Value = self.safe_string_lower_k(params.clone(), "timeInForce", &[defaultTimeInForce]);
@@ -3943,7 +3943,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 defaultTimeInForce = Value::Str("ioc".into());
             }
             let mut postOnly: Value = self.safe_bool_k(orderParams.clone(), "postOnly", &[Value::Bool(false)]);
-            if (postOnly.as_bool() == Some(true)) {
+            if postOnly.as_bool() == Some(true) {
                 defaultTimeInForce = Value::Str("alo".into());
             }
             let mut timeInForce: Value = self.safe_string_lower_k(orderParams.clone(), "timeInForce", &[defaultTimeInForce]);
@@ -5928,7 +5928,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut isSandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
             let mut payload: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("hyperliquidChain".to_string(), (if (isSandboxMode.as_bool() == Some(true)) { Value::Str("Testnet".into()) } else { Value::Str("Mainnet".into()) }));
+                    m.insert("hyperliquidChain".to_string(), (if isSandboxMode.as_bool() == Some(true) { Value::Str("Testnet".into()) } else { Value::Str("Mainnet".into()) }));
                     m.insert("destination".to_string(), address.clone());
                     m.insert("amount".to_string(), to_string_val(&amount));
                     m.insert("time".to_string(), nonce.clone());

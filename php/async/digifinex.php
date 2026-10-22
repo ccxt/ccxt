@@ -1947,10 +1947,10 @@ class digifinex extends Exchange {
             $timeInForce = $this->safe_string($paramsMarginMode, 'timeInForce');
             $orderType = null;
             if ($side === 'buy') {
-                $requestType = ($reduceOnly === true) ? 4 : 1;
+                $requestType = ($reduceOnly) ? 4 : 1;
                 $request['type'] = $requestType;
             } else {
-                $requestType = ($reduceOnly === true) ? 3 : 2;
+                $requestType = ($reduceOnly) ? 3 : 2;
                 $request['type'] = $requestType;
             }
             if ($isLimitOrder) {
@@ -1972,7 +1972,7 @@ class digifinex extends Exchange {
             $request['size'] = $amount;  // swap orders require the amount to be the number of contracts
             $paramsRequest = $this->omit($paramsMarginMode, array( 'reduceOnly', 'timeInForce', 'postOnly' ));
         } else {
-            $postOnlyParsed = ($postOnly === true) ? 1 : 2;
+            $postOnlyParsed = ($postOnly) ? 1 : 2;
             $request['market'] = $marketType;
             $suffix = '';
             if ($type === 'market') {
@@ -4550,7 +4550,7 @@ class digifinex extends Exchange {
             if ($marginMode !== 'cross') {
                 throw new NotSupported($this->id . ' only cross margin is supported');
             }
-        } elseif (($defaultType === 'margin') || ($isMargin === true)) {
+        } elseif (($defaultType === 'margin') || ($isMargin)) {
             return array( 'cross', $paramsMarginMode );
         }
         return array( $marginMode, $paramsMarginMode );

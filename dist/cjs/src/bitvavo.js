@@ -917,7 +917,7 @@ class bitvavo extends bitvavo$1["default"] {
         const taker = this.safeBool(trade, 'taker');
         let takerOrMaker = undefined;
         if (taker !== undefined) {
-            takerOrMaker = (taker === true) ? 'taker' : 'maker';
+            takerOrMaker = (taker) ? 'taker' : 'maker';
         }
         const feeCostString = this.safeString(trade, 'fee');
         let fee = undefined;

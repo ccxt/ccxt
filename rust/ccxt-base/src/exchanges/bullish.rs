@@ -2125,7 +2125,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         promise_all(&Value::from(vec![self.load_markets(&[]).await, self.handle_token(&[]).await])).await;
         let mut tradingAccountId: Value = self.load_account(&[params.clone()]).await;
         let mut paginate: Value = self.safe_bool_k(params.clone(), "paginate", &[Value::Bool(false)]);
-        if (paginate.as_bool() == Some(true)) {
+        if paginate.as_bool() == Some(true) {
             let mut paramsPagination: Value = self.handle_pagination_params(Value::Str("fetchOrders".into()), &[since.clone(), params.clone()]);
             return self.fetch_paginated_call_dynamic(Value::Str("fetchOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPagination, Value::Int(100)]).await;
         }
@@ -2546,7 +2546,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), to_upper(&type_var)); }
         }
         let mut postOnly: Value = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]);
-        if (postOnly.as_bool() == Some(true)) {
+        if postOnly.as_bool() == Some(true) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("POST_ONLY".into())); }
         }
         if (amount != Value::Null) {
@@ -2555,7 +2555,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (price != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), self.price_to_precision(symbol, price)); }
         }
-        let mut paramsOmitted: Value = (if (postOnly.as_bool() == Some(true)) { self.omit(params.clone(), Value::Str("postOnly".into()), &[]) } else { params });
+        let mut paramsOmitted: Value = (if postOnly.as_bool() == Some(true) { self.omit(params.clone(), Value::Str("postOnly".into()), &[]) } else { params });
         let __ws_arg_15 = self.extend(request, &[paramsOmitted]);
         let mut response: Value = self.private_post_v2_command(&[__ws_arg_15]).await;
         return self.parse_order(response, &[market]);
@@ -3504,7 +3504,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 })]);
         let mut fillResponseFromRequest: Value = self.safe_bool_k(transferOptions, "fillResponseFromRequest", &[Value::Bool(true)]);
         let mut transfer: Value = self.parse_transfer(response, &[currency]);
-        if (fillResponseFromRequest.as_bool() == Some(true)) {
+        if fillResponseFromRequest.as_bool() == Some(true) {
             add_element_to_object(&mut transfer, &Value::Str("fromAccount".into()), fromAccount);
             add_element_to_object(&mut transfer, &Value::Str("toAccount".into()), toAccount);
             add_element_to_object(&mut transfer, &Value::Str("amount".into()), amount);

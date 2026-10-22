@@ -844,12 +844,12 @@ public class Lighter extends LighterApi
         return BaseExchange.supplyAsync(() -> {
 
             Boolean buildFee = (Boolean) this.safeBool(this.options, "builderFee", true);
-            if (!java.util.Objects.equals(buildFee, true))
+            if (!Boolean.TRUE.equals(buildFee))
             {
                 return false;
             }
             Boolean approvedBuilderFee = (Boolean) this.safeBool(this.options, "approvedBuilderFee", false);
-            if (java.util.Objects.equals(approvedBuilderFee, true))
+            if (Boolean.TRUE.equals(approvedBuilderFee))
             {
                 return true;
             }
@@ -1155,7 +1155,7 @@ public class Lighter extends LighterApi
         request.put("order_expiry", orderExpiry);
         request.put("order_type", orderTypeNum);
         request.put("time_in_force", timeInForceNum);
-        request.put("reduce_only", (((java.util.Objects.equals(reduceOnly, true)))) ? 1 : 0);
+        request.put("reduce_only", ((Boolean.TRUE.equals(reduceOnly))) ? 1 : 0);
         request.put("client_order_index", clientOrderId);
         request.put("base_amount", this.parseToInt(Precise.stringMul(amountStr, amountScale)));
         request.put("avg_execution_price", this.parseToInt(Precise.stringMul(priceStr, priceScale)));
@@ -3757,7 +3757,7 @@ public class Lighter extends LighterApi
         // public trades use Lighter's taker-side convention
         if ((java.util.Objects.equals(side, null)) && (!java.util.Objects.equals(isMakerAsk, null)))
         {
-            side = (((java.util.Objects.equals(isMakerAsk, true)))) ? "buy" : "sell";
+            side = ((Boolean.TRUE.equals(isMakerAsk))) ? "buy" : "sell";
         }
         String takerOrMaker = null;
         if (!java.util.Objects.equals(side, null) && !java.util.Objects.equals(isMakerAsk, null))

@@ -1574,7 +1574,7 @@ class btse(Exchange, ImplicitAPI):
         """
         self.load_markets()
         paginate = self.safe_bool(params, 'paginate', False)
-        if paginate is True:
+        if paginate:
             return self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, self.omit(params, 'paginate'))
         market = None
         request = {}
@@ -2291,7 +2291,7 @@ class btse(Exchange, ImplicitAPI):
         if price is not None:
             request['orderPrice'] = self.price_to_precision(symbol, price)
         isSlide = self.safe_bool(query, 'slide', False)
-        if (amount is None) and (price is None) and (triggerPrice is None) and (isSlide is not True):
+        if (amount is None) and (price is None) and (triggerPrice is None) and (not isSlide):
             raise ArgumentsRequired(self.id + ' editOrder() requires an amount argument, a price argument or a triggerPrice parameter')
         response = None
         if market['spot'] is True:
@@ -3482,7 +3482,7 @@ class btse(Exchange, ImplicitAPI):
         #     {"status":400,"errorCode":-7,"message":"Authenticate failed","extraData":null}
         #
         success = self.safe_bool(response, 'success', True)
-        if success is not True:
+        if not success:
             spotErrorCode = self.safe_string(response, 'code')
             spotMessage = self.safe_string(response, 'msg')
             feedback = self.id + ' ' + body
@@ -3548,7 +3548,7 @@ class btse(Exchange, ImplicitAPI):
         # body like its POST and PUT counterparts, while the spot v4 and the
         # legacy apis keep DELETE params in the query string, verified live
         # in both directions
-        isBodyDelete = (method == 'DELETE') and (path.startswith('futures/api/v3/') is True)
+        isBodyDelete = (method == 'DELETE') and (path.startswith('futures/api/v3/'))
         queryString = ''
         if ((method == 'GET') or (method == 'DELETE')) and not isBodyDelete:
             if len(query) > 0:
@@ -3567,7 +3567,7 @@ class btse(Exchange, ImplicitAPI):
             # sign the /api/v... remainder, while the public-api wallet, otc and markets
             # endpoints mount on the bare host and sign the full path with the leading slash
             signPath = None
-            if path.startswith('public-api/') is True:
+            if path.startswith('public-api/'):
                 signPath = '/' + path
             else:
                 signPath = self.clean_path(path)

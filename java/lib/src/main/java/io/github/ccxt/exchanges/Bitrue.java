@@ -3780,7 +3780,7 @@ public class Bitrue extends BitrueApi
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         Boolean success = (Boolean) this.safeBool(response, "success", true);
         Object parsedMessage = null;
-        if (!java.util.Objects.equals(success, true))
+        if (!Boolean.TRUE.equals(success))
         {
             String messageInner = this.safeString(response, "msg");
             if (!java.util.Objects.equals(messageInner, null))
@@ -3823,7 +3823,7 @@ public class Bitrue extends BitrueApi
             this.throwExactlyMatchedException(this.exceptions.get("exact"), error, feedback);
             throw new ExchangeError(feedback) ;
         }
-        if (!java.util.Objects.equals(success, true))
+        if (!Boolean.TRUE.equals(success))
         {
             throw new ExchangeError(((this.id + " ") + body)) ;
         }

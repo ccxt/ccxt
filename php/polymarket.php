@@ -379,7 +379,7 @@ class polymarket extends Exchange {
         //
         $cancelOnly = $this->safe_bool($response, 'cancel_only', false);
         return array(
-            'status' => ($cancelOnly === true) ? 'maintenance' : 'ok',
+            'status' => ($cancelOnly) ? 'maintenance' : 'ok',
             'updated' => null,
             'eta' => null,
             'url' => null,
@@ -880,7 +880,7 @@ class polymarket extends Exchange {
         $isTaker = $this->safe_bool($trade, 'taker');
         $takerOrMaker = null;
         if ($isTaker !== null) {
-            $takerOrMaker = ($isTaker === true) ? 'taker' : 'maker';
+            $takerOrMaker = ($isTaker) ? 'taker' : 'maker';
         }
         $feeCost = $this->safe_string($trade, 'fee');
         $fee = null;
@@ -1294,7 +1294,7 @@ class polymarket extends Exchange {
         if ($price !== null) {
             $priceString = $this->price_to_precision($symbol, $price);
         }
-        $reduceOnlyValue = ($reduceOnly === true) ? true : null;
+        $reduceOnlyValue = ($reduceOnly) ? true : null;
         // the signable row is positional - iid, buy, p, qty, tif, po, ro, c,
         // trigger - undefined entries are removed and later entries shift left,
         // the venue rebuilds the same compact array from the body to verify
@@ -1713,7 +1713,7 @@ class polymarket extends Exchange {
         $isBuy = $this->safe_bool($order, 'buy');
         $side = null;
         if ($isBuy !== null) {
-            $side = ($isBuy === true) ? 'buy' : 'sell';
+            $side = ($isBuy) ? 'buy' : 'sell';
         }
         $price = $this->omit_zero($this->safe_string_2($order, 'price', 'p'));
         $type = null;
@@ -1875,7 +1875,7 @@ class polymarket extends Exchange {
         $isCross = $this->safe_bool($position, 'cross');
         $marginMode = null;
         if ($isCross !== null) {
-            $marginMode = ($isCross === true) ? 'cross' : 'isolated';
+            $marginMode = ($isCross) ? 'cross' : 'isolated';
         }
         $timestamp = $this->safe_integer($position, 'timestamp');
         $roe = $this->safe_string($position, 'return_on_equity');
@@ -2408,7 +2408,7 @@ class polymarket extends Exchange {
         $isCross = $this->safe_bool($leverage, 'cross');
         $marginMode = null;
         if ($isCross !== null) {
-            $marginMode = ($isCross === true) ? 'cross' : 'isolated';
+            $marginMode = ($isCross) ? 'cross' : 'isolated';
         }
         $value = $this->safe_integer($leverage, 'leverage');
         return array(

@@ -5095,7 +5095,7 @@ public partial class bybit : Exchange
         string? amount = null;
         string? cost = null;
         bool qtyIsQuote = ((((marketResolved != null && marketResolved.ContainsKey("spot") ? marketResolved["spot"] : null) as bool?) == true)) && (type == "market") && ((marketUnit == "quoteCoin") || (((marketUnit == null)) && (side == "buy")));
-        if ((qtyIsQuote == true))
+        if (qtyIsQuote)
         {
             // qty is denominated in the quote currency, safeOrder derives amount from filled + remaining
             cost = this.safeString(order, "cumExecValue");
@@ -5306,7 +5306,7 @@ public partial class bybit : Exchange
         Dictionary<string, object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters, enableUnifiedAccount);
         bool switchToOco = (isStopLossOrder && isTakeProfitOrder) || (this.safeBool(parameters, "tradingStopEndpoint", false) == true);
         string? defaultMethod = null;
-        if ((isTrailingOrder || ((switchToOco == true))) && ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) != true)))
+        if ((isTrailingOrder || (switchToOco)) && ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) != true)))
         {
             defaultMethod = "privatePostV5PositionTradingStop";
         } else
@@ -5376,7 +5376,7 @@ public partial class bybit : Exchange
         bool isBuy = (side == "buy");
         bool switchToOco = (isStopLossOrder && isTakeProfitOrder) || (this.safeBool(parameters, "tradingStopEndpoint", false) == true);
         string? defaultMethod = null;
-        if (isTrailingOrder || ((switchToOco == true)))
+        if (isTrailingOrder || (switchToOco))
         {
             defaultMethod = "privatePostV5PositionTradingStop";
         } else
@@ -5688,7 +5688,7 @@ public partial class bybit : Exchange
                 }
             }
         }
-        if (((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) != true)) && ((hedged == true)))
+        if (((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) != true)) && (hedged == true))
         {
             if ((reduceOnly == true))
             {
@@ -6060,7 +6060,7 @@ public partial class bybit : Exchange
         {
             // only works for spot market
             bool? isTrigger = this.safeBool2(parameters, "stop", "trigger", false);
-            request["orderFilter"] = ((isTrigger == true)) ? "StopOrder" : "Order";
+            request["orderFilter"] = isTrigger == true ? "StopOrder" : "Order";
         }
         if ((id != null))
         {
@@ -6489,7 +6489,7 @@ public partial class bybit : Exchange
         if ((length == 0))
         {
             bool? isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
-            string extra = ((isTrigger == true)) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
+            string extra = isTrigger == true ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
             throw new OrderNotFound (((("Order " + id.ToString()) + " was not found.") + extra)) ;
         }
         if (length > 1)
@@ -6769,7 +6769,7 @@ public partial class bybit : Exchange
         if ((length == 0))
         {
             bool? isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
-            string extra = ((isTrigger == true)) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
+            string extra = isTrigger == true ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
             throw new OrderNotFound (((("Order " + id.ToString()) + " was not found.") + extra)) ;
         }
         if (length > 1)
@@ -6811,7 +6811,7 @@ public partial class bybit : Exchange
         if ((length == 0))
         {
             bool? isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
-            string extra = ((isTrigger == true)) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
+            string extra = isTrigger == true ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
             throw new OrderNotFound (((("Order " + id.ToString()) + " was not found.") + extra)) ;
         }
         if (length > 1)

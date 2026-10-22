@@ -1729,7 +1729,7 @@ func (this *P2b) HandleErrors(code any, reason any, url any, method any, headers
 	//     {"success":true,"errorCode":"","message":"","result":{...},"cache_time":1787611797.535462,"current_time":1787611797.535973}
 	//
 	var success *bool = this.SafeBool(response, "success", true)
-	if success == nil || *success != true {
+	if !(success != nil && *success) {
 		var errorCode *string = this.SafeString(response, "errorCode")
 		var feedback string = this.Id + " " + body
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)

@@ -2173,7 +2173,7 @@ class hashkey extends Exchange {
         $status = $this->safe_string($transaction, 'status'); // for fetchDeposits
         if ($status === null) {
             $success = $this->safe_bool($transaction, 'success', false); // for withdraw
-            if ($success === true) {
+            if ($success) {
                 $status = 'ok';
             } else {
                 $addressUrl = $this->safe_string($transaction, 'addressUrl'); // for fetchWithdrawals
@@ -2279,7 +2279,7 @@ class hashkey extends Exchange {
         $currencyId = $this->safe_string($currency, 'id');
         $status = null;
         $success = $this->safe_bool($transfer, 'success', false);
-        if ($success === true) {
+        if ($success) {
             $status = 'ok';
         }
         return array(

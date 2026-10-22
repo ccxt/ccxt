@@ -760,7 +760,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         baseVolume = None
         quoteVolume = None
         isIndex = self.safe_bool(marketResolved, 'index', False)
-        if isIndex is not True:
+        if not isIndex:
             if marketResolved['linear'] is True:
                 baseVolume = volume
             elif marketResolved['inverse'] is True:
@@ -1727,7 +1727,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
         response: dict
         paramsOmitted = self.omit(params, ['trigger', 'stop'])
-        if isTrigger is True:
+        if isTrigger:
             response = await self.historyGetTriggers(self.extend(request, paramsOmitted))
         else:
             response = await self.historyGetOrders(self.extend(request, params))
@@ -1778,7 +1778,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         response: dict
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
         paramsOmitted = self.omit(params, ['trigger', 'stop'])
-        if isTrigger is True:
+        if isTrigger:
             response = await self.historyGetTriggers(self.extend(request, paramsOmitted))
         else:
             response = await self.historyGetOrders(self.extend(request, params))

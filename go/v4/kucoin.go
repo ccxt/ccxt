@@ -2222,7 +2222,7 @@ func (this *Kucoin) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...a
 	if fetchSpotMarkets {
 		promises = append(promises, this.PublicGetSymbols(paramsRequest))
 	}
-	if requestMarginables == true {
+	if requestMarginables {
 		promises = append(promises, this.PrivateGetMarginSymbols(paramsRequest)) // cross margin symbols
 		//
 		//    {
@@ -2292,7 +2292,7 @@ func (this *Kucoin) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...a
 	if fetchSpotMarkets {
 		nextIndex = 1
 	}
-	if requestMarginables == true {
+	if requestMarginables {
 		crossIndex = nextIndex
 		nextIndex = this.Sum(nextIndex, 2)
 		isolatedIndex = this.Sum(crossIndex, 1)
@@ -2305,7 +2305,7 @@ func (this *Kucoin) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...a
 		contractIndex = nextIndex
 	}
 	var crossData any = func() any {
-		if requestMarginables == true {
+		if requestMarginables {
 			return this.SafeDict(GetValue(responses, crossIndex), "data", map[string]any{})
 		}
 		return map[string]any{}
@@ -2313,7 +2313,7 @@ func (this *Kucoin) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...a
 	var crossItems []any = SafeListTyped(crossData, "items")
 	var crossById map[string]any = this.IndexBy(crossItems, "symbol")
 	var isolatedData any = func() any {
-		if requestMarginables == true {
+		if requestMarginables {
 			return GetValue(responses, isolatedIndex)
 		}
 		return map[string]any{}
@@ -5339,7 +5339,7 @@ func (this *Kucoin) createSpotOrderBody(ch chan EndpointResult[map[string]any], 
 	// don't omit anything before calling createOrderRequest
 	var orderRequest map[string]any = this.CreateSpotOrderRequest(symbol, typeVar, side, amount, price, paramsSync)
 	var response map[string]any = nil
-	if testOrder != nil && *testOrder == true {
+	if testOrder != nil && *testOrder {
 		if isMarginOrder {
 			// the classic margin order endpoints are deprecated
 
@@ -5583,7 +5583,7 @@ func (this *Kucoin) createContractOrderBody(ch chan EndpointResult[map[string]an
 	var hasTpOrSlOrder bool = (!IsEqual(this.SafeValue(paramsOmitted, "stopLoss"), nil)) || (!IsEqual(this.SafeValue(paramsOmitted, "takeProfit"), nil))
 	var orderRequest map[string]any = this.CreateContractOrderRequest(symbol, typeVar, side, amount, price, paramsOmitted)
 	var response map[string]any = nil
-	if testOrder != nil && *testOrder == true {
+	if testOrder != nil && *testOrder {
 
 		r1 := <-this.FuturesPrivatePostOrdersTest(orderRequest)
 		if r1.Err != nil {
@@ -5766,7 +5766,7 @@ func (this *Kucoin) CreateContractOrderRequest(symbol any, typeVar any, side any
 	var hedgedparamsOmittedVariable []any = this.HandleParamBool(paramsOmitted, "hedged", false)
 	hedged = GetValue(hedgedparamsOmittedVariable, 0)
 	paramsOmitted = GetValue(hedgedparamsOmittedVariable, 1)
-	if reduceOnly != nil && *reduceOnly == true {
+	if reduceOnly != nil && *reduceOnly {
 		request["reduceOnly"] = reduceOnly
 		if hedged == true {
 			var reduceOnlyPosSide string = "SHORT"
@@ -5968,7 +5968,7 @@ func (this *Kucoin) CreateUtaOrderRequest(symbol any, typeVar string, side strin
 				if side == "buy" {
 					positionSide = "LONG"
 				}
-				if reduceOnly != nil && *reduceOnly == true {
+				if reduceOnly != nil && *reduceOnly {
 					positionSide = func() string {
 						if positionSide == "LONG" {
 							return "SHORT"
@@ -6691,7 +6691,7 @@ func (this *Kucoin) cancelSpotOrderBody(ch chan EndpointResult[map[string]any], 
 	var tradeType *string = this.SafeString(paramsMarginMode, "tradeType") // keep it for backward compatibility
 	var isMarginOrder bool = (tradeType != nil && *tradeType == "MARGIN_TRADE") || (marginMode != nil)
 	if (hf == true) || useSync || isMarginOrder {
-		if trigger == nil || *trigger != true {
+		if !(trigger != nil && *trigger) {
 			if symbol == nil {
 				panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol parameter for hf orders"))
 			}
@@ -6703,7 +6703,7 @@ func (this *Kucoin) cancelSpotOrderBody(ch chan EndpointResult[map[string]any], 
 	var paramsOmitted map[string]any = this.OmitDict(paramsMarginMode, []any{"clientOid", "clientOrderId", "stop", "trigger", "tradeType"})
 	if clientOrderId != nil {
 		request["clientOid"] = clientOrderId
-		if trigger != nil && *trigger == true {
+		if trigger != nil && *trigger {
 			if isMarginOrder {
 
 				r1 := <-this.PrivateDeleteHfMarginStopOrderCancelByClientOid(this.Extend(request, paramsOmitted))
@@ -6774,7 +6774,7 @@ func (this *Kucoin) cancelSpotOrderBody(ch chan EndpointResult[map[string]any], 
 		return nil
 	} else {
 		request["orderId"] = id
-		if trigger != nil && *trigger == true {
+		if trigger != nil && *trigger {
 			if isMarginOrder {
 
 				r7 := <-this.PrivateDeleteHfMarginStopOrderCancelById(this.Extend(request, paramsOmitted))
@@ -7165,17 +7165,17 @@ func (this *Kucoin) cancelAllSpotOrdersBody(ch chan EndpointResult[[]any], optio
 	var isMarginOrders bool = (marginMode != nil)
 	if symbol != nil {
 		request["symbol"] = this.MarketId(symbol)
-	} else if (trigger == nil || *trigger != true) && isMarginOrders {
+	} else if (!(trigger != nil && *trigger)) && isMarginOrders {
 		panic(ArgumentsRequired(this.Id + " cancelAllOrders() requires a symbol argument for margin non-trigger orders"))
 	}
 	if isMarginOrders {
 		request["tradeType"] = GetValue(GetValue(this.Options, "marginModes"), marginMode)
-		if (marginMode != nil && *marginMode == "isolated") && (trigger != nil && *trigger == true) {
+		if (marginMode != nil && *marginMode == "isolated") && (trigger != nil && *trigger) {
 			panic(BadRequest(this.Id + " cancelAllOrders does not support isolated margin for stop orders"))
 		}
 	}
 	var response map[string]any = nil
-	if trigger != nil && *trigger == true {
+	if trigger != nil && *trigger {
 		if isMarginOrders {
 
 			r1 := <-this.PrivateDeleteHfMarginStopOrderCancel(this.Extend(request, query))
@@ -7583,7 +7583,7 @@ func (this *Kucoin) fetchSpotOrdersByStatusBody(ch chan AsyncResult[[]any], stat
 	}
 	request["tradeType"] = this.SafeString(GetValue(this.Options, "marginModes"), marginMode, "TRADE")
 	var response map[string]any = nil
-	if isMarginOrder && (lowercaseStatus == "active") && (trigger == nil || *trigger != true) {
+	if isMarginOrder && (lowercaseStatus == "active") && (!(trigger != nil && *trigger)) {
 		// hf margin open non-trigger orders require only symbol and tradeType params
 
 		r1 := <-this.PrivateGetHfMarginOrdersActive(this.Extend(request, query))
@@ -7608,7 +7608,7 @@ func (this *Kucoin) fetchSpotOrdersByStatusBody(ch chan AsyncResult[[]any], stat
 		if (until != nil) && (until == nil || *until != 0) {
 			request["endAt"] = until
 		}
-		if trigger != nil && *trigger == true {
+		if trigger != nil && *trigger {
 			if isMarginOrder {
 
 				r2 := <-this.PrivateGetHfMarginStopOrders(this.Extend(request, query))
@@ -8308,7 +8308,7 @@ func (this *Kucoin) fetchSpotOrderBody(ch chan EndpointResult[map[string]any], i
 		market = this.Market(symbol)
 	}
 	if (hf == true) || isMarginOrder {
-		if trigger == nil || *trigger != true {
+		if !(trigger != nil && *trigger) {
 			if symbol == nil {
 				panic(ArgumentsRequired(this.Id + " fetchOrder() requires a symbol parameter for hf and margin orders"))
 			}
@@ -8319,7 +8319,7 @@ func (this *Kucoin) fetchSpotOrderBody(ch chan EndpointResult[map[string]any], i
 	var response map[string]any = nil
 	if clientOrderId != nil {
 		request["clientOid"] = clientOrderId
-		if trigger != nil && *trigger == true {
+		if trigger != nil && *trigger {
 			if isMarginOrder {
 
 				r1 := <-this.PrivateGetHfMarginStopOrderClientOid(this.Extend(request, paramsOmitted))
@@ -8368,7 +8368,7 @@ func (this *Kucoin) fetchSpotOrderBody(ch chan EndpointResult[map[string]any], i
 			panic(InvalidOrder(this.Id + " fetchOrder() requires an order id"))
 		}
 		request["orderId"] = id
-		if trigger != nil && *trigger == true {
+		if trigger != nil && *trigger {
 			if isMarginOrder {
 
 				r6 := <-this.PrivateGetHfMarginStopOrderOrderId(this.Extend(request, paramsOmitted))
@@ -8787,14 +8787,14 @@ func (this *Kucoin) ParseContractOrder(order any, optionalArgs ...any) map[strin
 	var status any = nil
 	if isActive != nil {
 		status = func() string {
-			if isActive != nil && *isActive == true {
+			if isActive != nil && *isActive {
 				return "open"
 			}
 			return "closed"
 		}()
 	}
 	status = func() any {
-		if cancelExist != nil && *cancelExist == true {
+		if cancelExist != nil && *cancelExist {
 			return "canceled"
 		}
 		return status
@@ -8972,7 +8972,7 @@ func (this *Kucoin) ParseSpotOrder(order any, optionalArgs ...any) map[string]an
 	var responseStatus *string = this.SafeString(order, "status")
 	var status *string = nil
 	if isActive != nil {
-		if isActive != nil && *isActive == true {
+		if isActive != nil && *isActive {
 			status = SafeStringPtr("open")
 		} else {
 			status = SafeStringPtr("closed")
@@ -8981,11 +8981,11 @@ func (this *Kucoin) ParseSpotOrder(order any, optionalArgs ...any) map[string]an
 	if trigger {
 		if responseStatus != nil && *responseStatus == "NEW" {
 			status = SafeStringPtr("open")
-		} else if (isActive == nil || *isActive != true) && (stopTriggered == nil || *stopTriggered != true) {
+		} else if (isActive == nil || *isActive != true) && (!(stopTriggered != nil && *stopTriggered)) {
 			status = SafeStringPtr("cancelled")
 		}
 	}
-	if cancelExist != nil && *cancelExist == true {
+	if cancelExist != nil && *cancelExist {
 		status = SafeStringPtr("canceled")
 	}
 	if responseStatus != nil && *responseStatus == "fail" {
@@ -11811,7 +11811,7 @@ func (this *Kucoin) transferUtaBody(ch chan AsyncResult[map[string]any], code st
 	var transfer map[string]any = this.ParseTransfer(data, currency)
 	var transferOptions map[string]any = SafeMapTyped(this.Options, "transfer")
 	var fillResponseFromRequest *bool = this.SafeBool(transferOptions, "fillResponseFromRequest", true)
-	if fillResponseFromRequest != nil && *fillResponseFromRequest == true {
+	if fillResponseFromRequest != nil && *fillResponseFromRequest {
 		transfer["amount"] = amount
 		transfer["fromAccount"] = fromAccount
 		transfer["toAccount"] = toAccount
@@ -11930,7 +11930,7 @@ func (this *Kucoin) transferClassicBody(ch chan AsyncResult[map[string]any], cod
 	var transfer map[string]any = this.ParseTransfer(data, currency)
 	var transferOptions map[string]any = SafeMapTyped(this.Options, "transfer")
 	var fillResponseFromRequest *bool = this.SafeBool(transferOptions, "fillResponseFromRequest", true)
-	if fillResponseFromRequest != nil && *fillResponseFromRequest == true {
+	if fillResponseFromRequest != nil && *fillResponseFromRequest {
 		transfer["amount"] = amount
 		transfer["fromAccount"] = fromAccount
 		transfer["toAccount"] = toAccount
@@ -14803,7 +14803,7 @@ func (this *Kucoin) ParsePosition(position any, optionalArgs ...any) any {
 	var marginMode *string = this.SafeStringLower(position, "marginMode")
 	if crossMode != nil {
 		marginMode = SafeStringPtr(func() string {
-			if crossMode != nil && *crossMode == true {
+			if crossMode != nil && *crossMode {
 				return "cross"
 			}
 			return "isolated"
@@ -15535,7 +15535,7 @@ func (this *Kucoin) closePositionBody(ch chan AsyncResult[any], symbol string, o
 		request["marginMode"] = marginMode
 	}
 	var response map[string]any = nil
-	if testOrder != nil && *testOrder == true {
+	if testOrder != nil && *testOrder {
 
 		r1 := <-this.FuturesPrivatePostOrdersTest(this.Extend(request, paramsOmitted))
 		if r1.Err != nil {

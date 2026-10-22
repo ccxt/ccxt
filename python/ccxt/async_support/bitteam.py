@@ -478,7 +478,7 @@ class bitteam(Exchange, ImplicitAPI):
         minCost = None
         currenciesValuedInUsd = self.handle_option('fetchMarkets', 'currenciesValuedInUsd', {})
         quoteInUsd = self.safe_bool(currenciesValuedInUsd, quote, False)
-        if quoteInUsd is True:
+        if quoteInUsd:
             settings = self.safe_dict(market, 'settings', {})
             minCost = self.safe_number(settings, 'limit_usd')
         return self.safe_market_structure({

@@ -50,7 +50,7 @@ func testWatchPositionBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExc
 			}()
 
 		}
-		if (success == true) && (!IsEqual(response, nil)) {
+		if (success) && (!IsEqual(response, nil)) {
 			Assert(exchange.IsDictionary(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), symbol), " must return a dictionary. "), exchange.Json(response)))
 			now = exchange.Milliseconds()
 			TestPosition(exchange, skippedProperties, method, response, symbol, now)

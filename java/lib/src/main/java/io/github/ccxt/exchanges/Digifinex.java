@@ -2293,11 +2293,11 @@ public class Digifinex extends DigifinexApi
             Object orderType = null;
             if (java.util.Objects.equals(side, "buy"))
             {
-                Integer requestType = (((java.util.Objects.equals(reduceOnly, true)))) ? 4 : 1;
+                Integer requestType = ((Boolean.TRUE.equals(reduceOnly))) ? 4 : 1;
                 request.put("type", requestType);
             } else
             {
-                Integer requestType = (((java.util.Objects.equals(reduceOnly, true)))) ? 3 : 2;
+                Integer requestType = ((Boolean.TRUE.equals(reduceOnly))) ? 3 : 2;
                 request.put("type", requestType);
             }
             if (Boolean.TRUE.equals(isLimitOrder))
@@ -2326,7 +2326,7 @@ public class Digifinex extends DigifinexApi
             paramsRequest = this.omit(paramsMarginMode, new ArrayList<Object>(Arrays.asList("reduceOnly", "timeInForce", "postOnly")));
         } else
         {
-            postOnlyParsed = (((java.util.Objects.equals(postOnly, true)))) ? 1 : 2;
+            postOnlyParsed = ((Boolean.TRUE.equals(postOnly))) ? 1 : 2;
             request.put("market", marketType);
             String suffix = "";
             if (java.util.Objects.equals(type, "market"))
@@ -5223,7 +5223,7 @@ public class Digifinex extends DigifinexApi
             {
                 throw new NotSupported((this.id + " only cross margin is supported")) ;
             }
-        } else if ((java.util.Objects.equals(defaultType, "margin")) || (java.util.Objects.equals(isMargin, true)))
+        } else if ((java.util.Objects.equals(defaultType, "margin")) || Boolean.TRUE.equals(isMargin))
         {
             return new Pair<>("cross", paramsMarginMode);
         }

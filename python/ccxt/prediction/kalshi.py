@@ -742,7 +742,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         #
         tradingActive = self.safe_bool(response, 'trading_active', False)
         return {
-            'status': 'ok' if (tradingActive is True) else 'maintenance',
+            'status': 'ok' if (tradingActive) else 'maintenance',
             'updated': None,
             'eta': None,
             'url': None,
@@ -1381,7 +1381,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             cost = price * amount
         isTaker = self.safe_bool(fill, 'is_taker', True)
         takerOrMaker = 'maker'
-        if isTaker is True:
+        if isTaker:
             takerOrMaker = 'taker'
         feeCost = self.safe_number(fill, 'fee_cost')
         fee = None

@@ -1246,7 +1246,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         if (isMarket) {
             defaultTif = 'Ioc';
         }
-        if (postOnly === true) {
+        if (postOnly) {
             defaultTif = 'Alo';
         }
         let tif = this.capitalize(this.safeStringLower(params, 'timeInForce', defaultTif)); // eslint-disable-line
@@ -2162,7 +2162,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const nonce = this.incrementingNonce();
         const isSandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         const payload = {
-            'hyperliquidChain': (isSandboxMode === true) ? 'Testnet' : 'Mainnet',
+            'hyperliquidChain': (isSandboxMode) ? 'Testnet' : 'Mainnet',
             'maxFeeRate': maxFeeRate,
             'builder': builder,
             'nonce': nonce,
@@ -2190,7 +2190,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         // async for the PHP and typed transpilers, which mishandle an async body that never suspends
         await this.loadMarkets();
         const buildFee = this.safeBool(this.options, 'builderFee', false);
-        if (buildFee !== true) {
+        if (!buildFee) {
             return undefined;
         }
         if (this.safeBool(this.options, 'approvedBuilderFee', false)) {
@@ -2234,7 +2234,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const apiGroup = api[0];
         const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         let baseUrl;
-        if (sandboxMode === true) {
+        if (sandboxMode) {
             const testUrls = this.safeDict(this.urls, 'test', {});
             baseUrl = this.safeString(testUrls, apiGroup, this.safeString(testUrls, 'public', ''));
         }

@@ -1907,7 +1907,7 @@ class bitso(Exchange, ImplicitAPI):
                     success = True
                 else:
                     success = False
-            if success is not True:
+            if not success:
                 feedback = self.id + ' ' + self.json(response)
                 error = self.safe_dict(response, 'error')
                 if error is None:

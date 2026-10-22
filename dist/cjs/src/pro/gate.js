@@ -593,7 +593,7 @@ class gate extends gate$1["default"] {
             this.orderbooks[symbol] = this.orderBook({}, 1000);
         }
         const orderbook = this.orderbooks[symbol];
-        if (full === true) {
+        if (full) {
             const snapshopt = this.parseOrderBook(result, symbol, undefined, 'b', 'a');
             snapshopt['nonce'] = this.safeInteger(result, 'u');
             snapshopt['timestamp'] = this.safeInteger(result, 't');

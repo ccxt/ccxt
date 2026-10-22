@@ -1044,7 +1044,7 @@ public class Myriad extends MyriadApi
             // the on-chain AMM path requires native gas and has not been verified end to end; keep it behind
             // an explicit opt-in so callers do not silently hit an untested signing/broadcast path
             Object enableAmm = this.safeBool2(parameters, "enableAmm", "enableAmmOrders", this.safeBool(this.options, "enableAmmOrders", false));
-            if (!java.util.Objects.equals(enableAmm, true))
+            if (!Helpers.isTrue(enableAmm))
             {
                 throw new NotSupported((this.id + " createOrder() only supports the gasless order book; this market uses the on-chain AMM (needs native gas and is unverified) — pass params.enableAmm=true to opt in")) ;
             }
@@ -1314,7 +1314,7 @@ public class Myriad extends MyriadApi
             // plain createOrder buy on the AMM is rejected so it can't misinterpret shares as collateral
             String sideLower = (((!java.util.Objects.equals(side, null)))) ? ((String)((String)side)).toLowerCase() : null;
             Boolean isCostDenominated = (Boolean) this.safeBool(parameters, "costDenominated", false);
-            if ((java.util.Objects.equals(sideLower, "buy")) && (!java.util.Objects.equals(isCostDenominated, true)))
+            if ((java.util.Objects.equals(sideLower, "buy")) && (!Boolean.TRUE.equals(isCostDenominated)))
             {
                 throw new NotSupported((this.id + " createOrder() market buy on the AMM sizes by collateral, not shares — use createMarketBuyOrderWithCost(outcome, collateral) for a dollar buy, or the default order book (omit enableAmm) for a share-denominated order")) ;
             }
@@ -1352,7 +1352,7 @@ public class Myriad extends MyriadApi
             String txHashParam = this.safeString2(parameters, "transactionHash", "txHash");
             Boolean hasPreBroadcastTxHash = (!java.util.Objects.equals(txHashParam, null));
             Object skipAllowance = this.safeBool(parameters, "skipAllowance", hasPreBroadcastTxHash);
-            if ((java.util.Objects.equals(sideStr, "buy")) && (!java.util.Objects.equals(tokenAddress, null)) && (!java.util.Objects.equals(skipAllowance, true)))
+            if ((java.util.Objects.equals(sideStr, "buy")) && (!java.util.Objects.equals(tokenAddress, null)) && (!Helpers.isTrue(skipAllowance)))
             {
                 (this.ensureErc20Allowance((String) (rpcUrl), (String) (networkId), (String) (tokenAddress), (String) (fromAddress), (String) (predictionMarket))).join();
             }
@@ -1362,7 +1362,7 @@ public class Myriad extends MyriadApi
             {
                 txHash = (this.sendEvmTransaction((String) (rpcUrl), this.parseToInt(networkId), (String) (fromAddress), (String) (predictionMarket), "0x0", (String) (calldata), (String) (gasLimit))).join();
             }
-            if (!java.util.Objects.equals(skipWaitForReceipt, true))
+            if (!Helpers.isTrue(skipWaitForReceipt))
             {
                 (this.waitForTransactionReceipt((String) (rpcUrl), (String) (txHash), 60000)).join();
             }
@@ -2612,7 +2612,7 @@ public class Myriad extends MyriadApi
                 {
                     resolvedOutcome = outcomeHandle;
                 }
-            } else if (java.util.Objects.equals(voided, true))
+            } else if (Boolean.TRUE.equals(voided))
             {
                 winnerRaw = false;
             }
@@ -3582,7 +3582,7 @@ public class Myriad extends MyriadApi
         return BaseExchange.supplyAsync(() -> {
 
             Boolean allowUnscopedFetchEvents = (Boolean) this.safeBool(this.options, "allowUnscopedFetchEvents", false);
-            if (!java.util.Objects.equals(allowUnscopedFetchEvents, true))
+            if (!Boolean.TRUE.equals(allowUnscopedFetchEvents))
             {
                 this.requireEventQuery(Helpers.toMapArg(parameters));
             }

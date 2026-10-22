@@ -222,7 +222,7 @@ class bybit extends \ccxt\async\bybit {
             $unified = Async\await($this->isUnifiedEnabled());
             $isUnifiedMargin = $this->safe_bool($unified, 0, false);
             $isUnifiedAccount = $this->safe_bool($unified, 1, false);
-            if ($isUsdcSettled && ($isUnifiedMargin !== true) && ($isUnifiedAccount !== true)) {
+            if ($isUsdcSettled && (!$isUnifiedMargin) && (!$isUnifiedAccount)) {
                 $url = $url[$accessibility]['usdc'];
             } else {
                 $url = $url[$accessibility]['contract'];
@@ -2219,7 +2219,7 @@ class bybit extends \ccxt\async\bybit {
             'spot' => 'outboundAccountInfo',
             'unified' => 'wallet',
         );
-        if ($isUnifiedAccount === true) {
+        if ($isUnifiedAccount) {
             // unified account
             if ($subType === 'inverse') {
                 $messageHash .= ':contract';
@@ -2227,7 +2227,7 @@ class bybit extends \ccxt\async\bybit {
                 $messageHash .= ':unified';
             }
         }
-        if (($isUnifiedMargin !== true) && ($isUnifiedAccount !== true)) {
+        if ((!$isUnifiedMargin) && (!$isUnifiedAccount)) {
             // normal account using v5
             if ($type === 'spot') {
                 $messageHash .= ':spot';
@@ -2235,7 +2235,7 @@ class bybit extends \ccxt\async\bybit {
                 $messageHash .= ':contract';
             }
         }
-        if ($isUnifiedMargin === true) {
+        if ($isUnifiedMargin) {
             // unified margin account using v5
             if ($type === 'spot') {
                 $messageHash .= ':spot';
@@ -2664,7 +2664,7 @@ class bybit extends \ccxt\async\bybit {
                 throw new ExchangeError($feedback);
             }
             $success = $this->safe_bool($message, 'success');
-            if (($success !== null) && ($success !== true)) {
+            if (($success !== null) && (!$success)) {
                 $ret_msg = $this->safe_string($message, 'ret_msg');
                 $request = $this->safe_dict($message, 'request', array());
                 $op = $this->safe_string($request, 'op');

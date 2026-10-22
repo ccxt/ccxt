@@ -1178,7 +1178,7 @@ class bittrade extends bittrade$1["default"] {
         const countryDisabled = this.safeBool(currency, 'country-disabled');
         const visible = this.safeBool(currency, 'visible', false);
         const state = this.safeString(currency, 'state');
-        const active = (visible === true) && (depositEnabled === true) && (withdrawEnabled === true) && (state === 'online') && (countryDisabled !== true);
+        const active = (visible) && (depositEnabled === true) && (withdrawEnabled === true) && (state === 'online') && (countryDisabled !== true);
         const name = this.safeString(currency, 'display-name');
         const precision = this.parseNumber(this.parsePrecision(this.safeString(currency, 'withdraw-precision')));
         return this.safeCurrencyStructure({

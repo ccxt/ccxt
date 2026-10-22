@@ -574,11 +574,11 @@ export default class grvt extends Exchange {
     }
     async initializeClient(params = {}) {
         const builderFee = this.safeBool(params, 'builderFee', this.safeBool(this.options, 'builderFee', true)); // we shouldn't omit here
-        if (builderFee !== true) {
+        if (!builderFee) {
             return false; // skip if builder fee is not enabled
         }
         const approvedBuilderFee = this.safeBool(this.options, 'approvedBuilderFee', false);
-        if (approvedBuilderFee === true) {
+        if (approvedBuilderFee) {
             return true; // skip if builder fee is already approved
         }
         const results = await Promise.all([this.privateTradingPostFullV1GetAuthorizedBuilders(), this.loadAccountInfos()]);
@@ -1433,7 +1433,7 @@ export default class grvt extends Exchange {
             requestUntilOptionString['start_time'] = this.numberToString(since * 1000000);
         }
         const useTransfersEndpoint = this.safeBool(this.options, 'useTransfersEndpointForDepositsWithdrawals', true);
-        if (useTransfersEndpoint === true) {
+        if (useTransfersEndpoint) {
             const transfers = await this.internalFetchTransfers(this.extend(requestUntilOptionString, paramsUntilOptionString), currency, since, limit);
             const filteredResults = this.filterTransfersByType(transfers, 'deposit', true);
             const transactions = this.getListFromObjectValues(filteredResults[0], 'info');
@@ -1491,7 +1491,7 @@ export default class grvt extends Exchange {
             requestUntilOptionString['start_time'] = this.numberToString(since * 1000000);
         }
         const useTransfersEndpoint = this.safeBool(this.options, 'useTransfersEndpointForDepositsWithdrawals', true);
-        if (useTransfersEndpoint === true) {
+        if (useTransfersEndpoint) {
             const transfers = await this.internalFetchTransfers(this.extend(requestUntilOptionString, paramsUntilOptionString), currency, since, limit);
             const filteredResults = this.filterTransfersByType(transfers, 'withdrawal', true);
             const transactions = this.getListFromObjectValues(filteredResults[0], 'info');
@@ -2119,7 +2119,7 @@ export default class grvt extends Exchange {
         }
         let eipType = 'EIP712_ORDER_TYPE';
         const builderFee = this.safeBool(paramsTrigger, 'builderFee', this.safeBool(this.options, 'builderFee', true));
-        if (builderFee === true) {
+        if (builderFee) {
             eipType = 'EIP712_ORDER_WITH_BUILDER_TYPE';
             orderRequest['builder'] = this.safeString(this.options, 'builder');
             orderRequest['builder_fee'] = this.safeString(this.options, 'builderRate');
@@ -3311,7 +3311,7 @@ export default class grvt extends Exchange {
             }
         }
         const isPrivate = apiName.startsWith('private');
-        if (isPrivate === true) {
+        if (isPrivate) {
             this.checkRequiredCredentials();
             if (queryString !== '') {
                 requestPath = requestPath + '?' + queryString;

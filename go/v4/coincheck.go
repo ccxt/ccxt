@@ -1423,7 +1423,7 @@ func (this *Coincheck) HandleErrors(httpCode any, reason any, url any, method an
 	//     {"success":false,"error":"invalid authentication"}
 	//
 	var success *bool = this.SafeBool(response, "success", true)
-	if success == nil || *success != true {
+	if !(success != nil && *success) {
 		var error *string = this.SafeString(response, "error")
 		var feedback string = this.Id + " " + this.Json(response)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], error, feedback)

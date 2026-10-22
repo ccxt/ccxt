@@ -56,7 +56,7 @@ func testWatchTickerBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExcha
 
 		}
 		now = exchange.Milliseconds()
-		if (success == true) && (!IsEqual(response, nil)) {
+		if (success) && (!IsEqual(response, nil)) {
 			Assert(exchange.IsDictionary(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), symbol), " must return a dictionary. "), exchange.Json(response)))
 			TestTicker(exchange, skippedProperties, method, response, symbol)
 			if IsGreaterThan((now - startTime), maxIdleTime) {

@@ -2363,7 +2363,7 @@ public class Kraken extends KrakenApi
         {
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)orderDescription).split(java.util.regex.Pattern.quote(" "))));
             side = this.safeString(parts, 0);
-            if (!java.util.Objects.equals(isUsingCost, true))
+            if (!Boolean.TRUE.equals(isUsingCost))
             {
                 amount = this.safeString(parts, 1);
             } else
@@ -2671,7 +2671,7 @@ public class Kraken extends KrakenApi
         List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(isMarket, false, paramsOmitted2);
         Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
         Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
-        if (java.util.Objects.equals(postOnly, true))
+        if (Boolean.TRUE.equals(postOnly))
         {
             String extendedPostFlags = "post";
             if (!java.util.Objects.equals(flags, null))
@@ -2740,7 +2740,7 @@ public class Kraken extends KrakenApi
             List<Object> postOnlyparamsOmittedVariable = (List<Object>) this.handlePostOnly(isMarket, false, Helpers.toMapArg(paramsOmitted));
             postOnly = (Boolean) ((List<Object>) postOnlyparamsOmittedVariable).get(0);
             paramsOmitted = ((List<Object>) postOnlyparamsOmittedVariable).get(1);
-            if (java.util.Objects.equals(postOnly, true))
+            if (Boolean.TRUE.equals(postOnly))
             {
                 request.put("post_only", "true"); // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
             }

@@ -1235,7 +1235,7 @@ impl BydfiCore {
             self.load_markets(&[]).await;
         }
         let mut paginate: Value = self.safe_bool_k(params.clone(), "paginate", &[Value::Bool(false)]);
-        if (paginate.as_bool() == Some(true)) {
+        if paginate.as_bool() == Some(true) {
             let mut maxLimit: Value = Value::Int(500);
             let __ws_arg_2 = self.omit(params.clone(), Value::Str("paginate".into()), &[]);
             let mut paramsPaginate: Value = self.extend(__ws_arg_2, &[Value::Map({
@@ -1946,13 +1946,13 @@ impl BydfiCore {
         if is_true(&hedged) {
             query = self.omit(query.clone(), Value::Str("reduceOnly".into()), &[]);
             if (side.as_str() == Some("buy")) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("positionSide".into(), (if (reduceOnly.as_bool() == Some(true)) { Value::Str("SHORT".into()) } else { Value::Str("LONG".into()) })); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("positionSide".into(), (if reduceOnly.as_bool() == Some(true) { Value::Str("SHORT".into()) } else { Value::Str("LONG".into()) })); }
             }  else if (side.as_str() == Some("sell")) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("positionSide".into(), (if (reduceOnly.as_bool() == Some(true)) { Value::Str("LONG".into()) } else { Value::Str("SHORT".into()) })); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("positionSide".into(), (if reduceOnly.as_bool() == Some(true) { Value::Str("LONG".into()) } else { Value::Str("SHORT".into()) })); }
             }
         }
         let mut closePosition: Value = self.safe_bool_k(query.clone(), "closePosition", &[Value::Bool(false)]);
-        if (closePosition.as_bool() != Some(true)) {
+        if !(closePosition.as_bool() == Some(true)) {
             query = self.omit(query.clone(), Value::Str("closePosition".into()), &[]);
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("quantity".into(), self.amount_to_precision(symbol, amount)); }
         }  else if (typeValue.as_str() != Some("STOP_MARKET")) && (typeValue.as_str() != Some("TAKE_PROFIT_MARKET")) {
@@ -2436,7 +2436,7 @@ impl BydfiCore {
             self.load_markets(&[]).await;
         }
         let mut paginate: Value = self.safe_bool_k(params.clone(), "paginate", &[Value::Bool(false)]);
-        if (paginate.as_bool() == Some(true)) {
+        if paginate.as_bool() == Some(true) {
             let mut maxLimit: Value = Value::Int(500);
             let __ws_arg_15 = self.omit(params.clone(), Value::Str("paginate".into()), &[]);
             let mut paramsPaginate: Value = self.extend(__ws_arg_15, &[Value::Map({
@@ -3630,7 +3630,7 @@ impl BydfiCore {
     m
 })]);
         let mut fillResponseFromRequest: Value = self.safe_bool_k(transferOptions, "fillResponseFromRequest", &[Value::Bool(true)]);
-        if (fillResponseFromRequest.as_bool() == Some(true)) {
+        if fillResponseFromRequest.as_bool() == Some(true) {
             add_element_to_object(&mut transfer, &Value::Str("currency".into()), code);
             add_element_to_object(&mut transfer, &Value::Str("fromAccount".into()), fromAccount);
             add_element_to_object(&mut transfer, &Value::Str("toAccount".into()), toAccount);
@@ -3669,7 +3669,7 @@ impl BydfiCore {
         }
         let mut currency: Value = self.currency(code);
         let mut paginate: Value = self.safe_bool_k(params.clone(), "paginate", &[Value::Bool(false)]);
-        if (paginate.as_bool() == Some(true)) {
+        if paginate.as_bool() == Some(true) {
             let mut maxLimit: Value = Value::Int(50);
             let __ws_arg_30 = self.omit(params.clone(), Value::Str("paginate".into()), &[]);
             let mut paramsPaginate: Value = self.extend(__ws_arg_30, &[Value::Map({
@@ -3844,7 +3844,7 @@ impl BydfiCore {
         }
         let mut currency: Value = self.currency(code);
         let mut paginate: Value = self.safe_bool_k(params.clone(), "paginate", &[Value::Bool(false)]);
-        if (paginate.as_bool() == Some(true)) {
+        if paginate.as_bool() == Some(true) {
             let mut maxLimit: Value = Value::Int(50);
             let __ws_arg_32 = self.omit(params.clone(), Value::Str("paginate".into()), &[]);
             let mut paramsPaginate: Value = self.extend(__ws_arg_32, &[Value::Map({

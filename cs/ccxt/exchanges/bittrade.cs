@@ -1463,7 +1463,7 @@ public partial class bittrade : Exchange
         bool? countryDisabled = this.safeBool(currency, "country-disabled");
         bool? visible = this.safeBool(currency, "visible", false);
         string? state = this.safeString(currency, "state");
-        bool active = ((visible == true)) && ((depositEnabled == true)) && ((withdrawEnabled == true)) && (state == "online") && ((countryDisabled != true));
+        bool active = (visible == true) && ((depositEnabled == true)) && ((withdrawEnabled == true)) && (state == "online") && ((countryDisabled != true));
         string? name = this.safeString(currency, "display-name");
         double? precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "withdraw-precision")));
         return this.safeCurrencyStructure(new Dictionary<string, object>() {

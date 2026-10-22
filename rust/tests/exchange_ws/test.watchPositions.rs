@@ -30,7 +30,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // continue;
             success = Value::Bool(false);
         }
-        if (success.as_bool() == Some(true)) {
+        if is_true(&success) {
             if (response == Value::Null) {
                 panic!("{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" watch returned undefined response".into())).into()));
             }
@@ -61,7 +61,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // continue;
             success2 = Value::Bool(false);
         }
-        if (success2.as_bool() == Some(true)) {
+        if is_true(&success2) {
             assert!(ccxt::runtime::is_true(&((matches!(&positionsForSymbols, Value::Arr(_))))));
             // max theoretical 4 positions: two for one-way-mode and two for two-way mode
             assert!(ccxt::runtime::is_true(&((Value::Int(positionsForSymbols.len() as i64).as_f64().unwrap_or(f64::NAN) <= Value::Int(4).as_f64().unwrap_or(f64::NAN)))));

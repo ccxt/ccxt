@@ -354,7 +354,7 @@ func (this *Binance) fetchRawTopicsBody(ch chan ccxt.EndpointResult[[]any], maxT
 			}())
 		}
 		var hasMore *bool = this.SafeBool(response, "hasMore", false)
-		if (hasMore == nil || *hasMore != true) || (ccxt.IsLessThan(pageTopicsLength, reqLimit)) {
+		if (!(hasMore != nil && *hasMore)) || (ccxt.IsLessThan(pageTopicsLength, reqLimit)) {
 			break
 		}
 		offset = this.Sum(offset, pageTopicsLength)
@@ -474,7 +474,7 @@ func (this *Binance) fetchEventsBody(ch chan ccxt.AsyncResult[any], optionalArgs
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var allowUnscopedFetchEvents *bool = this.SafeBool(this.Options, "allowUnscopedFetchEvents", false)
-	if allowUnscopedFetchEvents == nil || *allowUnscopedFetchEvents != true {
+	if !(allowUnscopedFetchEvents != nil && *allowUnscopedFetchEvents) {
 		this.RequireEventQuery(params)
 	}
 	var queries []any = ccxt.ArrayTyped(this.ParseSearchQueries(params))

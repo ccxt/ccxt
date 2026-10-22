@@ -1429,7 +1429,7 @@ func (this *Apex) HandleErrorMessage(client any, message any) any {
 				panic(ccxt.ExchangeError(feedback))
 			}
 			var success *bool = this.SafeBool(message, "success")
-			if (success != nil) && (success == nil || *success != true) {
+			if (success != nil) && (!(success != nil && *success)) {
 				var ret_msg *string = this.SafeString(message, "ret_msg")
 				var request map[string]any = ccxt.SafeMapTyped(message, "request")
 				var op *string = this.SafeString(request, "op")

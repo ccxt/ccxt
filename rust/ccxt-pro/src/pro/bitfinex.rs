@@ -339,7 +339,7 @@ impl BitfinexCore {
             m
         })]).await;
         let mut checksum: Value = self.safe_bool_k(self.options.clone(), "checksum", &[Value::Bool(true)]);
-        if (checksum.as_bool() == Some(true)) && (channel.as_str() == Some("book")) {
+        if checksum.as_bool() == Some(true) && (channel.as_str() == Some("book")) {
             let mut sub: Value = get_value(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
             if (sub != Value::Null) && (!is_equal(&crate::value::get_value_k(&sub, "checksum"), &Value::Bool(true))) {
                 add_element_to_object(get_value_mut(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash), &Value::Str("checksum".into()), Value::Bool(true));

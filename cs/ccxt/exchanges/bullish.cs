@@ -2140,7 +2140,7 @@ public partial class bullish : Exchange
         {
             request["price"] = this.priceToPrecision(symbol, price);
         }
-        object paramsOmitted = ((postOnly == true)) ? this.omit(parameters, "postOnly") : parameters;
+        object paramsOmitted = postOnly == true ? this.omit(parameters, "postOnly") : parameters;
         Dictionary<string, object> response = await this.privatePostV2Command(this.extend(request, paramsOmitted));
         return this.parseOrder(response, market);
     }

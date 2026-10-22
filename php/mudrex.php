@@ -219,7 +219,7 @@ class mudrex extends Exchange {
             return null;
         }
         $success = $this->safe_bool($response, 'success', true);
-        if ($success !== true) {
+        if (!$success) {
             $errors = $this->safe_list($response, 'errors', array());
             $first = $this->safe_dict($errors, 0, array());
             $text = $this->safe_string($first, 'text', $this->json($response));
@@ -449,7 +449,7 @@ class mudrex extends Exchange {
         $offset = 0;
         $pageLimit = 100;
         $paging = true;
-        while ($paging === true) {
+        while ($paging) {
             $q = $this->extend(array( 'limit' => $pageLimit, 'offset' => $offset ), $params);
             $response = $this->privateGetFutures($q);
             $data = $this->safe_value($response, 'data', array());
@@ -1291,7 +1291,7 @@ class mudrex extends Exchange {
         $calls = 0;
         $offset = 0;
         $paging = true;
-        while ($paging === true) {
+        while ($paging) {
             $request = array();
             if ($pageSize > 0) {
                 $request['limit'] = $pageSize;

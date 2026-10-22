@@ -4655,7 +4655,7 @@ class gate extends Exchange {
         $exchangeSpecificTimeInForce = $this->safe_string_lower_n($params, array( 'timeInForce', 'tif', 'time_in_force' ));
         list($postOnly, $paramsPostOnly) = $this->handle_post_only($type === 'market', $exchangeSpecificTimeInForce === 'poc', $params);
         $timeInForce = $this->handle_time_in_force($paramsPostOnly);
-        if ($postOnly === true) {
+        if ($postOnly) {
             $timeInForce = 'poc';
         }
         // we only omit the unified params here
@@ -4790,7 +4790,7 @@ class gate extends Exchange {
                 }
                 $request['text'] = $clientOrderId;
             } else {
-                if ($textIsRequired === true) {
+                if ($textIsRequired) {
                     // batchOrders requires text in the request
                     $request['text'] = 't-' . $this->uuid16();
                 }
@@ -5247,7 +5247,7 @@ class gate extends Exchange {
         //     }
         //
         $succeeded = $this->safe_bool($order, 'succeeded', true);
-        if ($succeeded !== true) {
+        if (!$succeeded) {
             // cancelOrders response
             return $this->safe_order(array(
                 'clientOrderId' => $this->safe_string($order, 'text'),
@@ -5455,19 +5455,19 @@ class gate extends Exchange {
         $trigger = $this->safe_bool_n($params, array( 'trigger', 'is_stop_order', 'stop' ), false);
         list($request, $requestParams) = $this->fetch_order_request($id, $symbol, $params);
         if ($type === 'spot' || $type === 'margin') {
-            if ($trigger === true) {
+            if ($trigger) {
                 $response = $this->privateSpotGetPriceOrdersOrderId($this->extend($request, $requestParams));
             } else {
                 $response = $this->privateSpotGetOrdersOrderId($this->extend($request, $requestParams));
             }
         } elseif ($type === 'swap') {
-            if ($trigger === true) {
+            if ($trigger) {
                 $response = $this->privateFuturesGetSettlePriceOrdersOrderId($this->extend($request, $requestParams));
             } else {
                 $response = $this->privateFuturesGetSettleOrdersOrderId($this->extend($request, $requestParams));
             }
         } elseif ($type === 'future') {
-            if ($trigger === true) {
+            if ($trigger) {
                 $response = $this->privateDeliveryGetSettlePriceOrdersOrderId($this->extend($request, $requestParams));
             } else {
                 $response = $this->privateDeliveryGetSettleOrdersOrderId($this->extend($request, $requestParams));
@@ -5827,19 +5827,19 @@ class gate extends Exchange {
         list($request, $requestParams) = ($type === 'spot' || $type === 'margin') ? $this->spot_order_prepare_request($market, $trigger, $query) : $this->prepare_request($market, $type, $query);
         $request['order_id'] = $id;
         if ($type === 'spot' || $type === 'margin') {
-            if ($trigger === true) {
+            if ($trigger) {
                 $response = $this->privateSpotDeletePriceOrdersOrderId($this->extend($request, $requestParams));
             } else {
                 $response = $this->privateSpotDeleteOrdersOrderId($this->extend($request, $requestParams));
             }
         } elseif ($type === 'swap') {
-            if ($trigger === true) {
+            if ($trigger) {
                 $response = $this->privateFuturesDeleteSettlePriceOrdersOrderId($this->extend($request, $requestParams));
             } else {
                 $response = $this->privateFuturesDeleteSettleOrdersOrderId($this->extend($request, $requestParams));
             }
         } elseif ($type === 'future') {
-            if ($trigger === true) {
+            if ($trigger) {
                 $response = $this->privateDeliveryDeleteSettlePriceOrdersOrderId($this->extend($request, $requestParams));
             } else {
                 $response = $this->privateDeliveryDeleteSettleOrdersOrderId($this->extend($request, $requestParams));
@@ -7125,7 +7125,7 @@ class gate extends Exchange {
         $bodyJson = null;
         $signedHeaders = null;
         $containsSettle = mb_strpos($path, 'settle') > -1;
-        if ($containsSettle && (str_ends_with($path, 'batch_cancel_orders') === true)) { // weird check to prevent $settle in php and converting {settle} to array(settle)
+        if ($containsSettle && (str_ends_with($path, 'batch_cancel_orders'))) { // weird check to prevent $settle in php and converting {settle} to array(settle)
             // special case where we need to extract the settle from the path
             // but the body is an array of strings
             $settle = $this->safe_dict($params, 0);

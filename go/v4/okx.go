@@ -3109,7 +3109,7 @@ func (this *Okx) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs ...a
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var isSandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
-	if !this.CheckRequiredCredentials(false) || (isSandboxMode != nil && *isSandboxMode == true) {
+	if !this.CheckRequiredCredentials(false) || (isSandboxMode != nil && *isSandboxMode) {
 
 		ch <- AsyncResult[any]{Value: map[string]any{}}
 		return nil
@@ -3403,7 +3403,7 @@ func (this *Okx) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var open *string = this.SafeString(ticker, "open24h")
 	var spot *bool = this.SafeBool(marketResolved, "spot", false)
 	var quoteVolume *string = func() *string {
-		if spot != nil && *spot == true {
+		if spot != nil && *spot {
 			return this.SafeString(ticker, "volCcy24h")
 		}
 		return nil
@@ -4705,7 +4705,7 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 		margin = true
 	} else {
 		marginMode = defaultMarginMode
-		margin = this.SafeBool(params, "margin", false)
+		margin = DerefScalar(this.SafeBool(params, "margin", false))
 	}
 	// position side / hedged options only apply to swap and future orders
 	var isSwapOrFuture bool = (contract != nil && *contract == true) && ((market["swap"] == true) || (market["future"] == true))
@@ -4728,7 +4728,7 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 		paramsReduceOnly = this.Omit(paramsHedged, "reduceOnly")
 	}
 	if spot != nil && *spot == true {
-		if IsEqual(margin, true) {
+		if EvalTruthy(margin) {
 			var defaultCurrency any = func() any {
 				if IsEqual(side, "buy") {
 					return market["quote"]
@@ -4739,7 +4739,7 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 			AddElementToObject(request, "ccy", this.SafeCurrencyCode(currency))
 		}
 		var tradeMode *string = func() *string {
-			if IsEqual(margin, true) {
+			if EvalTruthy((margin)) {
 				return marginMode
 			}
 			return SafeStringPtr("cash")
@@ -4786,7 +4786,7 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 	var marketIOC bool = (isMarketOrder && ioc) || (IsEqual(typeVar, "optimal_limit_ioc"))
 	var defaultTgtCcy *string = this.SafeString(this.Options, "tgtCcy", "base_ccy")
 	var tgtCcy *string = this.SafeString(orderParams, "tgtCcy", defaultTgtCcy)
-	if (contract == nil || *contract != true) && (!IsEqual(margin, true)) {
+	if (contract == nil || *contract != true) && (!EvalTruthy(margin)) {
 		AddElementToObject(request, "tgtCcy", tgtCcy)
 	}
 	if isMarketOrder || marketIOC {
@@ -5568,7 +5568,7 @@ func (this *Okx) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, op
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	var trailing *bool = this.SafeBool(params, "trailing", false)
 	var isTrigger bool = (trigger != nil && *trigger == true)
-	if isTrigger || (trailing != nil && *trailing == true) {
+	if isTrigger || (trailing != nil && *trailing) {
 
 		r := <-this.CancelOrdersAsync([]any{id}, symbol, params)
 		if r.Err != nil {
@@ -5671,7 +5671,7 @@ func (this *Okx) cancelOrdersBody(ch chan AsyncResult[any], ids any, optionalArg
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	var trailing *bool = this.SafeBool(params, "trailing", false)
 	var isTrigger bool = (trigger != nil && *trigger == true)
-	if isTrigger || (trailing != nil && *trailing == true) {
+	if isTrigger || (trailing != nil && *trailing) {
 		method = SafeStringPtr("privatePostTradeCancelAlgos")
 	}
 	if IsEqual(clientOrderIds, nil) {
@@ -5685,7 +5685,7 @@ func (this *Okx) cancelOrdersBody(ch chan AsyncResult[any], ids any, optionalArg
 			}
 		}
 		for i := 0; i < GetArrayLength(orderIds); i++ {
-			if (trailing != nil && *trailing == true) || isTrigger {
+			if (trailing != nil && *trailing) || isTrigger {
 				request = append(request, map[string]any{
 					"algoId": GetValue(orderIds, i),
 					"instId": market["id"],
@@ -5699,7 +5699,7 @@ func (this *Okx) cancelOrdersBody(ch chan AsyncResult[any], ids any, optionalArg
 		}
 	} else {
 		for i := 0; i < GetArrayLength(clientOrderIds); i++ {
-			if (trailing != nil && *trailing == true) || isTrigger {
+			if (trailing != nil && *trailing) || isTrigger {
 				request = append(request, map[string]any{
 					"instId":      market["id"],
 					"algoClOrdId": GetValue(clientOrderIds, i),
@@ -5801,8 +5801,8 @@ func (this *Okx) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]any], orders a
 	var method *string = this.SafeString(params, "method", defaultMethod)
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	var trailing *bool = this.SafeBool(params, "trailing", false)
-	var isStopOrTrailing bool = (trigger != nil && *trigger == true) || (trailing != nil && *trailing == true)
-	if isStopOrTrailing == true {
+	var isStopOrTrailing bool = (trigger != nil && *trigger == true) || (trailing != nil && *trailing)
+	if isStopOrTrailing {
 		method = SafeStringPtr("privatePostTradeCancelAlgos")
 	}
 	for i := 0; i < GetArrayLength(orders); i++ {
@@ -5815,7 +5815,7 @@ func (this *Okx) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]any], orders a
 		}
 		var market map[string]any = this.Market(symbol)
 		var idKey string = "ordId"
-		if isStopOrTrailing == true {
+		if isStopOrTrailing {
 			idKey = "algoId"
 		} else if clientOrderId != nil {
 			idKey = "clOrdId"
@@ -6509,7 +6509,7 @@ func (this *Okx) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...a
 	var trigger *bool = this.SafeBool2(paramsPaginate, "stop", "trigger")
 	var trailing *bool = this.SafeBool(paramsPaginate, "trailing", false)
 	var isTrigger bool = (trigger != nil && *trigger == true)
-	if (trailing != nil && *trailing == true) || isTrigger || ((ordType != nil) && (func() bool {
+	if (trailing != nil && *trailing) || isTrigger || ((ordType != nil) && (func() bool {
 		if ordType == nil {
 			return false
 		}
@@ -6518,7 +6518,7 @@ func (this *Okx) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...a
 	}())) {
 		method = SafeStringPtr("privateGetTradeOrdersAlgoPending")
 	}
-	if trailing != nil && *trailing == true {
+	if trailing != nil && *trailing {
 		request["ordType"] = "move_order_stop"
 	} else if isTrigger && (ordType == nil) {
 		request["ordType"] = "trigger"
@@ -6703,7 +6703,7 @@ func (this *Okx) fetchCanceledOrdersBody(ch chan AsyncResult[[]any], optionalArg
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	var trailing *bool = this.SafeBool(params, "trailing", false)
 	var isTrigger bool = (trigger != nil && *trigger == true)
-	if trailing != nil && *trailing == true {
+	if trailing != nil && *trailing {
 		method = SafeStringPtr("privateGetTradeOrdersAlgoHistory")
 		request["ordType"] = "move_order_stop"
 	} else if isTrigger || ((ordType != nil) && (func() bool {
@@ -6934,7 +6934,7 @@ func (this *Okx) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs ..
 	var ordType *string = this.SafeString(paramsPaginate, "ordType")
 	var trigger *bool = this.SafeBool2(paramsPaginate, "stop", "trigger")
 	var trailing *bool = this.SafeBool(paramsPaginate, "trailing", false)
-	if (trailing != nil && *trailing == true) || (trigger != nil && *trigger == true) || ((ordType != nil) && (func() bool {
+	if (trailing != nil && *trailing) || (trigger != nil && *trigger == true) || ((ordType != nil) && (func() bool {
 		if ordType == nil {
 			return false
 		}
@@ -6944,7 +6944,7 @@ func (this *Okx) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs ..
 		method = SafeStringPtr("privateGetTradeOrdersAlgoHistory")
 		request["state"] = "effective"
 	}
-	if trailing != nil && *trailing == true {
+	if trailing != nil && *trailing {
 		request["ordType"] = "move_order_stop"
 	} else if trigger != nil && *trigger == true {
 		if ordType == nil {

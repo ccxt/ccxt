@@ -727,7 +727,7 @@ class polymarket extends Exchange {
             $active = $this->safe_bool($market, 'active', false);
             $closed = $this->safe_bool($market, 'closed', false);
             // resolution: a closed/uma-resolved market settles each outcome price to 0 or 1
-            $marketResolved = ($closed === true) || ($this->safe_string_lower($market, 'umaResolutionStatus') === 'resolved');
+            $marketResolved = ($closed) || ($this->safe_string_lower($market, 'umaResolutionStatus') === 'resolved');
             $resolvedOutcome = null;
             // gamma exposes the order-book tick as orderPriceMinTickSize; minimumTickSize is the clob alias
             $tickSize = $this->safe_number_2($market, 'orderPriceMinTickSize', 'minimumTickSize', 0.01);
@@ -807,7 +807,7 @@ class polymarket extends Exchange {
                     'market' => $marketSymbol,
                     'label' => $outcomeLabel,
                     'price' => $outcomePrice,
-                    'active' => ($active === true) && ($closed !== true),
+                    'active' => ($active) && (!$closed),
                     'winner' => $winner,
                     'settleFraction' => $settleFraction,
                     // carry the order precision so createOrder needs no extra request
@@ -842,7 +842,7 @@ class polymarket extends Exchange {
                 'future' => false,
                 'option' => false,
                 'prediction' => true,
-                'active' => ($active === true) && ($closed !== true),
+                'active' => ($active) && (!$closed),
                 'resolved' => $marketResolved,
                 'resolvedOutcome' => $marketResolvedOutcome,
                 'contract' => false,
@@ -2195,7 +2195,7 @@ class polymarket extends Exchange {
             if (strlen($builderHex) <= 40) {
                 $builderFeeEnabled = $this->safe_bool($this->options, 'builderFee', true);
                 $feeRate = 0;
-                if ($builderFeeEnabled === true) {
+                if ($builderFeeEnabled) {
                     $feeRate = $this->safe_integer($this->options, 'feeRate', 0);
                 }
                 $feeHex = $this->int_to_base16($feeRate);
@@ -2232,7 +2232,7 @@ class polymarket extends Exchange {
         $exchangeV2 = $this->safe_string($this->options, 'exchangeAddress', '0xE111180000d2663C0091e4f400237545B87B996B');
         $negRiskExchangeV2 = $this->safe_string($this->options, 'negRiskExchangeAddress', '0xe2222d279d744050d28e00520010520000310F59');
         $exchangeAddress = $exchangeV2;
-        if ($negRisk === true) {
+        if ($negRisk) {
             $exchangeAddress = $negRiskExchangeV2;
         }
         $domainVersion = $this->safe_string($this->options, 'ctfExchangeVersion', '2');
@@ -2726,7 +2726,7 @@ class polymarket extends Exchange {
         $closed = $this->safe_bool($rawEvent, 'closed', false);
         $active = null;
         if ($rawActive !== null) {
-            $active = ($rawActive === true) && ($closed !== true);
+            $active = ($rawActive) && (!$closed);
         }
         // surface gamma's tag objects as a top-level string[] so the unified `tags` filter
         // — filterEventsByTags reads event['tags'], not event.info.tags — can actually match.

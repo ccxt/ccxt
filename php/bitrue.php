@@ -3359,7 +3359,7 @@ class bitrue extends Exchange {
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         $success = $this->safe_bool($response, 'success', true);
         $parsedMessage = null;
-        if ($success !== true) {
+        if (!$success) {
             $messageInner = $this->safe_string($response, 'msg');
             if ($messageInner !== null) {
                 try {
@@ -3394,7 +3394,7 @@ class bitrue extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $feedback);
             throw new ExchangeError($feedback);
         }
-        if ($success !== true) {
+        if (!$success) {
             throw new ExchangeError($this->id . ' ' . $body);
         }
         return null;

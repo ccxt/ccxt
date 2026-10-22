@@ -914,7 +914,7 @@ func (this *Bydfi) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...a
 		}
 	}
 	var paginate *bool = this.SafeBool(params, "paginate", false)
-	if paginate != nil && *paginate == true {
+	if paginate != nil && *paginate {
 		var maxLimit int = 500
 		var paramsPaginate map[string]any = this.Extend(this.Omit(params, "paginate"), map[string]any{
 			"paginationDirection": "backward",
@@ -1700,14 +1700,14 @@ func (this *Bydfi) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 		query = this.Omit(query, "reduceOnly")
 		if IsEqual(side, "buy") {
 			request["positionSide"] = func() string {
-				if reduceOnly != nil && *reduceOnly == true {
+				if reduceOnly != nil && *reduceOnly {
 					return "SHORT"
 				}
 				return "LONG"
 			}()
 		} else if IsEqual(side, "sell") {
 			request["positionSide"] = func() string {
-				if reduceOnly != nil && *reduceOnly == true {
+				if reduceOnly != nil && *reduceOnly {
 					return "LONG"
 				}
 				return "SHORT"
@@ -1715,7 +1715,7 @@ func (this *Bydfi) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 		}
 	}
 	var closePosition *bool = this.SafeBool(query, "closePosition", false)
-	if closePosition == nil || *closePosition != true {
+	if !(closePosition != nil && *closePosition) {
 		query = this.Omit(query, "closePosition")
 		request["quantity"] = this.AmountToPrecision(symbol, amount)
 	} else if (typeValue != "STOP_MARKET") && (typeValue != "TAKE_PROFIT_MARKET") {
@@ -2258,7 +2258,7 @@ func (this *Bydfi) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]any], 
 		}
 	}
 	var paginate *bool = this.SafeBool(params, "paginate", false)
-	if paginate != nil && *paginate == true {
+	if paginate != nil && *paginate {
 		var maxLimit int = 500
 		var paramsPaginate map[string]any = this.Extend(this.Omit(params, "paginate"), map[string]any{
 			"paginationDirection": "backward",
@@ -3518,7 +3518,7 @@ func (this *Bydfi) transferBody(ch chan AsyncResult[map[string]any], code string
 	var transfer map[string]any = this.ParseTransfer(response, currency)
 	var transferOptions map[string]any = SafeMapTyped(this.Options, "transfer")
 	var fillResponseFromRequest *bool = this.SafeBool(transferOptions, "fillResponseFromRequest", true)
-	if fillResponseFromRequest != nil && *fillResponseFromRequest == true {
+	if fillResponseFromRequest != nil && *fillResponseFromRequest {
 		transfer["currency"] = code
 		transfer["fromAccount"] = fromAccount
 		transfer["toAccount"] = toAccount
@@ -3569,7 +3569,7 @@ func (this *Bydfi) fetchTransfersBody(ch chan AsyncResult[any], optionalArgs ...
 	}
 	var currency map[string]any = this.Currency(code)
 	var paginate *bool = this.SafeBool(params, "paginate", false)
-	if paginate != nil && *paginate == true {
+	if paginate != nil && *paginate {
 		var maxLimit int = 50
 		var paramsPaginate map[string]any = this.Extend(this.Omit(params, "paginate"), map[string]any{
 			"paginationDirection": "backward",
@@ -3784,7 +3784,7 @@ func (this *Bydfi) fetchTransactionsHelperBody(ch chan AsyncResult[any], typeVar
 	}
 	var currency map[string]any = this.Currency(code)
 	var paginate *bool = this.SafeBool(params, "paginate", false)
-	if paginate != nil && *paginate == true {
+	if paginate != nil && *paginate {
 		var maxLimit int = 50
 		var paramsPaginate map[string]any = this.Extend(this.Omit(params, "paginate"), map[string]any{
 			"paginationDirection": "backward",

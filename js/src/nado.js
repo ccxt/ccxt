@@ -1711,7 +1711,7 @@ export default class nado extends Exchange {
                 const previousWithdraw = this.safeBool(previous, 'can_withdraw', false);
                 const currentDeposit = this.safeBool(rawAsset, 'can_deposit', false);
                 const currentWithdraw = this.safeBool(rawAsset, 'can_withdraw', false);
-                if ((previousDeposit !== true) && (previousWithdraw !== true) && ((currentDeposit === true) || (currentWithdraw === true))) {
+                if ((!previousDeposit) && (!previousWithdraw) && ((currentDeposit) || (currentWithdraw))) {
                     assetsByCode[assetCode] = rawAsset;
                 }
             }
@@ -1842,7 +1842,7 @@ export default class nado extends Exchange {
             else {
                 const previousDeposit = this.safeBool(previous, 'deposit', false);
                 const previousWithdraw = this.safeBool(previous, 'withdraw', false);
-                if ((previousDeposit !== true) && (previousWithdraw !== true) && ((canDeposit === true) || (canWithdraw === true))) {
+                if ((!previousDeposit) && (!previousWithdraw) && ((canDeposit) || (canWithdraw))) {
                     result[code] = parsed;
                 }
             }
@@ -3007,17 +3007,17 @@ export default class nado extends Exchange {
         if (orderType !== 0) {
             appendix = Precise.stringAdd(appendix, Precise.stringMul(this.numberToString(orderType), '512'));
         }
-        if (reduceOnly === true) {
+        if (reduceOnly) {
             appendix = Precise.stringAdd(appendix, '2048');
         }
         const buildFee = this.safeBool(this.options, 'builderFee', true);
-        if (buildFee === true) {
+        if (buildFee) {
             const builder = this.safeString(this.options, 'builder', '4500');
             const builderFeeRate = this.safeString(this.options, 'feeRate', '10'); // 10 units = 0.01%
             appendix = Precise.stringAdd(appendix, Precise.stringMul(builder, '281474976710656')); // 1<<48
             appendix = Precise.stringAdd(appendix, Precise.stringMul(builderFeeRate, '274877906944')); // 1<<32
         }
-        if (isTriggerOrder === true) {
+        if (isTriggerOrder) {
             appendix = Precise.stringAdd(appendix, '4096');
         }
         return appendix;

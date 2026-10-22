@@ -59,8 +59,8 @@ public class TestFetchCurrencies extends BaseTest {
                 Object withdraw = exchange.safeBool(currency, "withdraw", (Object) null);
                 Object deposit = exchange.safeBool(currency, "deposit", (Object) null);
                 Object isMicaCompliant = exchange.safeBool(exchange.options, "mica", false);
-                Boolean skipUsdtForMica = (java.util.Objects.equals(isMicaCompliant, true)) && (java.util.Objects.equals(code, "USDT"));
-                if (Helpers.isTrue(exchange.inArray(code, requiredActiveCurrencies)) && !Boolean.TRUE.equals(skipMajorCurrencyCheck) && (!java.util.Objects.equals(skipUsdtForMica, true)))
+                Boolean skipUsdtForMica = Helpers.isTrue((isMicaCompliant)) && (java.util.Objects.equals(code, "USDT"));
+                if (Helpers.isTrue(exchange.inArray(code, requiredActiveCurrencies)) && !Boolean.TRUE.equals(skipMajorCurrencyCheck) && (!Boolean.TRUE.equals(skipUsdtForMica)))
                 {
                     Assert((java.util.Objects.equals(withdraw, true)) && (java.util.Objects.equals(deposit, true)), ((("Major currency " + code) + " should have withdraw and deposit flags enabled ::: ") + exchange.json(currency)));
                 }

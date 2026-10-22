@@ -53,7 +53,7 @@ function test_watch_tickers_helper($exchange, $skipped_properties, $arg_symbols,
             if ($should_return) {
                 return false;
             }
-            if ($success === true) {
+            if ($success) {
                 assert($exchange->is_dictionary($response), $exchange->id . ' ' . $method . ' ' . $exchange->json($arg_symbols) . ' must return a dictionary. ' . $exchange->json($response));
                 $values = is_array($response) ? array_values($response) : array();
                 $checked_symbol = null;

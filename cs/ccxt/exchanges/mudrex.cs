@@ -299,7 +299,7 @@ public partial class mudrex : Exchange
             return null;
         }
         bool? success = this.safeBool(response, "success", true);
-        if ((success != true))
+        if (success != true)
         {
             List<object> errors = this.safeList(response, "errors", new List<object>() {});
             IDictionary<string, object> first = this.safeDict(errors, 0, new Dictionary<string, object>() {});
@@ -560,7 +560,7 @@ public partial class mudrex : Exchange
         object offset = 0;
         int pageLimit = 100;
         bool paging = true;
-        while ((paging == true))
+        while (paging)
         {
             Dictionary<string, object> q = this.extend(new Dictionary<string, object>() {
                 { "limit", pageLimit },
@@ -1527,7 +1527,7 @@ public partial class mudrex : Exchange
         object calls = 0;
         object offset = 0;
         bool paging = true;
-        while ((paging == true))
+        while (paging)
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {};
             if (isGreaterThan(pageSize, 0))

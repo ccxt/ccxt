@@ -2237,7 +2237,7 @@ public partial class bitso : Exchange
                     success = false;
                 }
             }
-            if ((success != true))
+            if (success != true)
             {
                 string feedback = ((this.id + " ") + this.json(response));
                 IDictionary<string, object> error = this.safeDict(response, "error");

@@ -1738,7 +1738,7 @@ func (this *Hyperliquid) watchBalanceBody(ch chan ccxt.AsyncResult[map[string]an
 	var dex *string = this.SafeString(paramsValue2, "dex")
 	var isSpot bool = ((typeVar != nil && *typeVar == "spot") || (ccxt.IsEqual(isUnifiedEnabled, true))) && (dex == nil)
 	var topic string = "clearinghouseState"
-	if isSpot == true {
+	if isSpot {
 		topic = "spotState"
 	}
 	var messageHash string = topic + "::balance"
@@ -1747,7 +1747,7 @@ func (this *Hyperliquid) watchBalanceBody(ch chan ccxt.AsyncResult[map[string]an
 		"type": topic,
 		"user": userAddress,
 	}
-	if isSpot == true {
+	if isSpot {
 		if ccxt.IsEqual(isUnifiedEnabled, true) {
 			subscription["isPortfolioMargin"] = true
 		}
@@ -1835,7 +1835,7 @@ func (this *Hyperliquid) unWatchBalanceBody(ch chan ccxt.AsyncResult[any], optio
 	var dex *string = this.SafeString(paramsValue2, "dex")
 	var isSpot bool = ((typeVar != nil && *typeVar == "spot") || (ccxt.IsEqual(isUnifiedEnabled, true))) && (dex == nil)
 	var topic string = "clearinghouseState"
-	if isSpot == true {
+	if isSpot {
 		topic = "spotState"
 	}
 	var messageHash string = "unsubscribe" + ":" + topic

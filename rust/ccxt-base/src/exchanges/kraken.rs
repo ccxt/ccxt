@@ -2826,7 +2826,7 @@ impl KrakenCore {
         if (orderDescription != Value::Null) {
             let mut parts: Value = split(&orderDescription, &Value::Str(" ".into()));
             side = self.safe_string(parts.clone(), Value::Int(0), &[]);
-            if (isUsingCost.as_bool() != Some(true)) {
+            if !(isUsingCost.as_bool() == Some(true)) {
                 amount = self.safe_string(parts.clone(), Value::Int(1), &[]);
             }  else {
                 cost = self.safe_string(parts.clone(), Value::Int(1), &[]);
@@ -3107,7 +3107,7 @@ impl KrakenCore {
         let mut postOnlyparamsPostOnlyVariable = self.handle_post_only(isMarket, Value::Bool(false), &[paramsOmitted2]);
         let mut postOnly: Value = postOnlyparamsPostOnlyVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsPostOnly: Value = postOnlyparamsPostOnlyVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        if (postOnly.as_bool() == Some(true)) {
+        if is_true(&postOnly) {
             let mut extendedPostFlags: Value = Value::Str("post".into());
             if (flags != Value::Null) {
                 extendedPostFlags = Value::Str(format!("{}{}", flags, Value::Str(",post".into())).into());
@@ -3174,7 +3174,7 @@ impl KrakenCore {
         let mut isMarket: Value = (Value::Bool(type_var.as_str() == Some("market")));
         let mut postOnly: Value = Value::Null;
         { let __destr_tmp = self.handle_post_only(isMarket, Value::Bool(false), &[paramsOmitted.clone()]); postOnly = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); paramsOmitted = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        if (postOnly.as_bool() == Some(true)) {
+        if is_true(&postOnly) {
             add_element_to_object(&mut request, &Value::Str("post_only".into()), Value::Str("true".into())); // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
         }
         if (amount != Value::Null) {

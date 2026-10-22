@@ -1100,7 +1100,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             Boolean isTrigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             String accessType = "private";
-            if (java.util.Objects.equals(isTrigger, true))
+            if (Boolean.TRUE.equals(isTrigger))
             {
                 accessType = "business";
             }
@@ -2192,7 +2192,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String access = "private";
-            if (java.util.Objects.equals(isTrigger, true))
+            if (Boolean.TRUE.equals(isTrigger))
             {
                 access = "business";
             }
@@ -2200,7 +2200,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             mapLiteral6.put("access", access);
             (this.authenticate(mapLiteral6)).join();
             String channel = "orders";
-            if (java.util.Objects.equals(isTrigger, true))
+            if (Boolean.TRUE.equals(isTrigger))
             {
                 channel = "orders-algo";
             }
@@ -2433,7 +2433,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String accessType = "private";
-            if (java.util.Objects.equals(isTrigger, true))
+            if (Boolean.TRUE.equals(isTrigger))
             {
                 accessType = "business";
             }
@@ -2471,7 +2471,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("instType", uppercaseType);
             String channel = "orders";
-            if (java.util.Objects.equals(isTrigger, true))
+            if (Boolean.TRUE.equals(isTrigger))
             {
                 channel = "orders-algo";
             }

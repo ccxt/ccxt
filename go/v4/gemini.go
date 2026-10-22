@@ -2410,7 +2410,7 @@ func (this *Gemini) createOrderBody(ch chan AsyncResult[map[string]any], symbol 
 			}
 		}
 		var postOnly *bool = this.SafeBool(params, "postOnly", false)
-		if postOnly != nil && *postOnly == true {
+		if postOnly != nil && *postOnly {
 			request["options"] = []any{"maker-or-cancel"}
 		}
 		// allowing override for auction-only and indication-of-interest order options

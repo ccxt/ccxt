@@ -77,7 +77,7 @@ function helper_test_handle_typed_options() {
     [$margin_mode, $params1] = $exchange->handle_margin_mode_and_params('fetchX', array(), 'cross');
     assert($margin_mode === 'isolated');
     [$uta, $params2] = $exchange->handle_option_bool_and_params(array(), 'fetchX', 'uta', false);
-    assert($uta === true);
+    assert($uta);
     [$absent, $params3] = $exchange->handle_option_string_and_params(array(), 'fetchX', 'absentKey', 'fallback');
     assert($absent === 'fallback');
     [$from_params, $params4] = $exchange->handle_option_string_and_params(array(

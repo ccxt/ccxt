@@ -71,7 +71,7 @@ func testWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[any], exchange ccxt.I
 
 		}
 		now = exchange.Milliseconds()
-		if (success == true) && (!IsEqual(response, nil)) {
+		if (success) && (!IsEqual(response, nil)) {
 			var AssertionMessage any = Add(Add(Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), symbol), " "), chosenTimeframeKey), " | "), exchange.Json(response))
 			Assert(exchange.IsDictionary(response), Add("Response must be a dictionary. ", AssertionMessage))
 			Assert(InOp(response, symbol), Add("Response should contain the symbol as key. ", AssertionMessage))

@@ -725,7 +725,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         //     }
         //
         Boolean isSnapshot = (Boolean) this.safeBool(message, "f", false);
-        if (java.util.Objects.equals(isSnapshot, true))
+        if (Boolean.TRUE.equals(isSnapshot))
         {
             this.setOrderBookSnapshot(client, (Map<String, Object>) (message), "diffDepth");
             return;

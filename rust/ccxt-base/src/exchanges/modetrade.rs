@@ -3169,7 +3169,7 @@ impl ModetradeCore {
 }));
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
-        if (trigger.as_bool() != Some(true)) && (symbol == Value::Null) {
+        if (!(trigger.as_bool() == Some(true))) && (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".into()))));
         }
         if (self.markets.clone() == Value::Null) {
@@ -3189,7 +3189,7 @@ impl ModetradeCore {
         let mut isByClientOrder: bool = clientOrderIdExchangeSpecific != Value::Null;
         let mut paramsClientOrder: Value = self.omit(paramsOmitted.clone(), Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]);
         let mut response: Value = Value::Null;
-        if (trigger.as_bool() == Some(true)) {
+        if trigger.as_bool() == Some(true) {
             if isByClientOrder {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("client_order_id".into(), clientOrderIdExchangeSpecific.clone()); }
                 let __ws_arg_10 = self.extend(request.clone(), &[paramsClientOrder.clone()]);
@@ -3235,7 +3235,7 @@ impl ModetradeCore {
         }  else {
             if let Value::Dict(__d) = &mut extendParams { std::sync::Arc::make_mut(__d).insert("id".into(), id); }
         }
-        if (trigger.as_bool() == Some(true)) {
+        if trigger.as_bool() == Some(true) {
             let __ws_arg_14 = self.parse_order(response.clone(), &[]);
             return self.extend(__ws_arg_14, &[extendParams.clone()]);
         }
@@ -3378,7 +3378,7 @@ impl ModetradeCore {
         let mut clientOrderId: Value = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]);
         let mut response: Value = Value::Null;
-        if (trigger.as_bool() == Some(true)) {
+        if trigger.as_bool() == Some(true) {
             if (clientOrderId != Value::Null) && (clientOrderId.as_str() != Some("")) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("client_order_id".into(), clientOrderId.clone()); }
                 let __ws_arg_20 = self.extend(request.clone(), &[paramsOmitted.clone()]);
@@ -3461,7 +3461,7 @@ impl ModetradeCore {
             self.load_markets(&[]).await;
         }
         let mut isTrigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]);
-        let mut maxLimit: Value = (if (isTrigger.as_bool() == Some(true)) { Value::Int(100) } else { Value::Int(500) });
+        let mut maxLimit: Value = (if isTrigger.as_bool() == Some(true) { Value::Int(100) } else { Value::Int(500) });
         let mut paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
         let mut paginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
@@ -3486,14 +3486,14 @@ impl ModetradeCore {
         }  else {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("size".into(), maxLimit); }
         }
-        if (isTrigger.as_bool() == Some(true)) {
+        if isTrigger.as_bool() == Some(true) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("algo_type".into(), Value::Str("STOP".into())); }
         }
         let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("end_t".into()), request, paramsOmitted, &[]);
         let mut requestUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
-        if (isTrigger.as_bool() == Some(true)) {
+        if isTrigger.as_bool() == Some(true) {
             let __ws_arg_24 = self.extend(requestUntil.clone(), &[paramsUntil.clone()]);
             response = self.v1_private_get_algo_orders(&[__ws_arg_24]).await;
         }  else {
@@ -4708,7 +4708,7 @@ impl ModetradeCore {
             let mut isOrder: bool = (path.as_str() == Some("algo/order")) || (path.as_str() == Some("order")) || (path.as_str() == Some("batch-order"));
             if isPostOrPut && isOrder {
                 let mut isSandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
-                if (isSandboxMode.as_bool() != Some(true)) {
+                if !(isSandboxMode.as_bool() == Some(true)) {
                     let mut brokerId: Value = self.safe_string_k(self.options.clone(), "brokerId", &[Value::Str("CCXTMODE".into())]);
                     if (path.as_str() == Some("batch-order")) {
                         let mut ordersList: Value = self.safe_list_k(paramsSorted.clone(), "orders", &[Value::from(vec![])]);

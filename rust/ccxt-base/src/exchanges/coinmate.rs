@@ -1369,7 +1369,7 @@ impl CoinmateCore {
 })]);
         let mut transaction: Value = self.parse_transaction(data, &[currency]);
         let mut fillResponseFromRequest: Value = self.safe_bool_k(withdrawOptions, "fillResponseFromRequest", &[Value::Bool(true)]);
-        if (fillResponseFromRequest.as_bool() == Some(true)) {
+        if fillResponseFromRequest.as_bool() == Some(true) {
             add_element_to_object(&mut transaction, &Value::Str("amount".into()), amount);
             add_element_to_object(&mut transaction, &Value::Str("currency".into()), code);
             add_element_to_object(&mut transaction, &Value::Str("address".into()), address);

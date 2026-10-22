@@ -1581,11 +1581,11 @@ public partial class testMainClass
         object watchOrderBookSkips = this.getSkips(exchange, "watchOrderBook");
         object fetchOrderBookSkips = this.getSkips(exchange, "fetchOrderBook");
         // ensure with hardcoded list of required methods
-        if (isTrue(this.wsTests) && (!isEqual(exchange.safeBool(exchange.has, "watchOrderBook", false), true)) && !(watchOrderBookSkips is string))
+        if (isTrue(this.wsTests) && (!isTrue(exchange.safeBool(exchange.has, "watchOrderBook", false))) && !(watchOrderBookSkips is string))
         {
             dump("[TEST_FAILURE] Method \"watchOrderBook\" is not set in \"has\", please check the \"has\" property of exchange");
             exitScript(1);
-        } else if (!isTrue(this.wsTests) && (!isEqual(exchange.safeBool(exchange.has, "fetchOrderBook", false), true)) && !(fetchOrderBookSkips is string))
+        } else if (!isTrue(this.wsTests) && (!isTrue(exchange.safeBool(exchange.has, "fetchOrderBook", false))) && !(fetchOrderBookSkips is string))
         {
             dump("[TEST_FAILURE] Method \"fetchOrderBook\" is not set in \"has\", please check the \"has\" property of exchange");
             exitScript(1);
@@ -2543,7 +2543,7 @@ public partial class testMainClass
                 // and would leak state across entries otherwise
                 BaseExchange exchange = this.initOfflineExchange(exchangeName, true);
                 object isDisabled = exchange.safeBool(result, "disabled", false);
-                if (isEqual(isDisabled, true))
+                if (isTrue(isDisabled))
                 {
                     continue;
                 }
@@ -2794,7 +2794,7 @@ public partial class testMainClass
                     continue;
                 }
                 object isDisabled = exchange.safeBool(result, "disabled", false);
-                if (isEqual(isDisabled, true))
+                if (isTrue(isDisabled))
                 {
                     continue;
                 }
@@ -2804,12 +2804,12 @@ public partial class testMainClass
                     continue;
                 }
                 object isDisabledCSharp = exchange.safeBool(result, "disabledCS", false);
-                if ((isEqual(isDisabledCSharp, true)) && (isEqual(this.lang, "C#")))
+                if (isTrue((isDisabledCSharp)) && (isEqual(this.lang, "C#")))
                 {
                     continue;
                 }
                 object isDisabledGo = exchange.safeBool(result, "disabledGO", false);
-                if ((isEqual(isDisabledGo, true)) && (isEqual(this.lang, "GO")))
+                if (isTrue((isDisabledGo)) && (isEqual(this.lang, "GO")))
                 {
                     continue;
                 }
@@ -2819,7 +2819,7 @@ public partial class testMainClass
                     continue;
                 }
                 object isDisabledJava = exchange.safeBool(result, "disabledJava", false);
-                if ((isEqual(isDisabledJava, true)) && (isEqual(this.lang, "java")))
+                if (isTrue((isDisabledJava)) && (isEqual(this.lang, "java")))
                 {
                     continue;
                 }
@@ -2883,17 +2883,17 @@ public partial class testMainClass
                 // exchange.options = exchange.deepExtend (oldExchangeOptions, testExchangeOptions); // custom options to be used in the tests
                 exchange.extendExchangeOptions(exchange.deepExtend(oldExchangeOptions, testExchangeOptions));
                 object isDisabled = exchange.safeBool(result, "disabled", false);
-                if (isEqual(isDisabled, true))
+                if (isTrue(isDisabled))
                 {
                     continue;
                 }
                 object isDisabledCSharp = exchange.safeBool(result, "disabledCS", false);
-                if ((isEqual(isDisabledCSharp, true)) && (isEqual(this.lang, "C#")))
+                if (isTrue((isDisabledCSharp)) && (isEqual(this.lang, "C#")))
                 {
                     continue;
                 }
                 object isDisabledPHP = exchange.safeBool(result, "disabledPHP", false);
-                if ((isEqual(isDisabledPHP, true)) && (isEqual(this.lang, "PHP")))
+                if (isTrue((isDisabledPHP)) && (isEqual(this.lang, "PHP")))
                 {
                     continue;
                 }
@@ -2902,7 +2902,7 @@ public partial class testMainClass
                     continue;
                 }
                 object isDisabledGO = exchange.safeBool(result, "disabledGO", false);
-                if ((isEqual(isDisabledGO, true)) && (isEqual(this.lang, "GO")))
+                if (isTrue((isDisabledGO)) && (isEqual(this.lang, "GO")))
                 {
                     continue;
                 }
@@ -2912,7 +2912,7 @@ public partial class testMainClass
                     continue;
                 }
                 object isDisabledJava = exchange.safeBool(result, "disabledJava", false);
-                if ((isEqual(isDisabledJava, true)) && (isEqual(this.lang, "java")))
+                if (isTrue((isDisabledJava)) && (isEqual(this.lang, "java")))
                 {
                     continue;
                 }
@@ -2955,31 +2955,31 @@ public partial class testMainClass
         // prediction-market exchanges exist only in the async namespaces in python/php,
         // so their fixtures declare asyncOnly and the sync harness skips them
         object isAsyncOnly = exchange.safeBool(exchangeData, "asyncOnly", false);
-        if ((isEqual(isAsyncOnly, true)) && isTrue(isSync()))
+        if (isTrue((isAsyncOnly)) && isTrue(isSync()))
         {
             dump((("[TEST_WARNING] Exchange " + (exchangeName)) + " is async-only, skipped by the sync test harness"));
             return true;
         }
         object isDisabledPy = exchange.safeBool(exchangeData, "disabledPy", false);
-        if ((isEqual(isDisabledPy, true)) && (isEqual(this.lang, "PY")))
+        if (isTrue((isDisabledPy)) && (isEqual(this.lang, "PY")))
         {
             dump((("[TEST_WARNING] Exchange " + (exchangeName)) + " is disabled in python"));
             return true;
         }
         object isDisabledPHP = exchange.safeBool(exchangeData, "disabledPHP", false);
-        if ((isEqual(isDisabledPHP, true)) && (isEqual(this.lang, "PHP")))
+        if (isTrue((isDisabledPHP)) && (isEqual(this.lang, "PHP")))
         {
             dump((("[TEST_WARNING] Exchange " + (exchangeName)) + " is disabled in php"));
             return true;
         }
         object isDisabledCSharp = exchange.safeBool(exchangeData, "disabledCS", false);
-        if ((isEqual(isDisabledCSharp, true)) && (isEqual(this.lang, "C#")))
+        if (isTrue((isDisabledCSharp)) && (isEqual(this.lang, "C#")))
         {
             dump((("[TEST_WARNING] Exchange " + (exchangeName)) + " is disabled in c#"));
             return true;
         }
         object isDisabledGO = exchange.safeBool(exchangeData, "disabledGO", false);
-        if ((isEqual(isDisabledGO, true)) && (isEqual(this.lang, "GO")))
+        if (isTrue((isDisabledGO)) && (isEqual(this.lang, "GO")))
         {
             dump((("[TEST_WARNING] Exchange " + (exchangeName)) + " is disabled in go"));
             return true;
@@ -2991,7 +2991,7 @@ public partial class testMainClass
             return true;
         }
         object isDisabledJava = exchange.safeBool(exchangeData, "disabledJava", false);
-        if ((isEqual(isDisabledJava, true)) && (isEqual(this.lang, "java")))
+        if (isTrue((isDisabledJava)) && (isEqual(this.lang, "java")))
         {
             dump((("[TEST_WARNING] Exchange " + (exchangeName)) + " is disabled in java"));
             return true;
@@ -3305,7 +3305,7 @@ public partial class testMainClass
         object inverseConditionalBatchOrder = exchange.safeDict(inverseConditionalBatchOrders, 0, new Dictionary<string, object>() {});
         object inverseConditionalClientOrderId = exchange.safeString(inverseConditionalBatchOrder, "newClientOrderId");
         assert((inverseConditionalClientOrderId != null), "binance createOrders - inverse conditional order must send newClientOrderId");
-        assert((((string)inverseConditionalClientOrderId).StartsWith(((string)inverseSwapId)) == true), ((("binance createOrders - inverse conditional clientOrderId: " + (inverseConditionalClientOrderId)) + " does not start with inverseSwapId") + inverseSwapId));
+        assert(((string)inverseConditionalClientOrderId).StartsWith(((string)inverseSwapId)), ((("binance createOrders - inverse conditional clientOrderId: " + (inverseConditionalClientOrderId)) + " does not start with inverseSwapId") + inverseSwapId));
         // quarterly futures use the prefix of their fapi/dapi side, not the inverse one
         object linearFutureOrderRequest = new Dictionary<string, object>() {};
         try
@@ -3338,7 +3338,7 @@ public partial class testMainClass
         }
         object optionClientOrderId = exchange.safeString(optionOrderRequest, "clientOrderId");
         assert((optionClientOrderId != null), "binance - option order must send clientOrderId");
-        assert((((string)optionClientOrderId).StartsWith(((string)inverseSwapId)) == true), ((("binance - option clientOrderId: " + (optionClientOrderId)) + " does not start with the option broker id ") + inverseSwapId));
+        assert(((string)optionClientOrderId).StartsWith(((string)inverseSwapId)), ((("binance - option clientOrderId: " + (optionClientOrderId)) + " does not start with the option broker id ") + inverseSwapId));
         // the implicit order endpoints inject the broker id of their api section
         // skipped in the sync flavours: callExchangeMethodDynamically is async-only there
         if (!isTrue(isSync()))
@@ -3381,7 +3381,7 @@ public partial class testMainClass
             object implicitDapiBatchOrder = exchange.safeDict(implicitDapiBatchOrders, 0, new Dictionary<string, object>() {});
             object implicitDapiBatchClientOrderId = exchange.safeString(implicitDapiBatchOrder, "newClientOrderId");
             assert((implicitDapiBatchClientOrderId != null), "binance - implicit dapi batch order must inject newClientOrderId");
-            assert((((string)implicitDapiBatchClientOrderId).StartsWith(((string)inverseSwapId)) == true), ((("binance - implicit dapi batch clientOrderId: " + (implicitDapiBatchClientOrderId)) + " does not start with inverseSwapId") + inverseSwapId));
+            assert(((string)implicitDapiBatchClientOrderId).StartsWith(((string)inverseSwapId)), ((("binance - implicit dapi batch clientOrderId: " + (implicitDapiBatchClientOrderId)) + " does not start with inverseSwapId") + inverseSwapId));
             // the implicit algo order endpoints take clientAlgoId instead of newClientOrderId
             object implicitFapiAlgoOrderRequest = new Dictionary<string, object>() {};
             try
@@ -3402,7 +3402,7 @@ public partial class testMainClass
             }
             object implicitFapiClientAlgoId = exchange.safeString(implicitFapiAlgoOrderRequest, "clientAlgoId");
             assert((implicitFapiClientAlgoId != null), "binance - implicit fapi algo order must inject clientAlgoId");
-            assert((((string)implicitFapiClientAlgoId).StartsWith(((string)swapId)) == true), ((("binance - implicit fapi clientAlgoId: " + (implicitFapiClientAlgoId)) + " does not start with swapId") + swapId));
+            assert(((string)implicitFapiClientAlgoId).StartsWith(((string)swapId)), ((("binance - implicit fapi clientAlgoId: " + (implicitFapiClientAlgoId)) + " does not start with swapId") + swapId));
             // the papi order endpoints resolve the broker id from the path, not from the api section
             object implicitPapiUmOrderRequest = new Dictionary<string, object>() {};
             try
@@ -3421,7 +3421,7 @@ public partial class testMainClass
             }
             object implicitPapiUmClientOrderId = exchange.safeString(implicitPapiUmOrderRequest, "newClientOrderId");
             assert((implicitPapiUmClientOrderId != null), "binance - implicit papi um order must inject newClientOrderId");
-            assert((((string)implicitPapiUmClientOrderId).StartsWith(((string)swapId)) == true), ((("binance - implicit papi um clientOrderId: " + (implicitPapiUmClientOrderId)) + " does not start with swapId") + swapId));
+            assert(((string)implicitPapiUmClientOrderId).StartsWith(((string)swapId)), ((("binance - implicit papi um clientOrderId: " + (implicitPapiUmClientOrderId)) + " does not start with swapId") + swapId));
             object implicitPapiCmOrderRequest = new Dictionary<string, object>() {};
             try
             {
@@ -3439,7 +3439,7 @@ public partial class testMainClass
             }
             object implicitPapiCmClientOrderId = exchange.safeString(implicitPapiCmOrderRequest, "newClientOrderId");
             assert((implicitPapiCmClientOrderId != null), "binance - implicit papi cm order must inject newClientOrderId");
-            assert((((string)implicitPapiCmClientOrderId).StartsWith(((string)inverseSwapId)) == true), ((("binance - implicit papi cm clientOrderId: " + (implicitPapiCmClientOrderId)) + " does not start with inverseSwapId") + inverseSwapId));
+            assert(((string)implicitPapiCmClientOrderId).StartsWith(((string)inverseSwapId)), ((("binance - implicit papi cm clientOrderId: " + (implicitPapiCmClientOrderId)) + " does not start with inverseSwapId") + inverseSwapId));
             object implicitPapiMarginOrderRequest = new Dictionary<string, object>() {};
             try
             {
@@ -3457,7 +3457,7 @@ public partial class testMainClass
             }
             object implicitPapiMarginClientOrderId = exchange.safeString(implicitPapiMarginOrderRequest, "newClientOrderId");
             assert((implicitPapiMarginClientOrderId != null), "binance - implicit papi margin order must inject newClientOrderId");
-            assert((((string)implicitPapiMarginClientOrderId).StartsWith(((string)spotId)) == true), ((("binance - implicit papi margin clientOrderId: " + (implicitPapiMarginClientOrderId)) + " does not start with spotId") + spotId));
+            assert(((string)implicitPapiMarginClientOrderId).StartsWith(((string)spotId)), ((("binance - implicit papi margin clientOrderId: " + (implicitPapiMarginClientOrderId)) + " does not start with spotId") + spotId));
             object implicitSapiMarginOrderRequest = new Dictionary<string, object>() {};
             try
             {
@@ -3475,7 +3475,7 @@ public partial class testMainClass
             }
             object implicitSapiMarginClientOrderId = exchange.safeString(implicitSapiMarginOrderRequest, "newClientOrderId");
             assert((implicitSapiMarginClientOrderId != null), "binance - implicit sapi margin order must inject newClientOrderId");
-            assert((((string)implicitSapiMarginClientOrderId).StartsWith(((string)spotId)) == true), ((("binance - implicit sapi margin clientOrderId: " + (implicitSapiMarginClientOrderId)) + " does not start with spotId") + spotId));
+            assert(((string)implicitSapiMarginClientOrderId).StartsWith(((string)spotId)), ((("binance - implicit sapi margin clientOrderId: " + (implicitSapiMarginClientOrderId)) + " does not start with spotId") + spotId));
             // the papi um algo order endpoint takes clientAlgoId
             object implicitPapiUmAlgoOrderRequest = new Dictionary<string, object>() {};
             try
@@ -3496,7 +3496,7 @@ public partial class testMainClass
             }
             object implicitPapiUmClientAlgoId = exchange.safeString(implicitPapiUmAlgoOrderRequest, "clientAlgoId");
             assert((implicitPapiUmClientAlgoId != null), "binance - implicit papi um algo order must inject clientAlgoId");
-            assert((((string)implicitPapiUmClientAlgoId).StartsWith(((string)swapId)) == true), ((("binance - implicit papi um clientAlgoId: " + (implicitPapiUmClientAlgoId)) + " does not start with swapId") + swapId));
+            assert(((string)implicitPapiUmClientAlgoId).StartsWith(((string)swapId)), ((("binance - implicit papi um clientAlgoId: " + (implicitPapiUmClientAlgoId)) + " does not start with swapId") + swapId));
             // the papi cm conditional order endpoint takes newClientStrategyId
             object implicitPapiCmConditionalOrderRequest = new Dictionary<string, object>() {};
             try
@@ -3516,7 +3516,7 @@ public partial class testMainClass
             }
             object implicitPapiCmStrategyId = exchange.safeString(implicitPapiCmConditionalOrderRequest, "newClientStrategyId");
             assert((implicitPapiCmStrategyId != null), "binance - implicit papi cm conditional order must inject newClientStrategyId");
-            assert((((string)implicitPapiCmStrategyId).StartsWith(((string)inverseSwapId)) == true), ((("binance - implicit papi cm newClientStrategyId: " + (implicitPapiCmStrategyId)) + " does not start with inverseSwapId") + inverseSwapId));
+            assert(((string)implicitPapiCmStrategyId).StartsWith(((string)inverseSwapId)), ((("binance - implicit papi cm newClientStrategyId: " + (implicitPapiCmStrategyId)) + " does not start with inverseSwapId") + inverseSwapId));
             object implicitPapiUmConditionalOrderRequest = new Dictionary<string, object>() {};
             try
             {
@@ -3535,7 +3535,7 @@ public partial class testMainClass
             }
             object implicitPapiUmStrategyId = exchange.safeString(implicitPapiUmConditionalOrderRequest, "newClientStrategyId");
             assert((implicitPapiUmStrategyId != null), "binance - implicit papi um conditional order must inject newClientStrategyId");
-            assert((((string)implicitPapiUmStrategyId).StartsWith(((string)swapId)) == true), ((("binance - implicit papi um newClientStrategyId: " + (implicitPapiUmStrategyId)) + " does not start with swapId") + swapId));
+            assert(((string)implicitPapiUmStrategyId).StartsWith(((string)swapId)), ((("binance - implicit papi um newClientStrategyId: " + (implicitPapiUmStrategyId)) + " does not start with swapId") + swapId));
             // the eapi order endpoints take clientOrderId
             object implicitEapiOrderRequest = new Dictionary<string, object>() {};
             try
@@ -3553,7 +3553,7 @@ public partial class testMainClass
             }
             object implicitEapiClientOrderId = exchange.safeString(implicitEapiOrderRequest, "clientOrderId");
             assert((implicitEapiClientOrderId != null), "binance - implicit eapi order must inject clientOrderId");
-            assert((((string)implicitEapiClientOrderId).StartsWith(((string)inverseSwapId)) == true), ((("binance - implicit eapi clientOrderId: " + (implicitEapiClientOrderId)) + " does not start with the option broker id ") + inverseSwapId));
+            assert(((string)implicitEapiClientOrderId).StartsWith(((string)inverseSwapId)), ((("binance - implicit eapi clientOrderId: " + (implicitEapiClientOrderId)) + " does not start with the option broker id ") + inverseSwapId));
             object implicitEapiBatchRequest = new Dictionary<string, object>() {};
             try
             {
@@ -3574,7 +3574,7 @@ public partial class testMainClass
             object implicitEapiBatchOrder = exchange.safeDict(implicitEapiBatchOrders, 0, new Dictionary<string, object>() {});
             object implicitEapiBatchClientOrderId = exchange.safeString(implicitEapiBatchOrder, "clientOrderId");
             assert((implicitEapiBatchClientOrderId != null), "binance - implicit eapi batch order must inject clientOrderId");
-            assert((((string)implicitEapiBatchClientOrderId).StartsWith(((string)inverseSwapId)) == true), ((("binance - implicit eapi batch clientOrderId: " + (implicitEapiBatchClientOrderId)) + " does not start with the option broker id ") + inverseSwapId));
+            assert(((string)implicitEapiBatchClientOrderId).StartsWith(((string)inverseSwapId)), ((("binance - implicit eapi batch clientOrderId: " + (implicitEapiBatchClientOrderId)) + " does not start with the option broker id ") + inverseSwapId));
             // the equity order endpoint takes clientOrderId
             object implicitEquityOrderRequest = new Dictionary<string, object>() {};
             try
@@ -3593,7 +3593,7 @@ public partial class testMainClass
             }
             object implicitEquityClientOrderId = exchange.safeString(implicitEquityOrderRequest, "clientOrderId");
             assert((implicitEquityClientOrderId != null), "binance - implicit equity order must inject clientOrderId");
-            assert((((string)implicitEquityClientOrderId).StartsWith(((string)spotId)) == true), ((("binance - implicit equity clientOrderId: " + (implicitEquityClientOrderId)) + " does not start with spotId") + spotId));
+            assert(((string)implicitEquityClientOrderId).StartsWith(((string)spotId)), ((("binance - implicit equity clientOrderId: " + (implicitEquityClientOrderId)) + " does not start with spotId") + spotId));
             // the order list endpoints inject a listClientOrderId and one client order id per leg
             object implicitOcoListRequest = new Dictionary<string, object>() {};
             try
@@ -3615,9 +3615,9 @@ public partial class testMainClass
             object ocoAboveClientOrderId = exchange.safeString(implicitOcoListRequest, "aboveClientOrderId");
             object ocoBelowClientOrderId = exchange.safeString(implicitOcoListRequest, "belowClientOrderId");
             assert((ocoListClientOrderId != null), "binance - implicit oco list must inject listClientOrderId");
-            assert((((string)ocoListClientOrderId).StartsWith(((string)spotId)) == true), ((("binance - implicit oco listClientOrderId: " + (ocoListClientOrderId)) + " does not start with spotId") + spotId));
-            assert(((ocoAboveClientOrderId != null)) && ((((string)ocoAboveClientOrderId).StartsWith(((string)spotId)) == true)), "binance - implicit oco aboveClientOrderId must inject the spot broker id");
-            assert(((ocoBelowClientOrderId != null)) && ((((string)ocoBelowClientOrderId).StartsWith(((string)spotId)) == true)), "binance - implicit oco belowClientOrderId must inject the spot broker id");
+            assert(((string)ocoListClientOrderId).StartsWith(((string)spotId)), ((("binance - implicit oco listClientOrderId: " + (ocoListClientOrderId)) + " does not start with spotId") + spotId));
+            assert(((ocoAboveClientOrderId != null)) && isTrue((((string)ocoAboveClientOrderId).StartsWith(((string)spotId)))), "binance - implicit oco aboveClientOrderId must inject the spot broker id");
+            assert(((ocoBelowClientOrderId != null)) && isTrue((((string)ocoBelowClientOrderId).StartsWith(((string)spotId)))), "binance - implicit oco belowClientOrderId must inject the spot broker id");
             object implicitOtocoListRequest = new Dictionary<string, object>() {};
             try
             {
@@ -3641,9 +3641,9 @@ public partial class testMainClass
             object otocoWorkingClientOrderId = exchange.safeString(implicitOtocoListRequest, "workingClientOrderId");
             object otocoPendingAboveClientOrderId = exchange.safeString(implicitOtocoListRequest, "pendingAboveClientOrderId");
             object otocoPendingBelowClientOrderId = exchange.safeString(implicitOtocoListRequest, "pendingBelowClientOrderId");
-            assert(((otocoWorkingClientOrderId != null)) && ((((string)otocoWorkingClientOrderId).StartsWith(((string)spotId)) == true)), "binance - implicit otoco workingClientOrderId must inject the spot broker id");
-            assert(((otocoPendingAboveClientOrderId != null)) && ((((string)otocoPendingAboveClientOrderId).StartsWith(((string)spotId)) == true)), "binance - implicit otoco pendingAboveClientOrderId must inject the spot broker id");
-            assert(((otocoPendingBelowClientOrderId != null)) && ((((string)otocoPendingBelowClientOrderId).StartsWith(((string)spotId)) == true)), "binance - implicit otoco pendingBelowClientOrderId must inject the spot broker id");
+            assert(((otocoWorkingClientOrderId != null)) && isTrue((((string)otocoWorkingClientOrderId).StartsWith(((string)spotId)))), "binance - implicit otoco workingClientOrderId must inject the spot broker id");
+            assert(((otocoPendingAboveClientOrderId != null)) && isTrue((((string)otocoPendingAboveClientOrderId).StartsWith(((string)spotId)))), "binance - implicit otoco pendingAboveClientOrderId must inject the spot broker id");
+            assert(((otocoPendingBelowClientOrderId != null)) && isTrue((((string)otocoPendingBelowClientOrderId).StartsWith(((string)spotId)))), "binance - implicit otoco pendingBelowClientOrderId must inject the spot broker id");
             object implicitSapiMarginOcoRequest = new Dictionary<string, object>() {};
             try
             {
@@ -3660,8 +3660,8 @@ public partial class testMainClass
             }
             object sapiMarginOcoLimitClientOrderId = exchange.safeString(implicitSapiMarginOcoRequest, "limitClientOrderId");
             object sapiMarginOcoStopClientOrderId = exchange.safeString(implicitSapiMarginOcoRequest, "stopClientOrderId");
-            assert(((sapiMarginOcoLimitClientOrderId != null)) && ((((string)sapiMarginOcoLimitClientOrderId).StartsWith(((string)spotId)) == true)), "binance - implicit sapi margin oco limitClientOrderId must inject the spot broker id");
-            assert(((sapiMarginOcoStopClientOrderId != null)) && ((((string)sapiMarginOcoStopClientOrderId).StartsWith(((string)spotId)) == true)), "binance - implicit sapi margin oco stopClientOrderId must inject the spot broker id");
+            assert(((sapiMarginOcoLimitClientOrderId != null)) && isTrue((((string)sapiMarginOcoLimitClientOrderId).StartsWith(((string)spotId)))), "binance - implicit sapi margin oco limitClientOrderId must inject the spot broker id");
+            assert(((sapiMarginOcoStopClientOrderId != null)) && isTrue((((string)sapiMarginOcoStopClientOrderId).StartsWith(((string)spotId)))), "binance - implicit sapi margin oco stopClientOrderId must inject the spot broker id");
             object implicitPapiMarginOcoRequest = new Dictionary<string, object>() {};
             try
             {
@@ -3677,11 +3677,11 @@ public partial class testMainClass
                 implicitPapiMarginOcoRequest = this.urlencodedToDict(exchange.last_request_body);
             }
             object papiMarginOcoListClientOrderId = exchange.safeString(implicitPapiMarginOcoRequest, "listClientOrderId");
-            assert(((papiMarginOcoListClientOrderId != null)) && ((((string)papiMarginOcoListClientOrderId).StartsWith(((string)spotId)) == true)), "binance - implicit papi margin oco listClientOrderId must inject the spot broker id");
+            assert(((papiMarginOcoListClientOrderId != null)) && isTrue((((string)papiMarginOcoListClientOrderId).StartsWith(((string)spotId)))), "binance - implicit papi margin oco listClientOrderId must inject the spot broker id");
             object papiMarginOcoLimitClientOrderId = exchange.safeString(implicitPapiMarginOcoRequest, "limitClientOrderId");
             object papiMarginOcoStopClientOrderId = exchange.safeString(implicitPapiMarginOcoRequest, "stopClientOrderId");
-            assert(((papiMarginOcoLimitClientOrderId != null)) && ((((string)papiMarginOcoLimitClientOrderId).StartsWith(((string)spotId)) == true)), "binance - implicit papi margin oco limitClientOrderId must inject the spot broker id");
-            assert(((papiMarginOcoStopClientOrderId != null)) && ((((string)papiMarginOcoStopClientOrderId).StartsWith(((string)spotId)) == true)), "binance - implicit papi margin oco stopClientOrderId must inject the spot broker id");
+            assert(((papiMarginOcoLimitClientOrderId != null)) && isTrue((((string)papiMarginOcoLimitClientOrderId).StartsWith(((string)spotId)))), "binance - implicit papi margin oco limitClientOrderId must inject the spot broker id");
+            assert(((papiMarginOcoStopClientOrderId != null)) && isTrue((((string)papiMarginOcoStopClientOrderId).StartsWith(((string)spotId)))), "binance - implicit papi margin oco stopClientOrderId must inject the spot broker id");
             object implicitLegacyOcoRequest = new Dictionary<string, object>() {};
             try
             {
@@ -3699,9 +3699,9 @@ public partial class testMainClass
             object legacyOcoListClientOrderId = exchange.safeString(implicitLegacyOcoRequest, "listClientOrderId");
             object legacyOcoLimitClientOrderId = exchange.safeString(implicitLegacyOcoRequest, "limitClientOrderId");
             object legacyOcoStopClientOrderId = exchange.safeString(implicitLegacyOcoRequest, "stopClientOrderId");
-            assert(((legacyOcoListClientOrderId != null)) && ((((string)legacyOcoListClientOrderId).StartsWith(((string)spotId)) == true)), "binance - implicit legacy oco listClientOrderId must inject the spot broker id");
-            assert(((legacyOcoLimitClientOrderId != null)) && ((((string)legacyOcoLimitClientOrderId).StartsWith(((string)spotId)) == true)), "binance - implicit legacy oco limitClientOrderId must inject the spot broker id");
-            assert(((legacyOcoStopClientOrderId != null)) && ((((string)legacyOcoStopClientOrderId).StartsWith(((string)spotId)) == true)), "binance - implicit legacy oco stopClientOrderId must inject the spot broker id");
+            assert(((legacyOcoListClientOrderId != null)) && isTrue((((string)legacyOcoListClientOrderId).StartsWith(((string)spotId)))), "binance - implicit legacy oco listClientOrderId must inject the spot broker id");
+            assert(((legacyOcoLimitClientOrderId != null)) && isTrue((((string)legacyOcoLimitClientOrderId).StartsWith(((string)spotId)))), "binance - implicit legacy oco limitClientOrderId must inject the spot broker id");
+            assert(((legacyOcoStopClientOrderId != null)) && isTrue((((string)legacyOcoStopClientOrderId).StartsWith(((string)spotId)))), "binance - implicit legacy oco stopClientOrderId must inject the spot broker id");
             object implicitOtoListRequest = new Dictionary<string, object>() {};
             try
             {
@@ -3722,9 +3722,9 @@ public partial class testMainClass
             object otoListClientOrderId = exchange.safeString(implicitOtoListRequest, "listClientOrderId");
             object otoWorkingClientOrderId = exchange.safeString(implicitOtoListRequest, "workingClientOrderId");
             object otoPendingClientOrderId = exchange.safeString(implicitOtoListRequest, "pendingClientOrderId");
-            assert(((otoListClientOrderId != null)) && ((((string)otoListClientOrderId).StartsWith(((string)spotId)) == true)), "binance - implicit oto listClientOrderId must inject the spot broker id");
-            assert(((otoWorkingClientOrderId != null)) && ((((string)otoWorkingClientOrderId).StartsWith(((string)spotId)) == true)), "binance - implicit oto workingClientOrderId must inject the spot broker id");
-            assert(((otoPendingClientOrderId != null)) && ((((string)otoPendingClientOrderId).StartsWith(((string)spotId)) == true)), "binance - implicit oto pendingClientOrderId must inject the spot broker id");
+            assert(((otoListClientOrderId != null)) && isTrue((((string)otoListClientOrderId).StartsWith(((string)spotId)))), "binance - implicit oto listClientOrderId must inject the spot broker id");
+            assert(((otoWorkingClientOrderId != null)) && isTrue((((string)otoWorkingClientOrderId).StartsWith(((string)spotId)))), "binance - implicit oto workingClientOrderId must inject the spot broker id");
+            assert(((otoPendingClientOrderId != null)) && isTrue((((string)otoPendingClientOrderId).StartsWith(((string)spotId)))), "binance - implicit oto pendingClientOrderId must inject the spot broker id");
             object implicitOpoListRequest = new Dictionary<string, object>() {};
             try
             {
@@ -3745,9 +3745,9 @@ public partial class testMainClass
             object opoListClientOrderId = exchange.safeString(implicitOpoListRequest, "listClientOrderId");
             object opoWorkingClientOrderId = exchange.safeString(implicitOpoListRequest, "workingClientOrderId");
             object opoPendingClientOrderId = exchange.safeString(implicitOpoListRequest, "pendingClientOrderId");
-            assert(((opoListClientOrderId != null)) && ((((string)opoListClientOrderId).StartsWith(((string)spotId)) == true)), "binance - implicit opo listClientOrderId must inject the spot broker id");
-            assert(((opoWorkingClientOrderId != null)) && ((((string)opoWorkingClientOrderId).StartsWith(((string)spotId)) == true)), "binance - implicit opo workingClientOrderId must inject the spot broker id");
-            assert(((opoPendingClientOrderId != null)) && ((((string)opoPendingClientOrderId).StartsWith(((string)spotId)) == true)), "binance - implicit opo pendingClientOrderId must inject the spot broker id");
+            assert(((opoListClientOrderId != null)) && isTrue((((string)opoListClientOrderId).StartsWith(((string)spotId)))), "binance - implicit opo listClientOrderId must inject the spot broker id");
+            assert(((opoWorkingClientOrderId != null)) && isTrue((((string)opoWorkingClientOrderId).StartsWith(((string)spotId)))), "binance - implicit opo workingClientOrderId must inject the spot broker id");
+            assert(((opoPendingClientOrderId != null)) && isTrue((((string)opoPendingClientOrderId).StartsWith(((string)spotId)))), "binance - implicit opo pendingClientOrderId must inject the spot broker id");
             object implicitOpocoListRequest = new Dictionary<string, object>() {};
             try
             {
@@ -3772,10 +3772,10 @@ public partial class testMainClass
             object opocoWorkingClientOrderId = exchange.safeString(implicitOpocoListRequest, "workingClientOrderId");
             object opocoPendingAboveClientOrderId = exchange.safeString(implicitOpocoListRequest, "pendingAboveClientOrderId");
             object opocoPendingBelowClientOrderId = exchange.safeString(implicitOpocoListRequest, "pendingBelowClientOrderId");
-            assert(((opocoListClientOrderId != null)) && ((((string)opocoListClientOrderId).StartsWith(((string)spotId)) == true)), "binance - implicit opoco listClientOrderId must inject the spot broker id");
-            assert(((opocoWorkingClientOrderId != null)) && ((((string)opocoWorkingClientOrderId).StartsWith(((string)spotId)) == true)), "binance - implicit opoco workingClientOrderId must inject the spot broker id");
-            assert(((opocoPendingAboveClientOrderId != null)) && ((((string)opocoPendingAboveClientOrderId).StartsWith(((string)spotId)) == true)), "binance - implicit opoco pendingAboveClientOrderId must inject the spot broker id");
-            assert(((opocoPendingBelowClientOrderId != null)) && ((((string)opocoPendingBelowClientOrderId).StartsWith(((string)spotId)) == true)), "binance - implicit opoco pendingBelowClientOrderId must inject the spot broker id");
+            assert(((opocoListClientOrderId != null)) && isTrue((((string)opocoListClientOrderId).StartsWith(((string)spotId)))), "binance - implicit opoco listClientOrderId must inject the spot broker id");
+            assert(((opocoWorkingClientOrderId != null)) && isTrue((((string)opocoWorkingClientOrderId).StartsWith(((string)spotId)))), "binance - implicit opoco workingClientOrderId must inject the spot broker id");
+            assert(((opocoPendingAboveClientOrderId != null)) && isTrue((((string)opocoPendingAboveClientOrderId).StartsWith(((string)spotId)))), "binance - implicit opoco pendingAboveClientOrderId must inject the spot broker id");
+            assert(((opocoPendingBelowClientOrderId != null)) && isTrue((((string)opocoPendingBelowClientOrderId).StartsWith(((string)spotId)))), "binance - implicit opoco pendingBelowClientOrderId must inject the spot broker id");
             // the cancel-replace endpoint creates a new order and takes newClientOrderId for it
             object implicitCancelReplaceRequest = new Dictionary<string, object>() {};
             try
@@ -3796,7 +3796,7 @@ public partial class testMainClass
             }
             object cancelReplaceClientOrderId = exchange.safeString(implicitCancelReplaceRequest, "newClientOrderId");
             assert((cancelReplaceClientOrderId != null), "binance - implicit cancel-replace must inject newClientOrderId");
-            assert((((string)cancelReplaceClientOrderId).StartsWith(((string)spotId)) == true), ((("binance - implicit cancel-replace newClientOrderId: " + (cancelReplaceClientOrderId)) + " does not start with spotId") + spotId));
+            assert(((string)cancelReplaceClientOrderId).StartsWith(((string)spotId)), ((("binance - implicit cancel-replace newClientOrderId: " + (cancelReplaceClientOrderId)) + " does not start with spotId") + spotId));
         }
         if (!isTrue(isSync()))
         {

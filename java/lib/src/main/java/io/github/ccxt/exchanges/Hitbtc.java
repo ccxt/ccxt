@@ -1657,7 +1657,7 @@ public class Hitbtc extends HitbtcApi
         String takerOrMaker = null;
         if (!java.util.Objects.equals(taker, null))
         {
-            takerOrMaker = (((java.util.Objects.equals(taker, true)))) ? "taker" : "maker";
+            takerOrMaker = ((Boolean.TRUE.equals(taker))) ? "taker" : "maker";
         } else
         {
             takerOrMaker = "taker"; // the only case when `taker` field is missing, is public fetchTrades and it must be taker
@@ -3326,7 +3326,7 @@ public class Hitbtc extends HitbtcApi
             }
             Map<String, Object> withdrawOptions = (Map<String, Object>) this.safeDict(this.options, "withdraw", new HashMap<String, Object>() {{}});
             Boolean includeFee = (Boolean) this.safeBool(withdrawOptions, "includeFee", false);
-            if (java.util.Objects.equals(includeFee, true))
+            if (Boolean.TRUE.equals(includeFee))
             {
                 request.put("include_fee", true);
             }
@@ -4471,7 +4471,7 @@ public class Hitbtc extends HitbtcApi
         Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = super.handleMarginModeAndParams(methodName, parameters, defaultValue);
         String marginMode = marginModeparamsMarginModeVariable.first();
         Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
-        if ((java.util.Objects.equals(marginMode, null)) && ((java.util.Objects.equals(defaultType, "margin")) || (java.util.Objects.equals(isMargin, true))))
+        if ((java.util.Objects.equals(marginMode, null)) && ((java.util.Objects.equals(defaultType, "margin")) || Boolean.TRUE.equals(isMargin)))
         {
             return new Pair<>("isolated", paramsMarginMode);
         }

@@ -1798,7 +1798,7 @@ func (this *Hitbtc) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var takerOrMaker string
 	if taker != nil {
 		takerOrMaker = func() string {
-			if taker != nil && *taker == true {
+			if taker != nil && *taker {
 				return "taker"
 			}
 			return "maker"
@@ -3839,7 +3839,7 @@ func (this *Hitbtc) withdrawBody(ch chan EndpointResult[map[string]any], code st
 	}
 	var withdrawOptions map[string]any = SafeMapTyped(this.Options, "withdraw")
 	var includeFee *bool = this.SafeBool(withdrawOptions, "includeFee", false)
-	if includeFee != nil && *includeFee == true {
+	if includeFee != nil && *includeFee {
 		request["include_fee"] = true
 	}
 
@@ -5231,7 +5231,7 @@ func (this *Hitbtc) HandleMarginModeAndParams(methodName any, optionalArgs ...an
 	var defaultType *string = this.SafeString(this.Options, "defaultType")
 	var isMargin *bool = this.SafeBool(params, "margin", false)
 	marginMode, paramsMarginMode := this.Exchange.HandleMarginModeAndParams(methodName, params, defaultValue)
-	if (IsEqual(marginMode, nil)) && ((defaultType != nil && *defaultType == "margin") || (isMargin != nil && *isMargin == true)) {
+	if (IsEqual(marginMode, nil)) && ((defaultType != nil && *defaultType == "margin") || (isMargin != nil && *isMargin)) {
 		return SafeStringPtr("isolated"), MapTyped(paramsMarginMode)
 	}
 	return SafeStringPtr(marginMode), MapTyped(paramsMarginMode)

@@ -2978,7 +2978,7 @@ public partial class okx : Exchange
         // and fallback to generating the currencies from the markets
         parameters ??= new Dictionary<string, object>();
         bool? isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
-        if (!this.checkRequiredCredentials(false) || ((isSandboxMode == true)))
+        if (!this.checkRequiredCredentials(false) || (isSandboxMode == true))
         {
             return new Dictionary<string, object>() {};
         }
@@ -3234,7 +3234,7 @@ public partial class okx : Exchange
         string? last = this.safeString(ticker, "last");
         string? open = this.safeString(ticker, "open24h");
         bool? spot = this.safeBool(marketResolved, "spot", false);
-        string? quoteVolume = ((spot == true)) ? this.safeString(ticker, "volCcy24h") : null;
+        string? quoteVolume = spot == true ? this.safeString(ticker, "volCcy24h") : null;
         string? baseVolume = this.safeString(ticker, "vol24h");
         string? high = this.safeString(ticker, "high24h");
         string? low = this.safeString(ticker, "low24h");
@@ -4334,7 +4334,7 @@ public partial class okx : Exchange
                 string? currency = this.safeString(parameters, "ccy", defaultCurrency);
                 request["ccy"] = this.safeCurrencyCode(currency);
             }
-            string? tradeMode = ((margin == true)) ? marginMode : "cash";
+            string? tradeMode = margin == true ? marginMode : "cash";
             request["tdMode"] = tradeMode;
         } else if ((contract == true))
         {
@@ -4374,7 +4374,7 @@ public partial class okx : Exchange
         bool marketIOC = (isMarketOrder && ioc) || ((type == "optimal_limit_ioc"));
         string? defaultTgtCcy = this.safeString(this.options, "tgtCcy", "base_ccy");
         string? tgtCcy = this.safeString(orderParams, "tgtCcy", defaultTgtCcy);
-        if (((contract != true)) && ((margin != true)))
+        if (((contract != true)) && (margin != true))
         {
             request["tgtCcy"] = tgtCcy;
         }
@@ -5081,7 +5081,7 @@ public partial class okx : Exchange
         bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         bool? trailing = this.safeBool(parameters, "trailing", false);
         bool isTrigger = ((trigger == true));
-        if (isTrigger || ((trailing == true)))
+        if (isTrigger || (trailing == true))
         {
             List<object> orderInner = ccxt.BaseExchange.FromOrderList(await this.CancelOrders(new List<object>() {id}, symbol, parameters));
             IDictionary<string, object> canceledInner = this.safeDict(orderInner, 0);
@@ -5163,7 +5163,7 @@ public partial class okx : Exchange
         bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         bool? trailing = this.safeBool(parameters, "trailing", false);
         bool isTrigger = ((trigger == true));
-        if (isTrigger || ((trailing == true)))
+        if (isTrigger || (trailing == true))
         {
             method = "privatePostTradeCancelAlgos";
         }
@@ -5182,7 +5182,7 @@ public partial class okx : Exchange
             }
             for (int i = 0; i < getArrayLength(orderIds); i++)
             {
-                if (((trailing == true)) || isTrigger)
+                if ((trailing == true) || isTrigger)
                 {
                     request.Add(new Dictionary<string, object>() {
                         { "algoId", getValue(orderIds, i) },
@@ -5200,7 +5200,7 @@ public partial class okx : Exchange
         {
             for (int i = 0; i < getArrayLength(clientOrderIds); i++)
             {
-                if (((trailing == true)) || isTrigger)
+                if ((trailing == true) || isTrigger)
                 {
                     request.Add(new Dictionary<string, object>() {
                         { "instId", (market.ContainsKey("id") ? market["id"] : null) },
@@ -5284,8 +5284,8 @@ public partial class okx : Exchange
         string? method = this.safeString(parameters, "method", defaultMethod);
         bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         bool? trailing = this.safeBool(parameters, "trailing", false);
-        bool isStopOrTrailing = ((trigger == true)) || ((trailing == true));
-        if ((isStopOrTrailing == true))
+        bool isStopOrTrailing = ((trigger == true)) || (trailing == true);
+        if (isStopOrTrailing)
         {
             method = "privatePostTradeCancelAlgos";
         }
@@ -5301,7 +5301,7 @@ public partial class okx : Exchange
             }
             Dictionary<string, object> market = this.market(symbol);
             string idKey = "ordId";
-            if ((isStopOrTrailing == true))
+            if (isStopOrTrailing)
             {
                 idKey = "algoId";
             } else if ((clientOrderId != null))
@@ -5940,7 +5940,7 @@ public partial class okx : Exchange
         bool? trigger = this.safeBool2(paramsPaginate, "stop", "trigger");
         bool? trailing = this.safeBool(paramsPaginate, "trailing", false);
         bool isTrigger = ((trigger == true));
-        if (((trailing == true)) || isTrigger || (((ordType != null)) && (((ordType != null) && algoOrderTypes.ContainsKey(ordType)))))
+        if ((trailing == true) || isTrigger || (((ordType != null)) && (((ordType != null) && algoOrderTypes.ContainsKey(ordType)))))
         {
             method = "privateGetTradeOrdersAlgoPending";
         }
@@ -6312,7 +6312,7 @@ public partial class okx : Exchange
         string? ordType = this.safeString(paramsPaginate, "ordType");
         bool? trigger = this.safeBool2(paramsPaginate, "stop", "trigger");
         bool? trailing = this.safeBool(paramsPaginate, "trailing", false);
-        if (((trailing == true)) || ((trigger == true)) || (((ordType != null)) && (((ordType != null) && algoOrderTypes.ContainsKey(ordType)))))
+        if ((trailing == true) || ((trigger == true)) || (((ordType != null)) && (((ordType != null) && algoOrderTypes.ContainsKey(ordType)))))
         {
             method = "privateGetTradeOrdersAlgoHistory";
             request["state"] = "effective";

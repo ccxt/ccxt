@@ -334,7 +334,7 @@ public class Mudrex extends MudrexApi
             return null;
         }
         Boolean success = (Boolean) this.safeBool(response, "success", true);
-        if (!java.util.Objects.equals(success, true))
+        if (!Boolean.TRUE.equals(success))
         {
             List<Object> errors = (List<Object>) this.safeList(response, "errors", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(errors, 0, new HashMap<String, Object>() {{}});
@@ -609,7 +609,7 @@ public class Mudrex extends MudrexApi
             Object offset = 0;
             Integer pageLimit = 100;
             Boolean paging = true;
-            while (java.util.Objects.equals(paging, true))
+            while (paging)
             {
                 HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
                 mapLiteral2.put("limit", pageLimit);
@@ -1647,7 +1647,7 @@ public class Mudrex extends MudrexApi
             Object calls = 0;
             Object offset = 0;
             Boolean paging = true;
-            while (java.util.Objects.equals(paging, true))
+            while (paging)
             {
                 Map<String, Object> request = new HashMap<String, Object>() {{}};
                 if (Helpers.isGreaterThan(pageSize, 0))

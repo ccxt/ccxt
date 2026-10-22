@@ -491,7 +491,7 @@ func (this *Polymarket) fetchStatusBody(ch chan EndpointResult[map[string]any], 
 
 	chValue := map[string]any{
 		"status": func() string {
-			if cancelOnly != nil && *cancelOnly == true {
+			if cancelOnly != nil && *cancelOnly {
 				return "maintenance"
 			}
 			return "ok"
@@ -1161,7 +1161,7 @@ func (this *Polymarket) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var takerOrMaker *string = nil
 	if isTaker != nil {
 		takerOrMaker = SafeStringPtr(func() string {
-			if isTaker != nil && *isTaker == true {
+			if isTaker != nil && *isTaker {
 				return "taker"
 			}
 			return "maker"
@@ -1786,7 +1786,7 @@ func (this *Polymarket) CreateOrderRequest(market any, typeVar any, side any, am
 		priceString = this.PriceToPrecision(symbol, price)
 	}
 	var reduceOnlyValue any = func() any {
-		if reduceOnly != nil && *reduceOnly == true {
+		if reduceOnly != nil && *reduceOnly {
 			return true
 		}
 		return nil
@@ -2412,7 +2412,7 @@ func (this *Polymarket) ParseOrder(order any, optionalArgs ...any) Order {
 	var side *string = nil
 	if isBuy != nil {
 		side = SafeStringPtr(func() string {
-			if isBuy != nil && *isBuy == true {
+			if isBuy != nil && *isBuy {
 				return "buy"
 			}
 			return "sell"
@@ -2663,7 +2663,7 @@ func (this *Polymarket) ParsePosition(position any, optionalArgs ...any) any {
 	var marginMode *string = nil
 	if isCross != nil {
 		marginMode = SafeStringPtr(func() string {
-			if isCross != nil && *isCross == true {
+			if isCross != nil && *isCross {
 				return "cross"
 			}
 			return "isolated"
@@ -3484,7 +3484,7 @@ func (this *Polymarket) ParseLeverage(leverage any, optionalArgs ...any) map[str
 	var marginMode *string = nil
 	if isCross != nil {
 		marginMode = SafeStringPtr(func() string {
-			if isCross != nil && *isCross == true {
+			if isCross != nil && *isCross {
 				return "cross"
 			}
 			return "isolated"

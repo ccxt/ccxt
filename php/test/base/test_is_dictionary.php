@@ -15,18 +15,18 @@ function test_is_dictionary() {
     ));
     // populated dict
     assert($exchange->is_dictionary(array(
-    'a' => 1,
-)) === true);
+        'a' => 1,
+    )));
     // populated list is not a dict
-    assert($exchange->is_dictionary([1, 2, 3]) === false);
+    assert(!$exchange->is_dictionary([1, 2, 3]));
     // null is not a dict, in js typeof null is object so the explicit
     // null check matters, see https://github.com/ccxt/ccxt/pull/29704
-    assert($exchange->is_dictionary(null) === false);
+    assert(!$exchange->is_dictionary(null));
     // undefined is not a dict
-    assert($exchange->is_dictionary(null) === false);
+    assert(!$exchange->is_dictionary(null));
     // scalars are not dicts
-    assert($exchange->is_dictionary('str') === false);
-    assert($exchange->is_dictionary(5) === false);
-    assert($exchange->is_dictionary(true) === false);
-    assert($exchange->is_dictionary(array()) === true);
+    assert(!$exchange->is_dictionary('str'));
+    assert(!$exchange->is_dictionary(5));
+    assert(!$exchange->is_dictionary(true));
+    assert($exchange->is_dictionary(array()));
 }

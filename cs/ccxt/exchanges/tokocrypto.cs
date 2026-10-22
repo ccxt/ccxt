@@ -1151,7 +1151,7 @@ public partial class tokocrypto : Exchange
         string? takerOrMaker = null;
         if ((buyerMaker != null))
         {
-            side = ((buyerMaker == true)) ? "sell" : "buy"; // this is reversed intentionally
+            side = buyerMaker == true ? "sell" : "buy"; // this is reversed intentionally
             takerOrMaker = "taker";
         } else if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("side")))
         {
@@ -1985,9 +1985,9 @@ public partial class tokocrypto : Exchange
         bool postOnly = (bool)postOnlyparamsPostOnlyVariable[0];
         IDictionary<string, object> paramsPostOnly = ((IDictionary<string, object>)postOnlyparamsPostOnlyVariable[1]);
         // only supported for spot/margin api
-        object typeResolved = ((postOnly == true)) ? "LIMIT_MAKER" : type;
+        object typeResolved = isTrue((postOnly)) ? "LIMIT_MAKER" : type;
         // post only is expressed by the order type here, not by a time force
-        string? timeInForceResolved = ((postOnly == true)) ? null : requestedTimeInForce;
+        string? timeInForceResolved = isTrue((postOnly)) ? null : requestedTimeInForce;
         string initialUppercaseType = ((string)typeResolved).ToUpper();
         string uppercaseType = initialUppercaseType;
         object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
@@ -1995,7 +1995,7 @@ public partial class tokocrypto : Exchange
         object paramsRequest = this.omit(paramsPostOnly, this.arrayConcat(new List<object>() {"clientId", "clientOrderId", "timeInForce"}, triggerKeys));
         if ((triggerPrice != null))
         {
-            if ((postOnly == true))
+            if (postOnly)
             {
                 throw new InvalidOrder ((this.id + " createOrder() does not support post only trigger orders, the venue has no post only trigger order type")) ;
             }
@@ -3032,7 +3032,7 @@ public partial class tokocrypto : Exchange
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         bool? success = this.safeBool(response, "success", true);
         object parsedMessage = null;
-        if ((success != true))
+        if (success != true)
         {
             string? messageInner = this.safeString(response, "msg");
             if ((messageInner != null))
@@ -3079,7 +3079,7 @@ public partial class tokocrypto : Exchange
             this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), error, feedback);
             throw new ExchangeError (feedback) ;
         }
-        if ((success != true))
+        if (success != true)
         {
             throw new ExchangeError ((string)((this.id + " ") + (body))) ;
         }

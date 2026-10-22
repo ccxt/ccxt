@@ -878,7 +878,7 @@ class bingx extends Exchange {
             return array();
         }
         $isSandbox = $this->safe_bool($this->options, 'sandboxMode', false);
-        if ($isSandbox === true) {
+        if ($isSandbox) {
             return array();
         }
         $response = Async\await($this->walletsV1PrivateGetCapitalConfigGetall($params));
@@ -1224,7 +1224,7 @@ class bingx extends Exchange {
          */
         $requests = array( $this->fetch_swap_markets($params) );
         $isSandbox = $this->safe_bool($this->options, 'sandboxMode', false);
-        if ($isSandbox !== true) {
+        if (!$isSandbox) {
             $requests[] = $this->fetch_inverse_swap_markets($params);
             $requests[] = $this->fetch_spot_markets($params); // sandbox is swap only
         }
@@ -2170,7 +2170,7 @@ class bingx extends Exchange {
         $symbol = $this->safe_symbol($id, $market, '-', 'swap');
         $openInterest = $this->safe_number($interest, 'openInterest');
         $inverse = $this->safe_bool($market, 'inverse', false);
-        $isInverse = ($inverse === true);
+        $isInverse = ($inverse);
         $openInterestAmount = $isInverse ? $openInterest : null;
         $openInterestValue = $isInverse ? null : $openInterest;
         return $this->safe_open_interest(array(
@@ -3347,7 +3347,7 @@ class bingx extends Exchange {
         }
         $timeInForce = $this->safe_string_upper($paramsMarketType, 'timeInForce');
         list($postOnly, $paramsPostOnly) = $this->handle_post_only($isMarketOrder, $timeInForce === 'PostOnly', $paramsMarketType);
-        if (($postOnly === true) || ($timeInForce === 'PostOnly')) {
+        if (($postOnly) || ($timeInForce === 'PostOnly')) {
             $request['timeInForce'] = 'PostOnly';
         } elseif ($timeInForce === 'IOC') {
             $request['timeInForce'] = 'IOC';
@@ -3529,9 +3529,9 @@ class bingx extends Exchange {
             }
             $positionSide = null;
             $hedged = $this->safe_bool($paramsTakeProfit, 'hedged', false);
-            $paramsOrder = ($hedged === true) ? $this->omit($paramsTakeProfit, 'reduceOnly') : $paramsTakeProfit;
-            if ($hedged === true) {
-                if ($reduceOnly === true) {
+            $paramsOrder = ($hedged) ? $this->omit($paramsTakeProfit, 'reduceOnly') : $paramsTakeProfit;
+            if ($hedged) {
+                if ($reduceOnly) {
                     $positionSide = ($side === 'buy') ? 'SHORT' : 'LONG';
                 } else {
                     $positionSide = ($side === 'buy') ? 'LONG' : 'SHORT';
@@ -3543,7 +3543,7 @@ class bingx extends Exchange {
             $closePosition = $this->safe_bool($paramsOrder, 'closePosition', false);
             if ($cost !== null) {
                 $request['quoteOrderQty'] = $this->parse_to_numeric($this->cost_to_precision($symbol, $cost));
-            } elseif ($closePosition !== true) {
+            } elseif (!$closePosition) {
                 $amountReq = $amount;
                 if ($market['inverse'] !== true) {
                     $amountReq = $this->parse_to_numeric($this->amount_to_precision($symbol, $amount));
@@ -3607,7 +3607,7 @@ class bingx extends Exchange {
         $paramsOmitted = $this->omit($params, 'test');
         $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $paramsOmitted);
         if ($market['swap'] === true) {
-            if ($test === true) {
+            if ($test) {
                 $response = Async\await($this->swapV2PrivatePostTradeOrderTest($request));
             } elseif ($market['inverse'] === true) {
                 $response = Async\await($this->cswapV1PrivatePostTradeOrder($request));
@@ -3765,7 +3765,7 @@ class bingx extends Exchange {
             $response = Async\await($this->swapV2PrivatePostTradeBatchOrders($request));
         } else {
             $sync = $this->safe_bool($params, 'sync', false);
-            if ($sync === true) {
+            if ($sync) {
                 $request['sync'] = true;
             }
             $request['data'] = $this->json($ordersRequests);
@@ -4284,7 +4284,7 @@ class bingx extends Exchange {
         $isTwapOrder = $this->safe_bool($params, 'twap', false);
         $paramsOmitted = $this->omit($params, 'twap');
         $market = null;
-        if ($isTwapOrder === true) {
+        if ($isTwapOrder) {
             $twapRequest = array(
                 'mainOrderId' => $id,
             );
@@ -4789,7 +4789,7 @@ class bingx extends Exchange {
         $paramsOmitted = $this->omit($params, 'twap');
         $response = null;
         $market = null;
-        if ($isTwapOrder === true) {
+        if ($isTwapOrder) {
             $twapRequest = array(
                 'mainOrderId' => $id,
             );
@@ -5077,7 +5077,7 @@ class bingx extends Exchange {
         } else {
             $isTwapOrder = $this->safe_bool($paramsSubType, 'twap', false);
             $paramsOmitted = $this->omit($paramsSubType, 'twap');
-            if ($isTwapOrder === true) {
+            if ($isTwapOrder) {
                 $response = Async\await($this->swapV1PrivateGetTwapOpenOrders($this->extend($request, $paramsOmitted)));
             } elseif ($subType === 'inverse') {
                 $response = Async\await($this->cswapV1PrivateGetTradeOpenOrders($this->extend($request, $paramsOmitted)));
@@ -5362,7 +5362,7 @@ class bingx extends Exchange {
         } else {
             $isTwapOrder = $this->safe_bool($paramsStandard, 'twap', false);
             $paramsOmitted = $this->omit($paramsStandard, 'twap');
-            if ($isTwapOrder === true) {
+            if ($isTwapOrder) {
                 $request['pageIndex'] = 1;
                 $request['pageSize'] = ($limit === null) ? 100 : $limit;
                 $request['startTime'] = ($since === null) ? 1 : $since;
@@ -7463,7 +7463,7 @@ class bingx extends Exchange {
         $access = $section[2];
         $isSandbox = $this->safe_bool($this->options, 'sandboxMode', false);
         $url = $this->implode_hostname($this->urls['api'][$type]);
-        if (($isSandbox === true) && $url === null) {
+        if (($isSandbox) && $url === null) {
             throw new NotSupported($this->id . ' does not have a testnet/sandbox URL for ' . $type . ' endpoints');
         }
         $pathValue = $this->implode_params($path, $params);

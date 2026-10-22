@@ -1527,7 +1527,7 @@ impl KrakenfuturesCore {
         let mut status: Value = Value::Null;
         if (isCancelled != Value::Null) {
             unparsedOrder = self.safe_value_k(order.clone(), "order", &[]);
-            if (isCancelled.as_bool() == Some(true)) {
+            if isCancelled.as_bool() == Some(true) {
                 status = Value::Str("cancelled".into());
             }
         }

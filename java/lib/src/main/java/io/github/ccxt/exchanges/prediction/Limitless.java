@@ -584,7 +584,7 @@ public class Limitless extends LimitlessApi
         // market is tradeable only while it is FUNDED and not yet expired
         Boolean isExpired = (Boolean) this.safeBool(raw, "expired", false);
         String marketStatus = this.safeString(raw, "status");
-        Boolean active = (!java.util.Objects.equals(isExpired, true)) && (java.util.Objects.equals(marketStatus, "FUNDED"));
+        Boolean active = (!Boolean.TRUE.equals(isExpired)) && (java.util.Objects.equals(marketStatus, "FUNDED"));
         // expiry is a ms timestamp string (`expirationTimestamp`); `deadline`/`expiresAt` do not exist
         Long expiryTimestamp = this.safeInteger(raw, "expirationTimestamp");
         // limitless reports lifetime volume (human-readable in `volumeFormatted`), not a 24h figure

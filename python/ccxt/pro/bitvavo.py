@@ -1659,7 +1659,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         #
         messageHash = 'authenticated'
         authenticated = self.safe_bool(message, 'authenticated', False)
-        if authenticated is True:
+        if authenticated:
             # we resolve the future here permanently so authentication only happens once
             client.resolve(message, messageHash)
         else:

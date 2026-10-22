@@ -1681,7 +1681,7 @@ class kucoin extends kucoin$1["default"] {
             //             },
             //
         }
-        if (requestMarginables === true) {
+        if (requestMarginables) {
             promises.push(this.privateGetMarginSymbols(paramsRequest)); // cross margin symbols
             //
             //    {
@@ -1762,7 +1762,7 @@ class kucoin extends kucoin$1["default"] {
         if (fetchSpotMarkets) {
             nextIndex = 1;
         }
-        if (requestMarginables === true) {
+        if (requestMarginables) {
             crossIndex = nextIndex;
             nextIndex = this.sum(nextIndex, 2);
             isolatedIndex = this.sum(crossIndex, 1);
@@ -1774,10 +1774,10 @@ class kucoin extends kucoin$1["default"] {
         if (fetchContractMarkets) {
             contractIndex = nextIndex;
         }
-        const crossData = (requestMarginables === true) ? this.safeDict(responses[crossIndex], 'data', {}) : {};
+        const crossData = (requestMarginables) ? this.safeDict(responses[crossIndex], 'data', {}) : {};
         const crossItems = this.safeList(crossData, 'items', []);
         const crossById = this.indexBy(crossItems, 'symbol');
-        const isolatedData = (requestMarginables === true) ? responses[isolatedIndex] : {};
+        const isolatedData = (requestMarginables) ? responses[isolatedIndex] : {};
         const isolatedItems = this.safeList(isolatedData, 'data', []);
         const isolatedById = this.indexBy(isolatedItems, 'symbol');
         const tickersResponse = fetchTickersFees ? this.safeDict(responses, tickersIndex, {}) : {};
@@ -4094,7 +4094,7 @@ class kucoin extends kucoin$1["default"] {
         // don't omit anything before calling createOrderRequest
         const orderRequest = this.createSpotOrderRequest(symbol, type, side, amount, price, paramsSync);
         let response;
-        if (testOrder === true) {
+        if (testOrder) {
             if (isMarginOrder) {
                 // the classic margin order endpoints are deprecated
                 response = await this.privatePostHfMarginOrderTest(orderRequest);
@@ -4209,7 +4209,7 @@ class kucoin extends kucoin$1["default"] {
         }
         let postOnly = undefined;
         [postOnly, paramsOmitted] = this.handlePostOnly(type === 'market', false, paramsOmitted);
-        if (postOnly === true) {
+        if (postOnly) {
             request['postOnly'] = true;
         }
         return this.extend(request, paramsOmitted);
@@ -4269,7 +4269,7 @@ class kucoin extends kucoin$1["default"] {
         const hasTpOrSlOrder = (this.safeValue(paramsOmitted, 'stopLoss') !== undefined) || (this.safeValue(paramsOmitted, 'takeProfit') !== undefined);
         const orderRequest = this.createContractOrderRequest(symbol, type, side, amount, price, paramsOmitted);
         let response;
-        if (testOrder === true) {
+        if (testOrder) {
             response = await this.futuresPrivatePostOrdersTest(orderRequest);
         }
         else {
@@ -4393,11 +4393,11 @@ class kucoin extends kucoin$1["default"] {
         }
         let postOnly = undefined;
         [postOnly, paramsOmitted] = this.handlePostOnly(type === 'market', false, paramsOmitted);
-        if (postOnly === true) {
+        if (postOnly) {
             request['postOnly'] = true;
         }
         const hidden = this.safeValue(paramsOmitted, 'hidden');
-        if ((postOnly === true) && (hidden !== undefined)) {
+        if ((postOnly) && (hidden !== undefined)) {
             throw new errors.BadRequest(this.id + ' createOrder() does not support the postOnly parameter together with a hidden parameter');
         }
         const iceberg = this.safeValue(paramsOmitted, 'iceberg');
@@ -4410,7 +4410,7 @@ class kucoin extends kucoin$1["default"] {
         const reduceOnly = this.safeBool(paramsOmitted, 'reduceOnly', false);
         let hedged = undefined;
         [hedged, paramsOmitted] = this.handleParamBool(paramsOmitted, 'hedged', false);
-        if (reduceOnly === true) {
+        if (reduceOnly) {
             request['reduceOnly'] = reduceOnly;
             if (hedged === true) {
                 let reduceOnlyPosSide = 'SHORT';
@@ -4571,7 +4571,7 @@ class kucoin extends kucoin$1["default"] {
         if ((timeInForce !== undefined)) {
             request['timeInForce'] = timeInForce;
         }
-        if (postOnly === true) {
+        if (postOnly) {
             request['postOnly'] = true;
         }
         if (isContract === true) {
@@ -4593,7 +4593,7 @@ class kucoin extends kucoin$1["default"] {
                     if (side === 'buy') {
                         positionSide = 'LONG';
                     }
-                    if (reduceOnly === true) {
+                    if (reduceOnly) {
                         positionSide = (positionSide === 'LONG') ? 'SHORT' : 'LONG';
                     }
                     request['positionSide'] = positionSide;
@@ -5041,7 +5041,7 @@ class kucoin extends kucoin$1["default"] {
         const tradeType = this.safeString(paramsMarginMode, 'tradeType'); // keep it for backward compatibility
         const isMarginOrder = tradeType === 'MARGIN_TRADE' || marginMode !== undefined;
         if ((hf === true) || useSync || isMarginOrder) {
-            if (trigger !== true) {
+            if (!trigger) {
                 if (symbol === undefined) {
                     throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol parameter for hf orders');
                 }
@@ -5053,7 +5053,7 @@ class kucoin extends kucoin$1["default"] {
         const paramsOmitted = this.omit(paramsMarginMode, ['clientOid', 'clientOrderId', 'stop', 'trigger', 'tradeType']);
         if (clientOrderId !== undefined) {
             request['clientOid'] = clientOrderId;
-            if (trigger === true) {
+            if (trigger) {
                 if (isMarginOrder) {
                     response = await this.privateDeleteHfMarginStopOrderCancelByClientOid(this.extend(request, paramsOmitted));
                     const data = this.safeDict(response, 'data');
@@ -5112,7 +5112,7 @@ class kucoin extends kucoin$1["default"] {
         }
         else {
             request['orderId'] = id;
-            if (trigger === true) {
+            if (trigger) {
                 if (isMarginOrder) {
                     response = await this.privateDeleteHfMarginStopOrderCancelById(this.extend(request, paramsOmitted));
                 }
@@ -5340,17 +5340,17 @@ class kucoin extends kucoin$1["default"] {
         if (symbol !== undefined) {
             request['symbol'] = this.marketId(symbol);
         }
-        else if ((trigger !== true) && isMarginOrders) {
+        else if ((!trigger) && isMarginOrders) {
             throw new errors.ArgumentsRequired(this.id + ' cancelAllOrders() requires a symbol argument for margin non-trigger orders');
         }
         if (isMarginOrders) {
             request['tradeType'] = this.options['marginModes'][marginMode];
-            if (marginMode === 'isolated' && (trigger === true)) {
+            if (marginMode === 'isolated' && (trigger)) {
                 throw new errors.BadRequest(this.id + ' cancelAllOrders does not support isolated margin for stop orders');
             }
         }
         let response = undefined;
-        if (trigger === true) {
+        if (trigger) {
             if (isMarginOrders) {
                 response = await this.privateDeleteHfMarginStopOrderCancel(this.extend(request, query));
             }
@@ -5589,7 +5589,7 @@ class kucoin extends kucoin$1["default"] {
         }
         request['tradeType'] = this.safeString(this.options['marginModes'], marginMode, 'TRADE');
         let response = undefined;
-        if (isMarginOrder && lowercaseStatus === 'active' && (trigger !== true)) {
+        if (isMarginOrder && lowercaseStatus === 'active' && (!trigger)) {
             // hf margin open non-trigger orders require only symbol and tradeType params
             response = await this.privateGetHfMarginOrdersActive(this.extend(request, query));
         }
@@ -5611,7 +5611,7 @@ class kucoin extends kucoin$1["default"] {
             if ((until !== undefined) && (until !== 0)) {
                 request['endAt'] = until;
             }
-            if (trigger === true) {
+            if (trigger) {
                 if (isMarginOrder) {
                     response = await this.privateGetHfMarginStopOrders(this.extend(request, query));
                 }
@@ -6086,7 +6086,7 @@ class kucoin extends kucoin$1["default"] {
             market = this.market(symbol);
         }
         if ((hf === true) || isMarginOrder) {
-            if (trigger !== true) {
+            if (!trigger) {
                 if (symbol === undefined) {
                     throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires a symbol parameter for hf and margin orders');
                 }
@@ -6097,7 +6097,7 @@ class kucoin extends kucoin$1["default"] {
         let response;
         if (clientOrderId !== undefined) {
             request['clientOid'] = clientOrderId;
-            if (trigger === true) {
+            if (trigger) {
                 if (isMarginOrder) {
                     response = await this.privateGetHfMarginStopOrderClientOid(this.extend(request, paramsOmitted));
                 }
@@ -6126,7 +6126,7 @@ class kucoin extends kucoin$1["default"] {
                 throw new errors.InvalidOrder(this.id + ' fetchOrder() requires an order id');
             }
             request['orderId'] = id;
-            if (trigger === true) {
+            if (trigger) {
                 if (isMarginOrder) {
                     response = await this.privateGetHfMarginStopOrderOrderId(this.extend(request, paramsOmitted));
                 }
@@ -6448,9 +6448,9 @@ class kucoin extends kucoin$1["default"] {
         const cancelExist = this.safeBool(order, 'cancelExist', false);
         let status = undefined;
         if (isActive !== undefined) {
-            status = (isActive === true) ? 'open' : 'closed';
+            status = (isActive) ? 'open' : 'closed';
         }
-        status = (cancelExist === true) ? 'canceled' : status;
+        status = (cancelExist) ? 'canceled' : status;
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = {
@@ -6622,7 +6622,7 @@ class kucoin extends kucoin$1["default"] {
         const responseStatus = this.safeString(order, 'status');
         let status = undefined;
         if (isActive !== undefined) {
-            if (isActive === true) {
+            if (isActive) {
                 status = 'open';
             }
             else {
@@ -6633,11 +6633,11 @@ class kucoin extends kucoin$1["default"] {
             if (responseStatus === 'NEW') {
                 status = 'open';
             }
-            else if ((isActive !== true) && (stopTriggered !== true)) {
+            else if ((isActive !== true) && (!stopTriggered)) {
                 status = 'cancelled';
             }
         }
-        if (cancelExist === true) {
+        if (cancelExist) {
             status = 'canceled';
         }
         if (responseStatus === 'fail') {
@@ -8730,7 +8730,7 @@ class kucoin extends kucoin$1["default"] {
         const transfer = this.parseTransfer(data, currency);
         const transferOptions = this.safeDict(this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest === true) {
+        if (fillResponseFromRequest) {
             transfer['amount'] = amount;
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
@@ -8818,7 +8818,7 @@ class kucoin extends kucoin$1["default"] {
         const transfer = this.parseTransfer(data, currency);
         const transferOptions = this.safeDict(this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest === true) {
+        if (fillResponseFromRequest) {
             transfer['amount'] = amount;
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
@@ -11014,7 +11014,7 @@ class kucoin extends kucoin$1["default"] {
         // currently crossMode is always set to false and only isolated positions are supported
         let marginMode = this.safeStringLower(position, 'marginMode');
         if (crossMode !== undefined) {
-            marginMode = (crossMode === true) ? 'cross' : 'isolated';
+            marginMode = (crossMode) ? 'cross' : 'isolated';
         }
         let collateralString = this.safeString(position, 'maintMargin');
         let marginString = undefined;
@@ -11534,7 +11534,7 @@ class kucoin extends kucoin$1["default"] {
             request['marginMode'] = marginMode;
         }
         let response = undefined;
-        if (testOrder === true) {
+        if (testOrder) {
             response = await this.futuresPrivatePostOrdersTest(this.extend(request, paramsOmitted));
         }
         else {

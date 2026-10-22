@@ -30,7 +30,7 @@ public partial class testMainClass : BaseTest
                 // continue;
                 success = false;
             }
-            if ((success == false))
+            if (!success)
             {
                 continue;
             }

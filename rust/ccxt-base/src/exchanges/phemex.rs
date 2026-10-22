@@ -3717,7 +3717,7 @@ impl PhemexCore {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut isSwap: Value = self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]);
         let mut hasPnl: bool = (matches!(&order, Value::Dict(__d) if __d.contains_key("closedPnl"))) || (matches!(&order, Value::Dict(__d) if __d.contains_key("closedPnlRv"))) || (matches!(&order, Value::Dict(__d) if __d.contains_key("totalPnlRv")));
-        if (isSwap.as_bool() == Some(true)) || hasPnl {
+        if isSwap.as_bool() == Some(true) || hasPnl {
             return self.parse_swap_order(order.clone(), &[market.clone()]);
         }
         return self.parse_spot_order(order, &[market]);
@@ -3830,14 +3830,14 @@ impl PhemexCore {
             orderParams = self.omit(orderParams.clone(), Value::Str("hedged".into()), &[]);
             let mut posSide: Value = self.safe_string_lower_k(orderParams.clone(), "posSide", &[]);
             // a hedged reduceOnly order without posSide closes the opposite side
-            let mut flipSide: bool = (posSide == Value::Null) && (hedged.as_bool() == Some(true)) && is_true(&(self.safe_bool_k(orderParams.clone(), "reduceOnly", &[Value::Bool(false)])));
+            let mut flipSide: bool = (posSide == Value::Null) && hedged.as_bool() == Some(true) && is_true(&(self.safe_bool_k(orderParams.clone(), "reduceOnly", &[Value::Bool(false)])));
             let mut oppositeSide: Value = (if (side.as_str() == Some("buy")) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
             let mut sideResolved: Value = side;
             if flipSide {
                 sideResolved = oppositeSide;
             }
             if (posSide == Value::Null) {
-                if (hedged.as_bool() == Some(true)) {
+                if hedged.as_bool() == Some(true) {
                     if flipSide {
                         orderParams = self.omit(orderParams.clone(), Value::Str("reduceOnly".into()), &[]);
                     }
@@ -4222,7 +4222,7 @@ impl PhemexCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        if (trigger.as_bool() == Some(true)) {
+        if trigger.as_bool() == Some(true) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("untriggerred".into(), trigger); }
         }
         let mut response: Value = Value::Null;
@@ -6199,7 +6199,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         let mut response: Value = Value::Null;
         if (market.as_map().and_then(|__m| __m.get("settle")).cloned().unwrap_or(Value::Null).as_str() == Some("USDT")) || (market.as_map().and_then(|__m| __m.get("settle")).cloned().unwrap_or(Value::Null).as_str() == Some("USDC")) {
-            if (isHedged.as_bool() != Some(true)) && (longLeverageRr == Value::Null) && (shortLeverageRr == Value::Null) {
+            if (!(isHedged.as_bool() == Some(true))) && (longLeverageRr == Value::Null) && (shortLeverageRr == Value::Null) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("leverageRr".into(), leverage.clone()); }
             }  else {
                 let mut longVar: Value = (if (longLeverageRr != Value::Null) { longLeverageRr } else { leverage.clone() });
@@ -6311,7 +6311,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })]);
         let mut fillResponseFromRequest: Value = self.safe_bool_k(transferOptions, "fillResponseFromRequest", &[Value::Bool(true)]);
-        if (fillResponseFromRequest.as_bool() == Some(true)) {
+        if fillResponseFromRequest.as_bool() == Some(true) {
             if (transfer.as_map().and_then(|__m| __m.get("fromAccount")).cloned().unwrap_or(Value::Null) == Value::Null) {
                 add_element_to_object(&mut transfer, &Value::Str("fromAccount".into()), fromAccount);
             }

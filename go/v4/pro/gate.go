@@ -921,7 +921,7 @@ func (this *Gate) HandleNewSpotOrderBook(client any, message any) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, 1000))
 	}
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
-	if full != nil && *full == true {
+	if full != nil && *full {
 		var snapshopt map[string]any = this.ParseOrderBook(result, symbol, nil, "b", "a")
 		snapshopt["nonce"] = this.SafeInteger(result, "u")
 		snapshopt["timestamp"] = this.SafeInteger(result, "t")

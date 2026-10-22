@@ -1528,7 +1528,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         }
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]);
         let mut topic: Value = Value::Str("executionreport".into());
-        if (trigger.as_bool() == Some(true)) {
+        if trigger.as_bool() == Some(true) {
             topic = Value::Str("algoexecutionreportv2".into());
         }
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
@@ -1580,7 +1580,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         }
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]);
         let mut topic: Value = Value::Str("executionreport".into());
-        if (trigger.as_bool() == Some(true)) {
+        if trigger.as_bool() == Some(true) {
             topic = Value::Str("algoexecutionreportv2".into());
         }
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);

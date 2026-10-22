@@ -1778,7 +1778,7 @@ impl HyperliquidCore {
         if isMarket {
             defaultTif = Value::Str("Ioc".into());
         }
-        if (postOnly.as_bool() == Some(true)) {
+        if postOnly.as_bool() == Some(true) {
             defaultTif = Value::Str("Alo".into());
         }
         let mut tif: Value = self.capitalize(self.safe_string_lower_k(params.clone(), "timeInForce", &[defaultTif])); // eslint-disable-line
@@ -3022,7 +3022,7 @@ impl HyperliquidCore {
         let mut isSandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
         let mut payload: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("hyperliquidChain".to_string(), (if (isSandboxMode.as_bool() == Some(true)) { Value::Str("Testnet".into()) } else { Value::Str("Mainnet".into()) }));
+                m.insert("hyperliquidChain".to_string(), (if isSandboxMode.as_bool() == Some(true) { Value::Str("Testnet".into()) } else { Value::Str("Mainnet".into()) }));
                 m.insert("maxFeeRate".to_string(), maxFeeRate);
                 m.insert("builder".to_string(), builder);
                 m.insert("nonce".to_string(), nonce.clone());
@@ -3058,7 +3058,7 @@ impl HyperliquidCore {
         // async for the PHP and typed transpilers, which mishandle an async body that never suspends
         self.load_markets(&[]).await;
         let mut buildFee: Value = self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(false)]);
-        if (buildFee.as_bool() != Some(true)) {
+        if !(buildFee.as_bool() == Some(true)) {
             return Value::Null;
         }
         if matches!(self.safe_bool_k(self.options.clone(), "approvedBuilderFee", &[Value::Bool(false)]), Value::Bool(true)) {
@@ -3122,7 +3122,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut apiGroup: Value = api.get(0).cloned().unwrap_or(Value::Null);
         let mut sandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
         let mut baseUrl: Value = Value::Null;
-        if (sandboxMode.as_bool() == Some(true)) {
+        if sandboxMode.as_bool() == Some(true) {
             let mut testUrls: Value = self.safe_dict_k(self.urls.clone(), "test", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

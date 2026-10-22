@@ -1344,7 +1344,7 @@ func (this *Onetrading) watchOHLCVBody(ch chan ccxt.AsyncResult[[]any], symbol s
 		if subscription != nil {
 			var ohlcvMarket map[string]any = ccxt.SafeMapTyped(subscription, marketId)
 			var marketSubscribed *bool = this.SafeBool(ohlcvMarket, timeframe, false)
-			if marketSubscribed == nil || *marketSubscribed != true {
+			if !(marketSubscribed != nil && *marketSubscribed) {
 				typeVar = "UPDATE_SUBSCRIPTION"
 				ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash, nil)
 			}
@@ -1607,7 +1607,7 @@ func (this *Onetrading) watchManyBody(ch chan ccxt.AsyncResult[any], messageHash
 			for i := 0; i < ccxt.GetArrayLength(marketIds); i++ {
 				var marketId *string = ccxt.SafeStringPtr(ccxt.GetValue(marketIds, i))
 				var marketSubscribed *bool = this.SafeBool(subscription, marketId, false)
-				if marketSubscribed == nil || *marketSubscribed != true {
+				if !(marketSubscribed != nil && *marketSubscribed) {
 					typeVar = "UPDATE_SUBSCRIPTION"
 					ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash, nil)
 				}

@@ -2250,7 +2250,7 @@ impl DydxCore {
 }));
         let mut isTrigger: Value = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]);
-        if (isTrigger.as_bool() != Some(true)) && (symbol == Value::Null) {
+        if (!(isTrigger.as_bool() == Some(true))) && (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".into()))));
         }
         if (self.markets.clone() == Value::Null) {
@@ -2271,7 +2271,7 @@ impl DydxCore {
         let mut goodTillBlockTimeInSecondsOption: Value = goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsGoodTillBlockTimeInSeconds: Value = goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); // default is 30 days
         let mut goodTillBlockTime: Value = Value::Null;
-        let mut defaultOrderFlags: Value = (if (isTrigger.as_bool() == Some(true)) { Value::Int(32) } else { Value::Int(64) });
+        let mut defaultOrderFlags: Value = (if isTrigger.as_bool() == Some(true) { Value::Int(32) } else { Value::Int(64) });
         let mut orderFlags: Value = self.safe_integer_k(paramsGoodTillBlockTimeInSeconds.clone(), "orderFlags", &[defaultOrderFlags]);
         let mut subAccountId: Value = Value::Int(0);
         let mut subAccountIdOption: Value = self.handle_option_integer_and_params(paramsGoodTillBlockTimeInSeconds, Value::Str("cancelOrder".into()), Value::Str("subAccountId".into()), &[subAccountId]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);

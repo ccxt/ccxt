@@ -2124,7 +2124,7 @@ public partial class coinbase : Exchange
             { "swap", isSwap },
             { "future", !isSwap },
             { "option", false },
-            { "active", (tradingDisabled != true) },
+            { "active", !tradingDisabled },
             { "contract", true },
             { "linear", true },
             { "inverse", false },
@@ -2847,7 +2847,7 @@ public partial class coinbase : Exchange
         if (((marketType == "future")) || ((marketType == "swap")))
         {
             response = await this.v3PrivateGetBrokerageCfmBalanceSummary(this.extend(request, paramsMarketType));
-        } else if (((isV3 == true)) || (method == "v3PrivateGetBrokerageAccounts"))
+        } else if ((isV3 == true) || (method == "v3PrivateGetBrokerageAccounts"))
         {
             request["limit"] = 250;
             response = await this.v3PrivateGetBrokerageAccounts(this.extend(request, paramsMarketType));

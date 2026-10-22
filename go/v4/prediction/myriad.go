@@ -1238,7 +1238,7 @@ func (this *Myriad) createOrderBody(ch chan ccxt.AsyncResult[map[string]any], ou
 	// the on-chain AMM path requires native gas and has not been verified end to end; keep it behind
 	// an explicit opt-in so callers do not silently hit an untested signing/broadcast path
 	var enableAmm *bool = this.SafeBool2(params, "enableAmm", "enableAmmOrders", this.SafeBool(this.Options, "enableAmmOrders", false))
-	if enableAmm == nil || *enableAmm != true {
+	if !(enableAmm != nil && *enableAmm) {
 		panic(ccxt.NotSupported(this.Id + " createOrder() only supports the gasless order book; this market uses the on-chain AMM (needs native gas and is unverified) — pass params.enableAmm=true to opt in"))
 	}
 
@@ -1585,7 +1585,7 @@ func (this *Myriad) createAmmOrderBody(ch chan ccxt.AsyncResult[map[string]any],
 		return nil
 	}()
 	var isCostDenominated *bool = this.SafeBool(params, "costDenominated", false)
-	if (ccxt.IsEqual(sideLower, "buy")) && (isCostDenominated == nil || *isCostDenominated != true) {
+	if (ccxt.IsEqual(sideLower, "buy")) && (!(isCostDenominated != nil && *isCostDenominated)) {
 		panic(ccxt.NotSupported(this.Id + " createOrder() market buy on the AMM sizes by collateral, not shares — use createMarketBuyOrderWithCost(outcome, collateral) for a dollar buy, or the default order book (omit enableAmm) for a share-denominated order"))
 	}
 	if ccxt.IsEqual(this.PrivateKey, nil) {
@@ -1627,7 +1627,7 @@ func (this *Myriad) createAmmOrderBody(ch chan ccxt.AsyncResult[map[string]any],
 	var txHashParam *string = this.SafeString2(params, "transactionHash", "txHash")
 	var hasPreBroadcastTxHash bool = (txHashParam != nil)
 	var skipAllowance *bool = this.SafeBool(params, "skipAllowance", hasPreBroadcastTxHash)
-	if (ccxt.IsEqual(sideStr, "buy")) && (tokenAddress != nil) && (skipAllowance == nil || *skipAllowance != true) {
+	if (ccxt.IsEqual(sideStr, "buy")) && (tokenAddress != nil) && (!(skipAllowance != nil && *skipAllowance)) {
 
 		r2 := <-this.EnsureErc20AllowanceAsync(rpcUrl, networkId, tokenAddress, fromAddress, predictionMarket)
 		if r2.Err != nil {
@@ -1644,7 +1644,7 @@ func (this *Myriad) createAmmOrderBody(ch chan ccxt.AsyncResult[map[string]any],
 		}
 		txHash = r3.Value
 	}
-	if skipWaitForReceipt == nil || *skipWaitForReceipt != true {
+	if !(skipWaitForReceipt != nil && *skipWaitForReceipt) {
 
 		r4 := <-this.WaitForTransactionReceiptAsync(rpcUrl, txHash)
 		if r4.Err != nil {
@@ -3110,7 +3110,7 @@ func (this *Myriad) ParseMyriadMarket(raw any, optionalArgs ...any) any {
 			if winnerRaw == true {
 				resolvedOutcome = outcomeHandle
 			}
-		} else if voided != nil && *voided == true {
+		} else if voided != nil && *voided {
 			winnerRaw = false
 		}
 		// effectively-final copies for the object literal below (Java cannot capture a
@@ -4228,7 +4228,7 @@ func (this *Myriad) fetchEventsBody(ch chan ccxt.AsyncResult[any], optionalArgs 
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var allowUnscopedFetchEvents *bool = this.SafeBool(this.Options, "allowUnscopedFetchEvents", false)
-	if allowUnscopedFetchEvents == nil || *allowUnscopedFetchEvents != true {
+	if !(allowUnscopedFetchEvents != nil && *allowUnscopedFetchEvents) {
 		this.RequireEventQuery(params)
 	}
 	var queries []any = this.ParseSearchQueries(params)

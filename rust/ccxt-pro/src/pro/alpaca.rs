@@ -572,7 +572,7 @@ impl AlpacaCore {
             { let __be_tmp = self.order_book(&[]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
-        if (isSnapshot.as_bool() == Some(true)) {
+        if is_true(&isSnapshot) {
             let mut snapshot: Value = self.parse_order_book(message, symbol.clone(), &[timestamp.clone(), Value::Str("b".into()), Value::Str("a".into()), Value::Str("p".into()), Value::Str("s".into())]);
             orderbook.reset(snapshot);
         }  else {
