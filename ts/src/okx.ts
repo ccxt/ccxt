@@ -8348,7 +8348,7 @@ export default class okx extends Exchange {
         const paramsOmitted: Dict = this.omit (params, 'until');
         let end: Int = undefined;
         if (until !== undefined) {
-            end = this.sum (until, 1);
+            end = until + 1;
         }
         if (since !== undefined) {
             // end the window after limit periods, so that the earliest entries from since on come back

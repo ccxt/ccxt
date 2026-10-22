@@ -1617,7 +1617,7 @@ class Transpiler {
         return phpBody
     }
 
-    transpileJavaScriptToPHP ({ js, variables }: any, async = false) {
+    transpileJavaScriptToPHP ({ js, variables, numericNames }: any, async = false) {
 
         // match all local variables (let, const or var)
         let localVariablesRegex = /(?:^|[^a-zA-Z0-9_])(?:let|const|var)\s+(?:\[([^\]]+)\]|([a-zA-Z0-9_]+))/g // local variables
@@ -1683,11 +1683,11 @@ class Transpiler {
         // same idea for dynamic constructor calls, e.g. new $broad[$broadKey] ($error);
         // the variable only gets its "$" from phpVariablesRegexes below, so handle it here.
         const noSpaceBeforeDynamicNewParen = [ /new (\$[A-Za-z_][A-Za-z0-9_]*(?:\[[^\]]*\])*) \(/g, 'new $1(' ]
-        let phpBody = this.regexAll (js, phpRegexes)
+        let phpBody = this.regexAll (this.maskNumericPhpAdditions (js, numericNames), phpRegexes)
         // string literals are data, the variable rules must never turn '&signature=' into '&$signature='
         const { masked: phpCode, literals } = this.maskPhpStringLiterals (phpBody)
         phpBody = this.unmaskPhpStringLiterals (this.regexAll (phpCode, phpVariablesRegexes.concat (variablePropertiesRegexes)), literals)
-        phpBody = this.regexAll (phpBody, [ noSpaceBeforeCallParen, noSpaceBeforeDynamicNewParen ])
+        phpBody = this.regexAll (phpBody, [ noSpaceBeforeCallParen, noSpaceBeforeDynamicNewParen ]).replace (/ \x04 /g, ' + ')
         // indent async php — awaiting bodies stay flat here on purpose: the caller
         // (transpileMethodsToAllLanguages) emits a thin public stub
         // `return Async\async(self::do_<name>(...))($args);` and re-homes this flat
@@ -1873,6 +1873,72 @@ class Transpiler {
         return body.replace (/\x01(\d+)\x01/g, (match: string, index: string) => masks[parseInt (index)])
     }
 
+    collectNumericNames (js: string, numericParams: string[]) {
+        // names whose every declaration in the method is ts-proven numeric: a number-typed
+        // annotation, a numeric literal, this.parseToInt/seconds/milliseconds, or .length.
+        // php needs this because the generic ' + ' -> ' . ' rule below cannot tell
+        // numeric addition from string concatenation.
+        const numeric = new Set<string> (numericParams)
+        const other = new Set<string> ()
+        const declRegex = /(?:^|[^a-zA-Z0-9_])(?:let|const|var)\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*(:\s*[^=;\n]+?)?\s*(=\s*([^;\n]*))?;/g
+        let m
+        while (m = declRegex.exec (js)) {
+            const name = m[1]
+            const type = (m[2] || '').replace (/^:\s*/, '').trim ()
+            const init = (m[4] || '').trim ()
+            let isNumeric = false
+            if (type !== '') {
+                isNumeric = /^(?:number|int|Int|Num)$/.test (type)
+            } else {
+                isNumeric = /^-?\d+(?:\.\d+)?$/.test (init)
+                    || /^this\.(?:parseToInt|seconds|milliseconds) \([^;]*\)$/.test (init)
+                    || /^[a-zA-Z_][a-zA-Z0-9_]*\.length$/.test (init)
+                    // safeInteger with a numeric literal default never returns undefined
+                    || /^this\.safeInteger \([^;'"]*(?:'[^']*'[^;'"]*)*, -?\d+\)$/.test (init)
+                    // '*', '/', '%' and ' - ' are numeric-only operators in js
+                    || (/^[a-zA-Z0-9_\s.()*\/%-]+$/.test (init) && /[*\/%]| - /.test (init))
+            }
+            if (isNumeric) {
+                numeric.add (name)
+            } else {
+                other.add (name)
+            }
+        }
+        for (const name of other) {
+            numeric.delete (name)
+        }
+        return numeric
+    }
+
+    maskNumericPhpAdditions (js: string, numericNames: Set<string>) {
+        // protect `a + b` when both operands are proven numeric identifiers (or integer
+        // literals) from the php concat rule; skipped when the left operand continues a
+        // chain (`'x' + a + b` is a string in js) or either side is a member/call/index.
+        if (!numericNames || numericNames.size === 0) {
+            return js
+        }
+        const operand = '([a-zA-Z_][a-zA-Z0-9_]*|\\d+)'
+        const regex = new RegExp ('(?<![a-zA-Z0-9_$.\'"\\]\\)]|\\+ |\\+= )' + operand + ' \\+ ' + operand + '(?![a-zA-Z0-9_.(\\[])', 'g')
+        const isNumeric = (x: string) => /^\d+$/.test (x) || numericNames.has (x)
+        const maskCode = (code: string) => {
+            let previous
+            do {
+                previous = code
+                code = code.replace (regex, (match: string, a: string, b: string) => (isNumeric (a) && isNumeric (b)) ? (a + ' \x04 ' + b) : match)
+            } while (code !== previous)
+            return code
+        }
+        // only touch code: skip comment lines and quoted string literals
+        return js.split ('\n').map ((line: string) => {
+            const trimmed = line.trim ()
+            if (trimmed.startsWith ('*') || trimmed.startsWith ('/*') || trimmed.startsWith ('//') || (line.indexOf (' + ') < 0)) {
+                return line
+            }
+            const parts = line.split (/('(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"|`[^`]*`|\/\/.*$)/)
+            return parts.map ((part: string, index: number) => (index % 2 === 0) ? maskCode (part) : part).join ('')
+        }).join ('\n')
+    }
+
     transpileJavaScriptToPythonAndPHP (args:any) {
 
         // protect comment bodies from every code transform below
@@ -1880,6 +1946,8 @@ class Transpiler {
         // protect data spaces inside string literals from the style rules
         args.js = this.maskStringSpaceParens (masked)
 
+        // the ts type annotations are stripped by the common regexes, collect the provably numeric names first
+        args.numericNames = this.collectNumericNames (args.js, args.numericParams || [])
         // apply common regexes once before branching to language-specific paths
         args.js = this.regexAll (args.js, this.getCommonRegexes ())
 
@@ -2543,7 +2611,8 @@ class Transpiler {
             let js = lines.slice (1, -1).join ("\n")
 
             // transpile everything
-            let { python3Body, python2Body, phpBody, phpAsyncBody, phpAsyncBodyIsFlatAwait } = this.transpileJavaScriptToPythonAndPHP ({ js, className, variables, removeEmptyLines: true })
+            const numericParams = argsArray.filter (arg => /^\w+\??\s*:\s*(?:number|int|Int|Num)\s*(?:=|$)/.test (arg)).map (arg => arg.split (/[?:]/)[0].trim ())
+            let { python3Body, python2Body, phpBody, phpAsyncBody, phpAsyncBodyIsFlatAwait } = this.transpileJavaScriptToPythonAndPHP ({ js, className, variables, numericParams, removeEmptyLines: true })
 
             if (this.buildPython) {
                 // compile the final Python code for the method signature
