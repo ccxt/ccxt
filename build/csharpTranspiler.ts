@@ -13141,11 +13141,9 @@ export function hx4C33NativeHelperCalls (objectNull: boolean, content: string): 
         if (args.length !== 2) return undefined;
         const [ x, k ] = args;
         const lit = /^"[ ]*"$/.test (masks[1]) && /^"(?:[^"\\]|\\.)*"$/.test (k);
-        if (helper === 'getIndexOf') {
-            // the target is read only by the matched arm: keep it side-effect free
-            if (!lit && !/^[A-Za-z_]\w*$/.test (k)) return undefined;
-            return sw (x, `IList<object> c33a => c33a.IndexOf(${k}), IList<string> c33t => c33t.IndexOf((string)(object)${k}), string c33s => c33s.IndexOf((string)(object)${k}), _ => -1`);
-        }
+        // hx5 X04: no inline getIndexOf switch. A declared string receiver is made native by hx4 C04 / C16;
+        // every other receiver keeps the helper call (its -1 for an unmatched box and its casts stay in one place)
+        if (helper === 'getIndexOf') return undefined;
         // hx5 X03: no inline inOp body. Declared-dictionary receivers were already made native by
         // csharpHelperRewriteLine (`d.ContainsKey(k)`); every site that reaches here has an `object`
         // receiver, so the helper call stays exactly as master emitted it.
@@ -13202,7 +13200,6 @@ function hx4C33SnippetChecks (): string[] {
         [ 'isEqual word', '        if (isEqual(x, "buy")) { }', 'if ((((object)(x)) is "buy")) { }' ],
         [ 'isEqual int', '        if (isEqual(x, -1)) { }', 'Int64 c33l => c33l == -1, int c33i => c33i == -1,' ],
         [ 'isEqual int ulong', '        if (isEqual(x, 0)) { }', 'ulong c33z => c33z == 0UL, _ => false' ],
-        [ 'getIndexOf', '        int p = getIndexOf(x, "?");', 'string c33s => c33s.IndexOf((string)(object)"?"), _ => -1 })' ],
         [ 'nested', '        if (isTrue(isEqual(x, null))) { }', 'if (isTrue((((object)(x)) == null))) { }' ], // hx5 X02: helper call kept
     ];
     const keeps: [string, string][] = [
@@ -13216,6 +13213,8 @@ function hx4C33SnippetChecks (): string[] {
         [ 'getIndexOf call target', '        int p = getIndexOf(x, this.f(x, y));' ],
         [ 'isTrue object', '        if (isTrue(x)) { }' ], // hx5 X02: unproven operand keeps the helper call
         [ 'isTrue call', '        if (isTrue(this.isDictionary(x))) { }' ], // hx5 X02
+        // hx5 X04: an object receiver with a literal needle keeps the plain helper call
+        [ 'getIndexOf object receiver', '        int p = getIndexOf(x, "?");' ],
         [ 'in string', '        string s = "isTrue(x)"; // isTrue(x)' ],
         // hx5 X01: an unproven getArrayLength keeps the helper call (never an inline switch)
         [ 'getArrayLength object', '        for (int i = 0; i < getArrayLength(x); i++) { }' ],
