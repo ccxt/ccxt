@@ -1352,6 +1352,10 @@ export default class paribu extends Exchange {
             // market buy orders are placed by total and have no amount
             amount = undefined;
         }
+        let cost = this.safeString (order, 'total');
+        if ((cost !== undefined) && Precise.stringEq (cost, '0')) {
+            cost = undefined;
+        }
         const fills = this.safeList (order, 'fills');
         let trades: NullableList = undefined;
         if (fills !== undefined) {
@@ -1375,7 +1379,7 @@ export default class paribu extends Exchange {
             'price': price,
             'triggerPrice': triggerPrice,
             'amount': amount,
-            'cost': undefined,
+            'cost': cost,
             'average': average,
             'filled': undefined,
             'remaining': this.safeString (order, 'remaining_amount'),
