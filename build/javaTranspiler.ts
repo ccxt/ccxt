@@ -9796,33 +9796,90 @@ function j43SelfTest (): string[] {
     return problems;
 }
 
-// hx4 J44: isInstance / isArray / inOp / isEqual / isTrue as inline pattern switches or lambdas that
-// replay Helpers.java exactly (isInstance unwraps CompletionException/ExecutionException causes).
-function j44Rewrite (name: string, args: string[], n: number): string | undefined {
-    const v = 'hx4J44v' + n;
-    if (name === 'isInstance') {
-        const t = args.length === 2 ? args[1].trim() : '';
-        if (!/^[A-Za-z_][\w.]*\.class$/.test(t)) { return undefined; }
-        return `(switch ((Object) (${args[0].trim()})) { case null -> false; case Throwable ${v} -> { Throwable ${v}u = ${v}; while ((${v}u instanceof java.util.concurrent.CompletionException || ${v}u instanceof java.util.concurrent.ExecutionException) && ${v}u.getCause() != null) { ${v}u = ${v}u.getCause(); } yield ${t}.isInstance(${v}u); } case Object ${v} -> ${t}.isInstance(${v}); })`;
+// hx5 X19: Helpers.isInstance / inOp / isArray become a plain native op only on a proven
+// operand; every other site keeps the master helper call (no inlined switch or lambda).
+// isEqual / isTrue are not rewritten here: J40 (X14/X15) already runs before this pass.
+
+// innermost member window (from the last `public|private|protected` line) before `pos`
+function x19Member (masked: string, pos: number): string | undefined {
+    const before = masked.slice(0, pos);
+    const breaks = [ ...before.matchAll(/^[ \t]*(?:public|private|protected)[ \t]/gm) ];
+    return breaks.length === 0 ? undefined : before.slice(breaks[breaks.length - 1].index);
+}
+
+// `e` is the parameter of the innermost enclosing `catch(Exception e)` whose try body makes only
+// synchronous, non-wrapping calls, so `e` can never be a CompletionException/ExecutionException
+// and `e instanceof X` equals Helpers.isInstance(e, X.class)
+function x19CatchSync (masked: string, name: string, pos: number): boolean {
+    const member = x19Member(masked, pos);
+    if (member === undefined) { return false; }
+    const base = pos - member.length;
+    const re = new RegExp(`\\}\\s*catch\\s*\\(\\s*Exception\\s+${name}\\s*\\)\\s*\\{`, 'g');
+    let hit: RegExpExecArray | null = null; let mm;
+    while ((mm = re.exec(member)) !== null) { hit = mm; }
+    if (hit === null) { return false; }
+    const catchOpen = base + hit.index + hit[0].length - 1;
+    const catchEnd = j05Close(masked, catchOpen);
+    if (catchEnd === -1 || catchEnd < pos) { return false; }
+    // `name` must not be reassigned inside the catch body before the site
+    if (new RegExp(`(?<![\\w.])${name}\\s*=(?!=)`).test(masked.slice(catchOpen, pos))) { return false; }
+    // the matching try block: walk back from the `}` that closes it
+    const tryClose = base + hit.index;
+    let depth = 0; let tryOpen = -1;
+    for (let i = tryClose; i >= 0; i--) {
+        const c = masked[i];
+        if (c === '}' || c === ')' || c === ']') { depth++; }
+        else if (c === '{' || c === '(' || c === '[') { depth--; if (depth === 0) { tryOpen = i; break; } }
     }
-    if (name === 'isArray') {
-        if (args.length !== 1) { return undefined; }
-        return `(switch ((Object) (${args[0].trim()})) { case null -> false; case java.util.List<?> ${v} -> true; case Object ${v} -> ${v}.getClass().isArray(); })`;
+    if (tryOpen === -1 || !/\btry\s*$/.test(masked.slice(Math.max(0, tryOpen - 20), tryOpen))) { return false; }
+    const body = masked.slice(tryOpen + 1, tryClose);
+    // every call in the try body must be one of these synchronous helpers (no join/get/async methods)
+    const SYNC = new Set([ 'this.throwExactlyMatchedException', 'this.throwBroadlyMatchedException', 'this.json', 'this.exceptions.get', 'this.safeString', 'this.safeInteger', 'this.safeValue', 'this.safeDict', 'this.safeList', 'java.util.Objects.equals', 'Helpers.GetValue', 'String.valueOf' ]);
+    for (const c of body.matchAll(/([A-Za-z_][\w.]*)\s*\(/g)) {
+        const callee = c[1];
+        if (/^(?:if|while|for|switch|return|throw|new)$/.test(callee)) { continue; }
+        if (/\bnew\s*$/.test(body.slice(Math.max(0, c.index - 8), c.index))) { continue; }
+        if (!SYNC.has(callee)) { return false; }
     }
-    if (name === 'inOp') {
-        if (args.length !== 2) { return undefined; }
-        return `((java.util.function.BiPredicate<Object, Object>) (${v}A, ${v}B) -> { if (${v}A == null || ${v}B == null) { return false; } if (${v}A instanceof java.util.List<?> ${v}l) { return ${v}l.contains(${v}B); } if (${v}A instanceof java.util.Map<?, ?> ${v}m) { return ${v}B instanceof String && ${v}m.containsKey(${v}B); } return false; }).test(${args[0].trim()}, ${args[1].trim()})`;
+    return !/->|\bnew\s+\w+\s*\([^)]*\)\s*\{/.test(body);
+}
+
+// `name` is a member local whose only assignment is its declaration `= new HashMap/ArrayList(...)`
+function x19FreshLocal (masked: string, name: string, pos: number, kind: 'map' | 'list'): boolean {
+    const member = x19Member(masked, pos);
+    if (member === undefined) { return false; }
+    const ty = kind === 'map' ? '(?:java\\.util\\.)?(?:Hash)?Map<String,\\s*Object>' : '(?:java\\.util\\.)?(?:Array)?List<Object>';
+    const ctor = kind === 'map' ? '(?:java\\.util\\.)?HashMap' : '(?:java\\.util\\.)?ArrayList';
+    const decls = [ ...member.matchAll(new RegExp(`(?<![\\w.])${ty}\\s+${name}\\s*=\\s*new\\s+${ctor}<[^>]*>\\s*\\(`, 'g')) ];
+    const assigns = [ ...member.matchAll(new RegExp(`(?<![\\w.])${name}\\s*=(?!=)`, 'g')) ];
+    return decls.length === 1 && assigns.length === 1;
+}
+
+function x19Rewrite (name: string, args: string[], masked: string, at: number): string | undefined {
+    const x = args.map((s) => s.trim());
+    if (name === 'isInstance' && x.length === 2) {
+        const t = /^([A-Za-z_][\w.]*)\.class$/.exec(x[1]);
+        if (t === null || !/^[A-Za-z_]\w*$/.test(x[0]) || !x19CatchSync(masked, x[0], at)) { return undefined; }
+        return `(${x[0]} instanceof ${t[1]})`;
+    }
+    if (name === 'inOp' && x.length === 2) {
+        // key must be a non-null String literal; the receiver a fresh, never-reassigned local
+        if (!/^"(?:[^"\\]|\\.)*"$/.test(x[1]) || !/^[A-Za-z_]\w*$/.test(x[0])) { return undefined; }
+        if (x19FreshLocal(masked, x[0], at, 'map')) { return `${x[0]}.containsKey(${x[1]})`; }
+        if (x19FreshLocal(masked, x[0], at, 'list')) { return `${x[0]}.contains(${x[1]})`; }
+        return undefined;
+    }
+    if (name === 'isArray' && x.length === 1) {
+        // a fresh List local is always a non-null List (real arrays never reach this shape)
+        return /^[A-Za-z_]\w*$/.test(x[0]) && x19FreshLocal(masked, x[0], at, 'list') ? 'true' : undefined;
     }
     return undefined;
 }
 
 export function nativeJavaJ44 (content: string): string {
-    // isEqual / isTrue go through J40's exact replicas first
-    if (/Helpers\.(?:isEqual|isTrue)\(/.test(content)) { content = nativeJavaJ40(content); }
     if (!/Helpers\.(?:isInstance|isArray|inOp)\(/.test(content)) { return content; }
     let masked = j05Mask(content);
     let from = masked.length;
-    let n = 1 + Math.max(-1, ...[ ...content.matchAll(/hx4J44v(\d+)/g) ].map((m) => Number(m[1])));
     for (;;) {
         const at = masked.lastIndexOf('Helpers.', from);
         if (at === -1) { break; }
@@ -9837,7 +9894,7 @@ export function nativeJavaJ44 (content: string): string {
         const argsM = splitTopLevelArgs(masked.slice(open + 1, end - 1));
         const args: string[] = []; let p = open + 1;
         for (const m of argsM) { args.push(content.slice(p, p + m.length)); p += m.length + 1; }
-        const repl = j44Rewrite(head[1], args, n++);
+        const repl = x19Rewrite(head[1], args, masked, at);
         if (repl === undefined) { continue; }
         content = content.slice(0, at) + repl + content.slice(end);
         masked = j05Mask(content);
@@ -9845,21 +9902,28 @@ export function nativeJavaJ44 (content: string): string {
     return content;
 }
 
-// hx4 J44: snippet checks (`--audit-string-types --self-test`)
+// hx5 X19: snippet checks (`--audit-string-types --self-test`)
 function j44SelfTest (): string[] {
     const problems: string[] = [];
     const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Object p, Object q)\n    {\n${body}\n    }\n}`;
     const cases: [string, string, string | undefined][] = [
-        [ 'isInstance', '        try {} catch(Exception e) { if (Helpers.isInstance(e, AuthenticationError.class)) {} }', 'yield AuthenticationError.class.isInstance(hx4J44v0u);' ],
-        [ 'isArray', '        if (Helpers.isArray(p)) {}', 'case java.util.List<?> hx4J44v0 -> true;' ],
-        [ 'inOp nested', '        if (Helpers.inOp(p, Helpers.GetValue(q, "id"))) {}', '.test(p, Helpers.GetValue(q, "id"))' ],
-        [ 'isTrue', '        if (Helpers.isTrue(p)) {}', 'case Boolean hx4J40v0' ],
+        [ 'isInstance sync try', '        try\n        {\n            if (!java.util.Objects.equals(p, null))\n            {\n                this.throwExactlyMatchedException(this.exceptions.get("exact"), p, this.json(q));\n            }\n        } catch(Exception e)\n        {\n            if (Helpers.isInstance(e, AuthenticationError.class)) {}\n        }', 'if ((e instanceof AuthenticationError)) {}' ],
+        [ 'isInstance async try', '        try\n        {\n            q = (this.fetchX(p)).join();\n        } catch(Exception e)\n        {\n            if (Helpers.isInstance(e, AuthenticationError.class)) {}\n        }', undefined ],
+        [ 'isInstance outside catch', '        if (Helpers.isInstance(p, AuthenticationError.class)) {}', undefined ],
+        [ 'inOp fresh map', '        Map<String, Object> r = new HashMap<String, Object>() {{ }};\n        if (Helpers.inOp(r, "id")) {}', 'if (r.containsKey("id")) {}' ],
+        [ 'inOp reassigned map', '        Map<String, Object> r = new HashMap<String, Object>() {{ }};\n        r = (Map<String, Object>) q;\n        if (Helpers.inOp(r, "id")) {}', undefined ],
+        [ 'inOp non-literal key', '        Map<String, Object> r = new HashMap<String, Object>() {{ }};\n        if (Helpers.inOp(r, q)) {}', undefined ],
+        [ 'inOp Object receiver', '        if (Helpers.inOp(p, Helpers.GetValue(q, "id"))) {}', undefined ],
+        [ 'isArray Object', '        if (Helpers.isArray(p)) {}', undefined ],
+        [ 'isArray fresh list', '        List<Object> r = new ArrayList<Object>(java.util.Arrays.asList());\n        if (Helpers.isArray(r)) {}', 'if (true) {}' ],
         [ 'statement', '        Helpers.isArray(p);', undefined ],
     ];
     for (const [ name, body, expect ] of cases) {
         const out = nativeJavaJ44 (cls (body));
-        const ok = expect === undefined ? out === cls (body) : out.includes (expect) && !/Helpers\.(?:isInstance|isArray|inOp|isEqual|isTrue)\(/.test (out);
-        if (!ok) problems.push (`hx4 J44: ${name}\n${out}`);
+        const ok = expect === undefined ? out === cls (body) : out.includes (expect) && !/Helpers\.(?:isInstance|isArray|inOp)\(/.test (out);
+        if (!ok) problems.push (`hx5 X19: ${name}\n${out}`);
+        if (nativeJavaJ44 (out) !== out) problems.push (`hx5 X19: not idempotent: ${name}`);
+        if (/hx4J44|switch|BiPredicate/.test (out)) problems.push (`hx5 X19: inlined body: ${name}`);
     }
     return problems;
 }
