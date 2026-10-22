@@ -7,7 +7,6 @@ import "strings"
 
 type Weex struct {
 	Exchange
-	exchangeTyped *ExchangeTyped
 }
 
 func newWeex() *Weex {
@@ -953,11 +952,11 @@ func (this *Weex) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], optio
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	listEp944 := <-this.PublicGetApiV3Coins(params)
-	if listEp944.Err != nil {
-		panic(listEp944.Err)
+	listEp943 := <-this.PublicGetApiV3Coins(params)
+	if listEp943.Err != nil {
+		panic(listEp943.Err)
 	}
-	var response []any = listEp944.Value
+	var response []any = listEp943.Value
 
 	//
 	//     [
@@ -1509,18 +1508,18 @@ func (this *Weex) fetchBidsAsksBody(ch chan AsyncResult[map[string]Ticker], opti
 	var response []any = nil
 	if marketType != nil && *marketType == "spot" {
 
-		listEp1467 := <-this.PublicGetApiV3MarketTickerBookTicker(paramsMarketType)
-		if listEp1467.Err != nil {
-			panic(listEp1467.Err)
+		listEp1466 := <-this.PublicGetApiV3MarketTickerBookTicker(paramsMarketType)
+		if listEp1466.Err != nil {
+			panic(listEp1466.Err)
 		}
-		response = listEp1467.Value
+		response = listEp1466.Value
 	} else {
 
-		listEp1470 := <-this.ContractGetCapiV3MarketTickerBookTicker(paramsMarketType)
-		if listEp1470.Err != nil {
-			panic(listEp1470.Err)
+		listEp1469 := <-this.ContractGetCapiV3MarketTickerBookTicker(paramsMarketType)
+		if listEp1469.Err != nil {
+			panic(listEp1469.Err)
 		}
-		response = listEp1470.Value
+		response = listEp1469.Value
 	}
 	if response == nil {
 		response = []any{response}
@@ -1670,11 +1669,11 @@ func (this *Weex) fetchLastPricesBody(ch chan AsyncResult[map[string]LastPrice],
 		panic(NotSupported(this.Id + " fetchLastPrices() supports spot markets only, use fetchMarkPrices() or fetchTickers() for contract markets"))
 	}
 
-	listEp1617 := <-this.PublicGetApiV3MarketTickerPrice(paramsMarketType)
-	if listEp1617.Err != nil {
-		panic(listEp1617.Err)
+	listEp1616 := <-this.PublicGetApiV3MarketTickerPrice(paramsMarketType)
+	if listEp1616.Err != nil {
+		panic(listEp1616.Err)
 	}
-	var response []any = listEp1617.Value
+	var response []any = listEp1616.Value
 
 	//
 	//     [
@@ -1799,11 +1798,11 @@ func (this *Weex) fetchMarkPricesBody(ch chan AsyncResult[map[string]Ticker], op
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, "swap") // reject non-contract symbols instead of silently filtering the result to an empty dict
 
-	listEp1733 := <-this.ContractGetCapiV3MarketPremiumIndex(params)
-	if listEp1733.Err != nil {
-		panic(listEp1733.Err)
+	listEp1732 := <-this.ContractGetCapiV3MarketPremiumIndex(params)
+	if listEp1732.Err != nil {
+		panic(listEp1732.Err)
 	}
-	var response []any = listEp1733.Value
+	var response []any = listEp1732.Value
 
 	//
 	//     [
@@ -2013,11 +2012,11 @@ func (this *Weex) fetchSpotOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 
-	listEp1918 := <-this.PublicGetApiV3MarketKlines(this.Extend(request, params))
-	if listEp1918.Err != nil {
-		panic(listEp1918.Err)
+	listEp1917 := <-this.PublicGetApiV3MarketKlines(this.Extend(request, params))
+	if listEp1917.Err != nil {
+		panic(listEp1917.Err)
 	}
-	var response []any = listEp1918.Value
+	var response []any = listEp1917.Value
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(this.ToArray(response), market, timeframe, since, limit))}
 	return nil
@@ -2135,36 +2134,36 @@ func (this *Weex) fetchContractOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol st
 		request["startTime"] = startTime
 		request["endTime"] = endTime
 
-		listEp2029 := <-this.ContractGetCapiV3MarketHistoryKlines(this.Extend(request, paramsOmitted))
-		if listEp2029.Err != nil {
-			panic(listEp2029.Err)
+		listEp2028 := <-this.ContractGetCapiV3MarketHistoryKlines(this.Extend(request, paramsOmitted))
+		if listEp2028.Err != nil {
+			panic(listEp2028.Err)
 		}
-		response = listEp2029.Value
+		response = listEp2028.Value
 	} else {
 		if limitResolved != nil {
 			request["limit"] = limitResolved
 		}
 		if priceType != nil && *priceType == "MARK" {
 
-			listEp2036 := <-this.ContractGetCapiV3MarketMarkPriceKlines(this.Extend(request, paramsOmitted))
-			if listEp2036.Err != nil {
-				panic(listEp2036.Err)
+			listEp2035 := <-this.ContractGetCapiV3MarketMarkPriceKlines(this.Extend(request, paramsOmitted))
+			if listEp2035.Err != nil {
+				panic(listEp2035.Err)
 			}
-			response = listEp2036.Value
+			response = listEp2035.Value
 		} else if priceType != nil && *priceType == "INDEX" {
 
-			listEp2039 := <-this.ContractGetCapiV3MarketIndexPriceKlines(this.Extend(request, paramsOmitted))
-			if listEp2039.Err != nil {
-				panic(listEp2039.Err)
+			listEp2038 := <-this.ContractGetCapiV3MarketIndexPriceKlines(this.Extend(request, paramsOmitted))
+			if listEp2038.Err != nil {
+				panic(listEp2038.Err)
 			}
-			response = listEp2039.Value
+			response = listEp2038.Value
 		} else {
 
-			listEp2042 := <-this.ContractGetCapiV3MarketKlines(this.Extend(request, paramsOmitted))
-			if listEp2042.Err != nil {
-				panic(listEp2042.Err)
+			listEp2041 := <-this.ContractGetCapiV3MarketKlines(this.Extend(request, paramsOmitted))
+			if listEp2041.Err != nil {
+				panic(listEp2041.Err)
 			}
-			response = listEp2042.Value
+			response = listEp2041.Value
 		}
 	}
 
@@ -2220,18 +2219,18 @@ func (this *Weex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opti
 	var response []any = nil
 	if market["spot"] == true {
 
-		listEp2095 := <-this.PublicGetApiV3MarketTrades(this.Extend(request, params))
-		if listEp2095.Err != nil {
-			panic(listEp2095.Err)
+		listEp2094 := <-this.PublicGetApiV3MarketTrades(this.Extend(request, params))
+		if listEp2094.Err != nil {
+			panic(listEp2094.Err)
 		}
-		response = listEp2095.Value
+		response = listEp2094.Value
 	} else {
 
-		listEp2098 := <-this.ContractGetCapiV3MarketTrades(this.Extend(request, params))
-		if listEp2098.Err != nil {
-			panic(listEp2098.Err)
+		listEp2097 := <-this.ContractGetCapiV3MarketTrades(this.Extend(request, params))
+		if listEp2097.Err != nil {
+			panic(listEp2097.Err)
 		}
-		response = listEp2098.Value
+		response = listEp2097.Value
 	}
 	//
 	//     [
@@ -2486,11 +2485,11 @@ func (this *Weex) fetchFundingRatesBody(ch chan AsyncResult[map[string]FundingRa
 		request["symbol"] = this.SafeString(market, "id")
 	}
 
-	listEp2343 := <-this.ContractGetCapiV3MarketPremiumIndex(this.Extend(request, params))
-	if listEp2343.Err != nil {
-		panic(listEp2343.Err)
+	listEp2342 := <-this.ContractGetCapiV3MarketPremiumIndex(this.Extend(request, params))
+	if listEp2342.Err != nil {
+		panic(listEp2342.Err)
 	}
-	var response []any = listEp2343.Value
+	var response []any = listEp2342.Value
 
 	//
 	//     [
@@ -2595,11 +2594,11 @@ func (this *Weex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateH
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 
-	listEp2445 := <-this.ContractGetCapiV3MarketFundingRate(this.Extend(requestUntil, paramsUntil))
-	if listEp2445.Err != nil {
-		panic(listEp2445.Err)
+	listEp2444 := <-this.ContractGetCapiV3MarketFundingRate(this.Extend(requestUntil, paramsUntil))
+	if listEp2444.Err != nil {
+		panic(listEp2444.Err)
 	}
-	var response []any = listEp2445.Value
+	var response []any = listEp2444.Value
 
 	ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(this.ParseFundingRateHistories(response, market, since, limit))}
 	return nil
@@ -2813,11 +2812,11 @@ func (this *Weex) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], optio
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("before", request, paramsPaginate)
 
-	listEp2643 := <-this.PrivateGetApiV3AccountTransferRecords(this.Extend(requestUntil, paramsUntil))
-	if listEp2643.Err != nil {
-		panic(listEp2643.Err)
+	listEp2642 := <-this.PrivateGetApiV3AccountTransferRecords(this.Extend(requestUntil, paramsUntil))
+	if listEp2642.Err != nil {
+		panic(listEp2642.Err)
 	}
-	var response []any = listEp2643.Value
+	var response []any = listEp2642.Value
 
 	//
 	//     [
@@ -3475,25 +3474,25 @@ func (this *Weex) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 			panic(ArgumentsRequired(this.Id + " cancelAllOrders() requires a symbol argument for spot markets"))
 		}
 
-		listEp3251 := <-this.PrivateDeleteApiV3OpenOrders(this.Extend(request, paramsOmitted))
-		if listEp3251.Err != nil {
-			panic(listEp3251.Err)
+		listEp3250 := <-this.PrivateDeleteApiV3OpenOrders(this.Extend(request, paramsOmitted))
+		if listEp3250.Err != nil {
+			panic(listEp3250.Err)
 		}
-		response = listEp3251.Value
+		response = listEp3250.Value
 	} else if trigger != nil && *trigger {
 
-		listEp3254 := <-this.ContractPrivateDeleteCapiV3AlgoOpenOrders(this.Extend(request, paramsOmitted))
-		if listEp3254.Err != nil {
-			panic(listEp3254.Err)
+		listEp3253 := <-this.ContractPrivateDeleteCapiV3AlgoOpenOrders(this.Extend(request, paramsOmitted))
+		if listEp3253.Err != nil {
+			panic(listEp3253.Err)
 		}
-		response = listEp3254.Value
+		response = listEp3253.Value
 	} else {
 
-		listEp3257 := <-this.ContractPrivateDeleteCapiV3AllOpenOrders(this.Extend(request, paramsOmitted))
-		if listEp3257.Err != nil {
-			panic(listEp3257.Err)
+		listEp3256 := <-this.ContractPrivateDeleteCapiV3AllOpenOrders(this.Extend(request, paramsOmitted))
+		if listEp3256.Err != nil {
+			panic(listEp3256.Err)
 		}
-		response = listEp3257.Value
+		response = listEp3256.Value
 	}
 	var extendedParams map[string]any = map[string]any{
 		"status": "canceled",
@@ -3767,11 +3766,11 @@ func (this *Weex) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		//     ]
 		//
 
-		listEp3502 := <-this.PrivateGetApiV3OpenOrders(this.Extend(request, paramsPaginate))
-		if listEp3502.Err != nil {
-			panic(listEp3502.Err)
+		listEp3501 := <-this.PrivateGetApiV3OpenOrders(this.Extend(request, paramsPaginate))
+		if listEp3501.Err != nil {
+			panic(listEp3501.Err)
 		}
-		response = listEp3502.Value
+		response = listEp3501.Value
 	} else {
 		if since != nil {
 			request["startTime"] = since
@@ -3815,11 +3814,11 @@ func (this *Weex) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 			//     ]
 			//
 
-			listEp3546 := <-this.ContractPrivateGetCapiV3OpenAlgoOrders(this.Extend(requestUntil, paramsOmitted))
-			if listEp3546.Err != nil {
-				panic(listEp3546.Err)
+			listEp3545 := <-this.ContractPrivateGetCapiV3OpenAlgoOrders(this.Extend(requestUntil, paramsOmitted))
+			if listEp3545.Err != nil {
+				panic(listEp3545.Err)
 			}
-			response = listEp3546.Value
+			response = listEp3545.Value
 		} else {
 			//
 			//     [
@@ -3846,11 +3845,11 @@ func (this *Weex) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 			//     ]
 			//
 
-			listEp3573 := <-this.ContractPrivateGetCapiV3OpenOrders(this.Extend(requestUntil, paramsUntil))
-			if listEp3573.Err != nil {
-				panic(listEp3573.Err)
+			listEp3572 := <-this.ContractPrivateGetCapiV3OpenOrders(this.Extend(requestUntil, paramsUntil))
+			if listEp3572.Err != nil {
+				panic(listEp3572.Err)
 			}
-			response = listEp3573.Value
+			response = listEp3572.Value
 		}
 	}
 	var extendedParams map[string]any = map[string]any{
@@ -4081,11 +4080,11 @@ func (this *Weex) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsPaginate)
 
-	listEp3763 := <-this.PrivateGetApiV3AllOrders(this.Extend(requestUntil, paramsUntil))
-	if listEp3763.Err != nil {
-		panic(listEp3763.Err)
+	listEp3762 := <-this.PrivateGetApiV3AllOrders(this.Extend(requestUntil, paramsUntil))
+	if listEp3762.Err != nil {
+		panic(listEp3762.Err)
 	}
-	var response []any = listEp3763.Value
+	var response []any = listEp3762.Value
 
 	//
 	//     [
@@ -4188,18 +4187,18 @@ func (this *Weex) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Order],
 	var response []any = nil
 	if sandboxMode != nil && *sandboxMode {
 
-		listEp3859 := <-this.ContractPrivateGetCapiV3SimOrderHistory(this.Extend(requestUntil, paramsUntil))
-		if listEp3859.Err != nil {
-			panic(listEp3859.Err)
+		listEp3858 := <-this.ContractPrivateGetCapiV3SimOrderHistory(this.Extend(requestUntil, paramsUntil))
+		if listEp3858.Err != nil {
+			panic(listEp3858.Err)
 		}
-		response = listEp3859.Value
+		response = listEp3858.Value
 	} else {
 
-		listEp3862 := <-this.ContractPrivateGetCapiV3OrderHistory(this.Extend(requestUntil, paramsUntil))
-		if listEp3862.Err != nil {
-			panic(listEp3862.Err)
+		listEp3861 := <-this.ContractPrivateGetCapiV3OrderHistory(this.Extend(requestUntil, paramsUntil))
+		if listEp3861.Err != nil {
+			panic(listEp3861.Err)
 		}
-		response = listEp3862.Value
+		response = listEp3861.Value
 	}
 
 	//
@@ -4594,11 +4593,11 @@ func (this *Weex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 		//     ]
 		//
 
-		listEp4243 := <-this.PrivateGetApiV3MyTrades(this.Extend(requestUntil, paramsUntil))
-		if listEp4243.Err != nil {
-			panic(listEp4243.Err)
+		listEp4242 := <-this.PrivateGetApiV3MyTrades(this.Extend(requestUntil, paramsUntil))
+		if listEp4242.Err != nil {
+			panic(listEp4242.Err)
 		}
-		response = listEp4243.Value
+		response = listEp4242.Value
 	} else {
 		//
 		//     [
@@ -4621,11 +4620,11 @@ func (this *Weex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 		//     ]
 		//
 
-		listEp4266 := <-this.ContractPrivateGetCapiV3UserTrades(this.Extend(requestUntil, paramsUntil))
-		if listEp4266.Err != nil {
-			panic(listEp4266.Err)
+		listEp4265 := <-this.ContractPrivateGetCapiV3UserTrades(this.Extend(requestUntil, paramsUntil))
+		if listEp4265.Err != nil {
+			panic(listEp4265.Err)
 		}
-		response = listEp4266.Value
+		response = listEp4265.Value
 	}
 	var responseList []any = []any{}
 	if response != nil {
@@ -4742,11 +4741,11 @@ func (this *Weex) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 		}
 		requestUntil, paramsUntil := this.HandleUntilOption("before", request, paramsMarketType)
 
-		listEp4368 := <-this.PrivatePostApiV3AccountBills(this.Extend(requestUntil, paramsUntil))
-		if listEp4368.Err != nil {
-			panic(listEp4368.Err)
+		listEp4367 := <-this.PrivatePostApiV3AccountBills(this.Extend(requestUntil, paramsUntil))
+		if listEp4367.Err != nil {
+			panic(listEp4367.Err)
 		}
-		var billsResponse []any = listEp4368.Value
+		var billsResponse []any = listEp4367.Value
 		items = this.ToArray(billsResponse)
 	}
 
@@ -5033,18 +5032,18 @@ func (this *Weex) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalAr
 	var response []any = nil
 	if sandboxMode != nil && *sandboxMode {
 
-		listEp4638 := <-this.ContractPrivateGetCapiV3SimPositionAllPosition(params)
-		if listEp4638.Err != nil {
-			panic(listEp4638.Err)
+		listEp4637 := <-this.ContractPrivateGetCapiV3SimPositionAllPosition(params)
+		if listEp4637.Err != nil {
+			panic(listEp4637.Err)
 		}
-		response = listEp4638.Value
+		response = listEp4637.Value
 	} else {
 
-		listEp4641 := <-this.ContractPrivateGetCapiV3AccountPositionAllPosition(params)
-		if listEp4641.Err != nil {
-			panic(listEp4641.Err)
+		listEp4640 := <-this.ContractPrivateGetCapiV3AccountPositionAllPosition(params)
+		if listEp4640.Err != nil {
+			panic(listEp4640.Err)
 		}
-		response = listEp4641.Value
+		response = listEp4640.Value
 	}
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(response, symbolsNormalized))}
@@ -5129,11 +5128,11 @@ func (this *Weex) fetchPositionsForSymbolBody(ch chan AsyncResult[[]Position], s
 		"symbol": market["id"],
 	}
 
-	listEp4715 := <-this.ContractPrivateGetCapiV3AccountPositionSinglePosition(this.Extend(request, params))
-	if listEp4715.Err != nil {
-		panic(listEp4715.Err)
+	listEp4714 := <-this.ContractPrivateGetCapiV3AccountPositionSinglePosition(this.Extend(request, params))
+	if listEp4714.Err != nil {
+		panic(listEp4714.Err)
 	}
-	var response []any = listEp4715.Value
+	var response []any = listEp4714.Value
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(response, []any{market["symbol"]}))}
 	return nil
@@ -5302,11 +5301,11 @@ func (this *Weex) closeAllPositionsBody(ch chan AsyncResult[[]Position], optiona
 		}
 	}
 
-	listEp4881 := <-this.ContractPrivatePostCapiV3ClosePositions(params)
-	if listEp4881.Err != nil {
-		panic(listEp4881.Err)
+	listEp4880 := <-this.ContractPrivatePostCapiV3ClosePositions(params)
+	if listEp4880.Err != nil {
+		panic(listEp4880.Err)
 	}
-	var response []any = listEp4881.Value
+	var response []any = listEp4880.Value
 
 	//
 	//     [
@@ -5356,11 +5355,11 @@ func (this *Weex) closePositionBody(ch chan AsyncResult[Order], symbol string, o
 		"symbol": market["id"],
 	}
 
-	listEp4928 := <-this.ContractPrivatePostCapiV3ClosePositions(this.Extend(request, params))
-	if listEp4928.Err != nil {
-		panic(listEp4928.Err)
+	listEp4927 := <-this.ContractPrivatePostCapiV3ClosePositions(this.Extend(request, params))
+	if listEp4927.Err != nil {
+		panic(listEp4927.Err)
 	}
-	var response []any = listEp4928.Value
+	var response []any = listEp4927.Value
 	var order map[string]any = this.SafeDictMap(response, 0, map[string]any{})
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(order, market)}
@@ -5470,11 +5469,11 @@ func (this *Weex) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbol an
 		"symbol": market["id"],
 	}
 
-	listEp5028 := <-this.ContractPrivateGetCapiV3AccountSymbolConfig(this.Extend(request, params))
-	if listEp5028.Err != nil {
-		panic(listEp5028.Err)
+	listEp5027 := <-this.ContractPrivateGetCapiV3AccountSymbolConfig(this.Extend(request, params))
+	if listEp5027.Err != nil {
+		panic(listEp5027.Err)
 	}
-	var response []any = listEp5028.Value
+	var response []any = listEp5027.Value
 	//
 	//     [
 	//         {
@@ -5523,11 +5522,11 @@ func (this *Weex) fetchMarginModesBody(ch chan AsyncResult[map[string]MarginMode
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	listEp5074 := <-this.ContractPrivateGetCapiV3AccountSymbolConfig(params)
-	if listEp5074.Err != nil {
-		panic(listEp5074.Err)
+	listEp5073 := <-this.ContractPrivateGetCapiV3AccountSymbolConfig(params)
+	if listEp5073.Err != nil {
+		panic(listEp5073.Err)
 	}
-	var response []any = listEp5074.Value
+	var response []any = listEp5073.Value
 
 	ch <- AsyncResult[map[string]MarginMode]{Value: MarginModeMapFromMap(this.ParseMarginModes(this.ToArray(response), symbolsNormalized, "symbol", "swap"))}
 	return nil
@@ -5639,11 +5638,11 @@ func (this *Weex) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol any, o
 		"symbol": market["id"],
 	}
 
-	listEp5176 := <-this.ContractPrivateGetCapiV3AccountSymbolConfig(this.Extend(request, params))
-	if listEp5176.Err != nil {
-		panic(listEp5176.Err)
+	listEp5175 := <-this.ContractPrivateGetCapiV3AccountSymbolConfig(this.Extend(request, params))
+	if listEp5175.Err != nil {
+		panic(listEp5175.Err)
 	}
-	var response []any = listEp5176.Value
+	var response []any = listEp5175.Value
 	var marginMode map[string]any = this.SafeDictMap(response, 0, map[string]any{})
 
 	ch <- AsyncResult[Leverage]{Value: this.ParseLeverage(marginMode, market)}
@@ -5680,11 +5679,11 @@ func (this *Weex) fetchLeveragesBody(ch chan AsyncResult[map[string]Leverage], o
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	listEp5210 := <-this.ContractPrivateGetCapiV3AccountSymbolConfig(params)
-	if listEp5210.Err != nil {
-		panic(listEp5210.Err)
+	listEp5209 := <-this.ContractPrivateGetCapiV3AccountSymbolConfig(params)
+	if listEp5209.Err != nil {
+		panic(listEp5209.Err)
 	}
-	var response []any = listEp5210.Value
+	var response []any = listEp5209.Value
 
 	ch <- AsyncResult[map[string]Leverage]{Value: LeverageMapFromMap(this.ParseLeverages(this.ToArray(response), symbolsNormalized, "symbol", "swap"))}
 	return nil
@@ -6166,7 +6165,6 @@ func (this *Weex) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
 	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
-	this.exchangeTyped = NewExchangeTyped(&this.Exchange)
 }
 
 // typed methods
@@ -7373,502 +7371,4 @@ func (this *Weex) SetPositionMode(hedged bool, options ...SetPositionModeOptions
 	}
 	var res map[string]any = r.Value
 	return res, nil
-}
-
-// missing typed methods from base
-// nolint
-func (this *Weex) LoadMarkets(params ...any) (map[string]MarketInterface, error) {
-	return this.exchangeTyped.LoadMarkets(params...)
-}
-func (this *Weex) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)
-}
-func (this *Weex) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]any, error) {
-	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
-}
-func (this *Weex) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
-	return this.exchangeTyped.CancelOrderWithClientOrderId(clientOrderId, options...)
-}
-func (this *Weex) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)
-}
-func (this *Weex) CreateConvertTrade(id string, fromCode string, toCode string, options ...CreateConvertTradeOptions) (Conversion, error) {
-	return this.exchangeTyped.CreateConvertTrade(id, fromCode, toCode, options...)
-}
-func (this *Weex) CreateDepositAddress(code string, options ...CreateDepositAddressOptions) (DepositAddress, error) {
-	return this.exchangeTyped.CreateDepositAddress(code, options...)
-}
-func (this *Weex) CreateLimitBuyOrder(symbol string, amount float64, price float64, options ...CreateLimitBuyOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitBuyOrder(symbol, amount, price, options...)
-}
-func (this *Weex) CreateLimitOrder(symbol string, side string, amount float64, price float64, options ...CreateLimitOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitOrder(symbol, side, amount, price, options...)
-}
-func (this *Weex) CreateLimitSellOrder(symbol string, amount float64, price float64, options ...CreateLimitSellOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitSellOrder(symbol, amount, price, options...)
-}
-func (this *Weex) CreateMarketBuyOrder(symbol string, amount float64, options ...CreateMarketBuyOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketBuyOrder(symbol, amount, options...)
-}
-func (this *Weex) CreateMarketBuyOrderWithCost(symbol string, cost float64, options ...CreateMarketBuyOrderWithCostOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketBuyOrderWithCost(symbol, cost, options...)
-}
-func (this *Weex) CreateMarketOrder(symbol string, side string, amount float64, options ...CreateMarketOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketOrder(symbol, side, amount, options...)
-}
-func (this *Weex) CreateMarketOrderWithCost(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketOrderWithCost(symbol, side, cost, options...)
-}
-func (this *Weex) CreateMarketSellOrder(symbol string, amount float64, options ...CreateMarketSellOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketSellOrder(symbol, amount, options...)
-}
-func (this *Weex) CreateMarketSellOrderWithCost(symbol string, cost float64, options ...CreateMarketSellOrderWithCostOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketSellOrderWithCost(symbol, cost, options...)
-}
-func (this *Weex) CreateOrders(orders []OrderRequest, options ...CreateOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.CreateOrders(orders, options...)
-}
-func (this *Weex) CreateOrderWithTakeProfitAndStopLoss(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossOptions) (Order, error) {
-	return this.exchangeTyped.CreateOrderWithTakeProfitAndStopLoss(symbol, typeVar, side, amount, options...)
-}
-func (this *Weex) CreatePostOnlyOrder(symbol string, typeVar string, side string, amount float64, options ...CreatePostOnlyOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreatePostOnlyOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Weex) CreateReduceOnlyOrder(symbol string, typeVar string, side string, amount float64, options ...CreateReduceOnlyOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateReduceOnlyOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Weex) CreateStopLimitOrder(symbol string, side string, amount float64, price float64, triggerPrice float64, options ...CreateStopLimitOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopLimitOrder(symbol, side, amount, price, triggerPrice, options...)
-}
-func (this *Weex) CreateStopLossOrder(symbol string, typeVar string, side string, amount float64, options ...CreateStopLossOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopLossOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Weex) CreateStopMarketOrder(symbol string, side string, amount float64, triggerPrice float64, options ...CreateStopMarketOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopMarketOrder(symbol, side, amount, triggerPrice, options...)
-}
-func (this *Weex) CreateStopOrder(symbol string, typeVar string, side string, amount float64, options ...CreateStopOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Weex) CreateTakeProfitOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTakeProfitOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateTakeProfitOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Weex) CreateTrailingAmountOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateTrailingAmountOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Weex) CreateTrailingPercentOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingPercentOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateTrailingPercentOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Weex) CreateTriggerOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTriggerOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateTriggerOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Weex) EditLimitBuyOrder(id string, symbol string, amount float64, options ...EditLimitBuyOrderOptions) (Order, error) {
-	return this.exchangeTyped.EditLimitBuyOrder(id, symbol, amount, options...)
-}
-func (this *Weex) EditLimitOrder(id string, symbol string, side string, amount float64, options ...EditLimitOrderOptions) (Order, error) {
-	return this.exchangeTyped.EditLimitOrder(id, symbol, side, amount, options...)
-}
-func (this *Weex) EditLimitSellOrder(id string, symbol string, amount float64, options ...EditLimitSellOrderOptions) (Order, error) {
-	return this.exchangeTyped.EditLimitSellOrder(id, symbol, amount, options...)
-}
-func (this *Weex) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
-	return this.exchangeTyped.EditOrder(id, symbol, typeVar, side, options...)
-}
-func (this *Weex) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...EditOrderWithClientOrderIdOptions) (Order, error) {
-	return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)
-}
-func (this *Weex) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.EditOrders(orders, options...)
-}
-func (this *Weex) FetchAccounts(params ...any) ([]Account, error) {
-	return this.exchangeTyped.FetchAccounts(params...)
-}
-func (this *Weex) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
-	return this.exchangeTyped.FetchAllGreeks(options...)
-}
-func (this *Weex) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]BorrowInterest, error) {
-	return this.exchangeTyped.FetchBorrowInterest(options...)
-}
-func (this *Weex) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]any, error) {
-	return this.exchangeTyped.FetchBorrowRate(code, amount, options...)
-}
-func (this *Weex) FetchConvertCurrencies(params ...any) (Currencies, error) {
-	return this.exchangeTyped.FetchConvertCurrencies(params...)
-}
-func (this *Weex) FetchConvertQuote(fromCode string, toCode string, options ...FetchConvertQuoteOptions) (Conversion, error) {
-	return this.exchangeTyped.FetchConvertQuote(fromCode, toCode, options...)
-}
-func (this *Weex) FetchConvertTrade(id string, options ...FetchConvertTradeOptions) (Conversion, error) {
-	return this.exchangeTyped.FetchConvertTrade(id, options...)
-}
-func (this *Weex) FetchConvertTradeHistory(options ...FetchConvertTradeHistoryOptions) ([]Conversion, error) {
-	return this.exchangeTyped.FetchConvertTradeHistory(options...)
-}
-func (this *Weex) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {
-	return this.exchangeTyped.FetchCrossBorrowRate(code, options...)
-}
-func (this *Weex) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, error) {
-	return this.exchangeTyped.FetchCrossBorrowRates(params...)
-}
-func (this *Weex) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
-	return this.exchangeTyped.FetchDepositAddress(code, options...)
-}
-func (this *Weex) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
-	return this.exchangeTyped.FetchDepositAddresses(options...)
-}
-func (this *Weex) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
-	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
-}
-func (this *Weex) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchDeposits(options...)
-}
-func (this *Weex) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
-}
-func (this *Weex) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
-	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
-}
-func (this *Weex) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
-	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
-}
-func (this *Weex) FetchFreeBalance(params ...any) (Balance, error) {
-	return this.exchangeTyped.FetchFreeBalance(params...)
-}
-func (this *Weex) FetchFundingInterval(symbol string, options ...FetchFundingIntervalOptions) (FundingRate, error) {
-	return this.exchangeTyped.FetchFundingInterval(symbol, options...)
-}
-func (this *Weex) FetchFundingIntervals(options ...FetchFundingIntervalsOptions) (FundingRates, error) {
-	return this.exchangeTyped.FetchFundingIntervals(options...)
-}
-func (this *Weex) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
-	return this.exchangeTyped.FetchFundingRate(symbol, options...)
-}
-func (this *Weex) FetchGreeks(symbol string, options ...FetchGreeksOptions) (Greeks, error) {
-	return this.exchangeTyped.FetchGreeks(symbol, options...)
-}
-func (this *Weex) FetchIndexOHLCV(symbol string, options ...FetchIndexOHLCVOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.FetchIndexOHLCV(symbol, options...)
-}
-func (this *Weex) FetchIsolatedBorrowRate(symbol string, options ...FetchIsolatedBorrowRateOptions) (IsolatedBorrowRate, error) {
-	return this.exchangeTyped.FetchIsolatedBorrowRate(symbol, options...)
-}
-func (this *Weex) FetchIsolatedBorrowRates(params ...any) (IsolatedBorrowRates, error) {
-	return this.exchangeTyped.FetchIsolatedBorrowRates(params...)
-}
-func (this *Weex) FetchLedgerEntry(id string, options ...FetchLedgerEntryOptions) (LedgerEntry, error) {
-	return this.exchangeTyped.FetchLedgerEntry(id, options...)
-}
-func (this *Weex) FetchLeverageTiers(options ...FetchLeverageTiersOptions) (LeverageTiers, error) {
-	return this.exchangeTyped.FetchLeverageTiers(options...)
-}
-func (this *Weex) FetchLiquidations(symbol string, options ...FetchLiquidationsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.FetchLiquidations(symbol, options...)
-}
-func (this *Weex) FetchLongShortRatio(symbol string, options ...FetchLongShortRatioOptions) (LongShortRatio, error) {
-	return this.exchangeTyped.FetchLongShortRatio(symbol, options...)
-}
-func (this *Weex) FetchLongShortRatioHistory(options ...FetchLongShortRatioHistoryOptions) ([]LongShortRatio, error) {
-	return this.exchangeTyped.FetchLongShortRatioHistory(options...)
-}
-func (this *Weex) FetchMarginAdjustmentHistory(options ...FetchMarginAdjustmentHistoryOptions) ([]MarginModification, error) {
-	return this.exchangeTyped.FetchMarginAdjustmentHistory(options...)
-}
-func (this *Weex) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
-	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
-}
-func (this *Weex) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
-}
-func (this *Weex) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.FetchMyLiquidations(options...)
-}
-func (this *Weex) FetchOpenInterestHistory(symbol string, options ...FetchOpenInterestHistoryOptions) ([]OpenInterest, error) {
-	return this.exchangeTyped.FetchOpenInterestHistory(symbol, options...)
-}
-func (this *Weex) FetchOpenInterests(options ...FetchOpenInterestsOptions) (OpenInterests, error) {
-	return this.exchangeTyped.FetchOpenInterests(options...)
-}
-func (this *Weex) FetchOption(symbol string, options ...FetchOptionOptions) (Option, error) {
-	return this.exchangeTyped.FetchOption(symbol, options...)
-}
-func (this *Weex) FetchOptionChain(code string, options ...FetchOptionChainOptions) (OptionChain, error) {
-	return this.exchangeTyped.FetchOptionChain(code, options...)
-}
-func (this *Weex) FetchOrderWithClientOrderId(clientOrderId string, options ...FetchOrderWithClientOrderIdOptions) (Order, error) {
-	return this.exchangeTyped.FetchOrderWithClientOrderId(clientOrderId, options...)
-}
-func (this *Weex) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
-	return this.exchangeTyped.FetchOrderBooks(options...)
-}
-func (this *Weex) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
-	return this.exchangeTyped.FetchOrderStatus(id, options...)
-}
-func (this *Weex) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
-	return this.exchangeTyped.FetchPaymentMethods(params...)
-}
-func (this *Weex) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
-}
-func (this *Weex) FetchPositionsHistory(options ...FetchPositionsHistoryOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsHistory(options...)
-}
-func (this *Weex) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsRisk(options...)
-}
-func (this *Weex) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
-}
-func (this *Weex) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
-	return this.exchangeTyped.FetchTicker(symbol, options...)
-}
-func (this *Weex) FetchTradingFees(params ...any) (TradingFees, error) {
-	return this.exchangeTyped.FetchTradingFees(params...)
-}
-func (this *Weex) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
-	return this.exchangeTyped.FetchTradingLimits(options...)
-}
-func (this *Weex) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]any, error) {
-	return this.exchangeTyped.FetchTransactionFee(code, options...)
-}
-func (this *Weex) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]any, error) {
-	return this.exchangeTyped.FetchTransactionFees(options...)
-}
-func (this *Weex) FetchTransactions(options ...FetchTransactionsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchTransactions(options...)
-}
-func (this *Weex) FetchTransfer(id string, options ...FetchTransferOptions) (TransferEntry, error) {
-	return this.exchangeTyped.FetchTransfer(id, options...)
-}
-func (this *Weex) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchWithdrawals(options...)
-}
-func (this *Weex) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
-	return this.exchangeTyped.SetMargin(symbol, amount, options...)
-}
-func (this *Weex) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
-	return this.exchangeTyped.Transfer(code, amount, fromAccount, toAccount, options...)
-}
-func (this *Weex) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
-	return this.exchangeTyped.Withdraw(code, amount, address, options...)
-}
-func (this *Weex) CancelAllOrdersWs(options ...CancelAllOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelAllOrdersWs(options...)
-}
-func (this *Weex) CancelOrdersWs(ids []string, options ...CancelOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelOrdersWs(ids, options...)
-}
-func (this *Weex) CancelOrderWs(id string, options ...CancelOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CancelOrderWs(id, options...)
-}
-func (this *Weex) CreateLimitBuyOrderWs(symbol string, amount float64, price float64, options ...CreateLimitBuyOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitBuyOrderWs(symbol, amount, price, options...)
-}
-func (this *Weex) CreateLimitOrderWs(symbol string, side string, amount float64, price float64, options ...CreateLimitOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitOrderWs(symbol, side, amount, price, options...)
-}
-func (this *Weex) CreateLimitSellOrderWs(symbol string, amount float64, price float64, options ...CreateLimitSellOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitSellOrderWs(symbol, amount, price, options...)
-}
-func (this *Weex) CreateMarketBuyOrderWs(symbol string, amount float64, options ...CreateMarketBuyOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketBuyOrderWs(symbol, amount, options...)
-}
-func (this *Weex) CreateMarketOrderWithCostWs(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketOrderWithCostWs(symbol, side, cost, options...)
-}
-func (this *Weex) CreateMarketOrderWs(symbol string, side string, amount float64, options ...CreateMarketOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketOrderWs(symbol, side, amount, options...)
-}
-func (this *Weex) CreateMarketSellOrderWs(symbol string, amount float64, options ...CreateMarketSellOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketSellOrderWs(symbol, amount, options...)
-}
-func (this *Weex) CreateOrdersWs(orders []OrderRequest, options ...CreateOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.CreateOrdersWs(orders, options...)
-}
-func (this *Weex) CreateOrderWithTakeProfitAndStopLossWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateOrderWithTakeProfitAndStopLossWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Weex) CreateOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Weex) CreatePostOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreatePostOnlyOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreatePostOnlyOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Weex) CreateReduceOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateReduceOnlyOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateReduceOnlyOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Weex) CreateStopLimitOrderWs(symbol string, side string, amount float64, price float64, triggerPrice float64, options ...CreateStopLimitOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopLimitOrderWs(symbol, side, amount, price, triggerPrice, options...)
-}
-func (this *Weex) CreateStopLossOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopLossOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopLossOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Weex) CreateStopMarketOrderWs(symbol string, side string, amount float64, triggerPrice float64, options ...CreateStopMarketOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopMarketOrderWs(symbol, side, amount, triggerPrice, options...)
-}
-func (this *Weex) CreateStopOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Weex) CreateTakeProfitOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTakeProfitOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateTakeProfitOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Weex) CreateTrailingAmountOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateTrailingAmountOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Weex) CreateTrailingPercentOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingPercentOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateTrailingPercentOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Weex) CreateTriggerOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTriggerOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateTriggerOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Weex) EditOrderWs(id string, symbol string, typeVar string, side string, options ...EditOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.EditOrderWs(id, symbol, typeVar, side, options...)
-}
-func (this *Weex) FetchBalanceWs(params ...any) (Balances, error) {
-	return this.exchangeTyped.FetchBalanceWs(params...)
-}
-func (this *Weex) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchClosedOrdersWs(options...)
-}
-func (this *Weex) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchDepositsWs(options...)
-}
-func (this *Weex) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
-	return this.exchangeTyped.FetchMyTradesWs(options...)
-}
-func (this *Weex) FetchOHLCVWs(symbol string, options ...FetchOHLCVWsOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.FetchOHLCVWs(symbol, options...)
-}
-func (this *Weex) FetchOpenOrdersWs(options ...FetchOpenOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchOpenOrdersWs(options...)
-}
-func (this *Weex) FetchOrderBookWs(symbol string, options ...FetchOrderBookWsOptions) (OrderBook, error) {
-	return this.exchangeTyped.FetchOrderBookWs(symbol, options...)
-}
-func (this *Weex) FetchOrdersByStatusWs(status string, options ...FetchOrdersByStatusWsOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchOrdersByStatusWs(status, options...)
-}
-func (this *Weex) FetchOrdersWs(options ...FetchOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchOrdersWs(options...)
-}
-func (this *Weex) FetchOrderWs(id string, options ...FetchOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.FetchOrderWs(id, options...)
-}
-func (this *Weex) FetchPositionsForSymbolWs(symbol string, options ...FetchPositionsForSymbolWsOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsForSymbolWs(symbol, options...)
-}
-func (this *Weex) FetchPositionsWs(options ...FetchPositionsWsOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsWs(options...)
-}
-func (this *Weex) FetchPositionWs(symbol string, options ...FetchPositionWsOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionWs(symbol, options...)
-}
-func (this *Weex) FetchTickersWs(options ...FetchTickersWsOptions) (Tickers, error) {
-	return this.exchangeTyped.FetchTickersWs(options...)
-}
-func (this *Weex) FetchTickerWs(symbol string, options ...FetchTickerWsOptions) (Ticker, error) {
-	return this.exchangeTyped.FetchTickerWs(symbol, options...)
-}
-func (this *Weex) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) ([]Trade, error) {
-	return this.exchangeTyped.FetchTradesWs(symbol, options...)
-}
-func (this *Weex) FetchTradingFeesWs(params ...any) (TradingFees, error) {
-	return this.exchangeTyped.FetchTradingFeesWs(params...)
-}
-func (this *Weex) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchWithdrawalsWs(options...)
-}
-func (this *Weex) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {
-	return this.exchangeTyped.UnWatchBidsAsks(options...)
-}
-func (this *Weex) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (any, error) {
-	return this.exchangeTyped.UnWatchMyTrades(options...)
-}
-func (this *Weex) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOHLCV(symbol, options...)
-}
-func (this *Weex) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)
-}
-func (this *Weex) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOrderBook(symbol, options...)
-}
-func (this *Weex) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)
-}
-func (this *Weex) UnWatchOrders(options ...UnWatchOrdersOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOrders(options...)
-}
-func (this *Weex) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTicker(symbol, options...)
-}
-func (this *Weex) UnWatchTickers(options ...UnWatchTickersOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTickers(options...)
-}
-func (this *Weex) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTrades(symbol, options...)
-}
-func (this *Weex) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)
-}
-func (this *Weex) WatchBalance(params ...any) (Balances, error) {
-	return this.exchangeTyped.WatchBalance(params...)
-}
-func (this *Weex) WatchBidsAsks(options ...WatchBidsAsksOptions) (Tickers, error) {
-	return this.exchangeTyped.WatchBidsAsks(options...)
-}
-func (this *Weex) WatchLiquidations(symbol string, options ...WatchLiquidationsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.WatchLiquidations(symbol, options...)
-}
-func (this *Weex) WatchMarkPrice(symbol string, options ...WatchMarkPriceOptions) (Ticker, error) {
-	return this.exchangeTyped.WatchMarkPrice(symbol, options...)
-}
-func (this *Weex) WatchMarkPrices(options ...WatchMarkPricesOptions) (Tickers, error) {
-	return this.exchangeTyped.WatchMarkPrices(options...)
-}
-func (this *Weex) WatchMyLiquidations(symbol string, options ...WatchMyLiquidationsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.WatchMyLiquidations(symbol, options...)
-}
-func (this *Weex) WatchMyLiquidationsForSymbols(symbols []string, options ...WatchMyLiquidationsForSymbolsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.WatchMyLiquidationsForSymbols(symbols, options...)
-}
-func (this *Weex) WatchMyTrades(options ...WatchMyTradesOptions) ([]Trade, error) {
-	return this.exchangeTyped.WatchMyTrades(options...)
-}
-func (this *Weex) WatchOHLCV(symbol string, options ...WatchOHLCVOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.WatchOHLCV(symbol, options...)
-}
-func (this *Weex) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...WatchOHLCVForSymbolsOptions) (map[string]map[string][]OHLCV, error) {
-	return this.exchangeTyped.WatchOHLCVForSymbols(symbolsAndTimeframes, options...)
-}
-func (this *Weex) WatchOrderBook(symbol string, options ...WatchOrderBookOptions) (OrderBook, error) {
-	return this.exchangeTyped.WatchOrderBook(symbol, options...)
-}
-func (this *Weex) WatchOrderBookForSymbols(symbols []string, options ...WatchOrderBookForSymbolsOptions) (OrderBook, error) {
-	return this.exchangeTyped.WatchOrderBookForSymbols(symbols, options...)
-}
-func (this *Weex) WatchOrders(options ...WatchOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.WatchOrders(options...)
-}
-func (this *Weex) WatchOrdersForSymbols(symbols []string, options ...WatchOrdersForSymbolsOptions) ([]Order, error) {
-	return this.exchangeTyped.WatchOrdersForSymbols(symbols, options...)
-}
-func (this *Weex) WatchPosition(options ...WatchPositionOptions) (Position, error) {
-	return this.exchangeTyped.WatchPosition(options...)
-}
-func (this *Weex) WatchPositions(options ...WatchPositionsOptions) ([]Position, error) {
-	return this.exchangeTyped.WatchPositions(options...)
-}
-func (this *Weex) WatchTicker(symbol string, options ...WatchTickerOptions) (Ticker, error) {
-	return this.exchangeTyped.WatchTicker(symbol, options...)
-}
-func (this *Weex) WatchTickers(options ...WatchTickersOptions) (Tickers, error) {
-	return this.exchangeTyped.WatchTickers(options...)
-}
-func (this *Weex) WatchTrades(symbol string, options ...WatchTradesOptions) ([]Trade, error) {
-	return this.exchangeTyped.WatchTrades(symbol, options...)
-}
-func (this *Weex) WatchTradesForSymbols(symbols []string, options ...WatchTradesForSymbolsOptions) ([]Trade, error) {
-	return this.exchangeTyped.WatchTradesForSymbols(symbols, options...)
-}
-func (this *Weex) WithdrawWs(code string, amount float64, address string, options ...WithdrawWsOptions) (Transaction, error) {
-	return this.exchangeTyped.WithdrawWs(code, amount, address, options...)
 }

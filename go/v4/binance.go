@@ -11,7 +11,6 @@ import "strings"
 
 type Binance struct {
 	Exchange
-	exchangeTyped *ExchangeTyped
 }
 
 func newBinance() *Binance {
@@ -6882,25 +6881,25 @@ func (this *Binance) fetchMarkPriceBody(ch chan AsyncResult[Ticker], symbol stri
 	var response []any = nil
 	if market["option"] == true {
 
-		listEp6731 := <-this.EapiPublicGetMark(this.Extend(request, paramsSubType))
-		if listEp6731.Err != nil {
-			panic(listEp6731.Err)
+		listEp6730 := <-this.EapiPublicGetMark(this.Extend(request, paramsSubType))
+		if listEp6730.Err != nil {
+			panic(listEp6730.Err)
 		}
-		response = listEp6731.Value
+		response = listEp6730.Value
 	} else if this.IsLinear(typeVar, subType) {
 
-		listEp6734 := <-this.FapiPublicGetPremiumIndex(this.Extend(request, paramsSubType))
-		if listEp6734.Err != nil {
-			panic(listEp6734.Err)
+		listEp6733 := <-this.FapiPublicGetPremiumIndex(this.Extend(request, paramsSubType))
+		if listEp6733.Err != nil {
+			panic(listEp6733.Err)
 		}
-		response = listEp6734.Value
+		response = listEp6733.Value
 	} else if this.IsInverse(typeVar, subType) {
 
-		listEp6737 := <-this.DapiPublicGetPremiumIndex(this.Extend(request, paramsSubType))
-		if listEp6737.Err != nil {
-			panic(listEp6737.Err)
+		listEp6736 := <-this.DapiPublicGetPremiumIndex(this.Extend(request, paramsSubType))
+		if listEp6736.Err != nil {
+			panic(listEp6736.Err)
 		}
-		response = listEp6737.Value
+		response = listEp6736.Value
 	} else {
 		panic(NotSupported(this.Id + " fetchMarkPrice() does not support " + *typeVar + " markets yet"))
 	}
@@ -6955,25 +6954,25 @@ func (this *Binance) fetchMarkPricesBody(ch chan AsyncResult[map[string]Ticker],
 	var response []any = nil
 	if typeVar != nil && *typeVar == "option" {
 
-		listEp6789 := <-this.EapiPublicGetMark(paramsSubType)
-		if listEp6789.Err != nil {
-			panic(listEp6789.Err)
+		listEp6788 := <-this.EapiPublicGetMark(paramsSubType)
+		if listEp6788.Err != nil {
+			panic(listEp6788.Err)
 		}
-		response = listEp6789.Value
+		response = listEp6788.Value
 	} else if this.IsLinear(typeVar, subType) {
 
-		listEp6792 := <-this.FapiPublicGetPremiumIndex(paramsSubType)
-		if listEp6792.Err != nil {
-			panic(listEp6792.Err)
+		listEp6791 := <-this.FapiPublicGetPremiumIndex(paramsSubType)
+		if listEp6791.Err != nil {
+			panic(listEp6791.Err)
 		}
-		response = listEp6792.Value
+		response = listEp6791.Value
 	} else if this.IsInverse(typeVar, subType) {
 
-		listEp6795 := <-this.DapiPublicGetPremiumIndex(paramsSubType)
-		if listEp6795.Err != nil {
-			panic(listEp6795.Err)
+		listEp6794 := <-this.DapiPublicGetPremiumIndex(paramsSubType)
+		if listEp6794.Err != nil {
+			panic(listEp6794.Err)
 		}
-		response = listEp6795.Value
+		response = listEp6794.Value
 	} else {
 		panic(NotSupported(this.Id + " fetchMarkPrices() does not support " + *typeVar + " markets yet"))
 	}
@@ -9211,25 +9210,25 @@ func (this *Binance) createOrdersBody(ch chan AsyncResult[[]Order], orders any, 
 	request = this.Extend(request, params)
 	if market["linear"] == true {
 
-		listEp8912 := <-this.FapiPrivatePostBatchOrders(request)
-		if listEp8912.Err != nil {
-			panic(listEp8912.Err)
+		listEp8911 := <-this.FapiPrivatePostBatchOrders(request)
+		if listEp8911.Err != nil {
+			panic(listEp8911.Err)
 		}
-		response = listEp8912.Value
+		response = listEp8911.Value
 	} else if market["option"] == true {
 
-		listEp8915 := <-this.EapiPrivatePostBatchOrders(request)
-		if listEp8915.Err != nil {
-			panic(listEp8915.Err)
+		listEp8914 := <-this.EapiPrivatePostBatchOrders(request)
+		if listEp8914.Err != nil {
+			panic(listEp8914.Err)
 		}
-		response = listEp8915.Value
+		response = listEp8914.Value
 	} else {
 
-		listEp8918 := <-this.DapiPrivatePostBatchOrders(request)
-		if listEp8918.Err != nil {
-			panic(listEp8918.Err)
+		listEp8917 := <-this.DapiPrivatePostBatchOrders(request)
+		if listEp8917.Err != nil {
+			panic(listEp8917.Err)
 		}
-		response = listEp8918.Value
+		response = listEp8917.Value
 	}
 
 	//
@@ -13867,11 +13866,11 @@ func (this *Binance) fetchDepositWithdrawFeesBody(ch chan AsyncResult[map[string
 		}
 	}
 
-	listEp13093 := <-this.SapiGetCapitalConfigGetall(params)
-	if listEp13093.Err != nil {
-		panic(listEp13093.Err)
+	listEp13092 := <-this.SapiGetCapitalConfigGetall(params)
+	if listEp13092.Err != nil {
+		panic(listEp13092.Err)
 	}
-	var response []any = listEp13093.Value
+	var response []any = listEp13092.Value
 
 	//
 	//    [
@@ -14639,18 +14638,18 @@ func (this *Binance) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 	var response []any = nil
 	if this.IsLinear(typeVar, subType) {
 
-		listEp13793 := <-this.FapiPublicGetFundingRate(this.Extend(request, paramsOmitted2))
-		if listEp13793.Err != nil {
-			panic(listEp13793.Err)
+		listEp13792 := <-this.FapiPublicGetFundingRate(this.Extend(request, paramsOmitted2))
+		if listEp13792.Err != nil {
+			panic(listEp13792.Err)
 		}
-		response = listEp13793.Value
+		response = listEp13792.Value
 	} else if this.IsInverse(typeVar, subType) {
 
-		listEp13796 := <-this.DapiPublicGetFundingRate(this.Extend(request, paramsOmitted2))
-		if listEp13796.Err != nil {
-			panic(listEp13796.Err)
+		listEp13795 := <-this.DapiPublicGetFundingRate(this.Extend(request, paramsOmitted2))
+		if listEp13795.Err != nil {
+			panic(listEp13795.Err)
 		}
-		response = listEp13796.Value
+		response = listEp13795.Value
 	} else {
 		panic(NotSupported(this.Id + " fetchFundingRateHistory() is not supported for " + *typeVar + " markets"))
 	}
@@ -14723,18 +14722,18 @@ func (this *Binance) fetchFundingRatesBody(ch chan AsyncResult[map[string]Fundin
 	var response []any = nil
 	if this.IsLinear(typeVar, subType) {
 
-		listEp13866 := <-this.FapiPublicGetPremiumIndex(query)
-		if listEp13866.Err != nil {
-			panic(listEp13866.Err)
+		listEp13865 := <-this.FapiPublicGetPremiumIndex(query)
+		if listEp13865.Err != nil {
+			panic(listEp13865.Err)
 		}
-		response = listEp13866.Value
+		response = listEp13865.Value
 	} else if this.IsInverse(typeVar, subType) {
 
-		listEp13869 := <-this.DapiPublicGetPremiumIndex(query)
-		if listEp13869.Err != nil {
-			panic(listEp13869.Err)
+		listEp13868 := <-this.DapiPublicGetPremiumIndex(query)
+		if listEp13868.Err != nil {
+			panic(listEp13868.Err)
 		}
-		response = listEp13869.Value
+		response = listEp13868.Value
 	} else {
 		panic(NotSupported(this.Id + " fetchFundingRates() supports linear and inverse contracts only"))
 	}
@@ -15737,11 +15736,11 @@ func (this *Binance) fetchPositionBody(ch chan AsyncResult[Position], symbol any
 		"symbol": market["id"],
 	}
 
-	listEp14769 := <-this.EapiPrivateGetPosition(this.Extend(request, params))
-	if listEp14769.Err != nil {
-		panic(listEp14769.Err)
+	listEp14768 := <-this.EapiPrivateGetPosition(this.Extend(request, params))
+	if listEp14768.Err != nil {
+		panic(listEp14768.Err)
 	}
-	var response []any = listEp14769.Value
+	var response []any = listEp14768.Value
 
 	//
 	//     [
@@ -15821,11 +15820,11 @@ func (this *Binance) fetchOptionPositionsBody(ch chan AsyncResult[[]Position], o
 		request["symbol"] = market["id"]
 	}
 
-	listEp14846 := <-this.EapiPrivateGetPosition(this.Extend(request, params))
-	if listEp14846.Err != nil {
-		panic(listEp14846.Err)
+	listEp14845 := <-this.EapiPrivateGetPosition(this.Extend(request, params))
+	if listEp14845.Err != nil {
+		panic(listEp14845.Err)
 	}
-	var response []any = listEp14846.Value
+	var response []any = listEp14845.Value
 	//
 	//     [
 	//         {
@@ -16391,34 +16390,34 @@ func (this *Binance) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistor
 	if this.IsLinear(typeVar, subType) {
 		if isPortfolioMargin {
 
-			listEp15350 := <-this.PapiGetUmIncome(this.Extend(requestUntil, paramsOmitted))
-			if listEp15350.Err != nil {
-				panic(listEp15350.Err)
+			listEp15349 := <-this.PapiGetUmIncome(this.Extend(requestUntil, paramsOmitted))
+			if listEp15349.Err != nil {
+				panic(listEp15349.Err)
 			}
-			response = listEp15350.Value
+			response = listEp15349.Value
 		} else {
 
-			listEp15353 := <-this.FapiPrivateGetIncome(this.Extend(requestUntil, paramsOmitted))
-			if listEp15353.Err != nil {
-				panic(listEp15353.Err)
+			listEp15352 := <-this.FapiPrivateGetIncome(this.Extend(requestUntil, paramsOmitted))
+			if listEp15352.Err != nil {
+				panic(listEp15352.Err)
 			}
-			response = listEp15353.Value
+			response = listEp15352.Value
 		}
 	} else if this.IsInverse(typeVar, subType) {
 		if isPortfolioMargin {
 
-			listEp15358 := <-this.PapiGetCmIncome(this.Extend(requestUntil, paramsOmitted))
-			if listEp15358.Err != nil {
-				panic(listEp15358.Err)
+			listEp15357 := <-this.PapiGetCmIncome(this.Extend(requestUntil, paramsOmitted))
+			if listEp15357.Err != nil {
+				panic(listEp15357.Err)
 			}
-			response = listEp15358.Value
+			response = listEp15357.Value
 		} else {
 
-			listEp15361 := <-this.DapiPrivateGetIncome(this.Extend(requestUntil, paramsOmitted))
-			if listEp15361.Err != nil {
-				panic(listEp15361.Err)
+			listEp15360 := <-this.DapiPrivateGetIncome(this.Extend(requestUntil, paramsOmitted))
+			if listEp15360.Err != nil {
+				panic(listEp15360.Err)
 			}
-			response = listEp15361.Value
+			response = listEp15360.Value
 		}
 	} else {
 		panic(NotSupported(this.Id + " fetchFundingHistory() supports linear and inverse contracts only"))
@@ -16916,11 +16915,11 @@ func (this *Binance) fetchSettlementHistoryBody(ch chan AsyncResult[[]map[string
 		request["limit"] = limit
 	}
 
-	listEp15802 := <-this.EapiPublicGetExerciseHistory(this.Extend(request, paramsMarketType))
-	if listEp15802.Err != nil {
-		panic(listEp15802.Err)
+	listEp15801 := <-this.EapiPublicGetExerciseHistory(this.Extend(request, paramsMarketType))
+	if listEp15801.Err != nil {
+		panic(listEp15801.Err)
 	}
-	var response []any = listEp15802.Value
+	var response []any = listEp15801.Value
 	//
 	//     [
 	//         {
@@ -17000,11 +16999,11 @@ func (this *Binance) fetchMySettlementHistoryBody(ch chan AsyncResult[[]map[stri
 		request["limit"] = limit
 	}
 
-	listEp15879 := <-this.EapiPrivateGetExerciseRecord(this.Extend(request, paramsMarketType))
-	if listEp15879.Err != nil {
-		panic(listEp15879.Err)
+	listEp15878 := <-this.EapiPrivateGetExerciseRecord(this.Extend(request, paramsMarketType))
+	if listEp15878.Err != nil {
+		panic(listEp15878.Err)
 	}
-	var response []any = listEp15879.Value
+	var response []any = listEp15878.Value
 	//
 	//     [
 	//         {
@@ -17265,42 +17264,42 @@ func (this *Binance) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optiona
 		}
 		request["currency"] = currency["id"]
 
-		listEp16127 := <-this.EapiPrivateGetBill(this.Extend(request, paramsPaginate))
-		if listEp16127.Err != nil {
-			panic(listEp16127.Err)
+		listEp16126 := <-this.EapiPrivateGetBill(this.Extend(request, paramsPaginate))
+		if listEp16126.Err != nil {
+			panic(listEp16126.Err)
 		}
-		response = listEp16127.Value
+		response = listEp16126.Value
 	} else if this.IsLinear(typeVar, subType) {
 		if isPortfolioMargin == true {
 
-			listEp16131 := <-this.PapiGetUmIncome(this.Extend(request, paramsPaginate))
-			if listEp16131.Err != nil {
-				panic(listEp16131.Err)
+			listEp16130 := <-this.PapiGetUmIncome(this.Extend(request, paramsPaginate))
+			if listEp16130.Err != nil {
+				panic(listEp16130.Err)
 			}
-			response = listEp16131.Value
+			response = listEp16130.Value
 		} else {
 
-			listEp16134 := <-this.FapiPrivateGetIncome(this.Extend(request, paramsPaginate))
-			if listEp16134.Err != nil {
-				panic(listEp16134.Err)
+			listEp16133 := <-this.FapiPrivateGetIncome(this.Extend(request, paramsPaginate))
+			if listEp16133.Err != nil {
+				panic(listEp16133.Err)
 			}
-			response = listEp16134.Value
+			response = listEp16133.Value
 		}
 	} else if this.IsInverse(typeVar, subType) {
 		if isPortfolioMargin == true {
 
-			listEp16139 := <-this.PapiGetCmIncome(this.Extend(request, paramsPaginate))
-			if listEp16139.Err != nil {
-				panic(listEp16139.Err)
+			listEp16138 := <-this.PapiGetCmIncome(this.Extend(request, paramsPaginate))
+			if listEp16138.Err != nil {
+				panic(listEp16138.Err)
 			}
-			response = listEp16139.Value
+			response = listEp16138.Value
 		} else {
 
-			listEp16142 := <-this.DapiPrivateGetIncome(this.Extend(request, paramsPaginate))
-			if listEp16142.Err != nil {
-				panic(listEp16142.Err)
+			listEp16141 := <-this.DapiPrivateGetIncome(this.Extend(request, paramsPaginate))
+			if listEp16141.Err != nil {
+				panic(listEp16141.Err)
 			}
-			response = listEp16142.Value
+			response = listEp16141.Value
 		}
 	} else {
 		panic(NotSupported(this.Id + " fetchLedger() supports contract wallets only"))
@@ -18948,18 +18947,18 @@ func (this *Binance) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInte
 	var response []any = nil
 	if market["inverse"] == true {
 
-		listEp17683 := <-this.DapiDataGetOpenInterestHist(this.Extend(request, paramsOmitted))
-		if listEp17683.Err != nil {
-			panic(listEp17683.Err)
+		listEp17682 := <-this.DapiDataGetOpenInterestHist(this.Extend(request, paramsOmitted))
+		if listEp17682.Err != nil {
+			panic(listEp17682.Err)
 		}
-		response = listEp17683.Value
+		response = listEp17682.Value
 	} else {
 
-		listEp17686 := <-this.FapiDataGetOpenInterestHist(this.Extend(request, paramsOmitted))
-		if listEp17686.Err != nil {
-			panic(listEp17686.Err)
+		listEp17685 := <-this.FapiDataGetOpenInterestHist(this.Extend(request, paramsOmitted))
+		if listEp17685.Err != nil {
+			panic(listEp17685.Err)
 		}
-		response = listEp17686.Value
+		response = listEp17685.Value
 	}
 
 	//
@@ -19477,11 +19476,11 @@ func (this *Binance) fetchGreeksBody(ch chan AsyncResult[Greeks], symbol string,
 		"symbol": market["id"],
 	}
 
-	listEp18161 := <-this.EapiPublicGetMark(this.Extend(request, params))
-	if listEp18161.Err != nil {
-		panic(listEp18161.Err)
+	listEp18160 := <-this.EapiPublicGetMark(this.Extend(request, params))
+	if listEp18160.Err != nil {
+		panic(listEp18160.Err)
 	}
-	var response []any = listEp18161.Value
+	var response []any = listEp18160.Value
 
 	//
 	//     [
@@ -19548,11 +19547,11 @@ func (this *Binance) fetchAllGreeksBody(ch chan AsyncResult[map[string]Greeks], 
 		}
 	}
 
-	listEp18225 := <-this.EapiPublicGetMark(this.Extend(request, params))
-	if listEp18225.Err != nil {
-		panic(listEp18225.Err)
+	listEp18224 := <-this.EapiPublicGetMark(this.Extend(request, params))
+	if listEp18224.Err != nil {
+		panic(listEp18224.Err)
 	}
-	var response []any = listEp18225.Value
+	var response []any = listEp18224.Value
 
 	//
 	//     [
@@ -19634,8 +19633,8 @@ func (this *Binance) fetchTradingLimitsBody(ch chan AsyncResult[map[string]any],
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv18365, _ := MarketInterfacesToList(r.Value), r.Value != nil
-	var markets []any = listRecv18365
+	listRecv18364, _ := MarketInterfacesToList(r.Value), r.Value != nil
+	var markets []any = listRecv18364
 	var tradingLimits map[string]any = map[string]any{}
 	for i := 0; i < len(markets); i++ {
 		var market any = GetValue(markets, i)
@@ -19818,11 +19817,11 @@ func (this *Binance) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbol
 			"symbol": market["id"],
 		}
 
-		listEp18466 := <-this.FapiPrivateGetSymbolConfig(this.Extend(request, paramsSubType))
-		if listEp18466.Err != nil {
-			panic(listEp18466.Err)
+		listEp18465 := <-this.FapiPrivateGetSymbolConfig(this.Extend(request, paramsSubType))
+		if listEp18465.Err != nil {
+			panic(listEp18465.Err)
 		}
-		response = listEp18466.Value
+		response = listEp18465.Value
 	} else if subType != nil && *subType == "inverse" {
 
 		r1 := <-this.FetchMarginModesAsync([]any{symbol}, paramsSubType)
@@ -19909,11 +19908,11 @@ func (this *Binance) fetchOptionBody(ch chan AsyncResult[Option], symbol string,
 		"symbol": market["id"],
 	}
 
-	listEp18544 := <-this.EapiPublicGetTicker(this.Extend(request, params))
-	if listEp18544.Err != nil {
-		panic(listEp18544.Err)
+	listEp18543 := <-this.EapiPublicGetTicker(this.Extend(request, params))
+	if listEp18543.Err != nil {
+		panic(listEp18543.Err)
 	}
-	var response []any = listEp18544.Value
+	var response []any = listEp18543.Value
 	//
 	//     [
 	//         {
@@ -20061,18 +20060,18 @@ func (this *Binance) fetchMarginAdjustmentHistoryBody(ch chan AsyncResult[[]Marg
 	var response []any = nil
 	if market["linear"] == true {
 
-		listEp18689 := <-this.FapiPrivateGetPositionMarginHistory(this.Extend(request, paramsOmitted))
-		if listEp18689.Err != nil {
-			panic(listEp18689.Err)
+		listEp18688 := <-this.FapiPrivateGetPositionMarginHistory(this.Extend(request, paramsOmitted))
+		if listEp18688.Err != nil {
+			panic(listEp18688.Err)
 		}
-		response = listEp18689.Value
+		response = listEp18688.Value
 	} else if market["inverse"] == true {
 
-		listEp18692 := <-this.DapiPrivateGetPositionMarginHistory(this.Extend(request, paramsOmitted))
-		if listEp18692.Err != nil {
-			panic(listEp18692.Err)
+		listEp18691 := <-this.DapiPrivateGetPositionMarginHistory(this.Extend(request, paramsOmitted))
+		if listEp18691.Err != nil {
+			panic(listEp18691.Err)
 		}
-		response = listEp18692.Value
+		response = listEp18691.Value
 	} else {
 		panic(BadRequest(Add(this.Id+" fetchMarginAdjustmentHistory () is not supported for markets of type ", market["type"])))
 	}
@@ -20126,11 +20125,11 @@ func (this *Binance) fetchConvertCurrenciesBody(ch chan AsyncResult[Currencies],
 		}
 	}
 
-	listEp18743 := <-this.SapiGetConvertAssetInfo(params)
-	if listEp18743.Err != nil {
-		panic(listEp18743.Err)
+	listEp18742 := <-this.SapiGetConvertAssetInfo(params)
+	if listEp18742.Err != nil {
+		panic(listEp18742.Err)
 	}
-	var response []any = listEp18743.Value
+	var response []any = listEp18742.Value
 	//
 	//     [
 	//         {
@@ -20630,18 +20629,18 @@ func (this *Binance) fetchFundingIntervalsBody(ch chan AsyncResult[map[string]Fu
 	var response []any = nil
 	if this.IsLinear(typeVar, subType) {
 
-		listEp19207 := <-this.FapiPublicGetFundingInfo(paramsSubType)
-		if listEp19207.Err != nil {
-			panic(listEp19207.Err)
+		listEp19206 := <-this.FapiPublicGetFundingInfo(paramsSubType)
+		if listEp19206.Err != nil {
+			panic(listEp19206.Err)
 		}
-		response = listEp19207.Value
+		response = listEp19206.Value
 	} else if this.IsInverse(typeVar, subType) {
 
-		listEp19210 := <-this.DapiPublicGetFundingInfo(paramsSubType)
-		if listEp19210.Err != nil {
-			panic(listEp19210.Err)
+		listEp19209 := <-this.DapiPublicGetFundingInfo(paramsSubType)
+		if listEp19209.Err != nil {
+			panic(listEp19209.Err)
 		}
-		response = listEp19210.Value
+		response = listEp19209.Value
 	} else {
 		panic(NotSupported(this.Id + " fetchFundingIntervals() supports linear and inverse swap contracts only"))
 	}
@@ -20722,19 +20721,19 @@ func (this *Binance) fetchLongShortRatioHistoryBody(ch chan AsyncResult[[]LongSh
 	if subType != nil && *subType == "linear" {
 		AddElementToObject(requestUntil, "symbol", market["id"])
 
-		listEp19288 := <-this.FapiDataGetGlobalLongShortAccountRatio(this.Extend(requestUntil, paramsSubType))
-		if listEp19288.Err != nil {
-			panic(listEp19288.Err)
+		listEp19287 := <-this.FapiDataGetGlobalLongShortAccountRatio(this.Extend(requestUntil, paramsSubType))
+		if listEp19287.Err != nil {
+			panic(listEp19287.Err)
 		}
-		response = listEp19288.Value
+		response = listEp19287.Value
 	} else if subType != nil && *subType == "inverse" {
 		requestUntil["pair"] = GetValue(market["info"], "pair")
 
-		listEp19292 := <-this.DapiDataGetGlobalLongShortAccountRatio(this.Extend(requestUntil, paramsSubType))
-		if listEp19292.Err != nil {
-			panic(listEp19292.Err)
+		listEp19291 := <-this.DapiDataGetGlobalLongShortAccountRatio(this.Extend(requestUntil, paramsSubType))
+		if listEp19291.Err != nil {
+			panic(listEp19291.Err)
 		}
-		response = listEp19292.Value
+		response = listEp19291.Value
 	} else {
 		panic(BadRequest(this.Id + " fetchLongShortRatioHistory() supports linear and inverse subTypes only"))
 	}
@@ -20868,34 +20867,34 @@ func (this *Binance) fetchPositionsADLRankBody(ch chan AsyncResult[[]ADL], optio
 	if subType != nil && *subType == "linear" {
 		if isPortfolioMargin {
 
-			listEp19416 := <-this.PapiGetUmAdlQuantile(paramsPapi)
-			if listEp19416.Err != nil {
-				panic(listEp19416.Err)
+			listEp19415 := <-this.PapiGetUmAdlQuantile(paramsPapi)
+			if listEp19415.Err != nil {
+				panic(listEp19415.Err)
 			}
-			response = listEp19416.Value
+			response = listEp19415.Value
 		} else {
 
-			listEp19419 := <-this.FapiPrivateGetAdlQuantile(paramsPapi)
-			if listEp19419.Err != nil {
-				panic(listEp19419.Err)
+			listEp19418 := <-this.FapiPrivateGetAdlQuantile(paramsPapi)
+			if listEp19418.Err != nil {
+				panic(listEp19418.Err)
 			}
-			response = listEp19419.Value
+			response = listEp19418.Value
 		}
 	} else if subType != nil && *subType == "inverse" {
 		if isPortfolioMargin {
 
-			listEp19424 := <-this.PapiGetCmAdlQuantile(paramsPapi)
-			if listEp19424.Err != nil {
-				panic(listEp19424.Err)
+			listEp19423 := <-this.PapiGetCmAdlQuantile(paramsPapi)
+			if listEp19423.Err != nil {
+				panic(listEp19423.Err)
 			}
-			response = listEp19424.Value
+			response = listEp19423.Value
 		} else {
 
-			listEp19427 := <-this.DapiPrivateGetAdlQuantile(paramsPapi)
-			if listEp19427.Err != nil {
-				panic(listEp19427.Err)
+			listEp19426 := <-this.DapiPrivateGetAdlQuantile(paramsPapi)
+			if listEp19426.Err != nil {
+				panic(listEp19426.Err)
 			}
-			response = listEp19427.Value
+			response = listEp19426.Value
 		}
 	} else {
 		panic(BadRequest(this.Id + " fetchPositionsADLRank() supports linear and inverse subTypes only"))
@@ -20982,7 +20981,6 @@ func (this *Binance) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
 	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
-	this.exchangeTyped = NewExchangeTyped(&this.Exchange)
 }
 
 // typed methods
@@ -23573,400 +23571,4 @@ func (this *Binance) FetchPositionsADLRank(options ...FetchPositionsADLRankOptio
 	}
 	var res []ADL = r.Value
 	return res, nil
-}
-
-// missing typed methods from base
-// nolint
-func (this *Binance) LoadMarkets(params ...any) (map[string]MarketInterface, error) {
-	return this.exchangeTyped.LoadMarkets(params...)
-}
-func (this *Binance) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)
-}
-func (this *Binance) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]any, error) {
-	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
-}
-func (this *Binance) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
-	return this.exchangeTyped.CancelOrderWithClientOrderId(clientOrderId, options...)
-}
-func (this *Binance) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)
-}
-func (this *Binance) ClosePosition(symbol string, options ...ClosePositionOptions) (Order, error) {
-	return this.exchangeTyped.ClosePosition(symbol, options...)
-}
-func (this *Binance) CreateDepositAddress(code string, options ...CreateDepositAddressOptions) (DepositAddress, error) {
-	return this.exchangeTyped.CreateDepositAddress(code, options...)
-}
-func (this *Binance) CreateLimitBuyOrder(symbol string, amount float64, price float64, options ...CreateLimitBuyOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitBuyOrder(symbol, amount, price, options...)
-}
-func (this *Binance) CreateLimitOrder(symbol string, side string, amount float64, price float64, options ...CreateLimitOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitOrder(symbol, side, amount, price, options...)
-}
-func (this *Binance) CreateLimitSellOrder(symbol string, amount float64, price float64, options ...CreateLimitSellOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitSellOrder(symbol, amount, price, options...)
-}
-func (this *Binance) CreateMarketBuyOrder(symbol string, amount float64, options ...CreateMarketBuyOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketBuyOrder(symbol, amount, options...)
-}
-func (this *Binance) CreateMarketOrder(symbol string, side string, amount float64, options ...CreateMarketOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketOrder(symbol, side, amount, options...)
-}
-func (this *Binance) CreateMarketSellOrder(symbol string, amount float64, options ...CreateMarketSellOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketSellOrder(symbol, amount, options...)
-}
-func (this *Binance) CreateOrderWithTakeProfitAndStopLoss(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossOptions) (Order, error) {
-	return this.exchangeTyped.CreateOrderWithTakeProfitAndStopLoss(symbol, typeVar, side, amount, options...)
-}
-func (this *Binance) CreatePostOnlyOrder(symbol string, typeVar string, side string, amount float64, options ...CreatePostOnlyOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreatePostOnlyOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Binance) CreateReduceOnlyOrder(symbol string, typeVar string, side string, amount float64, options ...CreateReduceOnlyOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateReduceOnlyOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Binance) CreateStopLimitOrder(symbol string, side string, amount float64, price float64, triggerPrice float64, options ...CreateStopLimitOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopLimitOrder(symbol, side, amount, price, triggerPrice, options...)
-}
-func (this *Binance) CreateStopLossOrder(symbol string, typeVar string, side string, amount float64, options ...CreateStopLossOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopLossOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Binance) CreateStopMarketOrder(symbol string, side string, amount float64, triggerPrice float64, options ...CreateStopMarketOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopMarketOrder(symbol, side, amount, triggerPrice, options...)
-}
-func (this *Binance) CreateStopOrder(symbol string, typeVar string, side string, amount float64, options ...CreateStopOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Binance) CreateTakeProfitOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTakeProfitOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateTakeProfitOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Binance) CreateTrailingAmountOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateTrailingAmountOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Binance) CreateTrailingPercentOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingPercentOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateTrailingPercentOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Binance) CreateTriggerOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTriggerOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateTriggerOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Binance) EditLimitBuyOrder(id string, symbol string, amount float64, options ...EditLimitBuyOrderOptions) (Order, error) {
-	return this.exchangeTyped.EditLimitBuyOrder(id, symbol, amount, options...)
-}
-func (this *Binance) EditLimitOrder(id string, symbol string, side string, amount float64, options ...EditLimitOrderOptions) (Order, error) {
-	return this.exchangeTyped.EditLimitOrder(id, symbol, side, amount, options...)
-}
-func (this *Binance) EditLimitSellOrder(id string, symbol string, amount float64, options ...EditLimitSellOrderOptions) (Order, error) {
-	return this.exchangeTyped.EditLimitSellOrder(id, symbol, amount, options...)
-}
-func (this *Binance) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...EditOrderWithClientOrderIdOptions) (Order, error) {
-	return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)
-}
-func (this *Binance) FetchAccounts(params ...any) ([]Account, error) {
-	return this.exchangeTyped.FetchAccounts(params...)
-}
-func (this *Binance) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]any, error) {
-	return this.exchangeTyped.FetchBorrowRate(code, amount, options...)
-}
-func (this *Binance) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, error) {
-	return this.exchangeTyped.FetchCrossBorrowRates(params...)
-}
-func (this *Binance) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
-	return this.exchangeTyped.FetchDepositAddresses(options...)
-}
-func (this *Binance) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
-	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
-}
-func (this *Binance) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
-}
-func (this *Binance) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
-	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
-}
-func (this *Binance) FetchFreeBalance(params ...any) (Balance, error) {
-	return this.exchangeTyped.FetchFreeBalance(params...)
-}
-func (this *Binance) FetchFundingInterval(symbol string, options ...FetchFundingIntervalOptions) (FundingRate, error) {
-	return this.exchangeTyped.FetchFundingInterval(symbol, options...)
-}
-func (this *Binance) FetchIndexOHLCV(symbol string, options ...FetchIndexOHLCVOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.FetchIndexOHLCV(symbol, options...)
-}
-func (this *Binance) FetchLeverage(symbol string, options ...FetchLeverageOptions) (Leverage, error) {
-	return this.exchangeTyped.FetchLeverage(symbol, options...)
-}
-func (this *Binance) FetchLiquidations(symbol string, options ...FetchLiquidationsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.FetchLiquidations(symbol, options...)
-}
-func (this *Binance) FetchLongShortRatio(symbol string, options ...FetchLongShortRatioOptions) (LongShortRatio, error) {
-	return this.exchangeTyped.FetchLongShortRatio(symbol, options...)
-}
-func (this *Binance) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
-	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
-}
-func (this *Binance) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
-}
-func (this *Binance) FetchOpenInterests(options ...FetchOpenInterestsOptions) (OpenInterests, error) {
-	return this.exchangeTyped.FetchOpenInterests(options...)
-}
-func (this *Binance) FetchOptionChain(code string, options ...FetchOptionChainOptions) (OptionChain, error) {
-	return this.exchangeTyped.FetchOptionChain(code, options...)
-}
-func (this *Binance) FetchOrderWithClientOrderId(clientOrderId string, options ...FetchOrderWithClientOrderIdOptions) (Order, error) {
-	return this.exchangeTyped.FetchOrderWithClientOrderId(clientOrderId, options...)
-}
-func (this *Binance) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
-	return this.exchangeTyped.FetchOrderBooks(options...)
-}
-func (this *Binance) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
-	return this.exchangeTyped.FetchOrderStatus(id, options...)
-}
-func (this *Binance) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
-	return this.exchangeTyped.FetchPaymentMethods(params...)
-}
-func (this *Binance) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
-}
-func (this *Binance) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsForSymbol(symbol, options...)
-}
-func (this *Binance) FetchPositionsHistory(options ...FetchPositionsHistoryOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsHistory(options...)
-}
-func (this *Binance) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
-}
-func (this *Binance) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]any, error) {
-	return this.exchangeTyped.FetchTransactionFee(code, options...)
-}
-func (this *Binance) FetchTransactions(options ...FetchTransactionsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchTransactions(options...)
-}
-func (this *Binance) FetchTransfer(id string, options ...FetchTransferOptions) (TransferEntry, error) {
-	return this.exchangeTyped.FetchTransfer(id, options...)
-}
-func (this *Binance) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
-	return this.exchangeTyped.SetMargin(symbol, amount, options...)
-}
-func (this *Binance) CancelAllOrdersWs(options ...CancelAllOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelAllOrdersWs(options...)
-}
-func (this *Binance) CancelOrdersWs(ids []string, options ...CancelOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelOrdersWs(ids, options...)
-}
-func (this *Binance) CancelOrderWs(id string, options ...CancelOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CancelOrderWs(id, options...)
-}
-func (this *Binance) CreateLimitBuyOrderWs(symbol string, amount float64, price float64, options ...CreateLimitBuyOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitBuyOrderWs(symbol, amount, price, options...)
-}
-func (this *Binance) CreateLimitOrderWs(symbol string, side string, amount float64, price float64, options ...CreateLimitOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitOrderWs(symbol, side, amount, price, options...)
-}
-func (this *Binance) CreateLimitSellOrderWs(symbol string, amount float64, price float64, options ...CreateLimitSellOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitSellOrderWs(symbol, amount, price, options...)
-}
-func (this *Binance) CreateMarketBuyOrderWs(symbol string, amount float64, options ...CreateMarketBuyOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketBuyOrderWs(symbol, amount, options...)
-}
-func (this *Binance) CreateMarketOrderWithCostWs(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketOrderWithCostWs(symbol, side, cost, options...)
-}
-func (this *Binance) CreateMarketOrderWs(symbol string, side string, amount float64, options ...CreateMarketOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketOrderWs(symbol, side, amount, options...)
-}
-func (this *Binance) CreateMarketSellOrderWs(symbol string, amount float64, options ...CreateMarketSellOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketSellOrderWs(symbol, amount, options...)
-}
-func (this *Binance) CreateOrdersWs(orders []OrderRequest, options ...CreateOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.CreateOrdersWs(orders, options...)
-}
-func (this *Binance) CreateOrderWithTakeProfitAndStopLossWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateOrderWithTakeProfitAndStopLossWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Binance) CreateOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Binance) CreatePostOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreatePostOnlyOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreatePostOnlyOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Binance) CreateReduceOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateReduceOnlyOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateReduceOnlyOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Binance) CreateStopLimitOrderWs(symbol string, side string, amount float64, price float64, triggerPrice float64, options ...CreateStopLimitOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopLimitOrderWs(symbol, side, amount, price, triggerPrice, options...)
-}
-func (this *Binance) CreateStopLossOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopLossOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopLossOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Binance) CreateStopMarketOrderWs(symbol string, side string, amount float64, triggerPrice float64, options ...CreateStopMarketOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopMarketOrderWs(symbol, side, amount, triggerPrice, options...)
-}
-func (this *Binance) CreateStopOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Binance) CreateTakeProfitOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTakeProfitOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateTakeProfitOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Binance) CreateTrailingAmountOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateTrailingAmountOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Binance) CreateTrailingPercentOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingPercentOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateTrailingPercentOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Binance) CreateTriggerOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTriggerOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateTriggerOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Binance) EditOrderWs(id string, symbol string, typeVar string, side string, options ...EditOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.EditOrderWs(id, symbol, typeVar, side, options...)
-}
-func (this *Binance) FetchBalanceWs(params ...any) (Balances, error) {
-	return this.exchangeTyped.FetchBalanceWs(params...)
-}
-func (this *Binance) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchClosedOrdersWs(options...)
-}
-func (this *Binance) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchDepositsWs(options...)
-}
-func (this *Binance) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
-	return this.exchangeTyped.FetchMyTradesWs(options...)
-}
-func (this *Binance) FetchOHLCVWs(symbol string, options ...FetchOHLCVWsOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.FetchOHLCVWs(symbol, options...)
-}
-func (this *Binance) FetchOpenOrdersWs(options ...FetchOpenOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchOpenOrdersWs(options...)
-}
-func (this *Binance) FetchOrderBookWs(symbol string, options ...FetchOrderBookWsOptions) (OrderBook, error) {
-	return this.exchangeTyped.FetchOrderBookWs(symbol, options...)
-}
-func (this *Binance) FetchOrdersByStatusWs(status string, options ...FetchOrdersByStatusWsOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchOrdersByStatusWs(status, options...)
-}
-func (this *Binance) FetchOrdersWs(options ...FetchOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchOrdersWs(options...)
-}
-func (this *Binance) FetchOrderWs(id string, options ...FetchOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.FetchOrderWs(id, options...)
-}
-func (this *Binance) FetchPositionsForSymbolWs(symbol string, options ...FetchPositionsForSymbolWsOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsForSymbolWs(symbol, options...)
-}
-func (this *Binance) FetchPositionsWs(options ...FetchPositionsWsOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsWs(options...)
-}
-func (this *Binance) FetchPositionWs(symbol string, options ...FetchPositionWsOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionWs(symbol, options...)
-}
-func (this *Binance) FetchTickersWs(options ...FetchTickersWsOptions) (Tickers, error) {
-	return this.exchangeTyped.FetchTickersWs(options...)
-}
-func (this *Binance) FetchTickerWs(symbol string, options ...FetchTickerWsOptions) (Ticker, error) {
-	return this.exchangeTyped.FetchTickerWs(symbol, options...)
-}
-func (this *Binance) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) ([]Trade, error) {
-	return this.exchangeTyped.FetchTradesWs(symbol, options...)
-}
-func (this *Binance) FetchTradingFeesWs(params ...any) (TradingFees, error) {
-	return this.exchangeTyped.FetchTradingFeesWs(params...)
-}
-func (this *Binance) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchWithdrawalsWs(options...)
-}
-func (this *Binance) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {
-	return this.exchangeTyped.UnWatchBidsAsks(options...)
-}
-func (this *Binance) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (any, error) {
-	return this.exchangeTyped.UnWatchMyTrades(options...)
-}
-func (this *Binance) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOHLCV(symbol, options...)
-}
-func (this *Binance) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)
-}
-func (this *Binance) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOrderBook(symbol, options...)
-}
-func (this *Binance) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)
-}
-func (this *Binance) UnWatchOrders(options ...UnWatchOrdersOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOrders(options...)
-}
-func (this *Binance) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTicker(symbol, options...)
-}
-func (this *Binance) UnWatchTickers(options ...UnWatchTickersOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTickers(options...)
-}
-func (this *Binance) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTrades(symbol, options...)
-}
-func (this *Binance) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)
-}
-func (this *Binance) WatchBalance(params ...any) (Balances, error) {
-	return this.exchangeTyped.WatchBalance(params...)
-}
-func (this *Binance) WatchBidsAsks(options ...WatchBidsAsksOptions) (Tickers, error) {
-	return this.exchangeTyped.WatchBidsAsks(options...)
-}
-func (this *Binance) WatchLiquidations(symbol string, options ...WatchLiquidationsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.WatchLiquidations(symbol, options...)
-}
-func (this *Binance) WatchMarkPrice(symbol string, options ...WatchMarkPriceOptions) (Ticker, error) {
-	return this.exchangeTyped.WatchMarkPrice(symbol, options...)
-}
-func (this *Binance) WatchMarkPrices(options ...WatchMarkPricesOptions) (Tickers, error) {
-	return this.exchangeTyped.WatchMarkPrices(options...)
-}
-func (this *Binance) WatchMyLiquidations(symbol string, options ...WatchMyLiquidationsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.WatchMyLiquidations(symbol, options...)
-}
-func (this *Binance) WatchMyLiquidationsForSymbols(symbols []string, options ...WatchMyLiquidationsForSymbolsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.WatchMyLiquidationsForSymbols(symbols, options...)
-}
-func (this *Binance) WatchMyTrades(options ...WatchMyTradesOptions) ([]Trade, error) {
-	return this.exchangeTyped.WatchMyTrades(options...)
-}
-func (this *Binance) WatchOHLCV(symbol string, options ...WatchOHLCVOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.WatchOHLCV(symbol, options...)
-}
-func (this *Binance) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...WatchOHLCVForSymbolsOptions) (map[string]map[string][]OHLCV, error) {
-	return this.exchangeTyped.WatchOHLCVForSymbols(symbolsAndTimeframes, options...)
-}
-func (this *Binance) WatchOrderBook(symbol string, options ...WatchOrderBookOptions) (OrderBook, error) {
-	return this.exchangeTyped.WatchOrderBook(symbol, options...)
-}
-func (this *Binance) WatchOrderBookForSymbols(symbols []string, options ...WatchOrderBookForSymbolsOptions) (OrderBook, error) {
-	return this.exchangeTyped.WatchOrderBookForSymbols(symbols, options...)
-}
-func (this *Binance) WatchOrders(options ...WatchOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.WatchOrders(options...)
-}
-func (this *Binance) WatchOrdersForSymbols(symbols []string, options ...WatchOrdersForSymbolsOptions) ([]Order, error) {
-	return this.exchangeTyped.WatchOrdersForSymbols(symbols, options...)
-}
-func (this *Binance) WatchPosition(options ...WatchPositionOptions) (Position, error) {
-	return this.exchangeTyped.WatchPosition(options...)
-}
-func (this *Binance) WatchPositions(options ...WatchPositionsOptions) ([]Position, error) {
-	return this.exchangeTyped.WatchPositions(options...)
-}
-func (this *Binance) WatchTicker(symbol string, options ...WatchTickerOptions) (Ticker, error) {
-	return this.exchangeTyped.WatchTicker(symbol, options...)
-}
-func (this *Binance) WatchTickers(options ...WatchTickersOptions) (Tickers, error) {
-	return this.exchangeTyped.WatchTickers(options...)
-}
-func (this *Binance) WatchTrades(symbol string, options ...WatchTradesOptions) ([]Trade, error) {
-	return this.exchangeTyped.WatchTrades(symbol, options...)
-}
-func (this *Binance) WatchTradesForSymbols(symbols []string, options ...WatchTradesForSymbolsOptions) ([]Trade, error) {
-	return this.exchangeTyped.WatchTradesForSymbols(symbols, options...)
-}
-func (this *Binance) WithdrawWs(code string, amount float64, address string, options ...WithdrawWsOptions) (Transaction, error) {
-	return this.exchangeTyped.WithdrawWs(code, amount, address, options...)
 }

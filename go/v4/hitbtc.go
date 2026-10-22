@@ -8,7 +8,6 @@ import "strings"
 
 type Hitbtc struct {
 	Exchange
-	exchangeTyped *ExchangeTyped
 }
 
 func newHitbtc() *Hitbtc {
@@ -1597,11 +1596,11 @@ func (this *Hitbtc) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 		market = this.Market(symbol)
 		request["symbol"] = market["id"]
 
-		listEp1545 := <-this.PublicGetPublicTradesSymbol(this.Extend(request, params))
-		if listEp1545.Err != nil {
-			panic(listEp1545.Err)
+		listEp1544 := <-this.PublicGetPublicTradesSymbol(this.Extend(request, params))
+		if listEp1544.Err != nil {
+			panic(listEp1544.Err)
 		}
-		var responseInner []any = listEp1545.Value
+		var responseInner []any = listEp1544.Value
 
 		ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(responseInner, market))}
 		return nil
@@ -1863,11 +1862,11 @@ func (this *Hitbtc) fetchTransactionsHelperBody(ch chan AsyncResult[[]Transactio
 		request["limit"] = limit
 	}
 
-	listEp1785 := <-this.PrivateGetWalletTransactions(this.Extend(request, params))
-	if listEp1785.Err != nil {
-		panic(listEp1785.Err)
+	listEp1784 := <-this.PrivateGetWalletTransactions(this.Extend(request, params))
+	if listEp1784.Err != nil {
+		panic(listEp1784.Err)
 	}
-	var response []any = listEp1785.Value
+	var response []any = listEp1784.Value
 
 	//
 	//     [
@@ -2353,18 +2352,18 @@ func (this *Hitbtc) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingF
 	var response []any = nil
 	if marketType != nil && *marketType == "spot" {
 
-		listEp2225 := <-this.PrivateGetSpotFee(query)
-		if listEp2225.Err != nil {
-			panic(listEp2225.Err)
+		listEp2224 := <-this.PrivateGetSpotFee(query)
+		if listEp2224.Err != nil {
+			panic(listEp2224.Err)
 		}
-		response = listEp2225.Value
+		response = listEp2224.Value
 	} else if marketType != nil && *marketType == "swap" {
 
-		listEp2228 := <-this.PrivateGetFuturesFee(query)
-		if listEp2228.Err != nil {
-			panic(listEp2228.Err)
+		listEp2227 := <-this.PrivateGetFuturesFee(query)
+		if listEp2227.Err != nil {
+			panic(listEp2227.Err)
 		}
-		response = listEp2228.Value
+		response = listEp2227.Value
 	} else {
 		panic(NotSupported(this.Id + " fetchTradingFees() not support this market type"))
 	}
@@ -2606,33 +2605,33 @@ func (this *Hitbtc) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 	var response []any = nil
 	if marginMode != nil {
 
-		listEp2448 := <-this.PrivateGetMarginHistoryOrder(this.Extend(request, paramsOmitted))
-		if listEp2448.Err != nil {
-			panic(listEp2448.Err)
+		listEp2447 := <-this.PrivateGetMarginHistoryOrder(this.Extend(request, paramsOmitted))
+		if listEp2447.Err != nil {
+			panic(listEp2447.Err)
 		}
-		response = listEp2448.Value
+		response = listEp2447.Value
 	} else {
 		if marketType != nil && *marketType == "spot" {
 
-			listEp2452 := <-this.PrivateGetSpotHistoryOrder(this.Extend(request, paramsOmitted))
-			if listEp2452.Err != nil {
-				panic(listEp2452.Err)
+			listEp2451 := <-this.PrivateGetSpotHistoryOrder(this.Extend(request, paramsOmitted))
+			if listEp2451.Err != nil {
+				panic(listEp2451.Err)
 			}
-			response = listEp2452.Value
+			response = listEp2451.Value
 		} else if marketType != nil && *marketType == "swap" {
 
-			listEp2455 := <-this.PrivateGetFuturesHistoryOrder(this.Extend(request, paramsOmitted))
-			if listEp2455.Err != nil {
-				panic(listEp2455.Err)
+			listEp2454 := <-this.PrivateGetFuturesHistoryOrder(this.Extend(request, paramsOmitted))
+			if listEp2454.Err != nil {
+				panic(listEp2454.Err)
 			}
-			response = listEp2455.Value
+			response = listEp2454.Value
 		} else if marketType != nil && *marketType == "margin" {
 
-			listEp2458 := <-this.PrivateGetMarginHistoryOrder(this.Extend(request, paramsOmitted))
-			if listEp2458.Err != nil {
-				panic(listEp2458.Err)
+			listEp2457 := <-this.PrivateGetMarginHistoryOrder(this.Extend(request, paramsOmitted))
+			if listEp2457.Err != nil {
+				panic(listEp2457.Err)
 			}
-			response = listEp2458.Value
+			response = listEp2457.Value
 		} else {
 			panic(NotSupported(this.Id + " fetchClosedOrders() not support this market type"))
 		}
@@ -2706,33 +2705,33 @@ func (this *Hitbtc) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalA
 	var response []any = nil
 	if marginMode != nil {
 
-		listEp2529 := <-this.PrivateGetMarginHistoryOrder(this.Extend(request, paramsOmitted))
-		if listEp2529.Err != nil {
-			panic(listEp2529.Err)
+		listEp2528 := <-this.PrivateGetMarginHistoryOrder(this.Extend(request, paramsOmitted))
+		if listEp2528.Err != nil {
+			panic(listEp2528.Err)
 		}
-		response = listEp2529.Value
+		response = listEp2528.Value
 	} else {
 		if marketType != nil && *marketType == "spot" {
 
-			listEp2533 := <-this.PrivateGetSpotHistoryOrder(this.Extend(request, paramsOmitted))
-			if listEp2533.Err != nil {
-				panic(listEp2533.Err)
+			listEp2532 := <-this.PrivateGetSpotHistoryOrder(this.Extend(request, paramsOmitted))
+			if listEp2532.Err != nil {
+				panic(listEp2532.Err)
 			}
-			response = listEp2533.Value
+			response = listEp2532.Value
 		} else if marketType != nil && *marketType == "swap" {
 
-			listEp2536 := <-this.PrivateGetFuturesHistoryOrder(this.Extend(request, paramsOmitted))
-			if listEp2536.Err != nil {
-				panic(listEp2536.Err)
+			listEp2535 := <-this.PrivateGetFuturesHistoryOrder(this.Extend(request, paramsOmitted))
+			if listEp2535.Err != nil {
+				panic(listEp2535.Err)
 			}
-			response = listEp2536.Value
+			response = listEp2535.Value
 		} else if marketType != nil && *marketType == "margin" {
 
-			listEp2539 := <-this.PrivateGetMarginHistoryOrder(this.Extend(request, paramsOmitted))
-			if listEp2539.Err != nil {
-				panic(listEp2539.Err)
+			listEp2538 := <-this.PrivateGetMarginHistoryOrder(this.Extend(request, paramsOmitted))
+			if listEp2538.Err != nil {
+				panic(listEp2538.Err)
 			}
-			response = listEp2539.Value
+			response = listEp2538.Value
 		} else {
 			panic(NotSupported(this.Id + " fetchOrder() not support this market type"))
 		}
@@ -2938,33 +2937,33 @@ func (this *Hitbtc) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	var response []any = nil
 	if marginMode != nil {
 
-		listEp2727 := <-this.PrivateGetMarginOrder(this.Extend(request, paramsOmitted))
-		if listEp2727.Err != nil {
-			panic(listEp2727.Err)
+		listEp2726 := <-this.PrivateGetMarginOrder(this.Extend(request, paramsOmitted))
+		if listEp2726.Err != nil {
+			panic(listEp2726.Err)
 		}
-		response = listEp2727.Value
+		response = listEp2726.Value
 	} else {
 		if marketType != nil && *marketType == "spot" {
 
-			listEp2731 := <-this.PrivateGetSpotOrder(this.Extend(request, paramsOmitted))
-			if listEp2731.Err != nil {
-				panic(listEp2731.Err)
+			listEp2730 := <-this.PrivateGetSpotOrder(this.Extend(request, paramsOmitted))
+			if listEp2730.Err != nil {
+				panic(listEp2730.Err)
 			}
-			response = listEp2731.Value
+			response = listEp2730.Value
 		} else if marketType != nil && *marketType == "swap" {
 
-			listEp2734 := <-this.PrivateGetFuturesOrder(this.Extend(request, paramsOmitted))
-			if listEp2734.Err != nil {
-				panic(listEp2734.Err)
+			listEp2733 := <-this.PrivateGetFuturesOrder(this.Extend(request, paramsOmitted))
+			if listEp2733.Err != nil {
+				panic(listEp2733.Err)
 			}
-			response = listEp2734.Value
+			response = listEp2733.Value
 		} else if marketType != nil && *marketType == "margin" {
 
-			listEp2737 := <-this.PrivateGetMarginOrder(this.Extend(request, paramsOmitted))
-			if listEp2737.Err != nil {
-				panic(listEp2737.Err)
+			listEp2736 := <-this.PrivateGetMarginOrder(this.Extend(request, paramsOmitted))
+			if listEp2736.Err != nil {
+				panic(listEp2736.Err)
 			}
-			response = listEp2737.Value
+			response = listEp2736.Value
 		} else {
 			panic(NotSupported(this.Id + " fetchOpenOrders() not support this market type"))
 		}
@@ -3119,33 +3118,33 @@ func (this *Hitbtc) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	var response []any = nil
 	if marginMode != nil {
 
-		listEp2870 := <-this.PrivateDeleteMarginOrder(this.Extend(request, paramsOmitted))
-		if listEp2870.Err != nil {
-			panic(listEp2870.Err)
+		listEp2869 := <-this.PrivateDeleteMarginOrder(this.Extend(request, paramsOmitted))
+		if listEp2869.Err != nil {
+			panic(listEp2869.Err)
 		}
-		response = listEp2870.Value
+		response = listEp2869.Value
 	} else {
 		if marketType != nil && *marketType == "spot" {
 
-			listEp2874 := <-this.PrivateDeleteSpotOrder(this.Extend(request, paramsOmitted))
-			if listEp2874.Err != nil {
-				panic(listEp2874.Err)
+			listEp2873 := <-this.PrivateDeleteSpotOrder(this.Extend(request, paramsOmitted))
+			if listEp2873.Err != nil {
+				panic(listEp2873.Err)
 			}
-			response = listEp2874.Value
+			response = listEp2873.Value
 		} else if marketType != nil && *marketType == "swap" {
 
-			listEp2877 := <-this.PrivateDeleteFuturesOrder(this.Extend(request, paramsOmitted))
-			if listEp2877.Err != nil {
-				panic(listEp2877.Err)
+			listEp2876 := <-this.PrivateDeleteFuturesOrder(this.Extend(request, paramsOmitted))
+			if listEp2876.Err != nil {
+				panic(listEp2876.Err)
 			}
-			response = listEp2877.Value
+			response = listEp2876.Value
 		} else if marketType != nil && *marketType == "margin" {
 
-			listEp2880 := <-this.PrivateDeleteMarginOrder(this.Extend(request, paramsOmitted))
-			if listEp2880.Err != nil {
-				panic(listEp2880.Err)
+			listEp2879 := <-this.PrivateDeleteMarginOrder(this.Extend(request, paramsOmitted))
+			if listEp2879.Err != nil {
+				panic(listEp2879.Err)
 			}
-			response = listEp2880.Value
+			response = listEp2879.Value
 		} else {
 			panic(NotSupported(this.Id + " cancelAllOrders() not support this market type"))
 		}
@@ -4150,26 +4149,26 @@ func (this *Hitbtc) fetchPositionsBody(ch chan AsyncResult[[]Position], optional
 	var response []any = nil
 	if marginMode != nil {
 
-		listEp3775 := <-this.PrivateGetMarginAccount(this.Extend(request, paramsOmitted))
-		if listEp3775.Err != nil {
-			panic(listEp3775.Err)
+		listEp3774 := <-this.PrivateGetMarginAccount(this.Extend(request, paramsOmitted))
+		if listEp3774.Err != nil {
+			panic(listEp3774.Err)
 		}
-		response = listEp3775.Value
+		response = listEp3774.Value
 	} else {
 		if marketType != nil && *marketType == "swap" {
 
-			listEp3779 := <-this.PrivateGetFuturesAccount(this.Extend(request, paramsOmitted))
-			if listEp3779.Err != nil {
-				panic(listEp3779.Err)
+			listEp3778 := <-this.PrivateGetFuturesAccount(this.Extend(request, paramsOmitted))
+			if listEp3778.Err != nil {
+				panic(listEp3778.Err)
 			}
-			response = listEp3779.Value
+			response = listEp3778.Value
 		} else if marketType != nil && *marketType == "margin" {
 
-			listEp3782 := <-this.PrivateGetMarginAccount(this.Extend(request, paramsOmitted))
-			if listEp3782.Err != nil {
-				panic(listEp3782.Err)
+			listEp3781 := <-this.PrivateGetMarginAccount(this.Extend(request, paramsOmitted))
+			if listEp3781.Err != nil {
+				panic(listEp3781.Err)
 			}
-			response = listEp3782.Value
+			response = listEp3781.Value
 		} else {
 			panic(NotSupported(this.Id + " fetchPositions() not support this market type"))
 		}
@@ -5361,7 +5360,6 @@ func (this *Hitbtc) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
 	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
-	this.exchangeTyped = NewExchangeTyped(&this.Exchange)
 }
 
 // typed methods
@@ -6401,514 +6399,4 @@ func (this *Hitbtc) ClosePosition(symbol string, options ...ClosePositionOptions
 	}
 	var res Order = r.Value
 	return res, nil
-}
-
-// missing typed methods from base
-// nolint
-func (this *Hitbtc) LoadMarkets(params ...any) (map[string]MarketInterface, error) {
-	return this.exchangeTyped.LoadMarkets(params...)
-}
-func (this *Hitbtc) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelOrders(ids, options...)
-}
-func (this *Hitbtc) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)
-}
-func (this *Hitbtc) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]any, error) {
-	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
-}
-func (this *Hitbtc) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
-	return this.exchangeTyped.CancelOrderWithClientOrderId(clientOrderId, options...)
-}
-func (this *Hitbtc) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)
-}
-func (this *Hitbtc) CreateConvertTrade(id string, fromCode string, toCode string, options ...CreateConvertTradeOptions) (Conversion, error) {
-	return this.exchangeTyped.CreateConvertTrade(id, fromCode, toCode, options...)
-}
-func (this *Hitbtc) CreateLimitBuyOrder(symbol string, amount float64, price float64, options ...CreateLimitBuyOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitBuyOrder(symbol, amount, price, options...)
-}
-func (this *Hitbtc) CreateLimitOrder(symbol string, side string, amount float64, price float64, options ...CreateLimitOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitOrder(symbol, side, amount, price, options...)
-}
-func (this *Hitbtc) CreateLimitSellOrder(symbol string, amount float64, price float64, options ...CreateLimitSellOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitSellOrder(symbol, amount, price, options...)
-}
-func (this *Hitbtc) CreateMarketBuyOrder(symbol string, amount float64, options ...CreateMarketBuyOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketBuyOrder(symbol, amount, options...)
-}
-func (this *Hitbtc) CreateMarketBuyOrderWithCost(symbol string, cost float64, options ...CreateMarketBuyOrderWithCostOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketBuyOrderWithCost(symbol, cost, options...)
-}
-func (this *Hitbtc) CreateMarketOrder(symbol string, side string, amount float64, options ...CreateMarketOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketOrder(symbol, side, amount, options...)
-}
-func (this *Hitbtc) CreateMarketOrderWithCost(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketOrderWithCost(symbol, side, cost, options...)
-}
-func (this *Hitbtc) CreateMarketSellOrder(symbol string, amount float64, options ...CreateMarketSellOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketSellOrder(symbol, amount, options...)
-}
-func (this *Hitbtc) CreateMarketSellOrderWithCost(symbol string, cost float64, options ...CreateMarketSellOrderWithCostOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketSellOrderWithCost(symbol, cost, options...)
-}
-func (this *Hitbtc) CreateOrders(orders []OrderRequest, options ...CreateOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.CreateOrders(orders, options...)
-}
-func (this *Hitbtc) CreateOrderWithTakeProfitAndStopLoss(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossOptions) (Order, error) {
-	return this.exchangeTyped.CreateOrderWithTakeProfitAndStopLoss(symbol, typeVar, side, amount, options...)
-}
-func (this *Hitbtc) CreatePostOnlyOrder(symbol string, typeVar string, side string, amount float64, options ...CreatePostOnlyOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreatePostOnlyOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Hitbtc) CreateReduceOnlyOrder(symbol string, typeVar string, side string, amount float64, options ...CreateReduceOnlyOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateReduceOnlyOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Hitbtc) CreateStopLimitOrder(symbol string, side string, amount float64, price float64, triggerPrice float64, options ...CreateStopLimitOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopLimitOrder(symbol, side, amount, price, triggerPrice, options...)
-}
-func (this *Hitbtc) CreateStopLossOrder(symbol string, typeVar string, side string, amount float64, options ...CreateStopLossOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopLossOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Hitbtc) CreateStopMarketOrder(symbol string, side string, amount float64, triggerPrice float64, options ...CreateStopMarketOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopMarketOrder(symbol, side, amount, triggerPrice, options...)
-}
-func (this *Hitbtc) CreateStopOrder(symbol string, typeVar string, side string, amount float64, options ...CreateStopOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Hitbtc) CreateTakeProfitOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTakeProfitOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateTakeProfitOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Hitbtc) CreateTrailingAmountOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateTrailingAmountOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Hitbtc) CreateTrailingPercentOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingPercentOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateTrailingPercentOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Hitbtc) CreateTriggerOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTriggerOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateTriggerOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Hitbtc) EditLimitBuyOrder(id string, symbol string, amount float64, options ...EditLimitBuyOrderOptions) (Order, error) {
-	return this.exchangeTyped.EditLimitBuyOrder(id, symbol, amount, options...)
-}
-func (this *Hitbtc) EditLimitOrder(id string, symbol string, side string, amount float64, options ...EditLimitOrderOptions) (Order, error) {
-	return this.exchangeTyped.EditLimitOrder(id, symbol, side, amount, options...)
-}
-func (this *Hitbtc) EditLimitSellOrder(id string, symbol string, amount float64, options ...EditLimitSellOrderOptions) (Order, error) {
-	return this.exchangeTyped.EditLimitSellOrder(id, symbol, amount, options...)
-}
-func (this *Hitbtc) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...EditOrderWithClientOrderIdOptions) (Order, error) {
-	return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)
-}
-func (this *Hitbtc) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.EditOrders(orders, options...)
-}
-func (this *Hitbtc) FetchAccounts(params ...any) ([]Account, error) {
-	return this.exchangeTyped.FetchAccounts(params...)
-}
-func (this *Hitbtc) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
-	return this.exchangeTyped.FetchAllGreeks(options...)
-}
-func (this *Hitbtc) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
-	return this.exchangeTyped.FetchBidsAsks(options...)
-}
-func (this *Hitbtc) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]BorrowInterest, error) {
-	return this.exchangeTyped.FetchBorrowInterest(options...)
-}
-func (this *Hitbtc) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]any, error) {
-	return this.exchangeTyped.FetchBorrowRate(code, amount, options...)
-}
-func (this *Hitbtc) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchCanceledAndClosedOrders(options...)
-}
-func (this *Hitbtc) FetchConvertCurrencies(params ...any) (Currencies, error) {
-	return this.exchangeTyped.FetchConvertCurrencies(params...)
-}
-func (this *Hitbtc) FetchConvertQuote(fromCode string, toCode string, options ...FetchConvertQuoteOptions) (Conversion, error) {
-	return this.exchangeTyped.FetchConvertQuote(fromCode, toCode, options...)
-}
-func (this *Hitbtc) FetchConvertTrade(id string, options ...FetchConvertTradeOptions) (Conversion, error) {
-	return this.exchangeTyped.FetchConvertTrade(id, options...)
-}
-func (this *Hitbtc) FetchConvertTradeHistory(options ...FetchConvertTradeHistoryOptions) ([]Conversion, error) {
-	return this.exchangeTyped.FetchConvertTradeHistory(options...)
-}
-func (this *Hitbtc) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {
-	return this.exchangeTyped.FetchCrossBorrowRate(code, options...)
-}
-func (this *Hitbtc) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, error) {
-	return this.exchangeTyped.FetchCrossBorrowRates(params...)
-}
-func (this *Hitbtc) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
-	return this.exchangeTyped.FetchDepositAddresses(options...)
-}
-func (this *Hitbtc) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
-	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
-}
-func (this *Hitbtc) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
-	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
-}
-func (this *Hitbtc) FetchFreeBalance(params ...any) (Balance, error) {
-	return this.exchangeTyped.FetchFreeBalance(params...)
-}
-func (this *Hitbtc) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
-	return this.exchangeTyped.FetchFundingHistory(options...)
-}
-func (this *Hitbtc) FetchFundingInterval(symbol string, options ...FetchFundingIntervalOptions) (FundingRate, error) {
-	return this.exchangeTyped.FetchFundingInterval(symbol, options...)
-}
-func (this *Hitbtc) FetchFundingIntervals(options ...FetchFundingIntervalsOptions) (FundingRates, error) {
-	return this.exchangeTyped.FetchFundingIntervals(options...)
-}
-func (this *Hitbtc) FetchGreeks(symbol string, options ...FetchGreeksOptions) (Greeks, error) {
-	return this.exchangeTyped.FetchGreeks(symbol, options...)
-}
-func (this *Hitbtc) FetchIndexOHLCV(symbol string, options ...FetchIndexOHLCVOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.FetchIndexOHLCV(symbol, options...)
-}
-func (this *Hitbtc) FetchIsolatedBorrowRate(symbol string, options ...FetchIsolatedBorrowRateOptions) (IsolatedBorrowRate, error) {
-	return this.exchangeTyped.FetchIsolatedBorrowRate(symbol, options...)
-}
-func (this *Hitbtc) FetchIsolatedBorrowRates(params ...any) (IsolatedBorrowRates, error) {
-	return this.exchangeTyped.FetchIsolatedBorrowRates(params...)
-}
-func (this *Hitbtc) FetchLastPrices(options ...FetchLastPricesOptions) (LastPrices, error) {
-	return this.exchangeTyped.FetchLastPrices(options...)
-}
-func (this *Hitbtc) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, error) {
-	return this.exchangeTyped.FetchLedger(options...)
-}
-func (this *Hitbtc) FetchLedgerEntry(id string, options ...FetchLedgerEntryOptions) (LedgerEntry, error) {
-	return this.exchangeTyped.FetchLedgerEntry(id, options...)
-}
-func (this *Hitbtc) FetchLeverages(options ...FetchLeveragesOptions) (Leverages, error) {
-	return this.exchangeTyped.FetchLeverages(options...)
-}
-func (this *Hitbtc) FetchLeverageTiers(options ...FetchLeverageTiersOptions) (LeverageTiers, error) {
-	return this.exchangeTyped.FetchLeverageTiers(options...)
-}
-func (this *Hitbtc) FetchLiquidations(symbol string, options ...FetchLiquidationsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.FetchLiquidations(symbol, options...)
-}
-func (this *Hitbtc) FetchLongShortRatio(symbol string, options ...FetchLongShortRatioOptions) (LongShortRatio, error) {
-	return this.exchangeTyped.FetchLongShortRatio(symbol, options...)
-}
-func (this *Hitbtc) FetchLongShortRatioHistory(options ...FetchLongShortRatioHistoryOptions) ([]LongShortRatio, error) {
-	return this.exchangeTyped.FetchLongShortRatioHistory(options...)
-}
-func (this *Hitbtc) FetchMarginAdjustmentHistory(options ...FetchMarginAdjustmentHistoryOptions) ([]MarginModification, error) {
-	return this.exchangeTyped.FetchMarginAdjustmentHistory(options...)
-}
-func (this *Hitbtc) FetchMarginMode(symbol string, options ...FetchMarginModeOptions) (MarginMode, error) {
-	return this.exchangeTyped.FetchMarginMode(symbol, options...)
-}
-func (this *Hitbtc) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
-	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
-}
-func (this *Hitbtc) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
-}
-func (this *Hitbtc) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {
-	return this.exchangeTyped.FetchMarkPrice(symbol, options...)
-}
-func (this *Hitbtc) FetchMarkPrices(options ...FetchMarkPricesOptions) (Tickers, error) {
-	return this.exchangeTyped.FetchMarkPrices(options...)
-}
-func (this *Hitbtc) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.FetchMyLiquidations(options...)
-}
-func (this *Hitbtc) FetchOpenInterestHistory(symbol string, options ...FetchOpenInterestHistoryOptions) ([]OpenInterest, error) {
-	return this.exchangeTyped.FetchOpenInterestHistory(symbol, options...)
-}
-func (this *Hitbtc) FetchOption(symbol string, options ...FetchOptionOptions) (Option, error) {
-	return this.exchangeTyped.FetchOption(symbol, options...)
-}
-func (this *Hitbtc) FetchOptionChain(code string, options ...FetchOptionChainOptions) (OptionChain, error) {
-	return this.exchangeTyped.FetchOptionChain(code, options...)
-}
-func (this *Hitbtc) FetchOrderWithClientOrderId(clientOrderId string, options ...FetchOrderWithClientOrderIdOptions) (Order, error) {
-	return this.exchangeTyped.FetchOrderWithClientOrderId(clientOrderId, options...)
-}
-func (this *Hitbtc) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchOrders(options...)
-}
-func (this *Hitbtc) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
-	return this.exchangeTyped.FetchOrderStatus(id, options...)
-}
-func (this *Hitbtc) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
-	return this.exchangeTyped.FetchPaymentMethods(params...)
-}
-func (this *Hitbtc) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
-}
-func (this *Hitbtc) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
-	return this.exchangeTyped.FetchPositionMode(options...)
-}
-func (this *Hitbtc) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsForSymbol(symbol, options...)
-}
-func (this *Hitbtc) FetchPositionsHistory(options ...FetchPositionsHistoryOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsHistory(options...)
-}
-func (this *Hitbtc) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsRisk(options...)
-}
-func (this *Hitbtc) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
-}
-func (this *Hitbtc) FetchStatus(params ...any) (Status, error) {
-	return this.exchangeTyped.FetchStatus(params...)
-}
-func (this *Hitbtc) FetchTime(params ...any) (int64, error) {
-	return this.exchangeTyped.FetchTime(params...)
-}
-func (this *Hitbtc) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
-	return this.exchangeTyped.FetchTradingLimits(options...)
-}
-func (this *Hitbtc) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]any, error) {
-	return this.exchangeTyped.FetchTransactionFee(code, options...)
-}
-func (this *Hitbtc) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]any, error) {
-	return this.exchangeTyped.FetchTransactionFees(options...)
-}
-func (this *Hitbtc) FetchTransactions(options ...FetchTransactionsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchTransactions(options...)
-}
-func (this *Hitbtc) FetchTransfer(id string, options ...FetchTransferOptions) (TransferEntry, error) {
-	return this.exchangeTyped.FetchTransfer(id, options...)
-}
-func (this *Hitbtc) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEntry, error) {
-	return this.exchangeTyped.FetchTransfers(options...)
-}
-func (this *Hitbtc) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
-	return this.exchangeTyped.SetMargin(symbol, amount, options...)
-}
-func (this *Hitbtc) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]any, error) {
-	return this.exchangeTyped.SetMarginMode(marginMode, options...)
-}
-func (this *Hitbtc) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]any, error) {
-	return this.exchangeTyped.SetPositionMode(hedged, options...)
-}
-func (this *Hitbtc) CancelAllOrdersWs(options ...CancelAllOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelAllOrdersWs(options...)
-}
-func (this *Hitbtc) CancelOrdersWs(ids []string, options ...CancelOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelOrdersWs(ids, options...)
-}
-func (this *Hitbtc) CancelOrderWs(id string, options ...CancelOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CancelOrderWs(id, options...)
-}
-func (this *Hitbtc) CreateLimitBuyOrderWs(symbol string, amount float64, price float64, options ...CreateLimitBuyOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitBuyOrderWs(symbol, amount, price, options...)
-}
-func (this *Hitbtc) CreateLimitOrderWs(symbol string, side string, amount float64, price float64, options ...CreateLimitOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitOrderWs(symbol, side, amount, price, options...)
-}
-func (this *Hitbtc) CreateLimitSellOrderWs(symbol string, amount float64, price float64, options ...CreateLimitSellOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitSellOrderWs(symbol, amount, price, options...)
-}
-func (this *Hitbtc) CreateMarketBuyOrderWs(symbol string, amount float64, options ...CreateMarketBuyOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketBuyOrderWs(symbol, amount, options...)
-}
-func (this *Hitbtc) CreateMarketOrderWithCostWs(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketOrderWithCostWs(symbol, side, cost, options...)
-}
-func (this *Hitbtc) CreateMarketOrderWs(symbol string, side string, amount float64, options ...CreateMarketOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketOrderWs(symbol, side, amount, options...)
-}
-func (this *Hitbtc) CreateMarketSellOrderWs(symbol string, amount float64, options ...CreateMarketSellOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketSellOrderWs(symbol, amount, options...)
-}
-func (this *Hitbtc) CreateOrdersWs(orders []OrderRequest, options ...CreateOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.CreateOrdersWs(orders, options...)
-}
-func (this *Hitbtc) CreateOrderWithTakeProfitAndStopLossWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateOrderWithTakeProfitAndStopLossWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Hitbtc) CreateOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Hitbtc) CreatePostOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreatePostOnlyOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreatePostOnlyOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Hitbtc) CreateReduceOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateReduceOnlyOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateReduceOnlyOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Hitbtc) CreateStopLimitOrderWs(symbol string, side string, amount float64, price float64, triggerPrice float64, options ...CreateStopLimitOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopLimitOrderWs(symbol, side, amount, price, triggerPrice, options...)
-}
-func (this *Hitbtc) CreateStopLossOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopLossOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopLossOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Hitbtc) CreateStopMarketOrderWs(symbol string, side string, amount float64, triggerPrice float64, options ...CreateStopMarketOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopMarketOrderWs(symbol, side, amount, triggerPrice, options...)
-}
-func (this *Hitbtc) CreateStopOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Hitbtc) CreateTakeProfitOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTakeProfitOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateTakeProfitOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Hitbtc) CreateTrailingAmountOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateTrailingAmountOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Hitbtc) CreateTrailingPercentOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingPercentOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateTrailingPercentOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Hitbtc) CreateTriggerOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTriggerOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateTriggerOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Hitbtc) EditOrderWs(id string, symbol string, typeVar string, side string, options ...EditOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.EditOrderWs(id, symbol, typeVar, side, options...)
-}
-func (this *Hitbtc) FetchBalanceWs(params ...any) (Balances, error) {
-	return this.exchangeTyped.FetchBalanceWs(params...)
-}
-func (this *Hitbtc) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchClosedOrdersWs(options...)
-}
-func (this *Hitbtc) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchDepositsWs(options...)
-}
-func (this *Hitbtc) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
-	return this.exchangeTyped.FetchMyTradesWs(options...)
-}
-func (this *Hitbtc) FetchOHLCVWs(symbol string, options ...FetchOHLCVWsOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.FetchOHLCVWs(symbol, options...)
-}
-func (this *Hitbtc) FetchOpenOrdersWs(options ...FetchOpenOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchOpenOrdersWs(options...)
-}
-func (this *Hitbtc) FetchOrderBookWs(symbol string, options ...FetchOrderBookWsOptions) (OrderBook, error) {
-	return this.exchangeTyped.FetchOrderBookWs(symbol, options...)
-}
-func (this *Hitbtc) FetchOrdersByStatusWs(status string, options ...FetchOrdersByStatusWsOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchOrdersByStatusWs(status, options...)
-}
-func (this *Hitbtc) FetchOrdersWs(options ...FetchOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchOrdersWs(options...)
-}
-func (this *Hitbtc) FetchOrderWs(id string, options ...FetchOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.FetchOrderWs(id, options...)
-}
-func (this *Hitbtc) FetchPositionsForSymbolWs(symbol string, options ...FetchPositionsForSymbolWsOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsForSymbolWs(symbol, options...)
-}
-func (this *Hitbtc) FetchPositionsWs(options ...FetchPositionsWsOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsWs(options...)
-}
-func (this *Hitbtc) FetchPositionWs(symbol string, options ...FetchPositionWsOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionWs(symbol, options...)
-}
-func (this *Hitbtc) FetchTickersWs(options ...FetchTickersWsOptions) (Tickers, error) {
-	return this.exchangeTyped.FetchTickersWs(options...)
-}
-func (this *Hitbtc) FetchTickerWs(symbol string, options ...FetchTickerWsOptions) (Ticker, error) {
-	return this.exchangeTyped.FetchTickerWs(symbol, options...)
-}
-func (this *Hitbtc) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) ([]Trade, error) {
-	return this.exchangeTyped.FetchTradesWs(symbol, options...)
-}
-func (this *Hitbtc) FetchTradingFeesWs(params ...any) (TradingFees, error) {
-	return this.exchangeTyped.FetchTradingFeesWs(params...)
-}
-func (this *Hitbtc) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchWithdrawalsWs(options...)
-}
-func (this *Hitbtc) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {
-	return this.exchangeTyped.UnWatchBidsAsks(options...)
-}
-func (this *Hitbtc) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (any, error) {
-	return this.exchangeTyped.UnWatchMyTrades(options...)
-}
-func (this *Hitbtc) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOHLCV(symbol, options...)
-}
-func (this *Hitbtc) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)
-}
-func (this *Hitbtc) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOrderBook(symbol, options...)
-}
-func (this *Hitbtc) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)
-}
-func (this *Hitbtc) UnWatchOrders(options ...UnWatchOrdersOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOrders(options...)
-}
-func (this *Hitbtc) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTicker(symbol, options...)
-}
-func (this *Hitbtc) UnWatchTickers(options ...UnWatchTickersOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTickers(options...)
-}
-func (this *Hitbtc) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTrades(symbol, options...)
-}
-func (this *Hitbtc) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)
-}
-func (this *Hitbtc) WatchBalance(params ...any) (Balances, error) {
-	return this.exchangeTyped.WatchBalance(params...)
-}
-func (this *Hitbtc) WatchBidsAsks(options ...WatchBidsAsksOptions) (Tickers, error) {
-	return this.exchangeTyped.WatchBidsAsks(options...)
-}
-func (this *Hitbtc) WatchLiquidations(symbol string, options ...WatchLiquidationsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.WatchLiquidations(symbol, options...)
-}
-func (this *Hitbtc) WatchMarkPrice(symbol string, options ...WatchMarkPriceOptions) (Ticker, error) {
-	return this.exchangeTyped.WatchMarkPrice(symbol, options...)
-}
-func (this *Hitbtc) WatchMarkPrices(options ...WatchMarkPricesOptions) (Tickers, error) {
-	return this.exchangeTyped.WatchMarkPrices(options...)
-}
-func (this *Hitbtc) WatchMyLiquidations(symbol string, options ...WatchMyLiquidationsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.WatchMyLiquidations(symbol, options...)
-}
-func (this *Hitbtc) WatchMyLiquidationsForSymbols(symbols []string, options ...WatchMyLiquidationsForSymbolsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.WatchMyLiquidationsForSymbols(symbols, options...)
-}
-func (this *Hitbtc) WatchMyTrades(options ...WatchMyTradesOptions) ([]Trade, error) {
-	return this.exchangeTyped.WatchMyTrades(options...)
-}
-func (this *Hitbtc) WatchOHLCV(symbol string, options ...WatchOHLCVOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.WatchOHLCV(symbol, options...)
-}
-func (this *Hitbtc) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...WatchOHLCVForSymbolsOptions) (map[string]map[string][]OHLCV, error) {
-	return this.exchangeTyped.WatchOHLCVForSymbols(symbolsAndTimeframes, options...)
-}
-func (this *Hitbtc) WatchOrderBook(symbol string, options ...WatchOrderBookOptions) (OrderBook, error) {
-	return this.exchangeTyped.WatchOrderBook(symbol, options...)
-}
-func (this *Hitbtc) WatchOrderBookForSymbols(symbols []string, options ...WatchOrderBookForSymbolsOptions) (OrderBook, error) {
-	return this.exchangeTyped.WatchOrderBookForSymbols(symbols, options...)
-}
-func (this *Hitbtc) WatchOrders(options ...WatchOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.WatchOrders(options...)
-}
-func (this *Hitbtc) WatchOrdersForSymbols(symbols []string, options ...WatchOrdersForSymbolsOptions) ([]Order, error) {
-	return this.exchangeTyped.WatchOrdersForSymbols(symbols, options...)
-}
-func (this *Hitbtc) WatchPosition(options ...WatchPositionOptions) (Position, error) {
-	return this.exchangeTyped.WatchPosition(options...)
-}
-func (this *Hitbtc) WatchPositions(options ...WatchPositionsOptions) ([]Position, error) {
-	return this.exchangeTyped.WatchPositions(options...)
-}
-func (this *Hitbtc) WatchTicker(symbol string, options ...WatchTickerOptions) (Ticker, error) {
-	return this.exchangeTyped.WatchTicker(symbol, options...)
-}
-func (this *Hitbtc) WatchTickers(options ...WatchTickersOptions) (Tickers, error) {
-	return this.exchangeTyped.WatchTickers(options...)
-}
-func (this *Hitbtc) WatchTrades(symbol string, options ...WatchTradesOptions) ([]Trade, error) {
-	return this.exchangeTyped.WatchTrades(symbol, options...)
-}
-func (this *Hitbtc) WatchTradesForSymbols(symbols []string, options ...WatchTradesForSymbolsOptions) ([]Trade, error) {
-	return this.exchangeTyped.WatchTradesForSymbols(symbols, options...)
-}
-func (this *Hitbtc) WithdrawWs(code string, amount float64, address string, options ...WithdrawWsOptions) (Transaction, error) {
-	return this.exchangeTyped.WithdrawWs(code, amount, address, options...)
 }
