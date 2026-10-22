@@ -2277,7 +2277,7 @@ export default class hyperliquid extends Exchange {
         return normalized.toLowerCase ();
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'POST', params: Dict = {}) {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'POST', params: Dict = {}) {
         const apiGroup = api[0];
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let baseUrl: string;

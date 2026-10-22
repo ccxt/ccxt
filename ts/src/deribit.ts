@@ -4001,7 +4001,7 @@ export default class deribit extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
         let request = '/' + 'api/' + this.version + '/' + apiName + '/' + path;
         if (apiName === 'public') {

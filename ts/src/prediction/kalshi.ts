@@ -2648,7 +2648,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] request parameters
      * @returns {object} a dictionary with url, method, body and headers
      */
-    override sign (path: string, api: string[] = [ 'kalshi' ], method = 'GET', params: Dict = {}) {
+    override sign (path: string, api: string[] = [ 'kalshi' ], method: string = 'GET', params: Dict = {}) {
         const apiGroup: string = api[0];
         const access: string = this.safeString (api, 1, 'public');
         const baseUrls = this.urls['api'];

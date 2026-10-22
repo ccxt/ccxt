@@ -5857,7 +5857,7 @@ export default class xt extends Exchange {
         return undefined;
     }
 
-    override sign (path: string, api: string[] = [], method = 'GET', params = {}) {
+    override sign (path: string, api: string[] = [], method: string = 'GET', params = {}) {
         const signed = api[0] === 'private';
         const endpoint = api[1];
         const request = '/' + this.implodeParams (path, params);

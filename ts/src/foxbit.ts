@@ -2046,7 +2046,7 @@ export default class foxbit extends Exchange {
         };
     }
 
-    override sign (path: string, api: string[] = [], method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] = [], method: string = 'GET', params: Dict = {}): Dict {
         const version = api[0];
         let urlPath = api[1];
         let fullPath = '/rest/' + version + '/' + this.implodeParams (path, params);

@@ -3889,7 +3889,7 @@ export default class hitbtc extends Exchange {
         return undefined;
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
         const query = this.omit (params, this.extractParams (path));
         const implodedPath = this.implodeParams (path, params);

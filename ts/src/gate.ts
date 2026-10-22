@@ -7153,7 +7153,7 @@ export default class gate extends Exchange {
         return this.milliseconds () - timeDifference;
     }
 
-    override sign (path: string, api: string[] = [], method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] = [], method: string = 'GET', params: Dict = {}): Dict {
         const authentication = api[0]; // public, private
         const type = api[1]; // spot, margin, future, delivery
         let query = this.omit (params, this.extractParams (path));

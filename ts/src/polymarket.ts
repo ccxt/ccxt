@@ -2830,7 +2830,7 @@ export default class polymarket extends Exchange {
         return this.safeValue (config, 'cost', 1);
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         const apiType = api[0];
         let url = this.urls['api'][apiType] + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));

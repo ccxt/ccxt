@@ -3277,7 +3277,7 @@ export default class coinbaseinternational extends Exchange {
         return this.token;
     }
 
-    override sign (path: string, api: string[] | string = 'public', method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] | string = 'public', method: string = 'GET', params: Dict = {}): Dict {
         const access = Array.isArray (api) ? api[0] : api;
         const rpcMethod = access + '/' + path;
         let requestParams: Dict = this.handleRouteAndParams ('sign', params);

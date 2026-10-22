@@ -2176,7 +2176,7 @@ export default class opinion extends Exchange {
      * @param {object} params the request parameters
      * @returns {object} a dict with url, method, body and headers
      */
-    override sign (path: string, api: string[] = [ 'opinion' ], method = 'GET', params: Dict = {}) {
+    override sign (path: string, api: string[] = [ 'opinion' ], method: string = 'GET', params: Dict = {}) {
         const apiGroup = api[0];
         const access = this.safeString (api, 1, 'public');
         const baseUrls = this.urls['api'] as Dict;

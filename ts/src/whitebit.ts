@@ -4260,7 +4260,7 @@ export default class whitebit extends Exchange {
         return this.milliseconds () - this.safeInteger (this.options, 'timeDifference', 0);
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         const query = this.omit (params, this.extractParams (path));
         const version = this.safeString (api, 0, '');
         const accessibility = this.safeString (api, 1);

@@ -2757,7 +2757,7 @@ export default class sxbet extends Exchange {
      * @param {object} params the request parameters
      * @returns {object} a dict with url, method, body and headers
      */
-    override sign (path: string, api: string[] = [ 'sxbet' ], method = 'GET', params: Dict = {}) {
+    override sign (path: string, api: string[] = [ 'sxbet' ], method: string = 'GET', params: Dict = {}) {
         const apiGroup: string = api[0];
         const accessLevel: string = this.safeString (api, 1, 'public');
         if ((accessLevel === 'private') && (this.apiKey === undefined)) {

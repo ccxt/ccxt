@@ -1968,7 +1968,7 @@ export default class bitso extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         let requestHeaders: NullableDict = undefined;
         let requestBody: Str = undefined;
         let endpoint = '/' + this.version + '/' + this.implodeParams (path, params);

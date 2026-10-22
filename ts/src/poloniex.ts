@@ -3989,7 +3989,7 @@ export default class poloniex extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
         const isArray = Array.isArray (params);
         let url: string = this.urls['api']['spot'];

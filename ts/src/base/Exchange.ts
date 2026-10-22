@@ -3713,7 +3713,7 @@ export class BaseExchange {
         this.options['enableDemoTrading'] = enable;
     }
 
-    sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+    sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         return { 'url': undefined, 'method': undefined, 'headers': undefined, 'body': undefined };
     }
 
