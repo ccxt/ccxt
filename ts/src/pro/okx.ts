@@ -1598,9 +1598,13 @@ export default class okx extends okxRest {
                     this.orderbooks[symbol] = this.orderBook ({}, limit);
                 }
                 const orderbook = this.orderbooks[symbol];
-                orderbook.reset ({});
-                orderbook['symbol'] = symbol;
-                this.handleOrderBookMessage (client, update, orderbook, messageHash, market);
+                const timestamp = this.safeInteger (update, 'ts');
+                // rows are [ price, amount, liquidatedOrders, numOrders ] - store
+                // price and amount only, matching handleDelta, so countOrIdKey
+                // points past the row on purpose
+                const snapshot = this.parseOrderBook (update, symbol, timestamp, 'bids', 'asks', 0, 1, 4);
+                snapshot['nonce'] = this.safeInteger (update, 'seqId');
+                orderbook.reset (snapshot);
                 if (!(messageHash in client.subscriptions)) {
                     break;
                 }
