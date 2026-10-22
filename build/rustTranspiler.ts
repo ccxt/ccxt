@@ -12669,75 +12669,15 @@ impl std::ops::DerefMut for ${coreName} {
         return content;
     }
 
-    // hx4 R32 — `is_instance` / `is_function` / `object_values` / `shift` print runtime.rs's own body inline:
-    // is_instance = `[cls]` containment OR leading `[Kind]` in cls's errorHierarchy subtree; is_function is
-    // always false; object_values filters the ws tags; shift pops a clone (by-value arg, as the helper).
+    // hx5 X43 — the hx4 R32 inline bodies (is_instance / is_function / object_values / shift) are deleted.
+    // No call site has a type proof that makes a plain native op equivalent to the helper:
+    //   is_instance  needs the `[Cls]` / leading-`[Kind]` + errorHierarchy subtree walk (only the helper is concise);
+    //   is_function  is `false` but must still evaluate its argument (the helper does);
+    //   object_values drops the two ws tag keys, which only the helper knows;
+    //   shift        is a by-value pop of the arg (see the ndax `shift(stored.clone())` note in the X43 report).
+    // So every site keeps master's `runtime::*` helper call. The pass is kept (wired in both pipelines) as an
+    // identity so the call sites stay stable; it is trivially idempotent.
     r32Native(content: string): string {
-        const names = [ 'is_instance', 'is_function', 'object_values', 'shift' ];
-        if (!names.some(n => content.includes(n + '('))) return content;
-        const subtree = (cls: string): string[] | undefined => {
-            const find = (node: any): any => {
-                for (const k of Object.keys(node)) {
-                    if (k === cls) return node[k];
-                    const r = find(node[k]);
-                    if (r !== undefined) return r;
-                }
-                return undefined;
-            };
-            const root = find(errorHierarchy);
-            if (root === undefined) return undefined;
-            const out: string[] = [];
-            const walk = (node: any) => { for (const k of Object.keys(node)) { out.push(k); walk(node[k]); } };
-            walk(root);
-            return out;
-        };
-        const build = (name: string, args: string[]): string | undefined => {
-            const a = args.map(s => s.trim());
-            if (name === 'is_function' && a.length === 1 && a[0].startsWith('&')) {
-                return `({ let _: &Value = ${a[0]}; false })`;
-            }
-            if (name === 'object_values' && a.length === 1 && a[0].startsWith('&')) {
-                return `({ let __r32o: &Value = ${a[0]}; match __r32o { Value::Dict(__m) => Value::List(__m.iter().filter(|(__k, _)| __k.as_str() != "__ws_subs_url" && __k.as_str() != "__ws_sub_ref").map(|(_, __v)| __v.clone()).collect()), _ => Value::List(vec![]) } })`;
-            }
-            if (name === 'shift' && a.length === 1) {
-                return `({ let mut __r32a: Value = ${a[0]}; match &mut __r32a { Value::Arr(__a) if !__a.is_empty() => std::sync::Arc::make_mut(__a).remove(0), _ => Value::Null } })`;
-            }
-            if (name === 'is_instance' && a.length === 2 && a[0].startsWith('&')) {
-                const m = /^&Value::Str\("([A-Za-z0-9_]+)"\.(?:into|to_string)\(\)\)$/.exec(a[1]);
-                if (m === null) return undefined;
-                const cls = m[1];
-                const subs = subtree(cls) ?? [];
-                const walk = subs.length === 0 ? '' : ` || matches!(__s.find('[').and_then(|__a| __s[__a + 1..].find(']').map(|__b| &__s[__a + 1..__a + 1 + __b])), Some(${subs.map(x => `"${x}"`).join(' | ')}))`;
-                return `({ let __r32v: &Value = ${a[0]}; matches!(__r32v, Value::Str(__s) if __s.contains("[${cls}]")${walk}) })`;
-            }
-            return undefined;
-        };
-        const re = /(?<![A-Za-z0-9_:.])(is_instance|is_function|object_values|shift)\(/g;
-        for (let round = 0; round < 8; round++) {
-            const masked = this.maskStringsAndComments(content);
-            const rewrites: Array<{ start: number, end: number, text: string }> = [];
-            for (const m of masked.matchAll(re)) {
-                const start = m.index as number;
-                const name = m[1];
-                if (/\bfn\s+$/.test(masked.slice(Math.max(0, start - 8), start))) continue;
-                const open = start + name.length;
-                const close = this.closeParenAt(content, open);
-                if (close < 0) continue;
-                const inner = content.slice(open + 1, close);
-                if (/(?<![A-Za-z0-9_:.])(is_instance|is_function|object_values|shift)\(/.test(this.maskStringsAndComments(inner))) continue;
-                const text = build(name, this.splitTopLevelCommas(inner));
-                if (text === undefined) continue;
-                rewrites.push({ start, end: close + 1, text });
-            }
-            if (rewrites.length === 0) break;
-            let out = ''; let at = 0;
-            for (const r of rewrites) {
-                if (r.start < at) continue;
-                out += content.slice(at, r.start) + r.text;
-                at = r.end;
-            }
-            content = out + content.slice(at);
-        }
         return content;
     }
 }
