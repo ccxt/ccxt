@@ -3282,66 +3282,11 @@ function hx4G45Template (helper: string): { head: string, body: string[], arity:
         'return 0' ] };
 }
 
-// an `any` parameter named after a predeclared type (TS `string: Str`) is renamed inside its own function
-// so the closure can name the type; only when every use of the name there is a value use
-function hx4G45RenameShadowParams (content: string): string {
-    const names = [ 'string', 'int', 'bool', 'any', 'int64', 'float64', 'len' ];
-    let masked = goArithMask (content);
-    let text = content;
-    const heads = [ ...masked.matchAll (/\nfunc (?:\([^)]*\) )?\w+\(([^)]*)\)[^\n{]*\{\n/g) ].reverse ();
-    for (const h of heads) {
-        const start = (h.index as number) + 1;
-        const endAt = masked.indexOf ('\n}\n', start);
-        if (endAt < 0) {
-            continue;
-        }
-        const end = endAt + 2;
-        const fn = masked.slice (start, end);
-        if (!/(?<![\w.])(?:ccxt\.)?(?:Slice|GetIndexOf|GetLength)\(/.test (fn)) {
-            continue;
-        }
-        let fnText = text.slice (start, end);
-        let fnMasked = fn;
-        for (const name of names) {
-            if (!new RegExp ('[(,]\\s*' + name + ' any\\b').test (h[1])) {
-                continue;
-            }
-            const fresh = name + 'Value';
-            const word = new RegExp ('(?<![\\w.])' + name + '(?!\\w)', 'g');
-            const uses = [ ...fnMasked.matchAll (word) ];
-            // value uses only: no `[]T`, `map[T]`, `.(T)`, `*T`, `T(` conversions, no `T{`, and the fresh name is free
-            const typeUse = uses.some ((m) => {
-                const at = m.index as number;
-                const before = fnMasked.slice (Math.max (0, at - 2), at);
-                const after = fnMasked[at + name.length];
-                return /\]$|\[$|\.\($|\*$/.test (before) || (after === '(') || (after === '{') || (after === ']');
-            });
-            if (typeUse || new RegExp ('(?<![\\w.])' + fresh + '(?!\\w)').test (fnMasked)) {
-                continue;
-            }
-            let out = '';
-            let last = 0;
-            for (const m of uses) {
-                const at = m.index as number;
-                // the parameter declaration itself `string any` is also a value position
-                out += fnText.slice (last, at) + fresh;
-                last = at + name.length;
-            }
-            fnText = out + fnText.slice (last);
-            fnMasked = goArithMask (fnText);
-        }
-        text = text.slice (0, start) + fnText + text.slice (end);
-        masked = masked.slice (0, start) + fnMasked + masked.slice (end);
-    }
-    return text;
-}
-
 export function hx4G45InlineStr (content: string, aligner?: Hx4G36Aligner): string {
     if (content.indexOf ('IT IS GENERATED AND WILL BE OVERWRITTEN') < 0) {
         return content;
     }
     const rx = new RegExp ('(?<![\\w.])(?:ccxt\\.)?(' + HX4G45_HELPERS.join ('|') + ')\\(', 'g');
-    content = hx4G45RenameShadowParams (content);
     let masked = goArithMask (content);
     if (/(?<![\w.])(?:math|reflect|strconv)\s*(?::=|,\s*\w+\s*:?=)|\bvar (?:math|reflect|strconv)\b|[(,]\s*(?:math|reflect|strconv)\s+[\w*[]/.test (masked)) {
         return content;
@@ -3426,8 +3371,9 @@ export function hx4G45Check (aligner?: Hx4G36Aligner): string[] {
         problems.push ('hx4 G45: helper declaration rewritten');
     }
     const typeShadow = hx4G45InlineStr (head + 'func (this *K) G(a any, string any) any {\n\treturn GetIndexOf(a, string)\n}\n\nfunc (this *K) H(a any) any {\n\treturn GetLength(a)\n}\n', aligner);
-    if (!typeShadow.includes ('G(a any, stringValue any) any {') || /(?<![\w.])GetIndexOf\(/.test (typeShadow) || /(?<![\w.])GetLength\(/.test (typeShadow)) {
-        problems.push ('hx4 G45: shadowing any parameter not renamed: ' + typeShadow);
+    // hx5 X31: no shadow rename any more; the shadowing function keeps its helper, its neighbour is unaffected
+    if (!typeShadow.includes ('G(a any, string any) any {\n\treturn GetIndexOf(a, string)') || /(?<![\w.])GetLength\(/.test (typeShadow)) {
+        problems.push ('hx5 X31: shadowing any parameter not per-function: ' + typeShadow);
     }
     const typed = hx4G45InlineStr (head + 'func (this *K) G(a any, string any) any {\n\tvar x []string = nil\n\treturn GetIndexOf(x, string)\n}\n', aligner);
     if (!typed.includes ('return GetIndexOf(x, string)')) {
