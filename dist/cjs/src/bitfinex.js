@@ -851,6 +851,7 @@ class bitfinex extends bitfinex$1["default"] {
         //         ]
         //     ]
         //
+        const networks = this.safeList(response, 8, []);
         const indexed = {
             'sym': this.indexBy(this.safeList(response, 1, []), 0),
             'label': this.indexBy(this.safeList(response, 2, []), 0),
@@ -859,13 +860,13 @@ class bitfinex extends bitfinex$1["default"] {
             'pool': this.indexBy(this.safeList(response, 5, []), 0),
             'explorer': this.indexBy(this.safeList(response, 6, []), 0),
             'fees': this.indexBy(this.safeList(response, 7, []), 0),
-            'networks': this.safeList(response, 8, []),
+            'networks': networks,
             'statuses': this.indexBy(this.safeList(response, 9, []), 0),
             'marginables': this.safeList(response, 10, []),
         };
         const indexedNetworks = {};
-        for (let i = 0; i < indexed['networks'].length; i++) {
-            const networkObj = this.safeList(indexed['networks'], i);
+        for (let i = 0; i < networks.length; i++) {
+            const networkObj = this.safeList(networks, i);
             const networkId = this.safeString(networkObj, 0);
             const valuesList = this.safeList(networkObj, 1);
             const networkName = this.safeString(valuesList, 0);

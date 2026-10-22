@@ -242,7 +242,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             base = base + '_' + expiryDate
         return base + ':' + label
 
-    def build_outcome_parent_symbol(self, desc: dict, outcomeId: float, name='', question: dict = {}) -> str:
+    def build_outcome_parent_symbol(self, desc: dict, outcomeId: float, name: str = '', question: dict = {}) -> str:
         """
  @ignore
         builds a market id(parent outcome without YES/NO) from a parsed description, e.g. BTC_ABOVE_78213_20260503 for priceBinary outcomes or OUTCOME_9345 for non-priceBinary outcomes using the name field
@@ -1875,7 +1875,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
     def sign_message(self, message: object, privateKey: str) -> dict:
         return self.sign_hash(self.hash_message(message), privateKey[-64:])
 
-    def construct_phantom_agent(self, hash: object, isTestnet=True) -> dict:
+    def construct_phantom_agent(self, hash: object, isTestnet: bool = True) -> dict:
         source = 'a'
         if isTestnet:
             source = 'b'
@@ -2012,7 +2012,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             normalized = normalized[2:]
         return normalized.lower()
 
-    def sign(self, path: str, api: list[str] = ['public'], method='POST', params: dict = {}):
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'POST', params: dict = {}):
         apiGroup = api[0]
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         baseUrl: str

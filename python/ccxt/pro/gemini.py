@@ -906,7 +906,8 @@ class gemini(ccxt.async_support.gemini):
         if (self.clients is not None) and (url in self.clients):
             return
         self.check_required_credentials()
-        startIndex = len(self.urls['api']['ws'])
+        wsBaseUrl = self.safe_string(self.urls['api'], 'ws', '')
+        startIndex = len(wsBaseUrl)
         urlParamsIndex = url.find('?')
         urlLength = len(url)
         endIndex = urlParamsIndex if (urlParamsIndex >= 0) else urlLength

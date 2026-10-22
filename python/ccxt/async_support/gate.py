@@ -2620,7 +2620,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_withdraw_fees(response, codes, 'currency')
 
-    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None) -> object:
+    def parse_deposit_withdraw_fee(self, fee: dict, currency: Currency = None) -> object:
         #
         #    {
         #        "currency": "MTN",
@@ -6283,7 +6283,7 @@ class gate(Exchange, ImplicitAPI):
         if type != 'future' and type != 'swap':
             raise BadRequest(self.id + ' fetchLeverageTiers only supports swap and future')
         requestedLimit = self.safe_integer(requestParams, 'limit', 100)
-        limit = 100 if (requestedLimit is None) else max(1, min(requestedLimit, 100))
+        limit = self.parse_to_int(100 if (requestedLimit is None) else max(1, min(requestedLimit, 100)))
         offset = self.safe_integer(requestParams, 'offset', 0)
         contract = self.safe_string(requestParams, 'contract', '')
         paramsOmitted = self.omit(requestParams, ['limit', 'offset'])
@@ -6700,7 +6700,7 @@ class gate(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' nonce() requires a numeric options["timeDifference"]')
         return self.milliseconds() - timeDifference
 
-    def sign(self, path: str, api: list[str] = [], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = [], method: str = 'GET', params: dict = {}) -> dict:
         authentication = api[0]  # public, private
         type = api[1]  # spot, margin, future, delivery
         query = self.omit(params, self.extract_params(path))
@@ -6938,7 +6938,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_open_interests_history(response, market, since, limit)
 
-    def parse_open_interest(self, interest: object, market: Market = None) -> OpenInterest:
+    def parse_open_interest(self, interest: dict, market: Market = None) -> OpenInterest:
         #
         #    {
         #        "long_liq_size": "0",

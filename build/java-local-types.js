@@ -17525,6 +17525,10 @@ function j11MapValue (printer, node, declaration, depth = 0) {
         const declared = String (syncCoreCallType (printer, value) ?? '').replace (/\s+/g, '').replace (/^java\.util\./, '');
         return { cast: declared !== 'Map<String,Object>' };
     }
+    if (!isAsyncMethodCall (printer, value) && x21MapCallee (printer, value)) {
+        const declared = String (syncCoreCallType (printer, value) ?? '').replace (/\s+/g, '').replace (/^java\.util\./, '');
+        return { cast: declared !== 'Map<String,Object>' };
+    }
     return undefined;
 }
 
@@ -18076,6 +18080,16 @@ const J14_CAST_ACCESSORS = {
     'safeNumberOmitZero': { type: 'Double', defaultAt: 2 },
     'safeIntegerProduct2': { type: 'Long', defaultAt: 4 },
     'safeIntegerProductN': { type: 'Long', defaultAt: 3 },
+    // hx5 X21: base `: Str` methods printed `public Object` whose hand-written/generated Java body returns a
+    // String, null or throws on every path (no ts/src venue override; j14ResolvesToBase rejects any that appears):
+    // currencyToPrecision -> forceString (String|null) | decimalToPrecision (String); forceString -> numberToString
+    // (String) | an instanceof-String value; parsePrecision -> null | "1" | String concat; convertExpireDate ->
+    // null | String concat; remove0xPrefix -> Encode.remove0xPrefix ((String) checkcast, substring)
+    'currencyToPrecision': { type: 'String', defaultAt: -1, x21: true },
+    'forceString': { type: 'String', defaultAt: -1, x21: true },
+    'parsePrecision': { type: 'String', defaultAt: -1, x21: true },
+    'convertExpireDate': { type: 'String', defaultAt: -1, x21: true },
+    'remove0xPrefix': { type: 'String', defaultAt: -1, x21: true },
 };
 const J14_BASE_FILE = /(^|[\\/])ts[\\/]src[\\/]base[\\/](Exchange(\.nooverloads\.\d+)?\.ts|functions[\\/]type\.ts)$/;
 
@@ -18148,7 +18162,7 @@ function j14Value (printer, node, declaration, type, depth = 0) {
     }
     const cast = J14_CAST_ACCESSORS[name];
     if (cast !== undefined) {
-        if (cast.type !== type || !j14ResolvesToBase (printer, value)) {
+        if (cast.type !== type || !j14ResolvesToBase (printer, value) || (cast.x21 === true && !x21BaseOnlyDispatch (value))) {
             return undefined;
         }
         const fallback = cast.defaultAt < 0 ? undefined : value.arguments[cast.defaultAt];
@@ -19566,4 +19580,185 @@ export function nativeJavaJ37DivModNeg (content) {
         if (line !== lines[j]) { lines[j] = line; changed = true; }
     }
     return changed ? lines.join ('\n') : content;
+}
+
+// hx5 X21: a sync `this.m (..)` whose every dispatchable declaration (own chain + every override in a
+// subclass, none hand-written in the Java base) returns a Map on every path: a fresh map (section 33), an
+// omit of a never-written parameter printed Map<String, Object> (the typed omit(Map, ..) overload builds a
+// fresh LinkedHashMap or answers null), an omit of a const element-1 binding of an audited base handle*
+// tuple (a Map by the handle section's proof), or a const local initialised from one of those. Lets
+// `Object x = this.cleanParams (..)` / handleRouteAndParams / handlePaginationParams locals print Map.
+// No module-level state (END-block hygiene): memo lives on the fresh-map index.
+function x21MapCallee (printer, call) {
+    if (!isThisCall (call) || call.arguments.some ((a) => ts.isSpreadElement (a))) {
+        return false;
+    }
+    const state = javaFreshMapMethods ();
+    const file = call.getSourceFile ().fileName;
+    const name = String (call.expression.name.text);
+    const key = `${path.resolve (file)}#${name}#x21`;
+    if (state.verdicts.has (key)) {
+        return state.verdicts.get (key);
+    }
+    state.verdicts.set (key, false); // recursion = unproven
+    // exactly one dispatchable declaration (no override anywhere up or down the chain); read it through the
+    // checker so parameter types and omit resolution see the program's nodes, not the index's parse-only copy
+    const dispatch = javaFreshMapDispatch (file, name) ?? [];
+    const byHand = state.handWritten.some ((text) => text === undefined || new RegExp (`\\s${name}\\s*\\(`).test (text));
+    let resolved;
+    try {
+        resolved = printer.getChecker ().getResolvedSignature (call)?.declaration?.resolve ();
+    } catch (e) {
+        resolved = undefined;
+    }
+    const declarations = resolved !== undefined && dispatch.length === 1 ? [ resolved ] : [];
+    let ok = declarations.length === 1 && !byHand && path.resolve (resolved.getSourceFile ().fileName) === path.resolve (dispatch[0].getSourceFile ().fileName)
+        && !BASE_SOURCE_FILE.test (resolved.getSourceFile ().fileName);
+    for (const declaration of declarations) {
+        if (!ok) {
+            break;
+        }
+        if (!ts.isMethodDeclaration (declaration) || declaration.body === undefined
+            || (declaration.modifiers ?? []).some ((m) => m.kind === ts.SyntaxKind.AsyncKeyword)) {
+            ok = false;
+            break;
+        }
+        let returns = 0;
+        const walk = (node) => {
+            if (!ok || node === undefined) {
+                return;
+            }
+            if (node !== declaration && ts.isFunctionLike (node)) {
+                return; // a nested function's returns are not this method's
+            }
+            if (ts.isReturnStatement (node)) {
+                returns++;
+                ok = x21MapReturn (printer, declaration, node.expression, 0);
+                return;
+            }
+            node.forEachChild (walk);
+        };
+        walk (declaration.body);
+        ok = ok && returns > 0;
+    }
+    state.verdicts.set (key, ok);
+    if (process.env.JAVA_LOCAL_TYPES_DEBUG) {
+        console.error (`x21 map callee ${name} -> ${ok}`);
+    }
+    return ok;
+}
+
+function x21MapReturn (printer, method, expression, depth) {
+    const value = javaFreshMapUnwrap (expression);
+    if (value === undefined || depth > 3) {
+        return false;
+    }
+    if (javaFreshMapValue (value, new Set ())) {
+        return true;
+    }
+    if (ts.isIdentifier (value)) {
+        const local = x21ConstLocal (method, value.text);
+        if (local === undefined) {
+            return false;
+        }
+        if (ts.isVariableDeclaration (local)) {
+            return local.initializer !== undefined && x21MapReturn (printer, method, local.initializer, depth + 1);
+        }
+        return x21HandleParamsBinding (printer, local);
+    }
+    if (!ts.isCallExpression (value) || !isThisCall (value) || value.expression.name.text !== 'omit'
+        || value.arguments.length < 2 || value.arguments.some ((a) => ts.isSpreadElement (a))) {
+        return false;
+    }
+    try {
+        const resolved = printer.getChecker ().getResolvedSignature (value)?.declaration?.resolve ();
+        if (resolved === undefined || !COLLECTION_SOURCE_FILE.test (resolved.getSourceFile ().fileName)) {
+            return false;
+        }
+    } catch (e) {
+        return false;
+    }
+    const source = javaFreshMapUnwrap (value.arguments[0]);
+    if (source === undefined || !ts.isIdentifier (source)) {
+        return false;
+    }
+    const parameter = method.parameters.find ((p) => ts.isIdentifier (p.name) && p.name.text === source.text);
+    if (parameter !== undefined) {
+        if (parameter.dotDotDotToken !== undefined || parameterIsWritten (parameter)
+            || x21ConstLocal (method, source.text) !== undefined) {
+            return false;
+        }
+        let type;
+        try {
+            type = parameter.initializer !== undefined
+                ? printer.javaOptionalParameterType?.(parameter) : printer.javaNativeParameterType?.(parameter);
+        } catch (e) {
+            return false;
+        }
+        return String (type ?? '').replace (/\s+/g, '').replace (/^java\.util\./, '') === 'Map<String,Object>';
+    }
+    const local = x21ConstLocal (method, source.text);
+    if (local === undefined) {
+        return false;
+    }
+    if (ts.isVariableDeclaration (local)) {
+        return local.initializer !== undefined && x21MapReturn (printer, method, local.initializer, depth + 1);
+    }
+    return x21HandleParamsBinding (printer, local);
+}
+
+// the single const declaration (plain or array-binding element) of `name` in the method, never written,
+// or undefined (also when the name is declared twice, so a shadowing block cannot fool the read)
+function x21ConstLocal (method, name) {
+    const found = [];
+    let written = false;
+    const visit = (node) => {
+        if ((ts.isVariableDeclaration (node) || ts.isBindingElement (node)) && ts.isIdentifier (node.name) && node.name.text === name) {
+            found.push (node);
+        }
+        if (ts.isBinaryExpression (node) && node.operatorToken.kind >= ts.SyntaxKind.FirstAssignment
+            && node.operatorToken.kind <= ts.SyntaxKind.LastAssignment) {
+            const targets = ts.isArrayLiteralExpression (node.left) ? node.left.elements : [ node.left ];
+            written = written || targets.some ((t) => ts.isIdentifier (t) && t.text === name);
+        }
+        node.forEachChild (visit);
+    };
+    if (method.body !== undefined) {
+        visit (method.body);
+    }
+    if (written || found.length !== 1) {
+        return undefined;
+    }
+    const local = found[0];
+    const list = ts.isVariableDeclaration (local) ? local.parent : local.parent?.parent?.parent;
+    if (list === undefined || !ts.isVariableDeclarationList (list) || (list.flags & ts.NodeFlags.Const) === 0) {
+        return undefined;
+    }
+    return local;
+}
+
+// `const [ x, p ] = this.handleX (params, ..)`: p is element 1 of an audited base handle* tuple
+function x21HandleParamsBinding (printer, element) {
+    const pattern = element.parent;
+    if (!ts.isBindingElement (element) || !ts.isArrayBindingPattern (pattern) || pattern.elements.indexOf (element) !== 1
+        || !ts.isVariableDeclaration (pattern.parent) || pattern.parent.initializer === undefined) {
+        return false;
+    }
+    const call = unwrapParens (pattern.parent.initializer);
+    if (!isThisCall (call) || !HANDLE_ELEMENT_1_PARAMS.has (String (call.expression.name.text))) {
+        return false;
+    }
+    try {
+        return handleElement1Type (printer, call) !== undefined;
+    } catch (e) {
+        return false;
+    }
+}
+
+// a J14 cast accessor added by hx5 X21 is only proven while no venue class reachable by dispatch overrides it
+function x21BaseOnlyDispatch (call) {
+    const name = String (call.expression.name.text);
+    const declarations = javaFreshMapDispatch (call.getSourceFile ().fileName, name);
+    return declarations !== undefined && declarations.length > 0
+        && declarations.every ((d) => BASE_SOURCE_FILE.test (d.getSourceFile ().fileName));
 }

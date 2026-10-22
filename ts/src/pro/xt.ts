@@ -259,7 +259,7 @@ export default class xt extends xtRest {
      * @param {object} subscriptionParams extra parameters specific to the subscription
      * @returns {object} data from the websocket stream
      */
-    async unSubscribe (messageHash: string, name: string, access: string, methodName: string, topic: string, market: Market = undefined, symbols: Strings = undefined, params = {}, subscriptionParams = {}): Promise<any> {
+    async unSubscribe (messageHash: string, name: string, access: string, methodName: string, topic: string, market: Market = undefined, symbols: Strings = undefined, params: Dict = {}, subscriptionParams = {}): Promise<any> {
         const privateAccess = access === 'private';
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams (methodName, market, params);
         const isContract = (type !== 'spot');

@@ -307,13 +307,7 @@ class bingx extends bingx$1["default"] {
         // Coin-M m is coin volume; v is contracts and q is already USD turnover.
         // prefer the caller's stream-derived flag so an unresolved market id on
         // the Coin-M endpoint does not silently fall back to the contract count
-        let inverse = false;
-        if (isInverse === undefined) {
-            inverse = marketResolved['inverse'] === true;
-        }
-        else {
-            inverse = isInverse;
-        }
+        const inverse = (isInverse === true) || ((isInverse === undefined) && (marketResolved['inverse'] === true));
         const baseVolumeKey = inverse ? 'm' : 'v';
         return this.safeTicker({
             'symbol': marketResolved['symbol'],

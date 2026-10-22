@@ -1222,7 +1222,7 @@ class coinone(Exchange, ImplicitAPI):
                 result[code] = depositAddress
         return self.to_array(result)
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
         request = self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))

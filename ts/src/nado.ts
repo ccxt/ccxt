@@ -2509,7 +2509,7 @@ export default class nado extends Exchange {
         };
     }
 
-    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
+    override parseOpenInterest (interest: NullableDict, market: Market = undefined): OpenInterest {
         //
         //     {
         //         "product_id": 1,
@@ -3209,7 +3209,7 @@ export default class nado extends Exchange {
         return marketId;
     }
 
-    override sign (path: string, api: string[] = [], method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] = [], method: string = 'GET', params: Dict = {}): Dict {
         let requestBody: Str = undefined;
         const endpoint = api[0];
         const baseApiUrl = this.safeString (this.urls['api'], endpoint);

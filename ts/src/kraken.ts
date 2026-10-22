@@ -3689,7 +3689,7 @@ export default class kraken extends Exchange {
         };
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
         let url = '/' + this.version + '/' + apiName + '/' + path;
         if (apiName === 'public') {

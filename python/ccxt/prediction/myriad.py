@@ -2951,7 +2951,7 @@ class myriad(PredictionExchange, ImplicitAPI):
             return
         self.handle_centrifugo_frame(client, message)
 
-    def handle_centrifugo_frame(self, client: Client, msg: object):
+    def handle_centrifugo_frame(self, client: Client, msg: dict):
         keys = list(msg.keys())
         keysLength = len(keys)
         if keysLength == 0:
@@ -3514,7 +3514,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         self.throw_broadly_matched_exception(self.exceptions['broad'], error, feedback)
         raise ExchangeError(feedback)
 
-    def sign(self, path: str, api: list[str] = ['myriad'], method='GET', params: dict = {}):
+    def sign(self, path: str, api: list[str] = ['myriad'], method: str = 'GET', params: dict = {}):
         """
  @ignore
         builds the request url and attaches the apiKey header for private endpoints

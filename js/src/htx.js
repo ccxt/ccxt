@@ -5025,8 +5025,8 @@ export default class htx extends Exchange {
             if (rawType !== undefined) {
                 if (rawType.indexOf('-') >= 0) {
                     const orderType = rawType.split('-');
-                    side = orderType[0];
-                    type = orderType[1];
+                    side = this.safeString(orderType, 0);
+                    type = this.safeString(orderType, 1);
                 }
                 else if (type === undefined) {
                     type = rawType;
@@ -8611,9 +8611,10 @@ export default class htx extends Exchange {
         const positions = this.safeList(account, 'positions', []);
         let position = undefined;
         if ((market['future'] === true) && (market['inverse'] === true)) {
+            const marketId = this.safeString(market, 'id');
             for (let i = 0; i < positions.length; i++) {
                 const entry = positions[i];
-                if (this.safeString(entry, 'contract_code') === market['id']) {
+                if (this.safeString(entry, 'contract_code') === marketId) {
                     position = entry;
                     break;
                 }

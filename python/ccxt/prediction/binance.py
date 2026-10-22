@@ -1768,7 +1768,7 @@ class binance(PredictionExchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def sign(self, path: str, api: list[str] = ['sapi'], method='GET', params: dict = {}):
+    def sign(self, path: str, api: list[str] = ['sapi'], method: str = 'GET', params: dict = {}):
         """
  @ignore
         builds the request URL and attaches the standard binance SAPI HMAC-SHA256 signature — every prediction endpoint is signed

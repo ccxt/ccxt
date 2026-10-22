@@ -6868,6 +6868,7 @@ export function installCcxtGoLocalTypes (goTranspiler, unifiedInt64Params = unde
     installCcxtGoStringParamNilGuards (goTranspiler);
     installCcxtGoUnifiedStringDerefArgs (goTranspiler);
     installCcxtGoUnifiedInt64Params (goTranspiler, unifiedInt64Params);
+    installHx5X32StringPtrParams (goTranspiler); // hx5 X32
     const upstream = goTranspiler.goTypeOfInitializer;
     goTranspiler.goTypeOfInitializer = function (initializer, printedValue) {
         const known = upstream.call (this, initializer, printedValue);
@@ -10751,4 +10752,157 @@ function installG22ClosureNumericDefault (goTranspiler) {
         return lines.join ('\n');
     };
     goTranspiler.__g22ClosureNumericDefaultInstalled = true;
+}
+
+// hx5 X32
+// A nullable `Str` parameter of a non-async exchange method prints `*string` only when every call
+// site passes a `*string`. Callers that pass a proven Go `string` (a typed local, a string literal,
+// a native concat) blocked the proof, so the parameter stayed `any` and every comparison on it fell
+// to IsEqual. Admit those callers too, and print the argument as `SafeStringPtr(arg)` at the call:
+// identity on a string, never nil, so a body guard `x == nil` answers exactly what the `any` box
+// did for a non-nil string (S10's empty-pointer trap needs a nil-or-empty pointer; this one is
+// neither nil nor different from the boxed string). Callers passing `any`, nil or an untyped
+// expression still fail the proof and the parameter keeps `any`.
+function hx5X32CallDeclaration (goTranspiler, call) {
+    let decl;
+    try {
+        decl = goTranspiler.getChecker ().getResolvedSignature (call)?.declaration;
+        decl = (typeof decl?.resolve === 'function') ? decl.resolve () : decl;
+    } catch (e) {
+        decl = undefined;
+    }
+    return ((decl?.kind === ts.SyntaxKind.MethodDeclaration) && (decl.body !== undefined)) ? decl : undefined;
+}
+
+function hx5X32TextIsStringLiteral (text) {
+    let t = (text ?? '').trim ();
+    while (t.startsWith ('(') && t.endsWith (')')) {
+        t = t.substring (1, t.length - 1).trim ();
+    }
+    return /^(?:'[^'\\]*'|"[^"\\]*")$/.test (t);
+}
+
+// `Str` / `string` / `string | undefined`: a cheap pre-filter; goNativeParameterType is the proof
+function hx5X32NullableStringParam (goTranspiler, param) {
+    let type;
+    try {
+        type = goTranspiler.checkerOrUndefined?.()?.getTypeAtLocation (param);
+    } catch (e) {
+        return false;
+    }
+    // ccxt compiles without strictNullChecks, where `Str` collapses to plain `string`
+    const parts = (type === undefined) ? [] : (((typeof type.isUnionType === 'function') && type.isUnionType ()) ? type.getTypes () : [ type ]);
+    const strings = parts.filter ((p) => (p.flags & (ts.TypeFlags.String | ts.TypeFlags.StringLiteral)) !== 0);
+    return (strings.length > 0)
+        && parts.every ((p) => (p.flags & (ts.TypeFlags.String | ts.TypeFlags.StringLiteral | ts.TypeFlags.Undefined | ts.TypeFlags.Null)) !== 0);
+}
+
+function installHx5X32StringPtrParams (goTranspiler) {
+    if ((goTranspiler === undefined) || goTranspiler.__hx5X32Installed
+        || (typeof goTranspiler.goParameterCallSitesPassType !== 'function') || (typeof goTranspiler.goTextArgMatchesType !== 'function')
+        || (typeof goTranspiler.goPrintedArgType !== 'function') || (typeof goTranspiler.printArgsForCallExpression !== 'function')
+        || (typeof goTranspiler.goSameFileCallsOf !== 'function') || (typeof goTranspiler.goTsSrcTree !== 'function')) {
+        return;
+    }
+    goTranspiler.__hx5X32Installed = true;
+    const upstreamSites = goTranspiler.goParameterCallSitesPassType;
+    const upstreamArgType = goTranspiler.goPrintedArgType;
+    // the upstream proof with one extra accepted argument shape: a proven Go `string`
+    // (same file, by the printer's own type) or a string literal (other files, by text)
+    const widenedSites = function (self, fn, index) {
+        const name = fn.name.text;
+        for (const call of self.goSameFileCallsOf (fn, name)) {
+            const arg = call.arguments?.[index];
+            if ((arg === undefined) || (arg.kind === ts.SyntaxKind.SpreadElement)) {
+                return false;
+            }
+            const t = upstreamArgType.call (self, arg);
+            if ((t !== '*string') && (t !== 'string')) {
+                return false;
+            }
+        }
+        const tree = self.goTsSrcTree (fn.getSourceFile ());
+        if (tree !== undefined) {
+            const myClass = self.goEnclosingClassName (fn);
+            const myFile = tree.relativeOf.get (path.resolve (fn.getSourceFile ().fileName));
+            for (const site of tree.callIndex.get (name) ?? []) {
+                if ((site.file === myFile) || !self.goTsSrcFileDerivesFrom (tree, site.file, myClass)) {
+                    continue;
+                }
+                const arg = site.args[index];
+                if ((arg === undefined) || !(self.goTextArgMatchesType (arg, '*string', site.file, tree) || hx5X32TextIsStringLiteral (arg))) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    };
+    goTranspiler.goParameterCallSitesPassType = function (fn, index, goType) {
+        if (upstreamSites.call (this, fn, index, goType)) {
+            return true;
+        }
+        return (goType === '*string') && widenedSites (this, fn, index);
+    };
+    let proving = 0;
+    const upstreamParamType = goTranspiler.goNativeParameterType;
+    goTranspiler.goNativeParameterType = function (param) {
+        proving++;
+        try {
+            return upstreamParamType.call (this, param);
+        } finally {
+            proving--;
+        }
+    };
+    const probeParam = (self, param) => {
+        const caches = [ self.goNativeParameterTypeCache, self.goDeclaredTypeCache ].filter ((c) => c instanceof Map);
+        if ((proving === 0) || (caches.length === 0) || self.goNativeParameterTypeCache?.has?.(param)) {
+            return self.goNativeParameterType (param);
+        }
+        const before = caches.map ((c) => new Set (c.keys ()));
+        try {
+            return self.goNativeParameterType (param);
+        } finally {
+            caches.forEach ((c, i) => {
+                for (const key of [ ...c.keys () ]) {
+                    if (!before[i].has (key)) {
+                        c.delete (key);
+                    }
+                }
+            });
+        }
+    };
+    const upstreamArgs = goTranspiler.printArgsForCallExpression;
+    goTranspiler.printArgsForCallExpression = function (node, identation) {
+        const printed = upstreamArgs.call (this, node, identation);
+        const args = node.arguments ?? [];
+        if ((args.length === 0) || args.some ((a) => a.kind === ts.SyntaxKind.SpreadElement)) {
+            return printed;
+        }
+        const callee = node.expression;
+        const calleeName = (callee?.kind === ts.SyntaxKind.PropertyAccessExpression) ? callee.name?.text : undefined;
+        if ((typeof calleeName === 'string') && Object.prototype.hasOwnProperty.call (this.unifiedStringParams ?? {}, calleeName)) {
+            return printed; // unified string args keep their StringArg/deref printing
+        }
+        const decl = hx5X32CallDeclaration (this, node);
+        if (decl === undefined) {
+            return printed;
+        }
+        // a probe made while another parameter proof is in flight can see that proof's re-entry
+        // answer (`any`) and cache a wrong verdict for other parameters: such probes are scratch,
+        // so every cache entry they add is dropped again (see probeParam)
+        const wrap = args.map ((a, i) => {
+            const param = decl.parameters?.[i];
+            return (param !== undefined) && (param.dotDotDotToken === undefined) && (param.initializer === undefined)
+                && hx5X32NullableStringParam (this, param)
+                && (upstreamArgType.call (this, a) === 'string') && (probeParam (this, param) === '*string');
+        });
+        if (!wrap.some ((w) => w)) {
+            return printed;
+        }
+        const depth = this.goExprDepth + ((args.length > 1) ? 1 : 0);
+        return args.map ((a, i) => {
+            const text = this.goWithExprDepth (depth, () => this.printNode (a, identation)).trim ();
+            return wrap[i] ? ('SafeStringPtr(' + text + ')') : text;
+        }).join (', ');
+    };
 }

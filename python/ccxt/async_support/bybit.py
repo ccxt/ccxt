@@ -7085,7 +7085,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             request['limit'] = limit
         return await self.fetch_derivatives_open_interest_history(symbol, timeframe, since, limit, params)
 
-    def parse_open_interest(self, interest: object, market: Market = None) -> OpenInterest:
+    def parse_open_interest(self, interest: dict, market: Market = None) -> OpenInterest:
         #
         #    {
         #        "openInterest": 64757.62400000,
@@ -7263,12 +7263,12 @@ classic accounts only/ spot not supported*  fetches information on an order made
         request = {
             'currency': currency['id'],
         }
-        sinceResolved = self.milliseconds() - 86400000 * 30 if (since is None) else since  # last 30 days
+        sinceResolved = self.milliseconds() - 2592000000 if (since is None) else since  # last 30 days
         request['startTime'] = sinceResolved
         endTime = self.safe_integer_2(params, 'until', 'endTime')
         paramsOmitted = self.omit(params, ['until'])
         if endTime is None:
-            endTime = sinceResolved + 86400000 * 30  # since + 30 days
+            endTime = sinceResolved + 2592000000  # since + 30 days
         request['endTime'] = endTime
         response = await self.privateGetV5SpotMarginTradeInterestRateHistory(self.extend(request, paramsOmitted))
         #
@@ -7733,7 +7733,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
                 result[symbol] = fee
         return result
 
-    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None) -> object:
+    def parse_deposit_withdraw_fee(self, fee: dict, currency: Currency = None) -> object:
         #
         #    {
         #        "name": "BTC",
@@ -9453,7 +9453,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         }
         return self.safe_string(marginModes, marginMode, marginMode)
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
         requestBody = None
         requestHeaders = None

@@ -976,7 +976,8 @@ export default class gemini extends geminiRest {
             return;
         }
         this.checkRequiredCredentials();
-        const startIndex = this.urls['api']['ws'].length;
+        const wsBaseUrl = this.safeString(this.urls['api'], 'ws', '');
+        const startIndex = wsBaseUrl.length;
         const urlParamsIndex = url.indexOf('?');
         const urlLength = url.length;
         const endIndex = (urlParamsIndex >= 0) ? urlParamsIndex : urlLength;

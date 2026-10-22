@@ -120,7 +120,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
     handleTicker(client: Client, message: Dict): Dict;
     parseTicker(ticker: Dict | List, market?: Market): Ticker;
     handleDelta(bookside: any, delta: any): void;
-    handleDeltas(bookside: any, deltas: any): void;
+    handleDeltas(bookside: any, deltas: any[]): void;
     handleOrderBook(client: Client, message: Dict): void;
     handleSubscriptionStatus(client: Client, message: Dict): Dict;
     handleErrorMessage(client: Client, message: Dict): Bool;

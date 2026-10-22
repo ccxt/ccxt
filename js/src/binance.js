@@ -8072,7 +8072,7 @@ export default class binance extends Exchange {
                 request['endTime'] = untilResolved;
             }
             if (since === undefined) {
-                const oneWeek = 7 * 24 * 60 * 60 * 1000;
+                const oneWeek = 604800000; // 7 * 24 * 60 * 60 * 1000
                 request['startTime'] = untilResolved - oneWeek;
             }
         }
@@ -9391,7 +9391,7 @@ export default class binance extends Exchange {
             // The time between startTime and endTime cannot be longer than 7 days.
             // The parameter fromId cannot be sent with startTime or endTime.
             const currentTimestamp = this.milliseconds();
-            const oneWeek = 7 * 24 * 60 * 60 * 1000;
+            const oneWeek = 604800000; // 7 * 24 * 60 * 60 * 1000
             if ((currentTimestamp - since) >= oneWeek) {
                 if ((endTime === undefined) && (this.safeBool(market, 'linear', false))) {
                     endTime = this.sum(startTime, oneWeek);
@@ -9437,7 +9437,7 @@ export default class binance extends Exchange {
                     request['endTime'] = endTimeResolved;
                 }
                 if (since === undefined) {
-                    const oneWeek = 7 * 24 * 60 * 60 * 1000;
+                    const oneWeek = 604800000; // 7 * 24 * 60 * 60 * 1000
                     request['startTime'] = endTimeResolved - oneWeek;
                 }
                 response = await this.sapiGetEquityTradeHistory(this.extend(request, paramsPaginate));
@@ -13829,8 +13829,8 @@ export default class binance extends Exchange {
         }
         else if (('byLimit' in config) && ('limit' in params)) {
             const limit = params['limit'];
-            // safeValue keeps runtime identical to the prior bare index (no empty-array default)
-            const byLimit = this.safeValue(config, 'byLimit');
+            // every 'byLimit' entry in describe() is a non-empty array literal, so the [] default is unreachable
+            const byLimit = this.safeList(config, 'byLimit', []);
             for (let i = 0; i < byLimit.length; i++) {
                 const entry = byLimit[i];
                 if (limit <= entry[0]) {

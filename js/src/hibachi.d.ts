@@ -282,7 +282,7 @@ export default class hibachi extends Exchange {
      */
     fetchPositions(symbols?: Strings, params?: Dict): Promise<Position[]>;
     parsePosition(position: Dict, market?: Market): Position;
-    sign(path: string, api?: string[], method?: any, params?: Dict): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     parseTransactionType(type: Str): Str;
     parseTransactionStatus(status: Str): Str;

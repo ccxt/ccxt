@@ -1885,7 +1885,7 @@ class bigone(Exchange, ImplicitAPI):
         exchangeTimeCorrection = exchangeMillisecondsCorrection * 1000000
         return self.sum(self.microseconds() * 1000, exchangeTimeCorrection)
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
         bodySigned = None
         query = self.omit(params, self.extract_params(path))

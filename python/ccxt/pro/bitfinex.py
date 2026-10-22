@@ -660,7 +660,7 @@ class bitfinex(ccxt.async_support.bitfinex):
                 self.orderbooks[symbol] = self.counted_order_book({}, limit)
             orderbook = self.orderbooks[symbol]
             if isRaw:
-                deltas = message[1]
+                deltas = self.safe_list(message, 1, [])
                 for i in range(0, len(deltas)):
                     delta = deltas[i]
                     delta2 = self.safe_number(delta, 2)
@@ -671,7 +671,7 @@ class bitfinex(ccxt.async_support.bitfinex):
                     price = self.safe_float(delta, 1)
                     bookside.storeArray([price, size, idString])
             else:
-                deltas = message[1]
+                deltas = self.safe_list(message, 1, [])
                 for i in range(0, len(deltas)):
                     delta = self.safe_list(deltas, i)
                     deltaAmount = self.safe_number(delta, 2)

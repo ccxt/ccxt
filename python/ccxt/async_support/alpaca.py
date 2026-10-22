@@ -2109,7 +2109,7 @@ class alpaca(Exchange, ImplicitAPI):
                 result[positionCode] = positionAccount
         return self.safe_balance(result)
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         endpoint = '/' + self.implode_params(path, params)
         baseApiUrl = self.safe_string(self.urls['api'], api[0])
         if baseApiUrl is None:

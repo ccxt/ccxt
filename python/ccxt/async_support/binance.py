@@ -7520,7 +7520,7 @@ class binance(Exchange, ImplicitAPI):
             if until is None:
                 request['endTime'] = untilResolved
             if since is None:
-                oneWeek = 7 * 24 * 60 * 60 * 1000
+                oneWeek = 604800000  # 7 * 24 * 60 * 60 * 1000
                 request['startTime'] = untilResolved - oneWeek
         response = None
         if isOptionType:
@@ -8678,7 +8678,7 @@ class binance(Exchange, ImplicitAPI):
             # The time between startTime and endTime cannot be longer than 7 days.
             # The parameter fromId cannot be sent with startTime or endTime.
             currentTimestamp = self.milliseconds()
-            oneWeek = 7 * 24 * 60 * 60 * 1000
+            oneWeek = 604800000  # 7 * 24 * 60 * 60 * 1000
             if (currentTimestamp - since) >= oneWeek:
                 if (endTime is None) and (self.safe_bool(market, 'linear', False)):
                     endTime = self.sum(startTime, oneWeek)
@@ -8713,7 +8713,7 @@ class binance(Exchange, ImplicitAPI):
                 if endTime is None:
                     request['endTime'] = endTimeResolved
                 if since is None:
-                    oneWeek = 7 * 24 * 60 * 60 * 1000
+                    oneWeek = 604800000  # 7 * 24 * 60 * 60 * 1000
                     request['startTime'] = endTimeResolved - oneWeek
                 response = await self.sapiGetEquityTradeHistory(self.extend(request, paramsPaginate))
             elif type == 'spot' or type == 'margin':
@@ -10032,7 +10032,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_withdraw_fees(response, codes, 'coin')
 
-    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None) -> object:
+    def parse_deposit_withdraw_fee(self, fee: dict, currency: Currency = None) -> object:
         #
         #    {
         #        "coin": "BAT",
@@ -12476,7 +12476,7 @@ class binance(Exchange, ImplicitAPI):
             return None
         return scheme + '//' + domain + '/'
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
         apiUrls = self.safe_dict(self.urls, 'api', {})
         if not (apiName in apiUrls):
@@ -12673,8 +12673,8 @@ class binance(Exchange, ImplicitAPI):
             return config['noPoolId']
         elif ('byLimit' in config) and ('limit' in params):
             limit = params['limit']
-            # safeValue keeps runtime identical to the prior bare index (no empty-array default)
-            byLimit = self.safe_value(config, 'byLimit')
+            # every 'byLimit' entry in describe() is a non-empty array literal, so the [] default is unreachable
+            byLimit = self.safe_list(config, 'byLimit', [])
             for i in range(0, len(byLimit)):
                 entry = byLimit[i]
                 if limit <= entry[0]:
@@ -13518,7 +13518,7 @@ class binance(Exchange, ImplicitAPI):
         else:
             return self.parse_open_interest(response, market)
 
-    def parse_open_interest(self, interest: object, market: Market = None) -> OpenInterest:
+    def parse_open_interest(self, interest: dict, market: Market = None) -> OpenInterest:
         timestamp = self.safe_integer_2(interest, 'timestamp', 'time')
         id = self.safe_string(interest, 'symbol')
         amount = self.safe_number_2(interest, 'sumOpenInterest', 'openInterest')

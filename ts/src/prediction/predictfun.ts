@@ -3904,7 +3904,7 @@ export default class predictfun extends Exchange {
      * @param {object} [params] request parameters
      * @returns {object} a dictionary with url, method, body and headers
      */
-    override sign (path: string, api: string[] = [ 'predictfun' ], method = 'GET', params: Dict = {}) {
+    override sign (path: string, api: string[] = [ 'predictfun' ], method: string = 'GET', params: Dict = {}) {
         // the venue authenticates every endpoint, so the key is required up front rather than
         // per access level - a key-less request is answered with a 401 by the API gateway.
         // the testnet is the exception, it is served without an API key at all

@@ -130,7 +130,7 @@ class extended(ccxt.async_support.extended):
         amount = self.safe_float_2(delta, 'c', 'q')
         bookside.store(price, amount)
 
-    def handle_deltas(self, bookside: object, deltas: object):
+    def handle_deltas(self, bookside: object, deltas: list[object]):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 

@@ -340,7 +340,7 @@ export class BaseExchange {
     accountId!: string;
 
     balance: Dict = {};
-    liquidations: any = undefined;
+    liquidations: ArrayCache | undefined = undefined;
     orderbooks: Dictionary<WsOrderBook> = {};
     tickers: Dictionary<Ticker> = {};
     fundingRates: Dictionary<FundingRate> = {};
@@ -350,7 +350,7 @@ export class BaseExchange {
     trades: Dictionary<ArrayCache>;
     transactions: Dictionary<Transaction> = {};
     ohlcvs: Dictionary<Dictionary<ArrayCacheByTimestamp>>;
-    myLiquidations: any = undefined;
+    myLiquidations: ArrayCache | undefined = undefined;
     myTrades: ArrayCache | undefined;
     positions: any;
     urls!: {
@@ -3352,7 +3352,7 @@ export class BaseExchange {
         }
     }
 
-    handleDeltas (bookside: any, deltas: any) {
+    handleDeltas (bookside: any, deltas: any[]) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
@@ -3713,7 +3713,7 @@ export class BaseExchange {
         this.options['enableDemoTrading'] = enable;
     }
 
-    sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+    sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         return { 'url': undefined, 'method': undefined, 'headers': undefined, 'body': undefined };
     }
 
@@ -6542,7 +6542,11 @@ export class BaseExchange {
      * @method
      * @ignore
      * @name Exchange#incrementingNonce
-     * @description returns a strictly-increasing nonce for venues that reject duplicate nonces per signer; the unit is whatever nonce () returns — the base default is seconds, so a venue that does not override nonce () gets a second-resolution counter that drifts ahead of wall clock under load, while venues needing milliseconds override nonce () as hyperliquid does. The counter is per exchange instance, so it narrows the duplicate-nonce race but does not remove it across instances or processes.
+     * @description returns a strictly-increasing nonce for venues that reject duplicate nonces per signer;
+     * the unit is whatever nonce () returns — the base default is seconds, so a venue that does not override
+     * nonce () gets a second-resolution counter that drifts ahead of wall clock under load, while venues
+     * needing milliseconds override nonce () as hyperliquid does. The counter is per exchange instance,
+     * so it narrows the duplicate-nonce race but does not remove it across instances or processes.
      * @returns {int} a strictly-increasing nonce in the unit returned by nonce ()
      */
     incrementingNonce () {
@@ -8185,17 +8189,11 @@ export class BaseExchange {
          * @returns {boolean} true if a post only order, false otherwise
          */
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
-        let postOnly = this.safeBool2 (params, 'postOnly', 'post_only', false);
         // we assume timeInForce is uppercase from safeStringUpper (params, 'timeInForce')
         const ioc = timeInForce === 'IOC';
         const fok = timeInForce === 'FOK';
         const timeInForcePostOnly = timeInForce === 'PO';
-        if (!postOnly) {
-            postOnly = timeInForcePostOnly;
-        }
-        if (!postOnly) {
-            postOnly = exchangeSpecificParam;
-        }
+        const postOnly = this.safeBool2 (params, 'postOnly', 'post_only', false) || timeInForcePostOnly || exchangeSpecificParam;
         if (postOnly) {
             if (ioc || fok) {
                 throw new InvalidOrder (this.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce);
@@ -8219,16 +8217,10 @@ export class BaseExchange {
          * @returns {Array}
          */
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
-        let postOnly = this.safeBool (params, 'postOnly', false);
         const ioc = timeInForce === 'IOC';
         const fok = timeInForce === 'FOK';
         const po = timeInForce === 'PO';
-        if (!postOnly) {
-            postOnly = po;
-        }
-        if (!postOnly) {
-            postOnly = exchangeSpecificPostOnlyOption;
-        }
+        const postOnly = this.safeBool (params, 'postOnly', false) || po || exchangeSpecificPostOnlyOption;
         if (postOnly) {
             if (ioc || fok) {
                 throw new InvalidOrder (this.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce);
@@ -8264,7 +8256,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' fetchConvertCurrencies() is not supported yet');
     }
 
-    parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
+    parseOpenInterest (interest: NullableDict, market: Market = undefined): OpenInterest {
         throw new NotSupported (this.id + ' parseOpenInterest () is not supported yet');
     }
 
@@ -8506,7 +8498,7 @@ export class BaseExchange {
         return depositWithdrawFees;
     }
 
-    parseDepositWithdrawFee (fee: any, currency: Currency = undefined): any {
+    parseDepositWithdrawFee (fee: NullableDict, currency: Currency = undefined): any {
         throw new NotSupported (this.id + ' parseDepositWithdrawFee() is not supported yet');
     }
 
@@ -8993,7 +8985,7 @@ export class BaseExchange {
     }
 
     sortCursorPaginatedResult (result: any) {
-        const first = this.safeValue (result, 0);
+        const first = this.safeDict (result, 0);
         if (first !== undefined) {
             if ('timestamp' in first) {
                 return this.sortBy (result, 'timestamp', true);

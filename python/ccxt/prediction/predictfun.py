@@ -3583,7 +3583,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
         # unique when two identical orders are signed within the same millisecond
         return self.milliseconds()
 
-    def sign(self, path: str, api: list[str] = ['predictfun'], method='GET', params: dict = {}):
+    def sign(self, path: str, api: list[str] = ['predictfun'], method: str = 'GET', params: dict = {}):
         """
  @ignore
         builds the request URL and attaches the API key header required by every endpoint

@@ -2054,7 +2054,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             parsedOrder['status'] = 'open'
         return parsedOrder
 
-    def sign_order_request(self, signRequest: dict, marketSymbol: object):
+    def sign_order_request(self, signRequest: dict, marketSymbol: Str) -> str:
         self.check_required_credentials()
         if self.privateKey is None:
             raise ArgumentsRequired(self.id + ' createOrder() requires a privateKey (the embedded/trading wallet key) to sign orders')
@@ -2090,7 +2090,7 @@ class limitless(PredictionExchange, ImplicitAPI):
     def hash_message(self, message: object) -> str:
         return '0x' + self.hash(message, 'keccak', 'hex')
 
-    def sign_hash(self, hash: str, privateKey: str):
+    def sign_hash(self, hash: str, privateKey: str) -> str:
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
         r = signature['r']
         s = signature['s']
@@ -2100,7 +2100,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         result = '0x' + rPadded + sPadded + v
         return result.lower()
 
-    def sign_message(self, message: object, privateKey: str):
+    def sign_message(self, message: object, privateKey: str) -> str:
         return self.sign_hash(self.hash_message(message), privateKey[-64:])
 
     def sign_evm_transaction(self, tx: dict, privateKey: str) -> str:
@@ -2906,7 +2906,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         # unique when two orders are signed within the same millisecond
         return self.milliseconds()
 
-    def sign(self, path: str, api: list[str] = ['limitless'], method='GET', params: dict = {}):
+    def sign(self, path: str, api: list[str] = ['limitless'], method: str = 'GET', params: dict = {}):
         """
  @ignore
         builds the request URL and attaches the lmts authentication headers for private endpoints

@@ -17,7 +17,7 @@ export default class polymarket extends polymarketRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the raw request frame to send
      */
-    sendSubscription(action: string, channels: string[], messageHashes: string[], subMessageHashes: string[], context?: Dict, params?: {}, checkHashes?: Strings): any;
+    sendSubscription(action: string, channels: string[], messageHashes: string[], subMessageHashes: string[], context?: Dict, params?: Dict, checkHashes?: Strings): any;
     /**
      * @method
      * @name polymarket#watchOrderBook
@@ -39,7 +39,7 @@ export default class polymarket extends polymarketRest {
      * @returns {object} status of the unwatch request
      */
     unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
-    handleOrderBook(client: Client, message: any): void;
+    handleOrderBook(client: Client, message: Dict): void;
     /**
      * @method
      * @name polymarket#watchTicker
@@ -70,7 +70,7 @@ export default class polymarket extends polymarketRest {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
-    handleTicker(client: Client, message: any): void;
+    handleTicker(client: Client, message: Dict): void;
     /**
      * @method
      * @name polymarket#watchBidsAsks
@@ -81,7 +81,7 @@ export default class polymarket extends polymarketRest {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
-    handleBidAsk(client: Client, message: any): void;
+    handleBidAsk(client: Client, message: Dict): void;
     /**
      * @method
      * @name polymarket#watchTrades
@@ -104,7 +104,7 @@ export default class polymarket extends polymarketRest {
      * @returns {object} status of the unwatch request
      */
     unWatchTrades(symbol: string, params?: {}): Promise<any>;
-    handleTrades(client: Client, message: any): void;
+    handleTrades(client: Client, message: Dict): void;
     parseWsTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method
@@ -130,7 +130,7 @@ export default class polymarket extends polymarketRest {
      * @returns {object} status of the unwatch request
      */
     unWatchOHLCV(symbol: string, timeframe?: string, params?: {}): Promise<any>;
-    handleOHLCV(client: Client, message: any): void;
+    handleOHLCV(client: Client, message: Dict): void;
     /**
      * @method
      * @ignore
@@ -139,7 +139,7 @@ export default class polymarket extends polymarketRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} resolves once the connection is authenticated
      */
-    authenticate(params?: {}): Promise<any>;
+    authenticate(params?: Dict): Promise<any>;
     /**
      * @method
      * @name polymarket#watchOrders
@@ -152,7 +152,7 @@ export default class polymarket extends polymarketRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    handleOrder(client: Client, message: any): void;
+    handleOrder(client: Client, message: Dict): void;
     /**
      * @method
      * @name polymarket#watchMyTrades
@@ -165,7 +165,7 @@ export default class polymarket extends polymarketRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    handleMyTrades(client: Client, message: any): void;
+    handleMyTrades(client: Client, message: Dict): void;
     /**
      * @method
      * @name polymarket#watchPositions
@@ -191,7 +191,7 @@ export default class polymarket extends polymarketRest {
     watchBalance(params?: {}): Promise<Balances>;
     setBalanceCache(client: Client): void;
     loadBalanceSnapshot(client: Client, messageHash: string): Promise<void>;
-    handlePortfolio(client: Client, message: any): void;
+    handlePortfolio(client: Client, message: Dict): void;
     handleAck(client: Client, message: any): void;
     handleMessage(client: Client, message: any): void;
     ping(client: Client): {

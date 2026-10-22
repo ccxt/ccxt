@@ -1222,7 +1222,7 @@ export default class woofipro extends Exchange {
         return this.filterByArrayTickers (result, 'symbol', symbolsNormalized);
     }
 
-    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
+    override parseOpenInterest (interest: NullableDict, market: Market = undefined): OpenInterest {
         //
         //     {
         //         "symbol": "PERP_BTC_USDC",
@@ -3488,7 +3488,7 @@ export default class woofipro extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path: string, section: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, section: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         const version = section[0];
         const access = section[1];
         const pathWithParams = this.implodeParams (path, params);

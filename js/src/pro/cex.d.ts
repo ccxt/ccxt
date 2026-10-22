@@ -119,7 +119,7 @@ export default class cex extends cexRest {
     pairToSymbol(pair: any): Str;
     handleOrderBookUpdate(client: Client, message: Dict): void;
     handleDelta(bookside: any, delta: any): void;
-    handleDeltas(bookside: any, deltas: any): void;
+    handleDeltas(bookside: any, deltas: any[]): void;
     /**
      * @method
      * @name cex#watchOHLCV
