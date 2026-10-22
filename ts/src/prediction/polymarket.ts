@@ -937,7 +937,7 @@ export default class polymarket extends Exchange {
             const chunkSize = this.safeInteger (this.options, 'fetchOutcomesBatchSize', 50);
             let startIndex = 0;
             while (startIndex < tokenIdsLength) {
-                let endIndex = this.sum (startIndex, chunkSize);
+                let endIndex = startIndex + chunkSize;
                 if (endIndex > tokenIdsLength) {
                     endIndex = tokenIdsLength;
                 }
@@ -957,7 +957,7 @@ export default class polymarket extends Exchange {
                     }
                     this.markets[(mkt as Dict)['market']] = mkt;
                 }
-                startIndex = this.sum (startIndex, chunkSize);
+                startIndex = startIndex + chunkSize;
             }
             this.populateOutcomes ();
         }
@@ -1065,7 +1065,7 @@ export default class polymarket extends Exchange {
         const tokenIdsLength = tokenIds.length;
         let startIndex = 0;
         while (startIndex < tokenIdsLength) {
-            let endIndex = this.sum (startIndex, chunkSize);
+            let endIndex = startIndex + chunkSize;
             if (endIndex > tokenIdsLength) {
                 endIndex = tokenIdsLength;
             }
@@ -1109,7 +1109,7 @@ export default class polymarket extends Exchange {
                 const symbolKey = this.safeString (ticker, 'outcome', tokenId);
                 result[symbolKey] = ticker;
             }
-            startIndex = this.sum (startIndex, chunkSize);
+            startIndex = startIndex + chunkSize;
         }
         return result;
     }
@@ -1281,7 +1281,7 @@ export default class polymarket extends Exchange {
         if (since !== undefined) {
             startS = this.parseToInt (since / 1000);
             if (limit !== undefined) {
-                const endBound = this.sum (startS, limit * fidelityMin * 60);
+                const endBound = startS + limit * fidelityMin * 60;
                 endS = (endBound < nowS) ? endBound : nowS;
             }
         } else {
@@ -1295,7 +1295,7 @@ export default class polymarket extends Exchange {
         const maxWindow = this.safeInteger (this.options, 'maxPricesHistoryWindow', 1296000);
         if ((endS - startS) > maxWindow) {
             if (since !== undefined) {
-                endS = this.sum (startS, maxWindow);
+                endS = startS + maxWindow;
             } else {
                 startS = endS - maxWindow;
             }
