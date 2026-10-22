@@ -9697,20 +9697,11 @@ function j41SelfTest (): string[] {
     return hx5X16SelfTest();
 }
 
-// hx4 J42: Helpers.parseInt/parseFloat become inline pattern switches replaying Helpers.toLong/toDouble
-// exactly (parseInt: unparseable -> null; parseFloat: unparseable or null -> 0.0, a throwing toString -> null).
-function j42Rewrite (name: string, x: string, v: string): string {
-    if (name === 'parseInt') {
-        return `((Long) (switch ((Object) (${x})) { case null -> (Long) null; case Long ${v} -> ${v}; case Integer ${v} -> Long.valueOf(${v}.longValue()); case Double ${v} -> Long.valueOf(${v}.longValue()); case Float ${v} -> Long.valueOf(${v}.longValue()); case java.math.BigDecimal ${v} -> Long.valueOf(${v}.longValue()); case Object ${v} -> { try { yield Long.valueOf(Long.parseLong(String.valueOf(${v}))); } catch (Exception ${v}e) { yield (Long) null; } } }))`;
-    }
-    return `((Double) (switch ((Object) (${x})) { case null -> Double.valueOf(0.0); case Double ${v} -> Double.valueOf(${v}.doubleValue()); case Float ${v} -> Double.valueOf(${v}.doubleValue()); case Long ${v} -> Double.valueOf(${v}.doubleValue()); case Integer ${v} -> Double.valueOf(${v}.doubleValue()); case java.math.BigDecimal ${v} -> Double.valueOf(${v}.doubleValue()); case Object ${v} -> { String ${v}s; try { ${v}s = String.valueOf(${v}); } catch (Exception ${v}e) { yield (Double) null; } try { yield Double.valueOf(Double.parseDouble(${v}s)); } catch (NumberFormatException ${v}e) { yield Double.valueOf(0.0); } } }))`;
-}
-
+// hx5 X17: J42 no longer inlines Helpers.toLong/toDouble; see x17J42Native at the end of the file.
 export function nativeJavaJ42 (content: string): string {
     if (!/Helpers\.(?:parseInt|parseFloat)\(/.test(content)) { return content; }
     let masked = j05Mask(content);
     let from = masked.length;
-    let n = 1 + Math.max(-1, ...[ ...content.matchAll(/hx4J42v(\d+)/g) ].map((m) => Number(m[1])));
     for (;;) {
         const at = masked.lastIndexOf('Helpers.', from);
         if (at === -1) { break; }
@@ -9726,28 +9717,42 @@ export function nativeJavaJ42 (content: string): string {
         const argsM = splitTopLevelArgs(masked.slice(open + 1, end - 1));
         if (argsM.length !== 1) { continue; }
         const x = content.slice(open + 1, end - 1).trim();
-        content = content.slice(0, at) + j42Rewrite(head[1], x, 'hx4J42v' + (n++)) + content.slice(end);
+        const native = x17J42Native(head[1], x, content, at); // hx5 X17
+        if (native === undefined) { continue; }
+        content = content.slice(0, at) + native + content.slice(end);
         masked = j05Mask(content);
     }
     return content;
 }
 
-// hx4 J42: snippet checks (`--audit-string-types --self-test`)
+// hx5 X17: J42 snippet checks (`--audit-string-types --self-test`)
 function j42SelfTest (): string[] {
     const problems: string[] = [];
-    const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Object p)\n    {\n${body}\n    }\n}`;
+    const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Object p, String s, long l, double d, Long b)\n    {\n${body}\n    }\n}`;
     const cases: [string, string, string | undefined][] = [
-        [ 'parseInt', '        Object x = Helpers.parseInt(p);', 'Object x = ((Long) (switch ((Object) (p))' ],
-        [ 'parseFloat nested', '        return Helpers.parseFloat(Helpers.parseInt(p));', 'case Object hx4J42v1 ->' ],
-        [ 'string arg', '        return Helpers.parseInt("a)b");', '(switch ((Object) ("a)b"))' ],
-        [ 'statement', '        Helpers.parseInt(p);', undefined ],
+        [ 'Object -> helper', '        Object x = Helpers.parseInt(p);', undefined ],
+        [ 'String -> helper (parseLong throws, helper yields null)', '        Object x = Helpers.parseInt(s);', undefined ],
+        [ 'String parseFloat -> helper (helper yields 0.0)', '        Object x = Helpers.parseFloat(s);', undefined ],
+        [ 'nested Object -> helper', '        return Helpers.parseFloat(Helpers.parseInt(p));', undefined ],
+        [ 'unparseable literal -> helper', '        return Helpers.parseInt("a)b");', undefined ],
+        [ 'statement', '        Helpers.parseInt(l);', undefined ],
+        [ 'long param', '        Object x = Helpers.parseInt(l);', 'Object x = Long.valueOf(l);' ],
+        [ 'double param parseInt', '        Object x = Helpers.parseInt(d);', 'Object x = Long.valueOf((long) d);' ],
+        [ 'double param parseFloat', '        Object x = Helpers.parseFloat(d);', 'Object x = Double.valueOf(d);' ],
+        [ 'Long param parseInt', '        Object x = Helpers.parseInt(b);', 'Object x = b;' ],
+        [ 'local int', '        int i = 3;\n        Object x = Helpers.parseFloat(i);', 'Object x = Double.valueOf((double) i);' ],
+        [ 'digit literal', '        Object x = Helpers.parseInt("42");', 'Object x = Long.valueOf(42L);' ],
+        [ 'decimal literal', '        Object x = Helpers.parseFloat("-1.5");', 'Object x = Double.valueOf(-1.5);' ],
+        [ 'leading zero literal -> helper', '        Object x = Helpers.parseInt("007");', undefined ],
+        [ 'shadowed by Object local', '        Object l2 = p;\n        Object x = Helpers.parseInt(p);', undefined ],
     ];
     for (const [ name, body, expect ] of cases) {
         const out = nativeJavaJ42 (cls (body));
-        const ok = expect === undefined ? out === cls (body) : out.includes (expect) && !out.includes ('Helpers.');
-        if (!ok) problems.push (`hx4 J42: ${name}\n${out}`);
+        const ok = expect === undefined ? out === cls (body) : out.includes (expect) && !/Helpers\.parse(?:Int|Float)\(/.test (out) && !out.includes ('switch');
+        if (!ok) problems.push (`hx5 X17 J42: ${name}\n${out}`);
     }
-    if (nativeJavaJ42 (nativeJavaJ42 (cls ('        Object x = Helpers.parseInt(p);'))) !== nativeJavaJ42 (cls ('        Object x = Helpers.parseInt(p);'))) problems.push ('hx4 J42: not idempotent');
+    const once = nativeJavaJ42 (cls ('        Object x = Helpers.parseInt(l) + Helpers.parseInt(p);'));
+    if (nativeJavaJ42 (once) !== once) problems.push ('hx5 X17 J42: not idempotent');
     return problems;
 }
 
@@ -10137,4 +10142,50 @@ function hx5X16SelfTest (): string[] {
         if (!out.includes (expect) || again !== out || /hx4J41|java\.util\.function/.test (out)) problems.push (`hx5 X16: ${body}\n${out}`);
     }
     return problems;
+}
+
+// hx5 X17: Helpers.parseInt/parseFloat only become native when the operand's Java type makes the
+// result identical to Helpers.toLong/toDouble under the helper's catch-all (parseInt: failure -> null;
+// parseFloat: failure or null -> 0.0). A String operand is NEVER made native: Long.parseLong /
+// Double.parseDouble throw where the helper returns null / 0.0. Unproven -> the helper call stays.
+function x17J42Native (name: string, x: string, content: string, at: number): string | undefined {
+    const lit = /^"(-?(?:0|[1-9]\d{0,17}))"$/.exec(x);
+    if (lit !== null) { return name === 'parseInt' ? `Long.valueOf(${lit[1]}L)` : `Double.valueOf(${lit[1]}.0)`; }
+    const dec = /^"(-?(?:0|[1-9]\d{0,14})\.\d{1,15})"$/.exec(x);
+    if (dec !== null && name === 'parseFloat') { return `Double.valueOf(${dec[1]})`; }
+    if (!/^[A-Za-z_]\w*$/.test(x)) { return undefined; }
+    const type = x17J42DeclaredType(content, at, x);
+    if (type === undefined) { return undefined; }
+    if (name === 'parseInt') {
+        if (type === 'Long') { return x; } // toLong(null) throws -> null, toLong(Long) is identity
+        if (type === 'long' || type === 'int') { return `Long.valueOf(${x})`; }
+        if (type === 'double' || type === 'float') { return `Long.valueOf((long) ${x})`; } // == Double.longValue (NaN -> 0)
+        return undefined;
+    }
+    if (type === 'double') { return `Double.valueOf(${x})`; }
+    if (type === 'long' || type === 'int' || type === 'float') { return `Double.valueOf((double) ${x})`; }
+    return undefined;
+}
+
+// hx5 X17: the declared Java type of `name` at `at`: the nearest local declaration above in the same
+// member, else the member's parameter list. Java's static typing makes that declaration sound.
+function x17J42DeclaredType (content: string, at: number, name: string): string | undefined {
+    const lines = content.slice(0, at).split('\n');
+    const decl = new RegExp('^\\s*(?:final\\s+)?([A-Za-z_][\\w.<>?, ]*?)\\s+' + name + '\\s*(?:=|;)');
+    for (let i = lines.length - 1; i >= 0; i--) {
+        const line = i === lines.length - 1 ? '' : lines[i];
+        const m = decl.exec(line);
+        if (m !== null) { return m[1]; }
+        if (/^    (?:public|private|protected)\b/.test(lines[i])) {
+            const sig = lines.slice(i, lines.length - 1).join(' ');
+            const params = /\(([^)]*)\)/.exec(sig);
+            if (params === null) { return undefined; }
+            for (const p of params[1].split(',')) {
+                const pm = /^\s*(?:final\s+)?([\w.]+)\s+(\w+)\s*$/.exec(p);
+                if (pm !== null && pm[2] === name) { return pm[1]; }
+            }
+            return undefined;
+        }
+    }
+    return undefined;
 }

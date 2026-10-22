@@ -66,7 +66,7 @@ public class Exchange extends BaseExchange implements TypedSurface {
                 Object stored = Helpers.GetValue(this.orderbooks, symbol);
                 while (tries < maxRetries) {
                     java.util.List<Object> cache = (java.util.List<Object>) Helpers.GetValue(stored, "cache");
-                    Object orderBook = this.fetchRestOrderBookSafe(symbol, (Long) (switch ((Object) limit) { case null -> (Long) null; case Long hx4J42l -> hx4J42l; case Number hx4J42n -> Long.valueOf(hx4J42n.longValue()); case Object hx4J42o -> throw new ClassCastException("ccxt: expected a number, got " + hx4J42o.getClass().getName()); }), params != null ? (switch ((Object) params) { case java.util.Map<?, ?> hx4J42m -> (java.util.Map<String, Object>) hx4J42m; case Object hx4J42p -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J42p.getClass().getName()); }) : new java.util.HashMap<String, Object>()).join();
+                    Object orderBook = this.fetchRestOrderBookSafe(symbol, Helpers.toLongOrNull(limit), params != null ? Helpers.toMapArg(params) : new java.util.HashMap<String, Object>()).join();
                     Object index = this.getCacheIndex(orderBook, cache);
                     if (Helpers.isGreaterThanOrEqual(index, 0)) {
                         Helpers.callDynamically(stored, "reset", new Object[]{orderBook});

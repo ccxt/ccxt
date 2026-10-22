@@ -106,13 +106,13 @@ public class BaseExchange {
         Object backoff = (wsOptions == null) ? null : Helpers.GetValue(wsOptions, "backoff");
         if (backoff != null) {
             Object value = Helpers.GetValue(backoff, "base");
-            if (value != null) { base = switch (value) { case Long hx4J42l -> hx4J42l.longValue(); case Integer hx4J42i -> hx4J42i.longValue(); case Double hx4J42d -> hx4J42d.longValue(); case Float hx4J42f -> hx4J42f.longValue(); case java.math.BigDecimal hx4J42b -> hx4J42b.longValue(); default -> Long.parseLong(String.valueOf(value)); }; }
+            if (value != null) { base = Helpers.toInt64(value); }
             value = Helpers.GetValue(backoff, "factor");
-            if (value != null) { factor = switch (value) { case Long hx4J42l -> hx4J42l.longValue(); case Integer hx4J42i -> hx4J42i.longValue(); case Double hx4J42d -> hx4J42d.longValue(); case Float hx4J42f -> hx4J42f.longValue(); case java.math.BigDecimal hx4J42b -> hx4J42b.longValue(); default -> Long.parseLong(String.valueOf(value)); }; }
+            if (value != null) { factor = Helpers.toInt64(value); }
             value = Helpers.GetValue(backoff, "max");
-            if (value != null) { maxDelay = switch (value) { case Long hx4J42l -> hx4J42l.longValue(); case Integer hx4J42i -> hx4J42i.longValue(); case Double hx4J42d -> hx4J42d.longValue(); case Float hx4J42f -> hx4J42f.longValue(); case java.math.BigDecimal hx4J42b -> hx4J42b.longValue(); default -> Long.parseLong(String.valueOf(value)); }; }
+            if (value != null) { maxDelay = Helpers.toInt64(value); }
             value = Helpers.GetValue(backoff, "stableAfter");
-            if (value != null) { stableAfter = switch (value) { case Long hx4J42l -> hx4J42l.longValue(); case Integer hx4J42i -> hx4J42i.longValue(); case Double hx4J42d -> hx4J42d.longValue(); case Float hx4J42f -> hx4J42f.longValue(); case java.math.BigDecimal hx4J42b -> hx4J42b.longValue(); default -> Long.parseLong(String.valueOf(value)); }; }
+            if (value != null) { stableAfter = Helpers.toInt64(value); }
         }
         long now = this.milliseconds();
         long attempts = 0L;

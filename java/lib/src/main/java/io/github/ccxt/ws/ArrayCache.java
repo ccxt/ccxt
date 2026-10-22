@@ -216,7 +216,7 @@ public class ArrayCache extends ArrayList<Object> {
      * count, a plain resolved list the caller's limit (the Go {@code ToGetsLimit} counterpart).
      */
     public static Long getLimitOf(Object cache, Object symbol, Object limit) {
-        Long cap = switch (limit) { case null -> (Long) null; case Long hx4J42l -> hx4J42l; case Number hx4J42n -> Long.valueOf(hx4J42n.longValue()); default -> throw new ClassCastException("ccxt: expected a number, got " + limit.getClass().getName()); };
+        Long cap = io.github.ccxt.Helpers.toLongOrNull(limit);
         if (cache instanceof ArrayCache arrayCache) {
             return arrayCache.getLimit(java.util.Objects.toString(symbol, null), cap);
         }
