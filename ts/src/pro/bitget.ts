@@ -2660,7 +2660,7 @@ export default class bitget extends bitgetRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    async unWatchPrivate (uta: any, messageHash: any, args: any, params = {}) {
+    async unWatchPrivate (uta: any, messageHash: any, args: any, params: Dict = {}) {
         const isUta = (uta === true);
         let url = isUta ? this.urls['api']['ws']['utaPrivate'] : this.urls['api']['ws']['private'];
         const sandboxMode = this.safeBool2 (this.options, 'sandboxMode', 'sandbox', false);
