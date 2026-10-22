@@ -7430,7 +7430,8 @@ public partial class BaseExchange
                 break;
             }
             tasks.Add(this.safeDeterministicCall(method,((string)symbol), currentSince, maxEntriesPerRequestValue,timeframe, paramsOmitted));
-            currentSince = subtract(add(currentSince, step), 1);
+            // this.sum keeps it numeric in PHP, where the regex transpiler turns `a + b` into string concatenation
+            currentSince = subtract(this.sum(currentSince, step), 1);
         }
         List<object> results = await promiseAll(tasks);
         List<object> result = new List<object>() {};
@@ -7474,7 +7475,7 @@ public partial class BaseExchange
                 {
                     if ((cursorIncrement != null))
                     {
-                        cursorValue = add(this.parseToInt(cursorValue), cursorIncrement);
+                        cursorValue = this.sum(this.parseToInt(cursorValue), cursorIncrement);
                     }
                     paramsOmitted[(string)cursorSent] = cursorValue;
                 }
@@ -7598,8 +7599,8 @@ public partial class BaseExchange
                 int responseLength = getArrayLength(response);
                 if (this.verbose)
                 {
-                    string iteration = ((object)(add(i, 1))).ToString();
-                    string incrementalMessage = ((((("Incremental pagination call " + iteration) + " method ") + method) + " response length ") + ((object)responseLength).ToString());
+                    object iteration = (add(i, 1));
+                    string incrementalMessage = ((((("Incremental pagination call " + ((object)iteration).ToString()) + " method ") + method) + " response length ") + ((object)responseLength).ToString());
                     this.log(incrementalMessage);
                 }
                 if ((responseLength == 0))
