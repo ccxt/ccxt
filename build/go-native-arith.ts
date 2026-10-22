@@ -2311,7 +2311,7 @@ const HX4G36_TOFLOAT = [
     '\treturn math.NaN()',
     '}',
 ];
-function hx4G36AddImport (content: string, pkg: string): string {
+export function hx4G36AddImport (content: string, pkg: string): string {
     if (new RegExp ('^import "' + pkg + '"$', 'm').test (content) || new RegExp ('^\\s+"' + pkg + '"$', 'm').test (content)) {
         return content;
     }
