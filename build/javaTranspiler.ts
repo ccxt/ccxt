@@ -5772,7 +5772,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), h2kJ02SelfTest(), j10CounterSelfTest(), j11MapLocalsSelfTest(), j04ArithmeticSelfTest(), j12ParamTypesSelfTest(), j13ListLocalsSelfTest(), j14ScalarLocalsSelfTest(), j15SelfTest(), j17ReturnsSelfTest(), j19CompareSelfTest(), j20ParamCompareSelfTest(), j22CoreArgsSelfTest(), j23ArithmeticSelfTest(), j24ArithmeticSelfTest(), j25CompareSelfTest(), j26MapLocalsSelfTest(), j27ArithmeticSelfTest(), j28CompareSelfTest(), j29ContainersSelfTest(), j30SelfTest(), j31ArithmeticSelfTest(), j36SelfTest(), j32DivModNegSelfTest(), j37SelfTest(), j38SelfTest(), j39SelfTest(), j40SelfTest(), j41SelfTest(), j42SelfTest(), j43SelfTest(), j44SelfTest());
+    return problems.concat(mapLocalsSelfTest(), h2kJ02SelfTest(), j10CounterSelfTest(), j11MapLocalsSelfTest(), j04ArithmeticSelfTest(), j12ParamTypesSelfTest(), j13ListLocalsSelfTest(), j14ScalarLocalsSelfTest(), j15SelfTest(), j17ReturnsSelfTest(), j19CompareSelfTest(), j20ParamCompareSelfTest(), j22CoreArgsSelfTest(), j23ArithmeticSelfTest(), j24ArithmeticSelfTest(), j25CompareSelfTest(), j26MapLocalsSelfTest(), j27ArithmeticSelfTest(), j28CompareSelfTest(), j29ContainersSelfTest(), j30SelfTest(), j31ArithmeticSelfTest(), j36SelfTest(), j32DivModNegSelfTest(), j37SelfTest(), j38SelfTest(), j39SelfTest(), j40SelfTest(), j40X15SelfTest(), j41SelfTest(), j42SelfTest(), j43SelfTest(), j44SelfTest());
 }
 
 // section 50 is fail-closed: a nested, closure or Object-returning (safeDict / safeValue) write keeps `Object`
@@ -9505,21 +9505,7 @@ function j40Rewrite (name: string, args: string[], argsM: string[], n: number, i
     }
     if (args.length !== 2) { return undefined; }
     const a = args[0].trim(); const b = args[1].trim();
-    if (name === 'isEqual') {
-        if (b === 'null') { return `(((Object) (${a})) == null)`; }
-        if (a === 'null') { return `(((Object) (${b})) == null)`; }
-        let [ e, lit ] = [ a, j40Lit(b) ?? (intConsts.has(b) ? b : undefined) ];
-        if (lit === undefined) { [ e, lit ] = [ b, j40Lit(a) ?? (intConsts.has(a) ? a : undefined) ]; }
-        if (lit !== undefined) {
-            const k = /^-?\d+$/.test(lit) ? lit + 'L' : lit;
-            return `(switch ((Object) (${e})) { case null -> false; case Long ${v} -> ${v} == ${k}; case Integer ${v} -> ${v} == ${k}; case Double ${v} -> ${v} == ${k}; case Float ${v} -> ${v}.doubleValue() == ${k}; case java.math.BigDecimal ${v} -> ${v}.stripTrailingZeros().scale() <= 0 && ${v}.longValue() == ${k}; case Object ${v} -> { try { String ${v}t = String.valueOf(${v}); Double.parseDouble(${v}t); yield new java.math.BigDecimal(${v}t).compareTo(java.math.BigDecimal.valueOf(${k})) == 0; } catch (NumberFormatException ${v}x) { yield false; } } })`;
-        }
-        // a String literal no number parse accepts: equal only to the same String
-        if (j40Unparseable(b) && !/^"/.test(a)) { return `${b}.equals(${a})`; }
-        if (j40Unparseable(a) && !/^"/.test(b)) { return `${a}.equals(${b})`; }
-        const x0 = a; const y0 = b;
-        return `((java.util.function.BiPredicate<Object, Object>) (${v}A, ${v}B) -> { try { if (${v}A == null && ${v}B == null) { return true; } if (${v}A == null || ${v}B == null) { return false; } java.util.function.Predicate<Object> ${v}N = ${v}o -> { try { Double.parseDouble(String.valueOf(${v}o)); return true; } catch (Exception ${v}e) { return false; } }; if (!${v}A.getClass().equals(${v}B.getClass()) && !(${v}N.test(${v}A) && ${v}N.test(${v}B))) { return false; } java.util.function.Predicate<Object> ${v}I = ${v}o -> ${v}o instanceof Byte || ${v}o instanceof Short || ${v}o instanceof Integer || ${v}o instanceof Long || ${v}o instanceof java.util.concurrent.atomic.AtomicInteger || ${v}o instanceof java.util.concurrent.atomic.AtomicLong || ((${v}o instanceof Float || ${v}o instanceof Double || ${v}o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(${v}o)).stripTrailingZeros().scale() <= 0); java.util.function.ToDoubleFunction<Object> ${v}D = ${v}o -> { if (${v}o instanceof Double || ${v}o instanceof Float || ${v}o instanceof Long || ${v}o instanceof Integer || ${v}o instanceof java.math.BigDecimal) { return ((Number) ${v}o).doubleValue(); } try { return Double.parseDouble(String.valueOf(${v}o)); } catch (NumberFormatException ${v}e) { return 0.0; } }; if (${v}I.test(${v}A) && ${v}I.test(${v}B)) { java.util.function.ToLongFunction<Object> ${v}L = ${v}o -> ${v}o instanceof Long || ${v}o instanceof Integer || ${v}o instanceof Double || ${v}o instanceof Float || ${v}o instanceof java.math.BigDecimal ? ((Number) ${v}o).longValue() : Long.parseLong(String.valueOf(${v}o)); return ${v}L.applyAsLong(${v}A) == ${v}L.applyAsLong(${v}B); } if (${v}A instanceof Double || ${v}B instanceof Double) { return ${v}D.applyAsDouble(${v}A) == ${v}D.applyAsDouble(${v}B); } if (${v}A instanceof Float || ${v}B instanceof Float) { java.util.function.Function<Object, Float> ${v}F = ${v}o -> ${v}o instanceof Float || ${v}o instanceof Double || ${v}o instanceof Long || ${v}o instanceof Integer || ${v}o instanceof java.math.BigDecimal ? ((Number) ${v}o).floatValue() : Float.parseFloat(String.valueOf(${v}o)); return ${v}F.apply(${v}A).floatValue() == ${v}F.apply(${v}B).floatValue(); } if (${v}A instanceof String && ${v}B instanceof String) { return ${v}A.equals(${v}B); } if (${v}A instanceof Boolean && ${v}B instanceof Boolean) { return ${v}A.equals(${v}B); } if (${v}N.test(${v}A) && ${v}N.test(${v}B)) { return new java.math.BigDecimal(String.valueOf(${v}A)).compareTo(new java.math.BigDecimal(String.valueOf(${v}B))) == 0; } return false; } catch (Exception ${v}e) { return false; } }).test(${x0}, ${y0})`;
-    }
+    if (name === 'isEqual') { return j40X15Equal(a, b, intConsts, ctx); } // hx5 X15
     // name === 'add': only the (Object, Object) overload; a String-typed `a` binds add(String, ..)
     if (/^this\.(?:id|version)$/.test(a) && !ctx.fields.has(a.slice(5))) { return `(${a} + ${j05IsPrimary(argsM[1].trim()) ? b : `(${b})`})`; }
     const aOk = /^this\.(?:parseToInt|seconds|milliseconds)\(/.test(a) && j05Close(argsM[0].trim(), argsM[0].trim().indexOf('(')) === argsM[0].trim().length && !new RegExp(`\\bString\\s+${a.slice(5, a.indexOf('('))}\\(`).test(ctx.masked)
@@ -9595,7 +9581,6 @@ function j40SelfTest (): string[] {
     const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Object p, String s, Long n)\n    {\n${body}\n    }\n}`;
     const cases: [string, string, string | undefined][] = [
         [ 'isEqual null', '        if (Helpers.isEqual(p, null)) {}', 'if ((((Object) (p)) == null)) {}' ],
-        [ 'isEqual int lit', '        if (Helpers.isEqual(p, 5)) {}', 'case Long hx4J40v0 -> hx4J40v0 == 5L;' ],
         [ 'isEqual word', '        if (Helpers.isEqual(p, "abc")) {}', '"abc".equals(p)' ],
         [ 'isTrue', '        if (Helpers.isTrue(p)) {}', 'case Boolean hx4J40v0 -> hx4J40v0.booleanValue();' ],
         [ 'toMapArg', '        return this.f(Helpers.toMapArg(p));', 'case java.util.Map<?, ?> hx4J40v0' ],
@@ -9603,7 +9588,6 @@ function j40SelfTest (): string[] {
         [ 'add Object lit', '        Object x = p;\n        return Helpers.add(x, 1);', 'case Integer hx4J40v0 -> (Object) (hx4J40v0.longValue() + 1L);' ],
         [ 'add nested', '        Object x = p;\n        return Helpers.add(Helpers.add(x, n), 1);', 'case Long hx4J40v1 -> (Object) (hx4J40v1 + 1L);' ],
         [ 'add id', '        return Helpers.add(this.id, " x");', 'return (this.id + " x");' ],
-        [ 'isEqual Object pair', '        if (Helpers.isEqual(p, n)) {}', '.test(p, n)' ],
         [ 'add Object pair', '        Object x = p;\n        return Helpers.add(x, n);', '.apply(x, n)' ],
         // negatives: String-declared add operand, statement position
         [ 'add String', '        return Helpers.add(s, 1);', undefined ],
@@ -9860,6 +9844,59 @@ function j44SelfTest (): string[] {
         const out = nativeJavaJ44 (cls (body));
         const ok = expect === undefined ? out === cls (body) : out.includes (expect) && !/Helpers\.(?:isInstance|isArray|inOp|isEqual|isTrue)\(/.test (out);
         if (!ok) problems.push (`hx4 J44: ${name}\n${out}`);
+    }
+    return problems;
+}
+
+// hx5 X15: J40 literal equality. Exactly two outcomes per Helpers.isEqual site:
+// a proven operand type -> plain native `==` / `.equals`; anything else -> the helper call, untouched.
+// `==` is only emitted between proven primitives (boxed `==` is reference identity, and the helper
+// compares numbers across widths and handles null); `.equals` only on a non-null String receiver.
+function j40X15Equal (a: string, b: string, intConsts: Set<string>, ctx: J40Ctx): string | undefined {
+    // isEqual(x, null) is x == null for every x
+    if (b === 'null') { return `(((Object) (${a})) == null)`; }
+    if (a === 'null') { return `(((Object) (${b})) == null)`; }
+    const strLit = (t: string) => /^"(?:[^"\\]|\\.)*"$/.test(t);
+    // primitive long/int/double: a declared local/param, a numeric literal, a static final int constant,
+    // or a `((double) x) op ((double) y)` expression
+    const prim = (t: string): boolean => /^-?\d{1,15}L?$/.test(t) || /^\(-?\d{1,15}L?\)$/.test(t)
+        || intConsts.has(t)
+        || /^[A-Za-z_]\w*$/.test(t) && [ 'long', 'int', 'double', 'short', 'byte' ].includes(j40DeclType(ctx.masked, t, ctx.pos) ?? '')
+        || /^\(\(\(double\) \w+\) [-+*/%] \(\(double\) \w+\)\)$/.test(t);
+    const isLit = (t: string) => /^\(?-?\d{1,15}L?\)?$/.test(t) || intConsts.has(t);
+    if (prim(a) && prim(b) && !(isLit(a) && isLit(b))) { return `(${a} == ${b})`; }
+    // the literal is a non-null String receiver; a number-shaped literal is equal to numbers too,
+    // so it only goes native against a declared String operand
+    const isStr = (t: string) => /^[A-Za-z_]\w*$/.test(t) && j40DeclType(ctx.masked, t, ctx.pos) === 'String';
+    if (strLit(b) && !strLit(a) && (j40Unparseable(b) || isStr(a))) { return `${b}.equals(${a})`; }
+    if (strLit(a) && !strLit(b) && (j40Unparseable(a) || isStr(b))) { return `${a}.equals(${b})`; }
+    return undefined;
+}
+
+// hx5 X15: snippet checks (`--audit-string-types --self-test`)
+function j40X15SelfTest (): string[] {
+    const problems: string[] = [];
+    const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Object p, String s, Long n, long k, double d)\n    {\n${body}\n    }\n}`;
+    const cases: [string, string, string | undefined][] = [
+        [ 'null', '        if (Helpers.isEqual(p, null)) {}', 'if ((((Object) (p)) == null)) {}' ],
+        [ 'long lit', '        if (Helpers.isEqual(k, 5)) {}', 'if ((k == 5)) {}' ],
+        [ 'double lit', '        if (Helpers.isEqual(d, 0)) {}', 'if ((d == 0)) {}' ],
+        [ 'prim pair', '        if (Helpers.isEqual(k, d)) {}', 'if ((k == d)) {}' ],
+        [ 'int local', '        int i = 3;\n        if (Helpers.isEqual(i, TICK_SIZE)) {}', 'if ((i == TICK_SIZE)) {}' ],
+        [ 'double expr', '        if (Helpers.isEqual((((double) k) % ((double) d)), 0)) {}', 'if (((((double) k) % ((double) d)) == 0)) {}' ],
+        [ 'word lit', '        if (Helpers.isEqual(p, "abc")) {}', 'if ("abc".equals(p)) {}' ],
+        [ 'numeric lit vs String', '        if (Helpers.isEqual(s, "1")) {}', 'if ("1".equals(s)) {}' ],
+        // helper kept: unproven Object / boxed Long against a literal, numeric-text literal vs Object, Object pair
+        [ 'Object int lit', '        if (Helpers.isEqual(p, 5)) {}', undefined ],
+        [ 'boxed Long lit', '        if (Helpers.isEqual(n, 5)) {}', undefined ],
+        [ 'Object const', '        if (Helpers.isEqual(this.precisionMode, TICK_SIZE)) {}', undefined ],
+        [ 'numeric lit vs Object', '        if (Helpers.isEqual(p, "1")) {}', undefined ],
+        [ 'Object pair', '        if (Helpers.isEqual(p, n)) {}', undefined ],
+    ];
+    for (const [ name, body, expect ] of cases) {
+        const out = nativeJavaJ40 (cls (body));
+        const ok = expect === undefined ? out === cls (body) : out.includes (expect) && !out.includes ('Helpers.') && !out.includes ('switch') && nativeJavaJ40 (out) === out;
+        if (!ok) problems.push (`hx5 X15: ${name}\n${out}`);
     }
     return problems;
 }
