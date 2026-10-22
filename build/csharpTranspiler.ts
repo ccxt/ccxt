@@ -13312,14 +13312,16 @@ export function hx4C33NativeHelperCalls (objectNull: boolean, content: string): 
         return content;
     }
     const isTrueArms = 'null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false';
-    const lengthArms = 'null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0';
     const sw = (x: string, arms: string) => `(((object)(${x})) switch { ${arms} })`;
     // Double.TryParse can never read it: isEqual answers false at its isNumber gate unless both are equal strings
     const neverNumeric = (body: string) => /^[\x20-\x7e]*$/.test (body) && !/[\\"]/.test (body) && !/nan|inf/i.test (body)
         && (!/[0-9]/.test (body) || /[A-DF-Za-df-z]/.test (body));
     const rewrite = (helper: string, args: string[], masks: string[]): string | undefined => {
         if (helper === 'isTrue' && args.length === 1) return sw (args[0], isTrueArms);
-        if (helper === 'getArrayLength' && args.length === 1) return sw (args[0], lengthArms);
+        // hx5 X01: no inline switch for getArrayLength. A receiver whose printed declaration proves a
+        // list/string was already rewritten to `.Count` / `.Length` by nativeDeclaredHelperCallsBase;
+        // every site reaching here is unproven (an `object` box) and keeps the helper call.
+        if (helper === 'getArrayLength') return undefined;
         if (args.length !== 2) return undefined;
         const [ x, k ] = args;
         const lit = /^"[ ]*"$/.test (masks[1]) && /^"(?:[^"\\]|\\.)*"$/.test (k);
@@ -13380,7 +13382,6 @@ function hx4C33SnippetChecks (): string[] {
     const wrap = (body: string, ns = 'ccxt') => `namespace ${ns};\npublic partial class t : Exchange\n{\n    public virtual object f(object x, object y)\n    {\n${body}\n    }\n}\n`;
     const cases: [string, string, string][] = [
         [ 'isTrue', '        if (isTrue(x)) { }', 'if ((((object)(x)) switch { null => false, bool c33b => c33b,' ],
-        [ 'getArrayLength', '        for (int i = 0; i < getArrayLength(x); i++) { }', 'i < (((object)(x)) switch { null => 0, byte[] c33y' ],
         [ 'isEqual null', '        if (!isEqual(x, null)) { }', 'if (!(((object)(x)) == null)) { }' ],
         [ 'isEqual true', '        if (isEqual(getValue(x, "a"), true)) { }', 'if ((((object)(getValue(x, "a"))) is true)) { }' ],
         [ 'isEqual word', '        if (isEqual(x, "buy")) { }', 'if ((((object)(x)) is "buy")) { }' ],
@@ -13398,6 +13399,9 @@ function hx4C33SnippetChecks (): string[] {
         [ 'inOp name key', '        if (inOp(x, y)) { }' ],
         [ 'getIndexOf call target', '        int p = getIndexOf(x, this.f(x, y));' ],
         [ 'in string', '        string s = "isTrue(x)"; // isTrue(x)' ],
+        // hx5 X01: an unproven getArrayLength keeps the helper call (never an inline switch)
+        [ 'getArrayLength object', '        for (int i = 0; i < getArrayLength(x); i++) { }' ],
+        [ 'getArrayLength call arg', '        int n = getArrayLength(this.f(x, y));' ],
     ];
     for (const [ name, body, expected ] of cases) {
         const out = hx4C33NativeHelperCalls (true, wrap (body));
