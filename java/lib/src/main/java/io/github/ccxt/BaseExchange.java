@@ -11734,7 +11734,8 @@ public Object describe()
                     break;
                 }
                 ((List<Object>)tasks).add(this.safeDeterministicCall(method, symbol, Helpers.toLongOrNull(currentSince), Helpers.toLongOrNull(maxEntriesPerRequestValue), timeframe, paramsOmitted));
-                currentSince = Helpers.subtract(Helpers.add(currentSince, step), 1);
+                // this.sum keeps it numeric in PHP, where the regex transpiler turns `a + b` into string concatenation
+                currentSince = Helpers.subtract(this.sum(currentSince, step), 1);
             }
             Object results = (Helpers.promiseAll(tasks)).join();
             List<Object> result = new ArrayList<Object>(Arrays.asList());
@@ -11782,9 +11783,9 @@ public Object describe()
                     {
                         if (!java.util.Objects.equals(cursorIncrement, null))
                         {
-                            cursorValue = Helpers.add(this.parseToInt(cursorValue), cursorIncrement);
+                            cursorValue = this.sum(this.parseToInt(cursorValue), cursorIncrement);
                         }
-                        paramsOmitted.put((String)((String)cursorSent), cursorValue);
+                        Helpers.addElementToObject(paramsOmitted, ((String)cursorSent), cursorValue);
                     }
                     Object response = null;
                     if (java.util.Objects.equals(method, "fetchAccounts"))
@@ -11910,8 +11911,8 @@ public Object describe()
                     Integer responseLength = Helpers.getArrayLength(response);
                     if (this.verbose)
                     {
-                        String iteration = String.valueOf((Helpers.add(i, 1)));
-                        String incrementalMessage = ((((("Incremental pagination call " + iteration) + " method ") + method) + " response length ") + String.valueOf(responseLength));
+                        Object iteration = (Helpers.add(i, 1));
+                        String incrementalMessage = ((((("Incremental pagination call " + String.valueOf(iteration)) + " method ") + method) + " response length ") + String.valueOf(responseLength));
                         this.log(incrementalMessage);
                     }
                     if ((responseLength != null && responseLength == 0))
