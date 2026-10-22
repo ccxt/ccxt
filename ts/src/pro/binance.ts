@@ -1238,7 +1238,7 @@ export default class binance extends binanceRest {
             method.call (this, client, message, subscription);
         }
         const isUnSubMessage = this.safeBool (subscription, 'unsubscribe', false);
-        if (isUnSubMessage === true) {
+        if (isUnSubMessage) {
             this.handleUnSubscription (client, subscription);
         }
         return message;
@@ -2433,7 +2433,7 @@ export default class binance extends binanceRest {
         const unsubscribeMessageHashes: string[] = [];
         let suffix = '';
         if (isMarkPrice && !isOptionMarkPrice) {
-            suffix = (use1sFreq === true) ? '@1s' : '';
+            suffix = (use1sFreq) ? '@1s' : '';
         }
         let unifiedPrefix: Str = undefined;
         if (isBidAsk) {
@@ -3008,7 +3008,7 @@ export default class binance extends binanceRest {
                 const isIsolated = this.safeBool (params, 'isIsolated', false);
                 const validity = this.safeInteger (params, 'validity');
                 const request: Dict = {};
-                if (isIsolated === true) {
+                if (isIsolated) {
                     if (symbol === undefined) {
                         throw new ArgumentsRequired (this.id + ' ensureUserDataStreamWsSubscribeListenToken() requires a symbol argument for isolated margin mode');
                     }
@@ -3078,7 +3078,7 @@ export default class binance extends binanceRest {
         if (symbol !== undefined) {
             renewParams['symbol'] = symbol;
         }
-        if (isIsolated === true) {
+        if (isIsolated) {
             renewParams['isIsolated'] = isIsolated;
         }
         if (validity !== undefined) {
@@ -3317,7 +3317,7 @@ export default class binance extends binanceRest {
         }
         const options = this.safeDict (this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool (options, 'fetchBalanceSnapshot', false);
-        if (fetchBalanceSnapshot === true) {
+        if (fetchBalanceSnapshot) {
             const messageHash = type + ':fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future (messageHash);
@@ -3332,7 +3332,7 @@ export default class binance extends binanceRest {
         const params: Dict = {
             'type': type,
         };
-        if (isPortfolioMargin === true) {
+        if (isPortfolioMargin) {
             params['portfolioMargin'] = true;
         }
         const response = await this.fetchBalance (params);
@@ -3601,7 +3601,7 @@ export default class binance extends binanceRest {
                 urlType = 'papi';
             } else if (type === 'option') {
                 const demoMode = this.safeBool (this.options, 'enableDemoTrading', false);
-                if ((demoMode === true) || this.isSandboxModeEnabled) {
+                if ((demoMode) || this.isSandboxModeEnabled) {
                     throw new NotSupported (this.id + ' watchBalance() does not support option markets in demo/testnet mode');
                 }
                 urlType = 'optionPrivate';
@@ -3614,7 +3614,7 @@ export default class binance extends binanceRest {
         const options = this.safeDict (this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool (options, 'fetchBalanceSnapshot', false);
         const awaitBalanceSnapshot = this.safeBool (options, 'awaitBalanceSnapshot', true);
-        if ((fetchBalanceSnapshot === true) && (awaitBalanceSnapshot === true)) {
+        if ((fetchBalanceSnapshot) && (awaitBalanceSnapshot)) {
             await client.future (type + ':fetchBalanceSnapshot');
         }
         const messageHash = type + ':balance';
@@ -3844,8 +3844,8 @@ export default class binance extends binanceRest {
             'method': 'order.place',
             'params': this.signParams (this.extend (payload, paramsOmitted2)),
         };
-        if (test === true) {
-            if (sor === true) {
+        if (test) {
+            if (sor) {
                 message['method'] = 'sor.order.test';
             } else {
                 message['method'] = 'order.test';
@@ -4159,13 +4159,13 @@ export default class binance extends binanceRest {
         const clientOrderId = this.safeStringN (paramsReturnRateLimits, [ 'clientAlgoId', 'origClientOrderId', 'clientOrderId' ]);
         const shouldUseAlgoOrder = (market['linear'] === true) && ((market['swap'] === true) || (market['future'] === true)) && (isConditional === true);
         if (clientOrderId !== undefined) {
-            if (shouldUseAlgoOrder === true) {
+            if (shouldUseAlgoOrder) {
                 payload['clientAlgoId'] = clientOrderId;
             } else {
                 payload['origClientOrderId'] = clientOrderId;
             }
         } else {
-            if (shouldUseAlgoOrder === true) {
+            if (shouldUseAlgoOrder) {
                 payload['algoId'] = this.numberToString (id);
             } else {
                 payload['orderId'] = this.numberToString (id);
@@ -4177,7 +4177,7 @@ export default class binance extends binanceRest {
             'method': 'order.cancel',
             'params': this.signParams (this.extend (payload, paramsOmitted)),
         };
-        if (shouldUseAlgoOrder === true) {
+        if (shouldUseAlgoOrder) {
             message['method'] = 'algoOrder.cancel';
         }
         const subscription: Dict = {
@@ -4481,7 +4481,7 @@ export default class binance extends binanceRest {
                 urlType = 'papi';
             } else if (type === 'option') {
                 const demoMode = this.safeBool (this.options, 'enableDemoTrading', false);
-                if ((demoMode === true) || this.isSandboxModeEnabled) {
+                if ((demoMode) || this.isSandboxModeEnabled) {
                     throw new NotSupported (this.id + ' watchOrders() does not support option markets in demo/testnet mode');
                 }
                 urlType = 'optionPrivate';
@@ -5117,7 +5117,7 @@ export default class binance extends binanceRest {
             urlType = 'papi';
         } else if (type === 'option') {
             const demoMode = this.safeBool (this.options, 'enableDemoTrading', false);
-            if ((demoMode === true) || this.isSandboxModeEnabled) {
+            if ((demoMode) || this.isSandboxModeEnabled) {
                 throw new NotSupported (this.id + ' watchPositions() does not support option markets in demo/testnet mode');
             }
             urlType = 'optionPrivate';
@@ -5166,7 +5166,7 @@ export default class binance extends binanceRest {
         const params: Dict = {
             'type': type,
         };
-        if (isPortfolioMargin === true) {
+        if (isPortfolioMargin) {
             params['portfolioMargin'] = true;
         }
         const positions = await this.fetchPositions (undefined, params);
@@ -5558,7 +5558,7 @@ export default class binance extends binanceRest {
                 urlType = 'papi';
             } else if (type === 'option') {
                 const demoMode = this.safeBool (this.options, 'enableDemoTrading', false);
-                if ((demoMode === true) || this.isSandboxModeEnabled) {
+                if ((demoMode) || this.isSandboxModeEnabled) {
                     throw new NotSupported (this.id + ' watchMyTrades() does not support option markets in demo/testnet mode');
                 }
                 urlType = 'optionPrivate';

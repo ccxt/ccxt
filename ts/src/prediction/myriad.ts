@@ -833,7 +833,7 @@ export default class myriad extends Exchange {
         // the on-chain AMM path requires native gas and has not been verified end to end; keep it behind
         // an explicit opt-in so callers do not silently hit an untested signing/broadcast path
         const enableAmm = this.safeBool2 (params, 'enableAmm', 'enableAmmOrders', this.safeBool (this.options, 'enableAmmOrders', false));
-        if (enableAmm !== true) {
+        if (!enableAmm) {
             throw new NotSupported (this.id + ' createOrder() only supports the gasless order book; this market uses the on-chain AMM (needs native gas and is unverified) — pass params.enableAmm=true to opt in');
         }
         return await this.createAmmOrder (outcome, type, side, amount, price, this.omit (rest, [ 'enableAmm', 'enableAmmOrders' ]));
@@ -1057,7 +1057,7 @@ export default class myriad extends Exchange {
         // plain createOrder buy on the AMM is rejected so it can't misinterpret shares as collateral
         const sideLower = (side !== undefined) ? (side as string).toLowerCase () : undefined;
         const isCostDenominated = this.safeBool (params, 'costDenominated', false);
-        if ((sideLower === 'buy') && (isCostDenominated !== true)) {
+        if ((sideLower === 'buy') && (!isCostDenominated)) {
             throw new NotSupported (this.id + ' createOrder() market buy on the AMM sizes by collateral, not shares — use createMarketBuyOrderWithCost(outcome, collateral) for a dollar buy, or the default order book (omit enableAmm) for a share-denominated order');
         }
         if (this.privateKey === undefined) {
@@ -1090,7 +1090,7 @@ export default class myriad extends Exchange {
         const txHashParam = this.safeString2 (params, 'transactionHash', 'txHash');
         const hasPreBroadcastTxHash = (txHashParam !== undefined);
         const skipAllowance = this.safeBool (params, 'skipAllowance', hasPreBroadcastTxHash);
-        if ((sideStr === 'buy') && (tokenAddress !== undefined) && (skipAllowance !== true)) {
+        if ((sideStr === 'buy') && (tokenAddress !== undefined) && (!skipAllowance)) {
             await this.ensureErc20Allowance (rpcUrl, networkId, tokenAddress, fromAddress, predictionMarket);
         }
         const skipWaitForReceipt = this.safeBool (params, 'skipWaitForReceipt', hasPreBroadcastTxHash);
@@ -1098,7 +1098,7 @@ export default class myriad extends Exchange {
         if (txHash === undefined) {
             txHash = await this.sendEvmTransaction (rpcUrl, this.parseToInt (networkId), fromAddress, predictionMarket, '0x0', calldata, gasLimit);
         }
-        if (skipWaitForReceipt !== true) {
+        if (!skipWaitForReceipt) {
             await this.waitForTransactionReceipt (rpcUrl, txHash);
         }
         return this.parseTradeTx (txHash, quote, outcomeObj as any, sideStr);
@@ -2136,7 +2136,7 @@ export default class myriad extends Exchange {
                 if (winnerRaw) {
                     resolvedOutcome = outcomeHandle;
                 }
-            } else if (voided === true) {
+            } else if (voided) {
                 winnerRaw = false;
             }
             // effectively-final copies for the object literal below (Java cannot capture a
@@ -3019,7 +3019,7 @@ export default class myriad extends Exchange {
      */
     override async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
         const allowUnscopedFetchEvents = this.safeBool (this.options, 'allowUnscopedFetchEvents', false);
-        if (allowUnscopedFetchEvents !== true) {
+        if (!allowUnscopedFetchEvents) {
             this.requireEventQuery (params);
         }
         const queries = this.parseSearchQueries (params);

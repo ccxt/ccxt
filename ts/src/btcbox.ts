@@ -858,7 +858,7 @@ export default class btcbox extends Exchange {
             return undefined; // resort to defaultErrorHandler
         }
         const result = this.safeBool (response, 'result');
-        if (result === undefined || result === true) {
+        if (result === undefined || result) {
             return undefined; // either public API (no error codes expected) or success
         }
         const code = this.safeString (response, 'code');

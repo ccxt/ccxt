@@ -1115,7 +1115,7 @@ export default class whitebit extends Exchange {
             const hasAmountLimits = (amountLimits !== undefined) && (amountLimits !== null) && this.safeNumber (amountLimits, 'min') !== undefined && this.safeNumber (amountLimits, 'max') !== undefined;
             const hasPriceLimits = (priceLimits !== undefined) && (priceLimits !== null) && this.safeNumber (priceLimits, 'min') !== undefined && this.safeNumber (priceLimits, 'max') !== undefined;
             const hasCostLimits = (costLimits !== undefined) && (costLimits !== null) && this.safeNumber (costLimits, 'min') !== undefined && this.safeNumber (costLimits, 'max') !== undefined;
-            if ((hasAmountLimits === true) && (hasPriceLimits === true) && (hasCostLimits === true)) {
+            if ((hasAmountLimits) && (hasPriceLimits) && (hasCostLimits)) {
                 result[symbol] = {
                     'info': market,
                     'limits': {
@@ -1477,7 +1477,7 @@ export default class whitebit extends Exchange {
             request['market'] = market['id'];
         }
         // Try active orders first (if enabled)
-        if (checkActive === true) {
+        if (checkActive) {
             try {
                 const response = await this.v4PrivatePostOrders (this.extend (request, paramsOmitted));
                 // Search for order in active orders response (array format)
@@ -1498,7 +1498,7 @@ export default class whitebit extends Exchange {
             }
         }
         // Try executed orders (if enabled)
-        if (checkExecuted === true) {
+        if (checkExecuted) {
             try {
                 const response = await this.v4PrivatePostTradeAccountOrderHistory (this.extend (request, paramsOmitted));
                 // Search for order in executed orders response (object format)
@@ -4356,7 +4356,7 @@ export default class whitebit extends Exchange {
             }
             // {"success":false,"message":{"limit":["limit must be less than or equal to 100"]},"result":null}
             const success = this.safeBool (response, 'success', true);
-            if (success !== true) {
+            if (!success) {
                 const errMsg = this.safeDict (response, 'message', {});
                 const errKeys = Object.keys (errMsg);
                 const errKeysLength = errKeys.length;

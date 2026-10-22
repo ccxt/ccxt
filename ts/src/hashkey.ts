@@ -2179,7 +2179,7 @@ export default class hashkey extends Exchange {
         let status = this.safeString (transaction, 'status'); // for fetchDeposits
         if (status === undefined) {
             const success = this.safeBool (transaction, 'success', false); // for withdraw
-            if (success === true) {
+            if (success) {
                 status = 'ok';
             } else {
                 const addressUrl = this.safeString (transaction, 'addressUrl'); // for fetchWithdrawals
@@ -2285,7 +2285,7 @@ export default class hashkey extends Exchange {
         const currencyId = this.safeString (currency, 'id');
         let status: Str = undefined;
         const success = this.safeBool (transfer, 'success', false);
-        if (success === true) {
+        if (success) {
             status = 'ok';
         }
         return {

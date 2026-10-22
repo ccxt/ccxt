@@ -2668,7 +2668,7 @@ export default class phemex extends Exchange {
     override parseOrder (order: Dict, market: Market = undefined): Order {
         const isSwap = this.safeBool (market, 'swap', false);
         const hasPnl = ('closedPnl' in order) || ('closedPnlRv' in order) || ('totalPnlRv' in order);
-        if ((isSwap === true) || hasPnl) {
+        if ((isSwap) || hasPnl) {
             return this.parseSwapOrder (order, market);
         }
         return this.parseSpotOrder (order, market);
@@ -2795,14 +2795,14 @@ export default class phemex extends Exchange {
             orderParams = this.omit (orderParams, 'hedged');
             let posSide = this.safeStringLower (orderParams, 'posSide');
             // a hedged reduceOnly order without posSide closes the opposite side
-            const flipSide = (posSide === undefined) && (hedged === true) && (this.safeBool (orderParams, 'reduceOnly', false));
+            const flipSide = (posSide === undefined) && (hedged) && (this.safeBool (orderParams, 'reduceOnly', false));
             const oppositeSide = (side === 'buy') ? 'sell' : 'buy';
             let sideResolved = side;
             if (flipSide) {
                 sideResolved = oppositeSide;
             }
             if (posSide === undefined) {
-                if (hedged === true) {
+                if (hedged) {
                     if (flipSide) {
                         orderParams = this.omit (orderParams, 'reduceOnly');
                     }
@@ -3141,7 +3141,7 @@ export default class phemex extends Exchange {
             // 'untriggerred': false, // false to cancel non-conditional orders, true to cancel conditional orders
             // 'text': 'up to 40 characters max',
         };
-        if (trigger === true) {
+        if (trigger) {
             request['untriggerred'] = trigger;
         }
         let response: Dict;
@@ -4835,7 +4835,7 @@ export default class phemex extends Exchange {
         };
         let response: Dict;
         if (market['settle'] === 'USDT' || market['settle'] === 'USDC') {
-            if ((isHedged !== true) && longLeverageRr === undefined && shortLeverageRr === undefined) {
+            if ((!isHedged) && longLeverageRr === undefined && shortLeverageRr === undefined) {
                 request['leverageRr'] = leverage;
             } else {
                 const longVar = (longLeverageRr !== undefined) ? longLeverageRr : leverage;
@@ -4924,7 +4924,7 @@ export default class phemex extends Exchange {
         }
         const transferOptions = this.safeDict (this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool (transferOptions, 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest === true) {
+        if (fillResponseFromRequest) {
             if (transfer['fromAccount'] === undefined) {
                 transfer['fromAccount'] = fromAccount;
             }
