@@ -3,6 +3,117 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "createOrder": [
+            {
+                "description": "spot crypto buy market",
+                "method": "createOrder",
+                "input": [
+                    "ETH/USD",
+                    "market",
+                    "buy",
+                    null,
+                    null,
+                    {
+                        "cost": 50
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "order_id": "1146534609",
+                        "local_order_id": "ccxtc7d46789c1c44eccaef412",
+                        "order_status": "Submitted",
+                        "encrypt_message": "1"
+                    }
+                ],
+                "parsedResponse": {
+                    "id": "1146534609",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "ETH/USD",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": "open",
+                    "fee": null,
+                    "trades": [],
+                    "info": {
+                        "order_id": "1146534609",
+                        "local_order_id": "ccxtc7d46789c1c44eccaef412",
+                        "order_status": "Submitted",
+                        "encrypt_message": "1"
+                    },
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "spot crypto sell limit",
+                "method": "createOrder",
+                "input": [
+                    "ETH/USD",
+                    "limit",
+                    "sell",
+                    0.01,
+                    2200
+                ],
+                "httpResponse": [
+                    {
+                        "order_id": "893829350",
+                        "local_order_id": "ccxtf7b1248f1de14766965bad",
+                        "order_status": "Submitted",
+                        "encrypt_message": "1"
+                    }
+                ],
+                "parsedResponse": {
+                    "id": "893829350",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "ETH/USD",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": "open",
+                    "fee": null,
+                    "trades": [],
+                    "info": {
+                        "order_id": "893829350",
+                        "local_order_id": "ccxtf7b1248f1de14766965bad",
+                        "order_status": "Submitted",
+                        "encrypt_message": "1"
+                    },
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
         "fetchTicker": [
             {
                 "description": "crypto spot",

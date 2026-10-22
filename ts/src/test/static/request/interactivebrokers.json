@@ -3,6 +3,38 @@
     "skipKeys": ["acctIds"],
     "options": {},
     "methods": {
+        "createOrder": [
+            {
+                "description": "spot crypto buy market",
+                "method": "createOrder",
+                "url": "https://api.ibkr.com/v1/api/iserver/reply/92ec242f-db7b-4c05-8e5e-4fbc3c71d44b",
+                "input": [
+                    "ETH/USD",
+                    "market",
+                    "buy",
+                    null,
+                    null,
+                    {
+                        "cost": 50
+                    }
+                ],
+                "output": "{\"confirmed\":true}"
+            },
+            {
+                "disabled": true,
+                "description": "spot crypto sell limit",
+                "method": "createOrder",
+                "url": "https://api.ibkr.com/v1/api/iserver/reply/177043b5-c95d-4809-b515-7357ed7ea4c7",
+                "input": [
+                    "ETH/USD",
+                    "limit",
+                    "sell",
+                    0.01,
+                    2200
+                ],
+                "output": "{\"confirmed\":true}"
+            }
+        ],
         "fetchTicker": [
             {
                 "description": "crypto spot",

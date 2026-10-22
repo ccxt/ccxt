@@ -590,6 +590,7 @@ export default class interactivebrokers extends Exchange {
                     'insufficient funds in your': InsufficientFunds, // {"error":"Order rejected due to insufficient funds in your Crypto Account. As a Crypto Plus customer, you must first have funds in your Crypto account before purchasing cryptocurrency products.  Please <a href=\"sso://action=TransferFunds&service=AM.LOGIN&webaccess=true?&type=INTERNAL?method=CRYPTO_CASH_TRANSFERS\">transfer funds to your Crypto account</a> to trade this product."}'
                     ' doesn\'t exist"}': OrderNotFound, // {"error":"OrderID 468370477 doesn't exist"}
                     'Please query /accounts first': AuthenticationError, // {"error":"Please query /accounts first"}, retried in request ()
+                    'Cash Quantity cannot be used for this order': InvalidOrder, // {"error":"Cash Quantity cannot be used for this order"}
                 },
             },
             'commonCurrencies': {},
@@ -2142,6 +2143,11 @@ export default class interactivebrokers extends Exchange {
             }
         } else if (isMarket) {
             orderType = 'MKT';
+            const cost = this.safeString2 (params, 'cost', 'cashQty');
+            if (cost === undefined) {
+                throw new InvalidOrder (this.id + ' createOrder() requires cost for market orders');
+            }
+            request['cashQty'] = this.parseNumber (this.priceToPrecision (symbol, cost));
         } else {
             orderType = 'LMT';
             request['price'] = this.parseNumber (this.priceToPrecision (symbol, price));
@@ -2149,7 +2155,7 @@ export default class interactivebrokers extends Exchange {
         request['orderType'] = orderType;
         let defaultTimeInForce = 'DAY';
         if (assetClass === 'CRYPTO') {
-            defaultTimeInForce = isMarket ? 'IOC' : 'PAX';
+            defaultTimeInForce = isMarket ? 'IOC' : 'GTC';
         }
         const timeInForce = this.safeStringUpper2 (params, 'timeInForce', 'tif', defaultTimeInForce);
         request['tif'] = timeInForce;
@@ -2205,7 +2211,7 @@ export default class interactivebrokers extends Exchange {
                 throw new InvalidOrder (this.id + ' ' + methodName + '() requires confirmation (reply id ' + replyId + '): ' + message);
             }
             const replyRequest: Dict = {
-                'replyid': replyId,
+                'replyId': replyId,
                 'confirmed': true,
             };
             current = await this.webapiPostV1ApiIserverReplyReplyId (replyRequest);
@@ -2985,9 +2991,10 @@ export default class interactivebrokers extends Exchange {
         return segments.join ('/');
     }
 
-    override sign (path: string, api = 'private', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api = [], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const template = this.ibkrPathToTemplate (path);
-        const baseUrl = this.urls['api'][api] + this.implodeParams (template, params);
+        const apiBase = api[0];
+        const baseUrl = this.urls['api'][apiBase] + this.implodeParams (template, params);
         let url = baseUrl;
         const query = this.omit (params, this.extractParams (template));
         const hasQuery = Object.keys (query).length > 0;
