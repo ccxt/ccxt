@@ -2242,8 +2242,7 @@ export default class kalshi extends Exchange {
             const parsedEvent = this.parseEvent (rawEvents[di]);
             result.push (parsedEvent);
             // register the parsed markets so populateOutcomes can index their outcomes
-            const parsedMarketsRaw = parsedEvent['markets'];
-            const parsedMarkets = (parsedMarketsRaw !== undefined) ? parsedMarketsRaw : [];
+            const parsedMarkets = parsedEvent['markets'];
             const parsedMarketsLength = parsedMarkets.length;
             for (let mi = 0; mi < parsedMarketsLength; mi++) {
                 const m = parsedMarkets[mi];
