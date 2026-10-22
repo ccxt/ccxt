@@ -6913,7 +6913,7 @@ public partial class okx : Exchange
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
         List<object> filtered = this.filterBy(data, "selected", true);
-        object parsed = this.parseDepositAddresses(filtered, new List<object>() {(currency.ContainsKey("code") ? currency["code"] : null)}, false);
+        List<object> parsed = ((List<object>)this.parseDepositAddresses(filtered, new List<object>() {(currency.ContainsKey("code") ? currency["code"] : null)}, false));
         return ccxt.BaseExchange.ToDepositAddresses(this.indexBy(parsed, "network"));
     }
 
@@ -6952,7 +6952,7 @@ public partial class okx : Exchange
         string? codeNetwork = this.networkIdToCode(codeValue, codeValue);
         if (((codeNetwork != null)) && (((codeNetwork != null) && (response?.ContainsKey(codeNetwork) == true))))
         {
-            return ccxt.BaseExchange.ToDepositAddress((response != null && codeNetwork != null && response.ContainsKey(codeNetwork) ? response[codeNetwork] : null));
+            return ccxt.BaseExchange.ToDepositAddress(this.safeDict(response, codeNetwork));
         }
         // if the network is not specified, return the first address
         List<object> keys = new List<object>(response.Keys);
@@ -10322,7 +10322,7 @@ public partial class okx : Exchange
         //     }
         //
         List<object> underlyings = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToStringList((underlyings != null && 0 < underlyings.Count ? underlyings[0] : null));
+        return ccxt.BaseExchange.ToStringList(this.toArray(this.safeList(underlyings, 0, new List<object>() {})));
     }
 
     /**
@@ -10550,7 +10550,7 @@ public partial class okx : Exchange
      * @param {string} [params.tag] order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
      * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<IDictionary<string, object>> closePosition(string symbol, string side = null, object parameters = null)
+    public async override Task<ccxt.Order> ClosePosition(string symbol, string side = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -10609,7 +10609,7 @@ public partial class okx : Exchange
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
         IDictionary<string, object> order = this.safeDict(data, 0);
-        return ((IDictionary<string, object>)((object)(ccxt.BaseExchange.FromOrder(this.parseOrder(order, market)))));
+        return this.parseOrder(order, market);
     }
 
     /**

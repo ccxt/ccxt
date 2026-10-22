@@ -2057,16 +2057,16 @@ public partial class hyperliquid : Exchange
             { "nonce", nonce },
             { "signature", signature },
         };
-        Dictionary<string, object> response = null;
+        bool success = false;
         try
         {
-            response = await this.privatePostExchange(request);
-            return response;
+            await this.privatePostExchange(request);
+            success = true;
         } catch(Exception e)
         {
-            response = null; // ignore this
+            success = false; // ignore this
         }
-        return response;
+        return success;
     }
 
     public async virtual Task<Dictionary<string, object>> approveBuilderFee(object builder, object maxFeeRate)

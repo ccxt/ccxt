@@ -691,9 +691,13 @@ public partial class myriad : PredictionExchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            result.Add(this.parsePredictionPosition(data[i]));
+            Dictionary<string, object> position = this.parsePredictionPosition(data[i]);
+            if (((outcomes == null)) || this.inArray((position != null && position.ContainsKey("outcome") ? position["outcome"] : null), outcomes))
+            {
+                result.Add(position);
+            }
         }
-        return ccxt.BaseExchange.ToPredictionPositionList(this.filterByArray(result, "outcome", outcomes, false));
+        return ccxt.BaseExchange.ToPredictionPositionList(result);
     }
 
     /**

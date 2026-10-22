@@ -1738,41 +1738,11 @@ public partial class paradex : Exchange
 
     public async virtual Task<IDictionary<string, object>> getSystemConfig()
     {
-        IDictionary<string, object> cachedConfig = this.safeDict(this.options, "systemConfig");
-        if ((cachedConfig != null))
+        if ((this.safeDict(this.options, "systemConfig") == null))
         {
-            return cachedConfig;
+            Dictionary<string, object> response = await this.publicGetSystemConfig();
+            this.options["systemConfig"] = response;
         }
-        Dictionary<string, object> response = await this.publicGetSystemConfig();
-        //
-        // {
-        //     "starknet_gateway_url": "https://potc-testnet-sepolia.starknet.io",
-        //     "starknet_fullnode_rpc_url": "https://pathfinder.api.testnet.paradex.trade/rpc/v0_7",
-        //     "starknet_chain_id": "PRIVATE_SN_POTC_SEPOLIA",
-        //     "block_explorer_url": "https://voyager.testnet.paradex.trade/",
-        //     "paraclear_address": "0x286003f7c7bfc3f94e8f0af48b48302e7aee2fb13c23b141479ba00832ef2c6",
-        //     "paraclear_decimals": 8,
-        //     "paraclear_account_proxy_hash": "0x3530cc4759d78042f1b543bf797f5f3d647cde0388c33734cf91b7f7b9314a9",
-        //     "paraclear_account_hash": "0x41cb0280ebadaa75f996d8d92c6f265f6d040bb3ba442e5f86a554f1765244e",
-        //     "oracle_address": "0x2c6a867917ef858d6b193a0ff9e62b46d0dc760366920d631715d58baeaca1f",
-        //     "bridged_tokens": [
-        //         {
-        //             "name": "TEST USDC",
-        //             "symbol": "USDC",
-        //             "decimals": 6,
-        //             "l1_token_address": "0x29A873159D5e14AcBd63913D4A7E2df04570c666",
-        //             "l1_bridge_address": "0x8586e05adc0C35aa11609023d4Ae6075Cb813b4C",
-        //             "l2_token_address": "0x6f373b346561036d98ea10fb3e60d2f459c872b1933b50b21fe6ef4fda3b75e",
-        //             "l2_bridge_address": "0x46e9237f5408b5f899e72125dd69bd55485a287aaf24663d3ebe00d237fc7ef"
-        //         }
-        //     ],
-        //     "l1_core_contract_address": "0x582CC5d9b509391232cd544cDF9da036e55833Af",
-        //     "l1_operator_address": "0x11bACdFbBcd3Febe5e8CEAa75E0Ef6444d9B45FB",
-        //     "l1_chain_id": "11155111",
-        //     "liquidation_fee": "0.2"
-        // }
-        //
-        this.options["systemConfig"] = response;
         return this.safeDict(this.options, "systemConfig", new Dictionary<string, object>() {});
     }
 
@@ -1799,28 +1769,26 @@ public partial class paradex : Exchange
 
     public async virtual Task<object> retrieveAccount()
     {
-        IDictionary<string, object> cachedAccount = this.safeDict(this.options, "paradexAccount");
-        if ((cachedAccount != null))
+        if ((this.safeDict(this.options, "paradexAccount") == null))
         {
-            return cachedAccount;
-        }
-        this.checkRequiredCredentials();
-        IDictionary<string, object> systemConfig = await this.getSystemConfig();
-        Dictionary<string, object> domain = await this.prepareParadexDomain(true);
-        Dictionary<string, object> messageTypes = new Dictionary<string, object>() {
-            { "Constant", new List<object>() {new Dictionary<string, object>() {
+            this.checkRequiredCredentials();
+            IDictionary<string, object> systemConfig = await this.getSystemConfig();
+            Dictionary<string, object> domain = await this.prepareParadexDomain(true);
+            Dictionary<string, object> messageTypes = new Dictionary<string, object>() {
+                { "Constant", new List<object>() {new Dictionary<string, object>() {
     { "name", "action" },
     { "type", "string" },
 }} },
-        };
-        Dictionary<string, object> message = new Dictionary<string, object>() {
-            { "action", "STARK Key" },
-        };
-        byte[] msg = this.ethEncodeStructuredData(domain, messageTypes, message);
-        string signature = this.signMessage(msg, this.privateKey);
-        object account = this.retrieveStarkAccount(signature, (systemConfig != null && systemConfig.ContainsKey("paraclear_account_hash") ? systemConfig["paraclear_account_hash"] : null), (systemConfig != null && systemConfig.ContainsKey("paraclear_account_proxy_hash") ? systemConfig["paraclear_account_proxy_hash"] : null));
-        this.options["paradexAccount"] = account;
-        return account;
+            };
+            Dictionary<string, object> message = new Dictionary<string, object>() {
+                { "action", "STARK Key" },
+            };
+            byte[] msg = this.ethEncodeStructuredData(domain, messageTypes, message);
+            string signature = this.signMessage(msg, this.privateKey);
+            object account = this.retrieveStarkAccount(signature, (systemConfig != null && systemConfig.ContainsKey("paraclear_account_hash") ? systemConfig["paraclear_account_hash"] : null), (systemConfig != null && systemConfig.ContainsKey("paraclear_account_proxy_hash") ? systemConfig["paraclear_account_proxy_hash"] : null));
+            this.options["paradexAccount"] = account;
+        }
+        return this.safeDict(this.options, "paradexAccount", new Dictionary<string, object>() {});
     }
 
     public async virtual Task<Dictionary<string, object>> onboarding(IDictionary<string, object>? parameters = null)
@@ -2216,9 +2184,11 @@ public partial class paradex : Exchange
         Dictionary<string, object> domain = await this.prepareParadexDomain();
         object msg = this.starknetEncodeStructuredData(domain, messageTypes, orderReq, getValue(account, "address"));
         string? signature = ((string)this.starknetSign(msg, getValue(account, "privateKey")));
-        ((IDictionary<string,object>)request)["signature"] = signature;
-        ((IDictionary<string,object>)request)["signature_timestamp"] = orderReq["timestamp"];
-        return request;
+        Dictionary<string, object> signedRequest = this.extend(request, new Dictionary<string, object>() {
+            { "signature", signature },
+            { "signature_timestamp", orderReq["timestamp"] },
+        });
+        return signedRequest;
     }
 
     /**
@@ -2419,15 +2389,16 @@ public partial class paradex : Exchange
         List<object> responseOrders = this.safeList(response, "orders", new List<object>() {});
         IList<object> parsedOrders = ccxt.BaseExchange.FromOrderList(this.parseOrders(responseOrders));
         List<object> errors = this.safeList(response, "errors", new List<object>() {});
+        List<object> rejected = new List<object>() {};
         for (int i = 0; i < (errors?.Count ?? 0); i++)
         {
             object error = errors[i];
-            parsedOrders.Add(ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
+            rejected.Add(ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
                 { "info", error },
                 { "status", "rejected" },
             })));
         }
-        return ccxt.BaseExchange.ToOrderList(parsedOrders);
+        return ccxt.BaseExchange.ToOrderList(this.arrayConcat(parsedOrders, rejected));
     }
 
     /**

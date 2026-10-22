@@ -1894,11 +1894,11 @@ public partial class kalshi : PredictionExchange
         List<object> positions = this.safeList(response, "market_positions", new List<object>() {});
         // filter by the requested outcomes' market tickers — a kalshi position is per market
         // ticker and covers both the YES and the NO leg
-        List<object> parsed = this.parsePredictionPositions(positions);
         if ((outcomesLength == 0))
         {
-            return ccxt.BaseExchange.ToPredictionPositionList(parsed);
+            return ccxt.BaseExchange.ToPredictionPositionList(this.parsePredictionPositions(positions));
         }
+        List<object> parsed = this.parsePredictionPositions(positions);
         Dictionary<string, object> wantedTickers = new Dictionary<string, object>() {};
         if ((outcomes == null))
         {
@@ -2777,7 +2777,8 @@ public partial class kalshi : PredictionExchange
             { "with_nested_markets", true },
         };
         Dictionary<string, object> response = await this.kalshiPublicGetEventsEventTicker(this.extend(request, parameters));
-        IDictionary<string, object> fullEvent = this.safeDict(response, "event", response);
+        // a typed copy of the event row: the caller-facing dict is never the raw response
+        Dictionary<string, object> fullEvent = this.extend(new Dictionary<string, object>() {}, this.safeDict(response, "event", response));
         List<object> nestedMarkets = this.safeList(fullEvent, "markets");
         if ((nestedMarkets == null))
         {

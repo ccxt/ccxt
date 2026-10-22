@@ -2357,7 +2357,7 @@ public partial class gemini : Exchange
         }
         Dictionary<string, object> indexedByNetwork = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(code, parameters));
         string? networkCode = this.handleNetworkCodeAndParams(parameters).Item1;
-        return ccxt.BaseExchange.ToDepositAddress(this.safeValue(indexedByNetwork, networkCode));
+        return ccxt.BaseExchange.ToDepositAddress(this.safeDict(indexedByNetwork, networkCode));
     }
 
     /**
@@ -2391,10 +2391,10 @@ public partial class gemini : Exchange
             { "network", networkId },
         };
         List<object> response = await this.privatePostV1AddressesNetwork(this.extend(request, paramsNetworkCode));
-        object results = this.parseDepositAddresses(response, new List<object>() {codeValue}, false, new Dictionary<string, object>() {
+        List<object> results = ((List<object>)this.parseDepositAddresses(response, new List<object>() {codeValue}, false, new Dictionary<string, object>() {
             { "network", networkCode },
             { "currency", codeValue },
-        });
+        }));
         // one address structure per network, like every other venue (the endpoint is scoped to a
         // single network, so the last address the venue lists for it wins — same as before)
         return ccxt.BaseExchange.ToDepositAddresses(this.indexBy(results, "network"));

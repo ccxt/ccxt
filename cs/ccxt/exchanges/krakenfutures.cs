@@ -3239,7 +3239,7 @@ public partial class krakenfutures : Exchange
                 type = symbol;
             }
         }
-        object accountName = this.parseAccount(type);
+        object accountName = this.parseKrakenAccountName(type);
         IDictionary<string, object> accounts = this.safeDict(response, "accounts");
         IDictionary<string, object> account = this.safeDict(accounts, accountName);
         if ((account == null))
@@ -3979,7 +3979,7 @@ public partial class krakenfutures : Exchange
         };
     }
 
-    public override object parseAccount(object account)
+    public virtual object parseKrakenAccountName(object account)
     {
         Dictionary<string, object> accountByType = new Dictionary<string, object>() {
             { "main", "cash" },
@@ -4058,7 +4058,7 @@ public partial class krakenfutures : Exchange
         Dictionary<string, object> response = null;
         if ((toAccount == "spot"))
         {
-            if (!isEqual(this.parseAccount(fromAccount), "cash"))
+            if (!isEqual(this.parseKrakenAccountName(fromAccount), "cash"))
             {
                 throw new BadRequest (((((this.id + " transfer cannot transfer from ") + fromAccount) + " to ") + toAccount)) ;
             }
@@ -4066,8 +4066,8 @@ public partial class krakenfutures : Exchange
             response = await this.privatePostWithdrawal(this.extend(request, parameters));
         } else
         {
-            request["fromAccount"] = this.parseAccount(fromAccount);
-            request["toAccount"] = this.parseAccount(toAccount);
+            request["fromAccount"] = this.parseKrakenAccountName(fromAccount);
+            request["toAccount"] = this.parseKrakenAccountName(toAccount);
             request["unit"] = (currency.ContainsKey("id") ? currency["id"] : null);
             response = await this.privatePostTransfer(this.extend(request, parameters));
         }

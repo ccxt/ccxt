@@ -1351,7 +1351,8 @@ public partial class sxbet : PredictionExchange
         {
             response = await this.sxbetPrivateDeleteOrdersV3All(rest);
         }
-        List<object> result = ((List<object>)this.parseSxbetCancelResponse(response));
+        List<object> result = new List<object>() {};
+        result = this.arrayConcat(result, this.parseSxbetCancelResponse(response));
         // both paths paginate their async submission - keep going on the SAME route while more remain
         bool? hasMore = this.safeBool(this.safeDict(response, "data", new Dictionary<string, object>() {}), "hasMore", false);
         object guard = 0;

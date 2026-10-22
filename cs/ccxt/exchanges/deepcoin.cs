@@ -1466,19 +1466,20 @@ public partial class deepcoin : Exchange
         object paramsOmitted = ((network != null)) ? this.omit(parameters, "network") : parameters;
         List<object> addressess = ccxt.BaseExchange.FromDepositAddressList(await this.FetchDepositAddresses(new List<object>() {code}, paramsOmitted));
         int length = (addressess?.Count ?? 0);
-        object address = this.safeDict(addressess, 0, new Dictionary<string, object>() {});
+        int index = 0;
         if (((network != null)) && (length > 1))
         {
+            // the last entry on the requested network wins
             for (int i = 0; i < length; i++)
             {
-                object entry = (addressess != null && i < addressess.Count ? addressess[i] : null);
-                if (isEqual(getValue(entry, "network"), network))
+                string? entryNetwork = this.safeString(this.safeDict(addressess, i, new Dictionary<string, object>() {}), "network");
+                if ((entryNetwork == network))
                 {
-                    address = entry;
+                    index = i;
                 }
             }
         }
-        return ccxt.BaseExchange.ToDepositAddress(address);
+        return ccxt.BaseExchange.ToDepositAddress(this.safeDict(addressess, index, new Dictionary<string, object>() {}));
     }
 
     public override Dictionary<string, object> parseDepositAddress(object response, Dictionary<string, object> currency = null)
@@ -3529,7 +3530,7 @@ public partial class deepcoin : Exchange
      * @param {string[]|undefined} [params.positionIds] list of position ids to close (for batch closing)
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<IDictionary<string, object>> closePosition(string symbol, string side = null, object parameters = null)
+    public async override Task<ccxt.Order> ClosePosition(string symbol, string side = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3558,7 +3559,7 @@ public partial class deepcoin : Exchange
             response = await this.privatePostDeepcoinTradeClosePositionByIds(this.extend(request, paramsOmitted));
         }
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ((IDictionary<string, object>)((object)(ccxt.BaseExchange.FromOrder(this.parseOrder(data, market)))));
+        return this.parseOrder(data, market);
     }
 
     public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)

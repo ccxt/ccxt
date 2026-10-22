@@ -1491,7 +1491,7 @@ public partial class coinone : Exchange
                 result[(string)code] = depositAddress;
             }
         }
-        return ccxt.BaseExchange.ToDepositAddressList(result);
+        return ccxt.BaseExchange.ToDepositAddressList(this.toArray(result));
     }
 
     public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)

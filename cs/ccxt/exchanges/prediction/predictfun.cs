@@ -2306,11 +2306,11 @@ public partial class predictfun : PredictionExchange
         //     }
         //
         List<object> rows = this.safeList(response, "data", new List<object>() {});
-        List<object> parsed = this.parsePredictionPositions(rows);
         if ((outcomesLength == 0))
         {
-            return ccxt.BaseExchange.ToPredictionPositionList(parsed);
+            return ccxt.BaseExchange.ToPredictionPositionList(this.parsePredictionPositions(rows));
         }
+        List<object> parsed = this.parsePredictionPositions(rows);
         // the venue filters by marketId only, so a set of outcome handles is applied here
         Dictionary<string, object> wanted = new Dictionary<string, object>() {};
         IList<object> wantedOutcomes = this.toArray(outcomes);

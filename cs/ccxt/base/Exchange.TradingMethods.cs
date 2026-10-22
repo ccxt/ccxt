@@ -6,7 +6,7 @@ public partial class Exchange
 {
 
 
-    public async virtual Task<IDictionary<string, object>> closePosition(string symbol, string side = null, object parameters = null)
+    public async virtual Task<ccxt.Order> ClosePosition(string symbol, string side = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " closePosition() is not supported yet")) ;
@@ -45,8 +45,7 @@ public partial class Exchange
         parameters ??= new Dictionary<string, object>();
         if (!isEqual((this.has.ContainsKey("fetchPositionsHistory") ? this.has["fetchPositionsHistory"] : null), null) && (((this.has.ContainsKey("fetchPositionsHistory") ? this.has["fetchPositionsHistory"] : null) as bool?) != false))
         {
-            List<object> positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositionsHistory(new List<object>() {symbol},ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters));
-            return ccxt.BaseExchange.ToPositionList(positions);
+            return await this.FetchPositionsHistory(new List<object>() {symbol},ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
         } else
         {
             throw new NotSupported ((this.id + " fetchPositionHistory () is not supported yet")) ;
@@ -806,7 +805,7 @@ public partial class Exchange
         // Promise<string> with Promise<Order['status']>.
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> order = ccxt.BaseExchange.FromOrder(await this.FetchOrder(id, symbol, parameters));
-        return ccxt.BaseExchange.ToStringValue((order != null && order.ContainsKey("status") ? order["status"] : null));
+        return ccxt.BaseExchange.ToStringValue(this.safeString(order, "status"));
     }
 
     public async virtual Task<ccxt.Order> FetchUnifiedOrder(object order, object parameters = null)
@@ -1131,7 +1130,7 @@ public partial class Exchange
     public async virtual Task<ccxt.Order> CancelUnifiedOrder(object order, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return ccxt.BaseExchange.ToOrder(this.CancelOrder(this.safeString(order, "id"),this.safeString(order, "symbol"), parameters));
+        return await this.CancelOrder(this.safeString(order, "id"),this.safeString(order, "symbol"), parameters);
     }
 
     public async virtual Task<List<ccxt.Order>> FetchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)

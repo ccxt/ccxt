@@ -2639,11 +2639,11 @@ public partial class cryptocom : Exchange
             string? network = this.safeString(this.networkAliases, networkParam, networkParam);
             if (((network != null) && depositAddresses.ContainsKey(network)))
             {
-                return ccxt.BaseExchange.ToDepositAddress((depositAddresses != null && network != null && depositAddresses.ContainsKey(network) ? depositAddresses[network] : null));
+                return ccxt.BaseExchange.ToDepositAddress(this.safeDict(depositAddresses, network));
             }
         }
         List<object> keys = new List<object>(depositAddresses.Keys);
-        return ccxt.BaseExchange.ToDepositAddress(getValue(depositAddresses, (keys != null && 0 < keys.Count ? keys[0] : null)));
+        return ccxt.BaseExchange.ToDepositAddress(this.safeDict(depositAddresses, this.safeString(keys, 0)));
     }
 
     /**
@@ -4051,7 +4051,7 @@ public partial class cryptocom : Exchange
      * @param {number} [params.price] for limit orders only
      * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<IDictionary<string, object>> closePosition(string symbol, string side = null, object parameters = null)
+    public async override Task<ccxt.Order> ClosePosition(string symbol, string side = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -4086,7 +4086,7 @@ public partial class cryptocom : Exchange
         //    }
         //
         IDictionary<string, object> result = this.safeDict(response, "result");
-        return ((IDictionary<string, object>)((object)(ccxt.BaseExchange.FromOrder(this.parseOrder(result, market)))));
+        return this.parseOrder(result, market);
     }
 
     /**

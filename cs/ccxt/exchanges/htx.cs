@@ -7760,7 +7760,7 @@ public partial class htx : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        object parsed = this.parseDepositAddresses(data, new List<object>() {(currency.ContainsKey("code") ? currency["code"] : null)}, false);
+        List<object> parsed = ((List<object>)this.parseDepositAddresses(data, new List<object>() {(currency.ContainsKey("code") ? currency["code"] : null)}, false));
         return ccxt.BaseExchange.ToDepositAddresses(this.indexBy(parsed, "network"));
     }
 
@@ -7786,7 +7786,7 @@ public partial class htx : Exchange
         IDictionary<string, object> paramsOmited = ((IDictionary<string, object>)networkCodeparamsOmitedVariable.Item2);
         Dictionary<string, object> indexedAddresses = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(code, paramsOmited));
         object selectedNetworkCode = this.selectNetworkKeyFromNetworks((currency.ContainsKey("code") ? currency["code"] : null), networkCode, indexedAddresses, true);
-        return ccxt.BaseExchange.ToDepositAddress(this.safeValue(indexedAddresses, selectedNetworkCode));
+        return ccxt.BaseExchange.ToDepositAddress(this.safeDict(indexedAddresses, selectedNetworkCode));
     }
 
     public async virtual Task<List<Dictionary<string, object>>> FetchWithdrawAddresses(string code, object note = null, object networkCode = null, IDictionary<string, object>? parameters = null)
@@ -7816,11 +7816,11 @@ public partial class htx : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        object allAddresses = this.parseDepositAddresses(data, new List<object>() {(currency.ContainsKey("code") ? currency["code"] : null)}, false);
+        List<object> allAddresses = ((List<object>)this.parseDepositAddresses(data, new List<object>() {(currency.ContainsKey("code") ? currency["code"] : null)}, false));
         List<object> addresses = new List<object>() {};
-        for (int i = 0; i < getArrayLength(allAddresses); i++)
+        for (int i = 0; i < (allAddresses?.Count ?? 0); i++)
         {
-            object address = getValue(allAddresses, i);
+            object address = allAddresses[i];
             bool noteMatch = ((note == null)) || (isEqual(this.safeString(address, "note"), note));
             bool networkMatch = ((networkCode == null)) || (isEqual(this.safeString(address, "network"), networkCode));
             if (noteMatch && networkMatch)
@@ -10772,7 +10772,7 @@ public partial class htx : Exchange
         //
         List<object> chains = this.safeList(fee, "chains", new List<object>() {});
         string? code = this.safeString(currency, "code");
-        object result = this.depositWithdrawFee(fee);
+        Dictionary<string, object> result = this.depositWithdrawFee(fee);
         for (int j = 0; j < chains.Count; j++)
         {
             IDictionary<string, object> chainEntry = this.safeDict(chains, j);
@@ -10798,7 +10798,7 @@ public partial class htx : Exchange
             }
             if ((networkCode != null))
             {
-                ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
+                ((IDictionary<string,object>)(result != null && result.ContainsKey("networks") ? result["networks"] : null))[(string)networkCode] = new Dictionary<string, object>() {
                     { "withdraw", withdrawResult },
                     { "deposit", new Dictionary<string, object>() {
                         { "fee", null },
@@ -10806,7 +10806,7 @@ public partial class htx : Exchange
                     } },
                 };
             }
-            result = this.assignDefaultDepositWithdrawFees(result, currency);
+            this.assignDefaultDepositWithdrawFees(result, currency);
         }
         return result;
     }
@@ -11092,7 +11092,7 @@ public partial class htx : Exchange
      * @param {string} [params.position_side] linear swap supports 'long', 'short' and 'both', 'both' is the default
      * @returns {object} [an order structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<IDictionary<string, object>> closePosition(string symbol, string side = null, object parameters = null)
+    public async override Task<ccxt.Order> ClosePosition(string symbol, string side = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -11143,13 +11143,13 @@ public partial class htx : Exchange
         if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
         {
             IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-            return ((IDictionary<string, object>)((object)(ccxt.BaseExchange.FromOrder(this.parseOrder(data, market)))));
+            return this.parseOrder(data, market);
         }
         if ((response == null))
         {
             throw new NullResponse ((this.id + " parseOrder() returned empty response")) ;
         }
-        return ((IDictionary<string, object>)((object)(ccxt.BaseExchange.FromOrder(this.parseOrder(response, market)))));
+        return this.parseOrder(response, market);
     }
 
     /**

@@ -867,7 +867,7 @@ public partial class blockchaincom : ccxt.blockchaincom
                 { "channel", "auth" },
                 { "token", this.secret },
             };
-            return this.watch(url, messageHash, this.extend(request, parameters), messageHash);
+            return await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
         }
         return await (future as Exchange.Future);
     }

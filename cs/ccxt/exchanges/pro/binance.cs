@@ -1049,8 +1049,9 @@ public partial class binance : ccxt.binance
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "method", this.handleFetchOrderBook },
         };
-        object orderbook = await this.watch(url, messageHash, message, messageHash, subscription);
-        ((IDictionary<string,object>)orderbook)["symbol"] = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        object snapshot = await this.watch(url, messageHash, message, messageHash, subscription);
+        ((IDictionary<string,object>)snapshot)["symbol"] = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        ccxt.pro.OrderBook orderbook = this.orderBook(snapshot);
         return ccxt.BaseExchange.ToOrderBook(orderbook);
     }
 

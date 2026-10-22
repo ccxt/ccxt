@@ -1837,7 +1837,7 @@ public partial class PredictionExchange : BaseExchange
         }
         results = this.sortBy2(results, "timestamp", "id");
         string? outcomeHandle = this.safeString(outcomeObj, "outcome");
-        return ((IList<object>)((object)(this.filterByOutcomeSinceLimit(results, outcomeHandle, since, limit))));
+        return ((IList<object>)((object)(this.filterByValueSinceLimit(results, "outcome", outcomeHandle, since, limit, "timestamp", false))));
     }
 
     /**

@@ -2122,7 +2122,7 @@ public partial class aster : Exchange
             results.Add(priceData);
         }
         IList<object> symbolsNormalized2 = this.marketSymbols(symbolsNormalized);
-        return ccxt.BaseExchange.ToLastPrices(this.filterByArray(results, "symbol", symbolsNormalized2));
+        return ccxt.BaseExchange.ToLastPrices(this.indexBy(this.filterByArray(results, "symbol", symbolsNormalized2, false), "symbol"));
     }
 
     public override object parseLastPrice(object entry, IDictionary<string, object> market = null)

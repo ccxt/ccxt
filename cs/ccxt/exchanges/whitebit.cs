@@ -2764,7 +2764,7 @@ public partial class whitebit : Exchange
         // Apply limit if specified (since and symbol filtering already handled by individual methods)
         if ((limit != null) && ((limit == null || (sortedOrders?.Count ?? 0) > limit)))
         {
-            return ccxt.BaseExchange.ToOrderList(slice(sortedOrders, 0, limit));
+            return ccxt.BaseExchange.ToOrderList(this.arraySlice(sortedOrders, 0, limit));
         }
         return ccxt.BaseExchange.ToOrderList(sortedOrders);
     }
@@ -3017,7 +3017,7 @@ public partial class whitebit : Exchange
         //     }
         //
         List<object> marketIds = new List<object>(response.Keys);
-        IList<object> results = new List<object>() {};
+        List<object> results = new List<object>() {};
         for (int i = 0; i < marketIds.Count; i++)
         {
             string? marketId = ((string)marketIds[i]);
@@ -3031,9 +3031,7 @@ public partial class whitebit : Exchange
                 }));
             }
         }
-        results = this.sortBy(results, "timestamp");
-        results = this.filterBySymbolSinceLimit(results, symbolResolved, since, limit);
-        return ccxt.BaseExchange.ToOrderList(results);
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.sortBy(results, "timestamp"), symbolResolved, since, limit));
     }
 
     public virtual string? parseOrderType(string? type)

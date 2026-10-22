@@ -2533,7 +2533,7 @@ public partial class bitfinex : Exchange
             { "id", new List<object> {parseInt(id)} },
         };
         List<object> orders = ccxt.BaseExchange.FromOrderList(await this.FetchOpenOrders(symbol,ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(null), this.extend(request, parameters)));
-        object order = this.safeValue(orders, 0);
+        IDictionary<string, object> order = this.safeDict(orders, 0);
         if ((order == null))
         {
             throw new OrderNotFound ((((this.id + " order ") + id) + " not found")) ;
@@ -2559,7 +2559,7 @@ public partial class bitfinex : Exchange
             { "id", new List<object> {parseInt(id)} },
         };
         List<object> orders = ccxt.BaseExchange.FromOrderList(await this.FetchClosedOrders(symbol,ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(null), this.extend(request, parameters)));
-        object order = this.safeValue(orders, 0);
+        IDictionary<string, object> order = this.safeDict(orders, 0);
         if ((order == null))
         {
             throw new OrderNotFound ((((this.id + " order ") + id) + " not found")) ;

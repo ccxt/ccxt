@@ -4477,7 +4477,7 @@ public partial class weex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<IDictionary<string, object>> closePosition(string symbol, string side = null, object parameters = null)
+    public async override Task<ccxt.Order> ClosePosition(string symbol, string side = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -4489,8 +4489,8 @@ public partial class weex : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         List<object> response = await this.contractPrivatePostCapiV3ClosePositions(this.extend(request, parameters));
-        IList<object> orders = ccxt.BaseExchange.FromOrderList(this.parseOrders(response, market));
-        return ((IDictionary<string, object>)((object)(this.safeDict(orders, 0))));
+        IDictionary<string, object> order = this.safeDict(response, 0, new Dictionary<string, object>() {});
+        return this.parseOrder(order, market);
     }
 
     /**

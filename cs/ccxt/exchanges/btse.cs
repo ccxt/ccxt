@@ -912,7 +912,7 @@ public partial class btse : Exchange
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
-            return ccxt.BaseExchange.ToOHLCVList(this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, maxLimit));
+            return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, maxLimit));
         }
         Dictionary<string, object> market = this.market(symbol);
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
@@ -974,8 +974,7 @@ public partial class btse : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        IList<object> result = this.parseOHLCVs(data, market,timeframeVar, since, limit);
-        return ccxt.BaseExchange.ToOHLCVList(result);
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(data, market,timeframeVar, since, limit));
     }
 
     public override IList<object> parseOHLCV(object ohlcv, object market = null)
@@ -1108,11 +1107,11 @@ public partial class btse : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        object rates = this.parseFundingRateHistories(data, market, since, limit);
         if ((until == null))
         {
-            return ccxt.BaseExchange.ToFundingRateHistoryList(rates);
+            return ccxt.BaseExchange.ToFundingRateHistoryList(this.parseFundingRateHistories(data, market, since, limit));
         }
+        object rates = this.parseFundingRateHistories(data, market, since, limit);
         List<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(rates); i++)
         {
@@ -1386,7 +1385,8 @@ public partial class btse : Exchange
             throw new BadRequest ((this.id + " fetchMarketLeverageTiers() supports contract markets only")) ;
         }
         Dictionary<string, object> result = ccxt.BaseExchange.FromLeverageTiers(await this.FetchLeverageTiers(new List<object>() {symbol}, parameters));
-        return ccxt.BaseExchange.ToLeverageTierList((result != null && result.ContainsKey(symbol) ? result[symbol] : null));
+        List<object> tiers = this.safeList(result, symbol);
+        return ccxt.BaseExchange.ToLeverageTierList(tiers);
     }
 
     /**
@@ -1768,11 +1768,11 @@ public partial class btse : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        IList<object> trades = ccxt.BaseExchange.FromTradeList(this.parseTrades(data, market, since, limit));
         if ((until == null))
         {
-            return ccxt.BaseExchange.ToTradeList(trades);
+            return this.parseTrades(data, market, since, limit);
         }
+        IList<object> trades = ccxt.BaseExchange.FromTradeList(this.parseTrades(data, market, since, limit));
         List<object> result = new List<object>() {};
         for (int i = 0; i < (trades?.Count ?? 0); i++)
         {
@@ -3954,7 +3954,7 @@ public partial class btse : Exchange
      * @param {bool} [params.postOnly] true if the order should be post only
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<IDictionary<string, object>> closePosition(string symbol, string side = null, object parameters = null)
+    public async override Task<ccxt.Order> ClosePosition(string symbol, string side = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -3988,7 +3988,7 @@ public partial class btse : Exchange
         {
             order = response;
         }
-        return ((IDictionary<string, object>)((object)(ccxt.BaseExchange.FromOrder(this.parseOrder(order, market)))));
+        return this.parseOrder(order, market);
     }
 
     /**

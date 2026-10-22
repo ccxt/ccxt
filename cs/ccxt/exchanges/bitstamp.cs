@@ -1350,7 +1350,9 @@ public partial class bitstamp : Exchange
                 { "timestamp", now },
             });
         }
-        return ccxt.BaseExchange.ToDictList(this.safeValue((this.options.ContainsKey("fetchMarkets") ? this.options["fetchMarkets"] : null), "response"));
+        IDictionary<string, object> cache = this.safeDict(this.options, "fetchMarkets", new Dictionary<string, object>() {});
+        List<object> markets = this.safeList(cache, "response", new List<object>() {});
+        return ccxt.BaseExchange.ToDictList(markets);
     }
 
     /**

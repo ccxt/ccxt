@@ -794,8 +794,7 @@ public partial class coinbaseinternational : Exchange
         //     }
         //
         List<object> instruments = this.safeList(response, "result", new List<object>() {});
-        IList<object> parsedMarkets = this.parseMarkets(instruments);
-        return ccxt.BaseExchange.ToMarketInterfaceList(parsedMarkets);
+        return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(instruments));
     }
 
     public override Dictionary<string, object> parseMarket(object market)
@@ -1342,7 +1341,7 @@ public partial class coinbaseinternational : Exchange
             Dictionary<string, object> ticker = ccxt.BaseExchange.FromTicker(await this.FetchTicker(symbol, paramsResolved));
             tickers[(string)symbol] = ticker;
         }
-        return ccxt.BaseExchange.ToTickers(this.filterByArray(tickers, "symbol", symbolsResolved, true));
+        return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(tickers, "symbol", symbolsResolved));
     }
 
     /**
@@ -2232,13 +2231,12 @@ public partial class coinbaseinternational : Exchange
         //     }
         //
         List<object> result = this.safeList(response, "result", new List<object>() {});
-        IList<object> positions = this.parsePositions(result);
         if (this.isEmpty(symbols))
         {
-            return ccxt.BaseExchange.ToPositionList(positions);
+            return ccxt.BaseExchange.ToPositionList(this.parsePositions(result));
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
-        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(positions, "symbol", symbolsNormalized));
+        return ccxt.BaseExchange.ToPositionList(this.parsePositions(result, symbolsNormalized));
     }
 
     /**
@@ -3681,7 +3679,7 @@ public partial class coinbaseinternational : Exchange
      * @param {boolean} [params.forceRefresh] ignore the cached token and request a new one
      * @returns {string} a Deribit gateway access token
      */
-    public async virtual Task<object> authenticateV2(object parameters = null)
+    public async virtual Task<object> authenticateV2(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object paramsResolved = this.handleRouteAndParams("authenticateV2", parameters);

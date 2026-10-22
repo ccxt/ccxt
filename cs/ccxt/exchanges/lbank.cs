@@ -2952,7 +2952,6 @@ public partial class lbank : Exchange
             await this.loadMarkets();
         }
         bool isAuthorized = this.checkRequiredCredentials(false);
-        object result = null;
         if (isAuthorized)
         {
             IDictionary<string, object> options = this.safeDict(this.options, "fetchTransactionFees", new Dictionary<string, object>() {});
@@ -2961,16 +2960,11 @@ public partial class lbank : Exchange
             object paramsOmitted = this.omit(parameters, "method");
             if (method == "fetchPublicTransactionFees")
             {
-                result = ccxt.BaseExchange.FromDict(await this.FetchPublicTransactionFees(paramsOmitted));
-            } else
-            {
-                result = ccxt.BaseExchange.FromDict(await this.FetchPrivateTransactionFees(paramsOmitted));
+                return await this.FetchPublicTransactionFees(paramsOmitted);
             }
-        } else
-        {
-            result = ccxt.BaseExchange.FromDict(await this.FetchPublicTransactionFees(parameters));
+            return await this.FetchPrivateTransactionFees(paramsOmitted);
         }
-        return ccxt.BaseExchange.ToDict(result);
+        return await this.FetchPublicTransactionFees(parameters);
     }
 
     public async virtual Task<Dictionary<string, object>> FetchPrivateTransactionFees(object parameters = null)
@@ -3134,7 +3128,6 @@ public partial class lbank : Exchange
             await this.loadMarkets();
         }
         bool isAuthorized = this.checkRequiredCredentials(false);
-        object response = null;
         if (isAuthorized)
         {
             IDictionary<string, object> options = this.safeDict(this.options, "fetchDepositWithdrawFees", new Dictionary<string, object>() {});
@@ -3143,16 +3136,11 @@ public partial class lbank : Exchange
             object paramsOmitted = this.omit(parameters, "method");
             if (method == "fetchPublicDepositWithdrawFees")
             {
-                response = ccxt.BaseExchange.FromDict(await this.FetchPublicDepositWithdrawFees(codes, paramsOmitted));
-            } else
-            {
-                response = ccxt.BaseExchange.FromDict(await this.FetchPrivateDepositWithdrawFees(codes, paramsOmitted));
+                return ccxt.BaseExchange.ToDepositWithdrawFees(await this.FetchPublicDepositWithdrawFees(codes, paramsOmitted));
             }
-        } else
-        {
-            response = ccxt.BaseExchange.FromDict(await this.FetchPublicDepositWithdrawFees(codes, parameters));
+            return ccxt.BaseExchange.ToDepositWithdrawFees(await this.FetchPrivateDepositWithdrawFees(codes, paramsOmitted));
         }
-        return ccxt.BaseExchange.ToDepositWithdrawFees(response);
+        return ccxt.BaseExchange.ToDepositWithdrawFees(await this.FetchPublicDepositWithdrawFees(codes, parameters));
     }
 
     public async virtual Task<Dictionary<string, object>> FetchPrivateDepositWithdrawFees(object codes = null, object parameters = null)

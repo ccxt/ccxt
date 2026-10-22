@@ -3766,13 +3766,12 @@ public partial class backpack : Exchange
             await this.loadMarkets();
         }
         List<object> response = await this.privateGetApiV1Position(parameters);
-        IList<object> positions = this.parsePositions(response);
         if (this.isEmpty(symbols))
         {
-            return ccxt.BaseExchange.ToPositionList(positions);
+            return ccxt.BaseExchange.ToPositionList(this.parsePositions(response));
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
-        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(positions, "symbol", symbolsNormalized));
+        return ccxt.BaseExchange.ToPositionList(this.parsePositions(response, symbolsNormalized));
     }
 
     public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)

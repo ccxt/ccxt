@@ -2091,7 +2091,7 @@ public partial class grvt : Exchange
         List<object> rows = this.safeList(response, "result", new List<object>() {});
         List<object> transfers = ((List<object>)this.parseTransfers(rows, currency, since, limit));
         List<object> filteredResults = this.filterTransfersByType(transfers, "internal", false);
-        return ccxt.BaseExchange.ToTransferEntryList((filteredResults != null && 1 < filteredResults.Count ? filteredResults[1] : null));
+        return ccxt.BaseExchange.ToTransferEntryList(this.toArray((filteredResults != null && 1 < filteredResults.Count ? filteredResults[1] : null)));
     }
 
     public virtual List<object> filterTransfersByType(IList<object> transfers, object transferType, bool? onlyMainAccount = null)

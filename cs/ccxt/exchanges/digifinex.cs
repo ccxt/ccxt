@@ -3534,7 +3534,7 @@ public partial class digifinex : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        object addresses = this.parseDepositAddresses(data, new List<object>() {(currency.ContainsKey("code") ? currency["code"] : null)});
+        Dictionary<string, object> addresses = this.indexBy(this.parseDepositAddresses(data, new List<object>() {(currency.ContainsKey("code") ? currency["code"] : null)}, false), "currency");
         IDictionary<string, object> address = this.safeDict(addresses, code);
         if ((address == null))
         {

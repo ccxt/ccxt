@@ -1548,8 +1548,7 @@ public partial class bitso : Exchange
         };
         Dictionary<string, object> response = await this.privateGetOpenOrders(this.extend(request, paramsMarker));
         List<object> payload = this.safeList(response, "payload", new List<object>() {});
-        IList<object> orders = ccxt.BaseExchange.FromOrderList(this.parseOrders(payload, market, since, limitVar));
-        return ccxt.BaseExchange.ToOrderList(orders);
+        return this.parseOrders(payload, market, since, limitVar);
     }
 
     /**

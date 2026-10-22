@@ -1906,8 +1906,7 @@ public partial class poloniex : Exchange
         //         }
         //     ]
         //
-        IList<object> result = ccxt.BaseExchange.FromTradeList(this.parseTrades(response, market, since, limit));
-        return ccxt.BaseExchange.ToTradeList(result);
+        return this.parseTrades(response, market, since, limit);
     }
 
     public virtual string? parseOrderStatus(string? status)
@@ -2970,7 +2969,12 @@ public partial class poloniex : Exchange
         await this.loadMarkets();
         List<object> orders = ccxt.BaseExchange.FromOrderList(await this.FetchOpenOrders(symbol,ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(null), parameters));
         Dictionary<string, object> indexed = this.indexBy(orders, "id");
-        return ccxt.BaseExchange.ToStringValue(((indexed != null && indexed.ContainsKey(id))) ? "open" : "closed");
+        Dictionary<string, object> statuses = new Dictionary<string, object>() {
+            { "true", "open" },
+            { "false", "closed" },
+        };
+        string found = ((indexed != null && indexed.ContainsKey(id))) ? "true" : "false";
+        return ccxt.BaseExchange.ToStringValue(this.safeString(statuses, found));
     }
 
     /**

@@ -3741,7 +3741,7 @@ public partial class blofin : Exchange
      * @param {string} [params.tag] order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
      * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<IDictionary<string, object>> closePosition(string symbol, string side = null, object parameters = null)
+    public async override Task<ccxt.Order> ClosePosition(string symbol, string side = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3762,7 +3762,8 @@ public partial class blofin : Exchange
             request["clientOrderId"] = clientOrderId;
         }
         Dictionary<string, object> response = await this.privatePostTradeClosePosition(this.extend(request, paramsMarginMode));
-        return ((IDictionary<string, object>)((object)(this.safeDict(response, "data"))));
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.parseOrder(data, market);
     }
 
     /**

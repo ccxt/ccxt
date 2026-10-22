@@ -6664,7 +6664,7 @@ public partial class binance : Exchange
             parsedTicker.symbol = ccxt.BaseExchange.StructString((tickerMarket != null && tickerMarket.ContainsKey("symbol") ? tickerMarket["symbol"] : null));
             results.Add(ccxt.BaseExchange.FromTicker(parsedTicker));
         }
-        return this.filterByArray(results, "symbol", symbols);
+        return this.filterByArrayTickers(results, "symbol", symbols);
     }
 
     /**
@@ -6985,8 +6985,7 @@ public partial class binance : Exchange
         //         }
         //     ]
         //
-        IList<object> candles = this.parseOHLCVs(this.toArray(response), market,timeframeVar, since, limitValue);
-        return ccxt.BaseExchange.ToOHLCVList(candles);
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(this.toArray(response), market,timeframeVar, since, limitValue));
     }
 
     public override ccxt.Trade parseTrade(object trade, object market = null)
@@ -13188,7 +13187,7 @@ public partial class binance : Exchange
             //       },
             //    ]
             //
-            Dictionary<string, object> result = new Dictionary<string, object>() {};
+            Dictionary<string, object> spotFees = new Dictionary<string, object>() {};
             if ((response == null))
             {
                 throw new NullResponse ((this.id + " method() returned empty response")) ;
@@ -13200,10 +13199,10 @@ public partial class binance : Exchange
                 string? symbol = ((string)(fee != null && fee.ContainsKey("symbol") ? fee["symbol"] : null));
                 if ((symbol != null))
                 {
-                    result[(string)symbol] = fee;
+                    spotFees[(string)symbol] = fee;
                 }
             }
-            return ccxt.BaseExchange.ToTradingFees(result);
+            return ccxt.BaseExchange.ToTradingFees(spotFees);
         } else if (isLinear)
         {
             //
@@ -13233,7 +13232,7 @@ public partial class binance : Exchange
                 throw new ExchangeError ((this.id + " markets not loaded")) ;
             }
             List<object> symbols = new List<object>(markets.Keys);
-            Dictionary<string, object> result = new Dictionary<string, object>() {};
+            Dictionary<string, object> linearFees = new Dictionary<string, object>() {};
             Int64? feeTier = this.safeInteger(response, "feeTier");
             object feeTiers = getValue(getValue(getValue(this.fees, "linear"), "trading"), "tiers");
             object maker = getValue(getValue(getValue(feeTiers, "maker"), feeTier), 1);
@@ -13244,7 +13243,7 @@ public partial class binance : Exchange
                 object market = getValue(markets, symbol);
                 if ((this.safeBool(market, "linear", false) == true))
                 {
-                    result[(string)symbol] = new Dictionary<string, object>() {
+                    linearFees[(string)symbol] = new Dictionary<string, object>() {
                         { "info", new Dictionary<string, object>() {
                             { "feeTier", feeTier },
                         } },
@@ -13254,7 +13253,7 @@ public partial class binance : Exchange
                     };
                 }
             }
-            return ccxt.BaseExchange.ToTradingFees(result);
+            return ccxt.BaseExchange.ToTradingFees(linearFees);
         } else if (isInverse)
         {
             //
@@ -13272,7 +13271,7 @@ public partial class binance : Exchange
                 throw new ExchangeError ((this.id + " markets not loaded")) ;
             }
             List<object> symbols = new List<object>(markets.Keys);
-            Dictionary<string, object> result = new Dictionary<string, object>() {};
+            Dictionary<string, object> inverseFees = new Dictionary<string, object>() {};
             Int64? feeTier = this.safeInteger(response, "feeTier");
             object feeTiers = getValue(getValue(getValue(this.fees, "inverse"), "trading"), "tiers");
             object maker = getValue(getValue(getValue(feeTiers, "maker"), feeTier), 1);
@@ -13283,7 +13282,7 @@ public partial class binance : Exchange
                 object market = getValue(markets, symbol);
                 if ((this.safeBool(market, "inverse", false) == true))
                 {
-                    result[(string)symbol] = new Dictionary<string, object>() {
+                    inverseFees[(string)symbol] = new Dictionary<string, object>() {
                         { "info", new Dictionary<string, object>() {
                             { "feeTier", feeTier },
                         } },
@@ -13293,7 +13292,7 @@ public partial class binance : Exchange
                     };
                 }
             }
-            return ccxt.BaseExchange.ToTradingFees(result);
+            return ccxt.BaseExchange.ToTradingFees(inverseFees);
         }
         throw new NotSupported ((((this.id + " fetchTradingFees() is not supported for ") + type) + " markets")) ;
     }

@@ -5220,7 +5220,7 @@ public partial class BaseExchange
             throw new NotSupported ((this.id + " fetchDepositWithdrawFee() is not supported yet")) ;
         }
         Dictionary<string, object> fees = ccxt.BaseExchange.FromDepositWithdrawFees(await this.FetchDepositWithdrawFees(new List<object>() {code}, parameters));
-        return ccxt.BaseExchange.ToDepositWithdrawFee(this.safeValue(fees, code));
+        return ccxt.BaseExchange.ToDepositWithdrawFee(this.safeDict(fees, code));
     }
 
     public virtual string getSupportedMapping(object key, object mapping = null)
@@ -5861,15 +5861,13 @@ public partial class BaseExchange
         parameters ??= new Dictionary<string, object>();
         if (!isEqual((this.has.ContainsKey("fetchDepositAddresses") ? this.has["fetchDepositAddresses"] : null), null) && (((this.has.ContainsKey("fetchDepositAddresses") ? this.has["fetchDepositAddresses"] : null) as bool?) != false))
         {
-            List<object> depositAddresses = ccxt.BaseExchange.FromDepositAddressList(await this.FetchDepositAddresses(new List<object>() {code}, parameters));
-            object depositAddress = this.safeValue(depositAddresses, code);
-            if ((depositAddress == null))
+            object depositAddressesList = ccxt.BaseExchange.FromDepositAddressList(await this.FetchDepositAddresses(new List<object>() {code}, parameters));
+            Dictionary<string, object> depositAddresses = this.indexBy(depositAddressesList, "currency");
+            if ((this.safeDict(depositAddresses, code) == null))
             {
                 throw new InvalidAddress ((((this.id + " fetchDepositAddress() could not find a deposit address for ") + code) + ", make sure you have created a corresponding deposit address in your wallet on the exchange website")) ;
-            } else
-            {
-                return ccxt.BaseExchange.ToDepositAddress(depositAddress);
             }
+            return ccxt.BaseExchange.ToDepositAddress(this.safeDict(depositAddresses, code));
         } else if (!isEqual((this.has.ContainsKey("fetchDepositAddressesByNetwork") ? this.has["fetchDepositAddressesByNetwork"] : null), null) && (((this.has.ContainsKey("fetchDepositAddressesByNetwork") ? this.has["fetchDepositAddressesByNetwork"] : null) as bool?) != false))
         {
             string? network = this.safeString(parameters, "network");
@@ -6235,7 +6233,7 @@ public partial class BaseExchange
             throw new ExchangeError ((this.id + " loadTimeDifference() missing serverTime")) ;
         }
         this.options["timeDifference"] = (after - serverTime);
-        return (this.options.ContainsKey("timeDifference") ? this.options["timeDifference"] : null);
+        return this.parseToInt((this.options.ContainsKey("timeDifference") ? this.options["timeDifference"] : null));
     }
 
     public virtual string implodeHostname(object url)
@@ -6256,7 +6254,8 @@ public partial class BaseExchange
                 throw new BadSymbol ((this.id + " fetchMarketLeverageTiers() supports contract markets only")) ;
             }
             Dictionary<string, object> tiers = ccxt.BaseExchange.FromLeverageTiers(await this.FetchLeverageTiers(new List<object>() {symbol}));
-            return ccxt.BaseExchange.ToLeverageTierList(this.safeValue(tiers, symbol));
+            List<object> marketTiers = this.safeList(tiers, symbol);
+            return ccxt.BaseExchange.ToLeverageTierList(marketTiers);
         } else
         {
             throw new NotSupported ((this.id + " fetchMarketLeverageTiers() is not supported yet")) ;
@@ -6336,7 +6335,7 @@ public partial class BaseExchange
             }
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
-        return this.filterByArray(results, "symbol", symbolsNormalized);
+        return this.indexBy(this.filterByArray(results, "symbol", symbolsNormalized, false), "symbol");
     }
 
     public virtual Dictionary<string, ccxt.Ticker> parseTickers(object tickers, IList<object> symbols = null, object parameters = null)
@@ -6393,19 +6392,19 @@ public partial class BaseExchange
     {
         indexed ??= true;
         parameters ??= new Dictionary<string, object>();
-        object result = new List<object>() {};
+        IList<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(addresses); i++)
         {
             Dictionary<string, object> address = this.extend(this.parseDepositAddress(getValue(addresses, i)), parameters);
-            ((IList<object>)result).Add(address);
+            result.Add(address);
         }
         if ((codes != null))
         {
-            result = this.filterByArray(result, "currency", codes, false);
+            result = this.toArray(this.filterByArray(result, "currency", codes, false));
         }
         if (indexed == true)
         {
-            result = this.filterByArray(result, "currency", null, indexed);
+            result = this.toArray(this.filterByArray(result, "currency", null, indexed));
         }
         return result;
     }
@@ -6726,7 +6725,7 @@ public partial class BaseExchange
                 result[(string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null)] = parsed;
             }
         }
-        return this.filterByArray(result, "symbol", symbols);
+        return this.indexBy(this.filterByArray(result, "symbol", symbols, false), "symbol");
     }
 
     public virtual object parseOpenInterestsHistory(object response, IDictionary<string, object> market = null, object since = null, object limit = null)
@@ -7175,7 +7174,7 @@ public partial class BaseExchange
         * @description Typed wrapper for filterByArray that returns a list of ADL Ranks
         */
         indexed ??= true;
-        return this.filterByArray(objects, key, values, indexed);
+        return this.toArray(this.filterByArray(objects, key, values, indexed));
     }
 
     public virtual Dictionary<string, object> createOHLCVObject(object symbol, string timeframe, object data)
@@ -7820,7 +7819,7 @@ public partial class BaseExchange
             }
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
-        return this.filterByArray(results, "symbol", symbolsNormalized);
+        return this.indexBy(this.filterByArray(results, "symbol", symbolsNormalized, false), "symbol");
     }
 
     public virtual object parseOption(object chain, Dictionary<string, object> currency = null, IDictionary<string, object> market = null)

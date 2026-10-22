@@ -1116,7 +1116,7 @@ public partial class polymarket : Exchange
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
         List<object> response = await this.publicGetInfoTickers(parameters);
         IDictionary<string, object> result = ((IDictionary<string, object>)this.parseFundingRates(response));
-        return ccxt.BaseExchange.ToFundingRates(this.filterByArray(result, "symbol", symbolsNormalized));
+        return ccxt.BaseExchange.ToFundingRates(this.indexBy(this.filterByArray(result, "symbol", symbolsNormalized, false), "symbol"));
     }
 
     public override Dictionary<string, object> parseFundingRate(object contract, IDictionary<string, object> market = null)
@@ -1275,8 +1275,8 @@ public partial class polymarket : Exchange
         await this.loadMarkets();
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
         List<object> response = await this.publicGetInfoTickers(parameters);
-        object result = this.parseOpenInterests(response);
-        return ccxt.BaseExchange.ToOpenInterests(this.filterByArray(result, "symbol", symbolsNormalized));
+        IDictionary<string, object> result = ((IDictionary<string, object>)this.parseOpenInterests(response));
+        return ccxt.BaseExchange.ToOpenInterests(this.indexBy(this.filterByArray(result, "symbol", symbolsNormalized, false), "symbol"));
     }
 
     public override Dictionary<string, object> parseOpenInterest(object interest, IDictionary<string, object> market = null)

@@ -1445,11 +1445,11 @@ public partial class binance : PredictionExchange
         // }
         //
         List<object> data = this.safeList(response, "positions", new List<object>() {});
-        List<object> positions = this.parsePredictionPositions(data);
         if ((outcomes == null))
         {
-            return ccxt.BaseExchange.ToPredictionPositionList(positions);
+            return ccxt.BaseExchange.ToPredictionPositionList(this.parsePredictionPositions(data));
         }
+        List<object> positions = this.parsePredictionPositions(data);
         List<object> filtered = new List<object>() {};
         int positionsLength = (positions?.Count ?? 0);
         for (int i = 0; i < positionsLength; i++)
@@ -1758,10 +1758,9 @@ public partial class binance : PredictionExchange
     public async virtual Task<Dictionary<string, object>> FetchWallet(string methodName, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object cachedWallet = this.safeDict(this.options, "wallet");
-        if ((cachedWallet != null))
+        if ((this.safeDict(this.options, "wallet") != null))
         {
-            return ccxt.BaseExchange.ToDict(cachedWallet);
+            return ccxt.BaseExchange.ToDict(this.safeDict(this.options, "wallet"));
         }
         string? walletAddress = this.handleOptionStringAndParams(parameters, methodName, "walletAddress", this.walletAddress).Item1;
         Dictionary<string, object> response = await this.sapiPrivateGetWalletList();
@@ -1779,9 +1778,8 @@ public partial class binance : PredictionExchange
         List<object> wallets = this.safeList(response, "wallets", new List<object>() {});
         if ((walletAddress == null))
         {
-            cachedWallet = this.safeDict(wallets, 0);
-            this.options["wallet"] = cachedWallet;
-            return ccxt.BaseExchange.ToDict(cachedWallet);
+            this.options["wallet"] = this.safeDict(wallets, 0);
+            return ccxt.BaseExchange.ToDict(this.safeDict(this.options, "wallet"));
         }
         int walletLength = wallets.Count;
         for (int i = 0; i < walletLength; i++)
@@ -1789,16 +1787,11 @@ public partial class binance : PredictionExchange
             string? w = this.safeString((wallets != null && i < wallets.Count ? wallets[i] : null), "walletAddress", "");
             if ((w == walletAddress))
             {
-                cachedWallet = (wallets != null && i < wallets.Count ? wallets[i] : null);
-                break;
+                this.options["wallet"] = (wallets != null && i < wallets.Count ? wallets[i] : null);
+                return ccxt.BaseExchange.ToDict(this.safeDict(this.options, "wallet"));
             }
         }
-        if ((cachedWallet == null))
-        {
-            throw new NotSupported (((this.id + "fetchWallet could'n find wallet ") + walletAddress)) ;
-        }
-        this.options["wallet"] = cachedWallet;
-        return ccxt.BaseExchange.ToDict(cachedWallet);
+        throw new NotSupported (((this.id + "fetchWallet could'n find wallet ") + walletAddress)) ;
     }
 
     /**

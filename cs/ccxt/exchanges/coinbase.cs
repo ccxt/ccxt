@@ -1115,7 +1115,7 @@ public partial class coinbase : Exchange
         if ((currencyType == "crypto"))
         {
             List<object> results = ccxt.BaseExchange.FromTransactionList(await this.FetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdTransactions",code,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsCurrencyType));
-            return ccxt.BaseExchange.ToTransactionList(this.filterByArray(results, "type", "withdrawal", false));
+            return ccxt.BaseExchange.ToTransactionList(this.toArray(this.filterByArray(results, "type", "withdrawal", false)));
         }
         return await this.FetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdWithdrawals",code,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsCurrencyType);
     }
@@ -1142,7 +1142,7 @@ public partial class coinbase : Exchange
         if ((currencyType == "crypto"))
         {
             List<object> results = ccxt.BaseExchange.FromTransactionList(await this.FetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdTransactions",code,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsCurrencyType));
-            return ccxt.BaseExchange.ToTransactionList(this.filterByArray(results, "type", "deposit", false));
+            return ccxt.BaseExchange.ToTransactionList(this.toArray(this.filterByArray(results, "type", "deposit", false)));
         }
         return await this.FetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdDeposits",code,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsCurrencyType);
     }
@@ -1166,7 +1166,7 @@ public partial class coinbase : Exchange
             await this.loadMarkets();
         }
         List<object> results = ccxt.BaseExchange.FromTransactionList(await this.FetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdTransactions",code,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters));
-        return ccxt.BaseExchange.ToTransactionList(this.filterByArray(results, "type", new List<object>() {"deposit", "withdrawal"}, false));
+        return ccxt.BaseExchange.ToTransactionList(this.toArray(this.filterByArray(results, "type", new List<object>() {"deposit", "withdrawal"}, false)));
     }
 
     public virtual string? parseTransactionStatus(string? status)
@@ -2990,20 +2990,19 @@ public partial class coinbase : Exchange
         List<object> data = this.safeList(response, "data", new List<object>() {});
         IList<object> ledger = this.parseLedger(data, currency, since, limit);
         int length = (ledger?.Count ?? 0);
-        if ((length == 0))
+        if (length > 0)
         {
-            return ccxt.BaseExchange.ToLedgerEntryList(ledger);
+            int lastIndex = (length - 1);
+            IDictionary<string, object> last = this.safeDict(ledger, lastIndex);
+            IDictionary<string, object> pagination = this.safeDict(response, "pagination", new Dictionary<string, object>() {});
+            string? cursor = this.safeString(pagination, "next_starting_after");
+            if (((cursor != null)) && (cursor != ""))
+            {
+                ((IDictionary<string,object>)(last != null && last.ContainsKey("info") ? last["info"] : null))["next_starting_after"] = cursor;
+                ((List<object>)ledger)[Convert.ToInt32(lastIndex)] = last;
+            }
         }
-        int lastIndex = (length - 1);
-        IDictionary<string, object> last = this.safeDict(ledger, lastIndex);
-        IDictionary<string, object> pagination = this.safeDict(response, "pagination", new Dictionary<string, object>() {});
-        string? cursor = this.safeString(pagination, "next_starting_after");
-        if (((cursor != null)) && (cursor != ""))
-        {
-            ((IDictionary<string,object>)(last != null && last.ContainsKey("info") ? last["info"] : null))["next_starting_after"] = cursor;
-            ((List<object>)ledger)[Convert.ToInt32(lastIndex)] = last;
-        }
-        return ccxt.BaseExchange.ToLedgerEntryList(ledger);
+        return ccxt.BaseExchange.ToLedgerEntryList(this.toArray(ledger));
     }
 
     public virtual string? parseLedgerEntryStatus(string? status)
@@ -3359,7 +3358,7 @@ public partial class coinbase : Exchange
             IDictionary<string, object> account = ((IDictionary<string, object>)getValue(this.accounts, i));
             if (isEqual((account != null && account.ContainsKey("code") ? account["code"] : null), code))
             {
-                return (account != null && account.ContainsKey("id") ? account["id"] : null);
+                return this.safeString(account, "id");
             }
         }
         return null;
@@ -3484,7 +3483,7 @@ public partial class coinbase : Exchange
         {
             object paramsClose = this.omit(parameters, "reduceOnly");
             ((IDictionary<string,object>)paramsClose)["amount"] = amount;
-            return ccxt.BaseExchange.ToOrder(await this.closePosition(symbol,side, paramsClose));
+            return await this.ClosePosition(symbol,side, paramsClose);
         }
         object paramsMarketBuy = null;
         double? triggerPrice = this.safeNumberN(parameters, new List<object>() {"stopPrice", "stop_price", "triggerPrice"});
@@ -4944,7 +4943,7 @@ public partial class coinbase : Exchange
         //    }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        object addressStructures = this.parseDepositAddresses(data, null, false);
+        List<object> addressStructures = ((List<object>)this.parseDepositAddresses(data, null, false));
         return ccxt.BaseExchange.ToDepositAddresses(this.indexBy(addressStructures, "network"));
     }
 
@@ -5486,7 +5485,7 @@ public partial class coinbase : Exchange
      * @param {float} [params.size] the size of the position to close, optional
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<IDictionary<string, object>> closePosition(string symbol, string side = null, object parameters = null)
+    public async override Task<ccxt.Order> ClosePosition(string symbol, string side = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -5506,7 +5505,7 @@ public partial class coinbase : Exchange
         request["client_order_id"] = clientOrderId;
         Dictionary<string, object> response = await this.v3PrivatePostBrokerageOrdersClosePosition(this.extend(request, paramsOmitted));
         IDictionary<string, object> order = this.safeDict(response, "success_response", new Dictionary<string, object>() {});
-        return ((IDictionary<string, object>)((object)(ccxt.BaseExchange.FromOrder(this.parseOrder(order)))));
+        return this.parseOrder(order);
     }
 
     /**

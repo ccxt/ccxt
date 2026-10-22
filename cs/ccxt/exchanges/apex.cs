@@ -1467,7 +1467,7 @@ public partial class apex : Exchange
             Dictionary<string, object> accountData = ccxt.BaseExchange.FromAccount(await this.FetchAccount());
             this.options["accountId"] = this.safeString(accountData, "id", "0");
         }
-        return (this.options.ContainsKey("accountId") ? this.options["accountId"] : null);
+        return this.safeString(this.options, "accountId");
     }
 
     /**

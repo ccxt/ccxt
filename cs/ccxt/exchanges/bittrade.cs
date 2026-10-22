@@ -1393,7 +1393,7 @@ public partial class bittrade : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> response = await this.privateGetAccountAccounts(parameters);
-        return ccxt.BaseExchange.ToAccountList(this.safeList(response, "data", new List<object>() {}));
+        return ccxt.BaseExchange.ToAccountList(this.toArray(this.safeList(response, "data", new List<object>() {})));
     }
 
     /**

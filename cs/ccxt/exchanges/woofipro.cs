@@ -1678,7 +1678,7 @@ public partial class woofipro : Exchange
             }, row);
             result.Add(this.parseOpenInterest(interest));
         }
-        return ccxt.BaseExchange.ToOpenInterests(this.filterByArray(result, "symbol", symbolsNormalized));
+        return ccxt.BaseExchange.ToOpenInterests(this.indexBy(this.filterByArray(result, "symbol", symbolsNormalized, false), "symbol"));
     }
 
     /**

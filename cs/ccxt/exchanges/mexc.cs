@@ -5424,7 +5424,7 @@ public partial class mexc : Exchange
         //        ...
         //    ]
         //
-        object addressStructures = this.parseDepositAddresses(response, null, false);
+        List<object> addressStructures = ((List<object>)this.parseDepositAddresses(response, null, false));
         return ccxt.BaseExchange.ToDepositAddresses(this.indexBy(addressStructures, "network"));
     }
 
@@ -5497,30 +5497,28 @@ public partial class mexc : Exchange
         parameters ??= new Dictionary<string, object>();
         string? network = this.safeString(parameters, "network");
         Dictionary<string, object> addressStructures = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(code, parameters));
-        IDictionary<string, object> result = null;
+        string? key = null;
         if ((network != null))
         {
-            string? netCode = this.networkIdToCode(network, code);
-            result = ((netCode == null)) ? null : this.safeDict(addressStructures, netCode);
+            key = this.networkIdToCode(network, code);
         } else
         {
             IDictionary<string, object> options = this.safeDict(this.options, "defaultNetworks");
             string? defaultNetworkForCurrency = this.safeString(options, code);
             if ((defaultNetworkForCurrency != null))
             {
-                result = this.safeDict(addressStructures, defaultNetworkForCurrency);
+                key = defaultNetworkForCurrency;
             } else
             {
                 List<object> keys = new List<object>(addressStructures.Keys);
-                string? key = this.safeString(keys, 0);
-                result = this.safeDict(addressStructures, key);
+                key = this.safeString(keys, 0);
             }
         }
-        if ((result == null))
+        if (((key == null)) || ((this.safeDict(addressStructures, key) == null)))
         {
             throw new InvalidAddress ((((((this.id + " fetchDepositAddress() cannot find a deposit address for ") + code) + ", and network") + network) + "consider creating one using .createDepositAddress() method or in MEXC website")) ;
         }
-        return ccxt.BaseExchange.ToDepositAddress(result);
+        return ccxt.BaseExchange.ToDepositAddress(this.safeDict(addressStructures, key));
     }
 
     /**

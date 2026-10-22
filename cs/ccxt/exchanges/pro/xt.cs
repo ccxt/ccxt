@@ -453,12 +453,7 @@ public partial class xt : ccxt.xt
             throw new NotSupported ((this.id + " unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only")) ;
         }
         string messageHash = ("unsubscribe::" + name);
-        object tickers = await this.unSubscribe(messageHash, name, "public", "unWatchTickers", "ticker", null, symbols, parameters);
-        if (this.newUpdates)
-        {
-            return tickers;
-        }
-        return this.filterByArray(this.tickers, "symbol", symbols);
+        return await this.unSubscribe(messageHash, name, "public", "unWatchTickers", "ticker", null, symbols, parameters);
     }
 
     /**

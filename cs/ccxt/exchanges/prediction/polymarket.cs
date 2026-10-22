@@ -1226,10 +1226,9 @@ public partial class polymarket : PredictionExchange
                     ((IDictionary<string,object>)this.markets)[(string)getValue(mkt, "market")] = mkt;
                 }
                 this.populateOutcomes();
-                object byId = this.safeValue(this.outcomes_by_id, outcomeSymbol);
-                if ((byId != null))
+                if ((this.safeDict(this.outcomes_by_id, outcomeSymbol) != null))
                 {
-                    return ccxt.BaseExchange.ToDict(byId);
+                    return ccxt.BaseExchange.ToDict(this.safeDict(this.outcomes_by_id, outcomeSymbol));
                 }
             }
         }
@@ -2156,11 +2155,11 @@ public partial class polymarket : PredictionExchange
         List<object> positions = this.safeList(response, "data", new List<object>() {});
         // parse without the base outcome filter (it resolves standard markets, not outcome tokens),
         // then filter by the requested outcomes' token ids ourselves
-        List<object> parsed = this.parsePredictionPositions(positions);
         if ((outcomesLength == 0))
         {
-            return ccxt.BaseExchange.ToPredictionPositionList(parsed);
+            return ccxt.BaseExchange.ToPredictionPositionList(this.parsePredictionPositions(positions));
         }
+        List<object> parsed = this.parsePredictionPositions(positions);
         Dictionary<string, object> wantedIds = new Dictionary<string, object>() {};
         if ((outcomes == null))
         {

@@ -3296,18 +3296,15 @@ public partial class nado : Exchange
     public async virtual Task<IDictionary<string, object>> queryContracts(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        IDictionary<string, object> cachedContracts = this.safeDict(this.options, "gatewayContracts");
-        if ((cachedContracts != null))
+        if ((this.safeDict(this.options, "gatewayContracts") == null))
         {
-            return cachedContracts;
+            Dictionary<string, object> request = new Dictionary<string, object>() {
+                { "type", "contracts" },
+            };
+            Dictionary<string, object> response = await this.gatewayPublicGetQuery(this.extend(request, parameters));
+            this.options["gatewayContracts"] = this.safeDict(response, "data", new Dictionary<string, object>() {});
         }
-        Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "type", "contracts" },
-        };
-        Dictionary<string, object> response = await this.gatewayPublicGetQuery(this.extend(request, parameters));
-        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        this.options["gatewayContracts"] = data;
-        return data;
+        return this.safeDict(this.options, "gatewayContracts", new Dictionary<string, object>() {});
     }
 
     public virtual string orderVerifyingContract(object productId)

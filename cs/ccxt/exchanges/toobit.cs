@@ -1745,7 +1745,7 @@ public partial class toobit : Exchange
             results.Add(ticker);
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
-        return this.filterByArray(results, "symbol", symbolsNormalized);
+        return this.filterByArrayTickers(results, "symbol", symbolsNormalized);
     }
 
     public virtual Dictionary<string, object> parseBidAskCustom(object ticker)

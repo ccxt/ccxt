@@ -2794,8 +2794,7 @@ public partial class pacifica : Exchange
         // }
         //
         List<object> data = this.addPaginationCursorToResult(response);
-        IList<object> orders = ccxt.BaseExchange.FromOrderList(this.parseOrders(data, market, since, limit));
-        return ccxt.BaseExchange.ToOrderList(orders);
+        return this.parseOrders(data, market, since, limit);
     }
 
     public virtual List<object> addPaginationCursorToResult(IDictionary<string, object> response)

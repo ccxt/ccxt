@@ -701,7 +701,7 @@ public partial class indodax : Exchange
             ccxt.Ticker parsed = this.parseTicker(rawTicker, market);
             parsedTickers[(string)marketId] = ccxt.BaseExchange.FromTicker(parsed);
         }
-        return ccxt.BaseExchange.ToTickers(this.filterByArray(parsedTickers, "symbol", symbols));
+        return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(parsedTickers, "symbol", symbols));
     }
 
     public override ccxt.Trade parseTrade(object trade, object market = null)
@@ -1587,9 +1587,7 @@ public partial class indodax : Exchange
         IDictionary<string, object> addresses = this.safeDict(data, "address", new Dictionary<string, object>() {});
         IDictionary<string, object> networks = this.safeDict(data, "network", new Dictionary<string, object>() {});
         List<object> addressKeys = new List<object>(addresses.Keys);
-        Dictionary<string, object> result = new Dictionary<string, object>() {
-            { "info", data },
-        };
+        List<object> result = new List<object>() {};
         for (int i = 0; i < addressKeys.Count; i++)
         {
             string? marketId = ((string)addressKeys[i]);
@@ -1634,17 +1632,17 @@ public partial class indodax : Exchange
                 object finalNetwork = network; // java req
                 if ((code != null))
                 {
-                    result[(string)code] = new Dictionary<string, object>() {
+                    result.Add(new Dictionary<string, object>() {
                         { "info", new Dictionary<string, object>() {} },
                         { "currency", code },
                         { "network", finalNetwork },
                         { "address", address },
                         { "tag", null },
-                    };
+                    });
                 }
             }
         }
-        return ccxt.BaseExchange.ToDepositAddressList(result);
+        return ccxt.BaseExchange.ToDepositAddressList(this.toArray(result));
     }
 
     public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)

@@ -6496,7 +6496,7 @@ public partial class bybit : Exchange
         {
             throw new InvalidOrder ((this.id + " returned more than one order")) ;
         }
-        return ccxt.BaseExchange.ToOrder(this.safeValue(result, 0));
+        return ccxt.BaseExchange.ToOrder(this.safeDict(result, 0));
     }
 
     /**
@@ -6776,7 +6776,8 @@ public partial class bybit : Exchange
         {
             throw new InvalidOrder ((this.id + " returned more than one order")) ;
         }
-        return ccxt.BaseExchange.ToOrder(this.safeValue(result, 0));
+        IDictionary<string, object> order = this.safeDict(result, 0);
+        return ccxt.BaseExchange.ToOrder(order);
     }
 
     /**
@@ -6818,7 +6819,8 @@ public partial class bybit : Exchange
         {
             throw new InvalidOrder ((this.id + " returned more than one order")) ;
         }
-        return ccxt.BaseExchange.ToOrder(this.safeValue(result, 0));
+        IDictionary<string, object> order = this.safeDict(result, 0);
+        return ccxt.BaseExchange.ToOrder(order);
     }
 
     /**
@@ -7348,9 +7350,9 @@ public partial class bybit : Exchange
         List<object> chains = this.safeList(result, "chains", new List<object>() {});
         string? coin = this.safeString(result, "coin");
         Dictionary<string, object> currencyFromResponse = this.currency(coin);
-        object parsed = this.parseDepositAddresses(chains, new List<object>() {(currencyFromResponse != null && currencyFromResponse.ContainsKey("code") ? currencyFromResponse["code"] : null)}, false, new Dictionary<string, object>() {
+        List<object> parsed = ((List<object>)this.parseDepositAddresses(chains, new List<object>() {(currencyFromResponse != null && currencyFromResponse.ContainsKey("code") ? currencyFromResponse["code"] : null)}, false, new Dictionary<string, object>() {
             { "currency", (currencyFromResponse != null && currencyFromResponse.ContainsKey("code") ? currencyFromResponse["code"] : null) },
-        });
+        }));
         return ccxt.BaseExchange.ToDepositAddresses(this.indexBy(parsed, "network"));
     }
 
@@ -7376,7 +7378,7 @@ public partial class bybit : Exchange
         IDictionary<string, object> paramsOmited = ((IDictionary<string, object>)networkCodeparamsOmitedVariable.Item2);
         Dictionary<string, object> indexedAddresses = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(code, paramsOmited));
         object selectedNetworkCode = this.selectNetworkKeyFromNetworks((currency.ContainsKey("code") ? currency["code"] : null), networkCode, indexedAddresses, true);
-        return ccxt.BaseExchange.ToDepositAddress(this.safeValue(indexedAddresses, selectedNetworkCode));
+        return ccxt.BaseExchange.ToDepositAddress(this.safeDict(indexedAddresses, selectedNetworkCode));
     }
 
     /**
@@ -10514,7 +10516,7 @@ public partial class bybit : Exchange
             { "nextPageCursor", cursorValue },
         };
         result[Convert.ToInt32(lastIndex)] = last;
-        return result;
+        return this.toArray(result);
     }
 
     /**

@@ -1373,18 +1373,18 @@ public partial class mudrex : Exchange
      * @param {float} [params.amount] the amount to close for a partial close, closes the whole position if not provided
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<IDictionary<string, object>> closePosition(string symbol, string side = null, object parameters = null)
+    public async override Task<ccxt.Order> ClosePosition(string symbol, string side = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
+        Dictionary<string, object> market = this.market(symbol);
         string? positionId = this.safeString(parameters, "position_id");
         object amount = this.safeValue(parameters, "amount");
         if ((positionId == null))
         {
-            Dictionary<string, object> market = this.market(symbol);
             List<object> positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(new List<object>() {symbol}, parameters));
             for (int i = 0; i < (positions?.Count ?? 0); i++)
             {
@@ -1419,11 +1419,13 @@ public partial class mudrex : Exchange
             }
             object partialParams = this.omit(parameters, new List<object>() {"order_type", "limit_price", "amount", "position_id"});
             Dictionary<string, object> partialResponse = await this.privatePostFuturesPositionsPositionIdClosePartial(this.extend(request, partialParams));
-            return ((IDictionary<string, object>)((object)(partialResponse)));
+            IDictionary<string, object> partialData = this.safeDict(partialResponse, "data", partialResponse);
+            return this.parseOrder(partialData, market);
         }
         object closeParams = this.omit(parameters, new List<object>() {"position_id"});
         Dictionary<string, object> response = await this.privatePostFuturesPositionsPositionIdClose(this.extend(request, closeParams));
-        return ((IDictionary<string, object>)((object)(response)));
+        IDictionary<string, object> data = this.safeDict(response, "data", response);
+        return this.parseOrder(data, market);
     }
 
     /**

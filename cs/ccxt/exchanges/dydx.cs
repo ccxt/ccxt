@@ -1451,7 +1451,7 @@ public partial class dydx : Exchange
         IDictionary<string, object> dydxAccount = this.safeDict(this.options, "dydxAccount");
         if ((dydxAccount != null))
         {
-            return ccxt.BaseExchange.ToDict(dydxAccount);
+            return ccxt.BaseExchange.ToDict(this.safeDict(this.options, "dydxAccount", new Dictionary<string, object>() {}));
         }
         if ((this.walletAddress == null))
         {
@@ -1483,7 +1483,7 @@ public partial class dydx : Exchange
             { "key", getValue((account != null && account.ContainsKey("pub_key") ? account["pub_key"] : null), "key") },
         };
         this.options["dydxAccount"] = account;
-        return ccxt.BaseExchange.ToDict(account);
+        return ccxt.BaseExchange.ToDict(this.safeDict(this.options, "dydxAccount", new Dictionary<string, object>() {}));
     }
 
     public virtual string? pow(object n, object m)
@@ -2596,7 +2596,8 @@ public partial class dydx : Exchange
         //     ]
         // }
         //
-        return ccxt.BaseExchange.ToDictList(this.safeList(response, "transfers", new List<object>() {}));
+        List<object> transfers = this.safeList(response, "transfers", new List<object>() {});
+        return ccxt.BaseExchange.ToDictList(transfers);
     }
 
     /**

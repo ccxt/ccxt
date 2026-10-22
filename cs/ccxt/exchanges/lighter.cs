@@ -588,7 +588,8 @@ public partial class lighter : Exchange
         }
         signer = await this.loadAccount((this.options.ContainsKey("chainId") ? this.options["chainId"] : null), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex);
         await this.handleBuilderFeeApproval(accountIndex, apiKeyIndex);
-        return ((signer != null));
+        bool loaded = ((signer != null));
+        return loaded;
     }
 
     public virtual List<object> handleApiKeyIndex(object parameters, string? methodName1, string optionName1, string optionName2, object defaultValue = null)
@@ -803,8 +804,8 @@ public partial class lighter : Exchange
         bool standardTier = false;
         try
         {
-            object isStandardTier = await this.checkIfStandardTier(this.parseToInt(accountIndex));
-            if (isTrue(isStandardTier))
+            bool isStandardTier = await this.checkIfStandardTier(this.parseToInt(accountIndex));
+            if (isStandardTier)
             {
                 standardTier = true;
                 this.options["builderFee"] = false;
@@ -827,14 +828,15 @@ public partial class lighter : Exchange
         return true;
     }
 
-    public async virtual Task<object> checkIfStandardTier(object accountIndex)
+    public async virtual Task<bool> checkIfStandardTier(object accountIndex)
     {
         IDictionary<string, object> tiersForAccountIndexes = this.safeDict(this.options, "tiersForAccountIndexes", new Dictionary<string, object>() {});
         string accountIndexStr = accountIndex.ToString();
         bool? isStandardTier = this.safeBool(tiersForAccountIndexes, accountIndexStr);
         if ((isStandardTier != null))
         {
-            return isStandardTier;
+            bool cachedIsStandard = ((isStandardTier == true));
+            return cachedIsStandard;
         }
         Dictionary<string, object> accountLimits = await this.privateGetAccountLimits(new Dictionary<string, object>() {
             { "account_index", accountIndex },
@@ -1147,12 +1149,12 @@ public partial class lighter : Exchange
         }
         if (((IDictionary<string, object>)parameters).ContainsKey("nonce"))
         {
-            return ccxt.BaseExchange.ToInt64Value(this.safeInteger(parameters, "nonce"));
+            return ccxt.BaseExchange.ToInt64Value(this.parseToInt(this.safeInteger(parameters, "nonce")));
         }
         Int64? nonceInOptions = this.safeInteger(this.options, "nonce");
         if ((nonceInOptions != null))
         {
-            return ccxt.BaseExchange.ToInt64Value(nonceInOptions);
+            return ccxt.BaseExchange.ToInt64Value(this.parseToInt(nonceInOptions));
         }
         // avoid skipNonce for l1 operations
         bool? skipNonce = this.handleOptionBoolAndParams(parameters, "fetchNonce", "skipNonce", true).Item1;
@@ -1164,7 +1166,7 @@ public partial class lighter : Exchange
             { "account_index", accountIndex },
             { "api_key_index", apiKeyIndex },
         });
-        return ccxt.BaseExchange.ToInt64Value(this.safeInteger(response, "nonce"));
+        return ccxt.BaseExchange.ToInt64Value(this.parseToInt(this.safeInteger(response, "nonce")));
     }
 
     public async virtual Task<object> signAndCreateOrder(string method, string? symbol, string? type, string? side, object amount, double? price = null, object parameters = null)
@@ -1185,8 +1187,8 @@ public partial class lighter : Exchange
         object signer = await this.loadAccount((this.options.ContainsKey("chainId") ? this.options["chainId"] : null), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters);
         try
         {
-            object isStandardTier = await this.checkIfStandardTier(accountIndex);
-            if (isTrue(isStandardTier))
+            bool isStandardTier = await this.checkIfStandardTier(accountIndex);
+            if (isStandardTier)
             {
                 this.options["builderFee"] = false;
             }

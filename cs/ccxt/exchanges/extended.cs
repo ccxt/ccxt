@@ -2794,15 +2794,14 @@ public partial class extended : Exchange
     public async virtual Task<Dictionary<string, object>> FetchExtendedAccount(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object account = this.safeDict(this.options, "account");
+        IDictionary<string, object> account = this.safeDict(this.options, "account");
         if ((account != null))
         {
-            return ccxt.BaseExchange.ToDict(account);
+            return ccxt.BaseExchange.ToDict(this.safeDict(this.options, "account", new Dictionary<string, object>() {}));
         }
         Dictionary<string, object> accountData = ccxt.BaseExchange.FromAccount(await this.FetchAccount(parameters));
-        account = (accountData != null && accountData.ContainsKey("info") ? accountData["info"] : null);
-        this.options["account"] = account;
-        return ccxt.BaseExchange.ToDict(account);
+        this.options["account"] = (accountData != null && accountData.ContainsKey("info") ? accountData["info"] : null);
+        return ccxt.BaseExchange.ToDict(this.safeDict(this.options, "account", new Dictionary<string, object>() {}));
     }
 
     public virtual Dictionary<string, object> createOrderSettlementData(bool isBuy, object amountString, object priceString, IDictionary<string, object>? parameters = null)

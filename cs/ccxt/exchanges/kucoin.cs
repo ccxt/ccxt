@@ -4388,9 +4388,9 @@ public partial class kucoin : Exchange
             ((IDictionary<string,object>)getValue(getValue((this.options.ContainsKey("versions") ? this.options["versions"] : null), "private"), "GET"))["deposit-addresses"] = version;
         }
         List<object> chains = this.safeList(response, "data", new List<object>() {});
-        object parsed = this.parseDepositAddresses(chains, new List<object>() {(currency.ContainsKey("code") ? currency["code"] : null)}, false, new Dictionary<string, object>() {
+        List<object> parsed = ((List<object>)this.parseDepositAddresses(chains, new List<object>() {(currency.ContainsKey("code") ? currency["code"] : null)}, false, new Dictionary<string, object>() {
             { "currency", (currency.ContainsKey("code") ? currency["code"] : null) },
-        });
+        }));
         return ccxt.BaseExchange.ToDepositAddresses(this.indexBy(parsed, "network"));
     }
 
@@ -12929,7 +12929,7 @@ public partial class kucoin : Exchange
      * @param {string} [params.clientOrderId] client order id of the order
      * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<IDictionary<string, object>> closePosition(string symbol, string side = null, object parameters = null)
+    public async override Task<ccxt.Order> ClosePosition(string symbol, string side = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -12963,7 +12963,7 @@ public partial class kucoin : Exchange
         {
             response = await this.futuresPrivatePostOrders(this.extend(request, paramsOmitted));
         }
-        return ((IDictionary<string, object>)((object)(ccxt.BaseExchange.FromOrder(this.parseOrder(response, market)))));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -12995,7 +12995,8 @@ public partial class kucoin : Exchange
         if ((utaOption == true))
         {
             Dictionary<string, object> result = ccxt.BaseExchange.FromLeverageTiers(await this.FetchLeverageTiers(new List<object>() {symbol}, paramsUta));
-            return ccxt.BaseExchange.ToLeverageTierList(this.safeList(result, symbol, new List<object>() {}));
+            List<object> tiers = this.safeList(result, symbol, new List<object>() {});
+            return ccxt.BaseExchange.ToLeverageTierList(tiers);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
@@ -13310,16 +13311,15 @@ public partial class kucoin : Exchange
     public async override Task<bool> isUTAEnabled(Dictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        bool? uta = this.safeBool(this.options, "uta");
-        if ((uta == null))
+        if (isEqual(this.safeBool(this.options, "uta"), null))
         {
             Dictionary<string, object> response = await this.utaPrivateGetAccountMode(parameters);
             IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
             string? accountMode = this.safeString(data, "selfAccountMode");
-            uta = (accountMode == "UNIFIED");
-            this.options["uta"] = uta;
+            this.options["uta"] = (accountMode == "UNIFIED");
         }
-        return ((bool)((object)(uta))!);
+        bool uta = (this.safeBool(this.options, "uta") == true);
+        return uta;
     }
 
     public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)

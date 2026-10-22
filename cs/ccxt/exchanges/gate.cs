@@ -1969,7 +1969,8 @@ public partial class gate : Exchange
                 this.options["unifiedAccount"] = false;
             }
         }
-        return ((bool)((object)((this.options.ContainsKey("unifiedAccount") ? this.options["unifiedAccount"] : null)))!);
+        bool unified = (this.safeBool(this.options, "unifiedAccount") == true);
+        return unified;
     }
 
     public async virtual Task<Dictionary<string, object>> upgradeUnifiedTradeAccount(IDictionary<string, object>? parameters = null)
@@ -3270,7 +3271,7 @@ public partial class gate : Exchange
         List<object> chains = this.safeList(response, "multichain_addresses", new List<object>() {});
         string? currencyId = this.safeString(response, "currency");
         currency = this.safeCurrency(currencyId, currency);
-        object parsed = this.parseDepositAddresses(chains, null, false);
+        List<object> parsed = ((List<object>)this.parseDepositAddresses(chains, null, false));
         return ccxt.BaseExchange.ToDepositAddresses(this.indexBy(parsed, "network"));
     }
 
@@ -3297,7 +3298,7 @@ public partial class gate : Exchange
         Dictionary<string, object> chainsIndexedByIdRaw = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(code, paramsNetworkCode));
         Dictionary<string, object> chainsIndexedById = chainsIndexedByIdRaw;
         object selectedNetworkIdOrCode = this.selectNetworkKeyFromNetworks(code, networkCode, chainsIndexedById, true);
-        return ccxt.BaseExchange.ToDepositAddress(getValue(chainsIndexedById, ((string)selectedNetworkIdOrCode)));
+        return ccxt.BaseExchange.ToDepositAddress(this.safeDict(chainsIndexedById, selectedNetworkIdOrCode));
     }
 
     public override Dictionary<string, object> parseDepositAddress(object depositAddress, Dictionary<string, object> currency = null)
@@ -4852,8 +4853,9 @@ public partial class gate : Exchange
         //          }
         //      ]
         //
-        List<object> response = ccxt.BaseExchange.FromTradeList(await this.FetchMyTrades(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), new Dictionary<string, object>() { { "order_id", id }, }));
-        return ccxt.BaseExchange.ToTradeList(response);
+        return await this.FetchMyTrades(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), new Dictionary<string, object>() {
+            { "order_id", id },
+        });
     }
 
     /**
@@ -9894,7 +9896,7 @@ public partial class gate : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<IDictionary<string, object>> closePosition(string symbol, string side = null, object parameters = null)
+    public async override Task<ccxt.Order> ClosePosition(string symbol, string side = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -9903,7 +9905,7 @@ public partial class gate : Exchange
         Dictionary<string, object> paramsExtended = this.extend(request, parameters);
         // side is not used but needs to be present, otherwise crashes in php
         object sideResolved = ((side == null)) ? "" : side;
-        return ((IDictionary<string, object>)((object)(ccxt.BaseExchange.FromOrder(await this.CreateOrder(symbol, "market",((string)sideResolved),ccxt.BaseExchange.ToDoubleArgRequired(0),ccxt.BaseExchange.ToDoubleArg(null), paramsExtended)))));
+        return await this.CreateOrder(symbol, "market",((string)sideResolved),ccxt.BaseExchange.ToDoubleArgRequired(0),ccxt.BaseExchange.ToDoubleArg(null), paramsExtended);
     }
 
     /**

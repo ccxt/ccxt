@@ -3703,7 +3703,8 @@ public partial class kraken : Exchange
         //         ]
         //     }
         //
-        return ccxt.BaseExchange.ToDictList(this.safeValue(response, "result"));
+        List<object> result = this.safeList(response, "result", new List<object>() {});
+        return ccxt.BaseExchange.ToDictList(result);
     }
 
     /**

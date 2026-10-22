@@ -1783,7 +1783,8 @@ public partial class hitbtc : Exchange
     public async override Task<List<ccxt.Transaction>> FetchDepositsWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.FetchTransactionsHelper("DEPOSIT,WITHDRAW", code, since, limit, parameters);
+        object transactions = ccxt.BaseExchange.FromTransactionList(await this.FetchTransactionsHelper("DEPOSIT,WITHDRAW", code, since, limit, parameters));
+        return ccxt.BaseExchange.ToTransactionList(this.toArray(transactions));
     }
 
     /**
@@ -1800,7 +1801,8 @@ public partial class hitbtc : Exchange
     public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.FetchTransactionsHelper("DEPOSIT", code, since, limit, parameters);
+        object transactions = ccxt.BaseExchange.FromTransactionList(await this.FetchTransactionsHelper("DEPOSIT", code, since, limit, parameters));
+        return ccxt.BaseExchange.ToTransactionList(this.toArray(transactions));
     }
 
     /**
@@ -1817,7 +1819,8 @@ public partial class hitbtc : Exchange
     public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.FetchTransactionsHelper("WITHDRAW", code, since, limit, parameters);
+        object transactions = ccxt.BaseExchange.FromTransactionList(await this.FetchTransactionsHelper("WITHDRAW", code, since, limit, parameters));
+        return ccxt.BaseExchange.ToTransactionList(this.toArray(transactions));
     }
 
     /**
@@ -2196,7 +2199,16 @@ public partial class hitbtc : Exchange
             }
         }
         IList<object> parsed = ccxt.BaseExchange.FromOrderList(this.parseOrders(response, market, since, limit));
-        return ccxt.BaseExchange.ToOrderList(this.filterByArray(parsed, "status", new List<object>() {"closed", "canceled"}, false));
+        List<object> result = new List<object>() {};
+        for (int i = 0; i < (parsed?.Count ?? 0); i++)
+        {
+            string? status = this.safeString(parsed[i], "status");
+            if ((status == "closed") || (status == "canceled"))
+            {
+                result.Add(parsed[i]);
+            }
+        }
+        return ccxt.BaseExchange.ToOrderList(result);
     }
 
     /**
@@ -3232,7 +3244,7 @@ public partial class hitbtc : Exchange
             Dictionary<string, object> fundingRate = this.parseFundingRate(rawFundingRate, marketInner);
             fundingRates[(string)symbol] = fundingRate;
         }
-        return ccxt.BaseExchange.ToFundingRates(this.filterByArray(fundingRates, "symbol", symbolsNormalized));
+        return ccxt.BaseExchange.ToFundingRates(this.indexBy(this.filterByArray(fundingRates, "symbol", symbolsNormalized, false), "symbol"));
     }
 
     /**
@@ -3663,7 +3675,7 @@ public partial class hitbtc : Exchange
             IDictionary<string, object> openInterest = this.safeDict(response, marketId, new Dictionary<string, object>() {});
             results.Add(this.parseOpenInterest(openInterest, marketInner));
         }
-        return ccxt.BaseExchange.ToOpenInterests(this.filterByArray(results, "symbol", symbolsNormalized));
+        return ccxt.BaseExchange.ToOpenInterests(this.indexBy(this.filterByArray(results, "symbol", symbolsNormalized, false), "symbol"));
     }
 
     /**
@@ -4195,7 +4207,7 @@ public partial class hitbtc : Exchange
      * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross'
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<IDictionary<string, object>> closePosition(string symbol, string side = null, object parameters = null)
+    public async override Task<ccxt.Order> ClosePosition(string symbol, string side = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -4226,7 +4238,7 @@ public partial class hitbtc : Exchange
         //     "updated_at":"2023-12-19T09:34:40.014Z"
         // }
         //
-        return ((IDictionary<string, object>)((object)(ccxt.BaseExchange.FromOrder(this.parseOrder(response, market)))));
+        return this.parseOrder(response, market);
     }
 
     public override (string?, object) handleMarginModeAndParams(object methodName, object parameters = null, object defaultValue = null)
