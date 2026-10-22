@@ -485,7 +485,7 @@ class BaseExchange {
                 catch (e) {
                     //  when they are actually needed (in setProxyAgents) 'NotSupported' exception with install instructions is already raised
                 }
-                if (this.socksProxyAgentModuleChecked === false) {
+                if (!this.socksProxyAgentModuleChecked) {
                     try {
                         // @ts-ignore
                         this.socksProxyAgentModule = await dynamicImport('socks-proxy-agent');
@@ -3473,7 +3473,7 @@ class BaseExchange {
         this.initRestRateLimiter();
         // sanbox mode
         const isSandbox = this.safeBool2(this.options, 'sandbox', 'testnet', false);
-        if (isSandbox === true) {
+        if (isSandbox) {
             this.setSandboxMode(isSandbox);
         }
         // compatibility for sandbox/testnet options in userConfig
@@ -4333,7 +4333,7 @@ class BaseExchange {
         if (average === undefined) {
             if ((filled !== undefined) && (cost !== undefined) && Precise["default"].stringGt(filled, '0')) {
                 const filledTimesContractSize = Precise["default"].stringMul(filled, contractSize);
-                if (inverse === true) {
+                if (inverse) {
                     average = Precise["default"].stringDiv(filledTimesContractSize, cost);
                 }
                 else {
@@ -4358,7 +4358,7 @@ class BaseExchange {
             }
             // contract trading
             const filledTimesContractSize = Precise["default"].stringMul(filled, contractSize);
-            if (inverse === true) {
+            if (inverse) {
                 cost = Precise["default"].stringDiv(filledTimesContractSize, multiplyPrice);
             }
             else {
@@ -4581,7 +4581,7 @@ class BaseExchange {
             let multiplyPrice = price;
             if (contractSize !== undefined) {
                 const inverse = this.safeBool(market, 'inverse', false);
-                if (inverse === true) {
+                if (inverse) {
                     multiplyPrice = Precise["default"].stringDiv('1', price);
                 }
                 multiplyPrice = Precise["default"].stringMul(multiplyPrice, contractSize);
@@ -5041,7 +5041,7 @@ class BaseExchange {
         catch (e) {
             errorMessage = this.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.';
         }
-        if (muteOnFailure === true) {
+        if (muteOnFailure) {
             return undefined;
         }
         else {
@@ -5391,7 +5391,7 @@ class BaseExchange {
                 const market = this.safeMarket(id, undefined, undefined, 'swap');
                 const symbol = market['symbol'];
                 const contract = this.safeBool(market, 'contract', false);
-                if ((contract === true) && (noSymbols || ((symbolsNormalized !== undefined) && this.inArray(symbol, symbolsNormalized)))) {
+                if ((contract) && (noSymbols || ((symbolsNormalized !== undefined) && this.inArray(symbol, symbolsNormalized)))) {
                     tiers[symbol] = this.parseMarketLeverageTiers(item, market);
                 }
             }
@@ -5404,7 +5404,7 @@ class BaseExchange {
                 const market = this.safeMarket(marketId, undefined, undefined, 'swap');
                 const symbol = market['symbol'];
                 const contract = this.safeBool(market, 'contract', false);
-                if ((contract === true) && (noSymbols || ((symbolsNormalized !== undefined) && this.inArray(symbol, symbolsNormalized)))) {
+                if ((contract) && (noSymbols || ((symbolsNormalized !== undefined) && this.inArray(symbol, symbolsNormalized)))) {
                     tiers[symbol] = this.parseMarketLeverageTiers(item, market);
                 }
             }
@@ -6130,7 +6130,7 @@ class BaseExchange {
             if (price === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' buildOHLCVC() requires a price argument');
             }
-            if ((skipZeroPrices === true) && !(price > 0) && !(price < 0)) {
+            if ((skipZeroPrices) && !(price > 0) && !(price < 0)) {
                 continue;
             }
             let isNewCandle = candle === -1;
@@ -7362,13 +7362,13 @@ class BaseExchange {
         const ioc = timeInForce === 'IOC';
         const fok = timeInForce === 'FOK';
         const timeInForcePostOnly = timeInForce === 'PO';
-        if (postOnly !== true) {
+        if (!postOnly) {
             postOnly = timeInForcePostOnly;
         }
-        if (postOnly !== true) {
+        if (!postOnly) {
             postOnly = exchangeSpecificParam;
         }
-        if (postOnly === true) {
+        if (postOnly) {
             if (ioc || fok) {
                 throw new errors.InvalidOrder(this.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce);
             }
@@ -7397,13 +7397,13 @@ class BaseExchange {
         const ioc = timeInForce === 'IOC';
         const fok = timeInForce === 'FOK';
         const po = timeInForce === 'PO';
-        if (postOnly !== true) {
+        if (!postOnly) {
             postOnly = po;
         }
-        if (postOnly !== true) {
+        if (!postOnly) {
             postOnly = exchangeSpecificPostOnlyOption;
         }
-        if (postOnly === true) {
+        if (postOnly) {
             if (ioc || fok) {
                 throw new errors.InvalidOrder(this.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce);
             }

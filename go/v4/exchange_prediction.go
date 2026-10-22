@@ -815,7 +815,7 @@ func (this *PredictionExchange) loadOutcomesBody(ch chan AsyncResult[any], optio
 		var missingLength int = len(missing)
 		var wasWarm bool = (!IsEqual(this.Outcomes, nil)) && !this.IsEmpty(this.Outcomes)
 		var loadAll *bool = this.SafeBool(this.Options, "loadAllOutcomes", false)
-		if (missingLength > 0) && (loadAll != nil && *loadAll == true) && !wasWarm && !(reload == true) {
+		if (missingLength > 0) && (loadAll != nil && *loadAll) && !wasWarm && !(reload == true) {
 
 			r := <-this.LoadOutcomesAsync()
 			if r.Err != nil {
@@ -933,7 +933,7 @@ func (this *PredictionExchange) loadOutcomeBody(ch chan AsyncResult[any], outcom
 			}
 		}
 		var loadAll *bool = this.SafeBool(this.Options, "loadAllOutcomes", false)
-		if (loadAll != nil && *loadAll == true) && !wasWarm {
+		if (loadAll != nil && *loadAll) && !wasWarm {
 			// a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
 			// a miss on an already-warm cache is authoritative — the outcome genuinely isn't
 			// listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching

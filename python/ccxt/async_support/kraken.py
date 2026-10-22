@@ -1958,7 +1958,7 @@ class kraken(Exchange, ImplicitAPI):
         if orderDescription is not None:
             parts = orderDescription.split(' ')
             side = self.safe_string(parts, 0)
-            if isUsingCost is not True:
+            if not isUsingCost:
                 amount = self.safe_string(parts, 1)
             else:
                 cost = self.safe_string(parts, 1)
@@ -2170,7 +2170,7 @@ class kraken(Exchange, ImplicitAPI):
             request['timeinforce'] = timeInForce
         isMarket = (type == 'market')
         postOnly, paramsPostOnly = self.handle_post_only(isMarket, False, paramsOmitted2)
-        if postOnly is True:
+        if postOnly:
             extendedPostFlags = 'post'
             if flags is not None:
                 extendedPostFlags = flags + ',post'
@@ -2220,7 +2220,7 @@ class kraken(Exchange, ImplicitAPI):
         isMarket = (type == 'market')
         postOnly = None
         postOnly, paramsOmitted = self.handle_post_only(isMarket, False, paramsOmitted)
-        if postOnly is True:
+        if postOnly:
             request['post_only'] = 'true'  # not using boolean in this case, because the urlencodedNested transforms it into 'True' string
         if amount is not None:
             request['order_qty'] = self.amount_to_precision(symbol, amount)

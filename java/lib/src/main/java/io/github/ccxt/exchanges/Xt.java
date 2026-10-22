@@ -3261,7 +3261,7 @@ public class Xt extends XtApi
                 {
                     String cost = this.safeString(paramsMarginMode, "cost");
                     Boolean createMarketBuyOrderRequiresPrice = (Boolean) this.safeBool(this.options, "createMarketBuyOrderRequiresPrice", true);
-                    if (java.util.Objects.equals(createMarketBuyOrderRequiresPrice, true))
+                    if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
                     {
                         if (java.util.Objects.equals(price, null) && (java.util.Objects.equals(cost, null)))
                         {
@@ -3300,7 +3300,7 @@ public class Xt extends XtApi
             List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), java.util.Objects.equals(timeInForce, "GTX"), paramsWithoutCost);
             Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
             Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
-            if (java.util.Objects.equals(postOnly, true))
+            if (Boolean.TRUE.equals(postOnly))
             {
                 timeInForce = "GTX";
             }
@@ -3345,7 +3345,7 @@ public class Xt extends XtApi
             List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), java.util.Objects.equals(timeInForce, "GTX"), parameters);
             Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
             Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
-            if (java.util.Objects.equals(postOnly, true))
+            if (Boolean.TRUE.equals(postOnly))
             {
                 timeInForce = "GTX";
             }
@@ -3358,7 +3358,7 @@ public class Xt extends XtApi
             if (java.util.Objects.equals(side, "buy"))
             {
                 String requestType = "LONG";
-                if (java.util.Objects.equals(reduceOnly, true))
+                if (Boolean.TRUE.equals(reduceOnly))
                 {
                     requestType = "SHORT";
                 }
@@ -3366,7 +3366,7 @@ public class Xt extends XtApi
             } else
             {
                 String requestType = "SHORT";
-                if (java.util.Objects.equals(reduceOnly, true))
+                if (Boolean.TRUE.equals(reduceOnly))
                 {
                     requestType = "LONG";
                 }

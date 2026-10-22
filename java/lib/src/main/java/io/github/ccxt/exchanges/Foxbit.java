@@ -1157,7 +1157,7 @@ public class Foxbit extends FoxbitApi
                     request.put("time_in_force", timeInForce);
                 }
             }
-            if (java.util.Objects.equals(postOnly, true))
+            if (Boolean.TRUE.equals(postOnly))
             {
                 request.put("post_only", true);
             }
@@ -1248,7 +1248,7 @@ public class Foxbit extends FoxbitApi
                     }
                     ((Map<String,Object>)orderParams).remove("timeInForce");
                 }
-                if (java.util.Objects.equals(postOnly, true))
+                if (Boolean.TRUE.equals(postOnly))
                 {
                     request.put("post_only", true);
                     ((Map<String,Object>)orderParams).remove("postOnly");

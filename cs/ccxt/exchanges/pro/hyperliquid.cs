@@ -1239,7 +1239,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         string? dex = this.safeString(paramsValue2, "dex");
         bool isSpot = (((type == "spot")) || ((isUnifiedEnabled == true))) && ((dex == null));
         string topic = "clearinghouseState";
-        if ((isSpot == true))
+        if (isSpot)
         {
             topic = "spotState";
         }
@@ -1249,7 +1249,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             { "type", topic },
             { "user", userAddress },
         };
-        if ((isSpot == true))
+        if (isSpot)
         {
             if ((isUnifiedEnabled == true))
             {
@@ -1304,7 +1304,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         string? dex = this.safeString(paramsValue2, "dex");
         bool isSpot = (((type == "spot")) || ((isUnifiedEnabled == true))) && ((dex == null));
         string topic = "clearinghouseState";
-        if ((isSpot == true))
+        if (isSpot)
         {
             topic = "spotState";
         }

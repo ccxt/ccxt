@@ -1097,7 +1097,7 @@ class coincheck extends Exchange {
         //     {"success":false,"error":"invalid authentication"}
         //
         $success = $this->safe_bool($response, 'success', true);
-        if ($success !== true) {
+        if (!$success) {
             $error = $this->safe_string($response, 'error');
             $feedback = $this->id . ' ' . $this->json($response);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $feedback);

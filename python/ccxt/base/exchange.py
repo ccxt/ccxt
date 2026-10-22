@@ -3836,7 +3836,7 @@ class BaseExchange(object):
         self.init_rest_rate_limiter()
         # sanbox mode
         isSandbox = self.safe_bool_2(self.options, 'sandbox', 'testnet', False)
-        if isSandbox is True:
+        if isSandbox:
             self.set_sandbox_mode(isSandbox)
         # compatibility for sandbox/testnet options in userConfig
         if (self.safe_bool(userConfig, 'sandbox', False)) or (self.safe_bool(userConfig, 'testnet', False)):
@@ -4550,7 +4550,7 @@ class BaseExchange(object):
         if average is None:
             if (filled is not None) and (cost is not None) and Precise.string_gt(filled, '0'):
                 filledTimesContractSize = Precise.string_mul(filled, contractSize)
-                if inverse is True:
+                if inverse:
                     average = Precise.string_div(filledTimesContractSize, cost)
                 else:
                     average = Precise.string_div(cost, filledTimesContractSize)
@@ -4569,7 +4569,7 @@ class BaseExchange(object):
                 multiplyPrice = average
             # contract trading
             filledTimesContractSize = Precise.string_mul(filled, contractSize)
-            if inverse is True:
+            if inverse:
                 cost = Precise.string_div(filledTimesContractSize, multiplyPrice)
             else:
                 cost = Precise.string_mul(filledTimesContractSize, multiplyPrice)
@@ -4764,7 +4764,7 @@ class BaseExchange(object):
             multiplyPrice = price
             if contractSize is not None:
                 inverse = self.safe_bool(market, 'inverse', False)
-                if inverse is True:
+                if inverse:
                     multiplyPrice = Precise.string_div('1', price)
                 multiplyPrice = Precise.string_mul(multiplyPrice, contractSize)
             cost = Precise.string_mul(multiplyPrice, amount)
@@ -5153,7 +5153,7 @@ class BaseExchange(object):
                 return content
         except Exception as e:
             errorMessage = self.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.'
-        if muteOnFailure is True:
+        if muteOnFailure:
             return None
         else:
             raise BadResponse(errorMessage)
@@ -5446,7 +5446,7 @@ class BaseExchange(object):
                 market = self.safe_market(id, None, None, 'swap')
                 symbol = market['symbol']
                 contract = self.safe_bool(market, 'contract', False)
-                if (contract is True) and (noSymbols or ((symbolsNormalized is not None) and self.in_array(symbol, symbolsNormalized))):
+                if (contract) and (noSymbols or ((symbolsNormalized is not None) and self.in_array(symbol, symbolsNormalized))):
                     tiers[symbol] = self.parse_market_leverage_tiers(item, market)
         else:
             keys = list(response.keys())
@@ -5456,7 +5456,7 @@ class BaseExchange(object):
                 market = self.safe_market(marketId, None, None, 'swap')
                 symbol = market['symbol']
                 contract = self.safe_bool(market, 'contract', False)
-                if (contract is True) and (noSymbols or ((symbolsNormalized is not None) and self.in_array(symbol, symbolsNormalized))):
+                if (contract) and (noSymbols or ((symbolsNormalized is not None) and self.in_array(symbol, symbolsNormalized))):
                     tiers[symbol] = self.parse_market_leverage_tiers(item, market)
         return tiers
 
@@ -6034,7 +6034,7 @@ class BaseExchange(object):
             candle = ohlcv_length - 1
             if price is None:
                 raise ArgumentsRequired(self.id + ' buildOHLCVC() requires a price argument')
-            if (skipZeroPrices is True) and not (price > 0) and not (price < 0):
+            if (skipZeroPrices) and not (price > 0) and not (price < 0):
                 continue
             isNewCandle = candle == -1
             if not isNewCandle:
@@ -7079,11 +7079,11 @@ class BaseExchange(object):
         ioc = timeInForce == 'IOC'
         fok = timeInForce == 'FOK'
         timeInForcePostOnly = timeInForce == 'PO'
-        if postOnly is not True:
+        if not postOnly:
             postOnly = timeInForcePostOnly
-        if postOnly is not True:
+        if not postOnly:
             postOnly = exchangeSpecificParam
-        if postOnly is True:
+        if postOnly:
             if ioc or fok:
                 raise InvalidOrder(self.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce)
             elif isMarketOrder:
@@ -7106,11 +7106,11 @@ class BaseExchange(object):
         ioc = timeInForce == 'IOC'
         fok = timeInForce == 'FOK'
         po = timeInForce == 'PO'
-        if postOnly is not True:
+        if not postOnly:
             postOnly = po
-        if postOnly is not True:
+        if not postOnly:
             postOnly = exchangeSpecificPostOnlyOption
-        if postOnly is True:
+        if postOnly:
             if ioc or fok:
                 raise InvalidOrder(self.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce)
             elif isMarketOrder:

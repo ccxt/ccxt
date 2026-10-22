@@ -566,7 +566,7 @@ class toobit(ccxt.async_support.toobit):
         #     }
         #
         isSnapshot = self.safe_bool(message, 'f', False)
-        if isSnapshot is True:
+        if isSnapshot:
             self.set_order_book_snapshot(client, message, 'diffDepth')
             return
         marketId = self.safe_string(message, 'symbol')

@@ -1320,7 +1320,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // the on-chain AMM path requires native gas and has not been verified end to end; keep it behind
         // an explicit opt-in so callers do not silently hit an untested signing/broadcast path
         let mut enableAmm: Value = self.safe_bool2(params, Value::Str("enableAmm".into()), Value::Str("enableAmmOrders".into()), &[self.safe_bool_k(self.options.clone(), "enableAmmOrders", &[Value::Bool(false)])]);
-        if (enableAmm.as_bool() != Some(true)) {
+        if !(enableAmm.as_bool() == Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder() only supports the gasless order book; this market uses the on-chain AMM (needs native gas and is unverified) — pass params.enableAmm=true to opt in".into()))));
         }
         return self.create_amm_order(outcome, type_var, side, amount, &[price, self.omit(rest, Value::from(vec![Value::Str("enableAmm".into()), Value::Str("enableAmmOrders".into())]), &[])]).await;
@@ -1608,7 +1608,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // plain createOrder buy on the AMM is rejected so it can't misinterpret shares as collateral
         let mut sideLower: Value = (if (side != Value::Null) { to_lower(&side) } else { Value::Null });
         let mut isCostDenominated: Value = self.safe_bool_k(params.clone(), "costDenominated", &[Value::Bool(false)]);
-        if (sideLower.as_str() == Some("buy")) && (isCostDenominated.as_bool() != Some(true)) {
+        if (sideLower.as_str() == Some("buy")) && (!(isCostDenominated.as_bool() == Some(true))) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder() market buy on the AMM sizes by collateral, not shares — use createMarketBuyOrderWithCost(outcome, collateral) for a dollar buy, or the default order book (omit enableAmm) for a share-denominated order".into()))));
         }
         if (self.privateKey.clone() == Value::Null) {
@@ -1650,7 +1650,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut txHashParam: Value = self.safe_string2(params.clone(), Value::Str("transactionHash".into()), Value::Str("txHash".into()), &[]);
         let mut hasPreBroadcastTxHash: Value = (Value::Bool(txHashParam != Value::Null));
         let mut skipAllowance: Value = self.safe_bool_k(params.clone(), "skipAllowance", &[hasPreBroadcastTxHash.clone()]);
-        if (sideStr.as_str() == Some("buy")) && (tokenAddress != Value::Null) && (skipAllowance.as_bool() != Some(true)) {
+        if (sideStr.as_str() == Some("buy")) && (tokenAddress != Value::Null) && (!is_true(&skipAllowance)) {
             self.ensure_erc20_allowance(rpcUrl.clone(), networkId.clone(), tokenAddress, fromAddress.clone(), predictionMarket.clone()).await;
         }
         let mut skipWaitForReceipt: Value = self.safe_bool_k(params, "skipWaitForReceipt", &[hasPreBroadcastTxHash]);
@@ -1659,7 +1659,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let __ws_arg_12 = self.parse_to_int(networkId);
             txHash = self.send_evm_transaction(rpcUrl.clone(), __ws_arg_12, fromAddress, predictionMarket, Value::Str("0x0".into()), calldata, gasLimit).await;
         }
-        if (skipWaitForReceipt.as_bool() != Some(true)) {
+        if !is_true(&skipWaitForReceipt) {
             self.wait_for_transaction_receipt(rpcUrl, txHash.clone(), &[]).await;
         }
         return self.parse_trade_tx(txHash, quote, outcomeObj, sideStr);
@@ -3049,7 +3049,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if winnerRaw.as_bool() == Some(true) {
                     resolvedOutcome = outcomeHandle.clone();
                 }
-            }  else if (voided.as_bool() == Some(true)) {
+            }  else if voided.as_bool() == Some(true) {
                 winnerRaw = Value::Bool(false);
             }
             // effectively-final copies for the object literal below (Java cannot capture a
@@ -4061,7 +4061,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         let mut allowUnscopedFetchEvents: Value = self.safe_bool_k(self.options.clone(), "allowUnscopedFetchEvents", &[Value::Bool(false)]);
-        if (allowUnscopedFetchEvents.as_bool() != Some(true)) {
+        if !(allowUnscopedFetchEvents.as_bool() == Some(true)) {
             self.require_event_query(&[params.clone()]);
         }
         let mut queries: Value = self.parse_search_queries(&[params.clone()]);

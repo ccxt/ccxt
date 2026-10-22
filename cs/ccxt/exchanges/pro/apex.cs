@@ -1088,7 +1088,7 @@ public partial class apex : ccxt.apex
                 throw new ExchangeError (feedback) ;
             }
             bool? success = this.safeBool(message, "success");
-            if (((success != null)) && ((success != true)))
+            if (((success != null)) && (success != true))
             {
                 string? ret_msg = this.safeString(message, "ret_msg");
                 IDictionary<string, object> request = this.safeDict(message, "request", new Dictionary<string, object>() {});

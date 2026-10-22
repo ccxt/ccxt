@@ -676,9 +676,9 @@ class deepcoin(Exchange, ImplicitAPI):
         if until is not None:
             request['after'] = until
         calculateUntil = self.safe_bool(paramsPaginate, 'calculateUntil', False)
-        keysToOmit = ['price', 'until', 'calculateUntil'] if (calculateUntil is True) else ['price', 'until']
+        keysToOmit = ['price', 'until', 'calculateUntil'] if (calculateUntil) else ['price', 'until']
         paramsOmitted = self.omit(paramsPaginate, keysToOmit)
-        if calculateUntil is True:
+        if calculateUntil:
             if since is not None:
                 # the exchange do not have a since param for this endpoint
                 # we calculate until (after) for correct pagination
@@ -1377,7 +1377,7 @@ class deepcoin(Exchange, ImplicitAPI):
         transfer = self.parse_transfer(data, currency)
         transferOptions = self.safe_dict(self.options, 'transfer', {})
         fillResponseFromRequest = self.safe_bool(transferOptions, 'fillResponseFromRequest', True)
-        if fillResponseFromRequest is True:
+        if fillResponseFromRequest:
             transfer['fromAccount'] = fromAccount
             transfer['toAccount'] = toAccount
             transfer['amount'] = amount
@@ -1575,7 +1575,7 @@ class deepcoin(Exchange, ImplicitAPI):
             request['mrgPosition'] = mrgPosition
             posSide = None
             reduceOnly = self.safe_bool(paramsMrgPosition, 'reduceOnly', False)
-            if reduceOnly is True:
+            if reduceOnly:
                 if side == 'buy':
                     posSide = 'short'
                 elif side == 'sell':
@@ -1646,7 +1646,7 @@ class deepcoin(Exchange, ImplicitAPI):
         request['isCrossMargin'] = isCrossMargin
         request['tdMode'] = marginModeOption
         if market['swap'] is True:
-            if reduceOnly is True:
+            if reduceOnly:
                 if side == 'buy':
                     request['posSide'] = 'short'
                 elif side == 'sell':
@@ -1841,7 +1841,7 @@ class deepcoin(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit  # default 100
         response = None
-        if trigger is True:
+        if trigger:
             if methodName != 'fetchCanceledAndClosedOrders':
                 raise BadRequest(self.id + ' ' + methodName + '() does not support trigger orders')
             if market is None:
@@ -1993,7 +1993,7 @@ class deepcoin(Exchange, ImplicitAPI):
         trigger = self.safe_bool(params, 'trigger', False)
         paramsOmitted = self.omit(params, 'trigger')
         response = None
-        if trigger is True:
+        if trigger:
             request['instType'] = self.convert_to_instrument_type(market['type'])
             #
             #     {
@@ -2102,7 +2102,7 @@ class deepcoin(Exchange, ImplicitAPI):
         }
         response = None
         trigger = self.safe_bool(params, 'trigger', False)
-        if trigger is True:
+        if trigger:
             paramsOmitted = self.omit(params, 'trigger')
             response = self.privatePostDeepcoinTradeCancelTriggerOrder(self.extend(request, paramsOmitted))
         else:

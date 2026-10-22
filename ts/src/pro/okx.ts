@@ -900,7 +900,7 @@ export default class okx extends okxRest {
         const isTrigger = this.safeBool2 (params, 'stop', 'trigger', false);
         const paramsOmitted: Dict = this.omit (params, [ 'stop', 'trigger' ]);
         let accessType: Str = 'private';
-        if (isTrigger === true) {
+        if (isTrigger) {
             accessType = 'business';
         }
         await this.authenticate ({ 'access': accessType });
@@ -1843,12 +1843,12 @@ export default class okx extends okxRest {
             await this.loadMarkets ();
         }
         let access: Str = 'private';
-        if (isTrigger === true) {
+        if (isTrigger) {
             access = 'business';
         }
         await this.authenticate ({ 'access': access });
         let channel: Str = 'orders';
-        if (isTrigger === true) {
+        if (isTrigger) {
             channel = 'orders-algo';
         }
         let messageHash = channel + '::myTrades';
@@ -2049,7 +2049,7 @@ export default class okx extends okxRest {
             await this.loadMarkets ();
         }
         let accessType: Str = 'private';
-        if (isTrigger === true) {
+        if (isTrigger) {
             accessType = 'business';
         }
         await this.authenticate ({ 'access': accessType });
@@ -2078,7 +2078,7 @@ export default class okx extends okxRest {
             'instType': uppercaseType,
         };
         let channel: Str = 'orders';
-        if (isTrigger === true) {
+        if (isTrigger) {
             channel = 'orders-algo';
         }
         const orders = await this.subscribe ('private', channel, channel, symbolResolved, this.extend (request, paramsMarginMode));

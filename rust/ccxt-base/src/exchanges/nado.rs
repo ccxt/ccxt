@@ -2392,7 +2392,7 @@ impl NadoCore {
                 let mut previousWithdraw: Value = self.safe_bool_k(previous, "can_withdraw", &[Value::Bool(false)]);
                 let mut currentDeposit: Value = self.safe_bool_k(rawAsset.clone(), "can_deposit", &[Value::Bool(false)]);
                 let mut currentWithdraw: Value = self.safe_bool_k(rawAsset.clone(), "can_withdraw", &[Value::Bool(false)]);
-                if (previousDeposit.as_bool() != Some(true)) && (previousWithdraw.as_bool() != Some(true)) && ((currentDeposit.as_bool() == Some(true)) || (currentWithdraw.as_bool() == Some(true))) {
+                if (!(previousDeposit.as_bool() == Some(true))) && (!(previousWithdraw.as_bool() == Some(true))) && (currentDeposit.as_bool() == Some(true) || currentWithdraw.as_bool() == Some(true)) {
                     if let Value::Dict(__d) = &mut assetsByCode { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&assetCode), rawAsset); }
                 }
             }
@@ -2563,7 +2563,7 @@ impl NadoCore {
             }  else {
                 let mut previousDeposit: Value = self.safe_bool_k(previous.clone(), "deposit", &[Value::Bool(false)]);
                 let mut previousWithdraw: Value = self.safe_bool_k(previous, "withdraw", &[Value::Bool(false)]);
-                if (previousDeposit.as_bool() != Some(true)) && (previousWithdraw.as_bool() != Some(true)) && ((canDeposit.as_bool() == Some(true)) || (canWithdraw.as_bool() == Some(true))) {
+                if (!(previousDeposit.as_bool() == Some(true))) && (!(previousWithdraw.as_bool() == Some(true))) && (canDeposit.as_bool() == Some(true) || canWithdraw.as_bool() == Some(true)) {
                     if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), parsed); }
                 }
             }
@@ -3946,17 +3946,17 @@ impl NadoCore {
         if (orderType.as_f64() != Some(0.0)) {
             appendix = crate::precise::Precise::stringAdd(&appendix, &crate::precise::Precise::stringMul(&self.number_to_string(orderType), &Value::Str("512".into())));
         }
-        if (reduceOnly.as_bool() == Some(true)) {
+        if reduceOnly.as_bool() == Some(true) {
             appendix = crate::precise::Precise::stringAdd(&appendix, &Value::Str("2048".into()));
         }
         let mut buildFee: Value = self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(true)]);
-        if (buildFee.as_bool() == Some(true)) {
+        if buildFee.as_bool() == Some(true) {
             let mut builder: Value = self.safe_string_k(self.options.clone(), "builder", &[Value::Str("4500".into())]);
             let mut builderFeeRate: Value = self.safe_string_k(self.options.clone(), "feeRate", &[Value::Str("10".into())]); // 10 units = 0.01%
             appendix = crate::precise::Precise::stringAdd(&appendix, &crate::precise::Precise::stringMul(&builder, &Value::Str("281474976710656".into()))); // 1<<48
             appendix = crate::precise::Precise::stringAdd(&appendix, &crate::precise::Precise::stringMul(&builderFeeRate, &Value::Str("274877906944".into()))); // 1<<32
         }
-        if (isTriggerOrder.as_bool() == Some(true)) {
+        if is_true(&isTriggerOrder) {
             appendix = crate::precise::Precise::stringAdd(&appendix, &Value::Str("4096".into()));
         }
         return appendix.as_str().map(str::to_owned);

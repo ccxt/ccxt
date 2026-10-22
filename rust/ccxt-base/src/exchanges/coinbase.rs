@@ -2785,7 +2785,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return Value::Null;
         }
         let mut isDisabled: Value = self.safe_bool_k(market.clone(), "is_disabled", &[]);
-        let mut tradingDisabled: Value = Value::Bool((isDisabled.as_bool() == Some(true)) || (self.safe_bool_k(market.clone(), "trading_disabled", &[]).as_bool() == Some(true)));
+        let mut tradingDisabled: bool = (isDisabled.as_bool() == Some(true)) || (self.safe_bool_k(market.clone(), "trading_disabled", &[]).as_bool() == Some(true));
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
         let mut type_var: Value = Value::Null;
         if matches!(&isSwap, Value::Bool(true)) {
@@ -2815,7 +2815,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("swap".to_string(), isSwap.clone());
         m.insert("future".to_string(), Value::Bool(!(matches!(&isSwap, Value::Bool(true)))));
         m.insert("option".to_string(), Value::Bool(false));
-        m.insert("active".to_string(), Value::Bool(!matches!(&tradingDisabled, Value::Bool(true))));
+        m.insert("active".to_string(), Value::Bool(!tradingDisabled));
         m.insert("contract".to_string(), Value::Bool(true));
         m.insert("linear".to_string(), Value::Bool(true));
         m.insert("inverse".to_string(), Value::Bool(false));
@@ -3705,7 +3705,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (marketType.as_str() == Some("future")) || (marketType.as_str() == Some("swap")) {
             let __ws_arg_17 = self.extend(request.clone(), &[paramsMarketType.clone()]);
             response = self.v3_private_get_brokerage_cfm_balance_summary(&[__ws_arg_17]).await;
-        }  else if (isV3.as_bool() == Some(true)) || (method.as_deref() == Some("v3PrivateGetBrokerageAccounts")) {
+        }  else if isV3.as_bool() == Some(true) || (method.as_deref() == Some("v3PrivateGetBrokerageAccounts")) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), Value::Int(250)); }
             let __ws_arg_18 = self.extend(request.clone(), &[paramsMarketType.clone()]);
             response = self.v3_private_get_brokerage_accounts(&[__ws_arg_18]).await;
@@ -4567,7 +4567,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut paramsOmitted: Value = self.omit(paramsBase, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("triggerPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("stopPrice".into()), Value::Str("stop_price".into()), Value::Str("stopDirection".into()), Value::Str("stop_direction".into()), Value::Str("clientOrderId".into()), Value::Str("postOnly".into()), Value::Str("post_only".into()), Value::Str("end_time".into()), Value::Str("marginMode".into())]), &[]);
         let mut preview: Value = self.safe_bool2(paramsOmitted.clone(), Value::Str("preview".into()), Value::Str("test".into()), &[Value::Bool(false)]);
         let mut response: Value = Value::Null;
-        if (preview.as_bool() == Some(true)) {
+        if preview.as_bool() == Some(true) {
             request = self.omit(request.clone(), Value::Str("client_order_id".into()), &[]);
             let __ws_arg_22 = self.extend(request.clone(), &[self.omit(paramsOmitted.clone(), Value::from(vec![Value::Str("preview".into()), Value::Str("test".into())]), &[])]);
             response = self.v3_private_post_brokerage_orders_preview(&[__ws_arg_22]).await;
@@ -4949,7 +4949,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut preview: Value = self.safe_bool2(params.clone(), Value::Str("preview".into()), Value::Str("test".into()), &[Value::Bool(false)]);
         let mut response: Value = Value::Null;
-        if (preview.as_bool() == Some(true)) {
+        if preview.as_bool() == Some(true) {
             let __ws_arg_25 = self.extend(request.clone(), &[self.omit(params.clone(), Value::from(vec![Value::Str("preview".into()), Value::Str("test".into())]), &[])]);
             response = self.v3_private_post_brokerage_orders_edit_preview(&[__ws_arg_25]).await;
         }  else {

@@ -4977,12 +4977,12 @@ public partial class binance : Exchange
         }
         bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         bool? demoMode = this.safeBool(this.options, "enableDemoTrading", false);
-        bool isDemoEnv = ((demoMode == true)) || ((sandboxMode == true));
+        bool isDemoEnv = (demoMode == true) || (sandboxMode == true);
         List<object> fetchMarkets = new List<object>() {};
         for (int i = 0; i < (rawFetchMarkets?.Count ?? 0); i++)
         {
             object type = rawFetchMarkets[i];
-            if ((type is "option") && ((isDemoEnv == true)))
+            if ((type is "option") && (isDemoEnv))
             {
                 continue;
             }
@@ -4995,7 +4995,7 @@ public partial class binance : Exchange
             if ((marketType is "spot"))
             {
                 promisesRaw.Add(this.publicGetExchangeInfo(parameters));
-                if (((fetchMargins == true)) && this.checkRequiredCredentials(false) && ((isDemoEnv != true)))
+                if ((fetchMargins == true) && this.checkRequiredCredentials(false) && (!isDemoEnv))
                 {
                     promisesRaw.Add(this.sapiGetMarginAllPairs(parameters));
                     promisesRaw.Add(this.sapiGetMarginIsolatedAllPairs(parameters));
@@ -5011,7 +5011,7 @@ public partial class binance : Exchange
                 promisesRaw.Add(this.eapiPublicGetExchangeInfo(parameters));
             } else if ((marketType is "stock"))
             {
-                if (((isDemoEnv != true)) && ((this.apiKey != null) && !isEqual(this.apiKey, "")))
+                if ((!isDemoEnv) && ((this.apiKey != null) && !isEqual(this.apiKey, "")))
                 {
                     promisesRaw.Add(this.sapiGetEquityMarketExchangeInfo(parameters));
                 }
@@ -5027,7 +5027,7 @@ public partial class binance : Exchange
         for (int i = 0; i < (results?.Count ?? 0); i++)
         {
             object res = this.safeValue(results, i);
-            if (((fetchMargins == true)) && ((res is IList<object>) || (res.GetType().IsGenericType && res.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+            if ((fetchMargins == true) && ((res is IList<object>) || (res.GetType().IsGenericType && res.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
                 List<object> keysList = new List<object>(((IDictionary<string,object>)this.indexBy(res, "symbol")).Keys);
                 int length = getArrayLength((this.options.ContainsKey("crossMarginPairsData") ? this.options["crossMarginPairsData"] : null));
@@ -7365,7 +7365,7 @@ public partial class binance : Exchange
             bool isFutureOrSwap = ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true)) || ((((market.ContainsKey("future") ? market["future"] : null) as bool?) == true));
             bool isHistoricalEndpoint = ((method != null)) && (method.IndexOf("GetHistoricalTrades", StringComparison.Ordinal) >= 0);
             int maxLimitForContractHistorical = isHistoricalEndpoint ? 500 : 1000;
-            request["limit"] = ((isFutureOrSwap == true)) ? mathMin(limit, maxLimitForContractHistorical) : limit; // default = 500, maximum = 1000
+            request["limit"] = isFutureOrSwap ? mathMin(limit, maxLimitForContractHistorical) : limit; // default = 500, maximum = 1000
         }
         Dictionary<string, object> paramsOmitted = this.omit(paramsPaginate, new List<object>() {"until", "fetchTradesMethod"});
         if ((method == null))
@@ -8973,7 +8973,7 @@ public partial class binance : Exchange
                     response = await this.dapiPrivatePostOrder(request);
                 }
             }
-        } else if (marketType == "margin" || (marginMode != null) || ((isPortfolioMargin == true)))
+        } else if (marketType == "margin" || (marginMode != null) || (isPortfolioMargin == true))
         {
             if ((isPortfolioMargin == true))
             {
@@ -9424,10 +9424,10 @@ public partial class binance : Exchange
             }
         }
         // handle newOrderRespType response type
-        if (((marketType == "spot") || (marketType == "margin")) && !(isPortfolioMargin == true) && ((stock != true)))
+        if (((marketType == "spot") || (marketType == "margin")) && !(isPortfolioMargin == true) && (stock != true))
         {
             request["newOrderRespType"] = this.safeString((this.options.ContainsKey("newOrderRespType") ? this.options["newOrderRespType"] : null), type, "FULL"); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
-        } else if ((stock != true))
+        } else if (stock != true)
         {
             // swap, futures and options
             request["newOrderRespType"] = "RESULT"; // "ACK", "RESULT", default "ACK"
@@ -9573,14 +9573,14 @@ public partial class binance : Exchange
             priceIsRequired = true;
         } else if ((uppercaseType == "STOP_MARKET") || (uppercaseType == "TAKE_PROFIT_MARKET"))
         {
-            if ((closePosition != true))
+            if (closePosition != true)
             {
                 quantityIsRequired = true;
             }
             triggerPriceIsRequired = true;
         } else if (uppercaseType == "TRAILING_STOP_MARKET")
         {
-            if ((closePosition != true))
+            if (closePosition != true)
             {
                 quantityIsRequired = true;
             }
@@ -9658,7 +9658,7 @@ public partial class binance : Exchange
             omitKeys.Add("timeInForce");
         }
         bool? hedged = this.safeBool(paramsPapi, "hedged", false);
-        if (((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) != true)) && ((((market.ContainsKey("option") ? market["option"] : null) as bool?) != true)) && ((hedged == true)))
+        if (((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) != true)) && ((((market.ContainsKey("option") ? market["option"] : null) as bool?) != true)) && (hedged == true))
         {
             string? positionSide = side;
             if ((reduceOnly == true))
@@ -9817,7 +9817,7 @@ public partial class binance : Exchange
         {
             market = this.market(symbol);
             stock = this.safeBool(market, "stock", false);
-            if ((stock != true))
+            if (stock != true)
             {
                 request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             }
@@ -9845,21 +9845,21 @@ public partial class binance : Exchange
         bool isOptionType = type == "option";
         bool isLinearType = this.isLinear(type, subType);
         bool isInverseType = this.isInverse(type, subType);
-        bool isContractConditional = (isLinearType || isInverseType) && ((isConditional == true)) && ((isPortfolioMargin != true));
+        bool isContractConditional = (isLinearType || isInverseType) && ((isConditional == true)) && (isPortfolioMargin != true);
         string? clientOrderId = this.safeStringN(paramsStock, new List<object>() {"origClientOrderId", "clientOrderId", "clientAlgoId"});
         if ((clientOrderId != null))
         {
             if (isOptionType)
             {
                 request["clientOrderId"] = clientOrderId;
-            } else if ((isContractConditional == true))
+            } else if (isContractConditional)
             {
                 request["clientAlgoId"] = clientOrderId;
             } else
             {
                 request["origClientOrderId"] = clientOrderId;
             }
-        } else if ((isContractConditional == true))
+        } else if (isContractConditional)
         {
             request["algoId"] = id;
         } else
@@ -10006,7 +10006,7 @@ public partial class binance : Exchange
         if ((symbol == null))
         {
             // the linear allOrders endpoint accepts requests without a symbol since 2026-08-25 and also returns the inverse orders then
-            bool canOmitSymbol = ((stock == true)) || (isLinearType && ((isConditional != true)) && ((isPortfolioMargin != true)));
+            bool canOmitSymbol = (stock == true) || (isLinearType && ((isConditional != true)) && (isPortfolioMargin != true));
             if (!canOmitSymbol)
             {
                 throw new ArgumentsRequired ((this.id + " fetchOrders() requires a symbol argument")) ;
@@ -10385,7 +10385,7 @@ public partial class binance : Exchange
         {
             market = this.market(symbol);
             stock = this.safeBool(market, "stock", false);
-            if ((stock != true))
+            if (stock != true)
             {
                 request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             }
@@ -10929,7 +10929,7 @@ public partial class binance : Exchange
         {
             market = this.market(symbol);
             stock = this.safeBool(market, "stock", false);
-            if ((stock != true))
+            if (stock != true)
             {
                 request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             }
@@ -10961,7 +10961,7 @@ public partial class binance : Exchange
         // conditional swap and future orders go through the algo api
         // except for portfolio margin inverse (cm) orders, which still use the conditional endpoints
         bool isSwapOrFuture = ((market != null)) && (((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true)) || ((((market.ContainsKey("future") ? market["future"] : null) as bool?) == true)));
-        bool isPortfolioMarginInverse = ((isPortfolioMargin == true)) && ((isInverseType == true));
+        bool isPortfolioMarginInverse = (isPortfolioMargin == true) && (isInverseType);
         bool isAlgoOrder = isSwapOrFuture && ((isConditional == true)) && (!isPortfolioMarginInverse);
         string? clientOrderId = this.safeStringN(paramsStock, new List<object>() {"origClientOrderId", "clientOrderId", "newClientStrategyId", "clientAlgoId"});
         if ((clientOrderId != null))
@@ -10969,7 +10969,7 @@ public partial class binance : Exchange
             if (isOptionType)
             {
                 request["clientOrderId"] = clientOrderId;
-            } else if ((isAlgoOrder == true))
+            } else if (isAlgoOrder)
             {
                 request["clientAlgoId"] = clientOrderId;
             } else
@@ -10984,7 +10984,7 @@ public partial class binance : Exchange
             }
         } else
         {
-            if ((isAlgoOrder == true))
+            if (isAlgoOrder)
             {
                 request["algoId"] = id;
             } else if ((isPortfolioMargin == true) && ((isConditional == true)))
@@ -11111,7 +11111,7 @@ public partial class binance : Exchange
         {
             market = this.market(symbol);
             stock = this.safeBool(market, "stock", false);
-            if ((stock != true))
+            if (stock != true)
             {
                 request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             }
@@ -11403,7 +11403,7 @@ public partial class binance : Exchange
         IList<object> typeparamsPaginateVariable = (IList<object>)this.handleMarketTypeAndParams("fetchMyTrades", market, paramsPaginate);
         type = (string)typeparamsPaginateVariable[0];
         paramsPaginate = typeparamsPaginateVariable[1];
-        if (((stock != true)) && (type != "option") && ((symbol == null)))
+        if ((stock != true) && (type != "option") && ((symbol == null)))
         {
             throw new ArgumentsRequired ((this.id + " fetchMyTrades() requires a symbol argument")) ;
         }
@@ -11880,7 +11880,7 @@ public partial class binance : Exchange
         Dictionary<string, object> paramsOmitted = this.omit(paramsPaginate, "fiatOnly");
         Int64? until = this.safeInteger(paramsOmitted, "until");
         Dictionary<string, object> paramsOmitted2 = this.omit(paramsOmitted, "until");
-        if (((fiatOnly == true)) || (((code != null)) && ((legalMoney != null && legalMoney.ContainsKey(code)))))
+        if ((fiatOnly == true) || (((code != null)) && ((legalMoney != null && legalMoney.ContainsKey(code)))))
         {
             if ((code != null))
             {
@@ -11980,7 +11980,7 @@ public partial class binance : Exchange
         }
         object response = null;
         IDictionary<string, object> currency = null;
-        if (((fiatOnly == true)) || (((code != null)) && ((legalMoney != null && legalMoney.ContainsKey(code)))))
+        if ((fiatOnly == true) || (((code != null)) && ((legalMoney != null && legalMoney.ContainsKey(code)))))
         {
             if ((code != null))
             {
@@ -16052,7 +16052,7 @@ public partial class binance : Exchange
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         bool? success = this.safeBool(response, "success", true);
         object parsedMessage = null;
-        if ((success != true))
+        if (success != true)
         {
             string? messageNew = this.safeString(response, "msg");
             if ((messageNew != null))
@@ -16102,7 +16102,7 @@ public partial class binance : Exchange
             this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), error, feedback);
             throw new ExchangeError (feedback) ;
         }
-        if ((success != true))
+        if (success != true)
         {
             throw new ExchangeError ((string)((this.id + " ") + (body))) ;
         }

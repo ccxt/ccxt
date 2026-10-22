@@ -220,7 +220,7 @@ class mudrex(Exchange, ImplicitAPI):
         if response is None or not isinstance(response, dict):
             return None
         success = self.safe_bool(response, 'success', True)
-        if success is not True:
+        if not success:
             errors = self.safe_list(response, 'errors', [])
             first = self.safe_dict(errors, 0, {})
             text = self.safe_string(first, 'text', self.json(response))
@@ -428,7 +428,7 @@ class mudrex(Exchange, ImplicitAPI):
         offset = 0
         pageLimit = 100
         paging = True
-        while(paging is True):
+        while(paging):
             q = self.extend({'limit': pageLimit, 'offset': offset}, params)
             response = self.privateGetFutures(q)
             data = self.safe_value(response, 'data', [])
@@ -1180,7 +1180,7 @@ class mudrex(Exchange, ImplicitAPI):
         calls = 0
         offset = 0
         paging = True
-        while(paging is True):
+        while(paging):
             request = {}
             if pageSize > 0:
                 request['limit'] = pageSize

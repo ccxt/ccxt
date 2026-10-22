@@ -2116,7 +2116,7 @@ func (this *Btse) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...an
 		panic(r.Err)
 	}
 	var paginate *bool = this.SafeBool(params, "paginate", false)
-	if paginate != nil && *paginate == true {
+	if paginate != nil && *paginate {
 
 		r1 := <-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, this.Omit(params, "paginate"))
 		if r1.Err != nil {
@@ -3118,7 +3118,7 @@ func (this *Btse) editOrderBody(ch chan AsyncResult[map[string]any], id string, 
 		request["orderPrice"] = this.PriceToPrecision(symbol, price)
 	}
 	var isSlide *bool = this.SafeBool(query, "slide", false)
-	if (amount == nil) && (price == nil) && (triggerPrice == nil) && (isSlide == nil || *isSlide != true) {
+	if (amount == nil) && (price == nil) && (triggerPrice == nil) && (!(isSlide != nil && *isSlide)) {
 		panic(ArgumentsRequired(this.Id + " editOrder() requires an amount argument, a price argument or a triggerPrice parameter"))
 	}
 	var response []any = nil
@@ -4910,7 +4910,7 @@ func (this *Btse) HandleErrors(code any, reason any, url any, method any, header
 	//     {"status":400,"errorCode":-7,"message":"Authenticate failed","extraData":null}
 	//
 	var success *bool = this.SafeBool(response, "success", true)
-	if success == nil || *success != true {
+	if !(success != nil && *success) {
 		var spotErrorCode *string = this.SafeString(response, "code")
 		var spotMessage *string = this.SafeString(response, "msg")
 		var feedback string = this.Id + " " + body
@@ -4990,7 +4990,7 @@ func (this *Btse) Sign(path string, optionalArgs ...any) any {
 	// body like its POST and PUT counterparts, while the spot v4 and the
 	// legacy apis keep DELETE params in the query string, verified live
 	// in both directions
-	var isBodyDelete bool = (method == "DELETE") && (strings.HasPrefix(path, "futures/api/v3/") == true)
+	var isBodyDelete bool = (method == "DELETE") && (strings.HasPrefix(path, "futures/api/v3/"))
 	var queryString string = ""
 	if ((method == "GET") || (method == "DELETE")) && !isBodyDelete {
 		if len(ObjectKeys(query)) > 0 {
@@ -5012,7 +5012,7 @@ func (this *Btse) Sign(path string, optionalArgs ...any) any {
 		// sign the /api/v... remainder, while the public-api wallet, otc and markets
 		// endpoints mount on the bare host and sign the full path with the leading slash
 		var signPath any = nil
-		if strings.HasPrefix(path, "public-api/") == true {
+		if strings.HasPrefix(path, "public-api/") {
 			signPath = "/" + path
 		} else {
 			signPath = this.CleanPath(path)

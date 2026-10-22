@@ -666,11 +666,11 @@ class lighter extends Exchange {
 
     private function do_handle_builder_fee_approval(float $accountIndex, float $apiKeyIndex) {
         $buildFee = $this->safe_bool($this->options, 'builderFee', true);
-        if ($buildFee !== true) {
+        if (!$buildFee) {
             return false;
         }
         $approvedBuilderFee = $this->safe_bool($this->options, 'approvedBuilderFee', false);
-        if ($approvedBuilderFee === true) {
+        if ($approvedBuilderFee) {
             return true;
         }
         $standardTier = false;
@@ -910,7 +910,7 @@ class lighter extends Exchange {
         $request['order_expiry'] = $orderExpiry;
         $request['order_type'] = $orderTypeNum;
         $request['time_in_force'] = $timeInForceNum;
-        $request['reduce_only'] = ($reduceOnly === true) ? 1 : 0;
+        $request['reduce_only'] = ($reduceOnly) ? 1 : 0;
         $request['client_order_index'] = $clientOrderId;
         $request['base_amount'] = $this->parse_to_int(Precise::string_mul($amountStr, $amountScale));
         $request['avg_execution_price'] = $this->parse_to_int(Precise::string_mul($priceStr, $priceScale));
@@ -3249,7 +3249,7 @@ class lighter extends Exchange {
         }
         // public trades use Lighter's taker-side convention
         if (($side === null) && ($isMakerAsk !== null)) {
-            $side = ($isMakerAsk === true) ? 'buy' : 'sell';
+            $side = ($isMakerAsk) ? 'buy' : 'sell';
         }
         $takerOrMaker = null;
         if ($side !== null && $isMakerAsk !== null) {

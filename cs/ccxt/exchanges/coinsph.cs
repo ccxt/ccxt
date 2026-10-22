@@ -1489,7 +1489,7 @@ public partial class coinsph : Exchange
         string? side = null;
         if ((isBuyer != null))
         {
-            side = ((isBuyer == true)) ? "buy" : "sell";
+            side = isBuyer == true ? "buy" : "sell";
         }
         string? isMaker = this.safeString(trade, "isMaker");
         string? takerOrMaker = null;

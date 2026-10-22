@@ -1079,7 +1079,7 @@ impl GateCore {
 }), Value::Int(1000)]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
-        if (full.as_bool() == Some(true)) {
+        if full.as_bool() == Some(true) {
             let mut snapshopt: Value = self.parse_order_book(result.clone(), symbol, &[Value::Null, Value::Str("b".into()), Value::Str("a".into())]);
             add_element_to_object(&mut snapshopt, &Value::Str("nonce".into()), self.safe_integer_k(result.clone(), "u", &[]));
             add_element_to_object(&mut snapshopt, &Value::Str("timestamp".into()), self.safe_integer_k(result.clone(), "t", &[]));

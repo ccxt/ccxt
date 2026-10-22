@@ -958,7 +958,7 @@ func (this *Krakenfutures) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var baseVolume *string = nil
 	var quoteVolume *string = nil
 	var isIndex *bool = this.SafeBool(marketResolved, "index", false)
-	if isIndex == nil || *isIndex != true {
+	if !(isIndex != nil && *isIndex) {
 		if marketResolved["linear"] == true {
 			baseVolume = volume
 		} else if marketResolved["inverse"] == true {
@@ -2410,7 +2410,7 @@ func (this *Krakenfutures) fetchClosedOrdersBody(ch chan AsyncResult[any], optio
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop", false)
 	var response map[string]any = nil
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"trigger", "stop"})
-	if isTrigger != nil && *isTrigger == true {
+	if isTrigger != nil && *isTrigger {
 
 		r1 := <-this.HistoryGetTriggers(this.Extend(request, paramsOmitted))
 		if r1.Err != nil {
@@ -2502,7 +2502,7 @@ func (this *Krakenfutures) fetchCanceledOrdersBody(ch chan AsyncResult[[]any], o
 	var response map[string]any = nil
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop", false)
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"trigger", "stop"})
-	if isTrigger != nil && *isTrigger == true {
+	if isTrigger != nil && *isTrigger {
 
 		r1 := <-this.HistoryGetTriggers(this.Extend(request, paramsOmitted))
 		if r1.Err != nil {

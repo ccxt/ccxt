@@ -1504,7 +1504,7 @@ class xt(ccxt.async_support.xt):
         if id is not None:
             subscription = self.safe_dict(subscriptionsById, id, {})
             unsubscribe = self.safe_bool(subscription, 'unsubscribe', False)
-            if unsubscribe is True:
+            if unsubscribe:
                 self.handle_un_subscription(client, subscription)
         return message
 

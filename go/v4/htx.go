@@ -5329,20 +5329,20 @@ func (this *Htx) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, opt
 			return paramsOmitted
 		}()
 		if clientOrderId == nil {
-			if isAlgo == true {
+			if isAlgo {
 				request["algo_id"] = id
 			} else {
 				request["order_id"] = id
 			}
 		} else {
-			if isAlgo == true {
+			if isAlgo {
 				request["algo_client_order_id"] = clientOrderId
 			} else {
 				request["client_order_id"] = clientOrderId
 			}
 		}
 		if *this.SafeBool(market, "linear", false) {
-			if isAlgo == true {
+			if isAlgo {
 				if trigger != nil && *trigger == true {
 					request["type"] = "trigger"
 				} else if trailing != nil && *trailing == true {
@@ -5714,7 +5714,7 @@ func (this *Htx) fetchContractOrdersBody(ch chan AsyncResult[[]any], optionalArg
 	var stopLoss *bool = this.SafeBool(params, "stopLoss")
 	var takeProfit *bool = this.SafeBool(params, "takeProfit")
 	var trailing *bool = this.SafeBool(params, "trailing", false)
-	var isAlgo bool = ((trigger != nil && *trigger == true) || (stopLoss != nil && *stopLoss == true) || (takeProfit != nil && *takeProfit == true) || (stopLossTakeProfit != nil && *stopLossTakeProfit == true) || (trailing != nil && *trailing == true))
+	var isAlgo bool = ((trigger != nil && *trigger == true) || (stopLoss != nil && *stopLoss == true) || (takeProfit != nil && *takeProfit == true) || (stopLossTakeProfit != nil && *stopLossTakeProfit == true) || (trailing != nil && *trailing))
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"})
 	if since != nil {
 		request["start_time"] = since
@@ -5732,10 +5732,10 @@ func (this *Htx) fetchContractOrdersBody(ch chan AsyncResult[[]any], optionalArg
 			return marginMode
 		}()
 		request["contract_code"] = market["id"]
-		if isAlgo == true {
+		if isAlgo {
 			if trigger != nil && *trigger == true {
 				request["type"] = "trigger"
-			} else if trailing != nil && *trailing == true {
+			} else if trailing != nil && *trailing {
 				request["type"] = "trailing_stop"
 			} else if stopLossTakeProfit != nil && *stopLossTakeProfit == true {
 				request["type"] = "tpsl"
@@ -5778,7 +5778,7 @@ func (this *Htx) fetchContractOrdersBody(ch chan AsyncResult[[]any], optionalArg
 					panic(r4.Err)
 				}
 				response = r4.Raw
-			} else if trailing != nil && *trailing == true {
+			} else if trailing != nil && *trailing {
 
 				r5 := <-this.ContractPrivatePostSwapApiV1SwapTrackHisorders(this.Extend(request, paramsUntil))
 				if r5.Err != nil {
@@ -5809,7 +5809,7 @@ func (this *Htx) fetchContractOrdersBody(ch chan AsyncResult[[]any], optionalArg
 					panic(r8.Err)
 				}
 				response = r8.Raw
-			} else if trailing != nil && *trailing == true {
+			} else if trailing != nil && *trailing {
 
 				r9 := <-this.ContractPrivatePostApiV1ContractTrackHisorders(this.Extend(request, paramsUntil))
 				if r9.Err != nil {
@@ -5868,8 +5868,8 @@ func (this *Htx) fetchClosedContractOrdersBody(ch chan EndpointResult[[]any], op
 		var stopLoss *bool = this.SafeBool(params, "stopLoss")
 		var takeProfit *bool = this.SafeBool(params, "takeProfit")
 		var trailing *bool = this.SafeBool(params, "trailing", false)
-		var isAlgo bool = ((trigger != nil && *trigger == true) || (stopLoss != nil && *stopLoss == true) || (takeProfit != nil && *takeProfit == true) || (stopLossTakeProfit != nil && *stopLossTakeProfit == true) || (trailing != nil && *trailing == true))
-		if isAlgo == true {
+		var isAlgo bool = ((trigger != nil && *trigger == true) || (stopLoss != nil && *stopLoss == true) || (takeProfit != nil && *takeProfit == true) || (stopLossTakeProfit != nil && *stopLossTakeProfit == true) || (trailing != nil && *trailing))
+		if isAlgo {
 			request["states"] = "effective"
 		} else {
 			request["states"] = "filled"
@@ -6060,8 +6060,8 @@ func (this *Htx) fetchCanceledOrdersBody(ch chan AsyncResult[[]any], optionalArg
 			var stopLoss *bool = this.SafeBool(paramsMarketType, "stopLoss")
 			var takeProfit *bool = this.SafeBool(paramsMarketType, "takeProfit")
 			var trailing *bool = this.SafeBool(paramsMarketType, "trailing", false)
-			var isAlgo bool = ((trigger != nil && *trigger == true) || (stopLoss != nil && *stopLoss == true) || (takeProfit != nil && *takeProfit == true) || (stopLossTakeProfit != nil && *stopLossTakeProfit == true) || (trailing != nil && *trailing == true))
-			if isAlgo == true {
+			var isAlgo bool = ((trigger != nil && *trigger == true) || (stopLoss != nil && *stopLoss == true) || (takeProfit != nil && *takeProfit == true) || (stopLossTakeProfit != nil && *stopLossTakeProfit == true) || (trailing != nil && *trailing))
+			if isAlgo {
 				request["states"] = "canceled"
 			} else {
 				request["states"] = "partially_canceled,canceled"
@@ -6279,10 +6279,10 @@ func (this *Htx) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...a
 		var trailing *bool = this.SafeBool(paramsSubType, "trailing", false)
 		var paramsOmitted any = this.Omit(paramsSubType, []any{"stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"})
 		if isLinear {
-			if (trigger != nil && *trigger == true) || (trailing != nil && *trailing == true) || (stopLossTakeProfit != nil && *stopLossTakeProfit == true) || (stopLoss != nil && *stopLoss == true) || (takeProfit != nil && *takeProfit == true) {
+			if (trigger != nil && *trigger == true) || (trailing != nil && *trailing) || (stopLossTakeProfit != nil && *stopLossTakeProfit == true) || (stopLoss != nil && *stopLoss == true) || (takeProfit != nil && *takeProfit == true) {
 				if trigger != nil && *trigger == true {
 					request["type"] = "trigger"
-				} else if trailing != nil && *trailing == true {
+				} else if trailing != nil && *trailing {
 					request["type"] = "trailing_stop"
 				} else if stopLossTakeProfit != nil && *stopLossTakeProfit == true {
 					request["type"] = "tpsl"
@@ -6321,7 +6321,7 @@ func (this *Htx) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...a
 						panic(r6.Err)
 					}
 					response = r6.Raw
-				} else if trailing != nil && *trailing == true {
+				} else if trailing != nil && *trailing {
 
 					r7 := <-this.ContractPrivatePostSwapApiV1SwapTrackOpenorders(this.Extend(request, paramsOmitted))
 					if r7.Err != nil {
@@ -6352,7 +6352,7 @@ func (this *Htx) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...a
 						panic(r10.Err)
 					}
 					response = r10.Raw
-				} else if trailing != nil && *trailing == true {
+				} else if trailing != nil && *trailing {
 
 					r11 := <-this.ContractPrivatePostApiV1ContractTrackOpenorders(this.Extend(request, paramsOmitted))
 					if r11.Err != nil {
@@ -6879,7 +6879,7 @@ func (this *Htx) ParseOrder(order any, optionalArgs ...any) Order {
 	var contractCode *string = this.SafeString(order, "contract_code")
 	var isLinearOrder bool = (contractCode != nil) && (marketResolved != nil) && (marketResolved["linear"] == true) && (marketResolved["spot"] != true)
 	var typeVar any = nil
-	if isLinearOrder == true {
+	if isLinearOrder {
 		if derefPtr := this.SafeString(order, "type"); derefPtr != nil {
 			typeVar = *derefPtr
 		} else {
@@ -6931,7 +6931,7 @@ func (this *Htx) ParseOrder(order any, optionalArgs ...any) Order {
 	var clientOrderId *string = this.SafeStringN(order, []any{"client_order_id", "client-or" + "der-id", "algo_client_order_id"}) // transpiler regex trick for php issue
 	var cost *string = nil
 	var amount *string = nil
-	if (!IsEqual(typeVar, nil)) && (GetIndexOf(typeVar, "market") >= 0) && (isLinearOrder != true) {
+	if (!IsEqual(typeVar, nil)) && (GetIndexOf(typeVar, "market") >= 0) && (!isLinearOrder) {
 		cost = this.SafeString(order, "field-cash-amount")
 	} else {
 		amount = this.SafeString2(order, "volume", "amount")
@@ -6967,7 +6967,7 @@ func (this *Htx) ParseOrder(order any, optionalArgs ...any) Order {
 	var average *string = this.SafeString(order, "trade_avg_price")
 	var trades any = this.SafeValue(order, "trades")
 	var reduceOnly any = nil
-	if isLinearOrder == true {
+	if isLinearOrder {
 		if derefPtr := this.SafeBool(order, "reduce_only"); derefPtr != nil {
 			reduceOnly = *derefPtr
 		} else {
@@ -7193,7 +7193,7 @@ func (this *Htx) createSpotOrderRequestBody(ch chan EndpointResult[map[string]an
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((orderType == "market"), (orderType == "limit-maker"), paramsMarginMode)
 	var postOnly bool = GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)
 	var paramsPostOnly map[string]any = MapTyped(postOnlyparamsPostOnlyVariable[1])
-	if postOnly == true {
+	if postOnly {
 		orderType = "limit-maker"
 	}
 	var timeInForce *string = this.SafeString(paramsPostOnly, "timeInForce", "GTC")
@@ -7305,7 +7305,7 @@ func (this *Htx) CreateContractOrderRequest(symbol any, typeVar any, side any, a
 	var postOnly bool = GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)
 	var paramsPostOnly map[string]any = MapTyped(postOnlyparamsPostOnlyVariable[1])
 	var orderType any = func() any {
-		if postOnly == true {
+		if postOnly {
 			return "post_only"
 		}
 		return typeVar
@@ -7358,8 +7358,8 @@ func (this *Htx) CreateContractOrderRequest(symbol any, typeVar any, side any, a
 			query = this.Omit(query, "takeProfit")
 		}
 	} else {
-		if hedged != nil && *hedged == true {
-			if reduceOnly != nil && *reduceOnly == true {
+		if hedged != nil && *hedged {
+			if reduceOnly != nil && *reduceOnly {
 				request["offset"] = "close"
 			} else {
 				request["offset"] = "open"
@@ -7444,7 +7444,7 @@ func (this *Htx) CreateContractOrderRequest(symbol any, typeVar any, side any, a
 		}
 	}
 	if !isStopLossTriggerOrder && !isTakeProfitTriggerOrder {
-		if reduceOnly != nil && *reduceOnly == true {
+		if reduceOnly != nil && *reduceOnly {
 			request["reduce_only"] = 1
 		}
 		if isLinear {
@@ -8022,7 +8022,7 @@ func (this *Htx) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, op
 			panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol argument"))
 		}
 		var clientOrderId *string = this.SafeStringN(query, []any{"client_order_id", "clientOrderId", "algo_client_order_id"})
-		if !(isLinear && ((trigger != nil && *trigger == true) || (stopLossTakeProfit != nil && *stopLossTakeProfit == true) || (trailing != nil && *trailing == true))) {
+		if !(isLinear && ((trigger != nil && *trigger == true) || (stopLossTakeProfit != nil && *stopLossTakeProfit == true) || (trailing != nil && *trailing))) {
 			if clientOrderId == nil {
 				request["order_id"] = id
 			} else {
@@ -8036,7 +8036,7 @@ func (this *Htx) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, op
 			request["contract_code"] = this.SafeString(market, "id")
 		}
 		if isLinear {
-			if (trigger != nil && *trigger == true) || (stopLossTakeProfit != nil && *stopLossTakeProfit == true) || (trailing != nil && *trailing == true) {
+			if (trigger != nil && *trigger == true) || (stopLossTakeProfit != nil && *stopLossTakeProfit == true) || (trailing != nil && *trailing) {
 				var requestItem map[string]any = map[string]any{
 					"contract_code": this.SafeString(market, "id"),
 				}
@@ -8078,7 +8078,7 @@ func (this *Htx) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, op
 						panic(r6.Err)
 					}
 					response = r6.Raw
-				} else if trailing != nil && *trailing == true {
+				} else if trailing != nil && *trailing {
 
 					r7 := <-this.ContractPrivatePostSwapApiV1SwapTrackCancel(this.Extend(request, query))
 					if r7.Err != nil {
@@ -8108,7 +8108,7 @@ func (this *Htx) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, op
 						panic(r10.Err)
 					}
 					response = r10.Raw
-				} else if trailing != nil && *trailing == true {
+				} else if trailing != nil && *trailing {
 
 					r11 := <-this.ContractPrivatePostApiV1ContractTrackCancel(this.Extend(request, query))
 					if r11.Err != nil {
@@ -8177,7 +8177,7 @@ func (this *Htx) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, op
 	//
 	var result any = nil
 	if isLinear {
-		if (trigger != nil && *trigger == true) || (stopLossTakeProfit != nil && *stopLossTakeProfit == true) || (trailing != nil && *trailing == true) {
+		if (trigger != nil && *trigger == true) || (stopLossTakeProfit != nil && *stopLossTakeProfit == true) || (trailing != nil && *trailing) {
 			var data []any = SafeListTyped(response, "data")
 			result = this.SafeDict(data, 0, map[string]any{})
 		} else {
@@ -8630,7 +8630,7 @@ func (this *Htx) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs ...a
 						panic(r4.Err)
 					}
 					response = r4.Raw
-				} else if trailing != nil && *trailing == true {
+				} else if trailing != nil && *trailing {
 
 					r5 := <-this.ContractPrivatePostSwapApiV1SwapTrackCancelall(this.Extend(request, paramsOmitted))
 					if r5.Err != nil {
@@ -8660,7 +8660,7 @@ func (this *Htx) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs ...a
 						panic(r8.Err)
 					}
 					response = r8.Raw
-				} else if trailing != nil && *trailing == true {
+				} else if trailing != nil && *trailing {
 
 					r9 := <-this.ContractPrivatePostApiV1ContractTrackCancelall(this.Extend(request, paramsOmitted))
 					if r9.Err != nil {
@@ -8689,7 +8689,7 @@ func (this *Htx) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs ...a
 		//         "ts": "1683435723755"
 		//     }
 		//
-		if (*this.SafeBool(market, "linear", false)) && ((trigger == nil || *trigger != true) && (trailing == nil || *trailing != true) && (stopLossTakeProfit == nil || *stopLossTakeProfit != true)) {
+		if (*this.SafeBool(market, "linear", false)) && ((trigger == nil || *trigger != true) && (!(trailing != nil && *trailing)) && (stopLossTakeProfit == nil || *stopLossTakeProfit != true)) {
 
 			ch <- AsyncResult[any]{Value: this.ParseCancelOrders(response)}
 			return nil

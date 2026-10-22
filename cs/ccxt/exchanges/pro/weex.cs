@@ -1836,7 +1836,7 @@ public partial class weex : ccxt.weex
         IDictionary<string, object> options = this.safeDict(this.options, "watchBalance");
         bool? fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
         bool? awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
-        if (((fetchBalanceSnapshot == true)) && ((awaitBalanceSnapshot == true)))
+        if ((fetchBalanceSnapshot == true) && (awaitBalanceSnapshot == true))
         {
             await client.future(add(type, ":fetchBalanceSnapshot"));
         }
@@ -2227,7 +2227,7 @@ public partial class weex : ccxt.weex
         //     }
         //
         bool? result = this.safeBool(message, "result", true);
-        if ((result != true))
+        if (result != true)
         {
             string? msg = this.safeString(message, "msg", "");
             string feedback = ((this.id + " ") + this.json(message));

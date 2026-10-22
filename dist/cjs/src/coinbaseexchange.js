@@ -1589,7 +1589,7 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
             request['time_in_force'] = timeInForce;
         }
         const postOnly = this.safeBool2(params, 'postOnly', 'post_only', false);
-        if (postOnly === true) {
+        if (postOnly) {
             request['post_only'] = true;
         }
         const paramsOmitted = this.omit(params, ['timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'clientOrderId', 'client_oid', 'postOnly', 'post_only', 'triggerPrice']);

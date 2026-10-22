@@ -1835,7 +1835,7 @@ export default class toobit extends Exchange {
             request['quantity'] = this.amountToPrecision(symbol, amount);
         }
         const [isPostOnly, paramsPostOnly] = this.handlePostOnly(type === 'market', false, paramsCost);
-        if (isPostOnly === true) {
+        if (isPostOnly) {
             request['type'] = 'LIMIT_MAKER';
         }
         else {
@@ -1877,7 +1877,7 @@ export default class toobit extends Exchange {
             request['priceType'] = 'MARKET';
         }
         const [isPostOnly, paramsPostOnly] = this.handlePostOnly(type === 'market', false, paramsReduceOnly);
-        if (isPostOnly === true) {
+        if (isPostOnly) {
             request['timeInForce'] = 'LIMIT_MAKER';
         }
         const values = this.handleTriggerPricesAndParams(symbol, paramsPostOnly);

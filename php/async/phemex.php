@@ -2695,7 +2695,7 @@ class phemex extends Exchange {
     public function parse_order(array $order, ?array $market = null): array {
         $isSwap = $this->safe_bool($market, 'swap', false);
         $hasPnl = (is_array($order) && array_key_exists('closedPnl' ?? '', $order)) || (is_array($order) && array_key_exists('closedPnlRv' ?? '', $order)) || (is_array($order) && array_key_exists('totalPnlRv' ?? '', $order));
-        if (($isSwap === true) || $hasPnl) {
+        if (($isSwap) || $hasPnl) {
             return $this->parse_swap_order($order, $market);
         }
         return $this->parse_spot_order($order, $market);
@@ -2826,14 +2826,14 @@ class phemex extends Exchange {
             $orderParams = $this->omit($orderParams, 'hedged');
             $posSide = $this->safe_string_lower($orderParams, 'posSide');
             // a hedged reduceOnly order without posSide closes the opposite side
-            $flipSide = ($posSide === null) && ($hedged === true) && ($this->safe_bool($orderParams, 'reduceOnly', false));
+            $flipSide = ($posSide === null) && ($hedged) && ($this->safe_bool($orderParams, 'reduceOnly', false));
             $oppositeSide = ($side === 'buy') ? 'sell' : 'buy';
             $sideResolved = $side;
             if ($flipSide) {
                 $sideResolved = $oppositeSide;
             }
             if ($posSide === null) {
-                if ($hedged === true) {
+                if ($hedged) {
                     if ($flipSide) {
                         $orderParams = $this->omit($orderParams, 'reduceOnly');
                     }
@@ -3181,7 +3181,7 @@ class phemex extends Exchange {
             // 'untriggerred': false, // false to cancel non-conditional orders, true to cancel conditional orders
             // 'text': 'up to 40 characters max',
         );
-        if ($trigger === true) {
+        if ($trigger) {
             $request['untriggerred'] = $trigger;
         }
         if ($market['settle'] === 'USDT' || $market['settle'] === 'USDC') {
@@ -4923,7 +4923,7 @@ class phemex extends Exchange {
             'symbol' => $market['id'],
         );
         if ($market['settle'] === 'USDT' || $market['settle'] === 'USDC') {
-            if (($isHedged !== true) && $longLeverageRr === null && $shortLeverageRr === null) {
+            if ((!$isHedged) && $longLeverageRr === null && $shortLeverageRr === null) {
                 $request['leverageRr'] = $leverage;
             } else {
                 $longVar = ($longLeverageRr !== null) ? $longLeverageRr : $leverage;
@@ -5016,7 +5016,7 @@ class phemex extends Exchange {
         }
         $transferOptions = $this->safe_dict($this->options, 'transfer', array());
         $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
-        if ($fillResponseFromRequest === true) {
+        if ($fillResponseFromRequest) {
             if ($transfer['fromAccount'] === null) {
                 $transfer['fromAccount'] = $fromAccount;
             }

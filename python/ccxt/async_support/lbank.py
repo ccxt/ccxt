@@ -1326,7 +1326,7 @@ class lbank(Exchange, ImplicitAPI):
             return self.safe_balance(result)
         # from spotPrivatePostSupplementUserInfo
         isArray = isinstance(data, list)
-        if isArray is True:
+        if isArray:
             for i in range(0, len(data)):
                 item = self.safe_dict(data, i)
                 currencyId = self.safe_string(item, 'coin')
@@ -1606,7 +1606,7 @@ class lbank(Exchange, ImplicitAPI):
         }
         ioc = (timeInForce == 'IOC')
         fok = (timeInForce == 'FOK')
-        maker = ((postOnly is True) or (timeInForce == 'PO'))
+        maker = ((postOnly) or (timeInForce == 'PO'))
         if (type == 'market') and (ioc or fok or maker):
             raise InvalidOrder(self.id + ' createOrder () does not allow market FOK, IOC, or postOnly orders. Only limit IOC, FOK, and postOnly orders are allowed')
         if type == 'limit':
@@ -2563,7 +2563,7 @@ class lbank(Exchange, ImplicitAPI):
             await self.load_markets()
         isAuthorized = self.check_required_credentials(False)
         result: dict
-        if isAuthorized is True:
+        if isAuthorized:
             options = self.safe_dict(self.options, 'fetchTransactionFees', {})
             defaultMethod = self.safe_string(options, 'method', 'fetchPrivateTransactionFees')
             method = self.safe_string(params, 'method', defaultMethod)
@@ -2706,7 +2706,7 @@ class lbank(Exchange, ImplicitAPI):
             await self.load_markets()
         isAuthorized = self.check_required_credentials(False)
         response: dict
-        if isAuthorized is True:
+        if isAuthorized:
             options = self.safe_dict(self.options, 'fetchDepositWithdrawFees', {})
             defaultMethod = self.safe_string(options, 'method', 'fetchPrivateDepositWithdrawFees')
             method = self.safe_string(params, 'method', defaultMethod)
@@ -2937,7 +2937,7 @@ class lbank(Exchange, ImplicitAPI):
             if signatureMethod == 'RSA':
                 cacheSecretAsPem = self.safe_bool(self.options, 'cacheSecretAsPem', True)
                 pem = None
-                if cacheSecretAsPem is True:
+                if cacheSecretAsPem:
                     pem = self.safe_string(self.options, 'pem')
                     if pem is None:
                         pem = self.convert_secret_to_pem(self.encode(self.secret))

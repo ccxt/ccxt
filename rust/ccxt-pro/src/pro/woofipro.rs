@@ -1140,7 +1140,7 @@ impl WoofiproCore {
         }
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]);
         let mut topic: Value = Value::Str("executionreport".into());
-        if (trigger.as_bool() == Some(true)) {
+        if trigger.as_bool() == Some(true) {
             topic = Value::Str("algoexecutionreport".into());
         }
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
@@ -1196,7 +1196,7 @@ impl WoofiproCore {
         }
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]);
         let mut topic: Value = Value::Str("executionreport".into());
-        if (trigger.as_bool() == Some(true)) {
+        if trigger.as_bool() == Some(true) {
             topic = Value::Str("algoexecutionreport".into());
         }
         let mut paramsOmitted: Value = self.omit(params, Value::Str("stop".into()), &[]);

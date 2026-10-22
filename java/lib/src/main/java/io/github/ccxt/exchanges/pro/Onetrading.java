@@ -1198,7 +1198,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
                 {
                     Map<String, Object> ohlcvMarket = (Map<String, Object>) this.safeDict(subscription, marketId, new HashMap<String, Object>() {{}});
                     Boolean marketSubscribed = (Boolean) this.safeBool(ohlcvMarket, java.util.Objects.requireNonNullElse(timeframe, "1m"), false);
-                    if (!java.util.Objects.equals(marketSubscribed, true))
+                    if (!Boolean.TRUE.equals(marketSubscribed))
                     {
                         type = "UPDATE_SUBSCRIPTION";
                         Helpers.addElementToObject(client.subscriptions, subscriptionHash, null);
@@ -1477,7 +1477,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
                     {
                         Object marketId = (marketIds == null || i < 0 || i >= ((List<?>)marketIds).size() ? null : ((List<?>)marketIds).get(i));
                         Boolean marketSubscribed = (Boolean) this.safeBool(subscription, marketId, false);
-                        if (!java.util.Objects.equals(marketSubscribed, true))
+                        if (!Boolean.TRUE.equals(marketSubscribed))
                         {
                             type = "UPDATE_SUBSCRIPTION";
                             Helpers.addElementToObject(client.subscriptions, subscriptionHash, null);

@@ -1483,7 +1483,7 @@ public partial class p2b : Exchange
         //     {"success":true,"errorCode":"","message":"","result":{...},"cache_time":1787611797.535462,"current_time":1787611797.535973}
         //
         bool? success = this.safeBool(response, "success", true);
-        if ((success != true))
+        if (success != true)
         {
             string? errorCode = this.safeString(response, "errorCode");
             string feedback = ((this.id + " ") + (body));

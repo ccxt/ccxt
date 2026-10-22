@@ -3228,7 +3228,7 @@ func (this *Phemex) ParseOrder(order any, optionalArgs ...any) Order {
 	_ = market
 	var isSwap *bool = this.SafeBool(market, "swap", false)
 	var hasPnl bool = (InOp(order, "closedPnl")) || (InOp(order, "closedPnlRv")) || (InOp(order, "totalPnlRv"))
-	if (isSwap != nil && *isSwap == true) || hasPnl {
+	if (isSwap != nil && *isSwap) || hasPnl {
 		return OrderFromMap(this.ParseSwapOrder(order, market))
 	}
 	return OrderFromMap(this.ParseSpotOrder(order, market))
@@ -3357,7 +3357,7 @@ func (this *Phemex) createOrderBody(ch chan AsyncResult[map[string]any], symbol 
 		orderParams = this.Omit(orderParams, "hedged")
 		var posSide *string = this.SafeStringLower(orderParams, "posSide")
 		// a hedged reduceOnly order without posSide closes the opposite side
-		var flipSide bool = (posSide == nil) && (hedged != nil && *hedged == true) && (*this.SafeBool(orderParams, "reduceOnly", false))
+		var flipSide bool = (posSide == nil) && (hedged != nil && *hedged) && (*this.SafeBool(orderParams, "reduceOnly", false))
 		var oppositeSide string = func() string {
 			if side == "buy" {
 				return "sell"
@@ -3369,7 +3369,7 @@ func (this *Phemex) createOrderBody(ch chan AsyncResult[map[string]any], symbol 
 			sideResolved = oppositeSide
 		}
 		if posSide == nil {
-			if hedged != nil && *hedged == true {
+			if hedged != nil && *hedged {
 				if flipSide {
 					orderParams = this.Omit(orderParams, "reduceOnly")
 				}
@@ -3831,7 +3831,7 @@ func (this *Phemex) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs .
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	if trigger != nil && *trigger == true {
+	if trigger != nil && *trigger {
 		request["untriggerred"] = trigger
 	}
 	var response map[string]any = nil
@@ -6078,7 +6078,7 @@ func (this *Phemex) setLeverageBody(ch chan AsyncResult[any], leverage int64, op
 	}
 	var response map[string]any = nil
 	if (market["settle"] == "USDT") || (market["settle"] == "USDC") {
-		if (isHedged == nil || *isHedged != true) && (longLeverageRr == nil) && (shortLeverageRr == nil) {
+		if (!(isHedged != nil && *isHedged)) && (longLeverageRr == nil) && (shortLeverageRr == nil) {
 			request["leverageRr"] = leverage
 		} else {
 			var longVar *int64 = func() *int64 {
@@ -6212,7 +6212,7 @@ func (this *Phemex) transferBody(ch chan AsyncResult[map[string]any], code strin
 	}
 	var transferOptions map[string]any = SafeMapTyped(this.Options, "transfer")
 	var fillResponseFromRequest *bool = this.SafeBool(transferOptions, "fillResponseFromRequest", true)
-	if fillResponseFromRequest != nil && *fillResponseFromRequest == true {
+	if fillResponseFromRequest != nil && *fillResponseFromRequest {
 		if IsEqual(transfer["fromAccount"], nil) {
 			AddElementToObject(transfer, "fromAccount", fromAccount)
 		}

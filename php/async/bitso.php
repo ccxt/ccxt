@@ -2108,7 +2108,7 @@ class bitso extends Exchange {
                     $success = false;
                 }
             }
-            if ($success !== true) {
+            if (!$success) {
                 $feedback = $this->id . ' ' . $this->json($response);
                 $error = $this->safe_dict($response, 'error');
                 if ($error === null) {

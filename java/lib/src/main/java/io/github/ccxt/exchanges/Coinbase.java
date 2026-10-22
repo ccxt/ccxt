@@ -2230,7 +2230,7 @@ public class Coinbase extends CoinbaseApi
         mapLiteral5.put("swap", isSwap);
         mapLiteral5.put("future", !Boolean.TRUE.equals(isSwap));
         mapLiteral5.put("option", false);
-        mapLiteral5.put("active", !java.util.Objects.equals(tradingDisabled, true));
+        mapLiteral5.put("active", !Boolean.TRUE.equals(tradingDisabled));
         mapLiteral5.put("contract", true);
         mapLiteral5.put("linear", true);
         mapLiteral5.put("inverse", false);
@@ -2986,7 +2986,7 @@ public class Coinbase extends CoinbaseApi
             if ((java.util.Objects.equals(marketType, "future")) || (java.util.Objects.equals(marketType, "swap")))
             {
                 response = (this.v3PrivateGetBrokerageCfmBalanceSummary(this.extend(request, paramsMarketType))).join();
-            } else if ((java.util.Objects.equals(isV3, true)) || (java.util.Objects.equals(method, "v3PrivateGetBrokerageAccounts")))
+            } else if (Boolean.TRUE.equals(isV3) || (java.util.Objects.equals(method, "v3PrivateGetBrokerageAccounts")))
             {
                 request.put("limit", 250);
                 response = (this.v3PrivateGetBrokerageAccounts(this.extend(request, paramsMarketType))).join();
@@ -3824,7 +3824,7 @@ public class Coinbase extends CoinbaseApi
             Object paramsOmitted = this.omit(paramsBase, new ArrayList<Object>(Arrays.asList("timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice", "stopPrice", "stop_price", "stopDirection", "stop_direction", "clientOrderId", "postOnly", "post_only", "end_time", "marginMode")));
             Boolean preview = (Boolean) this.safeBool2(paramsOmitted, "preview", "test", false);
             Map<String, Object> response = null;
-            if (java.util.Objects.equals(preview, true))
+            if (Boolean.TRUE.equals(preview))
             {
                 request = this.omit(request, "client_order_id");
                 response = (this.v3PrivatePostBrokerageOrdersPreview(this.extend(request, this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("preview", "test")))))).join();
@@ -4187,7 +4187,7 @@ public class Coinbase extends CoinbaseApi
             }
             Boolean preview = (Boolean) this.safeBool2(parameters, "preview", "test", false);
             Map<String, Object> response = null;
-            if (java.util.Objects.equals(preview, true))
+            if (Boolean.TRUE.equals(preview))
             {
                 response = (this.v3PrivatePostBrokerageOrdersEditPreview(this.extend(request, this.omit(parameters, new ArrayList<Object>(Arrays.asList("preview", "test")))))).join();
             } else

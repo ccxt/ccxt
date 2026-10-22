@@ -1049,7 +1049,7 @@ public class Polymarket extends PolymarketApi
             Boolean active = (Boolean) this.safeBool(market, "active", false);
             Boolean closed = (Boolean) this.safeBool(market, "closed", false);
             // resolution: a closed/uma-resolved market settles each outcome price to 0 or 1
-            Boolean marketResolved = (java.util.Objects.equals(closed, true)) || (java.util.Objects.equals(this.safeStringLower(market, "umaResolutionStatus"), "resolved"));
+            Boolean marketResolved = Boolean.TRUE.equals(closed) || (java.util.Objects.equals(this.safeStringLower(market, "umaResolutionStatus"), "resolved"));
             Object resolvedOutcome = null;
             // gamma exposes the order-book tick as orderPriceMinTickSize; minimumTickSize is the clob alias
             Double tickSize = this.safeNumber2(market, "orderPriceMinTickSize", "minimumTickSize", 0.01);
@@ -1141,7 +1141,7 @@ public class Polymarket extends PolymarketApi
                     "market", marketSymbol,
                     "label", outcomeLabel,
                     "price", outcomePrice,
-                    "active", (java.util.Objects.equals(active, true)) && (!java.util.Objects.equals(closed, true)),
+                    "active", Boolean.TRUE.equals(active) && (!Boolean.TRUE.equals(closed)),
                     "winner", winner,
                     "settleFraction", settleFraction,
                     "precision", new HashMap<String, Object>() {{
@@ -1175,7 +1175,7 @@ public class Polymarket extends PolymarketApi
                 "future", false,
                 "option", false,
                 "prediction", true,
-                "active", (java.util.Objects.equals(active, true)) && (!java.util.Objects.equals(closed, true)),
+                "active", Boolean.TRUE.equals(active) && (!Boolean.TRUE.equals(closed)),
                 "resolved", marketResolved,
                 "resolvedOutcome", marketResolvedOutcome,
                 "contract", false,
@@ -2721,7 +2721,7 @@ public class Polymarket extends PolymarketApi
             {
                 Boolean builderFeeEnabled = (Boolean) this.safeBool(this.options, "builderFee", true);
                 Object feeRate = 0;
-                if (java.util.Objects.equals(builderFeeEnabled, true))
+                if (Boolean.TRUE.equals(builderFeeEnabled))
                 {
                     feeRate = this.safeInteger(this.options, "feeRate", 0);
                 }
@@ -2760,7 +2760,7 @@ public class Polymarket extends PolymarketApi
         String exchangeV2 = this.safeString(this.options, "exchangeAddress", "0xE111180000d2663C0091e4f400237545B87B996B");
         String negRiskExchangeV2 = this.safeString(this.options, "negRiskExchangeAddress", "0xe2222d279d744050d28e00520010520000310F59");
         String exchangeAddress = exchangeV2;
-        if (java.util.Objects.equals(negRisk, true))
+        if (Helpers.isTrue(negRisk))
         {
             exchangeAddress = negRiskExchangeV2;
         }
@@ -3373,7 +3373,7 @@ public class Polymarket extends PolymarketApi
         Boolean active = null;
         if (!java.util.Objects.equals(rawActive, null))
         {
-            active = (java.util.Objects.equals(rawActive, true)) && (!java.util.Objects.equals(closed, true));
+            active = Boolean.TRUE.equals(rawActive) && (!Boolean.TRUE.equals(closed));
         }
         // surface gamma's tag objects as a top-level string[] so the unified `tags` filter
         // — filterEventsByTags reads event['tags'], not event.info.tags — can actually match.

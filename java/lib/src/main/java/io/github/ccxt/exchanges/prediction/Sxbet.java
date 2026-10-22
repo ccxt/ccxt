@@ -946,7 +946,7 @@ public class Sxbet extends SxbetApi
             }
             Map<String, Object> proxy = (this.fetchSxbetProxy()).join();
             Boolean deployed = (Boolean) this.safeBool(proxy, "deployed", false);
-            if (!java.util.Objects.equals(deployed, true))
+            if (!Boolean.TRUE.equals(deployed))
             {
                 (this.sxbetPrivatePostUserDeployProxy(new HashMap<String, Object>() {{}})).join();
                 // deployment is asynchronous - poll until the proxy exists
@@ -1086,7 +1086,7 @@ public class Sxbet extends SxbetApi
             // the venue has no post-only or trigger mechanics - reject the unified params instead
             // of forwarding fields the exchange would silently ignore
             Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", false);
-            if (java.util.Objects.equals(postOnly, true))
+            if (Boolean.TRUE.equals(postOnly))
             {
                 throw new NotSupported((this.id + " createOrder() does not support postOnly - GTC orders may cross on entry")) ;
             }
@@ -1455,7 +1455,7 @@ public class Sxbet extends SxbetApi
             // both paths paginate their async submission - keep going on the SAME route while more remain
             Boolean hasMore = (Boolean) this.safeBool(this.safeDict(response, "data", new HashMap<String, Object>() {{}}), "hasMore", false);
             Object guard = 0;
-            while ((java.util.Objects.equals(hasMore, true)) && (Helpers.isLessThan(guard, 50)))
+            while (Boolean.TRUE.equals(hasMore) && (Helpers.isLessThan(guard, 50)))
             {
                 Map<String, Object> nextResponse = null;
                 if (Boolean.TRUE.equals(isEventScoped))
@@ -1829,7 +1829,7 @@ public class Sxbet extends SxbetApi
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isMaker, null))
         {
-            takerOrMaker = (((java.util.Objects.equals(isMaker, true)))) ? "maker" : "taker";
+            takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
         }
         HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
         mapLiteral8.put("id", this.safeString(fill, "id"));

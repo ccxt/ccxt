@@ -1125,7 +1125,7 @@ func (this *Bitvavo) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var takerOrMaker *string = nil
 	if taker != nil {
 		takerOrMaker = SafeStringPtr(func() string {
-			if taker != nil && *taker == true {
+			if taker != nil && *taker {
 				return "taker"
 			}
 			return "maker"

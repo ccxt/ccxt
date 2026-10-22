@@ -1732,7 +1732,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         $this->init_rest_rate_limiter();
         // sanbox mode
         $isSandbox = $this->safe_bool_2($this->options, 'sandbox', 'testnet', false);
-        if ($isSandbox === true) {
+        if ($isSandbox) {
             $this->set_sandbox_mode($isSandbox);
         }
         // compatibility for sandbox/testnet options in userConfig
@@ -2588,7 +2588,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         if ($average === null) {
             if (($filled !== null) && ($cost !== null) && Precise::string_gt($filled, '0')) {
                 $filledTimesContractSize = Precise::string_mul($filled, $contractSize);
-                if ($inverse === true) {
+                if ($inverse) {
                     $average = Precise::string_div($filledTimesContractSize, $cost);
                 } else {
                     $average = Precise::string_div($cost, $filledTimesContractSize);
@@ -2611,7 +2611,7 @@ class BaseExchange extends \ccxt\BaseExchange {
             }
             // contract trading
             $filledTimesContractSize = Precise::string_mul($filled, $contractSize);
-            if ($inverse === true) {
+            if ($inverse) {
                 $cost = Precise::string_div($filledTimesContractSize, $multiplyPrice);
             } else {
                 $cost = Precise::string_mul($filledTimesContractSize, $multiplyPrice);
@@ -2832,7 +2832,7 @@ class BaseExchange extends \ccxt\BaseExchange {
             $multiplyPrice = $price;
             if ($contractSize !== null) {
                 $inverse = $this->safe_bool($market, 'inverse', false);
-                if ($inverse === true) {
+                if ($inverse) {
                     $multiplyPrice = Precise::string_div('1', $price);
                 }
                 $multiplyPrice = Precise::string_mul($multiplyPrice, $contractSize);
@@ -3311,7 +3311,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         } catch (Exception $e) {
             $errorMessage = $this->id . ' ' . $method . '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.';
         }
-        if ($muteOnFailure === true) {
+        if ($muteOnFailure) {
             return null;
         } else {
             throw new BadResponse($errorMessage);
@@ -3671,7 +3671,7 @@ class BaseExchange extends \ccxt\BaseExchange {
                 $market = $this->safe_market($id, null, null, 'swap');
                 $symbol = $market['symbol'];
                 $contract = $this->safe_bool($market, 'contract', false);
-                if (($contract === true) && ($noSymbols || (($symbolsNormalized !== null) && $this->in_array($symbol, $symbolsNormalized)))) {
+                if (($contract) && ($noSymbols || (($symbolsNormalized !== null) && $this->in_array($symbol, $symbolsNormalized)))) {
                     $tiers[$symbol] = $this->parse_market_leverage_tiers($item, $market);
                 }
             }
@@ -3683,7 +3683,7 @@ class BaseExchange extends \ccxt\BaseExchange {
                 $market = $this->safe_market($marketId, null, null, 'swap');
                 $symbol = $market['symbol'];
                 $contract = $this->safe_bool($market, 'contract', false);
-                if (($contract === true) && ($noSymbols || (($symbolsNormalized !== null) && $this->in_array($symbol, $symbolsNormalized)))) {
+                if (($contract) && ($noSymbols || (($symbolsNormalized !== null) && $this->in_array($symbol, $symbolsNormalized)))) {
                     $tiers[$symbol] = $this->parse_market_leverage_tiers($item, $market);
                 }
             }
@@ -4424,7 +4424,7 @@ class BaseExchange extends \ccxt\BaseExchange {
             if ($price === null) {
                 throw new ArgumentsRequired($this->id . ' buildOHLCVC() requires a price argument');
             }
-            if (($skipZeroPrices === true) && !($price > 0) && !($price < 0)) {
+            if (($skipZeroPrices) && !($price > 0) && !($price < 0)) {
                 continue;
             }
             $isNewCandle = $candle === -1;
@@ -5785,13 +5785,13 @@ class BaseExchange extends \ccxt\BaseExchange {
         $ioc = $timeInForce === 'IOC';
         $fok = $timeInForce === 'FOK';
         $timeInForcePostOnly = $timeInForce === 'PO';
-        if ($postOnly !== true) {
+        if (!$postOnly) {
             $postOnly = $timeInForcePostOnly;
         }
-        if ($postOnly !== true) {
+        if (!$postOnly) {
             $postOnly = $exchangeSpecificParam;
         }
-        if ($postOnly === true) {
+        if ($postOnly) {
             if ($ioc || $fok) {
                 throw new InvalidOrder($this->id . ' postOnly orders cannot have timeInForce equal to ' . $timeInForce);
             } elseif ($isMarketOrder) {
@@ -5817,13 +5817,13 @@ class BaseExchange extends \ccxt\BaseExchange {
         $ioc = $timeInForce === 'IOC';
         $fok = $timeInForce === 'FOK';
         $po = $timeInForce === 'PO';
-        if ($postOnly !== true) {
+        if (!$postOnly) {
             $postOnly = $po;
         }
-        if ($postOnly !== true) {
+        if (!$postOnly) {
             $postOnly = $exchangeSpecificPostOnlyOption;
         }
-        if ($postOnly === true) {
+        if ($postOnly) {
             if ($ioc || $fok) {
                 throw new InvalidOrder($this->id . ' postOnly orders cannot have timeInForce equal to ' . $timeInForce);
             } elseif ($isMarketOrder) {

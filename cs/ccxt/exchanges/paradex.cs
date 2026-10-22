@@ -1780,7 +1780,7 @@ public partial class paradex : Exchange
     {
         l1 ??= false;
         IDictionary<string, object> systemConfig = await this.getSystemConfig();
-        if ((l1 == true))
+        if (l1 == true)
         {
             Dictionary<string, object> l1D = new Dictionary<string, object>() {
                 { "name", "Paradex" },

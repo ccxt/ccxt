@@ -5433,7 +5433,7 @@ func (this *Bybit) ParseOrder(order any, optionalArgs ...any) Order {
 	var amount *string = nil
 	var cost *string = nil
 	var qtyIsQuote bool = (marketResolved["spot"] == true) && (typeVar != nil && *typeVar == "market") && ((marketUnit != nil && *marketUnit == "quoteCoin") || ((marketUnit == nil) && (side != nil && *side == "buy")))
-	if qtyIsQuote == true {
+	if qtyIsQuote {
 		// qty is denominated in the quote currency, safeOrder derives amount from filled + remaining
 		cost = this.SafeString(order, "cumExecValue")
 	} else {
@@ -5703,7 +5703,7 @@ func (this *Bybit) createOrderBody(ch chan AsyncResult[map[string]any], symbol s
 	var orderRequest map[string]any = MapTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, params, enableUnifiedAccount))
 	var switchToOco bool = (isStopLossOrder && isTakeProfitOrder) || (*this.SafeBool(params, "tradingStopEndpoint", false))
 	var defaultMethod string
-	if (isTrailingOrder || (switchToOco == true)) && (market["spot"] != true) {
+	if (isTrailingOrder || (switchToOco)) && (market["spot"] != true) {
 		defaultMethod = "privatePostV5PositionTradingStop"
 	} else {
 		defaultMethod = "privatePostV5OrderCreate"
@@ -5781,7 +5781,7 @@ func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 	var isBuy bool = (IsEqual(side, "buy"))
 	var switchToOco bool = (isStopLossOrder && isTakeProfitOrder) || (*this.SafeBool(params, "tradingStopEndpoint", false))
 	var defaultMethod string
-	if isTrailingOrder || (switchToOco == true) {
+	if isTrailingOrder || (switchToOco) {
 		defaultMethod = "privatePostV5PositionTradingStop"
 	} else {
 		defaultMethod = "privatePostV5OrderCreate"
@@ -6044,7 +6044,7 @@ func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 			}
 		}
 	}
-	if (market["spot"] != true) && (hedged != nil && *hedged == true) {
+	if (market["spot"] != true) && (hedged != nil && *hedged) {
 		if reduceOnly != nil && *reduceOnly == true {
 			query = this.Omit(query, "reduceOnly")
 		}
@@ -6495,7 +6495,7 @@ func (this *Bybit) CancelOrderRequest(id any, optionalArgs ...any) map[string]an
 		// only works for spot market
 		var isTrigger *bool = this.SafeBool2(params, "stop", "trigger", false)
 		request["orderFilter"] = func() string {
-			if isTrigger != nil && *isTrigger == true {
+			if isTrigger != nil && *isTrigger {
 				return "StopOrder"
 			}
 			return "Order"
@@ -6944,7 +6944,7 @@ func (this *Bybit) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs ..
 	}
 	var isTrigger *bool = this.SafeBool2(paramsValue, "stop", "trigger", false)
 	var paramsOmitted any = this.Omit(paramsValue, []any{"stop", "trigger"})
-	if isTrigger != nil && *isTrigger == true {
+	if isTrigger != nil && *isTrigger {
 		request["orderFilter"] = "StopOrder"
 	}
 
@@ -7044,7 +7044,7 @@ func (this *Bybit) fetchOrderClassicBody(ch chan AsyncResult[any], id any, optio
 	if length == 0 {
 		var isTrigger *bool = this.SafeBool2(params, "trigger", "stop", false)
 		var extra string = func() string {
-			if isTrigger != nil && *isTrigger == true {
+			if isTrigger != nil && *isTrigger {
 				return ""
 			}
 			return " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true"
@@ -7275,7 +7275,7 @@ func (this *Bybit) fetchOrdersClassicBody(ch chan AsyncResult[[]any], optionalAr
 	request["category"] = typeVar
 	var isTrigger *bool = this.SafeBool2(paramsValue, "trigger", "stop", false)
 	var paramsOmitted any = this.Omit(paramsValue, []any{"trigger", "stop"})
-	if isTrigger != nil && *isTrigger == true {
+	if isTrigger != nil && *isTrigger {
 		request["orderFilter"] = "StopOrder"
 	}
 	if limit != nil {
@@ -7400,7 +7400,7 @@ func (this *Bybit) fetchClosedOrderBody(ch chan AsyncResult[any], id any, option
 	if length == 0 {
 		var isTrigger *bool = this.SafeBool2(params, "trigger", "stop", false)
 		var extra string = func() string {
-			if isTrigger != nil && *isTrigger == true {
+			if isTrigger != nil && *isTrigger {
 				return ""
 			}
 			return " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true"
@@ -7464,7 +7464,7 @@ func (this *Bybit) fetchOpenOrderBody(ch chan AsyncResult[any], id any, optional
 	if length == 0 {
 		var isTrigger *bool = this.SafeBool2(params, "trigger", "stop", false)
 		var extra string = func() string {
-			if isTrigger != nil && *isTrigger == true {
+			if isTrigger != nil && *isTrigger {
 				return ""
 			}
 			return " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true"
@@ -7547,7 +7547,7 @@ func (this *Bybit) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]any], 
 	request["category"] = typeVar
 	var isTrigger *bool = this.SafeBool2(paramsValue, "trigger", "stop", false)
 	var paramsOmitted any = this.Omit(paramsValue, []any{"trigger", "stop"})
-	if isTrigger != nil && *isTrigger == true {
+	if isTrigger != nil && *isTrigger {
 		request["orderFilter"] = "StopOrder"
 	}
 	if limit != nil {
@@ -7831,7 +7831,7 @@ func (this *Bybit) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ..
 	request["category"] = typeVar
 	var isTrigger *bool = this.SafeBool2(paramsValue, "stop", "trigger", false)
 	var paramsOmitted any = this.Omit(paramsValue, []any{"stop", "trigger"})
-	if isTrigger != nil && *isTrigger == true {
+	if isTrigger != nil && *isTrigger {
 		request["orderFilter"] = "StopOrder"
 	}
 	if limit != nil {

@@ -223,7 +223,7 @@ export default class mudrex extends Exchange {
             return undefined;
         }
         const success = this.safeBool (response, 'success', true);
-        if (success !== true) {
+        if (!success) {
             const errors = this.safeList (response, 'errors', []);
             const first = this.safeDict (errors, 0, {});
             const text = this.safeString (first, 'text', this.json (response));
@@ -454,7 +454,7 @@ export default class mudrex extends Exchange {
         let offset = 0;
         const pageLimit = 100;
         let paging = true;
-        while (paging === true) {
+        while (paging) {
             const q = this.extend ({ 'limit': pageLimit, 'offset': offset }, params);
             const response = await this.privateGetFutures (q);
             const data = this.safeValue (response, 'data', []);
@@ -1301,7 +1301,7 @@ export default class mudrex extends Exchange {
         let calls = 0;
         let offset = 0;
         let paging = true;
-        while (paging === true) {
+        while (paging) {
             const request: Dict = {};
             if (pageSize > 0) {
                 request['limit'] = pageSize;

@@ -1312,7 +1312,7 @@ func (this *Okx) watchMyLiquidationsForSymbolsBody(ch chan ccxt.AsyncResult[any]
 	var isTrigger *bool = this.SafeBool2(params, "stop", "trigger", false)
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stop", "trigger"})
 	var accessType string = "private"
-	if isTrigger != nil && *isTrigger == true {
+	if isTrigger != nil && *isTrigger {
 		accessType = "business"
 	}
 
@@ -2562,7 +2562,7 @@ func (this *Okx) watchMyTradesBody(ch chan ccxt.AsyncResult[[]any], optionalArgs
 		}
 	}
 	var access string = "private"
-	if isTrigger != nil && *isTrigger == true {
+	if isTrigger != nil && *isTrigger {
 		access = "business"
 	}
 
@@ -2573,7 +2573,7 @@ func (this *Okx) watchMyTradesBody(ch chan ccxt.AsyncResult[[]any], optionalArgs
 		panic(r1.Err)
 	}
 	var channel string = "orders"
-	if isTrigger != nil && *isTrigger == true {
+	if isTrigger != nil && *isTrigger {
 		channel = "orders-algo"
 	}
 	var messageHash any = channel + "::myTrades"
@@ -2856,7 +2856,7 @@ func (this *Okx) watchOrdersBody(ch chan ccxt.AsyncResult[[]any], optionalArgs .
 		}
 	}
 	var accessType string = "private"
-	if isTrigger != nil && *isTrigger == true {
+	if isTrigger != nil && *isTrigger {
 		accessType = "business"
 	}
 
@@ -2895,7 +2895,7 @@ func (this *Okx) watchOrdersBody(ch chan ccxt.AsyncResult[[]any], optionalArgs .
 		"instType": uppercaseType,
 	}
 	var channel string = "orders"
-	if isTrigger != nil && *isTrigger == true {
+	if isTrigger != nil && *isTrigger {
 		channel = "orders-algo"
 	}
 

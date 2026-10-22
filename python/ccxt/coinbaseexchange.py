@@ -1533,7 +1533,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         if timeInForce is not None:
             request['time_in_force'] = timeInForce
         postOnly = self.safe_bool_2(params, 'postOnly', 'post_only', False)
-        if postOnly is True:
+        if postOnly:
             request['post_only'] = True
         paramsOmitted = self.omit(params, ['timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'clientOrderId', 'client_oid', 'postOnly', 'post_only', 'triggerPrice'])
         costParam = self.safe_number_2(paramsOmitted, 'cost', 'funds')

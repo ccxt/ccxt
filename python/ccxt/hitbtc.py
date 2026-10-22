@@ -1432,7 +1432,7 @@ class hitbtc(Exchange, ImplicitAPI):
         taker = self.safe_bool(trade, 'taker')
         takerOrMaker = None
         if taker is not None:
-            takerOrMaker = 'taker' if (taker is True) else 'maker'
+            takerOrMaker = 'taker' if (taker) else 'maker'
         else:
             takerOrMaker = 'taker'  # the only case when `taker` field is missing, is public fetchTrades and it must be taker
         if feeCostString is not None:
@@ -2710,7 +2710,7 @@ class hitbtc(Exchange, ImplicitAPI):
             paramsOmitted = self.omit(paramsWithdrawTag, 'network')
         withdrawOptions = self.safe_dict(self.options, 'withdraw', {})
         includeFee = self.safe_bool(withdrawOptions, 'includeFee', False)
-        if includeFee is True:
+        if includeFee:
             request['include_fee'] = True
         response = self.privatePostWalletCryptoWithdraw(self.extend(request, paramsOmitted))
         #
@@ -3619,7 +3619,7 @@ class hitbtc(Exchange, ImplicitAPI):
         defaultType = self.safe_string(self.options, 'defaultType')
         isMargin = self.safe_bool(params, 'margin', False)
         marginMode, paramsMarginMode = super(hitbtc, self).handle_margin_mode_and_params(methodName, params, defaultValue)
-        if (marginMode is None) and ((defaultType == 'margin') or (isMargin is True)):
+        if (marginMode is None) and ((defaultType == 'margin') or (isMargin)):
             return ['isolated', paramsMarginMode]
         return [marginMode, paramsMarginMode]
 

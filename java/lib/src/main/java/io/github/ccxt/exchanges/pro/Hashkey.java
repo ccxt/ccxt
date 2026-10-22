@@ -895,7 +895,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         }
         Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchBalance", (Object) null);
         Boolean snapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", true);
-        if (java.util.Objects.equals(snapshot, true))
+        if (Boolean.TRUE.equals(snapshot))
         {
             String messageHash = ((type + ":") + "fetchBalanceSnapshot");
             if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))

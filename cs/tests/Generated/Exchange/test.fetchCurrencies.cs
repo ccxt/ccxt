@@ -46,8 +46,8 @@ public partial class testMainClass : BaseTest
                 bool? withdraw = exchange.safeBool(currency, "withdraw");
                 bool? deposit = exchange.safeBool(currency, "deposit");
                 bool? isMicaCompliant = exchange.safeBool(exchange.options, "mica", false);
-                bool skipUsdtForMica = ((isMicaCompliant == true)) && (code == "USDT");
-                if (isTrue(exchange.inArray(code, requiredActiveCurrencies)) && !skipMajorCurrencyCheck && ((skipUsdtForMica != true)))
+                bool skipUsdtForMica = (isMicaCompliant == true) && (code == "USDT");
+                if (isTrue(exchange.inArray(code, requiredActiveCurrencies)) && !skipMajorCurrencyCheck && (!skipUsdtForMica))
                 {
                     assert(((withdraw == true)) && ((deposit == true)), ((("Major currency " + code) + " should have withdraw and deposit flags enabled ::: ") + exchange.json(currency)));
                 }

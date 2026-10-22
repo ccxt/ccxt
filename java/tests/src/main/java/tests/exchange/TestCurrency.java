@@ -31,7 +31,7 @@ public class TestCurrency extends BaseTest {
         // todo: info key needs to be added in base, when exchange does not have fetchCurrencies
         Boolean isNative = (!java.util.Objects.equals(((Map<String, Object>)exchange.has).get("fetchCurrencies"), null)) && (!java.util.Objects.equals(((Map<String, Object>)exchange.has).get("fetchCurrencies"), false)) && (!java.util.Objects.equals(((Map<String, Object>)exchange.has).get("fetchCurrencies"), "emulated"));
         String currencyType = exchange.safeString(entry, "type");
-        if (java.util.Objects.equals(isNative, true))
+        if (Boolean.TRUE.equals(isNative))
         {
             format.put("info", new HashMap<String, Object>() {{}});
             // todo: 'name': 'Bitcoin', // uppercase string, base currency, 2 or more letters

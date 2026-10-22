@@ -1020,7 +1020,7 @@ public class Blofin extends BlofinApi
         String last = this.safeString(ticker, "last");
         String open = this.safeString(ticker, "open24h");
         Boolean spot = (Boolean) this.safeBool(marketResolved, "spot", false);
-        String quoteVolume = (((java.util.Objects.equals(spot, true)))) ? this.safeString(ticker, "volCurrency24h") : null;
+        String quoteVolume = ((Boolean.TRUE.equals(spot))) ? this.safeString(ticker, "volCurrency24h") : null;
         String baseVolume = this.safeString(ticker, "vol24h");
         String high = this.safeString(ticker, "high24h");
         String low = this.safeString(ticker, "low24h");
@@ -1718,7 +1718,7 @@ public class Blofin extends BlofinApi
         String triggerPriceSlTp = this.safeString2(query, "stopLossPrice", "takeProfitPrice");
         String timeInForce = this.safeString(query, "timeInForce", "GTC");
         Boolean isHedged = (Boolean) this.safeBool(query, "hedged", false);
-        if (java.util.Objects.equals(isHedged, true))
+        if (Boolean.TRUE.equals(isHedged))
         {
             request.put("positionSide", (((java.util.Objects.equals(side, "buy")))) ? "long" : "short");
         }
@@ -2011,7 +2011,7 @@ public class Blofin extends BlofinApi
         Map<String, Object> market = this.market(symbol);
         Boolean hedged = (Boolean) this.safeBool(parameters, "hedged", false);
         String positionSide = "net";
-        if (java.util.Objects.equals(hedged, true))
+        if (Boolean.TRUE.equals(hedged))
         {
             positionSide = (((java.util.Objects.equals(side, "buy")))) ? "short" : "long";
         }
@@ -2116,24 +2116,24 @@ public class Blofin extends BlofinApi
                 request.put("clientOrderId", clientOrderId);
             } else
             {
-                if ((!java.util.Objects.equals(isTrigger, true)) && (!java.util.Objects.equals(isTpsl, true)))
+                if ((!Boolean.TRUE.equals(isTrigger)) && (!Boolean.TRUE.equals(isTpsl)))
                 {
                     request.put("orderId", String.valueOf(id));
-                } else if (java.util.Objects.equals(isTpsl, true))
+                } else if (Boolean.TRUE.equals(isTpsl))
                 {
                     request.put("tpslId", String.valueOf(id));
-                } else if (java.util.Objects.equals(isTrigger, true))
+                } else if (Boolean.TRUE.equals(isTrigger))
                 {
                     request.put("algoId", String.valueOf(id));
                 }
             }
             Map<String, Object> query = this.omit(parameters, new ArrayList<Object>(Arrays.asList("orderId", "clientOrderId", "stop", "trigger", "tpsl")));
-            if (java.util.Objects.equals(isTpsl, true))
+            if (Boolean.TRUE.equals(isTpsl))
             {
                 List<Order> tpslResponse = (this.cancelOrders(new ArrayList<Object>(Arrays.asList(id)), symbol, parameters)).join();
                 Map<String, Object> first = (Map<String, Object>) this.safeDict(tpslResponse, 0, (Object) null);
                 return first;
-            } else if (java.util.Objects.equals(isTrigger, true))
+            } else if (Boolean.TRUE.equals(isTrigger))
             {
                 Map<String, Object> triggerResponse = (this.privatePostTradeCancelAlgo(this.extend(request, query))).join();
                 Map<String, Object> triggerData = (Map<String, Object>) this.safeDict(triggerResponse, "data", (Object) null);
@@ -2235,10 +2235,10 @@ public class Blofin extends BlofinApi
             Map<String, Object> paramsMethod = methodparamsMethodVariable.second();
             Map<String, Object> query = this.omit(paramsMethod, new ArrayList<Object>(Arrays.asList("method", "stop", "trigger", "tpsl", "TPSL")));
             Map<String, Object> response = null;
-            if ((java.util.Objects.equals(isTpSl, true)) || (java.util.Objects.equals(method, "privateGetTradeOrdersTpslPending")))
+            if (Boolean.TRUE.equals(isTpSl) || (java.util.Objects.equals(method, "privateGetTradeOrdersTpslPending")))
             {
                 response = (this.privateGetTradeOrdersTpslPending(this.extend(request, query))).join();
-            } else if ((java.util.Objects.equals(isTrigger, true)) || (java.util.Objects.equals(method, "privateGetTradeOrdersAlgoPending")))
+            } else if (Boolean.TRUE.equals(isTrigger) || (java.util.Objects.equals(method, "privateGetTradeOrdersAlgoPending")))
             {
                 request.put("orderType", "trigger");
                 response = (this.privateGetTradeOrdersAlgoPending(this.extend(request, query))).join();
@@ -3984,7 +3984,7 @@ public class Blofin extends BlofinApi
             Map<String, Object> paramsMethod = methodparamsMethodVariable.second();
             Map<String, Object> query = this.omit(paramsMethod, new ArrayList<Object>(Arrays.asList("method", "stop", "trigger", "tpsl", "TPSL")));
             Map<String, Object> response = null;
-            if ((java.util.Objects.equals(isTrigger, true)) || (java.util.Objects.equals(method, "privateGetTradeOrdersTpslHistory")))
+            if (Boolean.TRUE.equals(isTrigger) || (java.util.Objects.equals(method, "privateGetTradeOrdersTpslHistory")))
             {
                 response = (this.privateGetTradeOrdersTpslHistory(this.extend(request, query))).join();
             } else

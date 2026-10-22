@@ -2125,7 +2125,7 @@ public partial class bitfinex : Exchange
         }
         bool ioc = (timeInForce == "IOC");
         bool fok = (timeInForce == "FOK");
-        bool postOnly = (((postOnlyParam == true)) || (timeInForce == "PO"));
+        bool postOnly = ((postOnlyParam == true) || (timeInForce == "PO"));
         if ((ioc || fok) && ((price == null)))
         {
             throw new InvalidOrder ((this.id + " createOrder() requires a price argument with IOC and FOK orders")) ;
@@ -4599,7 +4599,7 @@ public partial class bitfinex : Exchange
                 request["price_aux_limit"] = this.priceToPrecision(symbol, price);
             }
         }
-        bool postOnly = (((postOnlyParam == true)) || (timeInForce == "PO"));
+        bool postOnly = ((postOnlyParam == true) || (timeInForce == "PO"));
         if (((type != "market")) && ((triggerPrice == null)))
         {
             request["price"] = this.priceToPrecision(symbol, price);

@@ -2149,7 +2149,7 @@ public class Toobit extends ToobitApi
         List<Object> isPostOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), false, paramsCost);
         Boolean isPostOnly = (Boolean) ((List<Object>) isPostOnlyparamsPostOnlyVariable).get(0);
         Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) isPostOnlyparamsPostOnlyVariable).get(1);
-        if (java.util.Objects.equals(isPostOnly, true))
+        if (Boolean.TRUE.equals(isPostOnly))
         {
             request.put("type", "LIMIT_MAKER");
         } else
@@ -2203,7 +2203,7 @@ public class Toobit extends ToobitApi
         List<Object> isPostOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), false, paramsReduceOnly);
         Boolean isPostOnly = (Boolean) ((List<Object>) isPostOnlyparamsPostOnlyVariable).get(0);
         Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) isPostOnlyparamsPostOnlyVariable).get(1);
-        if (java.util.Objects.equals(isPostOnly, true))
+        if (Boolean.TRUE.equals(isPostOnly))
         {
             request.put("timeInForce", "LIMIT_MAKER");
         }

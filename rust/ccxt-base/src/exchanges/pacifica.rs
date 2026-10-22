@@ -1190,11 +1190,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return Value::Bool(false);
         }
         let mut buildFee: Value = self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(true)]);
-        if (buildFee.as_bool() != Some(true)) {
+        if !(buildFee.as_bool() == Some(true)) {
             return Value::Bool(false);
         }
         let mut approvedBuilderFee: Value = self.safe_bool_k(self.options.clone(), "approvedBuilderFee", &[Value::Bool(false)]);
-        if (approvedBuilderFee.as_bool() == Some(true)) {
+        if approvedBuilderFee.as_bool() == Some(true) {
             return Value::Bool(true);
         }
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
@@ -1353,7 +1353,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             contractSize = self.parse_number(Value::Str("1".into()), &[]);
             minLeverage = Value::Int(1);
             maxLeverage = self.safe_integer_k(market.clone(), "max_leverage", &[]);
-            crossMargin = Value::Bool(isolatedOnly.as_bool() != Some(true));
+            crossMargin = Value::Bool(!(isolatedOnly.as_bool() == Some(true)));
             isolatedMargin = Value::Bool(true);
         }
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
@@ -1607,7 +1607,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut isIsolated: Value = self.safe_bool_k(setting.clone(), "isolated", &[Value::Bool(false)]);
         let mut leverage: Value = self.safe_integer_k(setting.clone(), "leverage", &[]);
         let mut marginMode: Value = Value::Str("cross".into());
-        if (isIsolated.as_bool() == Some(true)) {
+        if isIsolated.as_bool() == Some(true) {
             marginMode = Value::Str("isolated".into());
         }
         return Value::Map({
@@ -1681,7 +1681,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         let mut settings: Value = self.handle_option(Value::Str("loadAccountSettings".into()), Value::Str("settings".into()), &[]);
-        if (settings == Value::Null) || (refresh.as_bool() == Some(true)) {
+        if (settings == Value::Null) || is_true(&(refresh)) {
             { let __be_tmp = self.create_safe_dictionary(&[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("settings".into(), __be_tmp); } }
             settings = self.fetch_account_settings(&[params]).await;
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("settings".into(), settings); }
@@ -1784,7 +1784,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // }
         let mut isIsolated: Value = self.safe_bool_k(setting.clone(), "isolated", &[Value::Bool(false)]);
         let mut marginMode: Value = Value::Str("cross".into());
-        if (isIsolated.as_bool() == Some(true)) {
+        if isIsolated.as_bool() == Some(true) {
             marginMode = Value::Str("isolated".into());
         }
         return Value::Map({
@@ -2365,7 +2365,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         let mut success: Value = self.safe_bool_k(response.clone(), "success", &[Value::Bool(false)]);
         let mut status: Value = Value::Null;
-        if (success.as_bool() != Some(true)) {
+        if !(success.as_bool() == Some(true)) {
             status = Value::Str("rejected".into());
         }  else {
             status = Value::Str("open".into());
@@ -2658,7 +2658,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut error: Option<String> = self.safe_string_k(order.clone(), "error", &[]).as_str().map(str::to_owned);
             let mut success: Value = self.safe_bool_k(order.clone(), "success", &[Value::Bool(false)]);
             let mut status: Value = Value::Null;
-            if (error.is_some()) || (success.as_bool() != Some(true)) {
+            if (error.is_some()) || (!(success.as_bool() == Some(true))) {
                 status = Value::Str("rejected".into());
             }  else {
                 status = Value::Str("open".into());
@@ -2740,7 +2740,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut error: Option<String> = self.safe_string_k(order.clone(), "error", &[]).as_str().map(str::to_owned);
             let mut success: Value = self.safe_bool_k(order.clone(), "success", &[Value::Bool(false)]);
             let mut status: Value = Value::Null;
-            if (error.is_some()) || (success.as_bool() != Some(true)) {
+            if (error.is_some()) || (!(success.as_bool() == Some(true))) {
                 status = Value::Str("closed".into());
             }  else {
                 status = Value::Str("canceled".into());
@@ -2899,7 +2899,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut isStopOrder: Value = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("expiryWindow".into()), Value::Str("trigger".into()), Value::Str("stop".into()), Value::Str("clientOrderId".into())]), &[]);
         let mut response: Value = Value::Null;
-        if (isStopOrder.as_bool() == Some(true)) {
+        if isStopOrder.as_bool() == Some(true) {
             let __ws_arg_16 = self.extend(request.clone(), &[paramsOmitted.clone()]);
             response = self.private_post_orders_stop_cancel(&[__ws_arg_16]).await;
         }  else {
@@ -2915,7 +2915,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         let mut success: Value = self.safe_bool_k(response.clone(), "success", &[Value::Bool(false)]);
         let mut status: Value = Value::Str("closed".into());
-        if (success.as_bool() == Some(true)) {
+        if success.as_bool() == Some(true) {
             status = Value::Str("canceled".into());
         }
         return self.safe_order(Value::Map({
@@ -2939,7 +2939,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut market: Value = self.market(symbol);
         let mut isStopOrder: Value = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]);
         let mut operationType: Value = Value::Null;
-        if (isStopOrder.as_bool() == Some(true)) {
+        if isStopOrder.as_bool() == Some(true) {
             operationType = Value::Str("cancel_stop_order".into());
         }  else {
             operationType = Value::Str("cancel_order".into());
@@ -3495,11 +3495,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut paginationCursor: Value = (match response.get("next_cursor") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut hasMore: Value = (match response.get("has_more") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Bool(false) });
         let mut dataLength: f64 = ((data.len() as i64) as f64);
-        if (hasMore.as_bool() == Some(true)) {
+        if is_true(&hasMore) {
             if (paginationCursor != Value::Null) && (dataLength > ((0i64) as f64)) {
                 let mut first: Value = data.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
                 add_element_to_object(&mut first, &Value::Str("next_cursor".into()), paginationCursor);
-                add_element_to_object(&mut first, &Value::Str("has_more".into()), hasMore);
+                add_element_to_object(&mut first, &Value::Str("has_more".into()), hasMore.clone());
                 add_element_to_object(&mut data, &Value::Int(0), first);
             }
         }
@@ -4750,7 +4750,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut success: Value = self.safe_bool_k(transfer.clone(), "success", &[]);
         let mut status: Value = Value::Null;
         if (success != Value::Null) {
-            status = (if (success.as_bool() == Some(true)) { Value::Str("ok".into()) } else { Value::Str("failed".into()) });
+            status = (if success.as_bool() == Some(true) { Value::Str("ok".into()) } else { Value::Str("failed".into()) });
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5235,7 +5235,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             if (builderCode != Value::Null) {
                 let mut isOperationSupportBuilder: Value = self.safe_bool(self.options.as_map().and_then(|__m| __m.get("builderSupportOperations")).cloned().unwrap_or(Value::Null), operationType.clone(), &[Value::Bool(false)]);
-                if (isOperationSupportBuilder.as_bool() == Some(true)) {
+                if isOperationSupportBuilder.as_bool() == Some(true) {
                     if let Value::Dict(__d) = &mut sigPayload { std::sync::Arc::make_mut(__d).insert("builder_code".into(), builderCode); }
                 }
             }

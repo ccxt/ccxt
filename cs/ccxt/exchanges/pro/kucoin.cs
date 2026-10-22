@@ -93,7 +93,7 @@ public partial class kucoin : ccxt.kucoin
         isFuturesMethod ??= false;
         parameters ??= new Dictionary<string, object>();
         string connectId = "public";
-        if ((privateChannel == true))
+        if (privateChannel)
         {
             connectId = "private";
         }
@@ -205,7 +205,7 @@ public partial class kucoin : ccxt.kucoin
         if ((subscription != null))
         {
             bool? unsubscribe = this.safeBool(subscription, "unsubscribe", false);
-            action = ((unsubscribe == true)) ? "unsubscribe" : action;
+            action = unsubscribe == true ? "unsubscribe" : action;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", requestId },
@@ -233,7 +233,7 @@ public partial class kucoin : ccxt.kucoin
         if ((subscription != null))
         {
             bool? unsubscribe = this.safeBool(subscription, "unsubscribe", false);
-            action = ((unsubscribe == true)) ? "unsubscribe" : action;
+            action = unsubscribe == true ? "unsubscribe" : action;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", requestId },
@@ -565,7 +565,7 @@ public partial class kucoin : ccxt.kucoin
         if ((subscription != null))
         {
             bool? unsubscribe = this.safeBool(subscription, "unsubscribe", false);
-            action = ((unsubscribe == true)) ? "unsubscribe" : action;
+            action = unsubscribe == true ? "unsubscribe" : action;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", requestId },
@@ -2968,7 +2968,7 @@ public partial class kucoin : ccxt.kucoin
         IDictionary<string, object> options = this.safeDict(this.options, "watchBalance");
         bool? fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
         bool? awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
-        if (((fetchBalanceSnapshot == true)) && ((awaitBalanceSnapshot == true)))
+        if ((fetchBalanceSnapshot == true) && (awaitBalanceSnapshot == true))
         {
             await client.future(add(uniformType, ":fetchBalanceSnapshot"));
         }
@@ -3955,7 +3955,7 @@ public partial class kucoin : ccxt.kucoin
         } else if ((message != null && ((IDictionary<string, object>)message).ContainsKey("result")))
         {
             bool? result = this.safeBool(message, "result", true);
-            if ((result != true))
+            if (result != true)
             {
                 this.handleErrorMessage(client, (Dictionary<string, object>)message);
             }

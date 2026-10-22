@@ -709,7 +709,7 @@ export default class bydfi extends Exchange {
             await this.loadMarkets ();
         }
         const paginate = this.safeBool (params, 'paginate', false);
-        if (paginate === true) {
+        if (paginate) {
             const maxLimit = 500;
             const paramsPaginate = this.extend (this.omit (params, 'paginate'), { 'paginationDirection': 'backward' });
             const paginatedResponse = await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, paramsPaginate, maxLimit, true);
@@ -1333,13 +1333,13 @@ export default class bydfi extends Exchange {
         if (hedged) {
             query = this.omit (query, 'reduceOnly');
             if (side === 'buy') {
-                request['positionSide'] = (reduceOnly === true) ? 'SHORT' : 'LONG';
+                request['positionSide'] = (reduceOnly) ? 'SHORT' : 'LONG';
             } else if (side === 'sell') {
-                request['positionSide'] = (reduceOnly === true) ? 'LONG' : 'SHORT';
+                request['positionSide'] = (reduceOnly) ? 'LONG' : 'SHORT';
             }
         }
         const closePosition = this.safeBool (query, 'closePosition', false);
-        if (closePosition !== true) {
+        if (!closePosition) {
             query = this.omit (query, 'closePosition');
             request['quantity'] = this.amountToPrecision (symbol, amount);
         } else if ((typeValue !== 'STOP_MARKET') && (typeValue !== 'TAKE_PROFIT_MARKET')) {
@@ -1707,7 +1707,7 @@ export default class bydfi extends Exchange {
             await this.loadMarkets ();
         }
         const paginate = this.safeBool (params, 'paginate', false);
-        if (paginate === true) {
+        if (paginate) {
             const maxLimit = 500;
             const paramsPaginate = this.extend (this.omit (params, 'paginate'), { 'paginationDirection': 'backward' });
             const paginatedResponse = await this.fetchPaginatedCallDynamic ('fetchCanceledAndClosedOrders', symbol, since, limit, paramsPaginate, maxLimit, true);
@@ -2673,7 +2673,7 @@ export default class bydfi extends Exchange {
         const transfer = this.parseTransfer (response, currency);
         const transferOptions = this.safeDict (this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool (transferOptions, 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest === true) {
+        if (fillResponseFromRequest) {
             transfer['currency'] = code;
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
@@ -2703,7 +2703,7 @@ export default class bydfi extends Exchange {
         }
         const currency = this.currency (code);
         const paginate = this.safeBool (params, 'paginate', false);
-        if (paginate === true) {
+        if (paginate) {
             const maxLimit = 50;
             const paramsPaginate = this.extend (this.omit (params, 'paginate'), { 'paginationDirection': 'backward' });
             const paginatedResponse = await this.fetchPaginatedCallDynamic ('fetchTransfers', this.safeString (currency, 'code'), since, limit, paramsPaginate, maxLimit, true);
@@ -2840,7 +2840,7 @@ export default class bydfi extends Exchange {
         }
         const currency = this.currency (code);
         const paginate = this.safeBool (params, 'paginate', false);
-        if (paginate === true) {
+        if (paginate) {
             const maxLimit = 50;
             const paramsPaginate = this.extend (this.omit (params, 'paginate'), { 'paginationDirection': 'backward' });
             const paginatedResponse = await this.fetchPaginatedCallDynamic (methodName, this.safeString (currency, 'code'), since, limit, paramsPaginate, maxLimit, true);

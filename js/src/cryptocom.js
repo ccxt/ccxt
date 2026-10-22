@@ -1397,7 +1397,7 @@ export default class cryptocom extends Exchange {
             }
         }
         const postOnly = this.safeBool(paramsValue, 'postOnly', false);
-        if ((postOnly === true) || (timeInForce === 'PO')) {
+        if ((postOnly) || (timeInForce === 'PO')) {
             request['exec_inst'] = ['POST_ONLY'];
             request['time_in_force'] = 'GOOD_TILL_CANCEL';
         }
@@ -1629,7 +1629,7 @@ export default class cryptocom extends Exchange {
             }
         }
         const postOnly = this.safeBool(params, 'postOnly', false);
-        if ((postOnly === true) || (timeInForce === 'PO')) {
+        if ((postOnly) || (timeInForce === 'PO')) {
             request['exec_inst'] = ['POST_ONLY'];
             request['time_in_force'] = 'GOOD_TILL_CANCEL';
         }
@@ -2700,7 +2700,7 @@ export default class cryptocom extends Exchange {
             }
         }
         else {
-            if ((defaultType === 'margin') || (isMargin === true)) {
+            if ((defaultType === 'margin') || (isMargin)) {
                 marginMode = 'cross';
             }
         }

@@ -123,7 +123,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         return BaseExchange.supplyAsync(() -> {
 
             String connectId = "public";
-            if (java.util.Objects.equals(privateChannel, true))
+            if (Helpers.isTrue(privateChannel))
             {
                 connectId = "private";
             }
@@ -247,7 +247,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             if (!java.util.Objects.equals(subscription, null))
             {
                 Boolean unsubscribe = (Boolean) this.safeBool(subscription, "unsubscribe", false);
-                action = (((java.util.Objects.equals(unsubscribe, true)))) ? "unsubscribe" : action;
+                action = ((Boolean.TRUE.equals(unsubscribe))) ? "unsubscribe" : action;
             }
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("id", requestId);
@@ -278,7 +278,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             if (!java.util.Objects.equals(subscription, null))
             {
                 Boolean unsubscribe = (Boolean) this.safeBool(subscription, "unsubscribe", false);
-                action = (((java.util.Objects.equals(unsubscribe, true)))) ? "unsubscribe" : action;
+                action = ((Boolean.TRUE.equals(unsubscribe))) ? "unsubscribe" : action;
             }
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("id", requestId);
@@ -647,7 +647,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             if (!java.util.Objects.equals(subscription, null))
             {
                 Boolean unsubscribe = (Boolean) this.safeBool(subscription, "unsubscribe", false);
-                action = (((java.util.Objects.equals(unsubscribe, true)))) ? "unsubscribe" : action;
+                action = ((Boolean.TRUE.equals(unsubscribe))) ? "unsubscribe" : action;
             }
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("id", requestId);
@@ -2256,7 +2256,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Helpers.callDynamically(this, method, new Object[] {client, message, subscription});
         }
         Boolean isUnSub = (Boolean) this.safeBool(subscription, "unsubscribe", false);
-        if (java.util.Objects.equals(isUnSub, true))
+        if (Boolean.TRUE.equals(isUnSub))
         {
             List<Object> messageHashes = (List<Object>) this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
             List<Object> subMessageHashes = (List<Object>) this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
@@ -3108,7 +3108,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchBalance", (Object) null);
             Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
             Boolean awaitBalanceSnapshot = (Boolean) this.safeBool(options, "awaitBalanceSnapshot", true);
-            if ((java.util.Objects.equals(fetchBalanceSnapshot, true)) && (java.util.Objects.equals(awaitBalanceSnapshot, true)))
+            if (Boolean.TRUE.equals(fetchBalanceSnapshot) && Boolean.TRUE.equals(awaitBalanceSnapshot))
             {
                 client.future((uniformType + ":fetchBalanceSnapshot")).getFuture().join();
             }
@@ -3147,7 +3147,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         }
         Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchBalance", (Object) null);
         Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
-        if (java.util.Objects.equals(fetchBalanceSnapshot, true))
+        if (Boolean.TRUE.equals(fetchBalanceSnapshot))
         {
             String messageHash = (type + ":fetchBalanceSnapshot");
             if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))
@@ -4139,7 +4139,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         } else if (((Map<?, ?>)message).containsKey("result"))
         {
             Boolean result = (Boolean) this.safeBool(message, "result", true);
-            if (!java.util.Objects.equals(result, true))
+            if (!Boolean.TRUE.equals(result))
             {
                 this.handleErrorMessage(client, message);
             }

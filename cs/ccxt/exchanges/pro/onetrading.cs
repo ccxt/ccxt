@@ -1150,7 +1150,7 @@ public partial class onetrading : ccxt.onetrading
             {
                 IDictionary<string, object> ohlcvMarket = this.safeDict(subscription, marketId, new Dictionary<string, object>() {});
                 bool? marketSubscribed = this.safeBool(ohlcvMarket, timeframeVar, false);
-                if ((marketSubscribed != true))
+                if (marketSubscribed != true)
                 {
                     type = "UPDATE_SUBSCRIPTION";
                     ((IDictionary<string,object>)client.subscriptions)[subscriptionHash] = null;
@@ -1428,7 +1428,7 @@ public partial class onetrading : ccxt.onetrading
                 {
                     object marketId = marketIds[i];
                     bool? marketSubscribed = this.safeBool(subscription, marketId, false);
-                    if ((marketSubscribed != true))
+                    if (marketSubscribed != true)
                     {
                         type = "UPDATE_SUBSCRIPTION";
                         ((IDictionary<string,object>)client.subscriptions)[(string)subscriptionHash] = null;

@@ -5780,7 +5780,7 @@ public partial class gate : Exchange
         bool postOnly = (bool)postOnlyparamsPostOnlyVariable[0];
         IDictionary<string, object> paramsPostOnly = ((IDictionary<string, object>)postOnlyparamsPostOnlyVariable[1]);
         string? timeInForce = this.handleTimeInForce(paramsPostOnly);
-        if ((postOnly == true))
+        if (postOnly)
         {
             timeInForce = "poc";
         }
@@ -6441,7 +6441,7 @@ public partial class gate : Exchange
         //     }
         //
         bool? succeeded = this.safeBool(order, "succeeded", true);
-        if ((succeeded != true))
+        if (succeeded != true)
         {
             // cancelOrders response
             return this.safeOrder(new Dictionary<string, object>() {
@@ -8591,7 +8591,7 @@ public partial class gate : Exchange
         string? bodyJson = null;
         Dictionary<string, object> signedHeaders = null;
         bool containsSettle = path.IndexOf("settle", StringComparison.Ordinal) > -1;
-        if (containsSettle && ((path.EndsWith("batch_cancel_orders") == true)))
+        if (containsSettle && (path.EndsWith("batch_cancel_orders")))
         {
             // special case where we need to extract the settle from the path
             // but the body is an array of strings

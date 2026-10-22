@@ -729,7 +729,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' approve() requires params.amount - the USDC amount to move into the proxy wallet')
         proxy = await self.fetch_sxbet_proxy()
         deployed = self.safe_bool(proxy, 'deployed', False)
-        if deployed is not True:
+        if not deployed:
             await self.sxbetPrivatePostUserDeployProxy()
             # deployment is asynchronous - poll until the proxy exists
             for i in range(0, 30):
@@ -824,7 +824,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         # the venue has no post-only or trigger mechanics - reject the unified params instead
         # of forwarding fields the exchange would silently ignore
         postOnly = self.safe_bool(params, 'postOnly', False)
-        if postOnly is True:
+        if postOnly:
             raise NotSupported(self.id + ' createOrder() does not support postOnly - GTC orders may cross on entry')
         triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
         if triggerPrice is not None:
@@ -1097,7 +1097,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         # both paths paginate their async submission - keep going on the SAME route while more remain
         hasMore = self.safe_bool(self.safe_dict(response, 'data', {}), 'hasMore', False)
         guard = 0
-        while((hasMore is True) and (guard < 50)):
+        while((hasMore) and (guard < 50)):
             nextResponse = None
             if isEventScoped:
                 nextRequest = {'eventId': eventId}
@@ -1376,7 +1376,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         isMaker = self.safe_bool(fill, 'isMaker')
         takerOrMaker = None
         if isMaker is not None:
-            takerOrMaker = 'maker' if (isMaker is True) else 'taker'
+            takerOrMaker = 'maker' if (isMaker) else 'taker'
         return self.safe_prediction_trade({
             'id': self.safe_string(fill, 'id'),
             'info': fill,

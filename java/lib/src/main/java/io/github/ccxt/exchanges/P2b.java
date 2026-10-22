@@ -1561,7 +1561,7 @@ public class P2b extends P2bApi
         //     {"success":true,"errorCode":"","message":"","result":{...},"cache_time":1787611797.535462,"current_time":1787611797.535973}
         //
         Boolean success = (Boolean) this.safeBool(response, "success", true);
-        if (!java.util.Objects.equals(success, true))
+        if (!Boolean.TRUE.equals(success))
         {
             String errorCode = this.safeString(response, "errorCode");
             String feedback = ((this.id + " ") + body);

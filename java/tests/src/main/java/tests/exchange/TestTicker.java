@@ -140,7 +140,7 @@ public class TestTicker extends BaseTest {
             // far above baseVolume * high), so the spot-derived invariant does not hold there,
             // see https://github.com/ccxt/ccxt/pull/29563
             Object isInverse = exchange.safeBool(market, "inverse", false);
-            if ((!java.util.Objects.equals(baseVolume, null)) && (!java.util.Objects.equals(quoteVolume, null)) && (!java.util.Objects.equals(high, null)) && (!java.util.Objects.equals(low, null)) && (!java.util.Objects.equals(isInverse, true)))
+            if ((!java.util.Objects.equals(baseVolume, null)) && (!java.util.Objects.equals(quoteVolume, null)) && (!java.util.Objects.equals(high, null)) && (!java.util.Objects.equals(low, null)) && (!Helpers.isTrue(isInverse)))
             {
                 String baseLow = Precise.stringMul(baseVolume, low);
                 String baseHigh = Precise.stringMul(baseVolume, high);
@@ -291,7 +291,7 @@ public class TestTicker extends BaseTest {
             {
                 // - should be above -100 and (for non-options) below MAX
                 Assert(Precise.stringGe(percentage, "-100"), ("percentage should be above -100% " + logText));
-                if (!java.util.Objects.equals(isOptionMarket, true))
+                if (!Helpers.isTrue(isOptionMarket))
                 {
                     Assert(Precise.stringLe(percentage, Precise.stringMul("+100", maxIncrease)), ((("percentage should be below " + maxIncrease) + "00% ") + logText));
                 }
@@ -304,7 +304,7 @@ public class TestTicker extends BaseTest {
             {
                 // - should be above -price and (for non-options) below +price*maxIncrease
                 Assert(Precise.stringGe(change, Precise.stringNeg(approxValue)), ("change should be above -price " + logText));
-                if (!java.util.Objects.equals(isOptionMarket, true))
+                if (!Helpers.isTrue(isOptionMarket))
                 {
                     Assert(Precise.stringLe(change, Precise.stringMul(approxValue, maxIncrease)), ((("change should be below " + maxIncrease) + "x price ") + logText));
                 }

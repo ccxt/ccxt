@@ -1444,7 +1444,7 @@ impl FoxbitCore {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("time_in_force".into(), timeInForce); }
             }
         }
-        if (postOnly.as_bool() == Some(true)) {
+        if postOnly.as_bool() == Some(true) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("post_only".into(), Value::Bool(true)); }
         }
         if (triggerPrice != Value::Null) {
@@ -1526,7 +1526,7 @@ impl FoxbitCore {
                 }
                 remove(&mut orderParams, &Value::Str("timeInForce".into()));
             }
-            if (postOnly.as_bool() == Some(true)) {
+            if postOnly.as_bool() == Some(true) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("post_only".into(), Value::Bool(true)); }
                 remove(&mut orderParams, &Value::Str("postOnly".into()));
             }

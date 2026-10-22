@@ -442,7 +442,7 @@ func (this *Coinone) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var side *string = nil
 	if isSellerMaker != nil {
 		side = ccxt.SafeStringPtr(func() string {
-			if isSellerMaker != nil && *isSellerMaker == true {
+			if isSellerMaker != nil && *isSellerMaker {
 				return "sell"
 			}
 			return "buy"

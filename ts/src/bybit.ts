@@ -4057,7 +4057,7 @@ export default class bybit extends Exchange {
         let amount: Str = undefined;
         let cost: Str = undefined;
         const qtyIsQuote = (marketResolved['spot'] === true) && (type === 'market') && ((marketUnit === 'quoteCoin') || ((marketUnit === undefined) && (side === 'buy')));
-        if (qtyIsQuote === true) {
+        if (qtyIsQuote) {
             // qty is denominated in the quote currency, safeOrder derives amount from filled + remaining
             cost = this.safeString (order, 'cumExecValue');
         } else {
@@ -4246,7 +4246,7 @@ export default class bybit extends Exchange {
         const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params, enableUnifiedAccount);
         const switchToOco = (isStopLossOrder && isTakeProfitOrder) || this.safeBool (params, 'tradingStopEndpoint', false);
         let defaultMethod: Str = undefined;
-        if ((isTrailingOrder || (switchToOco === true)) && (market['spot'] !== true)) {
+        if ((isTrailingOrder || (switchToOco)) && (market['spot'] !== true)) {
             defaultMethod = 'privatePostV5PositionTradingStop';
         } else {
             defaultMethod = 'privatePostV5OrderCreate';
@@ -4329,7 +4329,7 @@ export default class bybit extends Exchange {
         const isBuy = side === 'buy';
         const switchToOco = (isStopLossOrder && isTakeProfitOrder) || this.safeBool (params, 'tradingStopEndpoint', false);
         let defaultMethod: Str = undefined;
-        if (isTrailingOrder || (switchToOco === true)) {
+        if (isTrailingOrder || (switchToOco)) {
             defaultMethod = 'privatePostV5PositionTradingStop';
         } else {
             defaultMethod = 'privatePostV5OrderCreate';
@@ -4407,7 +4407,7 @@ export default class bybit extends Exchange {
             const timeInForce = this.safeStringLower (query, 'timeInForce'); // this is same as exchange specific param
             let postOnly: Bool = undefined;
             [ postOnly, query ] = this.handlePostOnly (isMarket, timeInForce === 'postonly', query);
-            if (postOnly === true) {
+            if (postOnly) {
                 request['timeInForce'] = 'PostOnly';
             } else if (timeInForce === 'gtc') {
                 request['timeInForce'] = 'GTC';
@@ -4563,7 +4563,7 @@ export default class bybit extends Exchange {
                 }
             }
         }
-        if ((market['spot'] !== true) && (hedged === true)) {
+        if ((market['spot'] !== true) && (hedged)) {
             if (reduceOnly === true) {
                 query = this.omit (query, 'reduceOnly');
             }
@@ -4908,7 +4908,7 @@ export default class bybit extends Exchange {
         if (market['spot'] === true) {
             // only works for spot market
             const isTrigger = this.safeBool2 (params, 'stop', 'trigger', false);
-            request['orderFilter'] = (isTrigger === true) ? 'StopOrder' : 'Order';
+            request['orderFilter'] = (isTrigger) ? 'StopOrder' : 'Order';
         }
         if (id !== undefined) { // The user can also use argument params["orderLinkId"]
             request['orderId'] = id;
@@ -5217,7 +5217,7 @@ export default class bybit extends Exchange {
         }
         const isTrigger = this.safeBool2 (paramsValue, 'stop', 'trigger', false);
         const paramsOmitted: Dict = this.omit (paramsValue, [ 'stop', 'trigger' ]);
-        if (isTrigger === true) {
+        if (isTrigger) {
             request['orderFilter'] = 'StopOrder';
         }
         const response = await this.privatePostV5OrderCancelAll (this.extend (request, paramsOmitted));
@@ -5285,7 +5285,7 @@ export default class bybit extends Exchange {
         const length = result.length;
         if (length === 0) {
             const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
-            const extra = (isTrigger === true) ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
+            const extra = (isTrigger) ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
             throw new OrderNotFound ('Order ' + id.toString () + ' was not found.' + extra);
         }
         if (length > 1) {
@@ -5434,7 +5434,7 @@ export default class bybit extends Exchange {
         request['category'] = type;
         const isTrigger = this.safeBool2 (paramsValue, 'trigger', 'stop', false);
         const paramsOmitted: Dict = this.omit (paramsValue, [ 'trigger', 'stop' ]);
-        if (isTrigger === true) {
+        if (isTrigger) {
             request['orderFilter'] = 'StopOrder';
         }
         if (limit !== undefined) {
@@ -5530,7 +5530,7 @@ export default class bybit extends Exchange {
         const length = result.length;
         if (length === 0) {
             const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
-            const extra = (isTrigger === true) ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
+            const extra = (isTrigger) ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
             throw new OrderNotFound ('Order ' + id.toString () + ' was not found.' + extra);
         }
         if (length > 1) {
@@ -5568,7 +5568,7 @@ export default class bybit extends Exchange {
         const length = result.length;
         if (length === 0) {
             const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
-            const extra = (isTrigger === true) ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
+            const extra = (isTrigger) ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
             throw new OrderNotFound ('Order ' + id.toString () + ' was not found.' + extra);
         }
         if (length > 1) {
@@ -5614,7 +5614,7 @@ export default class bybit extends Exchange {
         request['category'] = type;
         const isTrigger = this.safeBool2 (paramsValue, 'trigger', 'stop', false);
         const paramsOmitted: Dict = this.omit (paramsValue, [ 'trigger', 'stop' ]);
-        if (isTrigger === true) {
+        if (isTrigger) {
             request['orderFilter'] = 'StopOrder';
         }
         if (limit !== undefined) {
@@ -5799,7 +5799,7 @@ export default class bybit extends Exchange {
         request['category'] = type;
         const isTrigger = this.safeBool2 (paramsValue, 'stop', 'trigger', false);
         const paramsOmitted: Dict = this.omit (paramsValue, [ 'stop', 'trigger' ]);
-        if (isTrigger === true) {
+        if (isTrigger) {
             request['orderFilter'] = 'StopOrder';
         }
         if (limit !== undefined) {

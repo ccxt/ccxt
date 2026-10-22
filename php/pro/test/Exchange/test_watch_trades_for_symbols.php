@@ -33,7 +33,7 @@ function test_watch_trades_for_symbols($exchange, $skipped_properties, $symbols)
                 $success = false;
             }
             $now = $exchange->milliseconds();
-            if (($success === true) && ($response !== null)) {
+            if (($success) && ($response !== null)) {
                 assert(gettype($response) === 'array' && array_is_list($response), $log_text . 'must return an array. ' . $exchange->json($response));
                 for ($i = 0; $i < count($response); $i++) {
                     $trade = $response[$i];

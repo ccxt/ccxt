@@ -640,7 +640,7 @@ class toobit extends \ccxt\async\toobit {
         //     }
         //
         $isSnapshot = $this->safe_bool($message, 'f', false);
-        if ($isSnapshot === true) {
+        if ($isSnapshot) {
             $this->set_order_book_snapshot($client, $message, 'diffDepth');
             return;
         }

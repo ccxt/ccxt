@@ -965,7 +965,7 @@ export default class woo extends wooRest {
         }
         const trigger = this.safeBool2(params, 'stop', 'trigger', false);
         let topic = 'executionreport';
-        if (trigger === true) {
+        if (trigger) {
             topic = 'algoexecutionreportv2';
         }
         const paramsOmitted = this.omit(params, ['stop', 'trigger']);
@@ -1005,7 +1005,7 @@ export default class woo extends wooRest {
         }
         const trigger = this.safeBool2(params, 'stop', 'trigger', false);
         let topic = 'executionreport';
-        if (trigger === true) {
+        if (trigger) {
             topic = 'algoexecutionreportv2';
         }
         const paramsOmitted = this.omit(params, ['stop', 'trigger']);

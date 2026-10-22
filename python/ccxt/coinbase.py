@@ -1822,7 +1822,7 @@ class coinbase(Exchange, ImplicitAPI):
             'swap': isSwap,
             'future': not isSwap,
             'option': False,
-            'active': tradingDisabled is not True,
+            'active': not tradingDisabled,
             'contract': True,
             'linear': True,
             'inverse': False,
@@ -2436,7 +2436,7 @@ class coinbase(Exchange, ImplicitAPI):
         method = self.safe_string(self.options, 'fetchBalance', 'v3PrivateGetBrokerageAccounts')
         if (marketType == 'future') or (marketType == 'swap'):
             response = self.v3PrivateGetBrokerageCfmBalanceSummary(self.extend(request, paramsMarketType))
-        elif (isV3 is True) or (method == 'v3PrivateGetBrokerageAccounts'):
+        elif (isV3) or (method == 'v3PrivateGetBrokerageAccounts'):
             request['limit'] = 250
             response = self.v3PrivateGetBrokerageAccounts(self.extend(request, paramsMarketType))
             # an explicit params.cursor means the caller pages manually
@@ -3128,7 +3128,7 @@ class coinbase(Exchange, ImplicitAPI):
         paramsOmitted = self.omit(paramsBase, ['timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'stop_price', 'stopDirection', 'stop_direction', 'clientOrderId', 'postOnly', 'post_only', 'end_time', 'marginMode'])
         preview = self.safe_bool_2(paramsOmitted, 'preview', 'test', False)
         response = None
-        if preview is True:
+        if preview:
             request = self.omit(request, 'client_order_id')
             response = self.v3PrivatePostBrokerageOrdersPreview(self.extend(request, self.omit(paramsOmitted, ['preview', 'test'])))
         else:
@@ -3427,7 +3427,7 @@ class coinbase(Exchange, ImplicitAPI):
             request['price'] = self.price_to_precision(symbol, price)
         preview = self.safe_bool_2(params, 'preview', 'test', False)
         response = None
-        if preview is True:
+        if preview:
             response = self.v3PrivatePostBrokerageOrdersEditPreview(self.extend(request, self.omit(params, ['preview', 'test'])))
         else:
             response = self.v3PrivatePostBrokerageOrdersEdit(self.extend(request, params))

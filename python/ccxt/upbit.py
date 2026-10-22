@@ -355,13 +355,13 @@ class upbit(Exchange, ImplicitAPI):
         walletLocked = self.safe_bool(memberInfo, 'wallet_locked')
         locked = self.safe_bool(memberInfo, 'locked')
         active = True
-        if (canWithdraw is not None) and (canWithdraw is not True):
+        if (canWithdraw is not None) and (not canWithdraw):
             active = False
         elif walletState != 'working':
             active = False
-        elif (walletLocked is not None) and (walletLocked is True):
+        elif (walletLocked is not None) and (walletLocked):
             active = False
-        elif (locked is not None) and (locked is True):
+        elif (locked is not None) and (locked):
             active = False
         maxOnetimeWithdrawal = self.safe_string(withdrawLimits, 'onetime')
         maxDailyWithdrawal = self.safe_string(withdrawLimits, 'daily', maxOnetimeWithdrawal)
@@ -1290,7 +1290,7 @@ class upbit(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' createOrder() requires a timeInForce parameter for best type orders')
         response: dict
         paramsRequest = self.omit(paramsOrdType, ['timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'cost', 'selfTradePrevention', 'smp_type', 'test'])
-        if test is True:
+        if test:
             response = self.privatePostOrdersTest(self.extend(request, paramsRequest))
         else:
             response = self.privatePostOrders(self.extend(request, paramsRequest))

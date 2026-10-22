@@ -90,7 +90,7 @@ func testWatchTickersHelperBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICo
 			ch <- ccxt.AsyncResult[any]{Value: false}
 			return nil
 		}
-		if success == true {
+		if success {
 			Assert(exchange.IsDictionary(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), exchange.Json(argSymbols)), " must return a dictionary. "), exchange.Json(response)))
 			var values []any = ObjectValues(response)
 			var checkedSymbol any = nil

@@ -636,7 +636,7 @@ func (this *Mexc) watchSpotPublicBody(ch chan ccxt.AsyncResult[any], channel any
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"unsubscribed"})
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "spot"))
 	var method string = "SUBSCRIPTION"
-	if unsubscribed != nil && *unsubscribed == true {
+	if unsubscribed != nil && *unsubscribed {
 		method = "UNSUBSCRIPTION"
 	}
 	var request map[string]any = map[string]any{
@@ -2593,7 +2593,7 @@ func (this *Mexc) authenticateBody(ch chan ccxt.AsyncResult[any], subscriptionHa
 	var client ccxt.ClientInterface = this.Client(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "spot"))
 	var messageHash string = "authenticate:listenKey"
 	var isFetching *bool = this.SafeBool(this.Options, "listenKeyFetching", false)
-	if isFetching != nil && *isFetching == true {
+	if isFetching != nil && *isFetching {
 
 		r := <-client.(ccxt.ClientInterface).Future(messageHash)
 		if r.Err != nil {

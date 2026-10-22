@@ -22,9 +22,9 @@ pub fn testCurrency(mut exchange: Value, mut skippedProperties: Value, mut metho
     // todo: remove fee from empty
     let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("name".into()), Value::Str("fee".into())]);
     // todo: info key needs to be added in base, when exchange does not have fetchCurrencies
-    let mut isNative: Value = Value::Bool((get_value(&exchange, &Value::Str("has".into())).as_map().and_then(|__m| __m.get("fetchCurrencies")).cloned().unwrap_or(Value::Null) != Value::Null) && (get_value(&exchange, &Value::Str("has".into())).as_map().and_then(|__m| __m.get("fetchCurrencies")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) && (get_value(&exchange, &Value::Str("has".into())).as_map().and_then(|__m| __m.get("fetchCurrencies")).cloned().unwrap_or(Value::Null).as_str() != Some("emulated")));
+    let mut isNative: bool = (get_value(&exchange, &Value::Str("has".into())).as_map().and_then(|__m| __m.get("fetchCurrencies")).cloned().unwrap_or(Value::Null) != Value::Null) && (get_value(&exchange, &Value::Str("has".into())).as_map().and_then(|__m| __m.get("fetchCurrencies")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) && (get_value(&exchange, &Value::Str("has".into())).as_map().and_then(|__m| __m.get("fetchCurrencies")).cloned().unwrap_or(Value::Null).as_str() != Some("emulated"));
     let mut currencyType: Value = exchange.safe_string(entry.clone(), Value::Str("type".into()), &[]);
-    if (isNative.as_bool() == Some(true)) {
+    if isNative {
         if let Value::Dict(__d) = &mut format { std::sync::Arc::make_mut(__d).insert("info".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

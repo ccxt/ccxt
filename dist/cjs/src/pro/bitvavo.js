@@ -1758,7 +1758,7 @@ class bitvavo extends bitvavo$1["default"] {
         //
         const messageHash = 'authenticated';
         const authenticated = this.safeBool(message, 'authenticated', false);
-        if (authenticated === true) {
+        if (authenticated) {
             // we resolve the future here permanently so authentication only happens once
             client.resolve(message, messageHash);
         }

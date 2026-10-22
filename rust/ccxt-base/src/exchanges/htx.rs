@@ -6272,20 +6272,20 @@ impl HtxCore {
             let mut clientOrderId: Value = self.safe_string_n(paramsOmitted.clone(), Value::from(vec![Value::Str("client_order_id".into()), Value::Str("clientOrderId".into()), Value::Str("algo_client_order_id".into())]), &[]);
             let mut paramsClientOrderId: Value = (if (clientOrderId != Value::Null) { self.omit(paramsOmitted.clone(), Value::from(vec![Value::Str("client_order_id".into()), Value::Str("clientOrderId".into()), Value::Str("algo_client_order_id".into())]), &[]) } else { paramsOmitted });
             if (clientOrderId == Value::Null) {
-                if (isAlgo) {
+                if isAlgo {
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("algo_id".into(), id.clone()); }
                 }  else {
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_id".into(), id.clone()); }
                 }
             }  else {
-                if (isAlgo) {
+                if isAlgo {
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("algo_client_order_id".into(), clientOrderId.clone()); }
                 }  else {
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("client_order_id".into(), clientOrderId); }
                 }
             }
             if matches!(self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
-                if (isAlgo) {
+                if isAlgo {
                     if (trigger.as_bool() == Some(true)) {
                         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("trigger".into())); }
                     }  else if (trailing.as_bool() == Some(true)) {
@@ -6590,7 +6590,7 @@ impl HtxCore {
         let mut stopLoss: Value = self.safe_bool_k(params.clone(), "stopLoss", &[]);
         let mut takeProfit: Value = self.safe_bool_k(params.clone(), "takeProfit", &[]);
         let mut trailing: Value = self.safe_bool_k(params.clone(), "trailing", &[Value::Bool(false)]);
-        let mut isAlgo: bool = (trigger.as_bool() == Some(true)) || (stopLoss.as_bool() == Some(true)) || (takeProfit.as_bool() == Some(true)) || (stopLossTakeProfit.as_bool() == Some(true)) || (trailing.as_bool() == Some(true));
+        let mut isAlgo: bool = (trigger.as_bool() == Some(true)) || (stopLoss.as_bool() == Some(true)) || (takeProfit.as_bool() == Some(true)) || (stopLossTakeProfit.as_bool() == Some(true)) || trailing.as_bool() == Some(true);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("stopLossTakeProfit".into()), Value::Str("trailing".into()), Value::Str("trigger".into()), Value::Str("stopLoss".into()), Value::Str("takeProfit".into())]), &[]);
         if (since != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_time".into(), since.clone()); }
@@ -6605,10 +6605,10 @@ impl HtxCore {
             let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("margin_mode".into(), (if (marginMode == Value::Null) { Value::Str("cross".into()) } else { marginMode })); }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("contract_code".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
-            if (isAlgo) {
+            if isAlgo {
                 if (trigger.as_bool() == Some(true)) {
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("trigger".into())); }
-                }  else if (trailing.as_bool() == Some(true)) {
+                }  else if trailing.as_bool() == Some(true) {
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("trailing_stop".into())); }
                 }  else if (stopLossTakeProfit.as_bool() == Some(true)) {
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("tpsl".into())); }
@@ -6635,7 +6635,7 @@ impl HtxCore {
                 }  else if (stopLossTakeProfit.as_bool() == Some(true)) {
                     let __ws_arg_59 = self.extend(request.clone(), &[paramsUntil.clone()]);
                     response = self.contract_private_post_swap_api_v1_swap_tpsl_hisorders(&[__ws_arg_59]).await;
-                }  else if (trailing.as_bool() == Some(true)) {
+                }  else if trailing.as_bool() == Some(true) {
                     let __ws_arg_60 = self.extend(request.clone(), &[paramsUntil.clone()]);
                     response = self.contract_private_post_swap_api_v1_swap_track_hisorders(&[__ws_arg_60]).await;
                 }  else {
@@ -6650,7 +6650,7 @@ impl HtxCore {
                 }  else if (stopLossTakeProfit.as_bool() == Some(true)) {
                     let __ws_arg_63 = self.extend(request.clone(), &[paramsUntil.clone()]);
                     response = self.contract_private_post_api_v1_contract_tpsl_hisorders(&[__ws_arg_63]).await;
-                }  else if (trailing.as_bool() == Some(true)) {
+                }  else if trailing.as_bool() == Some(true) {
                     let __ws_arg_64 = self.extend(request.clone(), &[paramsUntil.clone()]);
                     response = self.contract_private_post_api_v1_contract_track_hisorders(&[__ws_arg_64]).await;
                 }  else {
@@ -6693,8 +6693,8 @@ impl HtxCore {
             let mut stopLoss: Value = self.safe_bool_k(params.clone(), "stopLoss", &[]);
             let mut takeProfit: Value = self.safe_bool_k(params.clone(), "takeProfit", &[]);
             let mut trailing: Value = self.safe_bool_k(params.clone(), "trailing", &[Value::Bool(false)]);
-            let mut isAlgo: bool = (trigger.as_bool() == Some(true)) || (stopLoss.as_bool() == Some(true)) || (takeProfit.as_bool() == Some(true)) || (stopLossTakeProfit.as_bool() == Some(true)) || (trailing.as_bool() == Some(true));
-            if (isAlgo) {
+            let mut isAlgo: bool = (trigger.as_bool() == Some(true)) || (stopLoss.as_bool() == Some(true)) || (takeProfit.as_bool() == Some(true)) || (stopLossTakeProfit.as_bool() == Some(true)) || trailing.as_bool() == Some(true);
+            if isAlgo {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("states".into(), Value::Str("effective".into())); }
             }  else {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("states".into(), Value::Str("filled".into())); }
@@ -6819,8 +6819,8 @@ impl HtxCore {
                 let mut stopLoss: Value = self.safe_bool_k(paramsMarketType.clone(), "stopLoss", &[]);
                 let mut takeProfit: Value = self.safe_bool_k(paramsMarketType.clone(), "takeProfit", &[]);
                 let mut trailing: Value = self.safe_bool_k(paramsMarketType.clone(), "trailing", &[Value::Bool(false)]);
-                let mut isAlgo: bool = (trigger.as_bool() == Some(true)) || (stopLoss.as_bool() == Some(true)) || (takeProfit.as_bool() == Some(true)) || (stopLossTakeProfit.as_bool() == Some(true)) || (trailing.as_bool() == Some(true));
-                if (isAlgo) {
+                let mut isAlgo: bool = (trigger.as_bool() == Some(true)) || (stopLoss.as_bool() == Some(true)) || (takeProfit.as_bool() == Some(true)) || (stopLossTakeProfit.as_bool() == Some(true)) || trailing.as_bool() == Some(true);
+                if isAlgo {
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("states".into(), Value::Str("canceled".into())); }
                 }  else {
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("states".into(), Value::Str("partially_canceled,canceled".into())); }
@@ -6980,10 +6980,10 @@ impl HtxCore {
             let mut trailing: Value = self.safe_bool_k(paramsSubType.clone(), "trailing", &[Value::Bool(false)]);
             let mut paramsOmitted: Value = self.omit(paramsSubType, Value::from(vec![Value::Str("stop".into()), Value::Str("stopLossTakeProfit".into()), Value::Str("trailing".into()), Value::Str("trigger".into()), Value::Str("stopLoss".into()), Value::Str("takeProfit".into())]), &[]);
             if isLinear {
-                if (trigger.as_bool() == Some(true)) || (trailing.as_bool() == Some(true)) || (stopLossTakeProfit.as_bool() == Some(true)) || (stopLoss.as_bool() == Some(true)) || (takeProfit.as_bool() == Some(true)) {
+                if (trigger.as_bool() == Some(true)) || trailing.as_bool() == Some(true) || (stopLossTakeProfit.as_bool() == Some(true)) || (stopLoss.as_bool() == Some(true)) || (takeProfit.as_bool() == Some(true)) {
                     if (trigger.as_bool() == Some(true)) {
                         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("trigger".into())); }
-                    }  else if (trailing.as_bool() == Some(true)) {
+                    }  else if trailing.as_bool() == Some(true) {
                         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("trailing_stop".into())); }
                     }  else if (stopLossTakeProfit.as_bool() == Some(true)) {
                         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("tpsl".into())); }
@@ -7006,7 +7006,7 @@ impl HtxCore {
                     }  else if (stopLossTakeProfit.as_bool() == Some(true)) {
                         let __ws_arg_72 = self.extend(request.clone(), &[paramsOmitted.clone()]);
                         response = self.contract_private_post_swap_api_v1_swap_tpsl_openorders(&[__ws_arg_72]).await;
-                    }  else if (trailing.as_bool() == Some(true)) {
+                    }  else if trailing.as_bool() == Some(true) {
                         let __ws_arg_73 = self.extend(request.clone(), &[paramsOmitted.clone()]);
                         response = self.contract_private_post_swap_api_v1_swap_track_openorders(&[__ws_arg_73]).await;
                     }  else {
@@ -7021,7 +7021,7 @@ impl HtxCore {
                     }  else if (stopLossTakeProfit.as_bool() == Some(true)) {
                         let __ws_arg_76 = self.extend(request.clone(), &[paramsOmitted.clone()]);
                         response = self.contract_private_post_api_v1_contract_tpsl_openorders(&[__ws_arg_76]).await;
-                    }  else if (trailing.as_bool() == Some(true)) {
+                    }  else if trailing.as_bool() == Some(true) {
                         let __ws_arg_77 = self.extend(request.clone(), &[paramsOmitted.clone()]);
                         response = self.contract_private_post_api_v1_contract_track_openorders(&[__ws_arg_77]).await;
                     }  else {
@@ -7545,7 +7545,7 @@ impl HtxCore {
         let mut contractCode: Option<String> = self.safe_string_k(order.clone(), "contract_code", &[]).as_str().map(str::to_owned);
         let mut isLinearOrder: bool = (contractCode.is_some()) && (marketResolved != Value::Null) && (marketResolved.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && (marketResolved.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true));
         let mut type_var: Value = Value::Null;
-        if (isLinearOrder) {
+        if isLinearOrder {
             type_var = self.safe_string_k(order.clone(), "type", &[]);
             if (type_var == Value::Null) || (type_var.as_str() == Some("tp")) || (type_var.as_str() == Some("sl")) || (type_var.as_str() == Some("tpsl")) {
                 type_var = self.safe_string2(order.clone(), Value::Str("tp_type".into()), Value::Str("sl_type".into()), &[]);
@@ -7599,7 +7599,7 @@ impl HtxCore {
         let mut average: Value = self.safe_string_k(order.clone(), "trade_avg_price", &[]);
         let mut trades: Value = self.safe_value_k(order.clone(), "trades", &[]);
         let mut reduceOnly: Value = Value::Null;
-        if (isLinearOrder) {
+        if isLinearOrder {
             reduceOnly = self.safe_bool_k(order.clone(), "reduce_only", &[]);
         }  else {
             let mut reduceOnlyInteger: Option<i64> = self.safe_integer_k(order.clone(), "reduce_only", &[]).as_i64();
@@ -7776,7 +7776,7 @@ impl HtxCore {
         let mut postOnlyparamsPostOnlyVariable = self.handle_post_only(Value::Bool(orderType.as_str() == Some("market")), Value::Bool(orderType.as_str() == Some("limit-maker")), &[paramsMarginMode]);
         let mut postOnly: Value = postOnlyparamsPostOnlyVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsPostOnly: Value = postOnlyparamsPostOnlyVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        if (postOnly.as_bool() == Some(true)) {
+        if is_true(&postOnly) {
             orderType = Value::Str("limit-maker".into());
         }
         let mut timeInForce: Option<String> = self.safe_string_k(paramsPostOnly.clone(), "timeInForce", &[Value::Str("GTC".into())]).as_str().map(str::to_owned);
@@ -7896,7 +7896,7 @@ impl HtxCore {
         let mut postOnlyparamsPostOnlyVariable = self.handle_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(type_var.as_str() == Some("post_only")), &[params]);
         let mut postOnly: Value = postOnlyparamsPostOnlyVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsPostOnly: Value = postOnlyparamsPostOnlyVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut orderType: Value = (if (postOnly.as_bool() == Some(true)) { Value::Str("post_only".into()) } else { type_var });
+        let mut orderType: Value = (if is_true(&(postOnly)) { Value::Str("post_only".into()) } else { type_var });
         let mut subTypeparamsSubTypeVariable = self.handle_sub_type_and_params(Value::Str("createOrder".into()), &[market, paramsPostOnly]);
         let mut subType: Value = subTypeparamsSubTypeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsSubType: Value = subTypeparamsSubTypeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
@@ -7949,8 +7949,8 @@ impl HtxCore {
                 query = self.omit(query.clone(), Value::Str("takeProfit".into()), &[]);
             }
         }  else {
-            if (hedged.as_bool() == Some(true)) {
-                if (reduceOnly.as_bool() == Some(true)) {
+            if hedged.as_bool() == Some(true) {
+                if reduceOnly.as_bool() == Some(true) {
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("offset".into(), Value::Str("close".into())); }
                 }  else {
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("offset".into(), Value::Str("open".into())); }
@@ -8035,7 +8035,7 @@ impl HtxCore {
             }
         }
         if !isStopLossTriggerOrder && !isTakeProfitTriggerOrder {
-            if (reduceOnly.as_bool() == Some(true)) {
+            if reduceOnly.as_bool() == Some(true) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("reduce_only".into(), Value::Int(1)); }
             }
             if isLinear {
@@ -8538,7 +8538,7 @@ impl HtxCore {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".into()))));
             }
             let mut clientOrderId: Value = self.safe_string_n(query.clone(), Value::from(vec![Value::Str("client_order_id".into()), Value::Str("clientOrderId".into()), Value::Str("algo_client_order_id".into())]), &[]);
-            if !(isLinear && ((trigger.as_bool() == Some(true)) || (stopLossTakeProfit.as_bool() == Some(true)) || (trailing.as_bool() == Some(true)))) {
+            if !(isLinear && ((trigger.as_bool() == Some(true)) || (stopLossTakeProfit.as_bool() == Some(true)) || trailing.as_bool() == Some(true))) {
                 if (clientOrderId == Value::Null) {
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_id".into(), id.clone()); }
                 }  else {
@@ -8552,7 +8552,7 @@ impl HtxCore {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("contract_code".into(), self.safe_string_k(market.clone(), "id", &[])); }
             }
             if isLinear {
-                if (trigger.as_bool() == Some(true)) || (stopLossTakeProfit.as_bool() == Some(true)) || (trailing.as_bool() == Some(true)) {
+                if (trigger.as_bool() == Some(true)) || (stopLossTakeProfit.as_bool() == Some(true)) || trailing.as_bool() == Some(true) {
                     let mut requestItem: Value = Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("contract_code".to_string(), self.safe_string_k(market.clone(), "id", &[]));
@@ -8579,7 +8579,7 @@ impl HtxCore {
                     }  else if (stopLossTakeProfit.as_bool() == Some(true)) {
                         let __ws_arg_84 = self.extend(request.clone(), &[query.clone()]);
                         response = self.contract_private_post_swap_api_v1_swap_tpsl_cancel(&[__ws_arg_84]).await;
-                    }  else if (trailing.as_bool() == Some(true)) {
+                    }  else if trailing.as_bool() == Some(true) {
                         let __ws_arg_85 = self.extend(request.clone(), &[query.clone()]);
                         response = self.contract_private_post_swap_api_v1_swap_track_cancel(&[__ws_arg_85]).await;
                     }  else {
@@ -8593,7 +8593,7 @@ impl HtxCore {
                     }  else if (stopLossTakeProfit.as_bool() == Some(true)) {
                         let __ws_arg_88 = self.extend(request.clone(), &[query.clone()]);
                         response = self.contract_private_post_api_v1_contract_tpsl_cancel(&[__ws_arg_88]).await;
-                    }  else if (trailing.as_bool() == Some(true)) {
+                    }  else if trailing.as_bool() == Some(true) {
                         let __ws_arg_89 = self.extend(request.clone(), &[query.clone()]);
                         response = self.contract_private_post_api_v1_contract_track_cancel(&[__ws_arg_89]).await;
                     }  else {
@@ -8654,7 +8654,7 @@ impl HtxCore {
         //
         let mut result: Value = Value::Null;
         if isLinear {
-            if (trigger.as_bool() == Some(true)) || (stopLossTakeProfit.as_bool() == Some(true)) || (trailing.as_bool() == Some(true)) {
+            if (trigger.as_bool() == Some(true)) || (stopLossTakeProfit.as_bool() == Some(true)) || trailing.as_bool() == Some(true) {
                 let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
                 result = self.safe_dict(data, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9067,7 +9067,7 @@ impl HtxCore {
                     }  else if (stopLossTakeProfit.as_bool() == Some(true)) {
                         let __ws_arg_103 = self.extend(request.clone(), &[paramsOmitted.clone()]);
                         response = self.contract_private_post_swap_api_v1_swap_tpsl_cancelall(&[__ws_arg_103]).await;
-                    }  else if (trailing.as_bool() == Some(true)) {
+                    }  else if trailing.as_bool() == Some(true) {
                         let __ws_arg_104 = self.extend(request.clone(), &[paramsOmitted.clone()]);
                         response = self.contract_private_post_swap_api_v1_swap_track_cancelall(&[__ws_arg_104]).await;
                     }  else {
@@ -9081,7 +9081,7 @@ impl HtxCore {
                     }  else if (stopLossTakeProfit.as_bool() == Some(true)) {
                         let __ws_arg_107 = self.extend(request.clone(), &[paramsOmitted.clone()]);
                         response = self.contract_private_post_api_v1_contract_tpsl_cancelall(&[__ws_arg_107]).await;
-                    }  else if (trailing.as_bool() == Some(true)) {
+                    }  else if trailing.as_bool() == Some(true) {
                         let __ws_arg_108 = self.extend(request.clone(), &[paramsOmitted.clone()]);
                         response = self.contract_private_post_api_v1_contract_track_cancelall(&[__ws_arg_108]).await;
                     }  else {
@@ -9102,7 +9102,7 @@ impl HtxCore {
             //         "ts": "1683435723755"
             //     }
             //
-            if matches!((self.safe_bool_k(market, "linear", &[Value::Bool(false)])), Value::Bool(true)) && ((trigger.as_bool() != Some(true)) && (trailing.as_bool() != Some(true)) && (stopLossTakeProfit.as_bool() != Some(true))) {
+            if matches!((self.safe_bool_k(market, "linear", &[Value::Bool(false)])), Value::Bool(true)) && ((trigger.as_bool() != Some(true)) && (!(trailing.as_bool() == Some(true))) && (stopLossTakeProfit.as_bool() != Some(true))) {
                 return self.parse_cancel_orders(response.clone());
             }
             let mut data: Value = self.safe_dict_k(response, "data", &[]);

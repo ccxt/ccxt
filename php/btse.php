@@ -1637,7 +1637,7 @@ class btse extends Exchange {
          */
         $this->load_markets();
         $paginate = $this->safe_bool($params, 'paginate', false);
-        if ($paginate === true) {
+        if ($paginate) {
             return $this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $this->omit($params, 'paginate'));
         }
         $market = null;
@@ -2425,7 +2425,7 @@ class btse extends Exchange {
             $request['orderPrice'] = $this->price_to_precision($symbol, $price);
         }
         $isSlide = $this->safe_bool($query, 'slide', false);
-        if (($amount === null) && ($price === null) && ($triggerPrice === null) && ($isSlide !== true)) {
+        if (($amount === null) && ($price === null) && ($triggerPrice === null) && (!$isSlide)) {
             throw new ArgumentsRequired($this->id . ' editOrder() requires an amount argument, a price argument or a triggerPrice parameter');
         }
         $response = null;
@@ -3701,7 +3701,7 @@ class btse extends Exchange {
         //     {"status":400,"errorCode":-7,"message":"Authenticate failed","extraData":null}
         //
         $success = $this->safe_bool($response, 'success', true);
-        if ($success !== true) {
+        if (!$success) {
             $spotErrorCode = $this->safe_string($response, 'code');
             $spotMessage = $this->safe_string($response, 'msg');
             $feedback = $this->id . ' ' . $body;
@@ -3776,7 +3776,7 @@ class btse extends Exchange {
         // body like its POST and PUT counterparts, while the spot v4 and the
         // legacy apis keep DELETE params in the query string, verified live
         // in both directions
-        $isBodyDelete = ($method === 'DELETE') && (str_starts_with($path, 'futures/api/v3/') === true);
+        $isBodyDelete = ($method === 'DELETE') && (str_starts_with($path, 'futures/api/v3/'));
         $queryString = '';
         if ((($method === 'GET') || ($method === 'DELETE')) && !$isBodyDelete) {
             if (count($query) > 0) {
@@ -3798,7 +3798,7 @@ class btse extends Exchange {
             // sign the /api/v... remainder, while the public-api wallet, otc and markets
             // endpoints mount on the bare host and sign the full path with the leading slash
             $signPath = null;
-            if (str_starts_with($path, 'public-api/') === true) {
+            if (str_starts_with($path, 'public-api/')) {
                 $signPath = '/' . $path;
             } else {
                 $signPath = $this->clean_path($path);

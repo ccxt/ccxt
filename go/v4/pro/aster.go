@@ -494,7 +494,7 @@ func (this *Aster) watchMarkPricesBody(ch chan ccxt.AsyncResult[any], optionalAr
 		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbolsList, i))
 		var market map[string]any = this.Market(symbol)
 		var suffix string = ""
-		if use1sFreq != nil && *use1sFreq == true {
+		if use1sFreq != nil && *use1sFreq {
 			suffix = "@1s"
 		}
 		subscriptionArgs = append(subscriptionArgs, ccxt.Add(ccxt.Add(this.SafeStringLower(market, "id"), "@markPrice"), suffix))
@@ -583,7 +583,7 @@ func (this *Aster) unWatchMarkPricesBody(ch chan ccxt.AsyncResult[any], optional
 		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbolsList, i))
 		var market map[string]any = this.Market(symbol)
 		var suffix string = ""
-		if use1sFreq != nil && *use1sFreq == true {
+		if use1sFreq != nil && *use1sFreq {
 			suffix = "@1s"
 		}
 		subscriptionArgs = append(subscriptionArgs, ccxt.Add(ccxt.Add(this.SafeStringLower(market, "id"), "@markPrice"), suffix))
@@ -2097,7 +2097,7 @@ func (this *Aster) watchBalanceBody(ch chan ccxt.AsyncResult[map[string]any], op
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBalance")
 	var fetchBalanceSnapshot *bool = this.SafeBool(options, "fetchBalanceSnapshot", false)
 	var awaitBalanceSnapshot *bool = this.SafeBool(options, "awaitBalanceSnapshot", true)
-	if (fetchBalanceSnapshot != nil && *fetchBalanceSnapshot == true) && (awaitBalanceSnapshot != nil && *awaitBalanceSnapshot == true) {
+	if (fetchBalanceSnapshot != nil && *fetchBalanceSnapshot) && (awaitBalanceSnapshot != nil && *awaitBalanceSnapshot) {
 
 		r2 := <-client.(ccxt.ClientInterface).Future(ccxt.Add(typeMarketType, ":fetchBalanceSnapshot"))
 		if r2.Err != nil {
@@ -2130,7 +2130,7 @@ func (this *Aster) SetBalanceCache(client any, typeVar any) {
 	}
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBalance")
 	var fetchBalanceSnapshot *bool = this.SafeBool(options, "fetchBalanceSnapshot", false)
-	if fetchBalanceSnapshot != nil && *fetchBalanceSnapshot == true {
+	if fetchBalanceSnapshot != nil && *fetchBalanceSnapshot {
 		var messageHash any = ccxt.Add(typeVar, ":fetchBalanceSnapshot")
 		if !(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
 			client.(ccxt.ClientInterface).Future(messageHash)

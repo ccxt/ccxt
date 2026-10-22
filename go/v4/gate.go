@@ -6568,7 +6568,7 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 	var postOnly bool = GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)
 	var paramsPostOnly map[string]any = MapTyped(postOnlyparamsPostOnlyVariable[1])
 	var timeInForce any = this.HandleTimeInForce(paramsPostOnly)
-	if postOnly == true {
+	if postOnly {
 		timeInForce = "poc"
 	}
 	// we only omit the unified params here
@@ -6704,7 +6704,7 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 			}
 			AddElementToObject(request, "text", clientOrderId)
 		} else {
-			if textIsRequired != nil && *textIsRequired == true {
+			if textIsRequired != nil && *textIsRequired {
 				// batchOrders requires text in the request
 				AddElementToObject(request, "text", "t-"+this.Uuid16())
 			}
@@ -7264,7 +7264,7 @@ func (this *Gate) ParseOrder(order any, optionalArgs ...any) Order {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var succeeded *bool = this.SafeBool(order, "succeeded", true)
-	if succeeded == nil || *succeeded != true {
+	if !(succeeded != nil && *succeeded) {
 		// cancelOrders response
 		return this.SafeOrder(map[string]any{
 			"clientOrderId": this.SafeString(order, "text"),
@@ -7552,7 +7552,7 @@ func (this *Gate) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, op
 	var requestParams map[string]any = MapTyped(GetValue(requestrequestParamsVariable, 1))
 	var response any = nil
 	if (typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "margin") {
-		if trigger != nil && *trigger == true {
+		if trigger != nil && *trigger {
 
 			r2 := <-this.PrivateSpotGetPriceOrdersOrderId(this.Extend(request, requestParams))
 			if r2.Err != nil {
@@ -7568,7 +7568,7 @@ func (this *Gate) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, op
 			response = r3.Raw
 		}
 	} else if typeVar != nil && *typeVar == "swap" {
-		if trigger != nil && *trigger == true {
+		if trigger != nil && *trigger {
 
 			r4 := <-this.PrivateFuturesGetSettlePriceOrdersOrderId(this.Extend(request, requestParams))
 			if r4.Err != nil {
@@ -7584,7 +7584,7 @@ func (this *Gate) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, op
 			response = r5.Raw
 		}
 	} else if typeVar != nil && *typeVar == "future" {
-		if trigger != nil && *trigger == true {
+		if trigger != nil && *trigger {
 
 			r6 := <-this.PrivateDeliveryGetSettlePriceOrdersOrderId(this.Extend(request, requestParams))
 			if r6.Err != nil {
@@ -8173,7 +8173,7 @@ func (this *Gate) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, o
 	AddElementToObject(request, "order_id", id)
 	var response any = nil
 	if (typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "margin") {
-		if trigger != nil && *trigger == true {
+		if trigger != nil && *trigger {
 
 			r2 := <-this.PrivateSpotDeletePriceOrdersOrderId(this.Extend(request, requestParams))
 			if r2.Err != nil {
@@ -8189,7 +8189,7 @@ func (this *Gate) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, o
 			response = r3.Value
 		}
 	} else if typeVar != nil && *typeVar == "swap" {
-		if trigger != nil && *trigger == true {
+		if trigger != nil && *trigger {
 
 			r4 := <-this.PrivateFuturesDeleteSettlePriceOrdersOrderId(this.Extend(request, requestParams))
 			if r4.Err != nil {
@@ -8205,7 +8205,7 @@ func (this *Gate) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, o
 			response = r5.Value
 		}
 	} else if typeVar != nil && *typeVar == "future" {
-		if trigger != nil && *trigger == true {
+		if trigger != nil && *trigger {
 
 			r6 := <-this.PrivateDeliveryDeleteSettlePriceOrdersOrderId(this.Extend(request, requestParams))
 			if r6.Err != nil {
@@ -9945,7 +9945,7 @@ func (this *Gate) Sign(path string, optionalArgs ...any) any {
 	var bodyJson any = nil
 	var signedHeaders any = nil
 	var containsSettle bool = (strings.Index(path, "settle") > -1)
-	if containsSettle && (strings.HasSuffix(path, "batch_cancel_orders") == true) {
+	if containsSettle && (strings.HasSuffix(path, "batch_cancel_orders")) {
 		// special case where we need to extract the settle from the path
 		// but the body is an array of strings
 		var settle map[string]any = SafeMapTyped(params, 0)

@@ -103,7 +103,7 @@ class weex extends \ccxt\async\weex {
         $id = $this->request_id();
         $method = 'SUBSCRIBE';
         $unsubscribe = $this->safe_bool($subscription, 'unsubscribe', false);
-        if ($unsubscribe === true) {
+        if ($unsubscribe) {
             $method = 'UNSUBSCRIBE';
         }
         $message = array(
@@ -133,7 +133,7 @@ class weex extends \ccxt\async\weex {
         $this->authenticate($url);
         $method = 'SUBSCRIBE';
         $unsubscribe = $this->safe_bool($subscription, 'unsubscribe', false);
-        if ($unsubscribe === true) {
+        if ($unsubscribe) {
             $method = 'UNSUBSCRIBE';
         }
         $id = $this->request_id();
@@ -1741,7 +1741,7 @@ class weex extends \ccxt\async\weex {
         $options = $this->safe_dict($this->options, 'watchBalance');
         $fetchBalanceSnapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', false);
         $awaitBalanceSnapshot = $this->safe_bool($options, 'awaitBalanceSnapshot', true);
-        if (($fetchBalanceSnapshot === true) && ($awaitBalanceSnapshot === true)) {
+        if (($fetchBalanceSnapshot) && ($awaitBalanceSnapshot)) {
             Async\await($client->future($type . ':fetchBalanceSnapshot'));
         }
         $messageHash = $type . ':' . 'balance';
@@ -1754,7 +1754,7 @@ class weex extends \ccxt\async\weex {
         }
         $options = $this->safe_dict($this->options, 'watchBalance');
         $fetchBalanceSnapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', false);
-        if ($fetchBalanceSnapshot === true) {
+        if ($fetchBalanceSnapshot) {
             $messageHash = $type . ':fetchBalanceSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);
@@ -2086,7 +2086,7 @@ class weex extends \ccxt\async\weex {
         $subscriptionsById = $this->index_by($client->subscriptions, 'id');
         $subscription = $this->safe_dict($subscriptionsById, $id, array());
         $unsubscribe = $this->safe_bool($subscription, 'unsubscribe', false);
-        if ($unsubscribe === true) {
+        if ($unsubscribe) {
             $subHashIsPrefix = $this->safe_bool($subscription, 'subHashIsPrefix', false);
             $messageHashes = $this->safe_list($subscription, 'messageHashes', array());
             $subHashes = $this->safe_list($subscription, 'subMessageHashes', array());
@@ -2109,7 +2109,7 @@ class weex extends \ccxt\async\weex {
         //     }
         //
         $result = $this->safe_bool($message, 'result', true);
-        if ($result !== true) {
+        if (!$result) {
             $msg = $this->safe_string($message, 'msg', '');
             $feedback = $this->id . ' ' . $this->json($message);
             try {

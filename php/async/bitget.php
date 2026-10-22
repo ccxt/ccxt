@@ -2225,12 +2225,12 @@ class bitget extends Exchange {
                     $entry = $this->safe_dict($data, $j, array());
                     $entrySymbol = $this->safe_string($entry, 'symbol');
                     $entryBorrowable = $this->safe_bool($entry, 'isBorrowable', true);
-                    if (($entryBorrowable === true) && $this->safe_bool($entry, 'isCrossBorrowable', true)) {
+                    if (($entryBorrowable) && $this->safe_bool($entry, 'isCrossBorrowable', true)) {
                         $crossKeys[] = $entrySymbol;
                     }
                     $isolatedBase = $this->safe_bool($entry, 'isIsolatedBaseBorrowable', true);
                     $isolatedQuote = $this->safe_bool_2($entry, 'isIsolatedQuotedBorrowable', 'isIsolatedQuoteBorrowable', true);
-                    if (($entryBorrowable === true) && (($isolatedBase === true) || ($isolatedQuote === true))) {
+                    if (($entryBorrowable) && (($isolatedBase) || ($isolatedQuote))) {
                         $isolatedKeys[] = $entrySymbol;
                     }
                 }
@@ -3253,7 +3253,7 @@ class bitget extends Exchange {
         $result['type'] = 'withdrawal';
         $withdrawOptions = $this->safe_dict($this->options, 'withdraw', array());
         $fillResponseFromRequest = $this->safe_bool($withdrawOptions, 'fillResponseFromRequest', true);
-        if ($fillResponseFromRequest === true) {
+        if ($fillResponseFromRequest) {
             $result['currency'] = $code;
             $result['amount'] = $amount;
             $result['tag'] = $tag;
@@ -4658,7 +4658,7 @@ class bitget extends Exchange {
             $paramsMarginMode = $this->omit($paramsMarginMode, 'margin');
             $request = array();
             if ($marketType === 'spot') {
-                if (($marginMode !== null) || ($utaMargin === true)) {
+                if (($marginMode !== null) || ($utaMargin)) {
                     $request['category'] = 'MARGIN';
                 } else {
                     $request['category'] = 'SPOT';
@@ -4705,7 +4705,7 @@ class bitget extends Exchange {
         if ($marketType === 'spot') {
             $margin = $this->safe_bool($paramsMarginMode, 'margin', false);
             $paramsMarginMode = $this->omit($paramsMarginMode, 'margin');
-            if (($marginMode !== null) || ($margin === true)) {
+            if (($marginMode !== null) || ($margin)) {
                 $response = Async\await($this->publicMarginGetV2MarginCurrencies($paramsMarginMode));
             } else {
                 $response = Async\await($this->publicSpotGetV2SpotPublicSymbols($paramsMarginMode));
@@ -4883,7 +4883,7 @@ class bitget extends Exchange {
             $maxLimitForHistoryEndpoint = 100; // the uta history endpoint rejects a limit above 100
         }
         if ($paginate) {
-            $limitForPagination = ($useHistoryEndpointForPagination === true) ? $maxLimitForHistoryEndpoint : $maxLimitForRecentEndpoint;
+            $limitForPagination = ($useHistoryEndpointForPagination) ? $maxLimitForHistoryEndpoint : $maxLimitForRecentEndpoint;
             $paramsWithUta = $this->extend($paramsUTA, array( 'uta' => $uta ));
             return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsWithUta, $limitForPagination));
         }
@@ -4961,7 +4961,7 @@ class bitget extends Exchange {
         }
         // if historical endpoint is needed, we should re-set the variables
         $historicalEndpointNeeded = false;
-        if (($calculatedStartTime !== null && $calculatedStartTime <= $recentEndpointBoundaryTs) || ($useHistoryEndpoint === true)) {
+        if (($calculatedStartTime !== null && $calculatedStartTime <= $recentEndpointBoundaryTs) || ($useHistoryEndpoint)) {
             $historicalEndpointNeeded = true;
             // only for "historical-candles" - ensure we use correct max limit
             $limitResolved = min($limitResolved, $maxLimitForHistoryEndpoint);
@@ -6000,7 +6000,7 @@ class bitget extends Exchange {
             if ($timeInForce !== null) {
                 $timeInForce = strtoupper($timeInForce);
             }
-            if ($postOnly === true) {
+            if ($postOnly) {
                 $request['timeInForce'] = 'post_only';
             } elseif ($timeInForce === 'GTC') {
                 $request['timeInForce'] = 'gtc';
@@ -6013,7 +6013,7 @@ class bitget extends Exchange {
         $reduceOnly = $this->safe_bool($paramsProductType, 'reduceOnly', false);
         $hedged = null;
         list($hedged, $paramsProductType) = $this->handle_param_bool($paramsProductType, 'hedged', false);
-        if ($reduceOnly === true) {
+        if ($reduceOnly) {
             if (($hedged === true) || $isStopLossOrTakeProfitTrigger) {
                 $reduceOnlyPosSide = 'short';
                 if ($side === 'sell') {
@@ -6101,7 +6101,7 @@ class bitget extends Exchange {
         if ($timeInForce !== null) {
             $timeInForce = strtoupper($timeInForce);
         }
-        if ($postOnly === true) {
+        if ($postOnly) {
             $request['force'] = 'post_only';
         } elseif ($timeInForce === 'GTC') {
             $request['force'] = 'GTC';
@@ -6210,7 +6210,7 @@ class bitget extends Exchange {
                 }
                 $request['marginMode'] = $marginModeRequest;
                 $requestSide = $side;
-                if ($reduceOnly === true) {
+                if ($reduceOnly) {
                     if ($hedged !== true) {
                         $request['reduceOnly'] = 'YES';
                     } else {
@@ -6581,7 +6581,7 @@ class bitget extends Exchange {
             $cost = $this->safe_string($paramsOmitted, 'cost');
             $paramsOmitted = $this->omit($paramsOmitted, 'cost');
             $editMarketBuyOrderRequiresPrice = $this->safe_bool($this->options, 'editMarketBuyOrderRequiresPrice', true);
-            if ((($editMarketBuyOrderRequiresPrice === true) || ($cost !== null)) && $isMarketOrder && ($side === 'buy')) {
+            if ((($editMarketBuyOrderRequiresPrice) || ($cost !== null)) && $isMarketOrder && ($side === 'buy')) {
                 if ($price === null && $cost === null) {
                     throw new InvalidOrder($this->id . ' editOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively provide `cost` in the params');
                 } else {
@@ -9148,7 +9148,7 @@ class bitget extends Exchange {
         }
         $method = null;
         $useHistoryEndpoint = $this->safe_bool($paramsPaginate, 'useHistoryEndpoint', false);
-        if ($useHistoryEndpoint === true) {
+        if ($useHistoryEndpoint) {
             $method = 'privateMixGetV2MixPositionHistoryPosition';
         } else {
             list($method, $paramsPaginate) = $this->handle_option_string_and_params($paramsPaginate, 'fetchPositions', 'method', 'privateMixGetV2MixPositionAllPosition');
@@ -12596,7 +12596,7 @@ class bitget extends Exchange {
         }
         $headersResult = $requestHeaders;
         $sandboxMode = $this->safe_bool_2($this->options, 'sandboxMode', 'sandbox', false);
-        if (($sandboxMode === true) && ($path !== 'v2/public/time') && ($path !== 'v3/market/current-fund-rate')) {
+        if (($sandboxMode) && ($path !== 'v2/public/time') && ($path !== 'v3/market/current-fund-rate')) {
             // https://github.com/ccxt/ccxt/issues/25252#issuecomment-2662742336
             if ($headersResult === null) {
                 $headersResult = array();

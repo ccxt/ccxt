@@ -3936,7 +3936,7 @@ public partial class BaseExchange
                 Dictionary<string, object> market = this.safeMarket(id, null, null, "swap");
                 string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
                 bool? contract = this.safeBool(market, "contract", false);
-                if (((contract == true)) && (noSymbols || (((symbolsNormalized != null)) && this.inArray(symbol, symbolsNormalized))))
+                if ((contract == true) && (noSymbols || (((symbolsNormalized != null)) && this.inArray(symbol, symbolsNormalized))))
                 {
                     tiers[(string)symbol] = this.parseMarketLeverageTiers(item, market);
                 }
@@ -3951,7 +3951,7 @@ public partial class BaseExchange
                 Dictionary<string, object> market = this.safeMarket(marketId, null, null, "swap");
                 string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
                 bool? contract = this.safeBool(market, "contract", false);
-                if (((contract == true)) && (noSymbols || (((symbolsNormalized != null)) && this.inArray(symbol, symbolsNormalized))))
+                if ((contract == true) && (noSymbols || (((symbolsNormalized != null)) && this.inArray(symbol, symbolsNormalized))))
                 {
                     tiers[(string)symbol] = this.parseMarketLeverageTiers(item, market);
                 }
@@ -4894,7 +4894,7 @@ public partial class BaseExchange
             {
                 throw new ArgumentsRequired ((this.id + " buildOHLCVC() requires a price argument")) ;
             }
-            if (((skipZeroPrices == true)) && !(isGreaterThan(price, 0)) && !(isLessThan(price, 0)))
+            if ((skipZeroPrices == true) && !(isGreaterThan(price, 0)) && !(isLessThan(price, 0)))
             {
                 continue;
             }
@@ -6610,15 +6610,15 @@ public partial class BaseExchange
         bool ioc = timeInForce == "IOC";
         bool fok = timeInForce == "FOK";
         bool timeInForcePostOnly = timeInForce == "PO";
-        if (!(postOnly is true))
+        if (!isTrue(postOnly))
         {
             postOnly = timeInForcePostOnly;
         }
-        if (!(postOnly is true))
+        if (!isTrue(postOnly))
         {
             postOnly = exchangeSpecificParam;
         }
-        if ((postOnly is true))
+        if (isTrue(postOnly))
         {
             if (ioc || fok)
             {
@@ -6652,15 +6652,15 @@ public partial class BaseExchange
         bool ioc = timeInForce == "IOC";
         bool fok = timeInForce == "FOK";
         bool po = timeInForce == "PO";
-        if (!(postOnly is true))
+        if (!isTrue(postOnly))
         {
             postOnly = po;
         }
-        if (!(postOnly is true))
+        if (!isTrue(postOnly))
         {
             postOnly = exchangeSpecificPostOnlyOption;
         }
-        if ((postOnly is true))
+        if (isTrue(postOnly))
         {
             if (ioc || fok)
             {

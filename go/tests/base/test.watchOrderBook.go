@@ -60,7 +60,7 @@ func testWatchOrderBookBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreEx
 		// refresh the deadline on every path, otherwise a stream of temporary
 		// failures would loop forever
 		now = exchange.Milliseconds()
-		if (success == true) && (!IsEqual(response, nil)) {
+		if (success) && (!IsEqual(response, nil)) {
 			TestOrderBook(exchange, skippedProperties, method, response, symbol)
 			var elapsed int64 = now - startTime
 			if IsGreaterThan(elapsed, maxIdleTime) {

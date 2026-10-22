@@ -1501,7 +1501,7 @@ class bullish extends Exchange {
         array( $this->load_markets(), $this->handle_token() );
         $tradingAccountId = $this->load_account($params);
         $paginate = $this->safe_bool($params, 'paginate', false);
-        if ($paginate === true) {
+        if ($paginate) {
             $paramsPagination = $this->handle_pagination_params('fetchOrders', $since, $params);
             return $this->fetch_paginated_call_dynamic('fetchOrders', $symbol, $since, $limit, $paramsPagination, 100);
         }
@@ -1845,7 +1845,7 @@ class bullish extends Exchange {
             $request['type'] = strtoupper($type);
         }
         $postOnly = $this->safe_bool($params, 'postOnly', false);
-        if ($postOnly === true) {
+        if ($postOnly) {
             $request['type'] = 'POST_ONLY';
         }
         if ($amount !== null) {
@@ -1854,7 +1854,7 @@ class bullish extends Exchange {
         if ($price !== null) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        $paramsOmitted = ($postOnly === true) ? $this->omit($params, 'postOnly') : $params;
+        $paramsOmitted = ($postOnly) ? $this->omit($params, 'postOnly') : $params;
         $response = $this->privatePostV2Command($this->extend($request, $paramsOmitted));
         return $this->parse_order($response, $market);
     }
@@ -2726,7 +2726,7 @@ class bullish extends Exchange {
         $transferOptions = $this->safe_dict($this->options, 'transfer', array());
         $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
         $transfer = $this->parse_transfer($response, $currency);
-        if ($fillResponseFromRequest === true) {
+        if ($fillResponseFromRequest) {
             $transfer['fromAccount'] = $fromAccount;
             $transfer['toAccount'] = $toAccount;
             $transfer['amount'] = $amount;

@@ -714,7 +714,7 @@ export default class modetrade extends modetradeRest {
         }
         const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
         let topic: Str = 'executionreport';
-        if (trigger === true) {
+        if (trigger) {
             topic = 'algoexecutionreport';
         }
         const paramsOmitted: Dict = this.omit (params, [ 'stop', 'trigger' ]);
@@ -757,7 +757,7 @@ export default class modetrade extends modetradeRest {
         }
         const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
         let topic: Str = 'executionreport';
-        if (trigger === true) {
+        if (trigger) {
             topic = 'algoexecutionreport';
         }
         const paramsOmitted: Dict = this.omit (params, 'stop');

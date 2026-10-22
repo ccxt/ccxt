@@ -866,13 +866,13 @@ func (this *Lighter) handleBuilderFeeApprovalBody(ch chan EndpointResult[bool], 
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
 	var buildFee *bool = this.SafeBool(this.Options, "builderFee", true)
-	if buildFee == nil || *buildFee != true {
+	if !(buildFee != nil && *buildFee) {
 
 		ch <- EndpointResult[bool]{Value: false, Raw: false}
 		return nil
 	}
 	var approvedBuilderFee *bool = this.SafeBool(this.Options, "approvedBuilderFee", false)
-	if approvedBuilderFee != nil && *approvedBuilderFee == true {
+	if approvedBuilderFee != nil && *approvedBuilderFee {
 
 		ch <- EndpointResult[bool]{Value: true, Raw: true}
 		return nil
@@ -1241,7 +1241,7 @@ func (this *Lighter) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	request["order_type"] = orderTypeNum
 	request["time_in_force"] = timeInForceNum
 	request["reduce_only"] = func() int {
-		if reduceOnly != nil && *reduceOnly == true {
+		if reduceOnly != nil && *reduceOnly {
 			return 1
 		}
 		return 0
@@ -4434,7 +4434,7 @@ func (this *Lighter) ParseTrade(trade any, optionalArgs ...any) Trade {
 	// public trades use Lighter's taker-side convention
 	if (side == nil) && (isMakerAsk != nil) {
 		side = SafeStringPtr(func() string {
-			if isMakerAsk != nil && *isMakerAsk == true {
+			if isMakerAsk != nil && *isMakerAsk {
 				return "buy"
 			}
 			return "sell"

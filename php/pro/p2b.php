@@ -473,7 +473,7 @@ class p2b extends \ccxt\async\p2b {
             $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
             $orderbook = $this->orderbooks[$symbol];
         }
-        if ($isFullUpdate === true) {
+        if ($isFullUpdate) {
             // the first parameter signals whether the message carries all
             // records or only the changed ones, a full set replaces the book,
             // otherwise stale levels that left the depth window would linger

@@ -1538,7 +1538,7 @@ public class Bittrade extends BittradeApi
         Boolean countryDisabled = (Boolean) this.safeBool(currency, "country-disabled", (Object) null);
         Boolean visible = (Boolean) this.safeBool(currency, "visible", false);
         String state = this.safeString(currency, "state");
-        Boolean active = (java.util.Objects.equals(visible, true)) && (java.util.Objects.equals(depositEnabled, true)) && (java.util.Objects.equals(withdrawEnabled, true)) && (java.util.Objects.equals(state, "online")) && (!java.util.Objects.equals(countryDisabled, true));
+        Boolean active = Boolean.TRUE.equals(visible) && (java.util.Objects.equals(depositEnabled, true)) && (java.util.Objects.equals(withdrawEnabled, true)) && (java.util.Objects.equals(state, "online")) && (!java.util.Objects.equals(countryDisabled, true));
         String name = this.safeString(currency, "display-name");
         Double precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "withdraw-precision")));
         HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();

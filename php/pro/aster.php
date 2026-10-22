@@ -349,7 +349,7 @@ class aster extends \ccxt\async\aster {
             $symbol = $symbolsList[$i];
             $market = $this->market($symbol);
             $suffix = '';
-            if ($use1sFreq === true) {
+            if ($use1sFreq) {
                 $suffix = '@1s';
             }
             $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@markPrice' . $suffix;
@@ -411,7 +411,7 @@ class aster extends \ccxt\async\aster {
             $symbol = $symbolsList[$i];
             $market = $this->market($symbol);
             $suffix = '';
-            if ($use1sFreq === true) {
+            if ($use1sFreq) {
                 $suffix = '@1s';
             }
             $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@markPrice' . $suffix;
@@ -1553,7 +1553,7 @@ class aster extends \ccxt\async\aster {
         $options = $this->safe_dict($this->options, 'watchBalance');
         $fetchBalanceSnapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', false);
         $awaitBalanceSnapshot = $this->safe_bool($options, 'awaitBalanceSnapshot', true);
-        if (($fetchBalanceSnapshot === true) && ($awaitBalanceSnapshot === true)) {
+        if (($fetchBalanceSnapshot) && ($awaitBalanceSnapshot)) {
             Async\await($client->future($typeMarketType . ':fetchBalanceSnapshot'));
         }
         $messageHash = $typeMarketType . ':balance';
@@ -1567,7 +1567,7 @@ class aster extends \ccxt\async\aster {
         }
         $options = $this->safe_dict($this->options, 'watchBalance');
         $fetchBalanceSnapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', false);
-        if ($fetchBalanceSnapshot === true) {
+        if ($fetchBalanceSnapshot) {
             $messageHash = $type . ':fetchBalanceSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);

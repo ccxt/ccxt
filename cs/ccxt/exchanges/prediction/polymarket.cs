@@ -1008,7 +1008,7 @@ public partial class polymarket : PredictionExchange
             bool? active = this.safeBool(market, "active", false);
             bool? closed = this.safeBool(market, "closed", false);
             // resolution: a closed/uma-resolved market settles each outcome price to 0 or 1
-            bool marketResolved = ((closed == true)) || ((this.safeStringLower(market, "umaResolutionStatus") == "resolved"));
+            bool marketResolved = (closed == true) || ((this.safeStringLower(market, "umaResolutionStatus") == "resolved"));
             string? resolvedOutcome = null;
             // gamma exposes the order-book tick as orderPriceMinTickSize; minimumTickSize is the clob alias
             double? tickSize = this.safeNumber2(market, "orderPriceMinTickSize", "minimumTickSize", 0.01);
@@ -1100,7 +1100,7 @@ public partial class polymarket : PredictionExchange
                     { "market", marketSymbol },
                     { "label", outcomeLabel },
                     { "price", outcomePrice },
-                    { "active", ((active == true)) && ((closed != true)) },
+                    { "active", (active == true) && (closed != true) },
                     { "winner", winner },
                     { "settleFraction", settleFraction },
                     { "precision", new Dictionary<string, object>() {
@@ -1134,7 +1134,7 @@ public partial class polymarket : PredictionExchange
                 { "future", false },
                 { "option", false },
                 { "prediction", true },
-                { "active", ((active == true)) && ((closed != true)) },
+                { "active", (active == true) && (closed != true) },
                 { "resolved", marketResolved },
                 { "resolvedOutcome", marketResolvedOutcome },
                 { "contract", false },
@@ -3216,7 +3216,7 @@ public partial class polymarket : PredictionExchange
         bool? active = null;
         if ((rawActive != null))
         {
-            active = ((rawActive == true)) && ((closed != true));
+            active = (rawActive == true) && (closed != true);
         }
         // surface gamma's tag objects as a top-level string[] so the unified `tags` filter
         // — filterEventsByTags reads event['tags'], not event.info.tags — can actually match.

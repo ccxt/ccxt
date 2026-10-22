@@ -2601,7 +2601,7 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) Order {
 		} else {
 			side = nil
 		}
-		if isUsingCost == nil || *isUsingCost != true {
+		if !(isUsingCost != nil && *isUsingCost) {
 			if derefPtr := this.SafeString(parts, 1); derefPtr != nil {
 				amount = *derefPtr
 			} else {
@@ -2934,7 +2934,7 @@ func (this *Kraken) OrderRequest(method string, symbol any, typeVar any, request
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly(isMarket, false, paramsOmitted2)
 	var postOnly bool = GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)
 	var paramsPostOnly map[string]any = MapTyped(postOnlyparamsPostOnlyVariable[1])
-	if postOnly == true {
+	if postOnly {
 		var extendedPostFlags string = "post"
 		if flags != nil {
 			extendedPostFlags = *flags + ",post"

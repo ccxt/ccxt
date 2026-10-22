@@ -93,7 +93,7 @@ func (this *Bitfinex) subscribeBody(ch chan ccxt.AsyncResult[any], channel strin
 	}
 	result := r1.Value
 	var checksum *bool = this.SafeBool(this.Options, "checksum", true)
-	if (checksum != nil && *checksum == true) && (channel == "book") {
+	if (checksum != nil && *checksum) && (channel == "book") {
 		var sub any = ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 		if (!ccxt.IsEqual(sub, nil)) && (!ccxt.IsEqual(ccxt.GetValue(sub, "checksum"), true)) {
 			ccxt.AddElementToObject(ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash), "checksum", true)

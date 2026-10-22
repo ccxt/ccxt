@@ -1110,10 +1110,10 @@ class testMainClass:
     def test_has_props(self, exchange):
         watch_order_book_skips = self.get_skips(exchange, 'watchOrderBook')
         fetch_order_book_skips = self.get_skips(exchange, 'fetchOrderBook')
-        if self.ws_tests and (exchange.safe_bool(exchange.has, 'watchOrderBook', False) is not True) and not isinstance(watch_order_book_skips, str):
+        if self.ws_tests and (not exchange.safe_bool(exchange.has, 'watchOrderBook', False)) and not isinstance(watch_order_book_skips, str):
             dump('[TEST_FAILURE] Method "watchOrderBook" is not set in "has", please check the "has" property of exchange')
             exit_script(1)
-        elif not self.ws_tests and (exchange.safe_bool(exchange.has, 'fetchOrderBook', False) is not True) and not isinstance(fetch_order_book_skips, str):
+        elif not self.ws_tests and (not exchange.safe_bool(exchange.has, 'fetchOrderBook', False)) and not isinstance(fetch_order_book_skips, str):
             dump('[TEST_FAILURE] Method "fetchOrderBook" is not set in "has", please check the "has" property of exchange')
             exit_script(1)
 

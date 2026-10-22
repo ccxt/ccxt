@@ -2575,7 +2575,7 @@ impl AlpacaCore {
             currency = self.currency(code);
         }
         let mut sandboxMode: bool = is_true(&self.isSandboxModeEnabled) || is_true(&self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]));
-        if (sandboxMode) {
+        if sandboxMode {
             // paper-trading hosts do not serve the crypto wallets api at all, so route
             // through the account activities ledger instead, filtered to transfer-like
             // entries, see https://github.com/ccxt/ccxt/issues/24847

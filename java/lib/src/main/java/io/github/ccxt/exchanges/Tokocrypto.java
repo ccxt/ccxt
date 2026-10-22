@@ -1192,7 +1192,7 @@ public class Tokocrypto extends TokocryptoApi
         String takerOrMaker = null;
         if (!java.util.Objects.equals(buyerMaker, null))
         {
-            side = (((java.util.Objects.equals(buyerMaker, true)))) ? "sell" : "buy"; // this is reversed intentionally
+            side = ((Boolean.TRUE.equals(buyerMaker))) ? "sell" : "buy"; // this is reversed intentionally
             takerOrMaker = "taker";
         } else if (((Map<?, ?>)trade).containsKey("side"))
         {
@@ -2050,9 +2050,9 @@ public class Tokocrypto extends TokocryptoApi
             Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
             Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
             // only supported for spot/margin api
-            String typeResolved = (((java.util.Objects.equals(postOnly, true)))) ? "LIMIT_MAKER" : type;
+            String typeResolved = ((Boolean.TRUE.equals((postOnly)))) ? "LIMIT_MAKER" : type;
             // post only is expressed by the order type here, not by a time force
-            String timeInForceResolved = (((java.util.Objects.equals(postOnly, true)))) ? null : requestedTimeInForce;
+            String timeInForceResolved = ((Boolean.TRUE.equals((postOnly)))) ? null : requestedTimeInForce;
             String initialUppercaseType = typeResolved.toUpperCase();
             String uppercaseType = initialUppercaseType;
             Object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
@@ -2060,7 +2060,7 @@ public class Tokocrypto extends TokocryptoApi
             Map<String, Object> paramsRequest = this.omit(paramsPostOnly, this.arrayConcat(new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId", "timeInForce")), triggerKeys));
             if (!java.util.Objects.equals(triggerPrice, null))
             {
-                if (java.util.Objects.equals(postOnly, true))
+                if (Boolean.TRUE.equals(postOnly))
                 {
                     throw new InvalidOrder((this.id + " createOrder() does not support post only trigger orders, the venue has no post only trigger order type")) ;
                 }
@@ -3151,7 +3151,7 @@ public class Tokocrypto extends TokocryptoApi
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         Boolean success = (Boolean) this.safeBool(response, "success", true);
         Object parsedMessage = null;
-        if (!java.util.Objects.equals(success, true))
+        if (!Boolean.TRUE.equals(success))
         {
             String messageInner = this.safeString(response, "msg");
             if (!java.util.Objects.equals(messageInner, null))
@@ -3198,7 +3198,7 @@ public class Tokocrypto extends TokocryptoApi
             this.throwExactlyMatchedException(this.exceptions.get("exact"), error, feedback);
             throw new ExchangeError(feedback) ;
         }
-        if (!java.util.Objects.equals(success, true))
+        if (!Boolean.TRUE.equals(success))
         {
             throw new ExchangeError(((this.id + " ") + body)) ;
         }

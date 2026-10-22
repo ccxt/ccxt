@@ -55,7 +55,7 @@ func testWatchBalanceBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExch
 			}()
 
 		}
-		if success == false {
+		if !success {
 			continue
 		}
 		TestBalance(exchange, skippedProperties, method, response)

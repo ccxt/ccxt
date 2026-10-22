@@ -862,7 +862,7 @@ class bingx extends bingx$1["default"] {
             return {};
         }
         const isSandbox = this.safeBool(this.options, 'sandboxMode', false);
-        if (isSandbox === true) {
+        if (isSandbox) {
             return {};
         }
         const response = await this.walletsV1PrivateGetCapitalConfigGetall(params);
@@ -1188,7 +1188,7 @@ class bingx extends bingx$1["default"] {
     async fetchMarkets(params = {}) {
         const requests = [this.fetchSwapMarkets(params)];
         const isSandbox = this.safeBool(this.options, 'sandboxMode', false);
-        if (isSandbox !== true) {
+        if (!isSandbox) {
             requests.push(this.fetchInverseSwapMarkets(params));
             requests.push(this.fetchSpotMarkets(params)); // sandbox is swap only
         }
@@ -2108,7 +2108,7 @@ class bingx extends bingx$1["default"] {
         const symbol = this.safeSymbol(id, market, '-', 'swap');
         const openInterest = this.safeNumber(interest, 'openInterest');
         const inverse = this.safeBool(market, 'inverse', false);
-        const isInverse = (inverse === true);
+        const isInverse = (inverse);
         const openInterestAmount = isInverse ? openInterest : undefined;
         const openInterestValue = isInverse ? undefined : openInterest;
         return this.safeOpenInterest({
@@ -3253,7 +3253,7 @@ class bingx extends bingx$1["default"] {
         }
         const timeInForce = this.safeStringUpper(paramsMarketType, 'timeInForce');
         const [postOnly, paramsPostOnly] = this.handlePostOnly(isMarketOrder, timeInForce === 'PostOnly', paramsMarketType);
-        if ((postOnly === true) || (timeInForce === 'PostOnly')) {
+        if ((postOnly) || (timeInForce === 'PostOnly')) {
             request['timeInForce'] = 'PostOnly';
         }
         else if (timeInForce === 'IOC') {
@@ -3450,9 +3450,9 @@ class bingx extends bingx$1["default"] {
             }
             let positionSide = undefined;
             const hedged = this.safeBool(paramsTakeProfit, 'hedged', false);
-            paramsOrder = (hedged === true) ? this.omit(paramsTakeProfit, 'reduceOnly') : paramsTakeProfit;
-            if (hedged === true) {
-                if (reduceOnly === true) {
+            paramsOrder = (hedged) ? this.omit(paramsTakeProfit, 'reduceOnly') : paramsTakeProfit;
+            if (hedged) {
+                if (reduceOnly) {
                     positionSide = (side === 'buy') ? 'SHORT' : 'LONG';
                 }
                 else {
@@ -3467,7 +3467,7 @@ class bingx extends bingx$1["default"] {
             if (cost !== undefined) {
                 request['quoteOrderQty'] = this.parseToNumeric(this.costToPrecision(symbol, cost));
             }
-            else if (closePosition !== true) {
+            else if (!closePosition) {
                 let amountReq = amount;
                 if (market['inverse'] !== true) {
                     amountReq = this.parseToNumeric(this.amountToPrecision(symbol, amount));
@@ -3527,7 +3527,7 @@ class bingx extends bingx$1["default"] {
         const request = this.createOrderRequest(symbol, type, side, amount, price, paramsOmitted);
         let response;
         if (market['swap'] === true) {
-            if (test === true) {
+            if (test) {
                 response = await this.swapV2PrivatePostTradeOrderTest(request);
             }
             else if (market['inverse'] === true) {
@@ -3688,7 +3688,7 @@ class bingx extends bingx$1["default"] {
         }
         else {
             const sync = this.safeBool(params, 'sync', false);
-            if (sync === true) {
+            if (sync) {
                 request['sync'] = true;
             }
             request['data'] = this.json(ordersRequests);
@@ -4201,7 +4201,7 @@ class bingx extends bingx$1["default"] {
         const paramsOmitted = this.omit(params, 'twap');
         let response;
         let market = undefined;
-        if (isTwapOrder === true) {
+        if (isTwapOrder) {
             const twapRequest = {
                 'mainOrderId': id,
             };
@@ -4700,7 +4700,7 @@ class bingx extends bingx$1["default"] {
         const paramsOmitted = this.omit(params, 'twap');
         let response = undefined;
         let market = undefined;
-        if (isTwapOrder === true) {
+        if (isTwapOrder) {
             const twapRequest = {
                 'mainOrderId': id,
             };
@@ -4983,7 +4983,7 @@ class bingx extends bingx$1["default"] {
         else {
             const isTwapOrder = this.safeBool(paramsSubType, 'twap', false);
             const paramsOmitted = this.omit(paramsSubType, 'twap');
-            if (isTwapOrder === true) {
+            if (isTwapOrder) {
                 response = await this.swapV1PrivateGetTwapOpenOrders(this.extend(request, paramsOmitted));
             }
             else if (subType === 'inverse') {
@@ -5258,7 +5258,7 @@ class bingx extends bingx$1["default"] {
         else {
             const isTwapOrder = this.safeBool(paramsStandard, 'twap', false);
             const paramsOmitted = this.omit(paramsStandard, 'twap');
-            if (isTwapOrder === true) {
+            if (isTwapOrder) {
                 request['pageIndex'] = 1;
                 request['pageSize'] = (limit === undefined) ? 100 : limit;
                 request['startTime'] = (since === undefined) ? 1 : since;
@@ -7256,7 +7256,7 @@ class bingx extends bingx$1["default"] {
         let access = section[2];
         const isSandbox = this.safeBool(this.options, 'sandboxMode', false);
         let url = this.implodeHostname(this.urls['api'][type]);
-        if ((isSandbox === true) && url === undefined) {
+        if ((isSandbox) && url === undefined) {
             throw new errors.NotSupported(this.id + ' does not have a testnet/sandbox URL for ' + type + ' endpoints');
         }
         const pathValue = this.implodeParams(path, params);

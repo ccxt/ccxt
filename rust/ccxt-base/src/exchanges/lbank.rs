@@ -1970,7 +1970,7 @@ impl LbankCore {
         }
         // from spotPrivatePostSupplementUserInfo
         let mut isArray: bool = matches!(&data, Value::Arr(_));
-        if (isArray) {
+        if isArray {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_918: bool = true;
@@ -2360,7 +2360,7 @@ impl LbankCore {
         });
         let mut ioc: bool = timeInForce.as_deref() == Some("IOC");
         let mut fok: bool = timeInForce.as_deref() == Some("FOK");
-        let mut maker: bool = (postOnly.as_bool() == Some(true)) || (timeInForce.as_deref() == Some("PO"));
+        let mut maker: bool = postOnly.as_bool() == Some(true) || (timeInForce.as_deref() == Some("PO"));
         if (type_var.as_str() == Some("market")) && (ioc || fok || maker) {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder () does not allow market FOK, IOC, or postOnly orders. Only limit IOC, FOK, and postOnly orders are allowed".into()))));
         }
@@ -3590,7 +3590,7 @@ impl LbankCore {
         }
         let mut isAuthorized: Value = self.check_required_credentials(&[Value::Bool(false)]);
         let mut result: Value = Value::Null;
-        if (isAuthorized.as_bool() == Some(true)) {
+        if is_true(&isAuthorized) {
             let mut options: Value = self.safe_dict_k(self.options.clone(), "fetchTransactionFees", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3814,7 +3814,7 @@ impl LbankCore {
         }
         let mut isAuthorized: Value = self.check_required_credentials(&[Value::Bool(false)]);
         let mut response: Value = Value::Null;
-        if (isAuthorized.as_bool() == Some(true)) {
+        if is_true(&isAuthorized) {
             let mut options: Value = self.safe_dict_k(self.options.clone(), "fetchDepositWithdrawFees", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4140,7 +4140,7 @@ impl LbankCore {
             if (signatureMethod.as_str() == Some("RSA")) {
                 let mut cacheSecretAsPem: Value = self.safe_bool_k(self.options.clone(), "cacheSecretAsPem", &[Value::Bool(true)]);
                 let mut pem: Value = Value::Null;
-                if (cacheSecretAsPem.as_bool() == Some(true)) {
+                if cacheSecretAsPem.as_bool() == Some(true) {
                     pem = self.safe_string_k(self.options.clone(), "pem", &[]);
                     if (pem == Value::Null) {
                         pem = self.convert_secret_to_pem(self.encode(self.secret.clone()));

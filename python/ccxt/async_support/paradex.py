@@ -1416,7 +1416,7 @@ class paradex(Exchange, ImplicitAPI):
 
     async def prepare_paradex_domain(self, l1: bool = False) -> dict:
         systemConfig = await self.get_system_config()
-        if l1 is True:
+        if l1:
             l1D = {
                 'name': 'Paradex',
                 'chainId': systemConfig['l1_chain_id'],

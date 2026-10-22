@@ -1435,7 +1435,7 @@ func (this *Krakenfutures) ParseWsOrder(order any, optionalArgs ...any) any {
 	var status *string = nil
 	if isCancelled != nil {
 		unparsedOrder = this.SafeValue(order, "order")
-		if isCancelled != nil && *isCancelled == true {
+		if isCancelled != nil && *isCancelled {
 			status = ccxt.SafeStringPtr("cancelled")
 		}
 	}

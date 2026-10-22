@@ -125,7 +125,7 @@ fn helperTestHandleTypedOptions() {
 }), Value::Str("fetchX".into()), Value::Str("uta".into()), &[Value::Bool(false)]);
     let mut uta: Value = utaparams2Variable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
     let mut params2: Value = utaparams2Variable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(uta.as_bool() == Some(true)))));
+    assert!(ccxt::runtime::is_true(&(uta.clone())));
     let mut absentparams3Variable = exchange.handle_option_string_and_params(Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

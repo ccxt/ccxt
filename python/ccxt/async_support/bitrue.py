@@ -3187,7 +3187,7 @@ class bitrue(Exchange, ImplicitAPI):
         # response in format {'msg': 'The coin does not exist.', 'success': true/false}
         success = self.safe_bool(response, 'success', True)
         parsedMessage = None
-        if success is not True:
+        if not success:
             messageInner = self.safe_string(response, 'msg')
             if messageInner is not None:
                 try:
@@ -3215,7 +3215,7 @@ class bitrue(Exchange, ImplicitAPI):
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)
             raise ExchangeError(feedback)
-        if success is not True:
+        if not success:
             raise ExchangeError(self.id + ' ' + body)
         return None
 

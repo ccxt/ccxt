@@ -904,7 +904,7 @@ class woo(ccxt.async_support.woo):
             await self.load_markets()
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
         topic = 'executionreport'
-        if trigger is True:
+        if trigger:
             topic = 'algoexecutionreportv2'
         paramsOmitted = self.omit(params, ['stop', 'trigger'])
         messageHash = topic
@@ -940,7 +940,7 @@ class woo(ccxt.async_support.woo):
             await self.load_markets()
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
         topic = 'executionreport'
-        if trigger is True:
+        if trigger:
             topic = 'algoexecutionreportv2'
         paramsOmitted = self.omit(params, ['stop', 'trigger'])
         messageHash = 'myTrades'

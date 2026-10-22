@@ -1382,7 +1382,7 @@ impl WhitebitCore {
             let mut market: Value = self.market(symbol);
             let mut marketId: Value = market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
             let mut isSubscribed: Value = self.safe_bool(subscription.clone(), marketId.clone(), &[Value::Bool(false)]);
-            if (isSubscribed.as_bool() != Some(true)) {
+            if !(isSubscribed.as_bool() == Some(true)) {
                 if (marketId != Value::Null) {
                     add_element_to_object(&mut subscription, &marketId, Value::Bool(true));
                 }

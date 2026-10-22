@@ -71,7 +71,7 @@ function helperTestHandleTypedOptions() {
     const [marginMode, params1] = exchange.handleMarginModeAndParams('fetchX', {}, 'cross');
     assert(marginMode === 'isolated');
     const [uta, params2] = exchange.handleOptionBoolAndParams({}, 'fetchX', 'uta', false);
-    assert(uta === true);
+    assert(uta);
     const [absent, params3] = exchange.handleOptionStringAndParams({}, 'fetchX', 'absentKey', 'fallback');
     assert(absent === 'fallback');
     const [fromParams, params4] = exchange.handleOptionStringAndParams({ 'absentKey': 'p' }, 'fetchX', 'absentKey', 'fallback');

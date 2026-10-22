@@ -75,7 +75,7 @@ func testWatchOHLCVBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExchan
 
 		}
 		now = exchange.Milliseconds()
-		if (success == true) && (!IsEqual(response, nil)) {
+		if (success) && (!IsEqual(response, nil)) {
 			AssertNonEmtpyArray(exchange, skippedProperties, method, response, symbol)
 			for i := 0; i < GetArrayLength(response); i++ {
 				TestOHLCV(exchange, skippedProperties, method, GetValue(response, i), symbol, now)

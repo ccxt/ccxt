@@ -381,7 +381,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
                 String orderId = this.safeString(order, "i");
                 String clientOrderId = this.safeString(order, "I");
                 String status = null;
-                if ((!java.util.Objects.equals(error, null)) || (!java.util.Objects.equals(success, true)))
+                if ((!java.util.Objects.equals(error, null)) || (!Boolean.TRUE.equals(success)))
                 {
                     status = "closed";
                 } else

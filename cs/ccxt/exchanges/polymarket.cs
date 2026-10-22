@@ -451,7 +451,7 @@ public partial class polymarket : Exchange
         //     }
         //
         bool? cancelOnly = this.safeBool(response, "cancel_only", false);
-        return ccxt.BaseExchange.ToStatus(new Dictionary<string, object>() {             { "status", ((cancelOnly == true)) ? "maintenance" : "ok" },             { "updated", null },             { "eta", null },             { "url", null },             { "info", response },         });
+        return ccxt.BaseExchange.ToStatus(new Dictionary<string, object>() {             { "status", cancelOnly == true ? "maintenance" : "ok" },             { "updated", null },             { "eta", null },             { "url", null },             { "info", response },         });
     }
 
     /**
@@ -968,7 +968,7 @@ public partial class polymarket : Exchange
         string? takerOrMaker = null;
         if ((isTaker != null))
         {
-            takerOrMaker = ((isTaker == true)) ? "taker" : "maker";
+            takerOrMaker = isTaker == true ? "taker" : "maker";
         }
         string? feeCost = this.safeString(trade, "fee");
         Dictionary<string, object> fee = null;
@@ -1426,7 +1426,7 @@ public partial class polymarket : Exchange
         {
             priceString = this.priceToPrecision(symbol, price);
         }
-        bool? reduceOnlyValue = ((reduceOnly == true)) ? true : null;
+        bool? reduceOnlyValue = reduceOnly == true ? true : null;
         // the signable row is positional - iid, buy, p, qty, tif, po, ro, c,
         // trigger - undefined entries are removed and later entries shift left,
         // the venue rebuilds the same compact array from the body to verify
@@ -1878,7 +1878,7 @@ public partial class polymarket : Exchange
         string? side = null;
         if ((isBuy != null))
         {
-            side = ((isBuy == true)) ? "buy" : "sell";
+            side = isBuy == true ? "buy" : "sell";
         }
         string? price = ((string)this.omitZero(this.safeString2(order, "price", "p")));
         string? type = null;
@@ -2056,7 +2056,7 @@ public partial class polymarket : Exchange
         string? marginMode = null;
         if ((isCross != null))
         {
-            marginMode = ((isCross == true)) ? "cross" : "isolated";
+            marginMode = isCross == true ? "cross" : "isolated";
         }
         Int64? timestamp = this.safeInteger(position, "timestamp");
         string? roe = this.safeString(position, "return_on_equity");
@@ -2649,7 +2649,7 @@ public partial class polymarket : Exchange
         string? marginMode = null;
         if ((isCross != null))
         {
-            marginMode = ((isCross == true)) ? "cross" : "isolated";
+            marginMode = isCross == true ? "cross" : "isolated";
         }
         Int64? value = this.safeInteger(leverage, "leverage");
         return new Dictionary<string, object>() {

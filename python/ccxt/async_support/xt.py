@@ -2557,7 +2557,7 @@ class xt(Exchange, ImplicitAPI):
             if side == 'buy':
                 cost = self.safe_string(paramsMarginMode, 'cost')
                 createMarketBuyOrderRequiresPrice = self.safe_bool(self.options, 'createMarketBuyOrderRequiresPrice', True)
-                if createMarketBuyOrderRequiresPrice is True:
+                if createMarketBuyOrderRequiresPrice:
                     if price is None and (cost is None):
                         raise InvalidOrder(self.id + ' createOrder() requires a price argument or cost in params for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to False and pass in the cost to spend into the amount parameter')
                     else:
@@ -2580,7 +2580,7 @@ class xt(Exchange, ImplicitAPI):
         if isMarketBuy:
             paramsWithoutCost = self.omit(paramsMarginMode, 'cost')
         postOnly, paramsPostOnly = self.handle_post_only(type == 'market', timeInForce == 'GTX', paramsWithoutCost)
-        if postOnly is True:
+        if postOnly:
             timeInForce = 'GTX'
         paramsOmitted = self.omit(paramsPostOnly, ['timeInForce', 'postOnly'])
         if (side == 'sell') or (type == 'limit'):
@@ -2610,7 +2610,7 @@ class xt(Exchange, ImplicitAPI):
         }
         timeInForce = self.safe_string_upper(params, 'timeInForce')
         postOnly, paramsPostOnly = self.handle_post_only(type == 'market', timeInForce == 'GTX', params)
-        if postOnly is True:
+        if postOnly:
             timeInForce = 'GTX'
         paramsOmitted4 = self.omit(paramsPostOnly, ['timeInForce', 'postOnly'])
         if timeInForce is not None:
@@ -2618,12 +2618,12 @@ class xt(Exchange, ImplicitAPI):
         reduceOnly = self.safe_bool(paramsOmitted4, 'reduceOnly', False)
         if side == 'buy':
             requestType = 'LONG'
-            if reduceOnly is True:
+            if reduceOnly:
                 requestType = 'SHORT'
             request['positionSide'] = requestType
         else:
             requestType = 'SHORT'
-            if reduceOnly is True:
+            if reduceOnly:
                 requestType = 'LONG'
             request['positionSide'] = requestType
         response = {}

@@ -1306,7 +1306,7 @@ class coinsph extends Exchange {
         $isBuyer = $this->safe_bool_2($trade, 'isBuyer', 'isBuyerMaker');
         $side = null;
         if ($isBuyer !== null) {
-            $side = ($isBuyer === true) ? 'buy' : 'sell';
+            $side = ($isBuyer) ? 'buy' : 'sell';
         }
         $isMaker = $this->safe_string($trade, 'isMaker');
         $takerOrMaker = null;
@@ -1476,7 +1476,7 @@ class coinsph extends Exchange {
         $paramsBase = ($paramsQuote !== null) ? $paramsQuote : $paramsType;
         $paramsRequest = $this->omit($paramsBase, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
         $response = array();
-        if ($testOrder === true) {
+        if ($testOrder) {
             $response = $this->privatePostOpenapiV1OrderTest($this->extend($request, $paramsRequest));
         } else {
             $response = $this->privatePostOpenapiV1Order($this->extend($request, $paramsRequest));
@@ -1938,7 +1938,7 @@ class coinsph extends Exchange {
         list($tag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
         $options = $this->safe_dict($this->options, 'withdraw');
         $warning = $this->safe_bool($options, 'warning', true);
-        if ($warning === true) {
+        if ($warning) {
             throw new InvalidAddress($this->id . " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account");
         }
         $networkCode = $this->safe_string($paramsWithdrawTag, 'network');

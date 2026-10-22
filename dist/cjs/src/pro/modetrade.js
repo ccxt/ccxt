@@ -692,7 +692,7 @@ class modetrade extends modetrade$1["default"] {
         }
         const trigger = this.safeBool2(params, 'stop', 'trigger', false);
         let topic = 'executionreport';
-        if (trigger === true) {
+        if (trigger) {
             topic = 'algoexecutionreport';
         }
         const paramsOmitted = this.omit(params, ['stop', 'trigger']);
@@ -734,7 +734,7 @@ class modetrade extends modetrade$1["default"] {
         }
         const trigger = this.safeBool2(params, 'stop', 'trigger', false);
         let topic = 'executionreport';
-        if (trigger === true) {
+        if (trigger) {
             topic = 'algoexecutionreport';
         }
         const paramsOmitted = this.omit(params, 'stop');

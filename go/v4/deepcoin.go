@@ -944,13 +944,13 @@ func (this *Deepcoin) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, op
 	}
 	var calculateUntil *bool = this.SafeBool(paramsPaginate, "calculateUntil", false)
 	var keysToOmit any = func() any {
-		if calculateUntil != nil && *calculateUntil == true {
+		if calculateUntil != nil && *calculateUntil {
 			return []any{"price", "until", "calculateUntil"}
 		}
 		return []any{"price", "until"}
 	}()
 	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, keysToOmit)
-	if calculateUntil != nil && *calculateUntil == true {
+	if calculateUntil != nil && *calculateUntil {
 		if since != nil {
 			// the exchange do not have a since param for this endpoint
 			// we calculate until (after) for correct pagination
@@ -1977,7 +1977,7 @@ func (this *Deepcoin) transferBody(ch chan AsyncResult[map[string]any], code str
 	var transfer map[string]any = this.ParseTransfer(data, currency)
 	var transferOptions map[string]any = SafeMapTyped(this.Options, "transfer")
 	var fillResponseFromRequest *bool = this.SafeBool(transferOptions, "fillResponseFromRequest", true)
-	if fillResponseFromRequest != nil && *fillResponseFromRequest == true {
+	if fillResponseFromRequest != nil && *fillResponseFromRequest {
 		transfer["fromAccount"] = fromAccount
 		transfer["toAccount"] = toAccount
 		transfer["amount"] = amount
@@ -2227,7 +2227,7 @@ func (this *Deepcoin) CreateRegularOrderRequest(symbol any, typeVar any, side an
 		request["mrgPosition"] = mrgPosition
 		var posSide *string = nil
 		var reduceOnly *bool = this.SafeBool(paramsMrgPosition, "reduceOnly", false)
-		if reduceOnly != nil && *reduceOnly == true {
+		if reduceOnly != nil && *reduceOnly {
 			if IsEqual(side, "buy") {
 				posSide = SafeStringPtr("short")
 			} else if IsEqual(side, "sell") {
@@ -2306,7 +2306,7 @@ func (this *Deepcoin) CreateTriggerOrderRequest(symbol any, typeVar any, side an
 	request["isCrossMargin"] = isCrossMargin
 	request["tdMode"] = marginModeOption
 	if market["swap"] == true {
-		if reduceOnly != nil && *reduceOnly == true {
+		if reduceOnly != nil && *reduceOnly {
 			if IsEqual(side, "buy") {
 				request["posSide"] = "short"
 			} else if IsEqual(side, "sell") {
@@ -2672,7 +2672,7 @@ func (this *Deepcoin) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]any
 		request["limit"] = limit // default 100
 	}
 	var response map[string]any = nil
-	if trigger != nil && *trigger == true {
+	if trigger != nil && *trigger {
 		if methodName != "fetchCanceledAndClosedOrders" {
 			panic(BadRequest(Add(Add(this.Id+" ", methodName), "() does not support trigger orders")))
 		}
@@ -2924,7 +2924,7 @@ func (this *Deepcoin) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs
 	var trigger *bool = this.SafeBool(params, "trigger", false)
 	var paramsOmitted map[string]any = this.OmitDict(params, "trigger")
 	var response map[string]any = nil
-	if trigger != nil && *trigger == true {
+	if trigger != nil && *trigger {
 		request["instType"] = this.ConvertToInstrumentType(market["type"])
 		//
 		//     {
@@ -3066,7 +3066,7 @@ func (this *Deepcoin) cancelOrderBody(ch chan AsyncResult[map[string]any], id an
 	}
 	var response any = nil
 	var trigger *bool = this.SafeBool(params, "trigger", false)
-	if trigger != nil && *trigger == true {
+	if trigger != nil && *trigger {
 		var paramsOmitted map[string]any = this.OmitDict(params, "trigger")
 
 		r1 := <-this.PrivatePostDeepcoinTradeCancelTriggerOrder(this.Extend(request, paramsOmitted))

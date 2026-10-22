@@ -1412,7 +1412,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut tradingActive: Value = self.safe_bool_k(response.clone(), "trading_active", &[Value::Bool(false)]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("status".to_string(), (if (tradingActive.as_bool() == Some(true)) { Value::Str("ok".into()) } else { Value::Str("maintenance".into()) }));
+        m.insert("status".to_string(), (if tradingActive.as_bool() == Some(true) { Value::Str("ok".into()) } else { Value::Str("maintenance".into()) }));
         m.insert("updated".to_string(), Value::Null);
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
@@ -2277,7 +2277,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut isTaker: Value = self.safe_bool_k(fill.clone(), "is_taker", &[Value::Bool(true)]);
         let mut takerOrMaker: Value = Value::Str("maker".into());
-        if (isTaker.as_bool() == Some(true)) {
+        if isTaker.as_bool() == Some(true) {
             takerOrMaker = Value::Str("taker".into());
         }
         let mut feeCost: Value = self.safe_number_k(fill.clone(), "fee_cost", &[]);

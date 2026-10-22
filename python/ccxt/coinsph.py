@@ -1281,7 +1281,7 @@ class coinsph(Exchange, ImplicitAPI):
         isBuyer = self.safe_bool_2(trade, 'isBuyer', 'isBuyerMaker')
         side = None
         if isBuyer is not None:
-            side = 'buy' if (isBuyer is True) else 'sell'
+            side = 'buy' if (isBuyer) else 'sell'
         isMaker = self.safe_string(trade, 'isMaker')
         takerOrMaker = None
         if isMaker is not None:
@@ -1433,7 +1433,7 @@ class coinsph(Exchange, ImplicitAPI):
         paramsBase = paramsQuote if (paramsQuote is not None) else paramsType
         paramsRequest = self.omit(paramsBase, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty')
         response = {}
-        if testOrder is True:
+        if testOrder:
             response = self.privatePostOpenapiV1OrderTest(self.extend(request, paramsRequest))
         else:
             response = self.privatePostOpenapiV1Order(self.extend(request, paramsRequest))
@@ -1855,7 +1855,7 @@ class coinsph(Exchange, ImplicitAPI):
         tag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
         options = self.safe_dict(self.options, 'withdraw')
         warning = self.safe_bool(options, 'warning', True)
-        if warning is True:
+        if warning:
             raise InvalidAddress(self.id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = False to make a withdrawal to your coins_ph account")
         networkCode = self.safe_string(paramsWithdrawTag, 'network')
         networkId = None if (networkCode is None) else self.network_code_to_id(networkCode, code)

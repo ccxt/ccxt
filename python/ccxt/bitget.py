@@ -2199,11 +2199,11 @@ class bitget(Exchange, ImplicitAPI):
                     entry = self.safe_dict(data, j, {})
                     entrySymbol = self.safe_string(entry, 'symbol')
                     entryBorrowable = self.safe_bool(entry, 'isBorrowable', True)
-                    if (entryBorrowable is True) and self.safe_bool(entry, 'isCrossBorrowable', True):
+                    if (entryBorrowable) and self.safe_bool(entry, 'isCrossBorrowable', True):
                         crossKeys.append(entrySymbol)
                     isolatedBase = self.safe_bool(entry, 'isIsolatedBaseBorrowable', True)
                     isolatedQuote = self.safe_bool_2(entry, 'isIsolatedQuotedBorrowable', 'isIsolatedQuoteBorrowable', True)
-                    if (entryBorrowable is True) and ((isolatedBase is True) or (isolatedQuote is True)):
+                    if (entryBorrowable) and ((isolatedBase) or (isolatedQuote)):
                         isolatedKeys.append(entrySymbol)
                 self.options['crossMarginPairsData'] = crossKeys
                 self.options['isolatedMarginPairsData'] = isolatedKeys
@@ -3153,7 +3153,7 @@ class bitget(Exchange, ImplicitAPI):
         result['type'] = 'withdrawal'
         withdrawOptions = self.safe_dict(self.options, 'withdraw', {})
         fillResponseFromRequest = self.safe_bool(withdrawOptions, 'fillResponseFromRequest', True)
-        if fillResponseFromRequest is True:
+        if fillResponseFromRequest:
             result['currency'] = code
             result['amount'] = amount
             result['tag'] = tag
@@ -4444,7 +4444,7 @@ class bitget(Exchange, ImplicitAPI):
             paramsMarginMode = self.omit(paramsMarginMode, 'margin')
             request = {}
             if marketType == 'spot':
-                if (marginMode is not None) or (utaMargin is True):
+                if (marginMode is not None) or (utaMargin):
                     request['category'] = 'MARGIN'
                 else:
                     request['category'] = 'SPOT'
@@ -4485,7 +4485,7 @@ class bitget(Exchange, ImplicitAPI):
         if marketType == 'spot':
             margin = self.safe_bool(paramsMarginMode, 'margin', False)
             paramsMarginMode = self.omit(paramsMarginMode, 'margin')
-            if (marginMode is not None) or (margin is True):
+            if (marginMode is not None) or (margin):
                 response = self.publicMarginGetV2MarginCurrencies(paramsMarginMode)
             else:
                 response = self.publicSpotGetV2SpotPublicSymbols(paramsMarginMode)
@@ -4651,7 +4651,7 @@ class bitget(Exchange, ImplicitAPI):
         if uta is True:
             maxLimitForHistoryEndpoint = 100  # the uta history endpoint rejects a limit above 100
         if paginate:
-            limitForPagination = maxLimitForHistoryEndpoint if (useHistoryEndpointForPagination is True) else maxLimitForRecentEndpoint
+            limitForPagination = maxLimitForHistoryEndpoint if (useHistoryEndpointForPagination) else maxLimitForRecentEndpoint
             paramsWithUta = self.extend(paramsUTA, {'uta': uta})
             return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsWithUta, limitForPagination)
         market = self.market(symbol)
@@ -4719,7 +4719,7 @@ class bitget(Exchange, ImplicitAPI):
                 # we do not need to set "startTime" here
         # if historical endpoint is needed, we should re-set the variables
         historicalEndpointNeeded = False
-        if (calculatedStartTime is not None and calculatedStartTime <= recentEndpointBoundaryTs) or (useHistoryEndpoint is True):
+        if (calculatedStartTime is not None and calculatedStartTime <= recentEndpointBoundaryTs) or (useHistoryEndpoint):
             historicalEndpointNeeded = True
             # only for "historical-candles" - ensure we use correct max limit
             limitResolved = min(limitResolved, maxLimitForHistoryEndpoint)
@@ -5675,7 +5675,7 @@ class bitget(Exchange, ImplicitAPI):
             timeInForce, paramsProductType = self.handle_option_string_and_params(paramsProductType, 'createOrder', 'timeInForce')
             if timeInForce is not None:
                 timeInForce = timeInForce.upper()
-            if postOnly is True:
+            if postOnly:
                 request['timeInForce'] = 'post_only'
             elif timeInForce == 'GTC':
                 request['timeInForce'] = 'gtc'
@@ -5686,7 +5686,7 @@ class bitget(Exchange, ImplicitAPI):
         reduceOnly = self.safe_bool(paramsProductType, 'reduceOnly', False)
         hedged = None
         hedged, paramsProductType = self.handle_param_bool(paramsProductType, 'hedged', False)
-        if reduceOnly is True:
+        if reduceOnly:
             if (hedged is True) or isStopLossOrTakeProfitTrigger:
                 reduceOnlyPosSide = 'short'
                 if side == 'sell':
@@ -5762,7 +5762,7 @@ class bitget(Exchange, ImplicitAPI):
         timeInForce, paramsMarketType = self.handle_option_string_and_params(paramsMarketType, 'createOrder', 'timeInForce')
         if timeInForce is not None:
             timeInForce = timeInForce.upper()
-        if postOnly is True:
+        if postOnly:
             request['force'] = 'post_only'
         elif timeInForce == 'GTC':
             request['force'] = 'GTC'
@@ -5850,7 +5850,7 @@ class bitget(Exchange, ImplicitAPI):
                     marginModeRequest = 'crossed'
                 request['marginMode'] = marginModeRequest
                 requestSide = side
-                if reduceOnly is True:
+                if reduceOnly:
                     if hedged is not True:
                         request['reduceOnly'] = 'YES'
                     else:
@@ -6164,7 +6164,7 @@ class bitget(Exchange, ImplicitAPI):
             cost = self.safe_string(paramsOmitted, 'cost')
             paramsOmitted = self.omit(paramsOmitted, 'cost')
             editMarketBuyOrderRequiresPrice = self.safe_bool(self.options, 'editMarketBuyOrderRequiresPrice', True)
-            if ((editMarketBuyOrderRequiresPrice is True) or (cost is not None)) and isMarketOrder and (side == 'buy'):
+            if ((editMarketBuyOrderRequiresPrice) or (cost is not None)) and isMarketOrder and (side == 'buy'):
                 if price is None and cost is None:
                     raise InvalidOrder(self.id + ' editOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively provide `cost` in the params')
                 else:
@@ -8504,7 +8504,7 @@ class bitget(Exchange, ImplicitAPI):
             return self.fetch_paginated_call_cursor('fetchPositions', None, None, None, paramsPaginate, 'endId', 'idLessThan')
         method = None
         useHistoryEndpoint = self.safe_bool(paramsPaginate, 'useHistoryEndpoint', False)
-        if useHistoryEndpoint is True:
+        if useHistoryEndpoint:
             method = 'privateMixGetV2MixPositionHistoryPosition'
         else:
             method, paramsPaginate = self.handle_option_string_and_params(paramsPaginate, 'fetchPositions', 'method', 'privateMixGetV2MixPositionAllPosition')
@@ -11613,7 +11613,7 @@ class bitget(Exchange, ImplicitAPI):
                 requestHeaders['Content-Type'] = 'application/json'
         headersResult = requestHeaders
         sandboxMode = self.safe_bool_2(self.options, 'sandboxMode', 'sandbox', False)
-        if (sandboxMode is True) and (path != 'v2/public/time') and (path != 'v3/market/current-fund-rate'):
+        if (sandboxMode) and (path != 'v2/public/time') and (path != 'v3/market/current-fund-rate'):
             # https://github.com/ccxt/ccxt/issues/25252#issuecomment-2662742336
             if headersResult is None:
                 headersResult = {}

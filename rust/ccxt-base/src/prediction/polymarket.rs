@@ -1476,7 +1476,7 @@ impl PolymarketCore {
             let mut active: Value = self.safe_bool_k(market.clone(), "active", &[Value::Bool(false)]);
             let mut closed: Value = self.safe_bool_k(market.clone(), "closed", &[Value::Bool(false)]);
             // resolution: a closed/uma-resolved market settles each outcome price to 0 or 1
-            let mut marketResolved: Value = Value::Bool((closed.as_bool() == Some(true)) || (self.safe_string_lower_k(market.clone(), "umaResolutionStatus", &[]).as_str() == Some("resolved")));
+            let mut marketResolved: Value = Value::Bool(closed.as_bool() == Some(true) || (self.safe_string_lower_k(market.clone(), "umaResolutionStatus", &[]).as_str() == Some("resolved")));
             let mut resolvedOutcome: Value = Value::Null;
             // gamma exposes the order-book tick as orderPriceMinTickSize; minimumTickSize is the clob alias
             let mut tickSize: Value = self.safe_number2(market.clone(), Value::Str("orderPriceMinTickSize".into()), Value::Str("minimumTickSize".into()), &[Value::Float(0.01)]);
@@ -1560,7 +1560,7 @@ impl PolymarketCore {
                         m.insert("market".to_string(), marketSymbol.clone());
                         m.insert("label".to_string(), outcomeLabel);
                         m.insert("price".to_string(), outcomePrice);
-                        m.insert("active".to_string(), Value::Bool((active.as_bool() == Some(true)) && (closed.as_bool() != Some(true))));
+                        m.insert("active".to_string(), Value::Bool(active.as_bool() == Some(true) && (!(closed.as_bool() == Some(true)))));
                         m.insert("winner".to_string(), winner);
                         m.insert("settleFraction".to_string(), settleFraction);
                         m.insert("precision".to_string(), Value::Map({
@@ -1599,7 +1599,7 @@ impl PolymarketCore {
                     m.insert("future".to_string(), Value::Bool(false));
                     m.insert("option".to_string(), Value::Bool(false));
                     m.insert("prediction".to_string(), Value::Bool(true));
-                    m.insert("active".to_string(), Value::Bool((active.as_bool() == Some(true)) && (closed.as_bool() != Some(true))));
+                    m.insert("active".to_string(), Value::Bool(active.as_bool() == Some(true) && (!(closed.as_bool() == Some(true)))));
                     m.insert("resolved".to_string(), marketResolved);
                     m.insert("resolvedOutcome".to_string(), marketResolvedOutcome);
                     m.insert("contract".to_string(), Value::Bool(false));
@@ -3288,7 +3288,7 @@ impl PolymarketCore {
             if ((builderHex.len() as i64) as f64) <= ((40i64) as f64) {
                 let mut builderFeeEnabled: Value = self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(true)]);
                 let mut feeRate: Value = Value::Int(0);
-                if (builderFeeEnabled.as_bool() == Some(true)) {
+                if builderFeeEnabled.as_bool() == Some(true) {
                     feeRate = self.safe_integer_k(self.options.clone(), "feeRate", &[Value::Int(0)]);
                 }
                 let mut feeHex: Value = self.int_to_base16(feeRate, &[]);
@@ -3327,7 +3327,7 @@ impl PolymarketCore {
         let mut exchangeV2: Value = self.safe_string_k(self.options.clone(), "exchangeAddress", &[Value::Str("0xE111180000d2663C0091e4f400237545B87B996B".into())]);
         let mut negRiskExchangeV2: Value = self.safe_string_k(self.options.clone(), "negRiskExchangeAddress", &[Value::Str("0xe2222d279d744050d28e00520010520000310F59".into())]);
         let mut exchangeAddress: Value = exchangeV2;
-        if (negRisk.as_bool() == Some(true)) {
+        if negRisk.as_bool() == Some(true) {
             exchangeAddress = negRiskExchangeV2;
         }
         let mut domainVersion: Value = self.safe_string_k(self.options.clone(), "ctfExchangeVersion", &[Value::Str("2".into())]);
@@ -4031,7 +4031,7 @@ impl PolymarketCore {
         let mut closed: Value = self.safe_bool_k(rawEvent.clone(), "closed", &[Value::Bool(false)]);
         let mut active: Value = Value::Null;
         if (rawActive != Value::Null) {
-            active = Value::Bool((rawActive.as_bool() == Some(true)) && (closed.as_bool() != Some(true)));
+            active = Value::Bool(rawActive.as_bool() == Some(true) && (!(closed.as_bool() == Some(true))));
         }
         // surface gamma's tag objects as a top-level string[] so the unified `tags` filter
         // — filterEventsByTags reads event['tags'], not event.info.tags — can actually match.

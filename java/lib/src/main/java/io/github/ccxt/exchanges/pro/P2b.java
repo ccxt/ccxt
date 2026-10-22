@@ -531,7 +531,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
             orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         }
-        if (java.util.Objects.equals(isFullUpdate, true))
+        if (Boolean.TRUE.equals(isFullUpdate))
         {
             // the first parameter signals whether the message carries all
             // records or only the changed ones, a full set replaces the book,

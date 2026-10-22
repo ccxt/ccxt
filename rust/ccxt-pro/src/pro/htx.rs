@@ -2117,7 +2117,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut aggressor: Value = self.safe_bool_k(trade.clone(), "aggressor", &[]);
         let mut takerOrMaker: Value = Value::Null;
         if (aggressor != Value::Null) {
-            takerOrMaker = (if (aggressor.as_bool() == Some(true)) { Value::Str("taker".into()) } else { Value::Str("maker".into()) });
+            takerOrMaker = (if aggressor.as_bool() == Some(true) { Value::Str("taker".into()) } else { Value::Str("maker".into()) });
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2458,7 +2458,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut prefix: Value = Value::Str("accounts".into());
             messageHash = prefix.clone();
             if (subType.as_str() == Some("linear")) {
-                if (isUnifiedAccount.as_bool() == Some(true)) {
+                if isUnifiedAccount.as_bool() == Some(true) {
                     // usdt contracts account
                     prefix = Value::Str("accounts_unify".into());
                     messageHash = prefix.clone();
@@ -3476,7 +3476,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut aggressor: Value = self.safe_bool_k(trade.clone(), "aggressor", &[]);
         let mut takerOrMaker: Value = Value::Null;
         if (aggressor != Value::Null) {
-            takerOrMaker = (if (aggressor.as_bool() == Some(true)) { Value::Str("taker".into()) } else { Value::Str("maker".into()) });
+            takerOrMaker = (if aggressor.as_bool() == Some(true) { Value::Str("taker".into()) } else { Value::Str("maker".into()) });
         }  else {
             takerOrMaker = self.safe_string_lower_k(trade.clone(), "role", &[]);
         }

@@ -1106,7 +1106,7 @@ func (this *Polymarket) ParseEventToMarkets(event any) any {
 		var active *bool = this.SafeBool(market, "active", false)
 		var closed *bool = this.SafeBool(market, "closed", false)
 		// resolution: a closed/uma-resolved market settles each outcome price to 0 or 1
-		var marketResolved bool = (closed != nil && *closed == true) || (this.SafeStringLower(market, "umaResolutionStatus") != nil && *this.SafeStringLower(market, "umaResolutionStatus") == "resolved")
+		var marketResolved bool = (closed != nil && *closed) || (this.SafeStringLower(market, "umaResolutionStatus") != nil && *this.SafeStringLower(market, "umaResolutionStatus") == "resolved")
 		var resolvedOutcome any = nil
 		// gamma exposes the order-book tick as orderPriceMinTickSize; minimumTickSize is the clob alias
 		var tickSize *float64 = this.SafeNumber2(market, "orderPriceMinTickSize", "minimumTickSize", 0.01)
@@ -1189,7 +1189,7 @@ func (this *Polymarket) ParseEventToMarkets(event any) any {
 				"market":         marketSymbol,
 				"label":          outcomeLabel,
 				"price":          outcomePrice,
-				"active":         (active != nil && *active == true) && (closed == nil || *closed != true),
+				"active":         (active != nil && *active) && (!(closed != nil && *closed)),
 				"winner":         winner,
 				"settleFraction": settleFraction,
 				"precision": map[string]any{
@@ -1233,7 +1233,7 @@ func (this *Polymarket) ParseEventToMarkets(event any) any {
 			"future":          false,
 			"option":          false,
 			"prediction":      true,
-			"active":          (active != nil && *active == true) && (closed == nil || *closed != true),
+			"active":          (active != nil && *active) && (!(closed != nil && *closed)),
 			"resolved":        marketResolved,
 			"resolvedOutcome": marketResolvedOutcome,
 			"contract":        false,
@@ -3187,7 +3187,7 @@ func (this *Polymarket) BuildClobOrderBody(outcome any, typeVar any, side any, a
 		if ccxt.GetLength(builderHex) <= 40 {
 			var builderFeeEnabled *bool = this.SafeBool(this.Options, "builderFee", true)
 			var feeRate any = 0
-			if builderFeeEnabled != nil && *builderFeeEnabled == true {
+			if builderFeeEnabled != nil && *builderFeeEnabled {
 				feeRate = ccxt.DerefScalar(this.SafeInteger(this.Options, "feeRate", 0))
 			}
 			var feeHex string = this.IntToBase16(feeRate)
@@ -3224,7 +3224,7 @@ func (this *Polymarket) BuildClobOrderBody(outcome any, typeVar any, side any, a
 	var exchangeV2 *string = this.SafeString(this.Options, "exchangeAddress", "0xE111180000d2663C0091e4f400237545B87B996B")
 	var negRiskExchangeV2 *string = this.SafeString(this.Options, "negRiskExchangeAddress", "0xe2222d279d744050d28e00520010520000310F59")
 	var exchangeAddress *string = exchangeV2
-	if negRisk != nil && *negRisk == true {
+	if negRisk != nil && *negRisk {
 		exchangeAddress = negRiskExchangeV2
 	}
 	var domainVersion *string = this.SafeString(this.Options, "ctfExchangeVersion", "2")
@@ -3930,7 +3930,7 @@ func (this *Polymarket) ParseEvent(rawEvent any) map[string]any {
 	var closed *bool = this.SafeBool(rawEvent, "closed", false)
 	var active any = nil
 	if rawActive != nil {
-		active = (rawActive != nil && *rawActive == true) && (closed == nil || *closed != true)
+		active = (rawActive != nil && *rawActive) && (!(closed != nil && *closed))
 	}
 	// surface gamma's tag objects as a top-level string[] so the unified `tags` filter
 	// — filterEventsByTags reads event['tags'], not event.info.tags — can actually match.
