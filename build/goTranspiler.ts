@@ -3922,7 +3922,8 @@ function goProvenMapCollectionMethods (): string[] {
 }
 
 // `X` is a balance local: declared once as a map literal, and every later write keeps the same map
-// (`X = this.MergeBalanceAccount(X, ..)` / `X = this.SafeBalance(X)` both return their first argument)
+// (`X = this.MergeBalanceAccount(X, ..)` / `X = this.SafeBalance(X)` both return their first
+// argument, bare or inside the printer's `MapTyped(..)` box cast)
 export function goBalanceLocalIsMap (body: string, name: string): boolean {
     if ((body.match (new RegExp ('\\bvar ' + name + '\\b', 'g')) || []).length !== 1) {
         return false;
@@ -3934,7 +3935,7 @@ export function goBalanceLocalIsMap (body: string, name: string): boolean {
         return false;
     }
     const writes = body.match (new RegExp ('(^|[^\\w.])' + name + '\\s*[-+*/:]?=[^=][^\\n]*', 'gm')) || [];
-    const keeps = new RegExp ('^[^\\w.]?' + name + ' = this\\.(?:MergeBalanceAccount\\(' + name + ', |SafeBalance\\(' + name + '\\)$)');
+    const keeps = new RegExp ('^[^\\w.]?' + name + ' = (?:MapTyped\\()?this\\.(?:MergeBalanceAccount\\(' + name + ', |SafeBalance\\(' + name + '\\)\\)?$)');
     return writes.every ((w) => keeps.test (w));
 }
 
