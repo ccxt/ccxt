@@ -8903,7 +8903,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ()).concat (hx4G35Check ()).concat (hx4G36Wired ()).concat (hx4G37Check ()).concat (hx4G38Check ()).concat (hx4G39Check ()).concat (hx4G40Check (hx4G36Aligner ())).concat (hx4G40Wired ()).concat (hx4G41Check ()).concat (hx4G42Check (hx4G36Aligner ())).concat (hx4G43Check (hx4G36Aligner ())).concat (hx4G43Wired ()).concat (hx4G44Check ()).concat (hx4G45Check (hx4G36Aligner ())).concat (hx4G45Wired ()).concat (hx4G46Check (hx4G36Aligner ())).concat (hx4G46Wired ());
+        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ()).concat (hx4G35Check ()).concat (hx4G36Wired ()).concat (hx4G37Check ()).concat (hx4G38Check ()).concat (hx4G39Check ()).concat (hx4G40Check (hx4G36Aligner ())).concat (hx4G40Wired ()).concat (hx4G41Check ()).concat (hx4G42Check (hx4G36Aligner ())).concat (hx4G43Check (hx4G36Aligner ())).concat (hx4G43Wired ()).concat (hx4G44Check ()).concat (hx4G45Check (hx4G36Aligner ())).concat (hx4G45Wired ()).concat (hx4G46Check (hx4G36Aligner ())).concat (hx4G46Wired ()).concat (hx5X32StrParamSelfTest ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -12458,7 +12458,7 @@ function g13AnnotatedSelfTest (): string[] {
         const go = t.transpileGoByPath (path.join (src, 'ex.ts')).content;
         const ok = (cond: boolean, msg: string) => { if (!cond) { problems.push ('hx4 G13: ' + msg); } };
         ok (go.includes ('func (this *ex) Rows(xs []any) []any {'), 'Dict[] return of a slice local prints []any');
-        ok (go.includes ('func (this *ex) Request(p any) map[string]any {'), 'Dict return of a map-literal local prints map[string]any');
+        ok (go.includes ('func (this *ex) Request(p *string) map[string]any {'), 'Dict return of a map-literal local prints map[string]any');
         ok (go.includes ('func (this *ex) Rebound(o any) any {'), 'a local rebound to an any value keeps the any return');
         ok (/\tvar id \*string = nil\n\tif side == "buy"/.test (go), 'Str local written only as *string is *string');
         ok (/func \(this \*ex\) Pick2\(o any\) any \{\n\tvar id any = nil/.test (go), 'Str local written from any keeps the box');
@@ -14506,6 +14506,38 @@ function hx4G41Check (): string[] {
         }
     } finally {
         fs.rmSync (dir, { 'recursive': true, 'force': true });
+    }
+    return problems;
+}
+
+// hx5 X32
+// a nullable `Str` parameter whose callers pass `*string` or a proven Go `string` prints `*string`;
+// the string callers are boxed with SafeStringPtr (never nil); any other caller keeps the `any` box
+function hx5X32StrParamSelfTest (): string[] {
+    const problems: string[] = [];
+    const tmp = fs.mkdtempSync (path.join (os.tmpdir (), 'hx5-X32-'));
+    try {
+        const src = path.join (tmp, 'ts', 'src');
+        fs.mkdirSync (path.join (src, 'base'), { 'recursive': true });
+        fs.writeFileSync (path.join (src, 'base', 'Exchange.ts'), 'export type Dict = { [key: string]: any };\nexport type Str = string | undefined;\n'
+            + 'export class Exchange {\n    safeString (a, b, c?): Str { return undefined; }\n}\n');
+        fs.writeFileSync (path.join (src, 'ex.ts'), 'import { Exchange, Dict, Str } from \'./base/Exchange\';\nexport class ex extends Exchange {\n'
+            + '    req (symbol: Str, side: Str): Dict { const r: Dict = {}; if (side === \'buy\') { r[\'s\'] = 1; } if (symbol !== undefined) { r[\'y\'] = 2; } return r; }\n'
+            + '    boxed (side: Str): Dict { const r: Dict = {}; if (side === \'buy\') { r[\'s\'] = 1; } return r; }\n'
+            + '    use (o: Dict, raw) { const s: string = \'BTC\'; const p = this.safeString (o, \'p\'); this.boxed (raw); return [ this.req (s, p), this.req (p, \'sell\') ]; }\n}\n');
+        const t = new Transpiler ({ 'verbose': false, 'go': {} });
+        installCcxtGoLocalTypes (t.goTranspiler);
+        installCcxtGoIndexableTypes (t.goTranspiler);
+        const go = t.transpileGoByPath (path.join (src, 'ex.ts')).content;
+        const ok = (cond: boolean, msg: string) => { if (!cond) { problems.push ('hx5 X32: ' + msg + '\n' + go); } };
+        ok (go.includes ('func (this *ex) Req(symbol *string, side *string) map[string]any {'), 'string/*string callers type the Str params');
+        ok (go.includes ('this.Req(SafeStringPtr(s), p)') && go.includes ('this.Req(p, SafeStringPtr("sell"))'), 'string arguments are boxed with SafeStringPtr');
+        ok (go.includes ('func (this *ex) Boxed(side any) map[string]any {') && go.includes ('this.Boxed(raw)'), 'an any caller keeps the box');
+        ok (!/IsEqual\(side, "buy"\)/.test (go.split ('func (this *ex) Boxed')[0]), 'typed param compares natively');
+    } catch (e: any) {
+        problems.push ('hx5 X32 threw: ' + e.message);
+    } finally {
+        fs.rmSync (tmp, { 'recursive': true, 'force': true });
     }
     return problems;
 }
