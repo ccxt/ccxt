@@ -3365,7 +3365,7 @@ public class Krakenfutures extends KrakenfuturesApi
                     type = symbol;
                 }
             }
-            Object accountName = this.parseAccount(type);
+            Object accountName = this.parseKrakenAccountName(type);
             Map<String, Object> accounts = (Map<String, Object>) this.safeDict(response, "accounts", (Object) null);
             Map<String, Object> account = (Map<String, Object>) this.safeDict(accounts, accountName, (Object) null);
             if (java.util.Objects.equals(account, null))
@@ -4129,7 +4129,7 @@ public class Krakenfutures extends KrakenfuturesApi
         }};
     }
 
-    public Object parseAccount(Object account)
+    public Object parseKrakenAccountName(Object account)
     {
         Map<String, Object> accountByType = new HashMap<String, Object>() {{
             put( "main", "cash" );
@@ -4141,10 +4141,10 @@ public class Krakenfutures extends KrakenfuturesApi
             put( "multiCollateral", "flex" );
             put( "multiCollateralMargin", "flex" );
         }};
-        if ((account != null && accountByType.containsKey(account)))
+        if (accountByType.containsKey(account))
         {
-            return (accountByType == null || !(account instanceof String) ? null : accountByType.get(account));
-        } else if ((!java.util.Objects.equals(this.markets, null)) && ((account != null && ((Map<?, ?>)this.markets).containsKey(account))))
+            return (accountByType == null || account == null ? null : accountByType.get(account));
+        } else if ((!java.util.Objects.equals(this.markets, null)) && (((Map<?, ?>)this.markets).containsKey(account)))
         {
             Map<String, Object> market = this.market(account);
             Object marketId = market.get("id");
@@ -4214,7 +4214,7 @@ public class Krakenfutures extends KrakenfuturesApi
             Map<String, Object> response = null;
             if (java.util.Objects.equals(toAccount, "spot"))
             {
-                if (!java.util.Objects.equals(this.parseAccount(fromAccount), "cash"))
+                if (!java.util.Objects.equals(this.parseKrakenAccountName(fromAccount), "cash"))
                 {
                     throw new BadRequest(((((this.id + " transfer cannot transfer from ") + fromAccount) + " to ") + toAccount)) ;
                 }
@@ -4222,8 +4222,8 @@ public class Krakenfutures extends KrakenfuturesApi
                 response = (this.privatePostWithdrawal(this.extend(request, parameters))).join();
             } else
             {
-                request.put("fromAccount", this.parseAccount(fromAccount));
-                request.put("toAccount", this.parseAccount(toAccount));
+                request.put("fromAccount", this.parseKrakenAccountName(fromAccount));
+                request.put("toAccount", this.parseKrakenAccountName(toAccount));
                 request.put("unit", currency.get("id"));
                 response = (this.privatePostTransfer(this.extend(request, parameters))).join();
             }

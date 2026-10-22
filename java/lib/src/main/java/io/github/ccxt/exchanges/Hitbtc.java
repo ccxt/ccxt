@@ -1882,7 +1882,8 @@ public class Hitbtc extends HitbtcApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.fetchTransactionsHelper("DEPOSIT,WITHDRAW", (String) (code), since, limit, (Map<String, Object>) (parameters))).join();
+            Object transactions = (this.fetchTransactionsHelper("DEPOSIT,WITHDRAW", (String) (code), since, limit, (Map<String, Object>) (parameters))).join();
+            return this.toArray(transactions);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -1903,7 +1904,8 @@ public class Hitbtc extends HitbtcApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.fetchTransactionsHelper("DEPOSIT", (String) (code), since, limit, (Map<String, Object>) (parameters))).join();
+            Object transactions = (this.fetchTransactionsHelper("DEPOSIT", (String) (code), since, limit, (Map<String, Object>) (parameters))).join();
+            return this.toArray(transactions);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -1924,7 +1926,8 @@ public class Hitbtc extends HitbtcApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.fetchTransactionsHelper("WITHDRAW", (String) (code), since, limit, (Map<String, Object>) (parameters))).join();
+            Object transactions = (this.fetchTransactionsHelper("WITHDRAW", (String) (code), since, limit, (Map<String, Object>) (parameters))).join();
+            return this.toArray(transactions);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -2325,7 +2328,16 @@ public class Hitbtc extends HitbtcApi
                 }
             }
             List<Object> parsed = this.parseOrders(response, market, since, limit, new HashMap<String, Object>() {{}});
-            return this.filterByArray(parsed, "status", new ArrayList<Object>(Arrays.asList("closed", "canceled")), false);
+            List<Object> result = new ArrayList<Object>(Arrays.asList());
+            for (var i = 0; i < ((List<?>)parsed).size(); i++)
+            {
+                String status = this.safeString((parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i)), "status");
+                if ((java.util.Objects.equals(status, "closed")) || (java.util.Objects.equals(status, "canceled")))
+                {
+                    ((List<Object>)result).add((parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i)));
+                }
+            }
+            return result;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -3408,7 +3420,7 @@ public class Hitbtc extends HitbtcApi
                 Map<String, Object> fundingRate = (Map<String, Object>) this.parseFundingRate(rawFundingRate, marketInner);
                 fundingRates.put(symbol, fundingRate);
             }
-            return this.filterByArray(fundingRates, "symbol", symbolsNormalized, true);
+            return this.indexBy(this.filterByArray(fundingRates, "symbol", symbolsNormalized, false), "symbol");
         }).thenApply(FundingRates::new);
 
     }
@@ -3855,7 +3867,7 @@ public class Hitbtc extends HitbtcApi
                 Map<String, Object> openInterest = (Map<String, Object>) this.safeDict(response, marketId, new HashMap<String, Object>() {{}});
                 ((List<Object>)results).add(this.parseOpenInterest(openInterest, marketInner));
             }
-            return this.filterByArray(results, "symbol", symbolsNormalized, true);
+            return this.indexBy(this.filterByArray(results, "symbol", symbolsNormalized, false), "symbol");
         }).thenApply(OpenInterests::new);
 
     }

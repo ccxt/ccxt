@@ -1533,11 +1533,11 @@ public class Binance extends BinanceApi
             // }
             //
             List<Object> data = (List<Object>) this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
-            Object positions = this.parsePredictionPositions(data, new HashMap<String, Object>() {{}});
             if (java.util.Objects.equals(outcomes, null))
             {
-                return positions;
+                return this.parsePredictionPositions(data, new HashMap<String, Object>() {{}});
             }
+            Object positions = this.parsePredictionPositions(data, new HashMap<String, Object>() {{}});
             List<Object> filtered = new ArrayList<Object>(Arrays.asList());
             Integer positionsLength = ((List<?>)positions).size();
             for (var i = 0; (positionsLength != null && i < positionsLength); i++)
@@ -1858,10 +1858,9 @@ public class Binance extends BinanceApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object cachedWallet = this.safeDict(this.options, "wallet", (Object) null);
-            if (!java.util.Objects.equals(cachedWallet, null))
+            if (!java.util.Objects.equals(this.safeDict(this.options, "wallet", (Object) null), null))
             {
-                return cachedWallet;
+                return this.safeDict(this.options, "wallet", (Object) null);
             }
             String walletAddress = (String) ((List<Object>)this.handleOptionStringAndParams((Map<String, Object>) (parameters), (String) (methodName), "walletAddress", this.walletAddress)).get(0);
             Map<String, Object> response = (this.sapiPrivateGetWalletList(new HashMap<String, Object>() {{}})).join();
@@ -1879,9 +1878,8 @@ public class Binance extends BinanceApi
             List<Object> wallets = (List<Object>) this.safeList(response, "wallets", new ArrayList<Object>(Arrays.asList()));
             if (java.util.Objects.equals(walletAddress, null))
             {
-                cachedWallet = this.safeDict(wallets, 0, (Object) null);
-                Helpers.addElementToObject(this.options, "wallet", cachedWallet);
-                return cachedWallet;
+                Helpers.addElementToObject(this.options, "wallet", this.safeDict(wallets, 0, (Object) null));
+                return this.safeDict(this.options, "wallet", (Object) null);
             }
             Integer walletLength = ((List<?>)wallets).size();
             for (var i = 0; (walletLength != null && i < walletLength); i++)
@@ -1889,16 +1887,11 @@ public class Binance extends BinanceApi
                 String w = this.safeString((wallets == null || i < 0 || i >= wallets.size() ? null : wallets.get(i)), "walletAddress", "");
                 if (java.util.Objects.equals(w, walletAddress))
                 {
-                    cachedWallet = (wallets == null || i < 0 || i >= wallets.size() ? null : wallets.get(i));
-                    break;
+                    Helpers.addElementToObject(this.options, "wallet", (wallets == null || i < 0 || i >= wallets.size() ? null : wallets.get(i)));
+                    return this.safeDict(this.options, "wallet", (Object) null);
                 }
             }
-            if (java.util.Objects.equals(cachedWallet, null))
-            {
-                throw new NotSupported(((this.id + "fetchWallet could'n find wallet ") + walletAddress)) ;
-            }
-            Helpers.addElementToObject(this.options, "wallet", cachedWallet);
-            return cachedWallet;
+            throw new NotSupported(((this.id + "fetchWallet could'n find wallet ") + walletAddress)) ;
         });
 
     }

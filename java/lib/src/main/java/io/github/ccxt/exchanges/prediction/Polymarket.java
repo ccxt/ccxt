@@ -1270,10 +1270,9 @@ public class Polymarket extends PolymarketApi
                         Helpers.addElementToObject(this.markets, ((Map<String, Object>)mkt).get("market"), mkt);
                     }
                     this.populateOutcomes();
-                    Object byId = this.safeValue(this.outcomes_by_id, outcomeSymbol);
-                    if (!java.util.Objects.equals(byId, null))
+                    if (!java.util.Objects.equals(this.safeDict(this.outcomes_by_id, outcomeSymbol, (Object) null), null))
                     {
-                        return byId;
+                        return this.safeDict(this.outcomes_by_id, outcomeSymbol, (Object) null);
                     }
                 }
             }
@@ -2267,11 +2266,11 @@ public class Polymarket extends PolymarketApi
             List<Object> positions = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             // parse without the base outcome filter (it resolves standard markets, not outcome tokens),
             // then filter by the requested outcomes' token ids ourselves
-            Object parsed = this.parsePredictionPositions(positions, new HashMap<String, Object>() {{}});
             if (java.util.Objects.equals(outcomesLength, 0))
             {
-                return parsed;
+                return this.parsePredictionPositions(positions, new HashMap<String, Object>() {{}});
             }
+            Object parsed = this.parsePredictionPositions(positions, new HashMap<String, Object>() {{}});
             Map<String, Object> wantedIds = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(outcomes, null))
             {

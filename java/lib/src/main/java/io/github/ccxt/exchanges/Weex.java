@@ -4689,8 +4689,8 @@ public class Weex extends WeexApi
                 put( "symbol", market.get("id") );
             }};
             List<Object> response = (this.contractPrivatePostCapiV3ClosePositions(this.extend(request, parameters))).join();
-            List<Object> orders = this.parseOrders(response, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
-            return this.safeDict(orders, 0, (Object) null);
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
+            return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
     }

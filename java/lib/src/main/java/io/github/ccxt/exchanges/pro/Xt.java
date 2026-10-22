@@ -508,12 +508,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 throw new NotSupported((this.id + " unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only")) ;
             }
             String messageHash = ("unsubscribe::" + name);
-            Object tickers = (this.unSubscribe(messageHash, name, "public", "unWatchTickers", "ticker", (Map<String, Object>) null, symbols, parameters, new HashMap<String, Object>() {{}})).join();
-            if (this.newUpdates)
-            {
-                return tickers;
-            }
-            return this.filterByArray(this.tickers, "symbol", symbols, true);
+            return (this.unSubscribe(messageHash, name, "public", "unWatchTickers", "ticker", (Map<String, Object>) null, symbols, parameters, new HashMap<String, Object>() {{}})).join();
         });
 
     }

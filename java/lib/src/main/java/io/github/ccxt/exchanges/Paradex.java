@@ -1844,41 +1844,11 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> cachedConfig = (Map<String, Object>) this.safeDict(this.options, "systemConfig", (Object) null);
-            if (!java.util.Objects.equals(cachedConfig, null))
+            if (java.util.Objects.equals(this.safeDict(this.options, "systemConfig", (Object) null), null))
             {
-                return cachedConfig;
+                Map<String, Object> response = (this.publicGetSystemConfig(new HashMap<String, Object>() {{}})).join();
+                Helpers.addElementToObject(this.options, "systemConfig", response);
             }
-            Map<String, Object> response = (this.publicGetSystemConfig(new HashMap<String, Object>() {{}})).join();
-            //
-            // {
-            //     "starknet_gateway_url": "https://potc-testnet-sepolia.starknet.io",
-            //     "starknet_fullnode_rpc_url": "https://pathfinder.api.testnet.paradex.trade/rpc/v0_7",
-            //     "starknet_chain_id": "PRIVATE_SN_POTC_SEPOLIA",
-            //     "block_explorer_url": "https://voyager.testnet.paradex.trade/",
-            //     "paraclear_address": "0x286003f7c7bfc3f94e8f0af48b48302e7aee2fb13c23b141479ba00832ef2c6",
-            //     "paraclear_decimals": 8,
-            //     "paraclear_account_proxy_hash": "0x3530cc4759d78042f1b543bf797f5f3d647cde0388c33734cf91b7f7b9314a9",
-            //     "paraclear_account_hash": "0x41cb0280ebadaa75f996d8d92c6f265f6d040bb3ba442e5f86a554f1765244e",
-            //     "oracle_address": "0x2c6a867917ef858d6b193a0ff9e62b46d0dc760366920d631715d58baeaca1f",
-            //     "bridged_tokens": [
-            //         {
-            //             "name": "TEST USDC",
-            //             "symbol": "USDC",
-            //             "decimals": 6,
-            //             "l1_token_address": "0x29A873159D5e14AcBd63913D4A7E2df04570c666",
-            //             "l1_bridge_address": "0x8586e05adc0C35aa11609023d4Ae6075Cb813b4C",
-            //             "l2_token_address": "0x6f373b346561036d98ea10fb3e60d2f459c872b1933b50b21fe6ef4fda3b75e",
-            //             "l2_bridge_address": "0x46e9237f5408b5f899e72125dd69bd55485a287aaf24663d3ebe00d237fc7ef"
-            //         }
-            //     ],
-            //     "l1_core_contract_address": "0x582CC5d9b509391232cd544cDF9da036e55833Af",
-            //     "l1_operator_address": "0x11bACdFbBcd3Febe5e8CEAa75E0Ef6444d9B45FB",
-            //     "l1_chain_id": "11155111",
-            //     "liquidation_fee": "0.2"
-            // }
-            //
-            Helpers.addElementToObject(this.options, "systemConfig", response);
             return this.safeDict(this.options, "systemConfig", new HashMap<String, Object>() {{}});
         }).thenApply(res -> (Map<String, Object>) res);
 
@@ -1914,28 +1884,26 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> cachedAccount = (Map<String, Object>) this.safeDict(this.options, "paradexAccount", (Object) null);
-            if (!java.util.Objects.equals(cachedAccount, null))
+            if (java.util.Objects.equals(this.safeDict(this.options, "paradexAccount", (Object) null), null))
             {
-                return cachedAccount;
-            }
-            this.checkRequiredCredentials(true);
-            Map<String, Object> systemConfig = (this.getSystemConfig()).join();
-            Map<String, Object> domain = (this.prepareParadexDomain(true)).join();
-            Map<String, Object> messageTypes = new HashMap<String, Object>() {{
-                put( "Constant", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
+                this.checkRequiredCredentials(true);
+                Map<String, Object> systemConfig = (this.getSystemConfig()).join();
+                Map<String, Object> domain = (this.prepareParadexDomain(true)).join();
+                Map<String, Object> messageTypes = new HashMap<String, Object>() {{
+                    put( "Constant", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
         put( "name", "action" );
         put( "type", "string" );
     }})) );
-            }};
-            Map<String, Object> message = new HashMap<String, Object>() {{
-                put( "action", "STARK Key" );
-            }};
-            Object msg = this.ethEncodeStructuredData(domain, messageTypes, message);
-            String signature = this.signMessage(msg, this.privateKey);
-            Object account = this.retrieveStarkAccount(signature, systemConfig.get("paraclear_account_hash"), systemConfig.get("paraclear_account_proxy_hash"));
-            Helpers.addElementToObject(this.options, "paradexAccount", account);
-            return account;
+                }};
+                Map<String, Object> message = new HashMap<String, Object>() {{
+                    put( "action", "STARK Key" );
+                }};
+                Object msg = this.ethEncodeStructuredData(domain, messageTypes, message);
+                String signature = this.signMessage(msg, this.privateKey);
+                Object account = this.retrieveStarkAccount(signature, systemConfig.get("paraclear_account_hash"), systemConfig.get("paraclear_account_proxy_hash"));
+                Helpers.addElementToObject(this.options, "paradexAccount", account);
+            }
+            return this.safeDict(this.options, "paradexAccount", new HashMap<String, Object>() {{}});
         }).thenApply(res -> (Map<String, Object>) res);
 
     }
@@ -2339,9 +2307,11 @@ public class Paradex extends ParadexApi
             Map<String, Object> domain = (this.prepareParadexDomain(false)).join();
             Object msg = this.starknetEncodeStructuredData(domain, messageTypes, orderReq, account.get("address"));
             Object signature = this.starknetSign(msg, account.get("privateKey"));
-            request.put("signature", signature);
-            Helpers.addElementToObject(request, "signature_timestamp", orderReq.get("timestamp"));
-            return request;
+            Map<String, Object> signedRequest = this.extend(request, new HashMap<String, Object>() {{
+                put( "signature", signature );
+                put( "signature_timestamp", orderReq.get("timestamp") );
+            }});
+            return signedRequest;
         }).thenApply(res -> (Map<String, Object>) res);
 
     }
@@ -2554,15 +2524,16 @@ public class Paradex extends ParadexApi
             List<Object> responseOrders = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
             List<Object> parsedOrders = this.parseOrders(responseOrders, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
             List<Object> errors = (List<Object>) this.safeList(response, "errors", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rejected = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)errors).size(); i++)
             {
                 Object error = (errors == null || i < 0 || i >= errors.size() ? null : errors.get(i));
-                ((List<Object>)parsedOrders).add(this.safeOrder(new HashMap<String, Object>() {{
+                ((List<Object>)rejected).add(this.safeOrder(new HashMap<String, Object>() {{
                     put( "info", error );
                     put( "status", "rejected" );
                 }}, (Map<String, Object>) null));
             }
-            return parsedOrders;
+            return this.arrayConcat(parsedOrders, rejected);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }

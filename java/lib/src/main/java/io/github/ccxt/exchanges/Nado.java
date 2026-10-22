@@ -3479,18 +3479,15 @@ public class Nado extends NadoApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> cachedContracts = (Map<String, Object>) this.safeDict(this.options, "gatewayContracts", (Object) null);
-            if (!java.util.Objects.equals(cachedContracts, null))
+            if (java.util.Objects.equals(this.safeDict(this.options, "gatewayContracts", (Object) null), null))
             {
-                return cachedContracts;
+                Map<String, Object> request = new HashMap<String, Object>() {{
+                    put( "type", "contracts" );
+                }};
+                Map<String, Object> response = (this.gatewayPublicGetQuery(this.extend(request, parameters))).join();
+                Helpers.addElementToObject(this.options, "gatewayContracts", this.safeDict(response, "data", new HashMap<String, Object>() {{}}));
             }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "type", "contracts" );
-            }};
-            Map<String, Object> response = (this.gatewayPublicGetQuery(this.extend(request, parameters))).join();
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Helpers.addElementToObject(this.options, "gatewayContracts", data);
-            return data;
+            return this.safeDict(this.options, "gatewayContracts", new HashMap<String, Object>() {{}});
         }).thenApply(res -> (Map<String, Object>) res);
 
     }

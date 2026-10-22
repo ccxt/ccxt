@@ -2903,7 +2903,7 @@ public class Whitebit extends WhitebitApi
             // Apply limit if specified (since and symbol filtering already handled by individual methods)
             if (!java.util.Objects.equals(limit, null) && (((List<?>)sortedOrders).size() > limit))
             {
-                return Helpers.slice(sortedOrders, 0, limit);
+                return this.arraySlice(sortedOrders, 0, limit);
             }
             return sortedOrders;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -3174,7 +3174,7 @@ public class Whitebit extends WhitebitApi
             //     }
             //
             List<String> marketIds = new ArrayList<String>(response.keySet());
-            Object results = new ArrayList<Object>(Arrays.asList());
+            List<Object> results = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
                 String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
@@ -3188,9 +3188,7 @@ public class Whitebit extends WhitebitApi
                     }}));
                 }
             }
-            results = this.sortBy(results, "timestamp");
-            results = this.filterBySymbolSinceLimit(results, symbolResolved, since, limit, false);
-            return results;
+            return this.filterBySymbolSinceLimit(this.sortBy(results, "timestamp"), symbolResolved, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }

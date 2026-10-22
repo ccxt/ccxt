@@ -916,7 +916,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
                     put( "channel", "auth" );
                     put( "token", Blockchaincom.this.secret );
                 }};
-                return this.watch(url, messageHash, this.extend(request, parameters), messageHash, null);
+                return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
             }
             return ((io.github.ccxt.ws.Future)future).getFuture().join();
         });

@@ -2189,7 +2189,7 @@ public class Grvt extends GrvtApi
             List<Object> rows = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             Object transfers = this.parseTransfers(rows, currency, since, limit, new HashMap<String, Object>() {{}});
             Object filteredResults = this.filterTransfersByType(transfers, "internal", false);
-            return Helpers.GetValue(filteredResults, 1);
+            return this.toArray(Helpers.GetValue(filteredResults, 1));
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
     }

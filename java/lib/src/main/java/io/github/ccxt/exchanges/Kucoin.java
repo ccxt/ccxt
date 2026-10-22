@@ -13501,7 +13501,8 @@ public class Kucoin extends KucoinApi
             if (Boolean.TRUE.equals(utaOption))
             {
                 LeverageTiers result = (this.fetchLeverageTiers(new ArrayList<String>(Arrays.asList(symbol)), paramsUta)).join();
-                return this.safeList(result, symbol, new ArrayList<Object>(Arrays.asList()));
+                List<Object> tiers = (List<Object>) this.safeList(result, symbol, new ArrayList<Object>(Arrays.asList()));
+                return tiers;
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
@@ -13828,15 +13829,14 @@ public class Kucoin extends KucoinApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object uta = this.safeBool(this.options, "uta", (Object) null);
-            if (java.util.Objects.equals(uta, null))
+            if (java.util.Objects.equals(this.safeBool(this.options, "uta", (Object) null), null))
             {
                 Map<String, Object> response = (this.utaPrivateGetAccountMode(parameters)).join();
                 Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 String accountMode = this.safeString(data, "selfAccountMode");
-                uta = (java.util.Objects.equals(accountMode, "UNIFIED"));
-                Helpers.addElementToObject(this.options, "uta", uta);
+                Helpers.addElementToObject(this.options, "uta", (java.util.Objects.equals(accountMode, "UNIFIED")));
             }
+            Boolean uta = java.util.Objects.equals(this.safeBool(this.options, "uta", (Object) null), true);
             return uta;
         }).thenApply(res -> (Boolean) res);
 

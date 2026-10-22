@@ -1252,7 +1252,7 @@ public class Polymarket extends PolymarketApi
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             List<Object> response = (this.publicGetInfoTickers(parameters)).join();
             Object result = this.parseFundingRates(response, (List<String>) null);
-            return this.filterByArray(result, "symbol", symbolsNormalized, true);
+            return this.indexBy(this.filterByArray(result, "symbol", symbolsNormalized, false), "symbol");
         }).thenApply(FundingRates::new);
 
     }
@@ -1436,7 +1436,7 @@ public class Polymarket extends PolymarketApi
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             List<Object> response = (this.publicGetInfoTickers(parameters)).join();
             Object result = this.parseOpenInterests(response, (List<String>) null);
-            return this.filterByArray(result, "symbol", symbolsNormalized, true);
+            return this.indexBy(this.filterByArray(result, "symbol", symbolsNormalized, false), "symbol");
         }).thenApply(OpenInterests::new);
 
     }

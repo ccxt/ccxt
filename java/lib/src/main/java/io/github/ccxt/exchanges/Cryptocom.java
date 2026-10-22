@@ -2758,11 +2758,11 @@ public class Cryptocom extends CryptocomApi
                 String network = this.safeString(this.networkAliases, networkParam, networkParam);
                 if (((Map<?, ?>)depositAddresses).containsKey(network))
                 {
-                    return Helpers.GetValue(depositAddresses, network);
+                    return this.safeDict(depositAddresses, network, (Object) null);
                 }
             }
             List<String> keys = new ArrayList<String>(((Map<String, Object>)depositAddresses).keySet());
-            return Helpers.GetValue(depositAddresses, (keys == null || 0 >= ((List<?>)keys).size() ? null : ((List<?>)keys).get(0)));
+            return this.safeDict(depositAddresses, this.safeString(keys, 0), (Object) null);
         }).thenApply(DepositAddress::new);
 
     }

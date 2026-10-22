@@ -9460,7 +9460,7 @@ public Object describe()
                 throw new NotSupported((this.id + " fetchDepositWithdrawFee() is not supported yet")) ;
             }
             DepositWithdrawFees fees = (this.fetchDepositWithdrawFees(new ArrayList<Object>(Arrays.asList(code)), parameters)).join();
-            return this.safeValue(fees, code);
+            return this.safeDict(fees, code, (Object) null);
         }).thenApply(DepositWithdrawFee::new);
 
     }
@@ -10122,15 +10122,13 @@ public Object describe()
 
             if (!java.util.Objects.equals(this.has.get("fetchDepositAddresses"), null) && !java.util.Objects.equals(this.has.get("fetchDepositAddresses"), false))
             {
-                List<DepositAddress> depositAddresses = (this.fetchDepositAddresses(new ArrayList<Object>(Arrays.asList(code)), parameters)).join();
-                Object depositAddress = this.safeValue(depositAddresses, code);
-                if (java.util.Objects.equals(depositAddress, null))
+                List<DepositAddress> depositAddressesList = (this.fetchDepositAddresses(new ArrayList<Object>(Arrays.asList(code)), parameters)).join();
+                Map<String,Object> depositAddresses = this.indexBy(depositAddressesList, "currency");
+                if (java.util.Objects.equals(this.safeDict(depositAddresses, code, (Object) null), null))
                 {
                     throw new InvalidAddress((((this.id + " fetchDepositAddress() could not find a deposit address for ") + code) + ", make sure you have created a corresponding deposit address in your wallet on the exchange website")) ;
-                } else
-                {
-                    return depositAddress;
                 }
+                return this.safeDict(depositAddresses, code, (Object) null);
             } else if (!java.util.Objects.equals(this.has.get("fetchDepositAddressesByNetwork"), null) && !java.util.Objects.equals(this.has.get("fetchDepositAddressesByNetwork"), false))
             {
                 String network = this.safeString(parameters, "network");
@@ -10503,7 +10501,7 @@ public Object describe()
                 throw new ExchangeError((this.id + " loadTimeDifference() missing serverTime")) ;
             }
             Helpers.addElementToObject(this.options, "timeDifference", (after - serverTime));
-            return this.options.get("timeDifference");
+            return this.parseToInt(this.options.get("timeDifference"));
         });
 
     }
@@ -10528,7 +10526,8 @@ public Object describe()
                     throw new BadSymbol((this.id + " fetchMarketLeverageTiers() supports contract markets only")) ;
                 }
                 LeverageTiers tiers = (this.fetchLeverageTiers(new ArrayList<String>(Arrays.asList(symbol)), new HashMap<String, Object>() {{}})).join();
-                return this.safeValue(tiers, symbol);
+                List<Object> marketTiers = (List<Object>) this.safeList(tiers, symbol, (Object) null);
+                return marketTiers;
             } else
             {
                 throw new NotSupported((this.id + " fetchMarketLeverageTiers() is not supported yet")) ;
@@ -10610,7 +10609,7 @@ public Object describe()
             }
         }
         List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-        return this.filterByArray(results, "symbol", symbolsNormalized, true);
+        return this.indexBy(this.filterByArray(results, "symbol", symbolsNormalized, false), "symbol");
     }
 
     public Object parseTickers(Object tickers, List<String> symbols, Map<String, Object> parameters)
@@ -10664,7 +10663,7 @@ public Object describe()
 
     public Object parseDepositAddresses(Object addresses, Object codes, Boolean indexed, Map<String, Object> parameters)
     {
-        Object result = new ArrayList<Object>(Arrays.asList());
+        List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < Helpers.getArrayLength(addresses); i++)
         {
             Map<String, Object> address = this.extend(this.parseDepositAddress((Map<String, Object>) (Helpers.GetValue(addresses, i)), (Map<String, Object>) null), parameters);
@@ -10672,11 +10671,11 @@ public Object describe()
         }
         if (!java.util.Objects.equals(codes, null))
         {
-            result = this.filterByArray(result, "currency", codes, false);
+            result = this.toArray(this.filterByArray(result, "currency", codes, false));
         }
         if (java.util.Objects.requireNonNullElse(indexed, true))
         {
-            result = this.filterByArray(result, "currency", (Object) null, java.util.Objects.requireNonNullElse(indexed, true));
+            result = this.toArray(this.filterByArray(result, "currency", (Object) null, java.util.Objects.requireNonNullElse(indexed, true)));
         }
         return result;
     }
@@ -11009,7 +11008,7 @@ public Object describe()
                 result.put((String)((Map<String, Object>)parsed).get("symbol"), parsed);
             }
         }
-        return this.filterByArray(result, "symbol", symbols, true);
+        return this.indexBy(this.filterByArray(result, "symbol", symbols, false), "symbol");
     }
 
     public List<Object> parseOpenInterestsHistory(Object response, Map<String, Object> market, Long since, Long limit)
@@ -11471,7 +11470,7 @@ public Object describe()
          * @method
          * @description Typed wrapper for filterByArray that returns a list of ADL Ranks
          */
-        return this.filterByArray(objects, key, values, java.util.Objects.requireNonNullElse(indexed, true));
+        return this.toArray(this.filterByArray(objects, key, values, java.util.Objects.requireNonNullElse(indexed, true)));
     }
 
     public Object createOHLCVObject(Object symbol, Object timeframe, Object data)
@@ -12121,7 +12120,7 @@ public Object describe()
             }
         }
         List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-        return this.filterByArray(results, "symbol", symbolsNormalized, true);
+        return this.indexBy(this.filterByArray(results, "symbol", symbolsNormalized, false), "symbol");
     }
 
     public Object parseOption(Map<String, Object> chain, Map<String, Object> currency, Map<String, Object> market)

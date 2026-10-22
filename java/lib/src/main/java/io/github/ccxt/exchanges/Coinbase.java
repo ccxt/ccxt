@@ -1197,7 +1197,7 @@ public class Coinbase extends CoinbaseApi
             if (java.util.Objects.equals(currencyType, "crypto"))
             {
                 Object results = (this.fetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdTransactions", code, since, limit, paramsCurrencyType)).join();
-                return this.filterByArray(results, "type", "withdrawal", false);
+                return this.toArray(this.filterByArray(results, "type", "withdrawal", false));
             }
             return (this.fetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdWithdrawals", code, since, limit, paramsCurrencyType)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
@@ -1228,7 +1228,7 @@ public class Coinbase extends CoinbaseApi
             if (java.util.Objects.equals(currencyType, "crypto"))
             {
                 Object results = (this.fetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdTransactions", code, since, limit, paramsCurrencyType)).join();
-                return this.filterByArray(results, "type", "deposit", false);
+                return this.toArray(this.filterByArray(results, "type", "deposit", false));
             }
             return (this.fetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdDeposits", code, since, limit, paramsCurrencyType)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
@@ -1256,7 +1256,7 @@ public class Coinbase extends CoinbaseApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Object results = (this.fetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdTransactions", code, since, limit, parameters)).join();
-            return this.filterByArray(results, "type", new ArrayList<Object>(Arrays.asList("deposit", "withdrawal")), false);
+            return this.toArray(this.filterByArray(results, "type", new ArrayList<Object>(Arrays.asList("deposit", "withdrawal")), false));
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -3133,20 +3133,19 @@ public class Coinbase extends CoinbaseApi
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> ledger = this.parseLedger(data, currency, since, limit, new HashMap<String, Object>() {{}});
             Integer length = ((List<?>)ledger).size();
-            if (java.util.Objects.equals(length, 0))
+            if ((length != null && length > 0))
             {
-                return ledger;
+                Long lastIndex = (((long) length) - 1L);
+                Map<String, Object> last = (Map<String, Object>) this.safeDict(ledger, lastIndex, (Object) null);
+                Map<String, Object> pagination = (Map<String, Object>) this.safeDict(response, "pagination", new HashMap<String, Object>() {{}});
+                String cursor = this.safeString(pagination, "next_starting_after");
+                if ((!java.util.Objects.equals(cursor, null)) && (!java.util.Objects.equals(cursor, "")))
+                {
+                    Helpers.addElementToObject(last.get("info"), "next_starting_after", cursor);
+                    Helpers.addElementToObject(ledger, lastIndex, last);
+                }
             }
-            Long lastIndex = (((long) length) - 1L);
-            Map<String, Object> last = (Map<String, Object>) this.safeDict(ledger, lastIndex, (Object) null);
-            Map<String, Object> pagination = (Map<String, Object>) this.safeDict(response, "pagination", new HashMap<String, Object>() {{}});
-            String cursor = this.safeString(pagination, "next_starting_after");
-            if ((!java.util.Objects.equals(cursor, null)) && (!java.util.Objects.equals(cursor, "")))
-            {
-                Helpers.addElementToObject(last.get("info"), "next_starting_after", cursor);
-                Helpers.addElementToObject(ledger, lastIndex, last);
-            }
-            return ledger;
+            return this.toArray(ledger);
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
     }
@@ -3506,7 +3505,7 @@ public class Coinbase extends CoinbaseApi
                 Object account = (this.accounts == null || i < 0 || i >= ((List<?>)this.accounts).size() ? null : ((List<?>)this.accounts).get(i));
                 if (java.util.Objects.equals(((Map<String, Object>)account).get("code"), code))
                 {
-                    return ((Map<String, Object>)account).get("id");
+                    return this.safeString(account, "id");
                 }
             }
             return null;

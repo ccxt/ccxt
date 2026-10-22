@@ -3679,7 +3679,7 @@ public class Digifinex extends DigifinexApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object addresses = this.parseDepositAddresses(data, new ArrayList<Object>(Arrays.asList(currency.get("code"))), true, new HashMap<String, Object>() {{}});
+            Map<String,Object> addresses = this.indexBy(this.parseDepositAddresses(data, new ArrayList<Object>(Arrays.asList(currency.get("code"))), false, new HashMap<String, Object>() {{}}), "currency");
             Map<String, Object> address = (Map<String, Object>) this.safeDict(addresses, code, (Object) null);
             if (java.util.Objects.equals(address, null))
             {

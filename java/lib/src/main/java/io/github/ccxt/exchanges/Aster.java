@@ -2201,7 +2201,7 @@ public class Aster extends AsterApi
                 ((List<Object>)results).add(priceData);
             }
             List<String> symbolsNormalized2 = this.marketSymbols(symbolsNormalized, (Object) null, true, false, false);
-            return this.filterByArray(results, "symbol", symbolsNormalized2, true);
+            return this.indexBy(this.filterByArray(results, "symbol", symbolsNormalized2, false), "symbol");
         }).thenApply(LastPrices::new);
 
     }

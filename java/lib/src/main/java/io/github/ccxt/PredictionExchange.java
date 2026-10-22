@@ -2014,7 +2014,7 @@ public Object describe()
         }
         results = this.sortBy2(results, "timestamp", "id");
         String outcomeHandle = this.safeString(outcomeObj, "outcome");
-        return this.filterByOutcomeSinceLimit(results, outcomeHandle, since, limit, false);
+        return this.filterByValueSinceLimit(results, "outcome", outcomeHandle, since, limit, "timestamp", false);
     }
 
     /**

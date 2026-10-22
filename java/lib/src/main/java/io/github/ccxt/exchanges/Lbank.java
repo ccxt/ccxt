@@ -3136,7 +3136,6 @@ public class Lbank extends LbankApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Boolean isAuthorized = this.checkRequiredCredentials(false);
-            Object result = null;
             if (Boolean.TRUE.equals(isAuthorized))
             {
                 Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchTransactionFees", new HashMap<String, Object>() {{}});
@@ -3145,16 +3144,11 @@ public class Lbank extends LbankApi
                 Map<String, Object> paramsOmitted = this.omit(parameters, "method");
                 if (java.util.Objects.equals(method, "fetchPublicTransactionFees"))
                 {
-                    result = (this.fetchPublicTransactionFees(paramsOmitted)).join();
-                } else
-                {
-                    result = (this.fetchPrivateTransactionFees(paramsOmitted)).join();
+                    return (this.fetchPublicTransactionFees(paramsOmitted)).join();
                 }
-            } else
-            {
-                result = (this.fetchPublicTransactionFees(parameters)).join();
+                return (this.fetchPrivateTransactionFees(paramsOmitted)).join();
             }
-            return result;
+            return (this.fetchPublicTransactionFees(parameters)).join();
         });
 
     }
@@ -3338,7 +3332,6 @@ public class Lbank extends LbankApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Boolean isAuthorized = this.checkRequiredCredentials(false);
-            Object response = null;
             if (Boolean.TRUE.equals(isAuthorized))
             {
                 Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchDepositWithdrawFees", new HashMap<String, Object>() {{}});
@@ -3347,16 +3340,11 @@ public class Lbank extends LbankApi
                 Map<String, Object> paramsOmitted = this.omit(parameters, "method");
                 if (java.util.Objects.equals(method, "fetchPublicDepositWithdrawFees"))
                 {
-                    response = (this.fetchPublicDepositWithdrawFees(codes, paramsOmitted)).join();
-                } else
-                {
-                    response = (this.fetchPrivateDepositWithdrawFees(codes, paramsOmitted)).join();
+                    return (this.fetchPublicDepositWithdrawFees(codes, paramsOmitted)).join();
                 }
-            } else
-            {
-                response = (this.fetchPublicDepositWithdrawFees(codes, parameters)).join();
+                return (this.fetchPrivateDepositWithdrawFees(codes, paramsOmitted)).join();
             }
-            return response;
+            return (this.fetchPublicDepositWithdrawFees(codes, parameters)).join();
         }).thenApply(DepositWithdrawFees::new);
 
     }

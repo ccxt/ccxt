@@ -1376,7 +1376,8 @@ public class Cex extends CexApi
                 put( "orderId", Helpers.parseInt(id) );
             }};
             List<Order> result = (this.fetchOpenOrders(symbol, (Long) null, (Long) null, this.extend(request, parameters))).join();
-            return (result == null || 0 >= ((List<?>)result).size() ? null : ((List<?>)result).get(0));
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(result, 0, (Object) null);
+            return order;
         });
 
     }
@@ -1404,7 +1405,8 @@ public class Cex extends CexApi
                 put( "orderId", Helpers.parseInt(id) );
             }};
             List<Order> result = (this.fetchClosedOrders(symbol, (Long) null, (Long) null, this.extend(request, parameters))).join();
-            return (result == null || 0 >= ((List<?>)result).size() ? null : ((List<?>)result).get(0));
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(result, 0, (Object) null);
+            return order;
         });
 
     }

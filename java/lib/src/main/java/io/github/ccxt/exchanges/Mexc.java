@@ -5738,30 +5738,28 @@ public class Mexc extends MexcApi
 
             String network = this.safeString(parameters, "network");
             Object addressStructures = (this.fetchDepositAddressesByNetwork(code, parameters)).join();
-            Object result = null;
+            Object key = null;
             if (!java.util.Objects.equals(network, null))
             {
-                String netCode = this.networkIdToCode(network, code);
-                result = (((java.util.Objects.equals(netCode, null)))) ? null : this.safeDict(addressStructures, netCode, (Object) null);
+                key = this.networkIdToCode(network, code);
             } else
             {
                 Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "defaultNetworks", (Object) null);
                 String defaultNetworkForCurrency = this.safeString(options, code);
                 if (!java.util.Objects.equals(defaultNetworkForCurrency, null))
                 {
-                    result = this.safeDict(addressStructures, defaultNetworkForCurrency, (Object) null);
+                    key = defaultNetworkForCurrency;
                 } else
                 {
                     List<String> keys = new ArrayList<String>(((Map<String, Object>)addressStructures).keySet());
-                    String key = this.safeString(keys, 0);
-                    result = this.safeDict(addressStructures, key, (Object) null);
+                    key = this.safeString(keys, 0);
                 }
             }
-            if (java.util.Objects.equals(result, null))
+            if ((java.util.Objects.equals(key, null)) || (java.util.Objects.equals(this.safeDict(addressStructures, key, (Object) null), null)))
             {
                 throw new InvalidAddress((((((this.id + " fetchDepositAddress() cannot find a deposit address for ") + code) + ", and network") + network) + "consider creating one using .createDepositAddress() method or in MEXC website")) ;
             }
-            return result;
+            return this.safeDict(addressStructures, key, (Object) null);
         }).thenApply(DepositAddress::new);
 
     }

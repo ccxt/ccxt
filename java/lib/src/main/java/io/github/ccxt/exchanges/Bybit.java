@@ -6675,7 +6675,7 @@ public class Bybit extends BybitApi
             {
                 throw new InvalidOrder((this.id + " returned more than one order")) ;
             }
-            return this.safeValue(result, 0);
+            return this.safeDict(result, 0, (Object) null);
         });
 
     }
@@ -6967,7 +6967,8 @@ public class Bybit extends BybitApi
             {
                 throw new InvalidOrder((this.id + " returned more than one order")) ;
             }
-            return this.safeValue(result, 0);
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(result, 0, (Object) null);
+            return order;
         });
 
     }
@@ -7013,7 +7014,8 @@ public class Bybit extends BybitApi
             {
                 throw new InvalidOrder((this.id + " returned more than one order")) ;
             }
-            return this.safeValue(result, 0);
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(result, 0, (Object) null);
+            return order;
         });
 
     }
@@ -7603,7 +7605,7 @@ public class Bybit extends BybitApi
             Map<String, Object> paramsOmited = (Map<String, Object>) ((List<Object>) networkCodeparamsOmitedVariable).get(1);
             Object indexedAddresses = (this.fetchDepositAddressesByNetwork(code, paramsOmited)).join();
             Object selectedNetworkCode = this.selectNetworkKeyFromNetworks(currency.get("code"), networkCode, indexedAddresses, true);
-            return this.safeValue(indexedAddresses, selectedNetworkCode);
+            return this.safeDict(indexedAddresses, selectedNetworkCode, (Object) null);
         }).thenApply(DepositAddress::new);
 
     }
@@ -10873,7 +10875,7 @@ public class Bybit extends BybitApi
         put( "nextPageCursor", cursorValue );
     }});
             Helpers.addElementToObject(result, lastIndex, last);
-            return result;
+            return this.toArray(result);
         });
 
     }

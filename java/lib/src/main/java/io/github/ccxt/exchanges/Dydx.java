@@ -1529,7 +1529,7 @@ public class Dydx extends DydxApi
             Map<String, Object> dydxAccount = (Map<String, Object>) this.safeDict(this.options, "dydxAccount", (Object) null);
             if (!java.util.Objects.equals(dydxAccount, null))
             {
-                return dydxAccount;
+                return this.safeDict(this.options, "dydxAccount", new HashMap<String, Object>() {{}});
             }
             if (java.util.Objects.equals(this.walletAddress, null))
             {
@@ -1561,7 +1561,7 @@ public class Dydx extends DydxApi
         put( "key", Helpers.GetValue(account.get("pub_key"), "key") );
     }});
             Helpers.addElementToObject(this.options, "dydxAccount", account);
-            return account;
+            return this.safeDict(this.options, "dydxAccount", new HashMap<String, Object>() {{}});
         }).thenApply(res -> (Map<String, Object>) res);
 
     }
@@ -2742,7 +2742,8 @@ public class Dydx extends DydxApi
             //     ]
             // }
             //
-            return this.safeList(response, "transfers", new ArrayList<Object>(Arrays.asList()));
+            List<Object> transfers = (List<Object>) this.safeList(response, "transfers", new ArrayList<Object>(Arrays.asList()));
+            return transfers;
         });
 
     }

@@ -1539,7 +1539,7 @@ public class Apex extends ApexApi
         return seeds;
     }
 
-    public CompletableFuture<Object> getAccountId()
+    public CompletableFuture<String> getAccountId()
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1550,8 +1550,8 @@ public class Apex extends ApexApi
                 Object accountData = (this.fetchAccount(new HashMap<String, Object>() {{}})).join();
                 Helpers.addElementToObject(this.options, "accountId", this.safeString(accountData, "id", "0"));
             }
-            return this.options.get("accountId");
-        });
+            return this.safeString(this.options, "accountId");
+        }).thenApply(res -> (String) res);
 
     }
 
@@ -1635,10 +1635,10 @@ public class Apex extends ApexApi
             Map<String, Object> paramsOmitted = this.omit(parameters, "timeInForce");
             Map<String, Object> paramsOmitted2 = this.omit(paramsOmitted, "postOnly");
             Object clientOrderId = this.safeStringN(paramsOmitted2, new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId", "client_order_id")));
-            Object accountId = (this.getAccountId()).join();
+            String accountId = (this.getAccountId()).join();
             if (java.util.Objects.equals(clientOrderId, null))
             {
-                clientOrderId = this.generateRandomClientIdOmni((String) (accountId));
+                clientOrderId = this.generateRandomClientIdOmni(accountId);
             }
             Object finalClientOrderId = clientOrderId; // java req
             Map<String, Object> paramsOmitted3 = this.omit(paramsOmitted2, new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId", "client_order_id", "stopLossPrice", "takeProfitPrice", "triggerPrice")));

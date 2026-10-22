@@ -2397,11 +2397,11 @@ public class Predictfun extends PredictfunApi
             //     }
             //
             List<Object> rows = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object parsed = this.parsePredictionPositions(rows, new HashMap<String, Object>() {{}});
             if (java.util.Objects.equals(outcomesLength, 0))
             {
-                return parsed;
+                return this.parsePredictionPositions(rows, new HashMap<String, Object>() {{}});
             }
+            Object parsed = this.parsePredictionPositions(rows, new HashMap<String, Object>() {{}});
             // the venue filters by marketId only, so a set of outcome handles is applied here
             Map<String, Object> wanted = new HashMap<String, Object>() {{}};
             List<Object> wantedOutcomes = this.toArray(outcomes);

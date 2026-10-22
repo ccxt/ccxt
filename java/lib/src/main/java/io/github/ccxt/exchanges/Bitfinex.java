@@ -2640,7 +2640,7 @@ public class Bitfinex extends BitfinexApi
                 put( "id", new ArrayList<Object>(Arrays.asList(Helpers.parseInt(id))) );
             }};
             List<Order> orders = (this.fetchOpenOrders(symbol, (Long) null, (Long) null, this.extend(request, parameters))).join();
-            Object order = this.safeValue(orders, 0);
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(orders, 0, (Object) null);
             if (java.util.Objects.equals(order, null))
             {
                 throw new OrderNotFound((((this.id + " order ") + id) + " not found")) ;
@@ -2670,7 +2670,7 @@ public class Bitfinex extends BitfinexApi
                 put( "id", new ArrayList<Object>(Arrays.asList(Helpers.parseInt(id))) );
             }};
             List<Order> orders = (this.fetchClosedOrders(symbol, (Long) null, (Long) null, this.extend(request, parameters))).join();
-            Object order = this.safeValue(orders, 0);
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(orders, 0, (Object) null);
             if (java.util.Objects.equals(order, null))
             {
                 throw new OrderNotFound((((this.id + " order ") + id) + " not found")) ;

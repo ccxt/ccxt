@@ -2024,7 +2024,8 @@ public class Gate extends GateApi
                     Helpers.addElementToObject(this.options, "unifiedAccount", false);
                 }
             }
-            return this.options.get("unifiedAccount");
+            Boolean unified = java.util.Objects.equals(this.safeBool(this.options, "unifiedAccount", (Object) null), true);
+            return unified;
         }).thenApply(res -> (Boolean) res);
 
     }
@@ -3405,7 +3406,7 @@ public class Gate extends GateApi
             Object chainsIndexedByIdRaw = (this.fetchDepositAddressesByNetwork(code, paramsNetworkCode)).join();
             Object chainsIndexedById = chainsIndexedByIdRaw;
             Object selectedNetworkIdOrCode = this.selectNetworkKeyFromNetworks(code, networkCode, chainsIndexedById, true);
-            return Helpers.GetValue(chainsIndexedById, ((String)selectedNetworkIdOrCode));
+            return this.safeDict(chainsIndexedById, selectedNetworkIdOrCode, (Object) null);
         }).thenApply(DepositAddress::new);
 
     }
@@ -5015,10 +5016,9 @@ public class Gate extends GateApi
             //          }
             //      ]
             //
-            List<Trade> response = (this.fetchMyTrades(symbol, since, limit, new HashMap<String, Object>() {{
+            return (this.fetchMyTrades(symbol, since, limit, new HashMap<String, Object>() {{
                 put( "order_id", id );
             }})).join();
-            return response;
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }

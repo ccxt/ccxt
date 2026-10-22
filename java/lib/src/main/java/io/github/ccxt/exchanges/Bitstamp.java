@@ -1395,7 +1395,9 @@ public class Bitstamp extends BitstampApi
                 mapLiteral1.put("timestamp", now);
                 Helpers.addElementToObject(this.options, "fetchMarkets", this.extend(options, mapLiteral1));
             }
-            return this.safeValue(this.options.get("fetchMarkets"), "response");
+            Map<String, Object> cache = (Map<String, Object>) this.safeDict(this.options, "fetchMarkets", new HashMap<String, Object>() {{}});
+            List<Object> markets = (List<Object>) this.safeList(cache, "response", new ArrayList<Object>(Arrays.asList()));
+            return markets;
         });
 
     }

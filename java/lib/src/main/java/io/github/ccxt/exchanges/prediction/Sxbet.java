@@ -599,7 +599,7 @@ public class Sxbet extends SxbetApi
             for (var i = 0; (orderLength != null && i < orderLength); i++)
             {
                 String fixtureId = (order == null || i < 0 || i >= order.size() ? null : order.get(i));
-                Object eventVar = this.parseEvent(fixtureId, (grouped == null || fixtureId == null ? null : grouped.get(fixtureId)));
+                Map<String, Object> eventVar = this.parseEvent(fixtureId, (grouped == null || fixtureId == null ? null : grouped.get(fixtureId)));
                 List<Object> evMarkets = (List<Object>) this.safeList(eventVar, "markets", new ArrayList<Object>(Arrays.asList()));
                 Integer evMarketsLength = ((List<?>)evMarkets).size();
                 for (var j = 0; (evMarketsLength != null && j < evMarketsLength); j++)
@@ -641,7 +641,7 @@ public class Sxbet extends SxbetApi
             {
                 throw new BadSymbol(((this.id + " fetchEvent() could not find an active fixture ") + id)) ;
             }
-            Object eventVar = this.parseEvent(id, rawMarkets);
+            Map<String, Object> eventVar = this.parseEvent(id, rawMarkets);
             this.indexEventOutcomes(eventVar);
             this.setEvents(new ArrayList<Object>(Arrays.asList(eventVar)));
             return eventVar;
@@ -695,7 +695,7 @@ public class Sxbet extends SxbetApi
      * @param {object[]} rawMarkets the raw sx.bet market objects belonging to this fixture
      * @returns {object} an event structure
      */
-    public Object parseEvent(Object fixtureId, Object rawMarkets)
+    public Map<String, Object> parseEvent(Object fixtureId, Object rawMarkets)
     {
         List<Object> marketsList = new ArrayList<Object>(Arrays.asList());
         Boolean anyActive = false;
@@ -1451,7 +1451,8 @@ public class Sxbet extends SxbetApi
             {
                 response = (this.sxbetPrivateDeleteOrdersV3All(rest)).join();
             }
-            Object result = this.parseSxbetCancelResponse((Map<String, Object>) (response));
+            Object result = new ArrayList<Object>(Arrays.asList());
+            result = this.arrayConcat(result, this.parseSxbetCancelResponse((Map<String, Object>) (response)));
             // both paths paginate their async submission - keep going on the SAME route while more remain
             Boolean hasMore = (Boolean) this.safeBool(this.safeDict(response, "data", new HashMap<String, Object>() {{}}), "hasMore", false);
             Object guard = 0;

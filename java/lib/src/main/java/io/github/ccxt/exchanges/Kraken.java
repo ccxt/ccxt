@@ -3877,7 +3877,8 @@ public class Kraken extends KrakenApi
             //         ]
             //     }
             //
-            return this.safeValue(response, "result");
+            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            return result;
         });
 
     }

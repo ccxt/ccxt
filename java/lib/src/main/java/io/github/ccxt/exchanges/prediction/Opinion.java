@@ -1800,11 +1800,11 @@ public class Opinion extends OpinionApi
             Map<String, Object> response = (this.opinionPrivateGetPositionsUserWalletAddress(this.extend(request, parameters))).join();
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> positions = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
-            Object parsed = this.parsePredictionPositions(positions, new HashMap<String, Object>() {{}});
             if (java.util.Objects.equals(outcomesLength, 0))
             {
-                return parsed;
+                return this.parsePredictionPositions(positions, new HashMap<String, Object>() {{}});
             }
+            Object parsed = this.parsePredictionPositions(positions, new HashMap<String, Object>() {{}});
             Map<String, Object> wantedTokenIds = new HashMap<String, Object>() {{}};
             // copy to a plain list so the strict null checks see one shape
             Object outcomesList = (((java.util.Objects.equals(outcomes, null)))) ? new ArrayList<Object>(Arrays.asList()) : outcomes;

@@ -1566,7 +1566,7 @@ public class Coinone extends CoinoneApi
                     result.put(code, depositAddress);
                 }
             }
-            return result;
+            return this.toArray(result);
         }).thenApply(res -> ((List<?>) res).stream().map(DepositAddress::new).collect(Collectors.toList()));
 
     }

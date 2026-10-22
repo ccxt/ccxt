@@ -8027,7 +8027,7 @@ public class Htx extends HtxApi
             Map<String, Object> paramsOmited = (Map<String, Object>) ((List<Object>) networkCodeparamsOmitedVariable).get(1);
             Object indexedAddresses = (this.fetchDepositAddressesByNetwork(code, paramsOmited)).join();
             Object selectedNetworkCode = this.selectNetworkKeyFromNetworks(currency.get("code"), networkCode, indexedAddresses, true);
-            return this.safeValue(indexedAddresses, selectedNetworkCode);
+            return this.safeDict(indexedAddresses, selectedNetworkCode, (Object) null);
         }).thenApply(DepositAddress::new);
 
     }
@@ -11157,7 +11157,7 @@ public class Htx extends HtxApi
     }}
 ));
             }
-            result = this.assignDefaultDepositWithdrawFees(result, currency);
+            this.assignDefaultDepositWithdrawFees(result, currency);
         }
         return result;
     }

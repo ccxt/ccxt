@@ -1542,19 +1542,20 @@ public class Deepcoin extends DeepcoinApi
             Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(network, null)))) ? this.omit(parameters, "network") : parameters;
             List<DepositAddress> addressess = (this.fetchDepositAddresses(new ArrayList<Object>(Arrays.asList(code)), paramsOmitted)).join();
             Integer length = ((List<?>)addressess).size();
-            Object address = this.safeDict(addressess, 0, new HashMap<String, Object>() {{}});
+            Object index = 0;
             if ((!java.util.Objects.equals(network, null)) && ((length != null && length > 1)))
             {
+                // the last entry on the requested network wins
                 for (var i = 0; (length != null && i < length); i++)
                 {
-                    Object entry = (addressess == null || i < 0 || i >= addressess.size() ? null : addressess.get(i));
-                    if (java.util.Objects.equals(((Map<String, Object>)entry).get("network"), network))
+                    String entryNetwork = this.safeString(this.safeDict(addressess, i, new HashMap<String, Object>() {{}}), "network");
+                    if (java.util.Objects.equals(entryNetwork, network))
                     {
-                        address = entry;
+                        index = i;
                     }
                 }
             }
-            return address;
+            return this.safeDict(addressess, index, new HashMap<String, Object>() {{}});
         }).thenApply(DepositAddress::new);
 
     }

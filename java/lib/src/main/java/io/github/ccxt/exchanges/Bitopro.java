@@ -1705,7 +1705,7 @@ public class Bitopro extends BitoproApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "statusKind", "DONE" );
             }};
-            return this.fetchOrders(symbol, since, limit, this.extend(request, parameters));
+            return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }

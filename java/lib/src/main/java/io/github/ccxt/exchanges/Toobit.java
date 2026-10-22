@@ -1828,7 +1828,7 @@ public class Toobit extends ToobitApi
             ((List<Object>)results).add(ticker);
         }
         List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-        return this.filterByArray(results, "symbol", symbolsNormalized, true);
+        return this.filterByArrayTickers(results, "symbol", symbolsNormalized);
     }
 
     public Map<String, Object> parseBidAskCustom(Map<String, Object> ticker)

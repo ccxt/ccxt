@@ -3952,13 +3952,12 @@ public class Backpack extends BackpackApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<Object> response = (this.privateGetApiV1Position(parameters)).join();
-            Object positions = this.parsePositions(response, (List<String>) null, new HashMap<String, Object>() {{}});
             if (this.isEmpty(symbols))
             {
-                return positions;
+                return this.parsePositions(response, (List<String>) null, new HashMap<String, Object>() {{}});
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            return this.filterByArrayPositions(positions, "symbol", symbolsNormalized);
+            return this.parsePositions(response, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }

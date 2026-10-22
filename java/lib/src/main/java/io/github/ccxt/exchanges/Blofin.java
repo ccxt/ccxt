@@ -3928,7 +3928,8 @@ public class Blofin extends BlofinApi
                 request.put("clientOrderId", clientOrderId);
             }
             Map<String, Object> response = (this.privatePostTradeClosePosition(this.extend(request, paramsMarginMode))).join();
-            return this.safeDict(response, "data", (Object) null);
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
     }

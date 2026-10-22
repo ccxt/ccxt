@@ -629,7 +629,8 @@ public class Lighter extends LighterApi
             }
             signer = (this.loadAccount(this.options.get("chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, new HashMap<String, Object>() {{}})).join();
             (this.handleBuilderFeeApproval(accountIndex, apiKeyIndex)).join();
-            return (!java.util.Objects.equals(signer, null));
+            Boolean loaded = (!java.util.Objects.equals(signer, null));
+            return loaded;
         }).thenApply(res -> (Boolean) res);
 
     }
@@ -856,8 +857,8 @@ public class Lighter extends LighterApi
             Boolean standardTier = false;
             try
             {
-                Object isStandardTier = (this.checkIfStandardTier(this.parseToInt(accountIndex))).join();
-                if (Helpers.isTrue(isStandardTier))
+                Boolean isStandardTier = (this.checkIfStandardTier(this.parseToInt(accountIndex))).join();
+                if (Boolean.TRUE.equals(isStandardTier))
                 {
                     standardTier = true;
                     Helpers.addElementToObject(this.options, "builderFee", false);
@@ -882,7 +883,7 @@ public class Lighter extends LighterApi
 
     }
 
-    public CompletableFuture<Object> checkIfStandardTier(Object accountIndex)
+    public CompletableFuture<Boolean> checkIfStandardTier(Object accountIndex)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -892,7 +893,8 @@ public class Lighter extends LighterApi
             Boolean isStandardTier = (Boolean) this.safeBool(tiersForAccountIndexes, accountIndexStr, (Object) null);
             if (!java.util.Objects.equals(isStandardTier, null))
             {
-                return isStandardTier;
+                Boolean cachedIsStandard = (java.util.Objects.equals(isStandardTier, true));
+                return cachedIsStandard;
             }
             Map<String, Object> accountLimits = (this.privateGetAccountLimits(new HashMap<String, Object>() {{
                 put( "account_index", accountIndex );
@@ -917,7 +919,7 @@ public class Lighter extends LighterApi
             tiersForAccountIndexes.put(accountIndexStr, isStandard);
             Helpers.addElementToObject(this.options, "tiersForAccountIndexes", tiersForAccountIndexes);
             return isStandard;
-        });
+        }).thenApply(res -> (Boolean) res);
 
     }
 
@@ -1220,12 +1222,12 @@ public class Lighter extends LighterApi
             }
             if (parameters.containsKey("nonce"))
             {
-                return this.safeInteger(parameters, "nonce");
+                return this.parseToInt(this.safeInteger(parameters, "nonce"));
             }
             Long nonceInOptions = this.safeInteger(this.options, "nonce");
             if (!java.util.Objects.equals(nonceInOptions, null))
             {
-                return nonceInOptions;
+                return this.parseToInt(nonceInOptions);
             }
             // avoid skipNonce for l1 operations
             Boolean skipNonce = (Boolean) ((List<Object>)this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchNonce", "skipNonce", true)).get(0);
@@ -1237,7 +1239,7 @@ public class Lighter extends LighterApi
             mapLiteral2.put("account_index", accountIndex);
             mapLiteral2.put("api_key_index", apiKeyIndex);
             Map<String, Object> response = (this.publicGetNextNonce(mapLiteral2)).join();
-            return this.safeInteger(response, "nonce");
+            return this.parseToInt(this.safeInteger(response, "nonce"));
         }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
@@ -1262,8 +1264,8 @@ public class Lighter extends LighterApi
             Object signer = (this.loadAccount(this.options.get("chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, parameters)).join();
             try
             {
-                Object isStandardTier = (this.checkIfStandardTier(accountIndex)).join();
-                if (Helpers.isTrue(isStandardTier))
+                Boolean isStandardTier = (this.checkIfStandardTier(accountIndex)).join();
+                if (Boolean.TRUE.equals(isStandardTier))
                 {
                     Helpers.addElementToObject(this.options, "builderFee", false);
                 }

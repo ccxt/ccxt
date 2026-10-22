@@ -2488,7 +2488,7 @@ public class Gemini extends GeminiApi
             }
             Object indexedByNetwork = (this.fetchDepositAddressesByNetwork(code, parameters)).join();
             String networkCode = (String) ((List<Object>)this.handleNetworkCodeAndParams((Map<String, Object>) (parameters))).get(0);
-            return this.safeValue(indexedByNetwork, networkCode);
+            return this.safeDict(indexedByNetwork, networkCode, (Object) null);
         }).thenApply(DepositAddress::new);
 
     }

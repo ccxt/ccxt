@@ -1636,8 +1636,7 @@ public class Bitso extends BitsoApi
             }};
             Map<String, Object> response = (this.privateGetOpenOrders(this.extend(request, paramsMarker))).join();
             List<Object> payload = (List<Object>) this.safeList(response, "payload", new ArrayList<Object>(Arrays.asList()));
-            List<Object> orders = this.parseOrders(payload, market, since, java.util.Objects.requireNonNullElse(limit, 25L), new HashMap<String, Object>() {{}});
-            return orders;
+            return this.parseOrders(payload, market, since, java.util.Objects.requireNonNullElse(limit, 25L), new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }

@@ -702,12 +702,12 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public CompletableFuture<Long> fetchTime(Object parameters)
+    public CompletableFuture<Long> fetchTime(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("fetchTime", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("fetchTime", parameters);
             Map<String, Object> response = (this.publicGetGetTime(paramsResolved)).join();
             //
             //     {
@@ -724,10 +724,6 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
-    public CompletableFuture<Long> fetchTime(Map<String, Object> parameters)
-    {
-        return this.fetchTime((Object) (parameters));
-    }
 
     /**
      * @method
@@ -740,12 +736,12 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
      * @param {string} [params.currency] settlement currency filter, defaults to any on Deribit
      * @returns {object[]} an array of objects representing market data
      */
-    public CompletableFuture<Object> fetchMarkets(Object parameters)
+    public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("fetchMarkets", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("fetchMarkets", parameters);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (this.isNativeDeribitCredentials())
             {
@@ -838,65 +834,9 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //     }
             //
             List<Object> instruments = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-            Object parsedMarkets = this.parseMarkets(instruments);
-            return parsedMarkets;
+            return this.parseMarkets(instruments);
         });
 
-    }
-    //                 },
-    //                 "quotes": {
-    //                 "burst": 500,
-    //                 "rate": 500
-    //                 },
-    //                 "spot": {
-    //                 "burst": 250,
-    //                 "rate": 200
-    //                 },
-    //                 "trading": {
-    //                 "total": {
-    //                     "burst": 250,
-    //                     "rate": 200
-    //                 }
-    //                 }
-    //             },
-    //             "non_matching_engine": {
-    //                 "burst": 1500,
-    //                 "rate": 1000
-    //             }
-    //             },
-    //             "maintenance_margin": 0,
-    //             "margin_balance": 100,
-    //             "margin_model": "segregated_sm",
-    //             "options_delta": 0,
-    //             "options_gamma": 0,
-    //             "options_gamma_map": {},
-    //             "options_pl": 0,
-    //             "options_session_rpl": 0,
-    //             "options_session_upl": 0,
-    //             "options_theta": 0,
-    //             "options_theta_map": {},
-    //             "options_value": 0,
-    //             "options_vega": 0,
-    //             "options_vega_map": {},
-    //             "portfolio_margining_enabled": false,
-    //             "projected_delta_total": 0,
-    //             "projected_initial_margin": 0.0002,
-    //             "projected_maintenance_margin": 0,
-    //             "session_rpl": 0,
-    //             "session_upl": 0,
-    //             "spot_reserve": 0.0002,
-    //             "total_pl": 0
-    //         }
-    //         ],
-    //         "system_name": "user",
-    //         "type": "main",
-    //         "username": "user"
-    //     }
-    // }
-    //
-    public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
-    {
-        return this.fetchMarkets((Object) (parameters));
     }
 
     public MarketInterface parseMarket(Object market)
@@ -1028,12 +968,12 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} an associative dictionary of currencies
      */
-    public CompletableFuture<Object> fetchCurrencies(Object parameters)
+    public CompletableFuture<Object> fetchCurrencies(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("fetchCurrencies", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("fetchCurrencies", parameters);
             Map<String, Object> response = (this.publicGetGetCurrencies(paramsResolved)).join();
             //
             //     {
@@ -1072,10 +1012,6 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             return this.parseCurrencies(currencies);
         });
 
-    }
-    public CompletableFuture<Object> fetchCurrencies(Map<String, Object> parameters)
-    {
-        return this.fetchCurrencies((Object) (parameters));
     }
 
     public io.github.ccxt.types.CurrencyInterface parseCurrency(Object currency)
@@ -1429,12 +1365,12 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(List<String> symbols, Object parameters)
+    public CompletableFuture<Tickers> fetchTickers(List<String> symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("fetchTickers", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("fetchTickers", parameters);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -1452,16 +1388,12 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 {
                     continue;
                 }
-                Ticker ticker = (this.fetchTicker(symbol, paramsResolved)).join();
+                Ticker ticker = (this.fetchTicker(symbol, Helpers.toMapArg(paramsResolved))).join();
                 tickers.put(symbol, ticker);
             }
-            return this.filterByArray(tickers, "symbol", symbolsResolved, true);
+            return this.filterByArrayTickers(tickers, "symbol", symbolsResolved);
         }).thenApply(Tickers::new);
 
-    }
-    public CompletableFuture<Tickers> fetchTickers(List<String> symbols, Map<String, Object> parameters)
-    {
-        return this.fetchTickers(symbols, (Object) (parameters));
     }
 
     /**
@@ -1475,12 +1407,12 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Ticker> fetchTicker(String symbol, Object parameters)
+    public CompletableFuture<Ticker> fetchTicker(String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("fetchTicker", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("fetchTicker", parameters);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -1526,10 +1458,6 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             return this.parseTicker(ticker, market);
         }).thenApply(Ticker::new);
 
-    }
-    public CompletableFuture<Ticker> fetchTicker(String symbol, Map<String, Object> parameters)
-    {
-        return this.fetchTicker(symbol, (Object) (parameters));
     }
 
     public Ticker parseTicker(Object ticker, Map<String, Object> market)
@@ -1605,12 +1533,12 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Object parameters)
+    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("fetchOrderBook", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("fetchOrderBook", parameters);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -1692,10 +1620,6 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         }).thenApply(OrderBook::new);
 
     }
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> parameters)
-    {
-        return this.fetchOrderBook(symbol, limit, (Object) (parameters));
-    }
 
     /**
      * @method
@@ -1709,12 +1633,12 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
      * @param {string} [params.code] unified currency code for a native Deribit single account summary
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public CompletableFuture<Balances> fetchBalance(Object parameters)
+    public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("fetchBalance", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("fetchBalance", parameters);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -1991,10 +1915,6 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         }).thenApply(Balances::new);
 
     }
-    public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters)
-    {
-        return this.fetchBalance((Object) (parameters));
-    }
 
     public Balances parseBalance(Object response)
     {
@@ -2043,12 +1963,12 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
      * @param {string} [params.continuation] continuation token for pagination
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<List<TransferEntry>> fetchTransfers(String code, Long since, Long limit, Object parameters)
+    public CompletableFuture<List<TransferEntry>> fetchTransfers(String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("fetchTransfers", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("fetchTransfers", parameters);
             if (java.util.Objects.equals(code, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchTransfers() requires a currency code argument")) ;
@@ -2123,10 +2043,6 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             return this.parseTransfers(transfers, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
-    }
-    public CompletableFuture<List<TransferEntry>> fetchTransfers(String code, Long since, Long limit, Map<String, Object> parameters)
-    {
-        return this.fetchTransfers(code, since, limit, (Object) (parameters));
     }
 
     public Object parseTransfer(Object transfer, Map<String, Object> currency)
@@ -2389,13 +2305,12 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //     }
             //
             List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-            Object positions = this.parsePositions(result, (List<String>) null, new HashMap<String, Object>() {{}});
             if (this.isEmpty(symbols))
             {
-                return positions;
+                return this.parsePositions(result, (List<String>) null, new HashMap<String, Object>() {{}});
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            return this.filterByArrayPositions(positions, "symbol", symbolsNormalized);
+            return this.parsePositions(result, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
@@ -2416,12 +2331,12 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
      * @param {string} [params.continuation] continuation token for pagination
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<List<Transaction>> fetchDepositsWithdrawals(String code, Long since, Long limit, Object parameters)
+    public CompletableFuture<List<Transaction>> fetchDepositsWithdrawals(String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("fetchDepositsWithdrawals", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("fetchDepositsWithdrawals", parameters);
             if (java.util.Objects.equals(code, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchDepositsWithdrawals() requires a currency code argument")) ;
@@ -2509,10 +2424,6 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             return this.parseTransactions(transactions, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
-    }
-    public CompletableFuture<List<Transaction>> fetchDepositsWithdrawals(String code, Long since, Long limit, Map<String, Object> parameters)
-    {
-        return this.fetchDepositsWithdrawals(code, since, limit, (Object) (parameters));
     }
 
     /**
@@ -3892,12 +3803,12 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
      * @param {boolean} [params.forceRefresh] ignore the cached token and request a new one
      * @returns {string} a Deribit gateway access token
      */
-    public CompletableFuture<String> authenticateV2(Object parameters)
+    public CompletableFuture<String> authenticateV2(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("authenticateV2", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("authenticateV2", parameters);
             if (this.isNativeDeribitCredentials())
             {
                 return null;

@@ -899,17 +899,14 @@ public class Btcbox extends BtcboxApi
             //      },
             // ]
             //
-            List<Object> orders = this.parseOrders(response, market, since, limit, new HashMap<String, Object>() {{}});
             // status (open/closed/canceled) is undefined
             // btcbox does not return status, but we know it's 'open' as we queried for open orders
+            Map<String, Object> extra = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(type, "open"))
             {
-                for (var i = 0; i < ((List<?>)orders).size(); i++)
-                {
-                    Helpers.addElementToObject((orders == null || i < 0 || i >= orders.size() ? null : orders.get(i)), "status", "open");
-                }
+                extra.put("status", "open");
             }
-            return orders;
+            return this.parseOrders(response, market, since, limit, extra);
         });
 
     }

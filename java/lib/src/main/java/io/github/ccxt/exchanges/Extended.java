@@ -2202,7 +2202,7 @@ public class Extended extends ExtendedApi
             {
                 throw new BadRequest((this.id + " withdraw() requires a Starknet address for STRK withdrawals, EVM withdrawals require the bridge quote flow")) ;
             }
-            Object account = (this.fetchExtendedAccount(new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> account = (this.fetchExtendedAccount(new HashMap<String, Object>() {{}})).join();
             Object amountString = this.currencyToPrecision((String) (code), amount, (String) null);
             String accountId = this.safeString(account, "accountId");
             Object settlement = this.createWithdrawalSettlementData(address, ((String)amountString), (Map<String, Object>) (currency), (Map<String, Object>) (account), paramsWithdrawTag);
@@ -2331,7 +2331,7 @@ public class Extended extends ExtendedApi
             this.checkRequiredCredentials(true);
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> currency = this.currency((String) (code));
-            Object account = (this.fetchExtendedAccount(new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> account = (this.fetchExtendedAccount(new HashMap<String, Object>() {{}})).join();
             String currentAccountId = this.safeString(account, "accountId", "");
             Object fromAccountResolved = (((java.util.Objects.equals(fromAccount, null)))) ? currentAccountId : fromAccount;
             if (!java.util.Objects.equals(fromAccountResolved, currentAccountId))
@@ -2981,21 +2981,20 @@ public class Extended extends ExtendedApi
         return result;
     }
 
-    public CompletableFuture<Object> fetchExtendedAccount(Object parameters)
+    public CompletableFuture<Map<String, Object>> fetchExtendedAccount(Object parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object account = this.safeDict(this.options, "account", (Object) null);
+            Map<String, Object> account = (Map<String, Object>) this.safeDict(this.options, "account", (Object) null);
             if (!java.util.Objects.equals(account, null))
             {
-                return account;
+                return this.safeDict(this.options, "account", new HashMap<String, Object>() {{}});
             }
             Object accountData = (this.fetchAccount(Helpers.toMapArg(parameters))).join();
-            account = ((Map<String, Object>)accountData).get("info");
-            Helpers.addElementToObject(this.options, "account", account);
-            return account;
-        });
+            Helpers.addElementToObject(this.options, "account", ((Map<String, Object>)accountData).get("info"));
+            return this.safeDict(this.options, "account", new HashMap<String, Object>() {{}});
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
 
@@ -3180,7 +3179,7 @@ public class Extended extends ExtendedApi
             Long expiryEpochMillis = this.safeInteger(paramsBuilder, "expiryEpochMillis", (now + 3600000L));
             Long settlementExpiration = this.safeInteger(paramsBuilder, "settlementExpiration", Helpers.add(this.parseToInt(Helpers.divide(((expiryEpochMillis + 999L)), 1000)), 1209600));
             String nonce = this.numberToString(this.nonce());
-            Object account = (this.fetchExtendedAccount(new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> account = (this.fetchExtendedAccount(new HashMap<String, Object>() {{}})).join();
             String starkKey = this.safeString(account, "l2Key");
             String collateralPosition = this.safeString(account, "l2Vault");
             Map<String, Object> info = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});

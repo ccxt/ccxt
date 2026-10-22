@@ -753,7 +753,7 @@ public class Indodax extends IndodaxApi
                 Map<String, Object> parsed = (Map<String, Object>) this.parseTicker(rawTicker, market);
                 parsedTickers.put(marketId, parsed);
             }
-            return this.filterByArray(parsedTickers, "symbol", symbols, true);
+            return this.filterByArrayTickers(parsedTickers, "symbol", symbols);
         }).thenApply(Tickers::new);
 
     }
@@ -1692,9 +1692,7 @@ public class Indodax extends IndodaxApi
             Map<String, Object> addresses = (Map<String, Object>) this.safeDict(data, "address", new HashMap<String, Object>() {{}});
             Map<String, Object> networks = (Map<String, Object>) this.safeDict(data, "network", new HashMap<String, Object>() {{}});
             List<String> addressKeys = new ArrayList<String>(addresses.keySet());
-            Map<String, Object> result = new HashMap<String, Object>() {{
-                put( "info", data );
-            }};
+            List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)addressKeys).size(); i++)
             {
                 String marketId = (addressKeys == null || i < 0 || i >= addressKeys.size() ? null : addressKeys.get(i));
@@ -1745,11 +1743,11 @@ public class Indodax extends IndodaxApi
                         mapLiteral2.put("network", finalNetwork);
                         mapLiteral2.put("address", address);
                         mapLiteral2.put("tag", null);
-                        result.put(code, mapLiteral2);
+                        ((List<Object>)result).add(mapLiteral2);
                     }
                 }
             }
-            return result;
+            return this.toArray(result);
         }).thenApply(res -> ((List<?>) res).stream().map(DepositAddress::new).collect(Collectors.toList()));
 
     }

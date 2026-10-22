@@ -1116,8 +1116,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "method", "handleFetchOrderBook");
             }};
-            Object orderbook = (this.watch(url, messageHash, message, messageHash, subscription)).join();
-            Helpers.addElementToObject(orderbook, "symbol", market.get("symbol"));
+            Object snapshot = (this.watch(url, messageHash, message, messageHash, subscription)).join();
+            Helpers.addElementToObject(snapshot, "symbol", market.get("symbol"));
+            io.github.ccxt.ws.WsOrderBook orderbook = this.orderBook(snapshot);
             return orderbook;
         }).thenApply(OrderBook::new);
 

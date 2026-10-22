@@ -2952,8 +2952,7 @@ public class Pacifica extends PacificaApi
             // }
             //
             Object data = this.addPaginationCursorToResult((Map<String, Object>) (response));
-            List<Object> orders = this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
-            return orders;
+            return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }

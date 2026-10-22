@@ -1540,7 +1540,6 @@ public class Nado extends io.github.ccxt.exchanges.Nado
 
             String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "subscriptions");
             Client client = this.client(url);
-            List<Object> results = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
             {
                 Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
@@ -1556,9 +1555,9 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         put( "messageHash", messageHash );
         put( "unsubscribeHash", unsubscribeHash );
     }});
-                ((List<Object>)results).add((this.watchMultiple(url, new ArrayList<Object>(Arrays.asList(unsubscribeHash)), request, new ArrayList<Object>(Arrays.asList(unsubscribeHash)), subscription)).join());
+                (this.watchMultiple(url, new ArrayList<Object>(Arrays.asList(unsubscribeHash)), request, new ArrayList<Object>(Arrays.asList(unsubscribeHash)), subscription)).join();
             }
-            return results;
+            return true;
         });
 
     }
@@ -2172,7 +2171,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 this.cleanUnsubscription(client, (String) (messageHash), (String) (unsubscribeHash), false);
                 this.handleUnsubscriptionCache((String) (messageHash));
             }
-            client.resolve(message, unsubscribeHash);
+            client.resolve(true, unsubscribeHash);
             return;
         }
         List<Object> subscriptions = Helpers.objectKeys(client.subscriptions);
@@ -2191,7 +2190,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 this.cleanUnsubscription(client, (String) (messageHash), (String) (unsubscribeHash), false);
                 this.handleUnsubscriptionCache((String) (messageHash));
             }
-            client.resolve(message, unsubscribeHash);
+            client.resolve(true, unsubscribeHash);
             return;
         }
     }

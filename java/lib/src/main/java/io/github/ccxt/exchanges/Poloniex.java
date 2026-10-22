@@ -1983,8 +1983,7 @@ public class Poloniex extends PoloniexApi
             //         }
             //     ]
             //
-            List<Object> result = this.parseTrades(response, market, since, limit, new HashMap<String, Object>() {{}});
-            return result;
+            return this.parseTrades(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -3093,7 +3092,12 @@ public class Poloniex extends PoloniexApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             List<Order> orders = (this.fetchOpenOrders(symbol, (Long) null, (Long) null, parameters)).join();
             Map<String,Object> indexed = this.indexBy(orders, "id");
-            return (((indexed.containsKey(id)))) ? "open" : "closed";
+            Map<String, Object> statuses = new HashMap<String, Object>() {{
+                put( "true", "open" );
+                put( "false", "closed" );
+            }};
+            String found = (((indexed.containsKey(id)))) ? "true" : "false";
+            return this.safeString(statuses, found);
         }).thenApply(res -> (String) res);
 
     }

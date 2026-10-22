@@ -1985,11 +1985,11 @@ public class Kalshi extends KalshiApi
             List<Object> positions = (List<Object>) this.safeList(response, "market_positions", new ArrayList<Object>(Arrays.asList()));
             // filter by the requested outcomes' market tickers — a kalshi position is per market
             // ticker and covers both the YES and the NO leg
-            Object parsed = this.parsePredictionPositions(positions, new HashMap<String, Object>() {{}});
             if (java.util.Objects.equals(outcomesLength, 0))
             {
-                return parsed;
+                return this.parsePredictionPositions(positions, new HashMap<String, Object>() {{}});
             }
+            Object parsed = this.parsePredictionPositions(positions, new HashMap<String, Object>() {{}});
             Map<String, Object> wantedTickers = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(outcomes, null))
             {
@@ -2810,13 +2810,13 @@ public class Kalshi extends KalshiApi
                 Object parsedEvent = this.parseEvent((Map<String, Object>) ((rawEvents == null || di < 0 || di >= ((List<?>)rawEvents).size() ? null : ((List<?>)rawEvents).get(di))));
                 ((List<Object>)result).add(parsedEvent);
                 // register the parsed markets so populateOutcomes can index their outcomes
-                Object parsedMarketsRaw = Helpers.GetValue(parsedEvent, "markets");
+                Object parsedMarketsRaw = ((Map<String, Object>)parsedEvent).get("markets");
                 Object parsedMarkets = (((!java.util.Objects.equals(parsedMarketsRaw, null)))) ? parsedMarketsRaw : new ArrayList<Object>(Arrays.asList());
-                Integer parsedMarketsLength = Helpers.getArrayLength(parsedMarkets);
+                Integer parsedMarketsLength = ((List<?>)parsedMarkets).size();
                 for (var mi = 0; (parsedMarketsLength != null && mi < parsedMarketsLength); mi++)
                 {
-                    Object m = Helpers.GetValue(parsedMarkets, mi);
-                    Helpers.addElementToObject(this.markets, Helpers.GetValue(m, "market"), m);
+                    Object m = (parsedMarkets == null || mi < 0 || mi >= ((List<?>)parsedMarkets).size() ? null : ((List<?>)parsedMarkets).get(mi));
+                    Helpers.addElementToObject(this.markets, ((Map<String, Object>)m).get("market"), m);
                 }
             }
             this.populateOutcomes();
@@ -2917,11 +2917,12 @@ public class Kalshi extends KalshiApi
                 put( "with_nested_markets", true );
             }};
             Map<String, Object> response = (this.kalshiPublicGetEventsEventTicker(this.extend(request, parameters))).join();
-            Object fullEvent = this.safeDict(response, "event", response);
+            // a typed copy of the event row: the caller-facing dict is never the raw response
+            Map<String, Object> fullEvent = this.extend(new HashMap<String, Object>() {{}}, this.safeDict(response, "event", response));
             List<Object> nestedMarkets = (List<Object>) this.safeList(fullEvent, "markets", (Object) null);
             if (java.util.Objects.equals(nestedMarkets, null))
             {
-                ((Map<String, Object>)fullEvent).put("markets", this.safeList(response, "markets", new ArrayList<Object>(Arrays.asList())));
+                fullEvent.put("markets", this.safeList(response, "markets", new ArrayList<Object>(Arrays.asList())));
             }
             return fullEvent;
         });

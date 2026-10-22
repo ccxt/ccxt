@@ -7138,7 +7138,7 @@ public class Okx extends OkxApi
             String codeNetwork = this.networkIdToCode(codeValue, codeValue);
             if ((!java.util.Objects.equals(codeNetwork, null)) && (((Map<?, ?>)response).containsKey(codeNetwork)))
             {
-                return Helpers.GetValue(response, codeNetwork);
+                return this.safeDict(response, codeNetwork, (Object) null);
             }
             // if the network is not specified, return the first address
             List<String> keys = new ArrayList<String>(((Map<String, Object>)response).keySet());
@@ -10653,7 +10653,7 @@ public class Okx extends OkxApi
             //     }
             //
             List<Object> underlyings = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return (underlyings == null || 0 >= ((List<?>)underlyings).size() ? null : ((List<?>)underlyings).get(0));
+            return this.toArray(this.safeList(underlyings, 0, new ArrayList<Object>(Arrays.asList())));
         });
 
     }

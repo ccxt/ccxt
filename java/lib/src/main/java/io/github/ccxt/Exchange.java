@@ -165,8 +165,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
              */
             if (!java.util.Objects.equals(this.has.get("fetchPositionsHistory"), null) && !java.util.Objects.equals(this.has.get("fetchPositionsHistory"), false))
             {
-                Object positions = (this.fetchPositionsHistory(new ArrayList<String>(Arrays.asList(symbol)), since, limit, parameters)).join();
-                return positions;
+                return (this.fetchPositionsHistory(new ArrayList<String>(Arrays.asList(symbol)), since, limit, parameters)).join();
             } else
             {
                 throw new NotSupported((this.id + " fetchPositionHistory () is not supported yet")) ;
@@ -1225,7 +1224,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
             // TODO: TypeScript: change method signature by replacing
             // Promise<string> with Promise<Order['status']>.
             Order order = (this.fetchOrder(id, symbol, parameters)).join();
-            return ((Map<String, Object>)order).get("status");
+            return this.safeString(order, "status");
         }).thenApply(res -> (String) res);
 
     }
@@ -1622,7 +1621,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
         return BaseExchange.supplyAsync(() -> {
 
-            return this.cancelOrder(this.safeString(order, "id"), this.safeString(order, "symbol"), parameters);
+            return (this.cancelOrder(this.safeString(order, "id"), this.safeString(order, "symbol"), parameters)).join();
         }).thenApply(Order::new);
 
     }

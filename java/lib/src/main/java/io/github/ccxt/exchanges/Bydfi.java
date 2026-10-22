@@ -1050,7 +1050,7 @@ public class Bydfi extends BydfiApi
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
-                return this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, java.util.Objects.requireNonNullElse(timeframe, "1m"), paramsPaginate, maxLimit);
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, java.util.Objects.requireNonNullElse(timeframe, "1m"), paramsPaginate, maxLimit)).join();
             }
             Map<String, Object> market = this.market(symbol);
             String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
@@ -1117,8 +1117,7 @@ public class Bydfi extends BydfiApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            List<Object> result = this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
-            return result;
+            return this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
@@ -3341,7 +3340,8 @@ public class Bydfi extends BydfiApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.fetchTransactionsHelper("deposit", (String) (code), since, limit, parameters)).join();
+            Object transactions = (this.fetchTransactionsHelper("deposit", (String) (code), since, limit, parameters)).join();
+            return this.toArray(transactions);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -3362,7 +3362,8 @@ public class Bydfi extends BydfiApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.fetchTransactionsHelper("withdrawal", (String) (code), since, limit, parameters)).join();
+            Object transactions = (this.fetchTransactionsHelper("withdrawal", (String) (code), since, limit, parameters)).join();
+            return this.toArray(transactions);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }

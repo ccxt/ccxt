@@ -6770,7 +6770,7 @@ public class Binance extends BinanceApi
             parsedTicker.put("symbol", tickerMarket.get("symbol"));
             ((List<Object>)results).add(parsedTicker);
         }
-        return this.filterByArray(results, "symbol", symbols, true);
+        return this.filterByArrayTickers(results, "symbol", symbols);
     }
 
     /**
@@ -7098,8 +7098,7 @@ public class Binance extends BinanceApi
             //         }
             //     ]
             //
-            List<Object> candles = this.parseOHLCVs(this.toArray(response), market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, Helpers.toLongOrNull(limitValue), false);
-            return candles;
+            return this.parseOHLCVs(this.toArray(response), market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, Helpers.toLongOrNull(limitValue), false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
@@ -13436,7 +13435,7 @@ public class Binance extends BinanceApi
                 //       },
                 //    ]
                 //
-                Map<String, Object> result = new HashMap<String, Object>() {{}};
+                Map<String, Object> spotFees = new HashMap<String, Object>() {{}};
                 if (java.util.Objects.equals(response, null))
                 {
                     throw new NullResponse((this.id + " method() returned empty response")) ;
@@ -13448,10 +13447,10 @@ public class Binance extends BinanceApi
                     String symbol = (String) fee.get("symbol");
                     if (!java.util.Objects.equals(symbol, null))
                     {
-                        result.put(symbol, fee);
+                        spotFees.put(symbol, fee);
                     }
                 }
-                return result;
+                return spotFees;
             } else if (Boolean.TRUE.equals(isLinear))
             {
                 //
@@ -13481,7 +13480,7 @@ public class Binance extends BinanceApi
                     throw new ExchangeError((this.id + " markets not loaded")) ;
                 }
                 List<Object> symbols = new ArrayList<Object>(((Map<String, Object>)markets).keySet());
-                Map<String, Object> result = new HashMap<String, Object>() {{}};
+                Map<String, Object> linearFees = new HashMap<String, Object>() {{}};
                 Object feeTier = this.safeInteger(response, "feeTier");
                 Object feeTiers = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.fees).get("linear"), "trading"), "tiers");
                 Object maker = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(feeTiers, "maker"), feeTier), 1);
@@ -13492,7 +13491,7 @@ public class Binance extends BinanceApi
                     Object market = Helpers.GetValue(markets, symbol);
                     if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
                     {
-                        result.put((String)symbol, Helpers.newMap(
+                        linearFees.put((String)symbol, Helpers.newMap(
         "info", new HashMap<String, Object>() {{
             put( "feeTier", feeTier );
         }},
@@ -13502,7 +13501,7 @@ public class Binance extends BinanceApi
     ));
                     }
                 }
-                return result;
+                return linearFees;
             } else if (Boolean.TRUE.equals(isInverse))
             {
                 //
@@ -13520,7 +13519,7 @@ public class Binance extends BinanceApi
                     throw new ExchangeError((this.id + " markets not loaded")) ;
                 }
                 List<Object> symbols = new ArrayList<Object>(((Map<String, Object>)markets).keySet());
-                Map<String, Object> result = new HashMap<String, Object>() {{}};
+                Map<String, Object> inverseFees = new HashMap<String, Object>() {{}};
                 Object feeTier = this.safeInteger(response, "feeTier");
                 Object feeTiers = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.fees).get("inverse"), "trading"), "tiers");
                 Object maker = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(feeTiers, "maker"), feeTier), 1);
@@ -13531,7 +13530,7 @@ public class Binance extends BinanceApi
                     Object market = Helpers.GetValue(markets, symbol);
                     if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
                     {
-                        result.put((String)symbol, Helpers.newMap(
+                        inverseFees.put((String)symbol, Helpers.newMap(
         "info", new HashMap<String, Object>() {{
             put( "feeTier", feeTier );
         }},
@@ -13541,7 +13540,7 @@ public class Binance extends BinanceApi
     ));
                     }
                 }
-                return result;
+                return inverseFees;
             }
             throw new NotSupported((((this.id + " fetchTradingFees() is not supported for ") + type) + " markets")) ;
         }).thenApply(TradingFees::new);

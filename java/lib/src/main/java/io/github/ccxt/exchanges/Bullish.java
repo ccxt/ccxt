@@ -2725,7 +2725,7 @@ public class Bullish extends BullishApi
                 throw new ArgumentsRequired((this.id + " loadAccount() requires a tradingAccountId parameter in options[\"tradingAccountId\"] or params[\"tradingAccountId\"], fetchAccounts() was not able to find the Primary account")) ;
             }
             Helpers.addElementToObject(this.options, "tradingAccountId", tradingAccountId);
-            return tradingAccountId;
+            return this.safeString(this.options, "tradingAccountId");
         });
 
     }

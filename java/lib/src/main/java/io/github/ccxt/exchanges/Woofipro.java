@@ -1776,7 +1776,7 @@ public class Woofipro extends WoofiproApi
                 }}, row);
                 ((List<Object>)result).add(this.parseOpenInterest(interest, (Map<String, Object>) null));
             }
-            return this.filterByArray(result, "symbol", symbolsNormalized, true);
+            return this.indexBy(this.filterByArray(result, "symbol", symbolsNormalized, false), "symbol");
         }).thenApply(OpenInterests::new);
 
     }

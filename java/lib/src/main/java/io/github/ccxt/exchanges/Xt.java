@@ -2359,7 +2359,7 @@ public class Xt extends XtApi
                     result.put(symbol, ticker);
                 }
             }
-            return this.filterByArray(result, "symbol", symbolsNormalized, true);
+            return this.filterByArrayTickers(result, "symbol", symbolsNormalized);
         }).thenApply(Tickers::new);
 
     }
@@ -2468,7 +2468,7 @@ public class Xt extends XtApi
                     result.put(symbol, ticker);
                 }
             }
-            return this.filterByArray(result, "symbol", symbolsNormalized, true);
+            return this.filterByArrayTickers(result, "symbol", symbolsNormalized);
         }).thenApply(Tickers::new);
 
     }

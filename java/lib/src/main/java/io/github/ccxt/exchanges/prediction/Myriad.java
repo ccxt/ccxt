@@ -327,7 +327,7 @@ public class Myriad extends MyriadApi
                 Object raw = (rawMarkets == null || i < 0 || i >= ((List<?>)rawMarkets).size() ? null : ((List<?>)rawMarkets).get(i));
                 Map<String, Object> m = this.parseMyriadMarket((Map<String, Object>) (raw), (String) null);
                 ((List<Object>)flatMarkets).add(m);
-                Object ev = this.parseMarketToEvent((Map<String, Object>) (raw), m);
+                Map<String, Object> ev = this.parseMarketToEvent((Map<String, Object>) (raw), m);
                 String evKey = this.safeString(ev, "event");
                 if (!java.util.Objects.equals(evKey, null))
                 {
@@ -477,7 +477,7 @@ public class Myriad extends MyriadApi
             }
             Object response = (this.fetchRawMarketById(id, parameters)).join();
             Map<String, Object> market = this.parseMyriadMarket((Map<String, Object>) (response), (String) null);
-            Object eventVar = this.parseMarketToEvent((Map<String, Object>) (response), market);
+            Map<String, Object> eventVar = this.parseMarketToEvent((Map<String, Object>) (response), market);
             this.indexEventOutcomes(eventVar);
             return eventVar;
         }).thenApply(PredictionEvent::new);
@@ -755,9 +755,13 @@ public class Myriad extends MyriadApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                ((List<Object>)result).add(this.parsePredictionPosition((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))), (Map<String, Object>) null));
+                Object position = this.parsePredictionPosition((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))), (Map<String, Object>) null);
+                if ((java.util.Objects.equals(outcomes, null)) || this.inArray(((Map<String, Object>)position).get("outcome"), outcomes))
+                {
+                    ((List<Object>)result).add(position);
+                }
             }
-            return this.filterByArray(result, "outcome", outcomes, false);
+            return result;
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionPosition::new).collect(Collectors.toList()));
 
     }
@@ -2521,7 +2525,7 @@ public class Myriad extends MyriadApi
      * @param {object} market the parsed ccxt market
      * @returns {object} an event structure
      */
-    public Object parseMarketToEvent(Map<String, Object> raw, Object market)
+    public Map<String, Object> parseMarketToEvent(Map<String, Object> raw, Object market)
     {
         String slug = this.safeString(raw, "slug", this.safeString(raw, "id"));
         String state = this.safeString(raw, "state", "open");
@@ -3696,7 +3700,7 @@ public class Myriad extends MyriadApi
                     seenMarketHandles.put(marketHandle, true);
                     Helpers.addElementToObject(this.markets, marketHandle, m);
                 }
-                Object ev = this.parseMarketToEvent((Map<String, Object>) (raw), m);
+                Map<String, Object> ev = this.parseMarketToEvent((Map<String, Object>) (raw), m);
                 ((List<Object>)result).add(ev);
             }
             // setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache

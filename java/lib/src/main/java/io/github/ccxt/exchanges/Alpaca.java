@@ -1317,7 +1317,7 @@ public class Alpaca extends AlpacaApi
                 }}, market);
                 ((List<Object>)results).add(ticker);
             }
-            return this.filterByArray(results, "symbol", symbolsNormalized, true);
+            return this.filterByArrayTickers(results, "symbol", symbolsNormalized);
         }).thenApply(Tickers::new);
 
     }
@@ -2331,7 +2331,8 @@ public class Alpaca extends AlpacaApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.fetchTransactionsHelper("BOTH", (String) (code), since, limit, parameters)).join();
+            Object transactions = (this.fetchTransactionsHelper("BOTH", (String) (code), since, limit, parameters)).join();
+            return this.toArray(transactions);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -2352,7 +2353,8 @@ public class Alpaca extends AlpacaApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.fetchTransactionsHelper("INCOMING", (String) (code), since, limit, parameters)).join();
+            Object transactions = (this.fetchTransactionsHelper("INCOMING", (String) (code), since, limit, parameters)).join();
+            return this.toArray(transactions);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -2373,7 +2375,8 @@ public class Alpaca extends AlpacaApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.fetchTransactionsHelper("OUTGOING", (String) (code), since, limit, parameters)).join();
+            Object transactions = (this.fetchTransactionsHelper("OUTGOING", (String) (code), since, limit, parameters)).join();
+            return this.toArray(transactions);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }

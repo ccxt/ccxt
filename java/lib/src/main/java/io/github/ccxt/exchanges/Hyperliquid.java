@@ -2161,16 +2161,16 @@ public class Hyperliquid extends HyperliquidApi
                 put( "nonce", nonce );
                 put( "signature", signature );
             }};
-            Object response = null;
+            Boolean success = false;
             try
             {
-                response = (this.privatePostExchange(request)).join();
-                return response;
+                (this.privatePostExchange(request)).join();
+                success = true;
             } catch(Exception e)
             {
-                response = null; // ignore this
+                success = false; // ignore this
             }
-            return response;
+            return success;
         });
 
     }

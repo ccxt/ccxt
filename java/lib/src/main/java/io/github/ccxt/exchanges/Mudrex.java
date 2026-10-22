@@ -1491,11 +1491,11 @@ public class Mudrex extends MudrexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
+            Map<String, Object> market = this.market(symbol);
             String positionId = this.safeString(parameters, "position_id");
             Object amount = this.safeValue(parameters, "amount");
             if (java.util.Objects.equals(positionId, null))
             {
-                Map<String, Object> market = this.market(symbol);
                 List<Position> positions = (this.fetchPositions(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
                 for (var i = 0; i < ((List<?>)positions).size(); i++)
                 {
@@ -1528,12 +1528,14 @@ public class Mudrex extends MudrexApi
                     request.put("limit_price", lp);
                 }
                 Map<String, Object> partialParams = this.omit(parameters, new ArrayList<Object>(Arrays.asList("order_type", "limit_price", "amount", "position_id")));
-                Object partialResponse = (this.privatePostFuturesPositionsPositionIdClosePartial(this.extend(request, partialParams))).join();
-                return partialResponse;
+                Map<String, Object> partialResponse = (this.privatePostFuturesPositionsPositionIdClosePartial(this.extend(request, partialParams))).join();
+                Object partialData = this.safeDict(partialResponse, "data", partialResponse);
+                return this.parseOrder(partialData, market);
             }
             Map<String, Object> closeParams = this.omit(parameters, new ArrayList<Object>(Arrays.asList("position_id")));
-            Object response = (this.privatePostFuturesPositionsPositionIdClose(this.extend(request, closeParams))).join();
-            return response;
+            Map<String, Object> response = (this.privatePostFuturesPositionsPositionIdClose(this.extend(request, closeParams))).join();
+            Object data = this.safeDict(response, "data", response);
+            return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
     }

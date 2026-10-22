@@ -1462,7 +1462,7 @@ public class Bittrade extends BittradeApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> response = (this.privateGetAccountAccounts(parameters)).join();
-            return this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            return this.toArray(this.safeList(response, "data", new ArrayList<Object>(Arrays.asList())));
         }).thenApply(res -> ((List<?>) res).stream().map(Account::new).collect(Collectors.toList()));
 
     }
