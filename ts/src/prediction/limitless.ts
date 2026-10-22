@@ -2218,7 +2218,7 @@ export default class limitless extends Exchange {
         return parsedOrder;
     }
 
-    signOrderRequest (signRequest: Dict, marketSymbol: any) {
+    signOrderRequest (signRequest: Dict, marketSymbol: Str): string {
         this.checkRequiredCredentials ();
         if (this.privateKey === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a privateKey (the embedded/trading wallet key) to sign orders');
@@ -2257,7 +2257,7 @@ export default class limitless extends Exchange {
         return '0x' + this.hash (message, keccak, 'hex');
     }
 
-    signHash (hash: string, privateKey: string) {
+    signHash (hash: string, privateKey: string): string {
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
         const r = signature['r'];
         const s = signature['s'];
@@ -2268,7 +2268,7 @@ export default class limitless extends Exchange {
         return result.toLowerCase ();
     }
 
-    signMessage (message: any, privateKey: string) {
+    signMessage (message: any, privateKey: string): string {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64));
     }
 

@@ -2229,7 +2229,7 @@ export default class sxbet extends Exchange {
         this.handleCentrifugoFrame (client, message);
     }
 
-    handleCentrifugoFrame (client: Client, msg: any) {
+    handleCentrifugoFrame (client: Client, msg: Dict) {
         const keys = Object.keys (msg);
         const keysLength = keys.length;
         if (keysLength === 0) {

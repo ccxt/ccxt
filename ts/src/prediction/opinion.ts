@@ -2000,7 +2000,7 @@ export default class opinion extends Exchange {
         return undefined;
     }
 
-    handleOrder (client: any, message: Dict) {
+    handleOrder (client: Client, message: Dict) {
         //
         //     {
         //         "orderUpdateType": "orderConfirm",
