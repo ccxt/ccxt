@@ -13330,10 +13330,10 @@ export function hx4C33NativeHelperCalls (objectNull: boolean, content: string): 
             if (!lit && !/^[A-Za-z_]\w*$/.test (k)) return undefined;
             return sw (x, `IList<object> c33a => c33a.IndexOf(${k}), IList<string> c33t => c33t.IndexOf((string)(object)${k}), string c33s => c33s.IndexOf((string)(object)${k}), _ => -1`);
         }
-        if (helper === 'inOp') {
-            if (!lit) return undefined;
-            return sw (x, `null => false, IList<object> c33a => c33a.Contains(${k}), IList<string> c33t => c33t.Contains(${k}), List<Int64> c33g => c33g.Contains((Int64)(object)${k}), IDictionary<string, object> c33d => c33d.ContainsKey(${k}), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey(${k}), _ => false`);
-        }
+        // hx5 X03: no inline inOp body. Declared-dictionary receivers were already made native by
+        // csharpHelperRewriteLine (`d.ContainsKey(k)`); every site that reaches here has an `object`
+        // receiver, so the helper call stays exactly as master emitted it.
+        if (helper === 'inOp') return undefined;
         // isEqual
         if (k === 'null') return `(((object)(${x})) == null)`;
         if ((k === 'true') || (k === 'false')) return `(((object)(${x})) is ${k})`;
@@ -13387,7 +13387,6 @@ function hx4C33SnippetChecks (): string[] {
         [ 'isEqual word', '        if (isEqual(x, "buy")) { }', 'if ((((object)(x)) is "buy")) { }' ],
         [ 'isEqual int', '        if (isEqual(x, -1)) { }', 'Int64 c33l => c33l == -1, int c33i => c33i == -1,' ],
         [ 'isEqual int ulong', '        if (isEqual(x, 0)) { }', 'ulong c33z => c33z == 0UL, _ => false' ],
-        [ 'inOp lit', '        if (inOp(x, "k")) { }', 'IDictionary<string, object> c33d => c33d.ContainsKey("k")' ],
         [ 'getIndexOf', '        int p = getIndexOf(x, "?");', 'string c33s => c33s.IndexOf((string)(object)"?"), _ => -1 })' ],
         [ 'nested', '        if (isTrue(isEqual(x, null))) { }', 'if ((((object)((((object)(x)) == null))) switch {' ],
     ];
@@ -13397,6 +13396,8 @@ function hx4C33SnippetChecks (): string[] {
         [ 'isEqual two names', '        if (isEqual(x, y)) { }' ],
         [ 'isEqual big int', '        if (isEqual(x, 100000000)) { }' ],
         [ 'inOp name key', '        if (inOp(x, y)) { }' ],
+        [ 'inOp lit keeps helper (hx5 X03)', '        if (inOp(x, "k")) { }' ],
+        [ 'inOp nested lit keeps helper (hx5 X03)', '        if (inOp(getValue(x, "a"), "k")) { }' ],
         [ 'getIndexOf call target', '        int p = getIndexOf(x, this.f(x, y));' ],
         [ 'in string', '        string s = "isTrue(x)"; // isTrue(x)' ],
         // hx5 X01: an unproven getArrayLength keeps the helper call (never an inline switch)
