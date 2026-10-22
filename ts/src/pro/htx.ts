@@ -729,7 +729,7 @@ export default class htx extends htxRest {
         //         "ts":1645023376098
         //     }
         //
-        const ch = this.safeValue (message, 'ch');
+        const ch = this.safeString (message, 'ch', '');
         const parts = ch.split ('.');
         const marketId = this.safeString (parts, 1);
         const market = this.safeMarket (marketId);
@@ -2713,8 +2713,9 @@ export default class htx extends htxRest {
                 const contractCode = this.safeString (message, 'contract_code');
                 const market = (contractCode !== undefined) ? this.safeMarket (contractCode) : undefined;
                 if (Array.isArray (data)) {
-                    for (let i = 0; i < data.length; i++) {
-                        const parsed = this.parseWsTrade (data[i], market);
+                    const dataList: Dict[] = this.safeList (message, 'data', []);
+                    for (let i = 0; i < dataList.length; i++) {
+                        const parsed = this.parseWsTrade (dataList[i], market);
                         const symbol = this.safeString (parsed, 'symbol');
                         if (symbol !== undefined) {
                             cachedTrades.append (parsed);
