@@ -2222,7 +2222,7 @@ impl BingxCore {
 });
         }
         let mut isSandbox: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
-        if (isSandbox.as_bool() == Some(true)) {
+        if isSandbox.as_bool() == Some(true) {
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2605,7 +2605,7 @@ impl BingxCore {
 }));
         let mut requests: Value = Value::from(vec![self.fetch_swap_markets(params.clone()).await]);
         let mut isSandbox: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
-        if (isSandbox.as_bool() != Some(true)) {
+        if !(isSandbox.as_bool() == Some(true)) {
             append_to_array(&mut requests, self.fetch_inverse_swap_markets(params.clone()).await);
             append_to_array(&mut requests, self.fetch_spot_markets(params).await); // sandbox is swap only
         }
@@ -3666,9 +3666,9 @@ impl BingxCore {
         let mut symbol: Value = self.safe_symbol(id, &[market.clone(), Value::Str("-".into()), Value::Str("swap".into())]);
         let mut openInterest: Value = self.safe_number_k(interest.clone(), "openInterest", &[]);
         let mut inverse: Value = self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)]);
-        let mut isInverse: bool = inverse.as_bool() == Some(true);
-        let mut openInterestAmount: Value = (if isInverse { openInterest.clone() } else { Value::Null });
-        let mut openInterestValue: Value = (if isInverse { Value::Null } else { openInterest });
+        let mut isInverse: Value = (inverse);
+        let mut openInterestAmount: Value = (if is_true(&isInverse) { openInterest.clone() } else { Value::Null });
+        let mut openInterestValue: Value = (if is_true(&isInverse) { Value::Null } else { openInterest });
         return self.safe_open_interest(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol);
@@ -4771,7 +4771,7 @@ impl BingxCore {
         let mut postOnlyparamsPostOnlyVariable = self.handle_post_only(isMarketOrder.clone(), Value::Bool(timeInForce.as_deref() == Some("PostOnly")), &[paramsMarketType]);
         let mut postOnly: Value = postOnlyparamsPostOnlyVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsPostOnly: Value = postOnlyparamsPostOnlyVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        if (postOnly.as_bool() == Some(true)) || (timeInForce.as_deref() == Some("PostOnly")) {
+        if is_true(&(postOnly)) || (timeInForce.as_deref() == Some("PostOnly")) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("timeInForce".into(), Value::Str("PostOnly".into())); }
         }  else if (timeInForce.as_deref() == Some("IOC")) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("timeInForce".into(), Value::Str("IOC".into())); }
@@ -4948,9 +4948,9 @@ impl BingxCore {
             }
             let mut positionSide: Value = Value::Null;
             let mut hedged: Value = self.safe_bool_k(paramsTakeProfit.clone(), "hedged", &[Value::Bool(false)]);
-            paramsOrder = (if (hedged.as_bool() == Some(true)) { self.omit(paramsTakeProfit.clone(), Value::Str("reduceOnly".into()), &[]) } else { paramsTakeProfit });
-            if (hedged.as_bool() == Some(true)) {
-                if (reduceOnly.as_bool() == Some(true)) {
+            paramsOrder = (if hedged.as_bool() == Some(true) { self.omit(paramsTakeProfit.clone(), Value::Str("reduceOnly".into()), &[]) } else { paramsTakeProfit });
+            if hedged.as_bool() == Some(true) {
+                if reduceOnly.as_bool() == Some(true) {
                     positionSide = (if (side.as_str() == Some("buy")) { Value::Str("SHORT".into()) } else { Value::Str("LONG".into()) });
                 }  else {
                     positionSide = (if (side.as_str() == Some("buy")) { Value::Str("LONG".into()) } else { Value::Str("SHORT".into()) });
@@ -4962,7 +4962,7 @@ impl BingxCore {
             let mut closePosition: Value = self.safe_bool_k(paramsOrder.clone(), "closePosition", &[Value::Bool(false)]);
             if (cost != Value::Null) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("quoteOrderQty".into(), self.parse_to_numeric(self.cost_to_precision(symbol.clone(), cost))); }
-            }  else if (closePosition.as_bool() != Some(true)) {
+            }  else if !(closePosition.as_bool() == Some(true)) {
                 let mut amountReq: Value = amount.clone();
                 if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
                     amountReq = self.parse_to_numeric(self.amount_to_precision(symbol, amount));
@@ -5030,7 +5030,7 @@ impl BingxCore {
         let mut request: Value = self.create_order_request(symbol, type_var.clone(), side, amount, &[price, paramsOmitted]);
         let mut response: Value = Value::Null;
         if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-            if (test.as_bool() == Some(true)) {
+            if test.as_bool() == Some(true) {
                 response = self.swap_v2_private_post_trade_order_test(&[request.clone()]).await;
             }  else if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
                 response = self.cswap_v1_private_post_trade_order(&[request.clone()]).await;
@@ -5209,7 +5209,7 @@ impl BingxCore {
             response = self.swap_v2_private_post_trade_batch_orders(&[request.clone()]).await;
         }  else {
             let mut sync: Value = (match params.get("sync") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Bool(false) });
-            if (sync.as_bool() == Some(true)) {
+            if is_true(&sync) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("sync".into(), Value::Bool(true)); }
             }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("data".into(), json_stringify(&ordersRequests)); }
@@ -5751,7 +5751,7 @@ impl BingxCore {
         let mut paramsOmitted: Value = self.omit(params, Value::Str("twap".into()), &[]);
         let mut response: Value = Value::Null;
         let mut market: Value = Value::Null;
-        if (isTwapOrder.as_bool() == Some(true)) {
+        if isTwapOrder.as_bool() == Some(true) {
             let mut twapRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("mainOrderId".to_string(), id.clone());
@@ -6121,7 +6121,7 @@ impl BingxCore {
         let mut paramsOmitted: Value = self.omit(params, Value::Str("twap".into()), &[]);
         let mut response: Value = Value::Null;
         let mut market: Value = Value::Null;
-        if (isTwapOrder.as_bool() == Some(true)) {
+        if isTwapOrder.as_bool() == Some(true) {
             let mut twapRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("mainOrderId".to_string(), id.clone());
@@ -6330,7 +6330,7 @@ impl BingxCore {
         }  else {
             let mut isTwapOrder: Value = self.safe_bool_k(paramsSubType.clone(), "twap", &[Value::Bool(false)]);
             let mut paramsOmitted: Value = self.omit(paramsSubType, Value::Str("twap".into()), &[]);
-            if (isTwapOrder.as_bool() == Some(true)) {
+            if isTwapOrder.as_bool() == Some(true) {
                 let __ws_arg_42 = self.extend(request.clone(), &[paramsOmitted.clone()]);
                 response = self.swap_v1_private_get_twap_open_orders(&[__ws_arg_42]).await;
             }  else if (subType.as_str() == Some("inverse")) {
@@ -6624,7 +6624,7 @@ impl BingxCore {
         }  else {
             let mut isTwapOrder: Value = self.safe_bool_k(paramsStandard.clone(), "twap", &[Value::Bool(false)]);
             let mut paramsOmitted: Value = self.omit(paramsStandard, Value::Str("twap".into()), &[]);
-            if (isTwapOrder.as_bool() == Some(true)) {
+            if isTwapOrder.as_bool() == Some(true) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("pageIndex".into(), Value::Int(1)); }
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("pageSize".into(), (if (limit == Value::Null) { Value::Int(100) } else { limit.clone() })); }
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), (if (since == Value::Null) { Value::Int(1) } else { since.clone() })); }
@@ -8631,7 +8631,7 @@ impl BingxCore {
         let mut access: Value = section.get(2).cloned().unwrap_or(Value::Null);
         let mut isSandbox: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
         let mut url: Value = self.implode_hostname(get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &type_var));
-        if (isSandbox.as_bool() == Some(true)) && (url == Value::Null) {
+        if isSandbox.as_bool() == Some(true) && (url == Value::Null) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" does not have a testnet/sandbox URL for ".into())).into()), type_var).into()), Value::Str(" endpoints".into()))));
         }
         let mut pathValue: Value = self.implode_params(path, params.clone());

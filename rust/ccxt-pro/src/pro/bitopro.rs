@@ -615,7 +615,7 @@ impl BitoproCore {
         let mut isMaker: Value = self.safe_bool_k(trade.clone(), "isMaker", &[]);
         let mut takerOrMaker: Value = Value::Null;
         if (isMaker != Value::Null) {
-            if (isMaker.as_bool() == Some(true)) {
+            if isMaker.as_bool() == Some(true) {
                 takerOrMaker = Value::Str("maker".into());
             }  else {
                 takerOrMaker = Value::Str("taker".into());

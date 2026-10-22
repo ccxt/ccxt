@@ -2092,7 +2092,7 @@ pub trait ExchangeBase:
         self.init_rest_rate_limiter();
         // sanbox mode
         let mut isSandbox: Value = self.safe_bool2(self.options.clone(), Value::Str("sandbox".into()), Value::Str("testnet".into()), &[Value::Bool(false)]);
-        if (isSandbox.as_bool() == Some(true)) {
+        if isSandbox.as_bool() == Some(true) {
             self.set_sandbox_mode(isSandbox);
         }
         // compatibility for sandbox/testnet options in userConfig
@@ -3147,7 +3147,7 @@ pub trait ExchangeBase:
         if (average == Value::Null) {
             if (filled != Value::Null) && (cost != Value::Null) && is_true(&crate::precise::Precise::stringGt(&filled, &Value::Str("0".into()))) {
                 let mut filledTimesContractSize: Value = crate::precise::Precise::stringMul(&filled, &contractSize);
-                if (inverse.as_bool() == Some(true)) {
+                if inverse.as_bool() == Some(true) {
                     average = crate::precise::Precise::stringDiv(&filledTimesContractSize, &cost);
                 }  else {
                     average = crate::precise::Precise::stringDiv(&cost, &filledTimesContractSize);
@@ -3170,7 +3170,7 @@ pub trait ExchangeBase:
             }
             // contract trading
             let mut filledTimesContractSize: Value = crate::precise::Precise::stringMul(&filled, &contractSize);
-            if (inverse.as_bool() == Some(true)) {
+            if inverse.as_bool() == Some(true) {
                 cost = crate::precise::Precise::stringDiv(&filledTimesContractSize, &multiplyPrice);
             }  else {
                 cost = crate::precise::Precise::stringMul(&filledTimesContractSize, &multiplyPrice);
@@ -3442,7 +3442,7 @@ pub trait ExchangeBase:
             let mut multiplyPrice: Value = price.clone();
             if (contractSize != Value::Null) {
                 let mut inverse: Value = (match market.get("inverse") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Bool(false) });
-                if (inverse.as_bool() == Some(true)) {
+                if is_true(&inverse) {
                     multiplyPrice = crate::precise::Precise::stringDiv(&Value::Str("1".into()), &price);
                 }
                 multiplyPrice = crate::precise::Precise::stringMul(&multiplyPrice, &contractSize);
@@ -4132,7 +4132,7 @@ pub trait ExchangeBase:
                 return content;
             }
         }
-        if (muteOnFailure.as_bool() == Some(true)) {
+        if muteOnFailure.as_bool() == Some(true) {
             return Value::Null;
         }  else {
             panic!("{}", crate::exchange_errors::bad_response(errorMessage));
@@ -4649,7 +4649,7 @@ pub trait ExchangeBase:
                 let mut market: Value = self.safe_market(&[id, Value::Null, Value::Null, Value::Str("swap".into())]);
                 let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
                 let mut contract: Value = self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)]);
-                if (contract.as_bool() == Some(true)) && (noSymbols || ((symbolsNormalized != Value::Null) && self.in_array(symbol.clone(), symbolsNormalized.clone()).as_bool() == Some(true))) {
+                if is_true(&(contract)) && (noSymbols || ((symbolsNormalized != Value::Null) && self.in_array(symbol.clone(), symbolsNormalized.clone()).as_bool() == Some(true))) {
                     if let Value::Dict(__d) = &mut tiers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), <Self as crate::exchange_generated::ExchangeBase>::parse_market_leverage_tiers(self, item.clone(), &[market.clone()])); }
                 }
             }
@@ -4666,7 +4666,7 @@ pub trait ExchangeBase:
                 let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Null, Value::Str("swap".into())]);
                 let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
                 let mut contract: Value = self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)]);
-                if (contract.as_bool() == Some(true)) && (noSymbols || ((symbolsNormalized != Value::Null) && self.in_array(symbol.clone(), symbolsNormalized.clone()).as_bool() == Some(true))) {
+                if is_true(&(contract)) && (noSymbols || ((symbolsNormalized != Value::Null) && self.in_array(symbol.clone(), symbolsNormalized.clone()).as_bool() == Some(true))) {
                     if let Value::Dict(__d) = &mut tiers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), <Self as crate::exchange_generated::ExchangeBase>::parse_market_leverage_tiers(self, item, &[market])); }
                 }
             }
@@ -5646,7 +5646,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if (price == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" buildOHLCVC() requires a price argument".into()))));
             }
-            if (skipZeroPrices.as_bool() == Some(true)) && !(price.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) && !(price.as_f64().unwrap_or(f64::NAN) < ((0i64) as f64)) {
+            if skipZeroPrices.as_bool() == Some(true) && !(price.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) && !(price.as_f64().unwrap_or(f64::NAN) < ((0i64) as f64)) {
                 continue;
             }
             let mut isNewCandle: bool = candle.as_f64() == Value::Int(-1).as_f64();
@@ -7842,13 +7842,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut ioc: bool = timeInForce.as_str() == Some("IOC");
         let mut fok: bool = timeInForce.as_str() == Some("FOK");
         let mut timeInForcePostOnly: Value = Value::Bool(timeInForce.as_str() == Some("PO"));
-        if (postOnly.as_bool() != Some(true)) {
+        if !is_true(&postOnly) {
             postOnly = timeInForcePostOnly;
         }
-        if (postOnly.as_bool() != Some(true)) {
+        if !is_true(&postOnly) {
             postOnly = exchangeSpecificParam;
         }
-        if (postOnly.as_bool() == Some(true)) {
+        if is_true(&postOnly) {
             if ioc || fok {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" postOnly orders cannot have timeInForce equal to ".into())).into()), timeInForce)));
             }  else if is_true(&isMarketOrder) {
@@ -7881,13 +7881,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut ioc: bool = timeInForce.as_str() == Some("IOC");
         let mut fok: bool = timeInForce.as_str() == Some("FOK");
         let mut po: Value = Value::Bool(timeInForce.as_str() == Some("PO"));
-        if (postOnly.as_bool() != Some(true)) {
+        if !is_true(&postOnly) {
             postOnly = po.clone();
         }
-        if (postOnly.as_bool() != Some(true)) {
+        if !is_true(&postOnly) {
             postOnly = exchangeSpecificPostOnlyOption;
         }
-        if (postOnly.as_bool() == Some(true)) {
+        if is_true(&postOnly) {
             if ioc || fok {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" postOnly orders cannot have timeInForce equal to ".into())).into()), timeInForce)));
             }  else if is_true(&isMarketOrder) {

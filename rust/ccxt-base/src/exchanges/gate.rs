@@ -7050,7 +7050,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut postOnly: Value = postOnlyparamsPostOnlyVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsPostOnly: Value = postOnlyparamsPostOnlyVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut timeInForce: Value = self.handle_time_in_force(&[paramsPostOnly.clone()]);
-        if (postOnly.as_bool() == Some(true)) {
+        if is_true(&postOnly) {
             timeInForce = Value::Str("poc".into());
         }
         // we only omit the unified params here
@@ -7178,7 +7178,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 }
                 add_element_to_object(&mut request, &Value::Str("text".into()), clientOrderId.clone());
             }  else {
-                if (textIsRequired.as_bool() == Some(true)) {
+                if textIsRequired.as_bool() == Some(true) {
                     // batchOrders requires text in the request
                     add_element_to_object(&mut request, &Value::Str("text".into()), Value::Str(format!("{}{}", Value::Str("t-".into()), self.uuid16(&[])).into()));
                 }
@@ -7650,7 +7650,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //     }
         //
         let mut succeeded: Value = self.safe_bool_k(order.clone(), "succeeded", &[Value::Bool(true)]);
-        if (succeeded.as_bool() != Some(true)) {
+        if !(succeeded.as_bool() == Some(true)) {
             return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("clientOrderId".to_string(), self.safe_string_k(order.clone(), "text", &[]));
@@ -7897,7 +7897,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut requestParams: Value = requestrequestParamsVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
         if (type_var.as_str() == Some("spot")) || (type_var.as_str() == Some("margin")) {
-            if (trigger.as_bool() == Some(true)) {
+            if trigger.as_bool() == Some(true) {
                 let __ws_arg_45 = self.extend(request.clone(), &[requestParams.clone()]);
                 response = self.private_spot_get_price_orders_order_id(&[__ws_arg_45]).await;
             }  else {
@@ -7905,7 +7905,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 response = self.private_spot_get_orders_order_id(&[__ws_arg_46]).await;
             }
         }  else if (type_var.as_str() == Some("swap")) {
-            if (trigger.as_bool() == Some(true)) {
+            if trigger.as_bool() == Some(true) {
                 let __ws_arg_47 = self.extend(request.clone(), &[requestParams.clone()]);
                 response = self.private_futures_get_settle_price_orders_order_id(&[__ws_arg_47]).await;
             }  else {
@@ -7913,7 +7913,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 response = self.private_futures_get_settle_orders_order_id(&[__ws_arg_48]).await;
             }
         }  else if (type_var.as_str() == Some("future")) {
-            if (trigger.as_bool() == Some(true)) {
+            if trigger.as_bool() == Some(true) {
                 let __ws_arg_49 = self.extend(request.clone(), &[requestParams.clone()]);
                 response = self.private_delivery_get_settle_price_orders_order_id(&[__ws_arg_49]).await;
             }  else {
@@ -8360,7 +8360,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         add_element_to_object(&mut request, &Value::Str("order_id".into()), id.clone());
         let mut response: Value = Value::Null;
         if (type_var.as_str() == Some("spot")) || (type_var.as_str() == Some("margin")) {
-            if (trigger.as_bool() == Some(true)) {
+            if trigger.as_bool() == Some(true) {
                 let __ws_arg_61 = self.extend(request.clone(), &[requestParams.clone()]);
                 response = self.private_spot_delete_price_orders_order_id(&[__ws_arg_61]).await;
             }  else {
@@ -8368,7 +8368,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 response = self.private_spot_delete_orders_order_id(&[__ws_arg_62]).await;
             }
         }  else if (type_var.as_str() == Some("swap")) {
-            if (trigger.as_bool() == Some(true)) {
+            if trigger.as_bool() == Some(true) {
                 let __ws_arg_63 = self.extend(request.clone(), &[requestParams.clone()]);
                 response = self.private_futures_delete_settle_price_orders_order_id(&[__ws_arg_63]).await;
             }  else {
@@ -8376,7 +8376,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 response = self.private_futures_delete_settle_orders_order_id(&[__ws_arg_64]).await;
             }
         }  else if (type_var.as_str() == Some("future")) {
-            if (trigger.as_bool() == Some(true)) {
+            if trigger.as_bool() == Some(true) {
                 let __ws_arg_65 = self.extend(request.clone(), &[requestParams.clone()]);
                 response = self.private_delivery_delete_settle_price_orders_order_id(&[__ws_arg_65]).await;
             }  else {
@@ -9692,7 +9692,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut bodyJson: Value = Value::Null;
         let mut signedHeaders: Value = Value::Null;
         let mut containsSettle: bool = Value::Int(path.as_str().and_then(|__s| __s.find("settle")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64);
-        if containsSettle && (Value::Bool(ends_with(&path, &Value::Str("batch_cancel_orders".into()))).as_bool() == Some(true)) {
+        if containsSettle && (ends_with(&path, &Value::Str("batch_cancel_orders".into()))) {
             // special case where we need to extract the settle from the path
             // but the body is an array of strings
             let mut settle: Value = self.safe_dict(params.clone(), Value::Int(0), &[]);

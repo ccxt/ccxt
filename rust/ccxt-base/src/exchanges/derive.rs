@@ -2943,7 +2943,7 @@ impl DeriveCore {
         let mut sandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
         // EIP712Domain (name "Matching", version "1.0", verifyingContract 0xeB8d770ec18DB98Db922E9D83260A585b9F0DeAD) precomputed for chainId 1 (mainnet) and 11155111 (sepolia testnet)
         let mut DOMAIN_SEPARATOR: Value = Value::Str("da616dfabb88681b08e1592820a41d55ddc62d68de110e327ae99d734506fe19".into());
-        if (sandboxMode.as_bool() == Some(true)) {
+        if sandboxMode.as_bool() == Some(true) {
             DOMAIN_SEPARATOR = Value::Str("24d674cd5f2b9d564691c51e9d88f649b99246a2244dd74ce27b96578d773e85".into());
         }
         let mut binaryDomainSeparator: Value = self.base16_to_binary(DOMAIN_SEPARATOR, &[]);
@@ -3122,7 +3122,7 @@ impl DeriveCore {
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("signature".into(), signature); }
         let mut paramsOmitted: Value = self.omit(paramsDeriveWalletAddress, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), Value::Str("postOnly".into()), Value::Str("test".into()), Value::Str("clientOrderId".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("trigger_price".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("trigger_price_type".into())]), &[]);
         let mut response: Value = Value::Null;
-        if (test.as_bool() == Some(true)) {
+        if test.as_bool() == Some(true) {
             let __ws_arg_12 = self.extend(request.clone(), &[paramsOmitted.clone()]);
             response = self.private_post_order_debug(&[__ws_arg_12]).await;
         }  else {
@@ -3411,7 +3411,7 @@ impl DeriveCore {
             response = self.private_post_cancel_by_label(&[__ws_arg_15]).await;
         }  else {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_id".into(), id); }
-            if (isTrigger.as_bool() == Some(true)) {
+            if isTrigger.as_bool() == Some(true) {
                 let __ws_arg_16 = self.extend(request.clone(), &[paramsOmitted.clone()]);
                 response = self.private_post_cancel_trigger_order(&[__ws_arg_16]).await;
             }  else {
@@ -3740,7 +3740,7 @@ impl DeriveCore {
             market = self.market(symbol.clone());
         }
         let mut response: Value = Value::Null;
-        if (isTrigger.as_bool() == Some(true)) {
+        if isTrigger.as_bool() == Some(true) {
             let __ws_arg_23 = self.extend(request.clone(), &[paramsDeriveSubaccountId.clone()]);
             response = self.private_post_get_trigger_orders(&[__ws_arg_23]).await;
         }  else {

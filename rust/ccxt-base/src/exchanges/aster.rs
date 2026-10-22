@@ -3820,7 +3820,7 @@ impl AsterCore {
             priceIsRequired = true;
             triggerPriceIsRequired = true;
         }  else if (uppercaseType.as_str() == Some("STOP_MARKET")) || (uppercaseType.as_str() == Some("TAKE_PROFIT_MARKET")) {
-            if (closePosition.as_bool() != Some(true)) {
+            if !(closePosition.as_bool() == Some(true)) {
                 quantityIsRequired = true;
             }
             triggerPriceIsRequired = true;
@@ -5695,11 +5695,11 @@ impl AsterCore {
     m
 }));
         let mut builderFee: Value = self.safe_bool_k(params.clone(), "builderFee", &[self.safe_bool(self.options.clone(), Value::Str("builderFee".into()), &[Value::Bool(true)])]); // we shouldn't omit here
-        if (builderFee.as_bool() != Some(true)) {
+        if !(builderFee.as_bool() == Some(true)) {
             return Value::Bool(false);
         }
         let mut approvedBuilderFee: Value = self.safe_bool_k(self.options.clone(), "approvedBuilderFee", &[Value::Bool(false)]);
-        if (approvedBuilderFee.as_bool() == Some(true)) {
+        if approvedBuilderFee.as_bool() == Some(true) {
             return Value::Bool(true);
         }
         let mut result: Value = self.fapi_private_get_v3_builder(&[]).await;

@@ -2664,7 +2664,7 @@ impl BitvavoCore {
         //
         let mut messageHash: Value = Value::Str("authenticated".into());
         let mut authenticated: Value = (match __pro_message.get("authenticated").cloned() { Some(__v) if matches!(__v, Value::Bool(_)) => __v, _ => Value::Bool(false) });
-        if (authenticated.as_bool() == Some(true)) {
+        if is_true(&authenticated) {
             // we resolve the future here permanently so authentication only happens once
             client.resolve(&[message.clone(), messageHash.clone()]);
         }  else {

@@ -821,13 +821,13 @@ impl UpbitCore {
         let mut walletLocked: Value = self.safe_bool_k(memberInfo.clone(), "wallet_locked", &[]);
         let mut locked: Value = self.safe_bool_k(memberInfo, "locked", &[]);
         let mut active: Value = Value::Bool(true);
-        if (canWithdraw != Value::Null) && (canWithdraw.as_bool() != Some(true)) {
+        if (canWithdraw != Value::Null) && (!(canWithdraw.as_bool() == Some(true))) {
             active = Value::Bool(false);
         }  else if (walletState.as_deref() != Some("working")) {
             active = Value::Bool(false);
-        }  else if (walletLocked != Value::Null) && (walletLocked.as_bool() == Some(true)) {
+        }  else if (walletLocked != Value::Null) && walletLocked.as_bool() == Some(true) {
             active = Value::Bool(false);
-        }  else if (locked != Value::Null) && (locked.as_bool() == Some(true)) {
+        }  else if (locked != Value::Null) && locked.as_bool() == Some(true) {
             active = Value::Bool(false);
         }
         let mut maxOnetimeWithdrawal: Value = self.safe_string_k(withdrawLimits.clone(), "onetime", &[]);
@@ -1955,7 +1955,7 @@ impl UpbitCore {
         }
         let mut response: Value = Value::Null;
         let mut paramsRequest: Value = self.omit(paramsOrdType, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), Value::Str("postOnly".into()), Value::Str("clientOrderId".into()), Value::Str("cost".into()), Value::Str("selfTradePrevention".into()), Value::Str("smp_type".into()), Value::Str("test".into())]), &[]);
-        if (test.as_bool() == Some(true)) {
+        if test.as_bool() == Some(true) {
             let __ws_arg_9 = self.extend(request.clone(), &[paramsRequest.clone()]);
             response = self.private_post_orders_test(&[__ws_arg_9]).await;
         }  else {

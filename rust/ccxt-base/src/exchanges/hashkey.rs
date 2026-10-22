@@ -2829,7 +2829,7 @@ impl HashkeyCore {
         let mut status: Value = self.safe_string_k(transaction.clone(), "status", &[]); // for fetchDeposits
         if (status == Value::Null) {
             let mut success: Value = self.safe_bool_k(transaction.clone(), "success", &[Value::Bool(false)]); // for withdraw
-            if (success.as_bool() == Some(true)) {
+            if success.as_bool() == Some(true) {
                 status = Value::Str("ok".into());
             }  else {
                 let mut addressUrl: Option<String> = self.safe_string_k(transaction.clone(), "addressUrl", &[]).as_str().map(str::to_owned); // for fetchWithdrawals
@@ -2947,7 +2947,7 @@ impl HashkeyCore {
         let mut currencyId: Value = self.safe_string_k(currency.clone(), "id", &[]);
         let mut status: Value = Value::Null;
         let mut success: Value = self.safe_bool_k(transfer.clone(), "success", &[Value::Bool(false)]);
-        if (success.as_bool() == Some(true)) {
+        if success.as_bool() == Some(true) {
             status = Value::Str("ok".into());
         }
         return Value::Map({

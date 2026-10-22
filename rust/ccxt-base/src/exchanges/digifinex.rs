@@ -2791,10 +2791,10 @@ impl DigifinexCore {
             let mut timeInForce: Option<String> = self.safe_string_k(paramsMarginMode.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
             let mut orderType: Value = Value::Null;
             if (side.as_str() == Some("buy")) {
-                let mut requestType: Value = (if (reduceOnly.as_bool() == Some(true)) { Value::Int(4) } else { Value::Int(1) });
+                let mut requestType: Value = (if reduceOnly.as_bool() == Some(true) { Value::Int(4) } else { Value::Int(1) });
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), requestType.clone()); }
             }  else {
-                let mut requestType: Value = (if (reduceOnly.as_bool() == Some(true)) { Value::Int(3) } else { Value::Int(2) });
+                let mut requestType: Value = (if reduceOnly.as_bool() == Some(true) { Value::Int(3) } else { Value::Int(2) });
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), requestType); }
             }
             if isLimitOrder {
@@ -2816,7 +2816,7 @@ impl DigifinexCore {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("size".into(), amount.clone()); }; // swap orders require the amount to be the number of contracts
             paramsRequest = self.omit(paramsMarginMode.clone(), Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("timeInForce".into()), Value::Str("postOnly".into())]), &[]);
         }  else {
-            postOnlyParsed = (if (postOnly.as_bool() == Some(true)) { Value::Int(1) } else { Value::Int(2) });
+            postOnlyParsed = (if is_true(&(postOnly)) { Value::Int(1) } else { Value::Int(2) });
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("market".into(), marketType); }
             let mut suffix: Value = Value::Str("".into());
             if (type_var.as_str() == Some("market")) {
@@ -5744,7 +5744,7 @@ impl DigifinexCore {
             if (marginMode.as_str() != Some("cross")) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" only cross margin is supported".into()))));
             }
-        }  else if (defaultType.as_deref() == Some("margin")) || (isMargin.as_bool() == Some(true)) {
+        }  else if (defaultType.as_deref() == Some("margin")) || isMargin.as_bool() == Some(true) {
             return Value::from(vec![Value::Str("cross".into()), paramsMarginMode.clone()]);
         }
         return Value::from(vec![marginMode, paramsMarginMode]);

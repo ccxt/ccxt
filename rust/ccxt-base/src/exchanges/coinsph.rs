@@ -1937,7 +1937,7 @@ impl CoinsphCore {
         let mut isBuyer: Value = self.safe_bool2(trade.clone(), Value::Str("isBuyer".into()), Value::Str("isBuyerMaker".into()), &[]);
         let mut side: Value = Value::Null;
         if (isBuyer != Value::Null) {
-            side = (if (isBuyer.as_bool() == Some(true)) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
+            side = (if isBuyer.as_bool() == Some(true) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
         }
         let mut isMaker: Option<String> = self.safe_string_k(trade.clone(), "isMaker", &[]).as_str().map(str::to_owned);
         let mut takerOrMaker: Value = Value::Null;
@@ -2121,7 +2121,7 @@ impl CoinsphCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (testOrder.as_bool() == Some(true)) {
+        if testOrder.as_bool() == Some(true) {
             let __ws_arg_11 = self.extend(request.clone(), &[paramsRequest.clone()]);
             response = self.private_post_openapi_v1_order_test(&[__ws_arg_11]).await;
         }  else {
@@ -2683,7 +2683,7 @@ impl CoinsphCore {
         let mut paramsWithdrawTag: Value = tagparamsWithdrawTagVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut options: Value = self.safe_dict_k(self.options.clone(), "withdraw", &[]);
         let mut warning: Value = self.safe_bool_k(options, "warning", &[Value::Bool(true)]);
-        if (warning.as_bool() == Some(true)) {
+        if warning.as_bool() == Some(true) {
             panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", self.id.clone(), Value::Str(" withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account".into()))));
         }
         let mut networkCode: Value = self.safe_string_k(paramsWithdrawTag.clone(), "network", &[]);

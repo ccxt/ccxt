@@ -3423,7 +3423,7 @@ impl KucoinCore {
         if is_true(&fetchSpotMarkets) {
             append_to_array(&mut promises, self.public_get_symbols(&[paramsRequest.clone()]).await);
         }
-        if (requestMarginables) {
+        if requestMarginables {
             append_to_array(&mut promises, self.private_get_margin_symbols(&[paramsRequest.clone()]).await); // cross margin symbols
             //
             //    {
@@ -3483,7 +3483,7 @@ impl KucoinCore {
         if is_true(&fetchSpotMarkets) {
             nextIndex = Value::Int(1);
         }
-        if (requestMarginables) {
+        if requestMarginables {
             crossIndex = nextIndex.clone();
             nextIndex = self.sum(&[nextIndex.clone(), Value::Int(2)]);
             isolatedIndex = self.sum(&[crossIndex.clone(), Value::Int(1)]);
@@ -6207,7 +6207,7 @@ impl KucoinCore {
         // don't omit anything before calling createOrderRequest
         let mut orderRequest: Value = self.create_spot_order_request(symbol, type_var, side, amount, &[price, paramsSync]);
         let mut response: Value = Value::Null;
-        if (testOrder.as_bool() == Some(true)) {
+        if testOrder.as_bool() == Some(true) {
             if isMarginOrder {
                 // the classic margin order endpoints are deprecated
                 response = self.private_post_hf_margin_order_test(&[orderRequest.clone()]).await;
@@ -6324,7 +6324,7 @@ impl KucoinCore {
         }
         let mut postOnly: Value = Value::Null;
         { let __destr_tmp = self.handle_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(false), &[paramsOmitted.clone()]); postOnly = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); paramsOmitted = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        if (postOnly.as_bool() == Some(true)) {
+        if is_true(&postOnly) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("postOnly".into(), Value::Bool(true)); }
         }
         return self.extend(request, &[paramsOmitted]);
@@ -6395,7 +6395,7 @@ impl KucoinCore {
         let mut hasTpOrSlOrder: bool = (self.safe_value_k(paramsOmitted.clone(), "stopLoss", &[]) != Value::Null) || (self.safe_value_k(paramsOmitted.clone(), "takeProfit", &[]) != Value::Null);
         let mut orderRequest: Value = self.create_contract_order_request(symbol, type_var, side, amount, &[price, paramsOmitted]);
         let mut response: Value = Value::Null;
-        if (testOrder.as_bool() == Some(true)) {
+        if testOrder.as_bool() == Some(true) {
             response = self.futures_private_post_orders_test(&[orderRequest.clone()]).await;
         }  else {
             if hasTpOrSlOrder {
@@ -6530,11 +6530,11 @@ impl KucoinCore {
         }
         let mut postOnly: Value = Value::Null;
         { let __destr_tmp = self.handle_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(false), &[paramsOmitted.clone()]); postOnly = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); paramsOmitted = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        if (postOnly.as_bool() == Some(true)) {
+        if is_true(&postOnly) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("postOnly".into(), Value::Bool(true)); }
         }
         let mut hidden: Value = self.safe_value_k(paramsOmitted.clone(), "hidden", &[]);
-        if (postOnly.as_bool() == Some(true)) && (hidden != Value::Null) {
+        if is_true(&(postOnly)) && (hidden != Value::Null) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support the postOnly parameter together with a hidden parameter".into()))));
         }
         let mut iceberg: Value = self.safe_value_k(paramsOmitted.clone(), "iceberg", &[]);
@@ -6547,7 +6547,7 @@ impl KucoinCore {
         let mut reduceOnly: Value = self.safe_bool_k(paramsOmitted.clone(), "reduceOnly", &[Value::Bool(false)]);
         let mut hedged: Value = Value::Null;
         { let __destr_tmp = self.handle_param_bool(paramsOmitted.clone(), Value::Str("hedged".into()), &[Value::Bool(false)]); hedged = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); paramsOmitted = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        if (reduceOnly.as_bool() == Some(true)) {
+        if reduceOnly.as_bool() == Some(true) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("reduceOnly".into(), reduceOnly); }
             if (hedged.as_bool() == Some(true)) {
                 let mut reduceOnlyPosSide: Value = Value::Str("SHORT".into());
@@ -6705,7 +6705,7 @@ impl KucoinCore {
         if (timeInForce != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("timeInForce".into(), timeInForce); }
         }
-        if (postOnly.as_bool() == Some(true)) {
+        if is_true(&postOnly) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("postOnly".into(), Value::Bool(true)); }
         }
         if (isContract.as_bool() == Some(true)) {
@@ -6727,7 +6727,7 @@ impl KucoinCore {
                     if (side.as_str() == Some("buy")) {
                         positionSide = Value::Str("LONG".into());
                     }
-                    if (reduceOnly.as_bool() == Some(true)) {
+                    if reduceOnly.as_bool() == Some(true) {
                         positionSide = (if (positionSide.as_str() == Some("LONG")) { Value::Str("SHORT".into()) } else { Value::Str("LONG".into()) });
                     }
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("positionSide".into(), positionSide); }
@@ -7287,7 +7287,7 @@ impl KucoinCore {
         let mut tradeType: Option<String> = self.safe_string_k(paramsMarginMode.clone(), "tradeType", &[]).as_str().map(str::to_owned); // keep it for backward compatibility
         let mut isMarginOrder: bool = (tradeType.as_deref() == Some("MARGIN_TRADE")) || (marginMode != Value::Null);
         if (hf.as_bool() == Some(true)) || is_true(&useSync) || isMarginOrder {
-            if (trigger.as_bool() != Some(true)) {
+            if !(trigger.as_bool() == Some(true)) {
                 if (symbol == Value::Null) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol parameter for hf orders".into()))));
                 }
@@ -7299,7 +7299,7 @@ impl KucoinCore {
         let mut paramsOmitted: Value = self.omit(paramsMarginMode, Value::from(vec![Value::Str("clientOid".into()), Value::Str("clientOrderId".into()), Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("tradeType".into())]), &[]);
         if (clientOrderId != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("clientOid".into(), clientOrderId); }
-            if (trigger.as_bool() == Some(true)) {
+            if trigger.as_bool() == Some(true) {
                 if isMarginOrder {
                     let __ws_arg_32 = self.extend(request.clone(), &[paramsOmitted.clone()]);
                     response = self.private_delete_hf_margin_stop_order_cancel_by_client_oid(&[__ws_arg_32]).await;
@@ -7342,7 +7342,7 @@ impl KucoinCore {
             return self.parse_order(response.clone(), &[]);
         }  else {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderId".into(), id); }
-            if (trigger.as_bool() == Some(true)) {
+            if trigger.as_bool() == Some(true) {
                 if isMarginOrder {
                     let __ws_arg_38 = self.extend(request.clone(), &[paramsOmitted.clone()]);
                     response = self.private_delete_hf_margin_stop_order_cancel_by_id(&[__ws_arg_38]).await;
@@ -7615,17 +7615,17 @@ impl KucoinCore {
         let mut isMarginOrders: bool = marginMode != Value::Null;
         if (symbol != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), self.market_id(symbol.clone())); }
-        }  else if (trigger.as_bool() != Some(true)) && isMarginOrders {
+        }  else if (!(trigger.as_bool() == Some(true))) && isMarginOrders {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders() requires a symbol argument for margin non-trigger orders".into()))));
         }
         if isMarginOrders {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("tradeType".into(), get_value(&self.options.as_map().and_then(|__m| __m.get("marginModes")).cloned().unwrap_or(Value::Null), &marginMode)); }
-            if (marginMode.as_str() == Some("isolated")) && (trigger.as_bool() == Some(true)) {
+            if (marginMode.as_str() == Some("isolated")) && trigger.as_bool() == Some(true) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders does not support isolated margin for stop orders".into()))));
             }
         }
         let mut response: Value = Value::Null;
-        if (trigger.as_bool() == Some(true)) {
+        if trigger.as_bool() == Some(true) {
             if isMarginOrders {
                 let __ws_arg_47 = self.extend(request.clone(), &[query.clone()]);
                 response = self.private_delete_hf_margin_stop_order_cancel(&[__ws_arg_47]).await;
@@ -7933,7 +7933,7 @@ impl KucoinCore {
         }
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("tradeType".into(), self.safe_string(self.options.as_map().and_then(|__m| __m.get("marginModes")).cloned().unwrap_or(Value::Null), marginMode, &[Value::Str("TRADE".into())])); }
         let mut response: Value = Value::Null;
-        if isMarginOrder && (lowercaseStatus.as_str() == Some("active")) && (trigger.as_bool() != Some(true)) {
+        if isMarginOrder && (lowercaseStatus.as_str() == Some("active")) && (!(trigger.as_bool() == Some(true))) {
             // hf margin open non-trigger orders require only symbol and tradeType params
             let __ws_arg_56 = self.extend(request.clone(), &[query.clone()]);
             response = self.private_get_hf_margin_orders_active(&[__ws_arg_56]).await;
@@ -7954,7 +7954,7 @@ impl KucoinCore {
             if (until != Value::Null) && (until.as_f64() != Some(0.0)) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endAt".into(), until); }
             }
-            if (trigger.as_bool() == Some(true)) {
+            if trigger.as_bool() == Some(true) {
                 if isMarginOrder {
                     let __ws_arg_57 = self.extend(request.clone(), &[query.clone()]);
                     response = self.private_get_hf_margin_stop_orders(&[__ws_arg_57]).await;
@@ -8477,7 +8477,7 @@ impl KucoinCore {
             market = self.market(symbol.clone());
         }
         if (hf.as_bool() == Some(true)) || isMarginOrder {
-            if (trigger.as_bool() != Some(true)) {
+            if !(trigger.as_bool() == Some(true)) {
                 if (symbol == Value::Null) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() requires a symbol parameter for hf and margin orders".into()))));
                 }
@@ -8488,7 +8488,7 @@ impl KucoinCore {
         let mut response: Value = Value::Null;
         if (clientOrderId != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("clientOid".into(), clientOrderId); }
-            if (trigger.as_bool() == Some(true)) {
+            if trigger.as_bool() == Some(true) {
                 if isMarginOrder {
                     let __ws_arg_67 = self.extend(request.clone(), &[paramsOmitted.clone()]);
                     response = self.private_get_hf_margin_stop_order_client_oid(&[__ws_arg_67]).await;
@@ -8517,7 +8517,7 @@ impl KucoinCore {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() requires an order id".into()))));
             }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderId".into(), id); }
-            if (trigger.as_bool() == Some(true)) {
+            if trigger.as_bool() == Some(true) {
                 if isMarginOrder {
                     let __ws_arg_72 = self.extend(request.clone(), &[paramsOmitted.clone()]);
                     response = self.private_get_hf_margin_stop_order_order_id(&[__ws_arg_72]).await;
@@ -8888,9 +8888,9 @@ impl KucoinCore {
         let mut cancelExist: Value = self.safe_bool_k(order.clone(), "cancelExist", &[Value::Bool(false)]);
         let mut status: Value = Value::Null;
         if (isActive != Value::Null) {
-            status = (if (isActive.as_bool() == Some(true)) { Value::Str("open".into()) } else { Value::Str("closed".into()) });
+            status = (if isActive.as_bool() == Some(true) { Value::Str("open".into()) } else { Value::Str("closed".into()) });
         }
-        status = (if (cancelExist.as_bool() == Some(true)) { Value::Str("canceled".into()) } else { status.clone() });
+        status = (if cancelExist.as_bool() == Some(true) { Value::Str("canceled".into()) } else { status.clone() });
         let mut fee: Value = Value::Null;
         if (feeCost != Value::Null) {
             fee = Value::Map({
@@ -9070,7 +9070,7 @@ impl KucoinCore {
         let mut responseStatus: Option<String> = self.safe_string_k(order.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut status: Value = Value::Null;
         if (isActive != Value::Null) {
-            if (isActive.as_bool() == Some(true)) {
+            if isActive.as_bool() == Some(true) {
                 status = Value::Str("open".into());
             }  else {
                 status = Value::Str("closed".into());
@@ -9079,11 +9079,11 @@ impl KucoinCore {
         if trigger {
             if (responseStatus.as_deref() == Some("NEW")) {
                 status = Value::Str("open".into());
-            }  else if (isActive.as_bool() != Some(true)) && (stopTriggered.as_bool() != Some(true)) {
+            }  else if (isActive.as_bool() != Some(true)) && (!(stopTriggered.as_bool() == Some(true))) {
                 status = Value::Str("cancelled".into());
             }
         }
-        if (cancelExist.as_bool() == Some(true)) {
+        if cancelExist.as_bool() == Some(true) {
             status = Value::Str("canceled".into());
         }
         if (responseStatus.as_deref() == Some("fail")) {
@@ -11582,7 +11582,7 @@ impl KucoinCore {
     m
 })]);
         let mut fillResponseFromRequest: Value = self.safe_bool_k(transferOptions, "fillResponseFromRequest", &[Value::Bool(true)]);
-        if (fillResponseFromRequest.as_bool() == Some(true)) {
+        if fillResponseFromRequest.as_bool() == Some(true) {
             add_element_to_object(&mut transfer, &Value::Str("amount".into()), amount);
             add_element_to_object(&mut transfer, &Value::Str("fromAccount".into()), fromAccount);
             add_element_to_object(&mut transfer, &Value::Str("toAccount".into()), toAccount);
@@ -11687,7 +11687,7 @@ impl KucoinCore {
     m
 })]);
         let mut fillResponseFromRequest: Value = self.safe_bool_k(transferOptions, "fillResponseFromRequest", &[Value::Bool(true)]);
-        if (fillResponseFromRequest.as_bool() == Some(true)) {
+        if fillResponseFromRequest.as_bool() == Some(true) {
             add_element_to_object(&mut transfer, &Value::Str("amount".into()), amount);
             add_element_to_object(&mut transfer, &Value::Str("fromAccount".into()), fromAccount);
             add_element_to_object(&mut transfer, &Value::Str("toAccount".into()), toAccount);
@@ -14220,7 +14220,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         // currently crossMode is always set to false and only isolated positions are supported
         let mut marginMode: Value = self.safe_string_lower_k(position.clone(), "marginMode", &[]);
         if (crossMode != Value::Null) {
-            marginMode = (if (crossMode.as_bool() == Some(true)) { Value::Str("cross".into()) } else { Value::Str("isolated".into()) });
+            marginMode = (if crossMode.as_bool() == Some(true) { Value::Str("cross".into()) } else { Value::Str("isolated".into()) });
         }
         let mut collateralString: Value = self.safe_string_k(position.clone(), "maintMargin", &[]);
         let mut marginString: Value = Value::Null;
@@ -14859,7 +14859,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("marginMode".into(), marginMode); }
         }
         let mut response: Value = Value::Null;
-        if (testOrder.as_bool() == Some(true)) {
+        if testOrder.as_bool() == Some(true) {
             let __ws_arg_149 = self.extend(request.clone(), &[paramsOmitted.clone()]);
             response = self.futures_private_post_orders_test(&[__ws_arg_149]).await;
         }  else {

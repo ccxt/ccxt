@@ -1795,7 +1795,7 @@ impl HyperliquidCore {
         let mut dex: Value = self.safe_string_k(paramsValue2.clone(), "dex", &[]);
         let mut isSpot: bool = ((type_var.as_str() == Some("spot")) || (isUnifiedEnabled.as_bool() == Some(true))) && (dex == Value::Null);
         let mut topic: Value = Value::Str("clearinghouseState".into());
-        if (isSpot) {
+        if isSpot {
             topic = Value::Str("spotState".into());
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", topic, Value::Str("::balance".into())).into());
@@ -1806,7 +1806,7 @@ impl HyperliquidCore {
                 m.insert("user".to_string(), userAddress);
             m
         });
-        if (isSpot) {
+        if isSpot {
             if (isUnifiedEnabled.as_bool() == Some(true)) {
                 if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert("isPortfolioMargin".into(), Value::Bool(true)); }
             }
@@ -1862,7 +1862,7 @@ impl HyperliquidCore {
         let mut dex: Option<String> = self.safe_string_k(paramsValue2.clone(), "dex", &[]).as_str().map(str::to_owned);
         let mut isSpot: bool = ((type_var.as_str() == Some("spot")) || (isUnifiedEnabled.as_bool() == Some(true))) && (dex.is_none());
         let mut topic: Value = Value::Str("clearinghouseState".into());
-        if (isSpot) {
+        if isSpot {
             topic = Value::Str("spotState".into());
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe".into()), Value::Str(":".into())).into()), topic).into());

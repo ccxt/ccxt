@@ -397,8 +397,8 @@ impl BydfiCore {
         });
         let mut unsubscribe: Value = self.safe_bool_k(params.clone(), "unsubscribe", &[Value::Bool(false)]);
         let mut method: Value = Value::Str("SUBSCRIBE".into());
-        let mut paramsOmitted: Value = (if (unsubscribe.as_bool() == Some(true)) { self.omit(params.clone(), Value::Str("unsubscribe".into()), &[]) } else { params });
-        if (unsubscribe.as_bool() == Some(true)) {
+        let mut paramsOmitted: Value = (if unsubscribe.as_bool() == Some(true) { self.omit(params.clone(), Value::Str("unsubscribe".into()), &[]) } else { params });
+        if unsubscribe.as_bool() == Some(true) {
             method = Value::Str("UNSUBSCRIBE".into());
             if let Value::Dict(__d) = &mut subscriptionParams { std::sync::Arc::make_mut(__d).insert("unsubscribe".into(), Value::Bool(true)); }
             if let Value::Dict(__d) = &mut subscriptionParams { std::sync::Arc::make_mut(__d).insert("messageHashes".into(), messageHashes.clone()); }
@@ -1443,7 +1443,7 @@ impl BydfiCore {
         let mut options: Value = self.safe_dict_k(self.options.clone(), "watchBalance", &[]);
         let mut fetchBalanceSnapshot: Value = self.safe_bool_k(options.clone(), "fetchBalanceSnapshot", &[Value::Bool(false)]);
         let mut awaitBalanceSnapshot: Value = self.safe_bool_k(options, "awaitBalanceSnapshot", &[Value::Bool(true)]);
-        if (fetchBalanceSnapshot.as_bool() == Some(true)) && (awaitBalanceSnapshot.as_bool() == Some(true)) {
+        if fetchBalanceSnapshot.as_bool() == Some(true) && awaitBalanceSnapshot.as_bool() == Some(true) {
             crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str("fetchBalanceSnapshot".into())])).await;
         }
         let mut messageHash: Value = Value::Str("balance".into());
@@ -1455,7 +1455,7 @@ impl BydfiCore {
     pub fn fetch_balance_snapshot(&mut self, mut client: Value) {
         let mut options: Value = self.safe_dict_k(self.options.clone(), "watchBalance", &[]);
         let mut fetchBalanceSnapshot: Value = self.safe_bool_k(options, "fetchBalanceSnapshot", &[Value::Bool(false)]);
-        if (fetchBalanceSnapshot.as_bool() == Some(true)) {
+        if fetchBalanceSnapshot.as_bool() == Some(true) {
             let mut messageHash: Value = Value::Str("fetchBalanceSnapshot".into());
             if !(in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
                 client.future(&[messageHash.clone()]);
@@ -1575,7 +1575,7 @@ impl BydfiCore {
             m
         })]);
         let mut isUnSubMessage: Value = self.safe_bool_k(subscription.clone(), "unsubscribe", &[Value::Bool(false)]);
-        if (isUnSubMessage.as_bool() == Some(true)) {
+        if isUnSubMessage.as_bool() == Some(true) {
             self.handle_un_subscription(client, subscription);
         }
         return message;

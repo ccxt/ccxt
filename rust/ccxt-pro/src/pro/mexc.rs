@@ -855,7 +855,7 @@ impl MexcCore {
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("unsubscribed".into())]), &[]);
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "spot");
         let mut method: Value = Value::Str("SUBSCRIPTION".into());
-        if (unsubscribed.as_bool() == Some(true)) {
+        if unsubscribed.as_bool() == Some(true) {
             method = Value::Str("UNSUBSCRIPTION".into());
         }
         let mut request: Value = Value::Map({
@@ -2625,7 +2625,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut client: Value = self.client(&[crate::value::get_value_k(&crate::value::get_value_k(&__ws_arg_6, "ws"), "spot")]);
         let mut messageHash: Value = Value::Str("authenticate:listenKey".into());
         let mut isFetching: Value = self.safe_bool_k(self.options.clone(), "listenKeyFetching", &[Value::Bool(false)]);
-        if (isFetching.as_bool() == Some(true)) {
+        if isFetching.as_bool() == Some(true) {
             crate::exchange_stubs::ws_await_flight(&client.future(&[messageHash.clone()])).await;
             return self.safe_string_k(self.options.clone(), "listenKey", &[]);
         }

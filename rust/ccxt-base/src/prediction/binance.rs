@@ -520,7 +520,7 @@ impl BinanceCore {
             }
             }
             let mut hasMore: Value = self.safe_bool_k(response, "hasMore", &[Value::Bool(false)]);
-            if (hasMore.as_bool() != Some(true)) || (pageTopicsLength.as_f64().unwrap_or(f64::NAN) < reqLimit.as_f64().unwrap_or(f64::NAN)) {
+            if (!(hasMore.as_bool() == Some(true))) || (pageTopicsLength.as_f64().unwrap_or(f64::NAN) < reqLimit.as_f64().unwrap_or(f64::NAN)) {
                 break;
             }
             offset = self.sum(&[offset.clone(), pageTopicsLength]);
@@ -624,7 +624,7 @@ impl BinanceCore {
     m
 }));
         let mut allowUnscopedFetchEvents: Value = self.safe_bool_k(self.options.clone(), "allowUnscopedFetchEvents", &[Value::Bool(false)]);
-        if (allowUnscopedFetchEvents.as_bool() != Some(true)) {
+        if !(allowUnscopedFetchEvents.as_bool() == Some(true)) {
             self.require_event_query(&[params.clone()]);
         }
         let mut queries: Value = self.parse_search_queries(&[params.clone()]);

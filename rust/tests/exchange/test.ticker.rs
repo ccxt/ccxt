@@ -127,7 +127,7 @@ pub fn testTicker(mut exchange: Value, mut skippedProperties: Value, mut method:
         // far above baseVolume * high), so the spot-derived invariant does not hold there,
         // see https://github.com/ccxt/ccxt/pull/29563
         let mut isInverse: Value = exchange.safe_bool(market.clone(), Value::Str("inverse".into()), &[Value::Bool(false)]);
-        if (baseVolume != Value::Null) && (quoteVolume != Value::Null) && (high != Value::Null) && (low != Value::Null) && (isInverse.as_bool() != Some(true)) {
+        if (baseVolume != Value::Null) && (quoteVolume != Value::Null) && (high != Value::Null) && (low != Value::Null) && (!is_true(&isInverse)) {
             let mut baseLow: Value = ccxt::precise::Precise::stringMul(&baseVolume, &low);
             let mut baseHigh: Value = ccxt::precise::Precise::stringMul(&baseVolume, &high);
             // to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
@@ -262,7 +262,7 @@ pub fn testTicker(mut exchange: Value, mut skippedProperties: Value, mut method:
         if (percentage != Value::Null) {
             // - should be above -100 and (for non-options) below MAX
             assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringGe(&percentage, &Value::Str("-100".into())))));
-            if (isOptionMarket.as_bool() != Some(true)) {
+            if !is_true(&isOptionMarket) {
                 assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringLe(&percentage, &ccxt::precise::Precise::stringMul(&Value::Str("+100".into()), &maxIncrease)))));
             }
         }
@@ -273,7 +273,7 @@ pub fn testTicker(mut exchange: Value, mut skippedProperties: Value, mut method:
         if (change != Value::Null) {
             // - should be above -price and (for non-options) below +price*maxIncrease
             assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringGe(&change, &ccxt::precise::Precise::stringNeg(&approxValue)))));
-            if (isOptionMarket.as_bool() != Some(true)) {
+            if !is_true(&isOptionMarket) {
                 assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringLe(&change, &ccxt::precise::Precise::stringMul(&approxValue, &maxIncrease)))));
             }
         }

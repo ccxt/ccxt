@@ -42,7 +42,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             success = Value::Bool(false);
         }
         now = exchange.milliseconds();
-        if (success.as_bool() == Some(true)) && (response != Value::Null) {
+        if is_true(&(success)) && (response != Value::Null) {
             let mut assertionMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" ".into())).into()), method).into()), Value::Str(" ".into())).into()), symbol).into()), Value::Str(" ".into())).into()), chosenTimeframeKey).into()), Value::Str(" | ".into())).into()), exchange.json(response.clone())).into());
             assert!(ccxt::runtime::is_true(&(exchange.is_dictionary(response.clone()))));
             assert!(ccxt::runtime::is_true(&((in_op(&response, &symbol)))));

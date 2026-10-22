@@ -2346,7 +2346,7 @@ impl BtseCore {
 }));
         self.load_markets(&[]).await;
         let mut paginate: Value = self.safe_bool_k(params.clone(), "paginate", &[Value::Bool(false)]);
-        if (paginate.as_bool() == Some(true)) {
+        if paginate.as_bool() == Some(true) {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchMyTrades".into()), &[symbol.clone(), since.clone(), limit.clone(), self.omit(params.clone(), Value::Str("paginate".into()), &[])]).await;
         }
         let mut market: Value = Value::Null;
@@ -3233,7 +3233,7 @@ impl BtseCore {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderPrice".into(), self.price_to_precision(symbol, price.clone())); }
         }
         let mut isSlide: Value = self.safe_bool_k(query.clone(), "slide", &[Value::Bool(false)]);
-        if (amount == Value::Null) && (price == Value::Null) && (triggerPrice == Value::Null) && (isSlide.as_bool() != Some(true)) {
+        if (amount == Value::Null) && (price == Value::Null) && (triggerPrice == Value::Null) && (!(isSlide.as_bool() == Some(true))) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires an amount argument, a price argument or a triggerPrice parameter".into()))));
         }
         let mut response: Value = Value::Null;
@@ -4841,7 +4841,7 @@ impl BtseCore {
         //     {"status":400,"errorCode":-7,"message":"Authenticate failed","extraData":null}
         //
         let mut success: Value = self.safe_bool_k(response.clone(), "success", &[Value::Bool(true)]);
-        if (success.as_bool() != Some(true)) {
+        if !(success.as_bool() == Some(true)) {
             let mut spotErrorCode: Value = self.safe_string_k(response.clone(), "code", &[]);
             let mut spotMessage: Value = self.safe_string_k(response.clone(), "msg", &[]);
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
@@ -4930,7 +4930,7 @@ impl BtseCore {
         // body like its POST and PUT counterparts, while the spot v4 and the
         // legacy apis keep DELETE params in the query string, verified live
         // in both directions
-        let mut isBodyDelete: bool = (method.as_str() == Some("DELETE")) && (Value::Bool(starts_with(&path, &Value::Str("futures/api/v3/".into()))).as_bool() == Some(true));
+        let mut isBodyDelete: bool = (method.as_str() == Some("DELETE")) && (starts_with(&path, &Value::Str("futures/api/v3/".into())));
         let mut queryString: Value = Value::Str("".into());
         if ((method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE"))) && !isBodyDelete {
             if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
@@ -4952,7 +4952,7 @@ impl BtseCore {
             // sign the /api/v... remainder, while the public-api wallet, otc and markets
             // endpoints mount on the bare host and sign the full path with the leading slash
             let mut signPath: Value = Value::Null;
-            if (Value::Bool(starts_with(&path, &Value::Str("public-api/".into()))).as_bool() == Some(true)) {
+            if (starts_with(&path, &Value::Str("public-api/".into()))) {
                 signPath = Value::Str(format!("{}{}", Value::Str("/".into()), path).into());
             }  else {
                 signPath = self.clean_path(path);
