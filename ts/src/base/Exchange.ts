@@ -444,7 +444,7 @@ export class BaseExchange {
         },
     };
 
-    markets_by_id!: Dictionary<MarketInterface[]> | undefined;
+    markets_by_id!: Dictionary<any> | undefined;
     symbols: string[] = [];
     ids: Strings = undefined;
     currencies: Currencies = {};
@@ -5153,7 +5153,7 @@ export class BaseExchange {
             key = 'base';
         }
         // for derivatives, the fee is in 'settle' currency
-        if (market['spot'] !== true) {
+        if (this.safeBool (market, 'spot') !== true) {
             key = 'settle';
         }
         // even if `takerOrMaker` argument was set to 'maker', for 'market' orders we should forcefully override it to 'taker'
@@ -5790,7 +5790,7 @@ export class BaseExchange {
                 throw new BadRequest (this.id + ' symbols must be of the same type ' + type + '. If the type is incorrect you can change it in options or the params of the request');
             }
             marketType = this.safeString (market, 'type');
-            if (market['spot'] !== true) {
+            if (this.safeBool (market, 'spot') !== true) {
                 isLinearSubType = this.safeBool (market, 'linear');
             }
             const symbol = this.safeString (market, 'symbol', symbols[i]);
@@ -6944,7 +6944,7 @@ export class BaseExchange {
                     const marketTypeResolved: string = (marketType === undefined) ? this.safeString (market, 'type', '') : marketType;
                     for (let i = 0; i < markets.length; i++) {
                         const currentMarket = markets[i];
-                        if (this.safeBool (currentMarket, marketTypeResolved) === true) {
+                        if (currentMarket[marketTypeResolved] === true) {
                             return currentMarket;
                         }
                     }
@@ -7693,7 +7693,7 @@ export class BaseExchange {
             const defaultType = this.safeString2 (this.options, 'defaultType', 'defaultSubType', 'spot');
             for (let i = 0; i < marketsList.length; i++) {
                 const market = marketsList[i];
-                if (this.safeBool (market, defaultType) === true) {
+                if (market[defaultType] === true) {
                     return market;
                 }
             }

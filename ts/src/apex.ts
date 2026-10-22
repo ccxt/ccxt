@@ -1289,7 +1289,7 @@ export default class apex extends Exchange {
             if ((this.markets !== undefined) && (marketId in this.markets)) {
                 marketResolved = this.markets[marketId];
             } else if ((marketsById !== undefined) && (marketId in marketsById)) {
-                marketResolved = this.safeValue (marketsById, marketId);
+                marketResolved = marketsById[marketId];
             } else {
                 const newMarketId = this.addHyphenBeforeUsdt (marketId);
                 if ((marketsById !== undefined) && (newMarketId in marketsById)) {
