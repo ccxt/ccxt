@@ -13479,103 +13479,39 @@ function hx4C34SnippetChecks (): string[] {
     return problems;
 }
 
-// hx4 C35 — final-text tail: parseInt / parseFloat / toFixed become the helper body as a static lambda
-// (same code, same box, same exceptions/culture; argument evaluated once), and a divide(...) whose operand is a
-// C30 object-lambda call (C# binds the object overload) gets C31's object-overload inline form.
+// hx4 C35 — retired by hx5 X09 (see the `// hx5 X09` block below).
+// hx5 X09: the inlined parseInt / parseFloat / toFixed static-lambda bodies and the divide(...) object-overload
+// inline form are deleted; every call site keeps the plain helper call exactly as master emitted. No native form
+// is emitted: long.Parse / double.Parse throw where parseInt / parseFloat return null (and parseInt parses with the
+// current culture through Convert.ToDouble + Math.Floor, accepting "1.5", boxes of any numeric type, bools...), so
+// no operand type the printed C# can prove makes a plain Parse behaviour-identical. toFixed's (double)/(int) casts
+// are kept in the helper for the same reason (unboxing semantics differ from a typed Math.Round on non-double boxes).
 export function hx4C35NativeHelperCalls (objectNull: boolean, content: string): string {
-    if (!objectNull || !/(?<![\w.])(?:parseInt|parseFloat|toFixed|divide)\(/.test (content) || /^namespace Tests\b/m.test (content)) {
-        return content;
-    }
-    const bodies = {
-        'parseInt': '((Func<object, Int64?>)(static (object hx4pa) => { try { return Convert.ToInt64(Math.Floor(Convert.ToDouble(hx4pa))); } catch (Exception) { return null; } }))',
-        'parseFloat': '((Func<object, object>)(static (object hx4pa) => { object hx4pv = null; try { hx4pv = (Convert.ToDouble(hx4pa, global::System.Globalization.CultureInfo.InvariantCulture.NumberFormat)); } catch (Exception) { } return hx4pv; }))',
-        'toFixed': '((Func<object, object, object>)(static (object hx4pa, object hx4pb) => Math.Round((double)hx4pa, (int)hx4pb)))',
-    };
-    const lambdaHead = '((Func<object, object, object>)(static (object hx4a, object hx4b) =>';
-    // the C30 object-lambda invocation `((Func<...>)(static ...))(X, Y)`: static type object
-    const isObjectLambdaCall = (text: string): boolean => {
-        const t = hx4C05StripParens (text);
-        if (!t.startsWith (lambdaHead)) return false;
-        const f = hx4C05ClosingParen (t, 0);
-        return (f !== undefined) && (t[f + 1] === '(') && (hx4C05ClosingParen (t, f + 1) === t.length - 1);
-    };
-    let counter = Math.max (-1, ...Array.from (content.matchAll (/\bc35v(\d+)\b/g), (m) => Number (m[1]))) + 1;
-    const rewrite = (text: string): string => {
-        let out = '';
-        let last = 0;
-        const callRe = /(?<![A-Za-z0-9_.])(parseInt|parseFloat|toFixed|divide)\(/g;
-        let m;
-        while ((m = callRe.exec (text)) !== null) {
-            const open = m.index + m[0].length - 1;
-            const close = hx4C05ClosingParen (text, open);
-            if (close === undefined) continue;
-            const inner = rewrite (text.slice (open + 1, close));
-            let native: string | undefined;
-            if (m[1] === 'divide') {
-                const comma = csharpHelperTopLevelComma (text, open, close);
-                if ((comma !== undefined) && (csharpHelperTopLevelComma (text, comma, close) === undefined)) {
-                    const rawA = text.slice (open + 1, comma);
-                    const rawB = text.slice (comma + 1, close);
-                    if (isObjectLambdaCall (rawA) || isObjectLambdaCall (rawB)) {
-                        const A = rewrite (rawA).trim ();
-                        const B = rewrite (rawB).trim ();
-                        const x = 'c35v' + (counter++);
-                        const y = 'c35v' + (counter++);
-                        native = '((((((object)(' + A + ')) is var ' + x + ') && (((object)(' + B + ')) is var ' + y + ')) ? (((' + x + ' == null) || (' + y + ' == null)) ? null : (object)(Convert.ToDouble(' + x + ') / Convert.ToDouble(' + y + '))) : null))';
-                    }
-                }
-            } else {
-                const comma = csharpHelperTopLevelComma (text, open, close);
-                const arity = (comma === undefined) ? 1 : ((csharpHelperTopLevelComma (text, comma, close) === undefined) ? 2 : 3);
-                if ((inner.trim () !== '') && (arity === ((m[1] === 'toFixed') ? 2 : 1))) native = '(' + bodies[m[1]] + '(' + inner + '))';
-            }
-            out += text.slice (last, m.index) + (native ?? (m[1] + '(' + inner + ')'));
-            last = close + 1;
-            callRe.lastIndex = close + 1;
-        }
-        return out + text.slice (last);
-    };
-    const lines = content.split ('\n');
-    let changed = false;
-    for (let i = 0; i < lines.length; i++) {
-        const masked = csharpHelperMaskLine (lines[i]);
-        if (!/(?<![\w.])(?:parseInt|parseFloat|toFixed|divide)\(/.test (masked) || lines[i].includes ('\u0001')) continue;
-        if (/\b(?:public|private|protected|internal)\b[^=]*\b(?:parseInt|parseFloat|toFixed|divide)\(/.test (masked)) continue; // a declaration
-        const comment = masked.indexOf ('//');
-        const code = (comment < 0) ? lines[i] : lines[i].slice (0, comment);
-        const strings = [];
-        const opaque = code.replace (/"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'/g, (s) => { strings.push (s); return '\u0001' + '\u0002'.repeat (s.length - 2) + '\u0001'; });
-        const saved = counter;
-        const text = rewrite (opaque);
-        let k = 0;
-        const rewritten = text.replace (/\u0001\u0002*\u0001/g, () => strings[k++]);
-        if ((k !== strings.length) || (rewritten === code)) { counter = saved; continue; }
-        lines[i] = rewritten + ((comment < 0) ? '' : lines[i].slice (comment));
-        changed = true;
-    }
-    return changed ? lines.join ('\n') : content;
+    // hx5 X09
+    void objectNull;
+    return content;
 }
 
-// hx4 C35 snippet checks (run from csharpHx4SelfTest)
+// hx4 C35 snippet checks (run from csharpHx4SelfTest) — hx5 X09: every former inline case keeps the helper call
 function hx4C35SnippetChecks (): string[] {
+    // hx5 X09
     const problems: string[] = [];
     const wrap = (body: string, ns = 'ccxt') => `namespace ${ns};\npublic partial class t : Exchange\n{\n    public virtual object f(object o, object id)\n    {\n${body}\n    }\n}\n`;
-    const helper = /(?<![\w.])(?:parseInt|parseFloat|toFixed|divide)\(/;
-    const cases: [string, string, string][] = [
-        [ 'parseInt', '        Int64? x = parseInt(id);', 'Int64? x = (((Func<object, Int64?>)(static (object hx4pa) => { try { return Convert.ToInt64(Math.Floor(Convert.ToDouble(hx4pa))); } catch (Exception) { return null; } }))(id));' ],
-        [ 'parseFloat in dict', '        object r = new Dictionary<string, object>() { { "cost", parseFloat(getValue(o, "a(")) } };', '(object hx4pa) => { object hx4pv = null; try { hx4pv = (Convert.ToDouble(hx4pa, global::System.Globalization.CultureInfo.InvariantCulture.NumberFormat)); } catch (Exception) { } return hx4pv; }))(getValue(o, "a(")))' ],
-        [ 'toFixed nested', '        return toFixed(parseFloat(o), 8);', 'return (((Func<object, object, object>)(static (object hx4pa, object hx4pb) => Math.Round((double)hx4pa, (int)hx4pb)))((((Func<object, object>)' ],
-        [ 'divide of object lambda', '        object r = divide(((Func<object, object, object>)(static (object hx4a, object hx4b) => hx4a))(o, id), 2.0); // c', 'object r = ((((((object)(((Func<object, object, object>)(static (object hx4a, object hx4b) => hx4a))(o, id))) is var c35v0) && (((object)(2.0)) is var c35v1)) ? (((c35v0 == null) || (c35v1 == null)) ? null : (object)(Convert.ToDouble(c35v0) / Convert.ToDouble(c35v1))) : null)); // c' ],
+    const keeps = [
+        '        Int64? x = parseInt(id);',
+        '        object r = new Dictionary<string, object>() { { "cost", parseFloat(getValue(o, "a(")) } };',
+        '        return toFixed(parseFloat(o), 8);',
+        '        string s = "1"; object v = parseFloat(s);',
+        '        object r = divide(((Func<object, object, object>)(static (object hx4a, object hx4b) => hx4a))(o, id), 2.0); // c',
+        '        object r = divide(o, id);',
+        '        object r = this.parseInt(o);',
+        '        // parseInt(o)',
     ];
-    for (const [ name, body, expected ] of cases) {
-        const out = hx4C35NativeHelperCalls (true, wrap (body));
-        if (!out.includes (expected)) problems.push (`hx4 C35 ${name}: ${out.slice (-600)}`);
-        if (helper.test (out.replace (/\/\/.*$/gm, ''))) problems.push (`hx4 C35 ${name}: helper left`);
-        if (hx4C35NativeHelperCalls (true, out) !== out) problems.push (`hx4 C35 ${name}: not idempotent`);
-    }
-    const keeps = [ '        object r = divide(o, id);', '        object r = this.parseInt(o);', '        // parseInt(o)' ];
     for (const body of keeps) {
-        if (hx4C35NativeHelperCalls (true, wrap (body)) !== wrap (body)) problems.push (`hx4 C35 keeps ${body}`);
+        const out = hx4C35NativeHelperCalls (true, wrap (body));
+        if (out !== wrap (body)) problems.push (`hx4 C35 keeps helper call: ${body}`);
+        if (/static \(object hx4pa|c35v\d|long\.Parse|double\.Parse/.test (out)) problems.push (`hx4 C35 inlined: ${body}`);
+        if (hx4C35NativeHelperCalls (true, out) !== out) problems.push (`hx4 C35 not idempotent: ${body}`);
     }
     if (hx4C35NativeHelperCalls (false, wrap ('        object r = parseInt(o);')) !== wrap ('        object r = parseInt(o);')) problems.push ('hx4 C35 fired in a non-final pass');
     if (hx4C35NativeHelperCalls (true, wrap ('        object r = parseInt(o);', 'Tests')) !== wrap ('        object r = parseInt(o);', 'Tests')) problems.push ('hx4 C35 tests namespace changed');
