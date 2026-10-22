@@ -56,7 +56,7 @@ export default class cryptocom extends cryptocomRest {
      */
     unWatchOrderBookForSymbols(symbols: string[], params?: Dict): Promise<any>;
     handleDelta(bookside: any, delta: any): void;
-    handleDeltas(bookside: any, deltas: any): void;
+    handleDeltas(bookside: any, deltas: any[]): void;
     handleOrderBook(client: Client, message: Dict): void;
     /**
      * @method

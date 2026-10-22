@@ -596,7 +596,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 String symbol = id;
                 List<Object> split = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("_"))));
                 String splitMarket = this.safeString(split, 1);
-                String baseId = ((java.util.function.Function<Object[], String>) (hx4J41a) -> { if (hx4J41a[0] == null) return null; String hx4J41s = (String) hx4J41a[0]; java.util.function.ToIntFunction<Object> hx4J41i = (hx4J41o) -> (hx4J41o instanceof Integer hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Long hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Double hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Float hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof java.math.BigDecimal hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof String hx4J41n) ? Integer.parseInt(hx4J41n) : Integer.parseInt(String.valueOf(hx4J41o)); int hx4J41b = (hx4J41a[1] != null) ? hx4J41i.applyAsInt(hx4J41a[1]) : -1; if (hx4J41a[2] == null) { if (hx4J41b < 0) return hx4J41s.substring(Math.max(hx4J41s.length() + hx4J41b, 0)); if (hx4J41b > hx4J41s.length()) return ""; return hx4J41s.substring(hx4J41b); } int hx4J41e = hx4J41i.applyAsInt(hx4J41a[2]); if (hx4J41b < 0) hx4J41b = hx4J41s.length() + hx4J41b; if (hx4J41e < 0) hx4J41e = hx4J41s.length() + hx4J41e; if (hx4J41b < 0) hx4J41b = 0; if (hx4J41e > hx4J41s.length()) hx4J41e = hx4J41s.length(); if (hx4J41b > hx4J41e) hx4J41b = hx4J41e; return hx4J41s.substring(hx4J41b, hx4J41e); }).apply(new Object[] { splitMarket, 0, (((long) splitMarket.length()) - 3L) });
+                String baseId = Helpers.slice(splitMarket, 0, (((long) splitMarket.length()) - 3L));
                 String quoteId = "usd"; // always USD
                 String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
                 String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
@@ -633,39 +633,39 @@ public class Krakenfutures extends KrakenfuturesApi
                         symbol = ((symbol + "-") + this.yymmdd(expiry));
                     }
                 }
-                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v6 = new HashMap<String, Object>();
-                    j39v6.put("id", id);
-                    j39v6.put("symbol", symbol);
-                    j39v6.put("base", base);
-                    j39v6.put("quote", quote);
-                    j39v6.put("settle", settle);
-                    j39v6.put("baseId", baseId);
-                    j39v6.put("quoteId", quoteId);
-                    j39v6.put("settleId", settleId);
-                    j39v6.put("type", type);
-                    j39v6.put("spot", false);
-                    j39v6.put("margin", false);
-                    j39v6.put("swap", swap);
-                    j39v6.put("future", future);
-                    j39v6.put("option", false);
-                    j39v6.put("index", index);
-                    j39v6.put("active", this.safeBool(market, "tradeable", (Object) null));
-                    j39v6.put("contract", contract);
-                    j39v6.put("linear", linear);
-                    j39v6.put("inverse", inverse);
-                    j39v6.put("contractSize", this.safeNumber(market, "contractSize", (Object) null));
-                    j39v6.put("taker", this.safeNumber((this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), "taker", (Object) null));
-                    j39v6.put("maker", this.safeNumber((this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), "maker", (Object) null));
-                    j39v6.put("maintenanceMarginRate", null);
-                    j39v6.put("expiry", expiry);
-                    j39v6.put("expiryDatetime", this.iso8601(expiry));
-                    j39v6.put("strike", null);
-                    j39v6.put("optionType", null);
-                    j39v6.put("precision", new HashMap<String, Object>() {{
+                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v4 = new HashMap<String, Object>();
+                    j39v4.put("id", id);
+                    j39v4.put("symbol", symbol);
+                    j39v4.put("base", base);
+                    j39v4.put("quote", quote);
+                    j39v4.put("settle", settle);
+                    j39v4.put("baseId", baseId);
+                    j39v4.put("quoteId", quoteId);
+                    j39v4.put("settleId", settleId);
+                    j39v4.put("type", type);
+                    j39v4.put("spot", false);
+                    j39v4.put("margin", false);
+                    j39v4.put("swap", swap);
+                    j39v4.put("future", future);
+                    j39v4.put("option", false);
+                    j39v4.put("index", index);
+                    j39v4.put("active", this.safeBool(market, "tradeable", (Object) null));
+                    j39v4.put("contract", contract);
+                    j39v4.put("linear", linear);
+                    j39v4.put("inverse", inverse);
+                    j39v4.put("contractSize", this.safeNumber(market, "contractSize", (Object) null));
+                    j39v4.put("taker", this.safeNumber((this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), "taker", (Object) null));
+                    j39v4.put("maker", this.safeNumber((this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), "maker", (Object) null));
+                    j39v4.put("maintenanceMarginRate", null);
+                    j39v4.put("expiry", expiry);
+                    j39v4.put("expiryDatetime", this.iso8601(expiry));
+                    j39v4.put("strike", null);
+                    j39v4.put("optionType", null);
+                    j39v4.put("precision", new HashMap<String, Object>() {{
                         put( "amount", amountPrecision );
                         put( "price", pricePrecision );
                     }});
-                    j39v6.put("limits", new HashMap<String, Object>() {{
+                    j39v4.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -683,13 +683,13 @@ public class Krakenfutures extends KrakenfuturesApi
                             put( "max", null );
                         }} );
                     }});
-                    j39v6.put("created", this.parse8601(this.safeString(market, "openingDate")));
-                    j39v6.put("info", market);
-                    yield j39v6; } }));
+                    j39v4.put("created", this.parse8601(this.safeString(market, "openingDate")));
+                    j39v4.put("info", market);
+                    yield j39v4; } }));
             }
             Object settlementCurrencies = Helpers.GetValue(this.options.get("settlementCurrencies"), "flex");
             List<Object> currencies = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < (switch ((Object)(settlementCurrencies)) { case null -> 0; case List<?> j39v2 -> j39v2.size(); case String j39v3 -> j39v3.length(); case Object j39v4 -> j39v4.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v4) : 0; }); i++)
+            for (var i = 0; i < (switch ((Object)(settlementCurrencies)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
             {
                 Object code = Helpers.GetValue(settlementCurrencies, i);
                 ((List<Object>)currencies).add(new HashMap<String, Object>() {{
@@ -1860,19 +1860,19 @@ public class Krakenfutures extends KrakenfuturesApi
             {
                 for (var i = 0; i < ((List<?>)clientOrderIds).size(); i++)
                 {
-                    ((List<Object>)orders).add((switch (0) { default -> { HashMap<String, Object> j39v8 = new HashMap<String, Object>();
-                        j39v8.put("order", "cancel");
-                        j39v8.put("cliOrdId", (clientOrderIds == null || i < 0 || i >= clientOrderIds.size() ? null : clientOrderIds.get(i)));
-                        yield j39v8; } }));
+                    ((List<Object>)orders).add((switch (0) { default -> { HashMap<String, Object> j39v6 = new HashMap<String, Object>();
+                        j39v6.put("order", "cancel");
+                        j39v6.put("cliOrdId", (clientOrderIds == null || i < 0 || i >= clientOrderIds.size() ? null : clientOrderIds.get(i)));
+                        yield j39v6; } }));
                 }
             } else
             {
                 for (var i = 0; i < ((List<?>)ids).size(); i++)
                 {
-                    ((List<Object>)orders).add((switch (0) { default -> { HashMap<String, Object> j39v7 = new HashMap<String, Object>();
-                        j39v7.put("order", "cancel");
-                        j39v7.put("order_id", (ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i)));
-                        yield j39v7; } }));
+                    ((List<Object>)orders).add((switch (0) { default -> { HashMap<String, Object> j39v5 = new HashMap<String, Object>();
+                        j39v5.put("order", "cancel");
+                        j39v5.put("order_id", (ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i)));
+                        yield j39v5; } }));
                 }
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3386,8 +3386,8 @@ public class Krakenfutures extends KrakenfuturesApi
             }
             Map<String, Object> balance = (Map<String, Object>) this.parseBalance(account);
             balance.put("info", response);
-            { Map<Object, Object> j39v12 = (Map<Object, Object>) (Map<?, ?>) (balance); Object j39v13 = "timestamp"; Object j39v14 = this.parse8601(datetime); if (j39v12 == null) { if (j39v13 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v12) { if (j39v14 == null && j39v12 instanceof java.util.concurrent.ConcurrentHashMap) { j39v12.remove(j39v13); } else { j39v12.put(j39v13, j39v14); } } }
-            { Map<Object, Object> j39v9 = (Map<Object, Object>) (Map<?, ?>) (balance); Object j39v10 = "datetime"; Object j39v11 = datetime; if (j39v9 == null) { if (j39v10 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v9) { if (j39v11 == null && j39v9 instanceof java.util.concurrent.ConcurrentHashMap) { j39v9.remove(j39v10); } else { j39v9.put(j39v10, j39v11); } } }
+            Helpers.addElementToObject(balance, "timestamp", this.parse8601(datetime));
+            Helpers.addElementToObject(balance, "datetime", datetime);
             return balance;
         }).thenApply(Balances::new);
 
@@ -3669,13 +3669,13 @@ public class Krakenfutures extends KrakenfuturesApi
             {
                 Map<String, Object> item = (Map<String, Object>) this.safeDict(rates, i, (Object) null);
                 String datetime = this.safeString(item, "timestamp");
-                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v15 = new HashMap<String, Object>();
-                    j39v15.put("info", item);
-                    j39v15.put("symbol", symbol);
-                    j39v15.put("fundingRate", this.safeNumber(item, "relativeFundingRate", (Object) null));
-                    j39v15.put("timestamp", this.parse8601(datetime));
-                    j39v15.put("datetime", datetime);
-                    yield j39v15; } }));
+                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v7 = new HashMap<String, Object>();
+                    j39v7.put("info", item);
+                    j39v7.put("symbol", symbol);
+                    j39v7.put("fundingRate", this.safeNumber(item, "relativeFundingRate", (Object) null));
+                    j39v7.put("timestamp", this.parse8601(datetime));
+                    j39v7.put("datetime", datetime);
+                    yield j39v7; } }));
             }
             List<Object> sorted = this.sortBy(result, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit, false);
@@ -4095,16 +4095,16 @@ public class Krakenfutures extends KrakenfuturesApi
                 Object previousTier = (tiers == null || ((int) (((long) tiersLength) - 1L)) < 0 || ((int) (((long) tiersLength) - 1L)) >= tiers.size() ? null : tiers.get(((int) (((long) tiersLength) - 1L))));
                 Helpers.addElementToObject(previousTier, "maxNotional", minNotional);
             }
-            ((List<Object>)tiers).add((switch (0) { default -> { HashMap<String, Object> j39v16 = new HashMap<String, Object>();
-                j39v16.put("tier", this.sum(i, 1));
-                j39v16.put("symbol", this.safeSymbol(marketId, marketResolved, (String) null, (String) null));
-                j39v16.put("currency", marketResolved.get("quote"));
-                j39v16.put("minNotional", minNotional);
-                j39v16.put("maxNotional", null);
-                j39v16.put("maintenanceMarginRate", this.safeNumber(tier, "maintenanceMargin", (Object) null));
-                j39v16.put("maxLeverage", this.parseNumber(Precise.stringDiv("1", initialMargin)));
-                j39v16.put("info", tier);
-                yield j39v16; } }));
+            ((List<Object>)tiers).add((switch (0) { default -> { HashMap<String, Object> j39v8 = new HashMap<String, Object>();
+                j39v8.put("tier", this.sum(i, 1));
+                j39v8.put("symbol", this.safeSymbol(marketId, marketResolved, (String) null, (String) null));
+                j39v8.put("currency", marketResolved.get("quote"));
+                j39v8.put("minNotional", minNotional);
+                j39v8.put("maxNotional", null);
+                j39v8.put("maintenanceMarginRate", this.safeNumber(tier, "maintenanceMargin", (Object) null));
+                j39v8.put("maxLeverage", this.parseNumber(Precise.stringDiv("1", initialMargin)));
+                j39v8.put("info", tier);
+                yield j39v8; } }));
         }
         return tiers;
     }

@@ -846,7 +846,7 @@ class zaif extends Exchange {
         return sprintf('%.8f', $nonce);
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $baseApiUrl = $this->safe_string($this->urls['api'], 'rest');
         if ($baseApiUrl === null) {

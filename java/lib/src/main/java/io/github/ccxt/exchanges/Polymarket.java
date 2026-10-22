@@ -1146,7 +1146,7 @@ public class Polymarket extends PolymarketApi
             paramsOmitted = ((List<Object>) paginateparamsOmittedVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, java.util.Objects.requireNonNullElse(timeframe, "1m"), ((Map<String, Object>) (switch ((Object) (paramsOmitted)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v8 -> (Map<String, Object>) hx4J40v8; case Object hx4J40v8 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v8.getClass().getName()); })), 1000L)).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, java.util.Objects.requireNonNullElse(timeframe, "1m"), ((Map<String, Object>) (switch ((Object) (paramsOmitted)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v14 -> (Map<String, Object>) hx4J40v14; case Object hx4J40v14 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v14.getClass().getName()); })), 1000L)).join();
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1336,7 +1336,7 @@ public class Polymarket extends PolymarketApi
             paramsOmitted = ((List<Object>) paginateparamsOmittedVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "1h", ((Map<String, Object>) (switch ((Object) (paramsOmitted)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v7 -> (Map<String, Object>) hx4J40v7; case Object hx4J40v7 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v7.getClass().getName()); })), 100L)).join();
+                return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "1h", ((Map<String, Object>) (switch ((Object) (paramsOmitted)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v13 -> (Map<String, Object>) hx4J40v13; case Object hx4J40v13 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v13.getClass().getName()); })), 100L)).join();
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1551,7 +1551,7 @@ public class Polymarket extends PolymarketApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dict with the signable row and the body entry
      */
-    public Map<String, Object> createOrderRequest(Map<String, Object> market, String type, String side, Object amount, Object price, Object parameters)
+    public Map<String, Object> createOrderRequest(Map<String, Object> market, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
         String triggerPrice = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "trailingPercent", "trailingAmount")));
         Object attached = this.safeValueN(parameters, new ArrayList<Object>(Arrays.asList("stopLoss", "takeProfit")));
@@ -1565,7 +1565,7 @@ public class Polymarket extends PolymarketApi
         Boolean isPostOnlyTimeInForce = (java.util.Objects.equals(timeInForce, "PO"));
         Boolean postOnly = false;
         Object paramsOmitted = parameters;
-        List<Object> postOnlyparamsOmittedVariable = (List<Object>) this.handlePostOnly(isMarketOrder, isPostOnlyTimeInForce, ((Map<String, Object>) (switch ((Object) (paramsOmitted)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v5 -> (Map<String, Object>) hx4J40v5; case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v5.getClass().getName()); })));
+        List<Object> postOnlyparamsOmittedVariable = (List<Object>) this.handlePostOnly(isMarketOrder, isPostOnlyTimeInForce, ((Map<String, Object>) (switch ((Object) (paramsOmitted)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v11 -> (Map<String, Object>) hx4J40v11; case Object hx4J40v11 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v11.getClass().getName()); })));
         postOnly = (Boolean) ((List<Object>) postOnlyparamsOmittedVariable).get(0);
         paramsOmitted = ((List<Object>) postOnlyparamsOmittedVariable).get(1);
         if (Boolean.TRUE.equals(isMarketOrder))
@@ -1727,7 +1727,7 @@ public class Polymarket extends PolymarketApi
                 put( "type", "createOrders" );
                 put( "args", entries );
             }};
-            Map<String, Object> signed = (this.signPerpsOp(signable, bodyOp, parameters)).join();
+            Map<String, Object> signed = (this.signPerpsOp(signable, bodyOp, ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v10 -> (Map<String, Object>) hx4J40v10; case Object hx4J40v10 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v10.getClass().getName()); })))).join();
             List<Object> response = (this.tradePostTradeOrders(signed)).join();
             //
             //     [
@@ -1752,7 +1752,7 @@ public class Polymarket extends PolymarketApi
                 {
                     merged.put("status", null);
                 }
-                Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(merged, ((Map<String, Object>) (switch ((Object) (marketInner)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); })));
+                Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(merged, ((Map<String, Object>) (switch ((Object) (marketInner)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v9 -> (Map<String, Object>) hx4J40v9; case Object hx4J40v9 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v9.getClass().getName()); })));
                 parsed.put("info", ack);
                 ((List<Object>)results).add(parsed);
             }
@@ -1831,7 +1831,7 @@ public class Polymarket extends PolymarketApi
                     hx4NewMap1.put("args", clientOrderIds);
                     bodyOp = hx4NewMap1;
                 }
-                Map<String, Object> signed = (this.signPerpsOp(signable, bodyOp, paramsOmitted)).join();
+                Map<String, Object> signed = (this.signPerpsOp(signable, bodyOp, ((Map<String, Object>) (switch ((Object) (paramsOmitted)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v8 -> (Map<String, Object>) hx4J40v8; case Object hx4J40v8 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v8.getClass().getName()); })))).join();
                 response = (this.tradeDeleteTradeOrdersCoid(signed)).join();
             } else
             {
@@ -1845,7 +1845,7 @@ public class Polymarket extends PolymarketApi
                     put( "type", "cancelOrders" );
                     put( "args", numericIds );
                 }};
-                Map<String, Object> signed = (this.signPerpsOp(signable, bodyOp, paramsOmitted)).join();
+                Map<String, Object> signed = (this.signPerpsOp(signable, bodyOp, ((Map<String, Object>) (switch ((Object) (paramsOmitted)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v7 -> (Map<String, Object>) hx4J40v7; case Object hx4J40v7 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v7.getClass().getName()); })))).join();
                 response = (this.tradeDeleteTradeOrders(signed)).join();
             }
             //
@@ -2000,7 +2000,7 @@ public class Polymarket extends PolymarketApi
         put( "qty", quantity );
     }})) );
             }};
-            Map<String, Object> signed = (this.signPerpsOp(signable, bodyOp, parameters)).join();
+            Map<String, Object> signed = (this.signPerpsOp(signable, bodyOp, ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v6 -> (Map<String, Object>) hx4J40v6; case Object hx4J40v6 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v6.getClass().getName()); })))).join();
             List<Object> response = (this.tradePatchTradeOrders(signed)).join();
             //
             //     [
@@ -2271,7 +2271,7 @@ public class Polymarket extends PolymarketApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Position> positions = (this.fetchPositions(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(symbol)))) { case null -> (List<String>) null; case List<?> hx4J40v3 -> (List<String>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v3.getClass().getName()); })), parameters)).join();
+            List<Position> positions = (this.fetchPositions(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(symbol)))) { case null -> (List<String>) null; case List<?> hx4J40v5 -> (List<String>) hx4J40v5; case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v5.getClass().getName()); })), parameters)).join();
             Map<String, Object> position = (Map<String, Object>) this.safeDict(positions, 0, (Object) null);
             return position;
         }).thenApply(Position::new);
@@ -2851,7 +2851,7 @@ public class Polymarket extends PolymarketApi
             Map<String, Object> collateral = (Map<String, Object>) this.safeDict(this.options, "collateral", new HashMap<String, Object>() {{}});
             String tokenAddress = this.safeString(collateral, "address");
             String decimals = this.safeString(collateral, "decimals", "6");
-            Object precision = this.parsePrecision(decimals);
+            String precision = (String) this.parsePrecision(decimals);
             // the signed amount is denominated using raw base units of the token
             String precised = this.decimalToPrecision(this.numberToString(amount), TRUNCATE, this.parseNumber(precision), TICK_SIZE);
             String baseUnits = Precise.stringDiv(precised, precision);
@@ -3046,7 +3046,7 @@ public class Polymarket extends PolymarketApi
             Map<String, Object> market = this.market(symbol);
             String marginMode = null;
             Object paramsOmitted = parameters;
-            Pair<String, Map<String, Object>> marginModeparamsOmittedVariable = this.handleMarginModeAndParams("setLeverage", ((Map<String, Object>) (switch ((Object) (paramsOmitted)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })), "cross");
+            Pair<String, Map<String, Object>> marginModeparamsOmittedVariable = this.handleMarginModeAndParams("setLeverage", ((Map<String, Object>) (switch ((Object) (paramsOmitted)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); })), "cross");
             marginMode = marginModeparamsOmittedVariable.first();
             paramsOmitted = marginModeparamsOmittedVariable.second();
             Boolean isCross = (!java.util.Objects.equals(marginMode, "isolated"));
@@ -3125,7 +3125,7 @@ public class Polymarket extends PolymarketApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
      */
-    public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, Object type, Object parameters)
+    public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, Object type, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3135,7 +3135,7 @@ public class Polymarket extends PolymarketApi
             Long instrumentId = this.parseToInt(market.get("id"));
             Map<String, Object> collateral = (Map<String, Object>) this.safeDict(this.options, "collateral", new HashMap<String, Object>() {{}});
             String decimals = this.safeString(collateral, "decimals", "6");
-            Object precision = this.parsePrecision(decimals);
+            String precision = (String) this.parsePrecision(decimals);
             String amountString = this.decimalToPrecision(this.numberToString(amount), TRUNCATE, this.parseNumber(precision), TICK_SIZE);
             if (java.util.Objects.equals(type, "reduce"))
             {
@@ -3186,7 +3186,7 @@ public class Polymarket extends PolymarketApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.modifyMarginHelper(symbol, amount, "add", parameters)).join();
+            return (this.modifyMarginHelper(symbol, amount, "add", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })))).join();
         }).thenApply(MarginModification::new);
 
     }
@@ -3210,7 +3210,7 @@ public class Polymarket extends PolymarketApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.modifyMarginHelper(symbol, amount, "reduce", parameters)).join();
+            return (this.modifyMarginHelper(symbol, amount, "reduce", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })))).join();
         }).thenApply(MarginModification::new);
 
     }
@@ -3226,7 +3226,7 @@ public class Polymarket extends PolymarketApi
 
     public Object signHash(Object hash, Object privateKey)
     {
-        Map<String,Object> signature = ecdsa(((java.util.function.Function<Object[], String>) (hx4J41a) -> { if (hx4J41a[0] == null) return null; String hx4J41s = (String) hx4J41a[0]; java.util.function.ToIntFunction<Object> hx4J41i = (hx4J41o) -> (hx4J41o instanceof Integer hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Long hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Double hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Float hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof java.math.BigDecimal hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof String hx4J41n) ? Integer.parseInt(hx4J41n) : Integer.parseInt(String.valueOf(hx4J41o)); int hx4J41b = (hx4J41a[1] != null) ? hx4J41i.applyAsInt(hx4J41a[1]) : -1; if (hx4J41a[2] == null) { if (hx4J41b < 0) return hx4J41s.substring(Math.max(hx4J41s.length() + hx4J41b, 0)); if (hx4J41b > hx4J41s.length()) return ""; return hx4J41s.substring(hx4J41b); } int hx4J41e = hx4J41i.applyAsInt(hx4J41a[2]); if (hx4J41b < 0) hx4J41b = hx4J41s.length() + hx4J41b; if (hx4J41e < 0) hx4J41e = hx4J41s.length() + hx4J41e; if (hx4J41b < 0) hx4J41b = 0; if (hx4J41e > hx4J41s.length()) hx4J41e = hx4J41s.length(); if (hx4J41b > hx4J41e) hx4J41b = hx4J41e; return hx4J41s.substring(hx4J41b, hx4J41e); }).apply(new Object[] { hash, -64, null }), ((java.util.function.Function<Object[], String>) (hx4J41a) -> { if (hx4J41a[0] == null) return null; String hx4J41s = (String) hx4J41a[0]; java.util.function.ToIntFunction<Object> hx4J41i = (hx4J41o) -> (hx4J41o instanceof Integer hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Long hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Double hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Float hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof java.math.BigDecimal hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof String hx4J41n) ? Integer.parseInt(hx4J41n) : Integer.parseInt(String.valueOf(hx4J41o)); int hx4J41b = (hx4J41a[1] != null) ? hx4J41i.applyAsInt(hx4J41a[1]) : -1; if (hx4J41a[2] == null) { if (hx4J41b < 0) return hx4J41s.substring(Math.max(hx4J41s.length() + hx4J41b, 0)); if (hx4J41b > hx4J41s.length()) return ""; return hx4J41s.substring(hx4J41b); } int hx4J41e = hx4J41i.applyAsInt(hx4J41a[2]); if (hx4J41b < 0) hx4J41b = hx4J41s.length() + hx4J41b; if (hx4J41e < 0) hx4J41e = hx4J41s.length() + hx4J41e; if (hx4J41b < 0) hx4J41b = 0; if (hx4J41e > hx4J41s.length()) hx4J41e = hx4J41s.length(); if (hx4J41b > hx4J41e) hx4J41b = hx4J41e; return hx4J41s.substring(hx4J41b, hx4J41e); }).apply(new Object[] { privateKey, -64, null }), secp256k1(), null);
+        Map<String,Object> signature = ecdsa(Helpers.slice(hash, -64, null), Helpers.slice(privateKey, -64, null), secp256k1(), null);
         Object r = signature.get("r");
         Object sVal = signature.get("s");
         String v = this.intToBase16(this.sum(27, signature.get("v")));
@@ -3246,7 +3246,7 @@ public class Polymarket extends PolymarketApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the session credentials, holding the proxy address, the proxy private key, the secret and the expiry timestamp
      */
-    public CompletableFuture<Map<String, Object>> createProxyCredentials(Object parameters)
+    public CompletableFuture<Map<String, Object>> createProxyCredentials(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3316,7 +3316,7 @@ public class Polymarket extends PolymarketApi
                 put( "secret", Polymarket.this.safeString(response, "secret") );
                 put( "expires", expiry );
             }};
-            { Map<Object, Object> j39v4 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v5 = "proxyCredentials"; Object j39v6 = credentials; if (j39v4 == null) { if (j39v5 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v4) { if (j39v6 == null && j39v4 instanceof java.util.concurrent.ConcurrentHashMap) { j39v4.remove(j39v5); } else { j39v4.put(j39v5, j39v6); } } }
+            Helpers.addElementToObject(this.options, "proxyCredentials", credentials);
             return credentials;
         }).thenApply(res -> (Map<String, Object>) res);
 
@@ -3330,7 +3330,7 @@ public class Polymarket extends PolymarketApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the session credentials, holding the proxy address, the proxy private key, the secret and the expiry timestamp
      */
-    public CompletableFuture<Map<String, Object>> loadProxyCredentials(Object parameters)
+    public CompletableFuture<Map<String, Object>> loadProxyCredentials(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3364,7 +3364,7 @@ public class Polymarket extends PolymarketApi
      * @param {object} bodyOp the structured operation object transmitted to the venue
      * @returns {object} the signed request body with the op, sig, salt and ts fields
      */
-    public CompletableFuture<Map<String, Object>> signPerpsOp(Object signable, Object bodyOp, Object parameters)
+    public CompletableFuture<Map<String, Object>> signPerpsOp(Object signable, Object bodyOp, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3479,11 +3479,11 @@ public class Polymarket extends PolymarketApi
     {
         if (java.util.Objects.equals(path, "account/orders"))
         {
-            return ((((switch ((Object)(parameters)) { case List<?> j39v10 -> j39v10.contains("order_id"); case Map<?, ?> j39v9 -> j39v9.containsKey("order_id"); case null, default -> false; })))) ? 1 : 10;
+            return ((((switch ((Object)(parameters)) { case List<?> j39v7 -> j39v7.contains("order_id"); case Map<?, ?> j39v6 -> j39v6.containsKey("order_id"); case null, default -> false; })))) ? 1 : 10;
         }
         if (java.util.Objects.equals(path, "account/open-orders"))
         {
-            return ((((switch ((Object)(parameters)) { case List<?> j39v8 -> j39v8.contains("instrument_id"); case Map<?, ?> j39v7 -> j39v7.containsKey("instrument_id"); case null, default -> false; })))) ? 1 : 20;
+            return ((((switch ((Object)(parameters)) { case List<?> j39v5 -> j39v5.contains("instrument_id"); case Map<?, ?> j39v4 -> j39v4.containsKey("instrument_id"); case null, default -> false; })))) ? 1 : 20;
         }
         if ((java.util.Objects.equals(path, "trade/orders")) || (java.util.Objects.equals(path, "trade/orders-coid")))
         {
@@ -3533,7 +3533,7 @@ public class Polymarket extends PolymarketApi
         {
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
-                List<Object> keys = ((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v11 -> { synchronized (j39v11) { yield new ArrayList<Object>(j39v11.keySet()); } } case null, default -> new ArrayList<Object>(); });
+                List<Object> keys = ((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v8 -> { synchronized (j39v8) { yield new ArrayList<Object>(j39v8.keySet()); } } case null, default -> new ArrayList<Object>(); });
                 Integer keysLength = ((List<?>)keys).size();
                 if ((keysLength != null && keysLength > 0))
                 {

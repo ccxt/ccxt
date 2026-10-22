@@ -846,16 +846,16 @@ public class Coinsph extends CoinsphApi
 
     public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
     {
-        if ((config.containsKey("noSymbol")) && !((switch ((Object)(parameters)) { case List<?> j39v16 -> j39v16.contains("symbol"); case Map<?, ?> j39v15 -> j39v15.containsKey("symbol"); case null, default -> false; })))
+        if ((config.containsKey("noSymbol")) && !((switch ((Object)(parameters)) { case List<?> j39v13 -> j39v13.contains("symbol"); case Map<?, ?> j39v12 -> j39v12.containsKey("symbol"); case null, default -> false; })))
         {
             return config.get("noSymbol");
-        } else if ((config.containsKey("noSymbolAndNoSymbols")) && !((switch ((Object)(parameters)) { case List<?> j39v14 -> j39v14.contains("symbol"); case Map<?, ?> j39v13 -> j39v13.containsKey("symbol"); case null, default -> false; })) && !((switch ((Object)(parameters)) { case List<?> j39v12 -> j39v12.contains("symbols"); case Map<?, ?> j39v11 -> j39v11.containsKey("symbols"); case null, default -> false; })))
+        } else if ((config.containsKey("noSymbolAndNoSymbols")) && !((switch ((Object)(parameters)) { case List<?> j39v11 -> j39v11.contains("symbol"); case Map<?, ?> j39v10 -> j39v10.containsKey("symbol"); case null, default -> false; })) && !((switch ((Object)(parameters)) { case List<?> j39v9 -> j39v9.contains("symbols"); case Map<?, ?> j39v8 -> j39v8.containsKey("symbols"); case null, default -> false; })))
         {
             return config.get("noSymbolAndNoSymbols");
-        } else if ((config.containsKey("byNumberOfSymbols")) && ((switch ((Object)(parameters)) { case List<?> j39v10 -> j39v10.contains("symbols"); case Map<?, ?> j39v9 -> j39v9.containsKey("symbols"); case null, default -> false; })))
+        } else if ((config.containsKey("byNumberOfSymbols")) && ((switch ((Object)(parameters)) { case List<?> j39v7 -> j39v7.contains("symbols"); case Map<?, ?> j39v6 -> j39v6.containsKey("symbols"); case null, default -> false; })))
         {
             Object symbols = Helpers.GetValue(parameters, "symbols");
-            Integer symbolsAmount = (switch ((Object)(symbols)) { case null -> 0; case List<?> j39v5 -> j39v5.size(); case String j39v6 -> j39v6.length(); case Object j39v7 -> j39v7.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v7) : 0; });
+            Integer symbolsAmount = (switch ((Object)(symbols)) { case null -> 0; case List<?> j39v3 -> j39v3.size(); case String j39v4 -> j39v4.length(); case Object j39v5 -> j39v5.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v5) : 0; });
             List<Object> byNumberOfSymbols = (List<Object>) this.safeList(config, "byNumberOfSymbols", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)byNumberOfSymbols).size(); i++)
             {
@@ -866,7 +866,7 @@ public class Coinsph extends CoinsphApi
                     return Helpers.GetValue(entry, 1);
                 }
             }
-        } else if ((config.containsKey("byLimit")) && ((switch ((Object)(parameters)) { case List<?> j39v3 -> j39v3.contains("limit"); case Map<?, ?> j39v2 -> j39v2.containsKey("limit"); case null, default -> false; })))
+        } else if ((config.containsKey("byLimit")) && ((switch ((Object)(parameters)) { case List<?> j39v2 -> j39v2.contains("limit"); case Map<?, ?> j39v1 -> j39v1.containsKey("limit"); case null, default -> false; })))
         {
             Long limit = this.safeInteger(parameters, "limit");
             List<Object> byLimit = (List<Object>) this.safeList(config, "byLimit", new ArrayList<Object>(Arrays.asList()));
@@ -1021,37 +1021,37 @@ public class Coinsph extends CoinsphApi
                 Map<String, Object> amountLimits = (Map<String, Object>) this.safeDict(limits, "LOT_SIZE", new HashMap<String, Object>() {{}});
                 Map<String, Object> priceLimits = (Map<String, Object>) this.safeDict(limits, "PRICE_FILTER", new HashMap<String, Object>() {{}});
                 Map<String, Object> costLimits = (Map<String, Object>) this.safeDict(limits, "NOTIONAL", new HashMap<String, Object>() {{}});
-                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v17 = new HashMap<String, Object>();
-                    j39v17.put("id", id);
-                    j39v17.put("symbol", ((base + "/") + quote));
-                    j39v17.put("base", base);
-                    j39v17.put("quote", quote);
-                    j39v17.put("settle", null);
-                    j39v17.put("baseId", baseId);
-                    j39v17.put("quoteId", quoteId);
-                    j39v17.put("settleId", null);
-                    j39v17.put("type", "spot");
-                    j39v17.put("spot", true);
-                    j39v17.put("margin", false);
-                    j39v17.put("swap", false);
-                    j39v17.put("future", false);
-                    j39v17.put("option", false);
-                    j39v17.put("active", java.util.Objects.equals(this.safeStringLower(market, "status"), "trading"));
-                    j39v17.put("contract", false);
-                    j39v17.put("linear", null);
-                    j39v17.put("inverse", null);
-                    j39v17.put("taker", null);
-                    j39v17.put("maker", null);
-                    j39v17.put("contractSize", null);
-                    j39v17.put("expiry", null);
-                    j39v17.put("expiryDatetime", null);
-                    j39v17.put("strike", null);
-                    j39v17.put("optionType", null);
-                    j39v17.put("precision", new HashMap<String, Object>() {{
+                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v14 = new HashMap<String, Object>();
+                    j39v14.put("id", id);
+                    j39v14.put("symbol", ((base + "/") + quote));
+                    j39v14.put("base", base);
+                    j39v14.put("quote", quote);
+                    j39v14.put("settle", null);
+                    j39v14.put("baseId", baseId);
+                    j39v14.put("quoteId", quoteId);
+                    j39v14.put("settleId", null);
+                    j39v14.put("type", "spot");
+                    j39v14.put("spot", true);
+                    j39v14.put("margin", false);
+                    j39v14.put("swap", false);
+                    j39v14.put("future", false);
+                    j39v14.put("option", false);
+                    j39v14.put("active", java.util.Objects.equals(this.safeStringLower(market, "status"), "trading"));
+                    j39v14.put("contract", false);
+                    j39v14.put("linear", null);
+                    j39v14.put("inverse", null);
+                    j39v14.put("taker", null);
+                    j39v14.put("maker", null);
+                    j39v14.put("contractSize", null);
+                    j39v14.put("expiry", null);
+                    j39v14.put("expiryDatetime", null);
+                    j39v14.put("strike", null);
+                    j39v14.put("optionType", null);
+                    j39v14.put("precision", new HashMap<String, Object>() {{
                         put( "amount", Coinsph.this.parseNumber(Coinsph.this.safeString(amountLimits, "stepSize")) );
                         put( "price", Coinsph.this.parseNumber(Coinsph.this.safeString(priceLimits, "tickSize")) );
                     }});
-                    j39v17.put("limits", new HashMap<String, Object>() {{
+                    j39v14.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -1069,9 +1069,9 @@ public class Coinsph extends CoinsphApi
                             put( "max", null );
                         }} );
                     }});
-                    j39v17.put("created", null);
-                    j39v17.put("info", market);
-                    yield j39v17; } }));
+                    j39v14.put("created", null);
+                    j39v14.put("info", market);
+                    yield j39v14; } }));
             }
             this.setMarkets(result, (Object) null);
             return result;

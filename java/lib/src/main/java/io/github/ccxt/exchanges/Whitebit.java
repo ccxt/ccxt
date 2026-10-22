@@ -1265,7 +1265,7 @@ public class Whitebit extends WhitebitApi
         //
         Map<String, Object> depositWithdrawFees = new HashMap<String, Object>() {{}};
         List<Object> codesValue = this.marketCodes(codes);
-        List<Object> currencyIds = ((List<Object>) switch ((Object)(response)) { case Map<?, ?> j39v4 -> { synchronized (j39v4) { yield new ArrayList<Object>(j39v4.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> currencyIds = ((List<Object>) switch ((Object)(response)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
         for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
         {
             Object entry = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
@@ -1295,7 +1295,7 @@ public class Whitebit extends WhitebitApi
                 if (!java.util.Objects.equals(networkId, null))
                 {
                     Integer networkLength = networkId.length();
-                    networkId = ((java.util.function.Function<Object[], String>) (hx4J41a) -> { if (hx4J41a[0] == null) return null; String hx4J41s = (String) hx4J41a[0]; java.util.function.ToIntFunction<Object> hx4J41i = (hx4J41o) -> (hx4J41o instanceof Integer hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Long hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Double hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Float hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof java.math.BigDecimal hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof String hx4J41n) ? Integer.parseInt(hx4J41n) : Integer.parseInt(String.valueOf(hx4J41o)); int hx4J41b = (hx4J41a[1] != null) ? hx4J41i.applyAsInt(hx4J41a[1]) : -1; if (hx4J41a[2] == null) { if (hx4J41b < 0) return hx4J41s.substring(Math.max(hx4J41s.length() + hx4J41b, 0)); if (hx4J41b > hx4J41s.length()) return ""; return hx4J41s.substring(hx4J41b); } int hx4J41e = hx4J41i.applyAsInt(hx4J41a[2]); if (hx4J41b < 0) hx4J41b = hx4J41s.length() + hx4J41b; if (hx4J41e < 0) hx4J41e = hx4J41s.length() + hx4J41e; if (hx4J41b < 0) hx4J41b = 0; if (hx4J41e > hx4J41s.length()) hx4J41e = hx4J41s.length(); if (hx4J41b > hx4J41e) hx4J41b = hx4J41e; return hx4J41s.substring(hx4J41b, hx4J41e); }).apply(new Object[] { networkId, 1, (((long) networkLength) - 1L) });
+                    networkId = Helpers.slice(networkId, 1, (((long) networkLength) - 1L));
                     String networkCode = this.networkIdToCode(networkId, code);
                     if (!java.util.Objects.equals(networkCode, null))
                     {
@@ -1893,7 +1893,7 @@ public class Whitebit extends WhitebitApi
                     }
                 } catch(Exception error)
                 {
-                    if (!((switch ((Object) (error)) { case null -> false; case Throwable hx4J44v1 -> { Throwable hx4J44v1u = hx4J44v1; while ((hx4J44v1u instanceof java.util.concurrent.CompletionException || hx4J44v1u instanceof java.util.concurrent.ExecutionException) && hx4J44v1u.getCause() != null) { hx4J44v1u = hx4J44v1u.getCause(); } yield OrderNotFound.class.isInstance(hx4J44v1u); } case Object hx4J44v1 -> OrderNotFound.class.isInstance(hx4J44v1); })))
+                    if (!(Helpers.isInstance(error, OrderNotFound.class)))
                     {
                         throw (error instanceof RuntimeException ? (RuntimeException)error : new RuntimeException(error));
                     }
@@ -1924,7 +1924,7 @@ public class Whitebit extends WhitebitApi
                     }
                 } catch(Exception error)
                 {
-                    if (!((switch ((Object) (error)) { case null -> false; case Throwable hx4J44v0 -> { Throwable hx4J44v0u = hx4J44v0; while ((hx4J44v0u instanceof java.util.concurrent.CompletionException || hx4J44v0u instanceof java.util.concurrent.ExecutionException) && hx4J44v0u.getCause() != null) { hx4J44v0u = hx4J44v0u.getCause(); } yield OrderNotFound.class.isInstance(hx4J44v0u); } case Object hx4J44v0 -> OrderNotFound.class.isInstance(hx4J44v0); })))
+                    if (!(Helpers.isInstance(error, OrderNotFound.class)))
                     {
                         throw (error instanceof RuntimeException ? (RuntimeException)error : new RuntimeException(error));
                     }
@@ -2778,7 +2778,7 @@ public class Whitebit extends WhitebitApi
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", market.get("id") );
-                put( "orderId", ((Long) (switch ((Object) (id)) { case null -> (Long) null; case Long hx4J42v1 -> hx4J42v1; case Integer hx4J42v1 -> Long.valueOf(hx4J42v1.longValue()); case Double hx4J42v1 -> Long.valueOf(hx4J42v1.longValue()); case Float hx4J42v1 -> Long.valueOf(hx4J42v1.longValue()); case java.math.BigDecimal hx4J42v1 -> Long.valueOf(hx4J42v1.longValue()); case Object hx4J42v1 -> { try { yield Long.valueOf(Long.parseLong(String.valueOf(hx4J42v1))); } catch (Exception hx4J42v1e) { yield (Long) null; } } })) );
+                put( "orderId", Helpers.parseInt(id) );
             }};
             Map<String, Object> response = (this.v4PrivatePostOrderCancel(this.extend(request, parameters))).join();
             //
@@ -2963,7 +2963,7 @@ public class Whitebit extends WhitebitApi
 
     public Balances parseBalance(Object response)
     {
-        List<Object> balanceKeys = ((List<Object>) switch ((Object)(response)) { case Map<?, ?> j39v12 -> { synchronized (j39v12) { yield new ArrayList<Object>(j39v12.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> balanceKeys = ((List<Object>) switch ((Object)(response)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); });
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)balanceKeys).size(); i++)
         {
@@ -3351,7 +3351,7 @@ public class Whitebit extends WhitebitApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "orderId", ((Long) (switch ((Object) (id)) { case null -> (Long) null; case Long hx4J42v0 -> hx4J42v0; case Integer hx4J42v0 -> Long.valueOf(hx4J42v0.longValue()); case Double hx4J42v0 -> Long.valueOf(hx4J42v0.longValue()); case Float hx4J42v0 -> Long.valueOf(hx4J42v0.longValue()); case java.math.BigDecimal hx4J42v0 -> Long.valueOf(hx4J42v0.longValue()); case Object hx4J42v0 -> { try { yield Long.valueOf(Long.parseLong(String.valueOf(hx4J42v0))); } catch (Exception hx4J42v0e) { yield (Long) null; } } })) );
+                put( "orderId", Helpers.parseInt(id) );
             }};
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
@@ -3799,7 +3799,7 @@ public class Whitebit extends WhitebitApi
             Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", (Object) null);
             String fromAccountId = this.safeString(accountsByType, fromAccount, fromAccount);
             String toAccountId = this.safeString(accountsByType, toAccount, toAccount);
-            Object amountString = this.currencyToPrecision((String) (code), amount, (String) null);
+            String amountString = (String) this.currencyToPrecision((String) (code), amount, (String) null);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "ticker", currency.get("id") );
                 put( "amount", amountString );
@@ -5151,7 +5151,7 @@ public class Whitebit extends WhitebitApi
         String url = (apiUrl + pathWithParams);
         if (java.util.Objects.equals(accessibility, "public"))
         {
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v13 -> { synchronized (j39v13) { yield new ArrayList<Object>(j39v13.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v3 -> { synchronized (j39v3) { yield new ArrayList<Object>(j39v3.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }

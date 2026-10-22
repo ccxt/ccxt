@@ -55,7 +55,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
     public Long requestId()
     {
         Long requestId = (Long) this.sum(this.safeInteger(this.options, "requestId", 0), 1);
-        { Map<Object, Object> j39v1 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v2 = "requestId"; Object j39v3 = requestId; if (j39v1 == null) { if (j39v2 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v1) { if (j39v3 == null && j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); } else { j39v1.put(j39v2, j39v3); } } }
+        Helpers.addElementToObject(this.options, "requestId", requestId);
         return requestId;
     }
 
@@ -332,21 +332,21 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                 updates.put(marketId, new HashMap<String, Object>() {{}});
             }
             Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
-            List<Object> keys = ((List<Object>) switch ((Object)(this.timeframes)) { case Map<?, ?> j39v10 -> { synchronized (j39v10) { yield new ArrayList<Object>(j39v10.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            List<Object> keys = ((List<Object>) switch ((Object)(this.timeframes)) { case Map<?, ?> j39v5 -> { synchronized (j39v5) { yield new ArrayList<Object>(j39v5.keySet()); } } case null, default -> new ArrayList<Object>(); });
             for (var j = 0; j < ((List<?>)keys).size(); j++)
             {
                 Object timeframe = (keys == null || j < 0 || j >= keys.size() ? null : keys.get(j));
                 String interval = this.safeString(this.timeframes, timeframe, timeframe);
-                Long duration = (Long) ((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a == null || j36b == null) return null; if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) * ((Long) j36b)); java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; double j36r = j36d.applyAsDouble(j36a) * j36d.applyAsDouble(j36b); if (new java.math.BigDecimal(String.valueOf(j36r)).stripTrailingZeros().scale() <= 0) return (Object) ((long) j36r); return (Object) j36r; }).apply(this.parseToInt(interval), 1000);
+                Long duration = (Long) Helpers.multiply(this.parseToInt(interval), 1000);
                 Long timestamp = this.safeInteger(ohlcv, 0);
                 if (java.util.Objects.equals(timestamp, null))
                 {
                     continue;
                 }
-                Long candleTimestamp = this.parseToInt(((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a == null || j36b == null) return null; if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) * ((Long) j36b)); java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; double j36r = j36d.applyAsDouble(j36a) * j36d.applyAsDouble(j36b); if (new java.math.BigDecimal(String.valueOf(j36r)).stripTrailingZeros().scale() <= 0) return (Object) ((long) j36r); return (Object) j36r; }).apply(((((double) timestamp) / ((double) duration))), duration));
+                Long candleTimestamp = this.parseToInt(Helpers.multiply(((((double) timestamp) / ((double) duration))), duration));
                 List<Object> parsed = new ArrayList<Object>(Arrays.asList(candleTimestamp, this.safeFloat(ohlcv, 3), this.safeFloat(ohlcv, 1), this.safeFloat(ohlcv, 2), this.safeFloat(ohlcv, 4), this.safeFloat(ohlcv, 5)));
                 Object stored = this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, new ArrayList<Object>(Arrays.asList()));
-                Integer length = (switch ((Object)(stored)) { case null -> 0; case List<?> j39v7 -> j39v7.size(); case String j39v8 -> j39v8.length(); case Object j39v9 -> j39v9.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v9) : 0; });
+                Integer length = (switch ((Object)(stored)) { case null -> 0; case List<?> j39v2 -> j39v2.size(); case String j39v3 -> j39v3.length(); case Object j39v4 -> j39v4.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v4) : 0; });
                 if (((length != null && length > 0)) && (java.util.Objects.equals(candleTimestamp, this.safeInteger(Helpers.GetValue(stored, (((long) length) - 1L)), 0))))
                 {
                     Object previous = Helpers.GetValue(stored, (((long) length) - 1L));
@@ -406,7 +406,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
         {
             String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
-            List<Object> timeframes = ((List<Object>) switch ((Object)((updates == null || marketId == null ? null : updates.get(marketId)))) { case Map<?, ?> j39v4 -> { synchronized (j39v4) { yield new ArrayList<Object>(j39v4.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            List<Object> timeframes = ((List<Object>) switch ((Object)((updates == null || marketId == null ? null : updates.get(marketId)))) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
             for (var j = 0; j < ((List<?>)timeframes).size(); j++)
             {
                 Object timeframe = (timeframes == null || j < 0 || j >= timeframes.size() ? null : timeframes.get(j));

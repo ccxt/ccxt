@@ -2030,8 +2030,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             parsedEvent = self.parse_event(rawEvents[di])
             result.append(parsedEvent)
             # register the parsed markets so populateOutcomes can index their outcomes
-            parsedMarketsRaw = parsedEvent['markets']
-            parsedMarkets = parsedMarketsRaw if (parsedMarketsRaw is not None) else []
+            parsedMarkets = parsedEvent['markets']
             parsedMarketsLength = len(parsedMarkets)
             for mi in range(0, parsedMarketsLength):
                 m = parsedMarkets[mi]
@@ -2368,7 +2367,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             'info': rawEvent,
         })
 
-    def sign(self, path: str, api: list[str] = ['kalshi'], method='GET', params: dict = {}):
+    def sign(self, path: str, api: list[str] = ['kalshi'], method: str = 'GET', params: dict = {}):
         """
  @ignore
         builds the request URL and attaches RSA-PSS SHA-256 authentication headers for private endpoints

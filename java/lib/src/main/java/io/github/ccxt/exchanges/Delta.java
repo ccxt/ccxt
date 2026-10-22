@@ -486,7 +486,7 @@ public class Delta extends DeltaApi
         }
         String settle = quote;
         String strike = this.safeString(optionParts, 2);
-        Object datetime = this.convertExpireDate((String) (expiry));
+        String datetime = (String) this.convertExpireDate((String) (expiry));
         Long timestamp = this.parse8601(datetime);
         String optionTypeUnified = "put";
         if (java.util.Objects.equals(optionType, "C"))
@@ -794,14 +794,14 @@ public class Delta extends DeltaApi
 
             Object markets = (super.loadMarkets(java.util.Objects.requireNonNullElse(reload, false), parameters)).join();
             Map<String, Object> currenciesByNumericId = (Map<String, Object>) this.safeDict(this.options, "currenciesByNumericId", (Object) null);
-            if ((java.util.Objects.equals(currenciesByNumericId, null)) || (switch ((Object) (java.util.Objects.requireNonNullElse(reload, false))) { case null -> false; case Boolean hx4J40v3 -> hx4J40v3.booleanValue(); case Long hx4J40v3 -> hx4J40v3 != 0L; case Integer hx4J40v3 -> hx4J40v3 != 0; case Double hx4J40v3 -> hx4J40v3 != 0.0; case String hx4J40v3 -> !hx4J40v3.isEmpty(); case List<?> hx4J40v3 -> !hx4J40v3.isEmpty(); case Map<?, ?> hx4J40v3 -> true; default -> false; }))
+            if ((java.util.Objects.equals(currenciesByNumericId, null)) || Helpers.isTrue(java.util.Objects.requireNonNullElse(reload, false)))
             {
-                { Map<Object, Object> j39v4 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v5 = "currenciesByNumericId"; Object j39v6 = this.indexByStringifiedNumericId(this.currencies); if (j39v4 == null) { if (j39v5 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v4) { if (j39v6 == null && j39v4 instanceof java.util.concurrent.ConcurrentHashMap) { j39v4.remove(j39v5); } else { j39v4.put(j39v5, j39v6); } } }
+                Helpers.addElementToObject(this.options, "currenciesByNumericId", this.indexByStringifiedNumericId(this.currencies));
             }
             Map<String, Object> marketsByNumericId = (Map<String, Object>) this.safeDict(this.options, "marketsByNumericId", (Object) null);
-            if ((java.util.Objects.equals(marketsByNumericId, null)) || (switch ((Object) (java.util.Objects.requireNonNullElse(reload, false))) { case null -> false; case Boolean hx4J40v2 -> hx4J40v2.booleanValue(); case Long hx4J40v2 -> hx4J40v2 != 0L; case Integer hx4J40v2 -> hx4J40v2 != 0; case Double hx4J40v2 -> hx4J40v2 != 0.0; case String hx4J40v2 -> !hx4J40v2.isEmpty(); case List<?> hx4J40v2 -> !hx4J40v2.isEmpty(); case Map<?, ?> hx4J40v2 -> true; default -> false; }))
+            if ((java.util.Objects.equals(marketsByNumericId, null)) || Helpers.isTrue(java.util.Objects.requireNonNullElse(reload, false)))
             {
-                { Map<Object, Object> j39v1 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v2 = "marketsByNumericId"; Object j39v3 = this.indexByStringifiedNumericId(this.markets); if (j39v1 == null) { if (j39v2 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v1) { if (j39v3 == null && j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); } else { j39v1.put(j39v2, j39v3); } } }
+                Helpers.addElementToObject(this.options, "marketsByNumericId", this.indexByStringifiedNumericId(this.markets));
             }
             return markets;
         });
@@ -1103,38 +1103,38 @@ public class Delta extends DeltaApi
                     }
                 }
                 String state = this.safeString(market, "state");
-                ((List<Object>)result).add(this.safeMarketStructure((switch (0) { default -> { HashMap<String, Object> j39v9 = new HashMap<String, Object>();
-                    j39v9.put("id", id);
-                    j39v9.put("numericId", numericId);
-                    j39v9.put("symbol", symbol);
-                    j39v9.put("base", base);
-                    j39v9.put("quote", quote);
-                    j39v9.put("settle", settle);
-                    j39v9.put("baseId", baseId);
-                    j39v9.put("quoteId", quoteId);
-                    j39v9.put("settleId", settleId);
-                    j39v9.put("type", type);
-                    j39v9.put("spot", spot);
-                    j39v9.put("margin", false);
-                    j39v9.put("swap", swap);
-                    j39v9.put("future", future);
-                    j39v9.put("option", option);
-                    j39v9.put("active", (java.util.Objects.equals(state, "live")));
-                    j39v9.put("contract", !Boolean.TRUE.equals(spot));
-                    j39v9.put("linear", ((Boolean.TRUE.equals(spot))) ? null : linear);
-                    j39v9.put("inverse", ((Boolean.TRUE.equals(spot))) ? null : !Boolean.TRUE.equals(linear));
-                    j39v9.put("taker", this.safeNumber(market, "taker_commission_rate", (Object) null));
-                    j39v9.put("maker", this.safeNumber(market, "maker_commission_rate", (Object) null));
-                    j39v9.put("contractSize", ((Boolean.TRUE.equals(spot))) ? null : contractSize);
-                    j39v9.put("expiry", expiry);
-                    j39v9.put("expiryDatetime", this.iso8601(expiry));
-                    j39v9.put("strike", this.parseNumber(strike));
-                    j39v9.put("optionType", optionType);
-                    j39v9.put("precision", (switch (0) { default -> { HashMap<String, Object> j39v8 = new HashMap<String, Object>();
-                        j39v8.put("amount", amountPrecision);
-                        j39v8.put("price", this.safeNumber(market, "tick_size", (Object) null));
-                        yield j39v8; } }));
-                    j39v9.put("limits", new HashMap<String, Object>() {{
+                ((List<Object>)result).add(this.safeMarketStructure((switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                    j39v2.put("id", id);
+                    j39v2.put("numericId", numericId);
+                    j39v2.put("symbol", symbol);
+                    j39v2.put("base", base);
+                    j39v2.put("quote", quote);
+                    j39v2.put("settle", settle);
+                    j39v2.put("baseId", baseId);
+                    j39v2.put("quoteId", quoteId);
+                    j39v2.put("settleId", settleId);
+                    j39v2.put("type", type);
+                    j39v2.put("spot", spot);
+                    j39v2.put("margin", false);
+                    j39v2.put("swap", swap);
+                    j39v2.put("future", future);
+                    j39v2.put("option", option);
+                    j39v2.put("active", (java.util.Objects.equals(state, "live")));
+                    j39v2.put("contract", !Boolean.TRUE.equals(spot));
+                    j39v2.put("linear", ((Boolean.TRUE.equals(spot))) ? null : linear);
+                    j39v2.put("inverse", ((Boolean.TRUE.equals(spot))) ? null : !Boolean.TRUE.equals(linear));
+                    j39v2.put("taker", this.safeNumber(market, "taker_commission_rate", (Object) null));
+                    j39v2.put("maker", this.safeNumber(market, "maker_commission_rate", (Object) null));
+                    j39v2.put("contractSize", ((Boolean.TRUE.equals(spot))) ? null : contractSize);
+                    j39v2.put("expiry", expiry);
+                    j39v2.put("expiryDatetime", this.iso8601(expiry));
+                    j39v2.put("strike", this.parseNumber(strike));
+                    j39v2.put("optionType", optionType);
+                    j39v2.put("precision", (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                        j39v1.put("amount", amountPrecision);
+                        j39v1.put("price", this.safeNumber(market, "tick_size", (Object) null));
+                        yield j39v1; } }));
+                    j39v2.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -1152,9 +1152,9 @@ public class Delta extends DeltaApi
                             put( "max", null );
                         }} );
                     }});
-                    j39v9.put("created", this.parse8601(this.safeString(market, "launch_time")));
-                    j39v9.put("info", market);
-                    yield j39v9; } })));
+                    j39v2.put("created", this.parse8601(this.safeString(market, "launch_time")));
+                    j39v2.put("info", market);
+                    yield j39v2; } })));
             }
             return result;
         });
@@ -2406,7 +2406,7 @@ public class Delta extends DeltaApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "id", ((Long) (switch ((Object) (id)) { case null -> (Long) null; case Long hx4J42v2 -> hx4J42v2; case Integer hx4J42v2 -> Long.valueOf(hx4J42v2.longValue()); case Double hx4J42v2 -> Long.valueOf(hx4J42v2.longValue()); case Float hx4J42v2 -> Long.valueOf(hx4J42v2.longValue()); case java.math.BigDecimal hx4J42v2 -> Long.valueOf(hx4J42v2.longValue()); case Object hx4J42v2 -> { try { yield Long.valueOf(Long.parseLong(String.valueOf(hx4J42v2))); } catch (Exception hx4J42v2e) { yield (Long) null; } } })) );
+                put( "id", Helpers.parseInt(id) );
                 put( "product_id", market.get("numericId") );
             }};
             if (!java.util.Objects.equals(amount, null))
@@ -2416,7 +2416,7 @@ public class Delta extends DeltaApi
                 {
                     sizeString = "0";
                 }
-                request.put("size", ((Long) (switch ((Object) (sizeString)) { case null -> (Long) null; case Long hx4J42v1 -> hx4J42v1; case Integer hx4J42v1 -> Long.valueOf(hx4J42v1.longValue()); case Double hx4J42v1 -> Long.valueOf(hx4J42v1.longValue()); case Float hx4J42v1 -> Long.valueOf(hx4J42v1.longValue()); case java.math.BigDecimal hx4J42v1 -> Long.valueOf(hx4J42v1.longValue()); case Object hx4J42v1 -> { try { yield Long.valueOf(Long.parseLong(String.valueOf(hx4J42v1))); } catch (Exception hx4J42v1e) { yield (Long) null; } } })));
+                request.put("size", Helpers.parseInt(sizeString));
             }
             if (!java.util.Objects.equals(price, null))
             {
@@ -2468,7 +2468,7 @@ public class Delta extends DeltaApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "id", ((Long) (switch ((Object) (id)) { case null -> (Long) null; case Long hx4J42v0 -> hx4J42v0; case Integer hx4J42v0 -> Long.valueOf(hx4J42v0.longValue()); case Double hx4J42v0 -> Long.valueOf(hx4J42v0.longValue()); case Float hx4J42v0 -> Long.valueOf(hx4J42v0.longValue()); case java.math.BigDecimal hx4J42v0 -> Long.valueOf(hx4J42v0.longValue()); case Object hx4J42v0 -> { try { yield Long.valueOf(Long.parseLong(String.valueOf(hx4J42v0))); } catch (Exception hx4J42v0e) { yield (Long) null; } } })) );
+                put( "id", Helpers.parseInt(id) );
                 put( "product_id", market.get("numericId") );
             }};
             Map<String, Object> response = (this.privateDeleteOrders(this.extend(request, parameters))).join();
@@ -4623,7 +4623,7 @@ public class Delta extends DeltaApi
         Map<String, Object> requestHeaders = null;
         if (java.util.Objects.equals(apiName, "public"))
         {
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v13 -> { synchronized (j39v13) { yield new ArrayList<Object>(j39v13.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v4 -> { synchronized (j39v4) { yield new ArrayList<Object>(j39v4.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
@@ -4638,7 +4638,7 @@ public class Delta extends DeltaApi
             String auth = ((java.util.Objects.requireNonNullElse(method, "GET") + timestamp) + requestPath);
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
-                if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v12 -> { synchronized (j39v12) { yield new ArrayList<Object>(j39v12.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+                if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v3 -> { synchronized (j39v3) { yield new ArrayList<Object>(j39v3.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
                 {
                     String queryString = ("?" + this.urlencode(query));
                     auth = (auth + queryString);

@@ -185,7 +185,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         return BaseExchange.supplyAsync(() -> {
 
             String publicOrPrivate = "public";
-            if ((switch ((Object) (isPrivate)) { case null -> false; case Boolean hx4J40v2 -> hx4J40v2.booleanValue(); case Long hx4J40v2 -> hx4J40v2 != 0L; case Integer hx4J40v2 -> hx4J40v2 != 0; case Double hx4J40v2 -> hx4J40v2 != 0.0; case String hx4J40v2 -> !hx4J40v2.isEmpty(); case List<?> hx4J40v2 -> !hx4J40v2.isEmpty(); case Map<?, ?> hx4J40v2 -> true; default -> false; }))
+            if (Helpers.isTrue(isPrivate))
             {
                 publicOrPrivate = "private";
             }
@@ -1153,11 +1153,11 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                         previousOrder.put("trades", new ArrayList<Object>(Arrays.asList()));
                     }
                     ((List<Object>)previousOrder.get("trades")).add(trade);
-                    { Map<Object, Object> j39v20 = (Map<Object, Object>) (Map<?, ?>) (previousOrder); Object j39v21 = "lastTradeTimestamp"; Object j39v22 = trade.get("timestamp"); if (j39v20 == null) { if (j39v21 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v20) { if (j39v22 == null && j39v20 instanceof java.util.concurrent.ConcurrentHashMap) { j39v20.remove(j39v21); } else { j39v20.put(j39v21, j39v22); } } }
+                    Helpers.addElementToObject(previousOrder, "lastTradeTimestamp", trade.get("timestamp"));
                     String totalCost = "0";
                     String totalAmount = "0";
                     Object previousOrderTrades = previousOrder.get("trades");
-                    for (var j = 0; j < (switch ((Object)(previousOrderTrades)) { case null -> 0; case List<?> j39v17 -> j39v17.size(); case String j39v18 -> j39v18.length(); case Object j39v19 -> j39v19.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v19) : 0; }); j++)
+                    for (var j = 0; j < (switch ((Object)(previousOrderTrades)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); j++)
                     {
                         Object previousOrderTrade = Helpers.GetValue(previousOrderTrades, j);
                         String cost = this.numberToString(Helpers.GetValue(previousOrderTrade, "cost"));
@@ -1175,7 +1175,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                         String tradeAmount = this.numberToString(trade.get("amount"));
                         String previousOrderFilled = this.numberToString(previousOrder.get("filled"));
                         previousOrderFilled = Precise.stringAdd(previousOrderFilled, tradeAmount);
-                        { Map<Object, Object> j39v11 = (Map<Object, Object>) (Map<?, ?>) (previousOrder); Object j39v12 = "filled"; Object j39v13 = previousOrderFilled; if (j39v11 == null) { if (j39v12 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v11) { if (j39v13 == null && j39v11 instanceof java.util.concurrent.ConcurrentHashMap) { j39v11.remove(j39v12); } else { j39v11.put(j39v12, j39v13); } } }
+                        Helpers.addElementToObject(previousOrder, "filled", previousOrderFilled);
                         if (!java.util.Objects.equals(previousOrder.get("amount"), null))
                         {
                             String previousOrderAmount = this.numberToString(previousOrder.get("amount"));
@@ -1198,7 +1198,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                     }
                     String rawState = this.safeString(order, "state");
                     String state = this.parseStatus((String) (rawState));
-                    { Map<Object, Object> j39v6 = (Map<Object, Object>) (Map<?, ?>) (previousOrder); Object j39v7 = "status"; Object j39v8 = state; if (j39v6 == null) { if (j39v7 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v6) { if (j39v8 == null && j39v6 instanceof java.util.concurrent.ConcurrentHashMap) { j39v6.remove(j39v7); } else { j39v6.put(j39v7, j39v8); } } }
+                    Helpers.addElementToObject(previousOrder, "status", state);
                     // update the newUpdates count
                     orders.append(previousOrder);
                 }
@@ -1649,7 +1649,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 throw new ExchangeError(feedback) ;
             } catch(Exception e)
             {
-                if ((switch ((Object) (e)) { case null -> false; case Throwable hx4J44v0 -> { Throwable hx4J44v0u = hx4J44v0; while ((hx4J44v0u instanceof java.util.concurrent.CompletionException || hx4J44v0u instanceof java.util.concurrent.ExecutionException) && hx4J44v0u.getCause() != null) { hx4J44v0u = hx4J44v0u.getCause(); } yield AuthenticationError.class.isInstance(hx4J44v0u); } case Object hx4J44v0 -> AuthenticationError.class.isInstance(hx4J44v0); }))
+                if ((e instanceof AuthenticationError))
                 {
                     String messageHash = "authenticated";
                     client.reject(e, messageHash);

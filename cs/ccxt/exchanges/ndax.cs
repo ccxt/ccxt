@@ -907,7 +907,7 @@ public partial class ndax : Exchange
             { "datetime", null },
             { "nonce", null },
         };
-        for (int i = 0; i < (((object)(orderbook)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(orderbook); i++)
         {
             object level = getValue(orderbook, i);
             Int64? newTimestamp = this.safeInteger(level, 2);
@@ -1508,7 +1508,7 @@ public partial class ndax : Exchange
             { "timestamp", null },
             { "datetime", null },
         };
-        for (int i = 0; i < (((object)(response)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(response); i++)
         {
             IDictionary<string, object> balance = this.safeDict(response, i);
             string? currencyId = this.safeString(balance, "ProductId");
@@ -2580,7 +2580,7 @@ public partial class ndax : Exchange
         //
         string? depositInfoString = this.safeString(depositAddress, "DepositInfo", "[]");
         object depositInfo = parseJson(depositInfoString);
-        int depositInfoLength = (((object)(depositInfo)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+        int depositInfoLength = getArrayLength(depositInfo);
         string? lastString = this.safeString(depositInfo, (depositInfoLength - 1), "");
         List<object> parts = lastString.Split(new [] {"?memo="}, StringSplitOptions.None).ToList<object>();
         string? address = this.safeString(parts, 0);
@@ -2994,7 +2994,7 @@ public partial class ndax : Exchange
         ((IDictionary<string,object>)withdrawTemplate)["ExternalAddress"] = address;
         if ((tagWithdrawTag != null))
         {
-            if ((((object)(withdrawTemplate)) switch { null => false, IList<object> c33a => c33a.Contains("Memo"), IList<string> c33t => c33t.Contains("Memo"), List<Int64> c33g => c33g.Contains((Int64)(object)"Memo"), IDictionary<string, object> c33d => c33d.ContainsKey("Memo"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("Memo"), _ => false }))
+            if (inOp(withdrawTemplate, "Memo"))
             {
                 ((IDictionary<string,object>)withdrawTemplate)["Memo"] = tagWithdrawTag;
             }
@@ -3104,7 +3104,7 @@ public partial class ndax : Exchange
 
     public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
-        if ((((object)(code)) switch { Int64 c33l => c33l == 404, int c33i => c33i == 404, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 404, decimal c33m => c33m == 404, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 404, uint c33u => (Int64)c33u == 404, short c33h => (Int64)c33h == 404, ushort c33v => (Int64)c33v == 404, byte c33y => (Int64)c33y == 404, sbyte c33e => (Int64)c33e == 404, ulong c33z => c33z == 404UL, _ => false }))
+        if (isEqual(code, 404))
         {
             throw new AuthenticationError ((string)((this.id + " ") + (body))) ;
         }

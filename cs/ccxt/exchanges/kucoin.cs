@@ -3078,7 +3078,7 @@ public partial class kucoin : Exchange
         //        "chain": "ERC20"
         //    }
         //
-        if ((((object)(fee)) switch { null => false, IList<object> c33a => c33a.Contains("chains"), IList<string> c33t => c33t.Contains("chains"), List<Int64> c33g => c33g.Contains((Int64)(object)"chains"), IDictionary<string, object> c33d => c33d.ContainsKey("chains"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("chains"), _ => false }))
+        if (inOp(fee, "chains"))
         {
             // if data obtained through `currencies` endpoint
             Dictionary<string, object> resultNew = new Dictionary<string, object>() {
@@ -4964,14 +4964,14 @@ public partial class kucoin : Exchange
             {
                 throw new ArgumentsRequired ((this.id + " requires an amount argument")) ;
             }
-            if (((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } bool c32Int(object v) { Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } bool c32Eq(object x, object y) { if (x == null && y == null) return true; if (x == null || y == null) return false; try { if (x.GetType() != y.GetType() && (!Double.TryParse(x.ToString(), out _) || !Double.TryParse(y.ToString(), out _))) return false; if (c32Int(x) && c32Int(y)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(decimal) || y.GetType() == typeof(decimal)) return Convert.ToDecimal(x) == Convert.ToDecimal(y); if (x.GetType() == typeof(int)) return (int)x == (int)y; if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) == Convert.ToDouble(y); if (x.GetType() == typeof(Single) || y.GetType() == typeof(Single)) return Convert.ToSingle(x) == Convert.ToSingle(y); if (x.GetType() == typeof(string)) return ((string)x) == ((string)y); if (x.GetType() == typeof(bool)) return ((bool)x) == ((bool)y); return false; } catch { return false; } } return !c32Gt(c32a, c32b) && !c32Eq(c32a, c32b); }))(amount, 1))
+            if (isLessThan(amount, 1))
             {
                 throw new InvalidOrder ((this.id + " createOrder() minimum contract order amount is 1")) ;
             }
             string? sizeString = this.amountToPrecision(symbol, amount);
             if ((sizeString != null))
             {
-                request["size"] = (((Func<object, Int64?>)(static (object hx4pa) => { try { return Convert.ToInt64(Math.Floor(Convert.ToDouble(hx4pa))); } catch (Exception) { return null; } }))(sizeString));
+                request["size"] = parseInt(sizeString);
             }
         }
         IList<object> triggerPricestopLossPricetakeProfitPriceVariable = (IList<object>)this.handleTriggerPrices(paramsOmitted);
@@ -7203,7 +7203,7 @@ public partial class kucoin : Exchange
         string? tradeType = this.safeString(parameters, "tradeType");
         if ((tradeType == null))
         {
-            if ((((object)(isContractMarket)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
+            if (isTrue(isContractMarket))
             {
                 tradeType = "FUTURES";
             } else if ((marginMode != null))
@@ -8766,7 +8766,7 @@ public partial class kucoin : Exchange
         string? amountString = this.currencyToPrecision(code, amount, networkCode);
         if ((amountString != null))
         {
-            request["amount"] = (((Func<object, object>)(static (object hx4pa) => { object hx4pv = null; try { hx4pv = (Convert.ToDouble(hx4pa, global::System.Globalization.CultureInfo.InvariantCulture.NumberFormat)); } catch (Exception) { } return hx4pv; }))(amountString));
+            request["amount"] = parseFloat(amountString);
         }
         (bool?, object) includeFeeparamsIncludeFeeVariable = this.handleOptionBoolAndParams(paramsNetworkCode, "withdraw", "includeFee", false);
         bool? includeFee = includeFeeparamsIncludeFeeVariable.Item1;
@@ -13052,7 +13052,7 @@ public partial class kucoin : Exchange
         //
         object marketCursor = market;
         List<object> tiers = new List<object>() {};
-        for (int i = 0; i < (((object)(info)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(info); i++)
         {
             IDictionary<string, object> tier = this.safeDict(info, i, new Dictionary<string, object>() {});
             string? marketId = this.safeString(tier, "symbol");
@@ -13139,7 +13139,7 @@ public partial class kucoin : Exchange
         List<object> data = this.safeList(response, "data", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         object tiers = this.parseMarketLeverageTiers(data);
-        for (int i = 0; i < (((object)(tiers)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(tiers); i++)
         {
             IDictionary<string, object> tier = this.safeDict(tiers, i);
             string? symbol = this.safeString(tier, "symbol");
@@ -13322,7 +13322,7 @@ public partial class kucoin : Exchange
         api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object apiName = getValue(api, 0);
+        string? apiName = this.safeString(api, 0);
         //
         // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
         //                                ↑                 ↑
@@ -13335,23 +13335,23 @@ public partial class kucoin : Exchange
         string? version = this.safeString(parameters, "version", defaultVersion);
         object paramsOmitted = this.omit(parameters, "version");
         string endpoint = ((("/api/" + version) + "/") + this.implodeParams(path, paramsOmitted));
-        if ((apiName is "utaV2"))
+        if (apiName == "utaV2")
         {
             endpoint = ("/api/ua/v2/" + this.implodeParams(path, paramsOmitted));
         }
-        if ((apiName is "webExchange"))
+        if (apiName == "webExchange")
         {
             endpoint = ("/" + this.implodeParams(path, paramsOmitted));
         }
-        if ((apiName is "earn"))
+        if (apiName == "earn")
         {
             endpoint = ("/api/v1/" + this.implodeParams(path, paramsOmitted));
         }
         bool isUtaPrivate = false;
-        if (((apiName is "uta")) || ((apiName is "utaPrivate")))
+        if ((apiName == "uta") || (apiName == "utaPrivate"))
         {
             endpoint = ("/api/ua/v1/" + this.implodeParams(path, paramsOmitted));
-            if ((apiName is "utaPrivate"))
+            if (apiName == "utaPrivate")
             {
                 isUtaPrivate = true;
             }
@@ -13383,10 +13383,10 @@ public partial class kucoin : Exchange
             }
         }
         Dictionary<string, object> headersResult = headersBase;
-        bool isFuturePrivate = ((apiName is "futuresPrivate"));
-        bool isPrivate = ((apiName is "private"));
-        bool isBroker = ((apiName is "broker"));
-        bool isEarn = ((apiName is "earn"));
+        bool isFuturePrivate = (apiName == "futuresPrivate");
+        bool isPrivate = (apiName == "private");
+        bool isBroker = (apiName == "broker");
+        bool isEarn = (apiName == "earn");
         if (isPrivate || isFuturePrivate || isBroker || isEarn || isUtaPrivate)
         {
             this.checkRequiredCredentials();

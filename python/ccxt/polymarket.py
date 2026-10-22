@@ -1141,7 +1141,7 @@ class polymarket(Exchange, ImplicitAPI):
         result = self.parse_open_interests(response)
         return self.index_by(self.filter_by_array(result, 'symbol', symbolsNormalized, False), 'symbol')
 
-    def parse_open_interest(self, interest: object, market: Market = None):
+    def parse_open_interest(self, interest: dict, market: Market = None):
         #
         #     {
         #         "instrument_id": 1,
@@ -1215,7 +1215,7 @@ class polymarket(Exchange, ImplicitAPI):
             }
         return result
 
-    def create_order_request(self, market: Market, type: OrderType, side: OrderSide, amount: object, price: object = None, params={}) -> dict:
+    def create_order_request(self, market: Market, type: OrderType, side: OrderSide, amount: object, price: object = None, params: dict = {}) -> dict:
         """
  @ignore
         builds one order for the createOrders operation, returning the compact signable row next to the structured body entry
@@ -2388,7 +2388,7 @@ class polymarket(Exchange, ImplicitAPI):
         leverageInt = self.parse_to_int(leverage)
         return self.set_leverage(leverageInt, symbol, self.extend(request, paramsOmitted))
 
-    def modify_margin_helper(self, symbol: str, amount: object, type: str, params={}) -> MarginModification:
+    def modify_margin_helper(self, symbol: str, amount: object, type: str, params: dict = {}) -> MarginModification:
         """
  @ignore
         adds margin to an isolated position or removes some, the amount is a signed decimal in the collateral asset
@@ -2472,7 +2472,7 @@ class polymarket(Exchange, ImplicitAPI):
     def sign_message(self, message: object, privateKey: object):
         return self.sign_hash(self.hash_message(message), privateKey)
 
-    def create_proxy_credentials(self, params={}) -> dict:
+    def create_proxy_credentials(self, params: dict = {}) -> dict:
         """
         provisions fresh trading session credentials - generates a proxy keypair, registers it with an EIP-712 CreateProxy message signed by the wallet key and caches the returned secret, the venue keeps the session valid for the requested lifetime
 
@@ -2542,7 +2542,7 @@ class polymarket(Exchange, ImplicitAPI):
         self.options['proxyCredentials'] = credentials
         return credentials
 
-    def load_proxy_credentials(self, params={}) -> dict:
+    def load_proxy_credentials(self, params: dict = {}) -> dict:
         """
  @ignore
         returns the cached trading session credentials, provisioning fresh ones when none are cached or the cached session is close to its expiry
@@ -2560,7 +2560,7 @@ class polymarket(Exchange, ImplicitAPI):
                 return credentials
         return self.create_proxy_credentials(params)
 
-    def sign_perps_op(self, signable: object, bodyOp: object, params={}) -> dict:
+    def sign_perps_op(self, signable: object, bodyOp: object, params: dict = {}) -> dict:
         """
  @ignore
         signs a trading operation with the session proxy key - the compact signable array is msgpack-encoded and keccak-hashed, the hash is signed inside an EIP-712 Op struct and the structured operation travels next to the signature
@@ -2665,7 +2665,7 @@ class polymarket(Exchange, ImplicitAPI):
             return 20
         return self.safe_value(config, 'cost', 1)
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiType = api[0]
         url = self.urls['api'][apiType] + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))

@@ -3628,7 +3628,7 @@ public class Bitget extends BitgetApi
      */
     public void setSandboxMode(Boolean enabled)
     {
-        { Map<Object, Object> j39v1 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v2 = "sandboxMode"; Object j39v3 = enabled; if (j39v1 == null) { if (j39v2 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v1) { if (j39v3 == null && j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); } else { j39v1.put(j39v2, j39v3); } } }
+        Helpers.addElementToObject(this.options, "sandboxMode", enabled);
     }
 
     /**
@@ -3728,7 +3728,7 @@ public class Bitget extends BitgetApi
                 {
                     accountIsUTa = false;
                 }
-                { Map<Object, Object> j39v4 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v5 = "uta"; Object j39v6 = accountIsUTa; if (j39v4 == null) { if (j39v5 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v4) { if (j39v6 == null && j39v4 instanceof java.util.concurrent.ConcurrentHashMap) { j39v4.remove(j39v5); } else { j39v4.put(j39v5, j39v6); } } }
+                Helpers.addElementToObject(this.options, "uta", accountIsUTa);
                 return new ArrayList<Object>(Arrays.asList(accountIsUTa, paramsUta));
             }
             return new ArrayList<Object>(Arrays.asList(java.util.Objects.requireNonNullElse(defaultValue, false), paramsUta));
@@ -3829,7 +3829,7 @@ public class Bitget extends BitgetApi
                     List<String> subTypes = new ArrayList<String>(Arrays.asList("USDT-FUTURES", "COIN-FUTURES", "USDC-FUTURES", "SUSDT-FUTURES", "SCOIN-FUTURES", "SUSDC-FUTURES"));
                     for (var j = 0; j < ((List<?>)subTypes).size(); j++)
                     {
-                        ((List<Object>)promises).add(this.publicMixGetV2MixMarketContracts(this.extend(parameters, (switch (0) { default -> { HashMap<String, Object> j39v23 = new HashMap<String, Object>(); j39v23.put("productType", (subTypes == null || j < 0 || j >= subTypes.size() ? null : subTypes.get(j))); yield j39v23; } }))));
+                        ((List<Object>)promises).add(this.publicMixGetV2MixMarketContracts(this.extend(parameters, (switch (0) { default -> { HashMap<String, Object> j39v5 = new HashMap<String, Object>(); j39v5.put("productType", (subTypes == null || j < 0 || j >= subTypes.size() ? null : subTypes.get(j))); yield j39v5; } }))));
                     }
                 } else if (java.util.Objects.equals(type, "spot"))
                 {
@@ -3843,8 +3843,8 @@ public class Bitget extends BitgetApi
             }
             Object results = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             List<Object> markets = new ArrayList<Object>(Arrays.asList());
-            { Map<Object, Object> j39v20 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v21 = "crossMarginPairsData"; Object j39v22 = new ArrayList<Object>(Arrays.asList()); if (j39v20 == null) { if (j39v21 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v20) { if (j39v22 == null && j39v20 instanceof java.util.concurrent.ConcurrentHashMap) { j39v20.remove(j39v21); } else { j39v20.put(j39v21, j39v22); } } }
-            { Map<Object, Object> j39v17 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v18 = "isolatedMarginPairsData"; Object j39v19 = new ArrayList<Object>(Arrays.asList()); if (j39v17 == null) { if (j39v18 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v17) { if (j39v19 == null && j39v17 instanceof java.util.concurrent.ConcurrentHashMap) { j39v17.remove(j39v18); } else { j39v17.put(j39v18, j39v19); } } }
+            Helpers.addElementToObject(this.options, "crossMarginPairsData", new ArrayList<Object>(Arrays.asList()));
+            Helpers.addElementToObject(this.options, "isolatedMarginPairsData", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)results).size(); i++)
             {
                 Map<String, Object> res = (Map<String, Object>) this.safeDict(results, i, (Object) null);
@@ -3875,8 +3875,8 @@ public class Bitget extends BitgetApi
                             isolatedKeys.add(entrySymbol);
                         }
                     }
-                    { Map<Object, Object> j39v14 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v15 = "crossMarginPairsData"; Object j39v16 = crossKeys; if (j39v14 == null) { if (j39v15 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v14) { if (j39v16 == null && j39v14 instanceof java.util.concurrent.ConcurrentHashMap) { j39v14.remove(j39v15); } else { j39v14.put(j39v15, j39v16); } } }
-                    { Map<Object, Object> j39v11 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v12 = "isolatedMarginPairsData"; Object j39v13 = isolatedKeys; if (j39v11 == null) { if (j39v12 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v11) { if (j39v13 == null && j39v11 instanceof java.util.concurrent.ConcurrentHashMap) { j39v11.remove(j39v12); } else { j39v11.put(j39v12, j39v13); } } }
+                    Helpers.addElementToObject(this.options, "crossMarginPairsData", crossKeys);
+                    Helpers.addElementToObject(this.options, "isolatedMarginPairsData", isolatedKeys);
                 } else
                 {
                     markets = (List<Object>) this.arrayConcat(markets, data);
@@ -4052,58 +4052,58 @@ public class Bitget extends BitgetApi
                     minCost = this.safeNumber(market, "minTradeUSDT", (Object) null);
                 }
                 Integer contractSize = ((Boolean.TRUE.equals(contract))) ? 1 : null;
-                ((List<Object>)result).add(this.safeMarketStructure((switch (0) { default -> { HashMap<String, Object> j39v10 = new HashMap<String, Object>();
-                    j39v10.put("id", marketId);
-                    j39v10.put("symbol", symbol);
-                    j39v10.put("base", base);
-                    j39v10.put("quote", quote);
-                    j39v10.put("settle", settle);
-                    j39v10.put("baseId", baseId);
-                    j39v10.put("quoteId", quoteId);
-                    j39v10.put("settleId", settleId);
-                    j39v10.put("type", type);
-                    j39v10.put("spot", spot);
-                    j39v10.put("margin", Boolean.TRUE.equals(spot) && Boolean.TRUE.equals(isMarginTradingAllowed));
-                    j39v10.put("marginModes", marginModes);
-                    j39v10.put("swap", swap);
-                    j39v10.put("future", future);
-                    j39v10.put("option", false);
-                    j39v10.put("active", active);
-                    j39v10.put("contract", contract);
-                    j39v10.put("linear", linear);
-                    j39v10.put("inverse", inverse);
-                    j39v10.put("taker", this.safeNumber(market, "takerFeeRate", (Object) null));
-                    j39v10.put("maker", this.safeNumber(market, "makerFeeRate", (Object) null));
-                    j39v10.put("contractSize", contractSize);
-                    j39v10.put("expiry", expiry);
-                    j39v10.put("expiryDatetime", expiryDatetime);
-                    j39v10.put("strike", null);
-                    j39v10.put("optionType", null);
-                    j39v10.put("precision", (switch (0) { default -> { HashMap<String, Object> j39v9 = new HashMap<String, Object>();
-                        j39v9.put("amount", amountPrecision);
-                        j39v9.put("price", pricePrecision);
-                        yield j39v9; } }));
-                    j39v10.put("limits", (switch (0) { default -> { HashMap<String, Object> j39v8 = new HashMap<String, Object>();
-                        j39v8.put("leverage", new HashMap<String, Object>() {{
+                ((List<Object>)result).add(this.safeMarketStructure((switch (0) { default -> { HashMap<String, Object> j39v4 = new HashMap<String, Object>();
+                    j39v4.put("id", marketId);
+                    j39v4.put("symbol", symbol);
+                    j39v4.put("base", base);
+                    j39v4.put("quote", quote);
+                    j39v4.put("settle", settle);
+                    j39v4.put("baseId", baseId);
+                    j39v4.put("quoteId", quoteId);
+                    j39v4.put("settleId", settleId);
+                    j39v4.put("type", type);
+                    j39v4.put("spot", spot);
+                    j39v4.put("margin", Boolean.TRUE.equals(spot) && Boolean.TRUE.equals(isMarginTradingAllowed));
+                    j39v4.put("marginModes", marginModes);
+                    j39v4.put("swap", swap);
+                    j39v4.put("future", future);
+                    j39v4.put("option", false);
+                    j39v4.put("active", active);
+                    j39v4.put("contract", contract);
+                    j39v4.put("linear", linear);
+                    j39v4.put("inverse", inverse);
+                    j39v4.put("taker", this.safeNumber(market, "takerFeeRate", (Object) null));
+                    j39v4.put("maker", this.safeNumber(market, "makerFeeRate", (Object) null));
+                    j39v4.put("contractSize", contractSize);
+                    j39v4.put("expiry", expiry);
+                    j39v4.put("expiryDatetime", expiryDatetime);
+                    j39v4.put("strike", null);
+                    j39v4.put("optionType", null);
+                    j39v4.put("precision", (switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>();
+                        j39v3.put("amount", amountPrecision);
+                        j39v3.put("price", pricePrecision);
+                        yield j39v3; } }));
+                    j39v4.put("limits", (switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                        j39v2.put("leverage", new HashMap<String, Object>() {{
                             put( "min", Bitget.this.safeNumber(market, "minLever", (Object) null) );
                             put( "max", Bitget.this.safeNumber(market, "maxLever", (Object) null) );
                         }});
-                        j39v8.put("amount", new HashMap<String, Object>() {{
+                        j39v2.put("amount", new HashMap<String, Object>() {{
                             put( "min", Bitget.this.safeNumber2(market, "minTradeNum", "minTradeAmount", (Object) null) );
                             put( "max", Bitget.this.safeNumber(market, "maxTradeAmount", (Object) null) );
                         }});
-                        j39v8.put("price", new HashMap<String, Object>() {{
+                        j39v2.put("price", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
                         }});
-                        j39v8.put("cost", (switch (0) { default -> { HashMap<String, Object> j39v7 = new HashMap<String, Object>();
-                            j39v7.put("min", minCost);
-                            j39v7.put("max", null);
-                            yield j39v7; } }));
-                        yield j39v8; } }));
-                    j39v10.put("created", this.safeInteger(market, "launchTime"));
-                    j39v10.put("info", market);
-                    yield j39v10; } })));
+                        j39v2.put("cost", (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                            j39v1.put("min", minCost);
+                            j39v1.put("max", null);
+                            yield j39v1; } }));
+                        yield j39v2; } }));
+                    j39v4.put("created", this.safeInteger(market, "launchTime"));
+                    j39v4.put("info", market);
+                    yield j39v4; } })));
             }
             return result;
         });
@@ -4119,7 +4119,7 @@ public class Bitget extends BitgetApi
             List<Object> promises = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)subTypes).size(); i++)
             {
-                Map<String, Object> req = this.extend(parameters, (switch (0) { default -> { HashMap<String, Object> j39v26 = new HashMap<String, Object>(); j39v26.put("category", (subTypes == null || i < 0 || i >= subTypes.size() ? null : subTypes.get(i))); yield j39v26; } }));
+                Map<String, Object> req = this.extend(parameters, (switch (0) { default -> { HashMap<String, Object> j39v8 = new HashMap<String, Object>(); j39v8.put("category", (subTypes == null || i < 0 || i >= subTypes.size() ? null : subTypes.get(i))); yield j39v8; } }));
                 ((List<Object>)promises).add(this.publicUtaGetV3MarketInstruments(req));
             }
             Object results = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
@@ -4326,39 +4326,39 @@ public class Bitget extends BitgetApi
                     active = ((java.util.Objects.equals(status, "online")) || (java.util.Objects.equals(status, "normal")));
                 }
                 Integer contractSize = ((Boolean.TRUE.equals(contract))) ? 1 : null;
-                ((List<Object>)result).add(this.safeMarketStructure((switch (0) { default -> { HashMap<String, Object> j39v25 = new HashMap<String, Object>();
-                    j39v25.put("id", marketId);
-                    j39v25.put("symbol", symbol);
-                    j39v25.put("base", base);
-                    j39v25.put("quote", quote);
-                    j39v25.put("settle", settle);
-                    j39v25.put("baseId", baseId);
-                    j39v25.put("quoteId", quoteId);
-                    j39v25.put("settleId", settleId);
-                    j39v25.put("type", type);
-                    j39v25.put("spot", spot);
-                    j39v25.put("margin", Boolean.TRUE.equals(spot) && Boolean.TRUE.equals(isMarginTradingAllowed));
-                    j39v25.put("marginModes", marginModes);
-                    j39v25.put("swap", swap);
-                    j39v25.put("future", future);
-                    j39v25.put("option", false);
-                    j39v25.put("stock", stock);
-                    j39v25.put("active", active);
-                    j39v25.put("contract", contract);
-                    j39v25.put("linear", linear);
-                    j39v25.put("inverse", inverse);
-                    j39v25.put("taker", this.safeNumber(market, "takerFeeRate", (Object) null));
-                    j39v25.put("maker", this.safeNumber(market, "makerFeeRate", (Object) null));
-                    j39v25.put("contractSize", contractSize);
-                    j39v25.put("expiry", expiry);
-                    j39v25.put("expiryDatetime", expiryDatetime);
-                    j39v25.put("strike", null);
-                    j39v25.put("optionType", null);
-                    j39v25.put("precision", (switch (0) { default -> { HashMap<String, Object> j39v24 = new HashMap<String, Object>();
-                        j39v24.put("amount", amountPrecision);
-                        j39v24.put("price", pricePrecision);
-                        yield j39v24; } }));
-                    j39v25.put("limits", new HashMap<String, Object>() {{
+                ((List<Object>)result).add(this.safeMarketStructure((switch (0) { default -> { HashMap<String, Object> j39v7 = new HashMap<String, Object>();
+                    j39v7.put("id", marketId);
+                    j39v7.put("symbol", symbol);
+                    j39v7.put("base", base);
+                    j39v7.put("quote", quote);
+                    j39v7.put("settle", settle);
+                    j39v7.put("baseId", baseId);
+                    j39v7.put("quoteId", quoteId);
+                    j39v7.put("settleId", settleId);
+                    j39v7.put("type", type);
+                    j39v7.put("spot", spot);
+                    j39v7.put("margin", Boolean.TRUE.equals(spot) && Boolean.TRUE.equals(isMarginTradingAllowed));
+                    j39v7.put("marginModes", marginModes);
+                    j39v7.put("swap", swap);
+                    j39v7.put("future", future);
+                    j39v7.put("option", false);
+                    j39v7.put("stock", stock);
+                    j39v7.put("active", active);
+                    j39v7.put("contract", contract);
+                    j39v7.put("linear", linear);
+                    j39v7.put("inverse", inverse);
+                    j39v7.put("taker", this.safeNumber(market, "takerFeeRate", (Object) null));
+                    j39v7.put("maker", this.safeNumber(market, "makerFeeRate", (Object) null));
+                    j39v7.put("contractSize", contractSize);
+                    j39v7.put("expiry", expiry);
+                    j39v7.put("expiryDatetime", expiryDatetime);
+                    j39v7.put("strike", null);
+                    j39v7.put("optionType", null);
+                    j39v7.put("precision", (switch (0) { default -> { HashMap<String, Object> j39v6 = new HashMap<String, Object>();
+                        j39v6.put("amount", amountPrecision);
+                        j39v6.put("price", pricePrecision);
+                        yield j39v6; } }));
+                    j39v7.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", Bitget.this.safeNumber(market, "minLeverage", (Object) null) );
                             put( "max", Bitget.this.safeNumber(market, "maxLeverage", (Object) null) );
@@ -4376,9 +4376,9 @@ public class Bitget extends BitgetApi
                             put( "max", null );
                         }} );
                     }});
-                    j39v25.put("created", this.safeInteger(market, "launchTime"));
-                    j39v25.put("info", market);
-                    yield j39v25; } })));
+                    j39v7.put("created", this.safeInteger(market, "launchTime"));
+                    j39v7.put("info", market);
+                    yield j39v7; } })));
             }
             return result;
         });
@@ -4468,11 +4468,11 @@ public class Bitget extends BitgetApi
             Boolean rechargeable = (java.util.Objects.equals(this.safeString(chain, "rechargeable"), "true"));
             withdraw = (((java.util.Objects.equals(withdraw, null)))) ? withdrawable : (Boolean.TRUE.equals(withdraw) || Boolean.TRUE.equals(withdrawable));
             deposit = (((java.util.Objects.equals(deposit, null)))) ? rechargeable : (Boolean.TRUE.equals(deposit) || Boolean.TRUE.equals(rechargeable));
-            networks.put((String)network, (switch (0) { default -> { HashMap<String, Object> j39v27 = new HashMap<String, Object>();
-                j39v27.put("info", chain);
-                j39v27.put("id", networkId);
-                j39v27.put("network", network);
-                j39v27.put("limits", new HashMap<String, Object>() {{
+            networks.put((String)network, (switch (0) { default -> { HashMap<String, Object> j39v9 = new HashMap<String, Object>();
+                j39v9.put("info", chain);
+                j39v9.put("id", networkId);
+                j39v9.put("network", network);
+                j39v9.put("limits", new HashMap<String, Object>() {{
         put( "withdraw", new HashMap<String, Object>() {{
             put( "min", Bitget.this.safeNumber(chain, "minWithdrawAmount", (Object) null) );
             put( "max", null );
@@ -4482,12 +4482,12 @@ public class Bitget extends BitgetApi
             put( "max", null );
         }} );
     }});
-                j39v27.put("active", null);
-                j39v27.put("withdraw", withdrawable);
-                j39v27.put("deposit", rechargeable);
-                j39v27.put("fee", this.safeNumber(chain, "withdrawFee", (Object) null));
-                j39v27.put("precision", this.parseNumber(this.parsePrecision(this.safeString(chain, "withdrawMinScale"))));
-                yield j39v27; } }));
+                j39v9.put("active", null);
+                j39v9.put("withdraw", withdrawable);
+                j39v9.put("deposit", rechargeable);
+                j39v9.put("fee", this.safeNumber(chain, "withdrawFee", (Object) null));
+                j39v9.put("precision", this.parseNumber(this.parsePrecision(this.safeString(chain, "withdrawMinScale"))));
+                yield j39v9; } }));
         }
         Boolean active = (java.util.Objects.equals(withdraw, true)) && (java.util.Objects.equals(deposit, true));
         boolean isFiat = this.inArray(code, fiatCurrencies);
@@ -4728,7 +4728,7 @@ public class Bitget extends BitgetApi
         //
         List<Object> tiers = new ArrayList<Object>(Arrays.asList());
         Object minNotional = 0;
-        for (var i = 0; i < (switch ((Object)(info)) { case null -> 0; case List<?> j39v30 -> j39v30.size(); case String j39v31 -> j39v31.length(); case Object j39v32 -> j39v32.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v32) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(info)) { case null -> 0; case List<?> j39v11 -> j39v11.size(); case String j39v12 -> j39v12.length(); case Object j39v13 -> j39v13.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v13) : 0; }); i++)
         {
             Object item = Helpers.GetValue(info, i);
             Double minimumNotional = this.safeNumber2(item, "startUnit", "minTierValue", (Object) null);
@@ -4740,16 +4740,16 @@ public class Bitget extends BitgetApi
             String marginCurrency = this.safeString2(item, "coin", "baseCoin");
             String currencyId = (((!java.util.Objects.equals(marginCurrency, null)))) ? marginCurrency : this.safeString(market, "base");
             String marketId = this.safeString(item, "symbol");
-            ((List<Object>)tiers).add((switch (0) { default -> { HashMap<String, Object> j39v28 = new HashMap<String, Object>();
-                j39v28.put("tier", this.safeInteger2(item, "level", "tier"));
-                j39v28.put("symbol", this.safeSymbol(marketId, market, (String) null, (String) null));
-                j39v28.put("currency", this.safeCurrencyCode(currencyId, (Map<String, Object>) null));
-                j39v28.put("minNotional", minNotional);
-                j39v28.put("maxNotional", maxNotional);
-                j39v28.put("maintenanceMarginRate", this.safeNumberN(item, new ArrayList<Object>(Arrays.asList("keepMarginRate", "maintainMarginRate", "mmr")), (Object) null));
-                j39v28.put("maxLeverage", this.safeNumber(item, "leverage", (Object) null));
-                j39v28.put("info", item);
-                yield j39v28; } }));
+            ((List<Object>)tiers).add((switch (0) { default -> { HashMap<String, Object> j39v10 = new HashMap<String, Object>();
+                j39v10.put("tier", this.safeInteger2(item, "level", "tier"));
+                j39v10.put("symbol", this.safeSymbol(marketId, market, (String) null, (String) null));
+                j39v10.put("currency", this.safeCurrencyCode(currencyId, (Map<String, Object>) null));
+                j39v10.put("minNotional", minNotional);
+                j39v10.put("maxNotional", maxNotional);
+                j39v10.put("maintenanceMarginRate", this.safeNumberN(item, new ArrayList<Object>(Arrays.asList("keepMarginRate", "maintainMarginRate", "mmr")), (Object) null));
+                j39v10.put("maxLeverage", this.safeNumber(item, "leverage", (Object) null));
+                j39v10.put("info", item);
+                yield j39v10; } }));
             minNotional = maxNotional;
         }
         return tiers;
@@ -6633,7 +6633,7 @@ public class Bitget extends BitgetApi
                 List<Object> productTypeparamsMarginModeVariable = (List<Object>) this.handleProductTypeAndParams((Map<String, Object>) null, paramsMarginMode);
                 productType = (String) ((List<Object>) productTypeparamsMarginModeVariable).get(0);
                 paramsMarginMode = (Map<String, Object>) ((List<Object>) productTypeparamsMarginModeVariable).get(1);
-                { Map<Object, Object> j39v34 = (Map<Object, Object>) (Map<?, ?>) (paramsMarginMode); Object j39v35 = "productType"; Object j39v36 = productType; if (j39v34 == null) { if (j39v35 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v34) { if (j39v36 == null && j39v34 instanceof java.util.concurrent.ConcurrentHashMap) { j39v34.remove(j39v35); } else { j39v34.put(j39v35, j39v36); } } }
+                Helpers.addElementToObject(paramsMarginMode, "productType", productType);
                 response = (this.publicMixGetV2MixMarketContracts(paramsMarginMode)).join();
             } else
             {
@@ -6910,7 +6910,7 @@ public class Bitget extends BitgetApi
                 Long historicalLimit = ((((recentLimit != null && (maxLimitForHistoryEndpoint == null || recentLimit > maxLimitForHistoryEndpoint))))) ? maxLimitForHistoryEndpoint : recentLimit;
                 limitResolved = historicalLimit;
                 Long historicalDuration = (historicalLimit * duration);
-                calculatedStartTime = ((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) - ((Long) j36b)); if (j36a instanceof Double || j36b instanceof Double) { java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; return (Object) (j36d.applyAsDouble(j36a) - j36d.applyAsDouble(j36b)); } return null; }).apply(calculatedEndTime, historicalDuration);
+                calculatedStartTime = Helpers.subtract(calculatedEndTime, historicalDuration);
                 request.put("startTime", calculatedStartTime);
                 // for contract, maximum 90 days allowed between start-end times
                 if (!java.util.Objects.equals(market.get("spot"), true))
@@ -7307,7 +7307,7 @@ public class Bitget extends BitgetApi
         //           // "symbol": "BTCUSDT" // only for isolated margin
         //       }
         //
-        for (var i = 0; i < (switch ((Object)(balance)) { case null -> 0; case List<?> j39v39 -> j39v39.size(); case String j39v40 -> j39v40.length(); case Object j39v41 -> j39v41.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v41) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(balance)) { case null -> 0; case List<?> j39v14 -> j39v14.size(); case String j39v15 -> j39v15.length(); case Object j39v16 -> j39v16.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v16) : 0; }); i++)
         {
             Map<String, Object> entry = (Map<String, Object>) this.safeDict(balance, i, (Object) null);
             Map<String, Object> account = this.account();
@@ -15031,7 +15031,7 @@ public class Bitget extends BitgetApi
         Object query = this.omit(parameters, this.extractParams(path));
         if (!Boolean.TRUE.equals(signed) && (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")))
         {
-            List<Object> keys = ((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v42 -> { synchronized (j39v42) { yield new ArrayList<Object>(j39v42.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            List<Object> keys = ((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v17 -> { synchronized (j39v17) { yield new ArrayList<Object>(j39v17.keySet()); } } case null, default -> new ArrayList<Object>(); });
             Integer keysLength = ((List<?>)keys).size();
             if ((keysLength != null && keysLength > 0))
             {

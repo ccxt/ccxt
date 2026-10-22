@@ -1202,7 +1202,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         requestPath = '/' + self.implode_params(path, params)
         apiName = api[0]
         apiUrl = self.safe_string(self.urls['api'], apiName)

@@ -1733,14 +1733,14 @@ public class Polymarket extends PolymarketApi
             // `since` anchor (oldest chunk first, consistent with since/limit paging),
             // or the most recent window when no `since` was given
             Long maxWindow = this.safeInteger(this.options, "maxPricesHistoryWindow", 1296000);
-            if (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } return j38g; }).test((((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) - ((Long) j36b)); if (j36a instanceof Double || j36b instanceof Double) { java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; return (Object) (j36d.applyAsDouble(j36a) - j36d.applyAsDouble(j36b)); } return null; }).apply(endS, startS)), maxWindow))
+            if (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } return j38g; }).test((Helpers.subtract(endS, startS)), maxWindow))
             {
                 if (!java.util.Objects.equals(since, null))
                 {
                     endS = this.sum(startS, maxWindow);
                 } else
                 {
-                    startS = ((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) - ((Long) j36b)); if (j36a instanceof Double || j36b instanceof Double) { java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; return (Object) (j36d.applyAsDouble(j36a) - j36d.applyAsDouble(j36b)); } return null; }).apply(endS, maxWindow);
+                    startS = Helpers.subtract(endS, maxWindow);
                 }
             }
             Map<String, Object> request = new HashMap<String, Object>();
@@ -1771,7 +1771,7 @@ public class Polymarket extends PolymarketApi
                     continue;
                 }
                 Long rawMs = (t * 1000L);
-                Long snappedMs = (Long) ((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a == null || j36b == null) return null; if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) * ((Long) j36b)); java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; double j36r = j36d.applyAsDouble(j36a) * j36d.applyAsDouble(j36b); if (new java.math.BigDecimal(String.valueOf(j36r)).stripTrailingZeros().scale() <= 0) return (Object) ((long) j36r); return (Object) j36r; }).apply(this.parseToInt((((double) rawMs) / ((double) resolutionMs))), resolutionMs);
+                Long snappedMs = (Long) Helpers.multiply(this.parseToInt((((double) rawMs) / ((double) resolutionMs))), resolutionMs);
                 // the venue supplies no candle volume ({t, p} ticks only) — leave it undefined
                 // rather than fabricating a 0, probing s/v in case the field ever appears
                 Double vol = this.safeNumber(item, "s", (Object) null);
@@ -2337,7 +2337,7 @@ public class Polymarket extends PolymarketApi
         Object notional = null;
         if ((!java.util.Objects.equals(size, null)) && (!java.util.Objects.equals(curPrice, null)))
         {
-            notional = ((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a == null || j36b == null) return null; if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) * ((Long) j36b)); java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; double j36r = j36d.applyAsDouble(j36a) * j36d.applyAsDouble(j36b); if (new java.math.BigDecimal(String.valueOf(j36r)).stripTrailingZeros().scale() <= 0) return (Object) ((long) j36r); return (Object) j36r; }).apply(size, curPrice);
+            notional = Helpers.multiply(size, curPrice);
         }
         HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
         mapLiteral3.put("id", this.safeString(position, "id"));
@@ -2612,9 +2612,10 @@ public class Polymarket extends PolymarketApi
                 for (var i = 0; i < ((List<?>)response).size(); i++)
                 {
                     // request echo first so the response's real orderID/status win on overlap
-                    Map<String, Object> enriched = this.extend((requests == null || i < 0 || i >= requests.size() ? null : requests.get(i)), (response == null || i < 0 || i >= response.size() ? null : response.get(i)));
+                    Object rawItem = (response == null || i < 0 || i >= response.size() ? null : response.get(i));
+                    Map<String, Object> enriched = this.extend((requests == null || i < 0 || i >= requests.size() ? null : requests.get(i)), rawItem);
                     Object parsedItem = this.parsePredictionOrder((Map<String, Object>) (enriched), ((Map<String, Object>) (switch ((Object) (((Object)(outcomes == null || i < 0 || i >= outcomes.size() ? null : outcomes.get(i))))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v7 -> (Map<String, Object>) hx4J40v7; case Object hx4J40v7 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v7.getClass().getName()); })));
-                    Helpers.addElementToObject(parsedItem, "info", (response == null || i < 0 || i >= response.size() ? null : response.get(i))); // keep info the raw exchange response
+                    Helpers.addElementToObject(parsedItem, "info", rawItem); // keep info the raw exchange response
                     ((List<Object>)result).add(parsedItem);
                 }
             } else
@@ -3589,8 +3590,8 @@ public class Polymarket extends PolymarketApi
                 // the L2 api secret is base64url-encoded; decode it to raw bytes for the HMAC key.
                 // unchained replaceAll: the php transpiler only converts the outermost .replaceAll
                 // in a chain, leaving the inner call as an (invalid) method call
-                String plusSecret = ((java.util.function.Function<Object, java.util.function.BiFunction<Object, Object, String>>) hx4J43a1 -> (hx4J43b1, hx4J43c1) -> { if (hx4J43a1 == null) { return null; } String hx4J43a1s = String.valueOf(hx4J43a1); String hx4J43a1f = (hx4J43b1 == null) ? "" : String.valueOf(hx4J43b1); if (hx4J43a1f.isEmpty()) { return hx4J43a1s; } String hx4J43a1r = (hx4J43c1 == null) ? "" : String.valueOf(hx4J43c1); return hx4J43a1s.replace(hx4J43a1f, hx4J43a1r); }).apply(secret).apply((String)"-", (String)"+");
-                String normalizedSecret = ((java.util.function.Function<Object, java.util.function.BiFunction<Object, Object, String>>) hx4J43a0 -> (hx4J43b0, hx4J43c0) -> { if (hx4J43a0 == null) { return null; } String hx4J43a0s = String.valueOf(hx4J43a0); String hx4J43a0f = (hx4J43b0 == null) ? "" : String.valueOf(hx4J43b0); if (hx4J43a0f.isEmpty()) { return hx4J43a0s; } String hx4J43a0r = (hx4J43c0 == null) ? "" : String.valueOf(hx4J43c0); return hx4J43a0s.replace(hx4J43a0f, hx4J43a0r); }).apply(plusSecret).apply((String)"_", (String)"/");
+                String plusSecret = Helpers.replaceAll(secret, (String)"-", (String)"+");
+                String normalizedSecret = Helpers.replaceAll(plusSecret, (String)"_", (String)"/");
                 Object secretBytes = this.base64ToBinary(normalizedSecret);
                 Object signature = this.hmac(this.encode(auth), secretBytes, sha256(), "base64");
                 // url-safe base64, preserving '=' padding (matches the reference client)
@@ -3781,9 +3782,9 @@ public class Polymarket extends PolymarketApi
         }};
         // cache in options rather than the typed apiKey/secret/password fields so the
         // assignment is valid in the struct-based languages (C#/Go/Java)
-        { Map<Object, Object> j39v12 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v13 = "l2ApiKey"; Object j39v14 = creds.get("apiKey"); if (j39v12 == null) { if (j39v13 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v12) { if (j39v14 == null && j39v12 instanceof java.util.concurrent.ConcurrentHashMap) { j39v12.remove(j39v13); } else { j39v12.put(j39v13, j39v14); } } }
-        { Map<Object, Object> j39v9 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v10 = "l2Secret"; Object j39v11 = creds.get("secret"); if (j39v9 == null) { if (j39v10 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v9) { if (j39v11 == null && j39v9 instanceof java.util.concurrent.ConcurrentHashMap) { j39v9.remove(j39v10); } else { j39v9.put(j39v10, j39v11); } } }
-        { Map<Object, Object> j39v6 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v7 = "l2Passphrase"; Object j39v8 = creds.get("passphrase"); if (j39v6 == null) { if (j39v7 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v6) { if (j39v8 == null && j39v6 instanceof java.util.concurrent.ConcurrentHashMap) { j39v6.remove(j39v7); } else { j39v6.put(j39v7, j39v8); } } }
+        Helpers.addElementToObject(this.options, "l2ApiKey", creds.get("apiKey"));
+        Helpers.addElementToObject(this.options, "l2Secret", creds.get("secret"));
+        Helpers.addElementToObject(this.options, "l2Passphrase", creds.get("passphrase"));
         return creds;
     }
 
@@ -4103,7 +4104,7 @@ public class Polymarket extends PolymarketApi
             Integer bidsLength = 0;
             if (!java.util.Objects.equals(bids, null))
             {
-                bidsLength = (switch ((Object)(bids)) { case null -> 0; case List<?> j39v28 -> j39v28.size(); case String j39v29 -> j39v29.length(); case Object j39v30 -> j39v30.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v30) : 0; });
+                bidsLength = (switch ((Object)(bids)) { case null -> 0; case List<?> j39v9 -> j39v9.size(); case String j39v10 -> j39v10.length(); case Object j39v11 -> j39v11.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v11) : 0; });
             }
             if ((!java.util.Objects.equals(bids, null)) && ((bidsLength != null && bidsLength > 0)))
             {
@@ -4115,7 +4116,7 @@ public class Polymarket extends PolymarketApi
             Integer asksLength = 0;
             if (!java.util.Objects.equals(asks, null))
             {
-                asksLength = (switch ((Object)(asks)) { case null -> 0; case List<?> j39v21 -> j39v21.size(); case String j39v22 -> j39v22.length(); case Object j39v23 -> j39v23.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v23) : 0; });
+                asksLength = (switch ((Object)(asks)) { case null -> 0; case List<?> j39v6 -> j39v6.size(); case String j39v7 -> j39v7.length(); case Object j39v8 -> j39v8.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v8) : 0; });
             }
             if ((!java.util.Objects.equals(asks, null)) && ((asksLength != null && asksLength > 0)))
             {

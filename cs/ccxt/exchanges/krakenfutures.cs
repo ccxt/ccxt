@@ -556,7 +556,7 @@ public partial class krakenfutures : Exchange
             object symbol = id;
             List<object> split = id.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
             string? splitMarket = this.safeString(split, 1);
-            string? baseId = ((Func<object, object, object, string>)(static (s36s, s36a, s36b) => { if (s36s == null) { return null; } var s36str = (string)s36s; var s36start = s36a != null ? Convert.ToInt32(s36a) : -1; if (s36b == null) { if (s36start < 0) { var s36inner = s36str.Length + s36start; s36inner = s36inner < 0 ? 0 : s36inner; return s36str[(s36inner)..]; } else { return s36str[s36start..]; } } else { var s36end = Convert.ToInt32(s36b); if (s36start < 0) { s36start = s36str.Length + s36start; } if (s36end < 0) { s36end = s36str.Length + s36end; } if (s36end > s36str.Length) { s36end = s36str.Length; } return s36str[s36start..s36end]; } }))(splitMarket, 0, (splitMarket.Length - 3));
+            string? baseId = slice(splitMarket, 0, (splitMarket.Length - 3));
             string quoteId = "usd"; // always USD
             string? bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
@@ -649,7 +649,7 @@ public partial class krakenfutures : Exchange
         }
         object settlementCurrencies = getValue((this.options.ContainsKey("settlementCurrencies") ? this.options["settlementCurrencies"] : null), "flex");
         List<object> currencies = new List<object>() {};
-        for (int i = 0; i < (((object)(settlementCurrencies)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(settlementCurrencies); i++)
         {
             object code = getValue(settlementCurrencies, i);
             currencies.Add(new Dictionary<string, object>() {
@@ -4213,7 +4213,7 @@ public partial class krakenfutures : Exchange
         {
             return null;
         }
-        if ((((object)(code)) switch { Int64 c33l => c33l == 429, int c33i => c33i == 429, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 429, decimal c33m => c33m == 429, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 429, uint c33u => (Int64)c33u == 429, short c33h => (Int64)c33h == 429, ushort c33v => (Int64)c33v == 429, byte c33y => (Int64)c33y == 429, sbyte c33e => (Int64)c33e == 429, ulong c33z => c33z == 429UL, _ => false }))
+        if (isEqual(code, 429))
         {
             throw new DDoSProtection ((string)((this.id + " ") + (body))) ;
         }
@@ -4228,7 +4228,7 @@ public partial class krakenfutures : Exchange
         string feedback = ((this.id + " ") + (body));
         this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, feedback);
         this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
-        if ((((object)(code)) switch { Int64 c33l => c33l == 400, int c33i => c33i == 400, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 400, decimal c33m => c33m == 400, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 400, uint c33u => (Int64)c33u == 400, short c33h => (Int64)c33h == 400, ushort c33v => (Int64)c33v == 400, byte c33y => (Int64)c33y == 400, sbyte c33e => (Int64)c33e == 400, ulong c33z => c33z == 400UL, _ => false }))
+        if (isEqual(code, 400))
         {
             throw new BadRequest (feedback) ;
         }
@@ -4258,7 +4258,7 @@ public partial class krakenfutures : Exchange
             postData = ("json=" + this.json(paramsOmitted2));
         } else if ((new List<object>(((IDictionary<string,object>)paramsOmitted2).Keys)).Count > 0)
         {
-            if ((((object)(paramsOmitted2)) switch { null => false, IList<object> c33a => c33a.Contains("orderIds"), IList<string> c33t => c33t.Contains("orderIds"), List<Int64> c33g => c33g.Contains((Int64)(object)"orderIds"), IDictionary<string, object> c33d => c33d.ContainsKey("orderIds"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("orderIds"), _ => false }))
+            if (inOp(paramsOmitted2, "orderIds"))
             {
                 postData = this.urlencodeWithArrayRepeat(paramsOmitted2);
             } else

@@ -3090,7 +3090,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             return None
         return self.token
 
-    def sign(self, path: str, api: list[str] | str = 'public', method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] | str = 'public', method: str = 'GET', params: dict = {}) -> dict:
         access = api[0] if isinstance(api, list) else api
         rpcMethod = access + '/' + path
         requestParams = self.handle_route_and_params('sign', params)

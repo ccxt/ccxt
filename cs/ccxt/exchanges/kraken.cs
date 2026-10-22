@@ -1655,7 +1655,7 @@ public partial class kraken : Exchange
             type = ((this.safeString(trade, 4) == "l")) ? "limit" : "market";
             price = this.safeString(trade, 0);
             amount = this.safeString(trade, 1);
-            int tradeLength = (((object)(trade)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+            int tradeLength = getArrayLength(trade);
             if (tradeLength > 6)
             {
                 id = this.safeString(trade, 6); // artificially added as per #1794
@@ -2087,8 +2087,8 @@ public partial class kraken : Exchange
             quoteIdStart = 4;
             quoteIdEnd = 7;
         }
-        string? baseId = ((Func<object, object, object, string>)(static (s36s, s36a, s36b) => { if (s36s == null) { return null; } var s36str = (string)s36s; var s36start = s36a != null ? Convert.ToInt32(s36a) : -1; if (s36b == null) { if (s36start < 0) { var s36inner = s36str.Length + s36start; s36inner = s36inner < 0 ? 0 : s36inner; return s36str[(s36inner)..]; } else { return s36str[s36start..]; } } else { var s36end = Convert.ToInt32(s36b); if (s36start < 0) { s36start = s36str.Length + s36start; } if (s36end < 0) { s36end = s36str.Length + s36end; } if (s36end > s36str.Length) { s36end = s36str.Length; } return s36str[s36start..s36end]; } }))(id, baseIdStart, baseIdEnd);
-        string? quoteId = ((Func<object, object, object, string>)(static (s36s, s36a, s36b) => { if (s36s == null) { return null; } var s36str = (string)s36s; var s36start = s36a != null ? Convert.ToInt32(s36a) : -1; if (s36b == null) { if (s36start < 0) { var s36inner = s36str.Length + s36start; s36inner = s36inner < 0 ? 0 : s36inner; return s36str[(s36inner)..]; } else { return s36str[s36start..]; } } else { var s36end = Convert.ToInt32(s36b); if (s36start < 0) { s36start = s36str.Length + s36start; } if (s36end < 0) { s36end = s36str.Length + s36end; } if (s36end > s36str.Length) { s36end = s36str.Length; } return s36str[s36start..s36end]; } }))(id, quoteIdStart, quoteIdEnd);
+        string? baseId = slice(id, baseIdStart, baseIdEnd);
+        string? quoteId = slice(id, quoteIdStart, quoteIdEnd);
         string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
         if (((bs == null)) || ((quote == null)))
@@ -2305,7 +2305,7 @@ public partial class kraken : Exchange
         if ((marketResolved != null))
         {
             symbol = this.safeString(marketResolved, "symbol");
-            if ((((object)(orderOmitted)) switch { null => false, IList<object> c33a => c33a.Contains("fee"), IList<string> c33t => c33t.Contains("fee"), List<Int64> c33g => c33g.Contains((Int64)(object)"fee"), IDictionary<string, object> c33d => c33d.ContainsKey("fee"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("fee"), _ => false }))
+            if (inOp(orderOmitted, "fee"))
             {
                 string? feeCost = this.safeString(orderOmitted, "fee");
                 fee = new Dictionary<string, object>() {
@@ -2761,7 +2761,7 @@ public partial class kraken : Exchange
             throw new ArgumentsRequired ((this.id + " fetchOrderTrades() requires a unified order structure in the params argument or a 'trades' param (an array of trade id strings)")) ;
         } else
         {
-            for (int i = 0; i < (((object)(orderTrades)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+            for (int i = 0; i < getArrayLength(orderTrades); i++)
             {
                 object orderTrade = getValue(orderTrades, i);
                 if ((orderTrade is string))
@@ -2988,7 +2988,7 @@ public partial class kraken : Exchange
         {
             if (((this.last_http_response != null)) && (!(this.last_http_response is "")))
             {
-                if ((((object)(this.last_http_response)) switch { IList<object> c33a => c33a.IndexOf("EOrder:Unknown order"), IList<string> c33t => c33t.IndexOf((string)(object)"EOrder:Unknown order"), string c33s => c33s.IndexOf((string)(object)"EOrder:Unknown order"), _ => -1 }) >= 0)
+                if (getIndexOf(this.last_http_response, "EOrder:Unknown order") >= 0)
                 {
                     throw new OrderNotFound ((string)((this.id + " cancelOrder() error ") + (this.last_http_response))) ;
                 }
@@ -3431,7 +3431,7 @@ public partial class kraken : Exchange
     public virtual object parseTransactionsByType(string? type, object transactions, string code = null, Int64? since = null, Int64? limit = null)
     {
         List<object> result = new List<object>() {};
-        for (int i = 0; i < (((object)(transactions)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(transactions); i++)
         {
             Dictionary<string, object> transaction = this.parseTransaction(this.extend(new Dictionary<string, object>() {
                 { "type", type },
@@ -4172,7 +4172,7 @@ public partial class kraken : Exchange
 
     public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
-        if ((((object)(code)) switch { Int64 c33l => c33l == 520, int c33i => c33i == 520, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 520, decimal c33m => c33m == 520, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 520, uint c33u => (Int64)c33u == 520, short c33h => (Int64)c33h == 520, ushort c33v => (Int64)c33v == 520, byte c33y => (Int64)c33y == 520, sbyte c33e => (Int64)c33e == 520, ulong c33z => c33z == 520UL, _ => false }))
+        if (isEqual(code, 520))
         {
             throw new ExchangeNotAvailable (((((this.id + " ") + code.ToString()) + " ") + reason)) ;
         }
@@ -4185,12 +4185,12 @@ public partial class kraken : Exchange
             if (!(response is string))
             {
                 string message = ((this.id + " ") + (body));
-                if ((((object)(response)) switch { null => false, IList<object> c33a => c33a.Contains("error"), IList<string> c33t => c33t.Contains("error"), List<Int64> c33g => c33g.Contains((Int64)(object)"error"), IDictionary<string, object> c33d => c33d.ContainsKey("error"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("error"), _ => false }))
+                if (inOp(response, "error"))
                 {
-                    int numErrors = (((object)(getValue(response, "error"))) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+                    int numErrors = getArrayLength(getValue(response, "error"));
                     if (numErrors > 0)
                     {
-                        for (int i = 0; i < (((object)(getValue(response, "error"))) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+                        for (int i = 0; i < getArrayLength(getValue(response, "error")); i++)
                         {
                             object error = getValue(getValue(response, "error"), i);
                             this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), error, message);
@@ -4200,7 +4200,7 @@ public partial class kraken : Exchange
                     }
                 }
                 // handleCreateOrdersErrors:
-                if ((((object)(response)) switch { null => false, IList<object> c33a => c33a.Contains("result"), IList<string> c33t => c33t.Contains("result"), List<Int64> c33g => c33g.Contains((Int64)(object)"result"), IDictionary<string, object> c33d => c33d.ContainsKey("result"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("result"), _ => false }))
+                if (inOp(response, "result"))
                 {
                     IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
                     if (result.ContainsKey("orders"))

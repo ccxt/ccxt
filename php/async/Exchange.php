@@ -965,7 +965,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         }
     }
 
-    public function handle_deltas(mixed $bookside, mixed $deltas) {
+    public function handle_deltas(mixed $bookside, array $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($bookside, $deltas[$i]);
         }
@@ -1322,7 +1322,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         $this->options['enableDemoTrading'] = $enable;
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()) {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()) {
         return array( 'url' => null, 'method' => null, 'headers' => null, 'body' => null );
     }
 
@@ -4155,7 +4155,11 @@ class BaseExchange extends \ccxt\BaseExchange {
     public function incrementing_nonce() {
         /**
          * @ignore
-         * returns a strictly-increasing nonce for venues that reject duplicate nonces per signer; the unit is whatever nonce () returns — the base default is seconds, so a venue that does not override nonce () gets a second-resolution counter that drifts ahead of wall clock under load, while venues needing milliseconds override nonce () as hyperliquid does. The counter is per exchange instance, so it narrows the duplicate-nonce race but does not remove it across instances or processes.
+         * returns a strictly-increasing nonce for venues that reject duplicate nonces per signer;
+         * the unit is whatever nonce () returns — the base default is seconds, so a venue that does not override
+         * nonce () gets a second-resolution counter that drifts ahead of wall clock under load, while venues
+         * needing milliseconds override nonce () as hyperliquid does. The counter is per exchange instance,
+         * so it narrows the duplicate-nonce race but does not remove it across instances or processes.
          * @return {int} a strictly-increasing nonce in the unit returned by nonce ()
          */
         $currentNonce = $this->nonce();
@@ -5803,17 +5807,11 @@ class BaseExchange extends \ccxt\BaseExchange {
          * @return {boolean} true if a post only order, false otherwise
          */
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
-        $postOnly = $this->safe_bool_2($params, 'postOnly', 'post_only', false);
         // we assume timeInForce is uppercase from safeStringUpper (params, 'timeInForce')
         $ioc = $timeInForce === 'IOC';
         $fok = $timeInForce === 'FOK';
         $timeInForcePostOnly = $timeInForce === 'PO';
-        if (!$postOnly) {
-            $postOnly = $timeInForcePostOnly;
-        }
-        if (!$postOnly) {
-            $postOnly = $exchangeSpecificParam;
-        }
+        $postOnly = $this->safe_bool_2($params, 'postOnly', 'post_only', false) || $timeInForcePostOnly || $exchangeSpecificParam;
         if ($postOnly) {
             if ($ioc || $fok) {
                 throw new InvalidOrder($this->id . ' postOnly orders cannot have timeInForce equal to ' . $timeInForce);
@@ -5836,16 +5834,10 @@ class BaseExchange extends \ccxt\BaseExchange {
          * @return {Array}
          */
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
-        $postOnly = $this->safe_bool($params, 'postOnly', false);
         $ioc = $timeInForce === 'IOC';
         $fok = $timeInForce === 'FOK';
         $po = $timeInForce === 'PO';
-        if (!$postOnly) {
-            $postOnly = $po;
-        }
-        if (!$postOnly) {
-            $postOnly = $exchangeSpecificPostOnlyOption;
-        }
+        $postOnly = $this->safe_bool($params, 'postOnly', false) || $po || $exchangeSpecificPostOnlyOption;
         if ($postOnly) {
             if ($ioc || $fok) {
                 throw new InvalidOrder($this->id . ' postOnly orders cannot have timeInForce equal to ' . $timeInForce);
@@ -5881,7 +5873,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         throw new NotSupported($this->id . ' fetchConvertCurrencies() is not supported yet');
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null) {
+    public function parse_open_interest(?array $interest, ?array $market = null) {
         throw new NotSupported($this->id . ' parseOpenInterest () is not supported yet');
     }
 
@@ -6132,7 +6124,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         return $depositWithdrawFees;
     }
 
-    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
+    public function parse_deposit_withdraw_fee(?array $fee, ?array $currency = null) {
         throw new NotSupported($this->id . ' parseDepositWithdrawFee() is not supported yet');
     }
 
@@ -6632,7 +6624,7 @@ class BaseExchange extends \ccxt\BaseExchange {
     }
 
     public function sort_cursor_paginated_result(mixed $result) {
-        $first = $this->safe_value($result, 0);
+        $first = $this->safe_dict($result, 0);
         if ($first !== null) {
             if (is_array($first) && array_key_exists('timestamp' ?? '', $first)) {
                 return $this->sort_by($result, 'timestamp', true);

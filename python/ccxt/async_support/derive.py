@@ -1006,7 +1006,7 @@ class derive(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_open_interest(result, market)
 
-    def parse_open_interest(self, interest: object, market: Market = None) -> OpenInterest:
+    def parse_open_interest(self, interest: dict, market: Market = None) -> OpenInterest:
         timestamp = self.safe_integer(interest, 't')
         stats = self.safe_dict(interest, 'stats', {})
         amount = self.safe_string(stats, 'oi')
@@ -4090,7 +4090,7 @@ class derive(Exchange, ImplicitAPI):
         # signs the auth timestamp and feeds incrementingNonce (), which nonceString () extends to the nanosecond-scale action nonce; must be unique per wallet (error 11017) while staying a valid date (error 11018)
         return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
         apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:

@@ -346,7 +346,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         {
             String timeStamp = String.valueOf(this.milliseconds());
             url = ((this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "public") + "&timestamp=") + timeStamp);
-            { Map<Object, Object> j39v1 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v2 = "wsPublicUrl"; Object j39v3 = url; if (j39v1 == null) { if (j39v2 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v1) { if (j39v3 == null && j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); } else { j39v1.put(j39v2, j39v3); } } }
+            Helpers.addElementToObject(this.options, "wsPublicUrl", url);
         }
         return url;
     }
@@ -358,7 +358,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         {
             String timeStamp = String.valueOf(this.milliseconds());
             url = ((this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "private") + "&timestamp=") + timeStamp);
-            { Map<Object, Object> j39v4 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v5 = "wsPrivateUrl"; Object j39v6 = url; if (j39v4 == null) { if (j39v5 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v4) { if (j39v6 == null && j39v4 instanceof java.util.concurrent.ConcurrentHashMap) { j39v4.remove(j39v5); } else { j39v4.put(j39v5, j39v6); } } }
+            Helpers.addElementToObject(this.options, "wsPrivateUrl", url);
         }
         return url;
     }
@@ -436,9 +436,9 @@ public class Apex extends io.github.ccxt.exchanges.Apex
 
     public void handleDeltas(Object bookside, Object deltas)
     {
-        for (var i = 0; i < (switch ((Object)(deltas)) { case null -> 0; case List<?> j39v8 -> j39v8.size(); case String j39v9 -> j39v9.length(); case Object j39v10 -> j39v10.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v10) : 0; }); i++)
+        for (var i = 0; i < ((List<?>)deltas).size(); i++)
         {
-            this.handleDelta(bookside, Helpers.GetValue(deltas, i));
+            this.handleDelta(bookside, (deltas == null || i < 0 || i >= ((List<?>)deltas).size() ? null : ((List<?>)deltas).get(i)));
         }
     }
 
@@ -1194,7 +1194,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             return false;
         } catch(Exception error)
         {
-            if ((switch ((Object) (error)) { case null -> false; case Throwable hx4J44v0 -> { Throwable hx4J44v0u = hx4J44v0; while ((hx4J44v0u instanceof java.util.concurrent.CompletionException || hx4J44v0u instanceof java.util.concurrent.ExecutionException) && hx4J44v0u.getCause() != null) { hx4J44v0u = hx4J44v0u.getCause(); } yield AuthenticationError.class.isInstance(hx4J44v0u); } case Object hx4J44v0 -> AuthenticationError.class.isInstance(hx4J44v0); }))
+            if (Helpers.isInstance(error, AuthenticationError.class))
             {
                 String messageHash = "authenticated";
                 client.reject(error, messageHash);
@@ -1249,7 +1249,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            if (((java.util.function.ToIntBiFunction<Object, Object>) (hx4J41s, hx4J41t) -> (hx4J41s instanceof List<?> hx4J41l) ? hx4J41l.indexOf(hx4J41t) : (hx4J41s instanceof String hx4J41x && hx4J41t instanceof String hx4J41y) ? hx4J41x.indexOf(hx4J41y) : -1).applyAsInt(topic, (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i))) >= 0)
+            if (Helpers.getIndexOf(topic, (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i))) >= 0)
             {
                 Object method = (methods == null || key == null ? null : methods.get(key));
                 Helpers.callDynamically(this, method, new Object[] {client, message});

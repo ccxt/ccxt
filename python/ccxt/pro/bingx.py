@@ -302,11 +302,7 @@ class bingx(ccxt.async_support.bingx):
         # Coin-M m is coin volume; v is contracts and q is already USD turnover.
         # prefer the caller's stream-derived flag so an unresolved market id on
         # the Coin-M endpoint does not silently fall back to the contract count
-        inverse = False
-        if isInverse is None:
-            inverse = marketResolved['inverse'] is True
-        else:
-            inverse = isInverse
+        inverse = (isInverse is True) or ((isInverse is None) and (marketResolved['inverse'] is True))
         baseVolumeKey = 'm' if inverse else 'v'
         return self.safe_ticker({
             'symbol': marketResolved['symbol'],

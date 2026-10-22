@@ -3975,7 +3975,7 @@ public class Digifinex extends DigifinexApi
             Boolean fromSwap = (java.util.Objects.equals(fromAccount, "swap"));
             Boolean toSwap = (java.util.Objects.equals(toAccount, "swap"));
             Map<String, Object> response = null;
-            Object amountString = this.currencyToPrecision((String) (code), amount, (String) null);
+            String amountString = (String) this.currencyToPrecision((String) (code), amount, (String) null);
             if (Boolean.TRUE.equals(fromSwap) || Boolean.TRUE.equals(toSwap))
             {
                 if ((!java.util.Objects.equals(fromId, "1")) && (!java.util.Objects.equals(toId, "1")))
@@ -5318,7 +5318,7 @@ public class Digifinex extends DigifinexApi
         //
         Map<String, Object> depositWithdrawFees = new HashMap<String, Object>() {{}};
         List<Object> codesValue = this.marketCodes(codes);
-        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v10 -> j39v10.size(); case String j39v11 -> j39v11.length(); case Object j39v12 -> j39v12.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v12) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v8 -> j39v8.size(); case String j39v9 -> j39v9.length(); case Object j39v10 -> j39v10.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v10) : 0; }); i++)
         {
             Map<String, Object> entry = (Map<String, Object>) this.safeDict(response, i, (Object) null);
             String currencyId = this.safeString(entry, "currency");
@@ -5451,7 +5451,7 @@ public class Digifinex extends DigifinexApi
                 status = "ok";
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.extend(this.parseMarginModification((Map<String, Object>) (data), market), (switch (0) { default -> { HashMap<String, Object> j39v13 = new HashMap<String, Object>(); j39v13.put("status", status); yield j39v13; } }));
+            return this.extend(this.parseMarginModification((Map<String, Object>) (data), market), (switch (0) { default -> { HashMap<String, Object> j39v11 = new HashMap<String, Object>(); j39v11.put("status", status); yield j39v11; } }));
         });
 
     }

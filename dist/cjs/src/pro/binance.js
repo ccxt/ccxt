@@ -247,7 +247,7 @@ class binance extends binance$1["default"] {
             if (newNumSubscriptions > subscriptionLimitByStream) {
                 throw new errors.BadRequest(this.id + ' reached the limit of subscriptions by stream. Increase the number of streams, or increase the stream limit or subscription limit by stream if the exchange allows.');
             }
-            this.options['numSubscriptionsByStream'][stream] = subscriptionsByStream + numSubscriptions;
+            this.options['numSubscriptionsByStream'][stream] = newNumSubscriptions;
         }
         return stream;
     }

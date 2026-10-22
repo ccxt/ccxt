@@ -2941,7 +2941,7 @@ export default class bullish extends Exchange {
         return this.parseOpenInterest (response, market);
     }
 
-    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
+    override parseOpenInterest (interest: NullableDict, market: Market = undefined): OpenInterest {
         //
         //     {
         //         "createdAtDatetime": "2021-05-20T01:01:01.000Z",
@@ -2993,7 +2993,7 @@ export default class bullish extends Exchange {
         }, market);
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
         let requestHeaders: NullableDict = undefined;
         let requestBody: Str = undefined;

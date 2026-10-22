@@ -796,7 +796,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             if (!java.util.Objects.equals(timeframe, null))
             {
-                { Map<Object, Object> j39v7 = (Map<Object, Object>) (Map<?, ?>) (symbolOhlcvs); Object j39v8 = timeframe; Object j39v9 = stored; if (j39v7 == null) { if (j39v8 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v7) { if (j39v9 == null && j39v7 instanceof java.util.concurrent.ConcurrentHashMap) { j39v7.remove(j39v8); } else { j39v7.put(j39v8, j39v9); } } }
+                Helpers.addElementToObject(symbolOhlcvs, timeframe, stored);
             }
         }
         ((io.github.ccxt.ws.ArrayCache) stored).append(parsed);
@@ -936,7 +936,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         {
             return -1;
         }
-        for (var i = 0; i < (switch ((Object)(cache)) { case null -> 0; case List<?> j39v13 -> j39v13.size(); case String j39v14 -> j39v14.length(); case Object j39v15 -> j39v15.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v15) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(cache)) { case null -> 0; case List<?> j39v4 -> j39v4.size(); case String j39v5 -> j39v5.length(); case Object j39v6 -> j39v6.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v6) : 0; }); i++)
         {
             Map<String, Object> delta = (Map<String, Object>) this.safeDict(cache, i, (Object) null);
             Long deltaNonce = this.safeIntegerN(delta, new ArrayList<Object>(Arrays.asList("r", "version", "fromVersion")));
@@ -949,7 +949,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 return i;
             }
         }
-        return (switch ((Object)(cache)) { case null -> 0; case List<?> j39v10 -> j39v10.size(); case String j39v11 -> j39v11.length(); case Object j39v12 -> j39v12.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v12) : 0; });
+        return (switch ((Object)(cache)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; });
     }
 
     public void handleOrderBook(Client client, Map<String, Object> message)
@@ -1038,7 +1038,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         {
             Object cacheLength = ((List<?>)((List<Object>)(storedOrderBook == null ? null : storedOrderBook.get("cache")))).size();
             Object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 25);
-            if (((java.util.function.BiPredicate<Object, Object>) (hx4J40v1A, hx4J40v1B) -> { try { if (hx4J40v1A == null && hx4J40v1B == null) { return true; } if (hx4J40v1A == null || hx4J40v1B == null) { return false; } java.util.function.Predicate<Object> hx4J40v1N = hx4J40v1o -> { try { Double.parseDouble(String.valueOf(hx4J40v1o)); return true; } catch (Exception hx4J40v1e) { return false; } }; if (!hx4J40v1A.getClass().equals(hx4J40v1B.getClass()) && !(hx4J40v1N.test(hx4J40v1A) && hx4J40v1N.test(hx4J40v1B))) { return false; } java.util.function.Predicate<Object> hx4J40v1I = hx4J40v1o -> hx4J40v1o instanceof Byte || hx4J40v1o instanceof Short || hx4J40v1o instanceof Integer || hx4J40v1o instanceof Long || hx4J40v1o instanceof java.util.concurrent.atomic.AtomicInteger || hx4J40v1o instanceof java.util.concurrent.atomic.AtomicLong || ((hx4J40v1o instanceof Float || hx4J40v1o instanceof Double || hx4J40v1o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(hx4J40v1o)).stripTrailingZeros().scale() <= 0); java.util.function.ToDoubleFunction<Object> hx4J40v1D = hx4J40v1o -> { if (hx4J40v1o instanceof Double || hx4J40v1o instanceof Float || hx4J40v1o instanceof Long || hx4J40v1o instanceof Integer || hx4J40v1o instanceof java.math.BigDecimal) { return ((Number) hx4J40v1o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v1o)); } catch (NumberFormatException hx4J40v1e) { return 0.0; } }; if (hx4J40v1I.test(hx4J40v1A) && hx4J40v1I.test(hx4J40v1B)) { java.util.function.ToLongFunction<Object> hx4J40v1L = hx4J40v1o -> hx4J40v1o instanceof Long || hx4J40v1o instanceof Integer || hx4J40v1o instanceof Double || hx4J40v1o instanceof Float || hx4J40v1o instanceof java.math.BigDecimal ? ((Number) hx4J40v1o).longValue() : Long.parseLong(String.valueOf(hx4J40v1o)); return hx4J40v1L.applyAsLong(hx4J40v1A) == hx4J40v1L.applyAsLong(hx4J40v1B); } if (hx4J40v1A instanceof Double || hx4J40v1B instanceof Double) { return hx4J40v1D.applyAsDouble(hx4J40v1A) == hx4J40v1D.applyAsDouble(hx4J40v1B); } if (hx4J40v1A instanceof Float || hx4J40v1B instanceof Float) { java.util.function.Function<Object, Float> hx4J40v1F = hx4J40v1o -> hx4J40v1o instanceof Float || hx4J40v1o instanceof Double || hx4J40v1o instanceof Long || hx4J40v1o instanceof Integer || hx4J40v1o instanceof java.math.BigDecimal ? ((Number) hx4J40v1o).floatValue() : Float.parseFloat(String.valueOf(hx4J40v1o)); return hx4J40v1F.apply(hx4J40v1A).floatValue() == hx4J40v1F.apply(hx4J40v1B).floatValue(); } if (hx4J40v1A instanceof String && hx4J40v1B instanceof String) { return hx4J40v1A.equals(hx4J40v1B); } if (hx4J40v1A instanceof Boolean && hx4J40v1B instanceof Boolean) { return hx4J40v1A.equals(hx4J40v1B); } if (hx4J40v1N.test(hx4J40v1A) && hx4J40v1N.test(hx4J40v1B)) { return new java.math.BigDecimal(String.valueOf(hx4J40v1A)).compareTo(new java.math.BigDecimal(String.valueOf(hx4J40v1B))) == 0; } return false; } catch (Exception hx4J40v1e) { return false; } }).test(cacheLength, snapshotDelay))
+            if (Helpers.isEqual(cacheLength, snapshotDelay))
             {
                 this.spawn(() -> { try { this.loadOrderBook(client, messageHash, symbol, limit, new HashMap<String, Object>() {{}}); } catch(Exception _e) { throw new RuntimeException(_e); } });
             }
@@ -2256,7 +2256,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 if (((String)symbol).indexOf("unsubscribe") >= 0)
                 {
                     // unWatchTickers
-                    List<Object> symbols = ((List<Object>) switch ((Object)(this.tickers)) { case Map<?, ?> j39v30 -> { synchronized (j39v30) { yield new ArrayList<Object>(j39v30.keySet()); } } case null, default -> new ArrayList<Object>(); });
+                    List<Object> symbols = ((List<Object>) switch ((Object)(this.tickers)) { case Map<?, ?> j39v7 -> { synchronized (j39v7) { yield new ArrayList<Object>(j39v7.keySet()); } } case null, default -> new ArrayList<Object>(); });
                     for (var j = 0; j < ((List<?>)symbols).size(); j++)
                     {
                         ((Map<String,Object>)this.tickers).remove((String)(symbols == null || j < 0 || j >= symbols.size() ? null : symbols.get(j)));
@@ -2333,7 +2333,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 client.future(messageHash).getFuture().join();
                 return this.safeString(this.options, "listenKey");
             }
-            { Map<Object, Object> j39v40 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v41 = "listenKeyFetching"; Object j39v42 = true; if (j39v40 == null) { if (j39v41 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v40) { if (j39v42 == null && j39v40 instanceof java.util.concurrent.ConcurrentHashMap) { j39v40.remove(j39v41); } else { j39v40.put(j39v41, j39v42); } } }
+            Helpers.addElementToObject(this.options, "listenKeyFetching", true);
             client.future(messageHash); // created ahead of the request below, so concurrent callers can find it
             Map<String, Object> response = null;
             try
@@ -2341,18 +2341,18 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 response = (this.spotPrivatePostUserDataStream(parameters)).join();
             } catch(Exception e)
             {
-                { Map<Object, Object> j39v37 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v38 = "listenKeyFetching"; Object j39v39 = false; if (j39v37 == null) { if (j39v38 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v37) { if (j39v39 == null && j39v37 instanceof java.util.concurrent.ConcurrentHashMap) { j39v37.remove(j39v38); } else { j39v37.put(j39v38, j39v39); } } }
+                Helpers.addElementToObject(this.options, "listenKeyFetching", false);
                 client.reject(e, messageHash);
                 throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
             }
-            { Map<Object, Object> j39v34 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v35 = "listenKeyFetching"; Object j39v36 = false; if (j39v34 == null) { if (j39v35 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v34) { if (j39v36 == null && j39v34 instanceof java.util.concurrent.ConcurrentHashMap) { j39v34.remove(j39v35); } else { j39v34.put(j39v35, j39v36); } } }
+            Helpers.addElementToObject(this.options, "listenKeyFetching", false);
             //
             //    {
             //        "listenKey": "pqia91ma19a5s61cv6a81va65sdf19v8a65a1a5s61cv6a81va65sdf19v8a65a1"
             //    }
             //
             listenKey = this.safeString(response, "listenKey");
-            { Map<Object, Object> j39v31 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v32 = "listenKey"; Object j39v33 = listenKey; if (j39v31 == null) { if (j39v32 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v31) { if (j39v33 == null && j39v31 instanceof java.util.concurrent.ConcurrentHashMap) { j39v31.remove(j39v32); } else { j39v31.put(j39v32, j39v33); } } }
+            Helpers.addElementToObject(this.options, "listenKey", listenKey);
             client.resolve(listenKey, messageHash);
             Long listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 1200000);
             this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", (String) (listenKey), parameters);
@@ -2386,7 +2386,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 }
                 String url = ((wsUrl + "?listenKey=") + listenKey);
                 Client client = this.client(url);
-                { Map<Object, Object> j39v44 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v45 = "listenKey"; Object j39v46 = null; if (j39v44 == null) { if (j39v45 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v44) { if (j39v46 == null && j39v44 instanceof java.util.concurrent.ConcurrentHashMap) { j39v44.remove(j39v45); } else { j39v44.put(j39v45, j39v46); } } }
+                Helpers.addElementToObject(this.options, "listenKey", null);
                 client.reject(error);
                 ((Map<String,Object>)this.clients).remove(url);
             }
@@ -2495,7 +2495,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             this.handleProtobufMessage(client, (Map<String, Object>) (decodedMessage));
             return;
         }
-        if ((switch ((Object)(message)) { case List<?> j39v48 -> j39v48.contains("msg"); case Map<?, ?> j39v47 -> j39v47.containsKey("msg"); case null, default -> false; }))
+        if ((switch ((Object)(message)) { case List<?> j39v9 -> j39v9.contains("msg"); case Map<?, ?> j39v8 -> j39v8.containsKey("msg"); case null, default -> false; }))
         {
             this.handleSubscriptionStatus(client, (Map<String, Object>) (message));
             return;

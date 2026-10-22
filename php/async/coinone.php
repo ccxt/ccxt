@@ -1337,7 +1337,7 @@ class coinone extends Exchange {
         return $this->to_array($result);
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $request = $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));

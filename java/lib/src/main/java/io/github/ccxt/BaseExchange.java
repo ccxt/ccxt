@@ -106,13 +106,13 @@ public class BaseExchange {
         Object backoff = (wsOptions == null) ? null : Helpers.GetValue(wsOptions, "backoff");
         if (backoff != null) {
             Object value = Helpers.GetValue(backoff, "base");
-            if (value != null) { base = switch (value) { case Long hx4J42l -> hx4J42l.longValue(); case Integer hx4J42i -> hx4J42i.longValue(); case Double hx4J42d -> hx4J42d.longValue(); case Float hx4J42f -> hx4J42f.longValue(); case java.math.BigDecimal hx4J42b -> hx4J42b.longValue(); default -> Long.parseLong(String.valueOf(value)); }; }
+            if (value != null) { base = Helpers.toInt64(value); }
             value = Helpers.GetValue(backoff, "factor");
-            if (value != null) { factor = switch (value) { case Long hx4J42l -> hx4J42l.longValue(); case Integer hx4J42i -> hx4J42i.longValue(); case Double hx4J42d -> hx4J42d.longValue(); case Float hx4J42f -> hx4J42f.longValue(); case java.math.BigDecimal hx4J42b -> hx4J42b.longValue(); default -> Long.parseLong(String.valueOf(value)); }; }
+            if (value != null) { factor = Helpers.toInt64(value); }
             value = Helpers.GetValue(backoff, "max");
-            if (value != null) { maxDelay = switch (value) { case Long hx4J42l -> hx4J42l.longValue(); case Integer hx4J42i -> hx4J42i.longValue(); case Double hx4J42d -> hx4J42d.longValue(); case Float hx4J42f -> hx4J42f.longValue(); case java.math.BigDecimal hx4J42b -> hx4J42b.longValue(); default -> Long.parseLong(String.valueOf(value)); }; }
+            if (value != null) { maxDelay = Helpers.toInt64(value); }
             value = Helpers.GetValue(backoff, "stableAfter");
-            if (value != null) { stableAfter = switch (value) { case Long hx4J42l -> hx4J42l.longValue(); case Integer hx4J42i -> hx4J42i.longValue(); case Double hx4J42d -> hx4J42d.longValue(); case Float hx4J42f -> hx4J42f.longValue(); case java.math.BigDecimal hx4J42b -> hx4J42b.longValue(); default -> Long.parseLong(String.valueOf(value)); }; }
+            if (value != null) { stableAfter = Helpers.toInt64(value); }
         }
         long now = this.milliseconds();
         long attempts = 0L;
@@ -729,7 +729,22 @@ public class BaseExchange {
 
     public Object crc32(Object str, Object signed) {
         if (crc32Table == null) {
-            String tableStr = "00000000 77073096 EE0E612C 990951BA 076DC419 706AF48F E963A535 9E6495A3 0EDB8832 79DCB8A4 E0D5E91E 97D2D988 09B64C2B 7EB17CBD E7B82D07 90BF1D91 1DB71064 6AB020F2 F3B97148 84BE41DE 1ADAD47D 6DDDE4EB F4D4B551 83D385C7 136C9856 646BA8C0 FD62F97A 8A65C9EC 14015C4F 63066CD9 FA0F3D63 8D080DF5 3B6E20C8 4C69105E D56041E4 A2677172 3C03E4D1 4B04D447 D20D85FD A50AB56B 35B5A8FA 42B2986C DBBBC9D6 ACBCF940 32D86CE3 45DF5C75 DCD60DCF ABD13D59 26D930AC 51DE003A C8D75180 BFD06116 21B4F4B5 56B3C423 CFBA9599 B8BDA50F 2802B89E 5F058808 C60CD9B2 B10BE924 2F6F7C87 58684C11 C1611DAB B6662D3D 76DC4190 01DB7106 98D220BC EFD5102A 71B18589 06B6B51F 9FBFE4A5 E8B8D433 7807C9A2 0F00F934 9609A88E E10E9818 7F6A0DBB 086D3D2D 91646C97 E6635C01 6B6B51F4 1C6C6162 856530D8 F262004E 6C0695ED 1B01A57B 8208F4C1 F50FC457 65B0D9C6 12B7E950 8BBEB8EA FCB9887C 62DD1DDF 15DA2D49 8CD37CF3 FBD44C65 4DB26158 3AB551CE A3BC0074 D4BB30E2 4ADFA541 3DD895D7 A4D1C46D D3D6F4FB 4369E96A 346ED9FC AD678846 DA60B8D0 44042D73 33031DE5 AA0A4C5F DD0D7CC9 5005713C 270241AA BE0B1010 C90C2086 5768B525 206F85B3 B966D409 CE61E49F 5EDEF90E 29D9C998 B0D09822 C7D7A8B4 59B33D17 2EB40D81 B7BD5C3B C0BA6CAD EDB88320 9ABFB3B6 03B6E20C 74B1D29A EAD54739 9DD277AF 04DB2615 73DC1683 E3630B12 94643B84 0D6D6A3E 7A6A5AA8 E40ECF0B 9309FF9D 0A00AE27 7D079EB1 F00F9344 8708A3D2 1E01F268 6906C2FE F762575D 806567CB 196C3671 6E6B06E7 FED41B76 89D32BE0 10DA7A5A 67DD4ACC F9B9DF6F 8EBEEFF9 17B7BE43 60B08ED5 D6D6A3E8 A1D1937E 38D8C2C4 4FDFF252 D1BB67F1 A6BC5767 3FB506DD 48B2364B D80D2BDA AF0A1B4C 36034AF6 41047A60 DF60EFC3 A867DF55 316E8EEF 4669BE79 CB61B38C BC66831A 256FD2A0 5268E236 CC0C7795 BB0B4703 220216B9 5505262F C5BA3BBE B2BD0B28 2BB45A92 5CB36A04 C2D7FFA7 B5D0CF31 2CD99E8B 5BDEAE1D 9B64C2B0 EC63F226 756AA39C 026D930A 9C0906A9 EB0E363F 72076785 05005713 95BF4A82 E2B87A14 7BB12BAE 0CB61B38 92D28E9B E5D5BE0D 7CDCEFB7 0BDBDF21 86D3D2D4 F1D4E242 68DDB3F8 1FDA836E 81BE16CD F6B9265B 6FB077E1 18B74777 88085AE6 FF0F6A70 66063BCA 11010B5C 8F659EFF F862AE69 616BFFD3 166CCF45 A00AE278 D70DD2EE 4E048354 3903B3C2 A7672661 D06016F7 4969474D 3E6E77DB AED16A4A D9D65ADC 40DF0B66 37D83BF0 A9BCAE53 DEBB9EC5 47B2CF7F 30B5FFE9 BDBDF21C CABAC28A 53B39330 24B4A3A6 BAD03605 CDD70693 54DE5729 23D967BF B3667A2E C4614AB8 5D681B02 2A6F2B94 B40BBE37 C30C8EA1 5A05DF1B 2D02EF8D";
+            String tableStr = "00000000 77073096 EE0E612C 990951BA 076DC419 706AF48F E963A535 9E6495A3 0EDB8832 79DCB8A4 E0D5E91E 97D2D988 09B64C2B 7EB17CBD E7B82D07 90BF1D91 "
+                + "1DB71064 6AB020F2 F3B97148 84BE41DE 1ADAD47D 6DDDE4EB F4D4B551 83D385C7 136C9856 646BA8C0 FD62F97A 8A65C9EC 14015C4F 63066CD9 FA0F3D63 8D080DF5 "
+                + "3B6E20C8 4C69105E D56041E4 A2677172 3C03E4D1 4B04D447 D20D85FD A50AB56B 35B5A8FA 42B2986C DBBBC9D6 ACBCF940 32D86CE3 45DF5C75 DCD60DCF ABD13D59 "
+                + "26D930AC 51DE003A C8D75180 BFD06116 21B4F4B5 56B3C423 CFBA9599 B8BDA50F 2802B89E 5F058808 C60CD9B2 B10BE924 2F6F7C87 58684C11 C1611DAB B6662D3D "
+                + "76DC4190 01DB7106 98D220BC EFD5102A 71B18589 06B6B51F 9FBFE4A5 E8B8D433 7807C9A2 0F00F934 9609A88E E10E9818 7F6A0DBB 086D3D2D 91646C97 E6635C01 "
+                + "6B6B51F4 1C6C6162 856530D8 F262004E 6C0695ED 1B01A57B 8208F4C1 F50FC457 65B0D9C6 12B7E950 8BBEB8EA FCB9887C 62DD1DDF 15DA2D49 8CD37CF3 FBD44C65 "
+                + "4DB26158 3AB551CE A3BC0074 D4BB30E2 4ADFA541 3DD895D7 A4D1C46D D3D6F4FB 4369E96A 346ED9FC AD678846 DA60B8D0 44042D73 33031DE5 AA0A4C5F DD0D7CC9 "
+                + "5005713C 270241AA BE0B1010 C90C2086 5768B525 206F85B3 B966D409 CE61E49F 5EDEF90E 29D9C998 B0D09822 C7D7A8B4 59B33D17 2EB40D81 B7BD5C3B C0BA6CAD "
+                + "EDB88320 9ABFB3B6 03B6E20C 74B1D29A EAD54739 9DD277AF 04DB2615 73DC1683 E3630B12 94643B84 0D6D6A3E 7A6A5AA8 E40ECF0B 9309FF9D 0A00AE27 7D079EB1 "
+                + "F00F9344 8708A3D2 1E01F268 6906C2FE F762575D 806567CB 196C3671 6E6B06E7 FED41B76 89D32BE0 10DA7A5A 67DD4ACC F9B9DF6F 8EBEEFF9 17B7BE43 60B08ED5 "
+                + "D6D6A3E8 A1D1937E 38D8C2C4 4FDFF252 D1BB67F1 A6BC5767 3FB506DD 48B2364B D80D2BDA AF0A1B4C 36034AF6 41047A60 DF60EFC3 A867DF55 316E8EEF 4669BE79 "
+                + "CB61B38C BC66831A 256FD2A0 5268E236 CC0C7795 BB0B4703 220216B9 5505262F C5BA3BBE B2BD0B28 2BB45A92 5CB36A04 C2D7FFA7 B5D0CF31 2CD99E8B 5BDEAE1D "
+                + "9B64C2B0 EC63F226 756AA39C 026D930A 9C0906A9 EB0E363F 72076785 05005713 95BF4A82 E2B87A14 7BB12BAE 0CB61B38 92D28E9B E5D5BE0D 7CDCEFB7 0BDBDF21 "
+                + "86D3D2D4 F1D4E242 68DDB3F8 1FDA836E 81BE16CD F6B9265B 6FB077E1 18B74777 88085AE6 FF0F6A70 66063BCA 11010B5C 8F659EFF F862AE69 616BFFD3 166CCF45 "
+                + "A00AE278 D70DD2EE 4E048354 3903B3C2 A7672661 D06016F7 4969474D 3E6E77DB AED16A4A D9D65ADC 40DF0B66 37D83BF0 A9BCAE53 DEBB9EC5 47B2CF7F 30B5FFE9 "
+                + "BDBDF21C CABAC28A 53B39330 24B4A3A6 BAD03605 CDD70693 54DE5729 23D967BF B3667A2E C4614AB8 5D681B02 2A6F2B94 B40BBE37 C30C8EA1 5A05DF1B 2D02EF8D";
             String[] parts = tableStr.split(" ");
             crc32Table = new int[parts.length];
             for (int i = 0; i < parts.length; i++) {
@@ -742,7 +757,7 @@ public class BaseExchange {
             crc = (crc >>> 8) ^ crc32Table[(crc ^ s.charAt(i)) & 0xFF];
         }
         long unsigned = ((long)(crc ^ (-1))) & 0xFFFFFFFFL;
-        boolean isSigned = (switch ((Object) (signed)) { case null -> false; case Boolean hx4J40v0 -> hx4J40v0.booleanValue(); case Long hx4J40v0 -> hx4J40v0 != 0L; case Integer hx4J40v0 -> hx4J40v0 != 0; case Double hx4J40v0 -> hx4J40v0 != 0.0; case String hx4J40v0 -> !hx4J40v0.isEmpty(); case java.util.List<?> hx4J40v0 -> !hx4J40v0.isEmpty(); case java.util.Map<?, ?> hx4J40v0 -> true; default -> false; });
+        boolean isSigned = Helpers.isTrue(signed);
         if (isSigned && unsigned >= 0x80000000L) {
             return unsigned - 0x100000000L;
         }
@@ -870,7 +885,7 @@ public class BaseExchange {
 
     public Object isDictionary(Object value)
     {
-        return (switch ((Object) ((switch ((Object) ((!(((Object) (value)) == null)))) { case null -> false; case Boolean hx4J40v3 -> hx4J40v3.booleanValue(); case Long hx4J40v3 -> hx4J40v3 != 0L; case Integer hx4J40v3 -> hx4J40v3 != 0; case Double hx4J40v3 -> hx4J40v3 != 0.0; case String hx4J40v3 -> !hx4J40v3.isEmpty(); case java.util.List<?> hx4J40v3 -> !hx4J40v3.isEmpty(); case java.util.Map<?, ?> hx4J40v3 -> true; default -> false; }) && (switch ((Object) (((value instanceof java.util.Map)))) { case null -> false; case Boolean hx4J40v1 -> hx4J40v1.booleanValue(); case Long hx4J40v1 -> hx4J40v1 != 0L; case Integer hx4J40v1 -> hx4J40v1 != 0; case Double hx4J40v1 -> hx4J40v1 != 0.0; case String hx4J40v1 -> !hx4J40v1.isEmpty(); case java.util.List<?> hx4J40v1 -> !hx4J40v1.isEmpty(); case java.util.Map<?, ?> hx4J40v1 -> true; default -> false; }))) { case null -> false; case Boolean hx4J40v4 -> hx4J40v4.booleanValue(); case Long hx4J40v4 -> hx4J40v4 != 0L; case Integer hx4J40v4 -> hx4J40v4 != 0; case Double hx4J40v4 -> hx4J40v4 != 0.0; case String hx4J40v4 -> !hx4J40v4.isEmpty(); case java.util.List<?> hx4J40v4 -> !hx4J40v4.isEmpty(); case java.util.Map<?, ?> hx4J40v4 -> true; default -> false; }) && !(switch ((Object) ((switch ((Object) (value)) { case null -> false; case java.util.List<?> hx4J44v0 -> true; case Object hx4J44v0 -> hx4J44v0.getClass().isArray(); }))) { case null -> false; case Boolean hx4J40v0 -> hx4J40v0.booleanValue(); case Long hx4J40v0 -> hx4J40v0 != 0L; case Integer hx4J40v0 -> hx4J40v0 != 0; case Double hx4J40v0 -> hx4J40v0 != 0.0; case String hx4J40v0 -> !hx4J40v0.isEmpty(); case java.util.List<?> hx4J40v0 -> !hx4J40v0.isEmpty(); case java.util.Map<?, ?> hx4J40v0 -> true; default -> false; });
+        return value instanceof java.util.Map;
     }
 
     public String ethGetAddressFromPrivateKey(Object privateKey) {
@@ -4613,9 +4628,9 @@ public Object describe()
 
     public void handleDeltas(Object bookside, Object deltas)
     {
-        for (var i = 0; i < (switch ((Object)(deltas)) { case null -> 0; case List<?> j39v2 -> j39v2.size(); case String j39v3 -> j39v3.length(); case Object j39v4 -> j39v4.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v4) : 0; }); i++)
+        for (var i = 0; i < ((List<?>)deltas).size(); i++)
         {
-            this.handleDelta(bookside, Helpers.GetValue(deltas, i));
+            this.handleDelta(bookside, (deltas == null || i < 0 || i >= ((List<?>)deltas).size() ? null : ((List<?>)deltas).get(i)));
         }
     }
 
@@ -4626,7 +4641,7 @@ public Object describe()
 
     public void handleBookDeltas(Object orderbook, Object deltas)
     {
-        for (var i = 0; i < (switch ((Object)(deltas)) { case null -> 0; case List<?> j39v6 -> j39v6.size(); case String j39v7 -> j39v7.length(); case Object j39v8 -> j39v8.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v8) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(deltas)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
         {
             this.handleBookDelta(orderbook, Helpers.GetValue(deltas, i));
         }
@@ -4639,7 +4654,7 @@ public Object describe()
 
     public void handleDeltasWithKeys(Object bookSide, Object deltas, Object priceKey, Object amountKey, Object countOrIdKey)
     {
-        for (var i = 0; i < (switch ((Object)(deltas)) { case null -> 0; case List<?> j39v10 -> j39v10.size(); case String j39v11 -> j39v11.length(); case Object j39v12 -> j39v12.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v12) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(deltas)) { case null -> 0; case List<?> j39v4 -> j39v4.size(); case String j39v5 -> j39v5.length(); case Object j39v6 -> j39v6.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v6) : 0; }); i++)
         {
             List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(Helpers.GetValue(deltas, i), java.util.Objects.requireNonNullElse(priceKey, 0), java.util.Objects.requireNonNullElse(amountKey, 1), java.util.Objects.requireNonNullElse(countOrIdKey, 2));
             ((IOrderBookSide)bookSide).storeArray(bidAsk);
@@ -4669,7 +4684,7 @@ public Object describe()
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            if (((java.util.function.BiPredicate<Object, Object>) (hx4J40v56A, hx4J40v56B) -> { try { if (hx4J40v56A == null && hx4J40v56B == null) { return true; } if (hx4J40v56A == null || hx4J40v56B == null) { return false; } java.util.function.Predicate<Object> hx4J40v56N = hx4J40v56o -> { try { Double.parseDouble(String.valueOf(hx4J40v56o)); return true; } catch (Exception hx4J40v56e) { return false; } }; if (!hx4J40v56A.getClass().equals(hx4J40v56B.getClass()) && !(hx4J40v56N.test(hx4J40v56A) && hx4J40v56N.test(hx4J40v56B))) { return false; } java.util.function.Predicate<Object> hx4J40v56I = hx4J40v56o -> hx4J40v56o instanceof Byte || hx4J40v56o instanceof Short || hx4J40v56o instanceof Integer || hx4J40v56o instanceof Long || hx4J40v56o instanceof java.util.concurrent.atomic.AtomicInteger || hx4J40v56o instanceof java.util.concurrent.atomic.AtomicLong || ((hx4J40v56o instanceof Float || hx4J40v56o instanceof Double || hx4J40v56o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(hx4J40v56o)).stripTrailingZeros().scale() <= 0); java.util.function.ToDoubleFunction<Object> hx4J40v56D = hx4J40v56o -> { if (hx4J40v56o instanceof Double || hx4J40v56o instanceof Float || hx4J40v56o instanceof Long || hx4J40v56o instanceof Integer || hx4J40v56o instanceof java.math.BigDecimal) { return ((Number) hx4J40v56o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v56o)); } catch (NumberFormatException hx4J40v56e) { return 0.0; } }; if (hx4J40v56I.test(hx4J40v56A) && hx4J40v56I.test(hx4J40v56B)) { java.util.function.ToLongFunction<Object> hx4J40v56L = hx4J40v56o -> hx4J40v56o instanceof Long || hx4J40v56o instanceof Integer || hx4J40v56o instanceof Double || hx4J40v56o instanceof Float || hx4J40v56o instanceof java.math.BigDecimal ? ((Number) hx4J40v56o).longValue() : Long.parseLong(String.valueOf(hx4J40v56o)); return hx4J40v56L.applyAsLong(hx4J40v56A) == hx4J40v56L.applyAsLong(hx4J40v56B); } if (hx4J40v56A instanceof Double || hx4J40v56B instanceof Double) { return hx4J40v56D.applyAsDouble(hx4J40v56A) == hx4J40v56D.applyAsDouble(hx4J40v56B); } if (hx4J40v56A instanceof Float || hx4J40v56B instanceof Float) { java.util.function.Function<Object, Float> hx4J40v56F = hx4J40v56o -> hx4J40v56o instanceof Float || hx4J40v56o instanceof Double || hx4J40v56o instanceof Long || hx4J40v56o instanceof Integer || hx4J40v56o instanceof java.math.BigDecimal ? ((Number) hx4J40v56o).floatValue() : Float.parseFloat(String.valueOf(hx4J40v56o)); return hx4J40v56F.apply(hx4J40v56A).floatValue() == hx4J40v56F.apply(hx4J40v56B).floatValue(); } if (hx4J40v56A instanceof String && hx4J40v56B instanceof String) { return hx4J40v56A.equals(hx4J40v56B); } if (hx4J40v56A instanceof Boolean && hx4J40v56B instanceof Boolean) { return hx4J40v56A.equals(hx4J40v56B); } if (hx4J40v56N.test(hx4J40v56A) && hx4J40v56N.test(hx4J40v56B)) { return new java.math.BigDecimal(String.valueOf(hx4J40v56A)).compareTo(new java.math.BigDecimal(String.valueOf(hx4J40v56B))) == 0; } return false; } catch (Exception hx4J40v56e) { return false; } }).test(Helpers.GetValue(timeframesResolved, key), timeframe))
+            if (Helpers.isEqual(Helpers.GetValue(timeframesResolved, key), timeframe))
             {
                 return (String) (key);
             }
@@ -4871,7 +4886,7 @@ public Object describe()
     public Object findMessageHashes(Client client, Object element)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        List<Object> messageHashes = ((List<Object>) switch ((Object)(client.futures)) { case Map<?, ?> j39v14 -> { synchronized (j39v14) { yield new ArrayList<Object>(j39v14.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> messageHashes = ((List<Object>) switch ((Object)(client.futures)) { case Map<?, ?> j39v7 -> { synchronized (j39v7) { yield new ArrayList<Object>(j39v7.keySet()); } } case null, default -> new ArrayList<Object>(); });
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
             Object messageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
@@ -4891,7 +4906,7 @@ public Object describe()
             if ((((Number) arrayLength).doubleValue() > 0))
             {
                 Boolean ascending = true;
-                if ((((java.util.function.BiPredicate<Object, Object>) (hx4J44v3A, hx4J44v3B) -> { if (hx4J44v3A == null || hx4J44v3B == null) { return false; } if (hx4J44v3A instanceof List<?> hx4J44v3l) { return hx4J44v3l.contains(hx4J44v3B); } if (hx4J44v3A instanceof Map<?, ?> hx4J44v3m) { return hx4J44v3B instanceof String && hx4J44v3m.containsKey(hx4J44v3B); } return false; }).test((array == null || 0 >= ((List<?>)array).size() ? null : ((List<?>)array).get(0)), java.util.Objects.requireNonNullElse(key, "timestamp"))))
+                if ((Helpers.inOp((array == null || 0 >= ((List<?>)array).size() ? null : ((List<?>)array).get(0)), java.util.Objects.requireNonNullElse(key, "timestamp"))))
                 {
                     Double first = this.safeFloat((array == null || 0 >= ((List<?>)array).size() ? null : ((List<?>)array).get(0)), java.util.Objects.requireNonNullElse(key, "timestamp"));
                     Double last = this.safeFloat(Helpers.GetValue(array, ((((Number) arrayLength).longValue()) - 1L)), java.util.Objects.requireNonNullElse(key, "timestamp"));
@@ -4900,7 +4915,7 @@ public Object describe()
                         ascending = ((last == null && first == null) || last != null && (first == null || last >= first)); // true if array is sorted in ascending order based on 'timestamp'
                     }
                 }
-                if ((switch ((Object) (java.util.Objects.requireNonNullElse(fromStart, false))) { case null -> false; case Boolean hx4J40v55 -> hx4J40v55.booleanValue(); case Long hx4J40v55 -> hx4J40v55 != 0L; case Integer hx4J40v55 -> hx4J40v55 != 0; case Double hx4J40v55 -> hx4J40v55 != 0.0; case String hx4J40v55 -> !hx4J40v55.isEmpty(); case List<?> hx4J40v55 -> !hx4J40v55.isEmpty(); case Map<?, ?> hx4J40v55 -> true; default -> false; }))
+                if (Helpers.isTrue(java.util.Objects.requireNonNullElse(fromStart, false)))
                 {
                     Object limitResolved = ((((limit != null && limit > ((Number) arrayLength).doubleValue())))) ? arrayLength : limit;
                     if (Boolean.TRUE.equals(ascending))
@@ -4941,13 +4956,13 @@ public Object describe()
                 }
             }
         }
-        if ((switch ((Object) (java.util.Objects.requireNonNullElse(tail, false))) { case null -> false; case Boolean hx4J40v54 -> hx4J40v54.booleanValue(); case Long hx4J40v54 -> hx4J40v54 != 0L; case Integer hx4J40v54 -> hx4J40v54 != 0; case Double hx4J40v54 -> hx4J40v54 != 0.0; case String hx4J40v54 -> !hx4J40v54.isEmpty(); case List<?> hx4J40v54 -> !hx4J40v54.isEmpty(); case Map<?, ?> hx4J40v54 -> true; default -> false; }) && !java.util.Objects.equals(limit, null))
+        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(tail, false)) && !java.util.Objects.equals(limit, null))
         {
             return (List<Object>) this.arraySlice(result, (-limit));
         }
         // if the user provided a 'since' argument
         // we want to limit the result starting from the 'since'
-        Boolean shouldFilterFromStart = !(switch ((Object) (java.util.Objects.requireNonNullElse(tail, false))) { case null -> false; case Boolean hx4J40v53 -> hx4J40v53.booleanValue(); case Long hx4J40v53 -> hx4J40v53 != 0L; case Integer hx4J40v53 -> hx4J40v53 != 0; case Double hx4J40v53 -> hx4J40v53 != 0.0; case String hx4J40v53 -> !hx4J40v53.isEmpty(); case List<?> hx4J40v53 -> !hx4J40v53.isEmpty(); case Map<?, ?> hx4J40v53 -> true; default -> false; }) && Boolean.TRUE.equals(sinceIsDefined);
+        Boolean shouldFilterFromStart = !Helpers.isTrue(java.util.Objects.requireNonNullElse(tail, false)) && Boolean.TRUE.equals(sinceIsDefined);
         return this.filterByLimit(result, limit, java.util.Objects.requireNonNullElse(key, "timestamp"), shouldFilterFromStart);
     }
 
@@ -4966,7 +4981,7 @@ public Object describe()
                 Object entry = (parsedArray == null || i < 0 || i >= parsedArray.size() ? null : parsedArray.get(i));
                 // safeValue (not entry[field]) so a missing field is a non-match, not a
                 // KeyError in python/php — prediction structures key on outcome, not symbol
-                Boolean entryFiledEqualValue = ((java.util.function.BiPredicate<Object, Object>) (hx4J40v52A, hx4J40v52B) -> { try { if (hx4J40v52A == null && hx4J40v52B == null) { return true; } if (hx4J40v52A == null || hx4J40v52B == null) { return false; } java.util.function.Predicate<Object> hx4J40v52N = hx4J40v52o -> { try { Double.parseDouble(String.valueOf(hx4J40v52o)); return true; } catch (Exception hx4J40v52e) { return false; } }; if (!hx4J40v52A.getClass().equals(hx4J40v52B.getClass()) && !(hx4J40v52N.test(hx4J40v52A) && hx4J40v52N.test(hx4J40v52B))) { return false; } java.util.function.Predicate<Object> hx4J40v52I = hx4J40v52o -> hx4J40v52o instanceof Byte || hx4J40v52o instanceof Short || hx4J40v52o instanceof Integer || hx4J40v52o instanceof Long || hx4J40v52o instanceof java.util.concurrent.atomic.AtomicInteger || hx4J40v52o instanceof java.util.concurrent.atomic.AtomicLong || ((hx4J40v52o instanceof Float || hx4J40v52o instanceof Double || hx4J40v52o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(hx4J40v52o)).stripTrailingZeros().scale() <= 0); java.util.function.ToDoubleFunction<Object> hx4J40v52D = hx4J40v52o -> { if (hx4J40v52o instanceof Double || hx4J40v52o instanceof Float || hx4J40v52o instanceof Long || hx4J40v52o instanceof Integer || hx4J40v52o instanceof java.math.BigDecimal) { return ((Number) hx4J40v52o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v52o)); } catch (NumberFormatException hx4J40v52e) { return 0.0; } }; if (hx4J40v52I.test(hx4J40v52A) && hx4J40v52I.test(hx4J40v52B)) { java.util.function.ToLongFunction<Object> hx4J40v52L = hx4J40v52o -> hx4J40v52o instanceof Long || hx4J40v52o instanceof Integer || hx4J40v52o instanceof Double || hx4J40v52o instanceof Float || hx4J40v52o instanceof java.math.BigDecimal ? ((Number) hx4J40v52o).longValue() : Long.parseLong(String.valueOf(hx4J40v52o)); return hx4J40v52L.applyAsLong(hx4J40v52A) == hx4J40v52L.applyAsLong(hx4J40v52B); } if (hx4J40v52A instanceof Double || hx4J40v52B instanceof Double) { return hx4J40v52D.applyAsDouble(hx4J40v52A) == hx4J40v52D.applyAsDouble(hx4J40v52B); } if (hx4J40v52A instanceof Float || hx4J40v52B instanceof Float) { java.util.function.Function<Object, Float> hx4J40v52F = hx4J40v52o -> hx4J40v52o instanceof Float || hx4J40v52o instanceof Double || hx4J40v52o instanceof Long || hx4J40v52o instanceof Integer || hx4J40v52o instanceof java.math.BigDecimal ? ((Number) hx4J40v52o).floatValue() : Float.parseFloat(String.valueOf(hx4J40v52o)); return hx4J40v52F.apply(hx4J40v52A).floatValue() == hx4J40v52F.apply(hx4J40v52B).floatValue(); } if (hx4J40v52A instanceof String && hx4J40v52B instanceof String) { return hx4J40v52A.equals(hx4J40v52B); } if (hx4J40v52A instanceof Boolean && hx4J40v52B instanceof Boolean) { return hx4J40v52A.equals(hx4J40v52B); } if (hx4J40v52N.test(hx4J40v52A) && hx4J40v52N.test(hx4J40v52B)) { return new java.math.BigDecimal(String.valueOf(hx4J40v52A)).compareTo(new java.math.BigDecimal(String.valueOf(hx4J40v52B))) == 0; } return false; } catch (Exception hx4J40v52e) { return false; } }).test(this.safeValue(entry, field), value);
+                Boolean entryFiledEqualValue = Helpers.isEqual(this.safeValue(entry, field), value);
                 Object firstCondition = ((Boolean.TRUE.equals(valueIsDefined))) ? entryFiledEqualValue : true;
                 Long entryKeyValue = this.safeInteger(entry, java.util.Objects.requireNonNullElse(key, "timestamp"));
                 Object entryKeyGESince = (!java.util.Objects.equals(entryKeyValue, null)) && ((entryKeyValue == null || entryKeyValue != 0)) && (!java.util.Objects.equals(since, null)) && (((entryKeyValue != null && entryKeyValue >= since)));
@@ -4998,12 +5013,12 @@ public Object describe()
             {
                 if ((this.urls.get("api") instanceof String))
                 {
-                    { Map<Object, Object> j39v30 = (Map<Object, Object>) (Map<?, ?>) (this.urls); Object j39v31 = "apiBackup"; Object j39v32 = this.urls.get("api"); if (j39v30 == null) { if (j39v31 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v30) { if (j39v32 == null && j39v30 instanceof java.util.concurrent.ConcurrentHashMap) { j39v30.remove(j39v31); } else { j39v30.put(j39v31, j39v32); } } }
-                    { Map<Object, Object> j39v27 = (Map<Object, Object>) (Map<?, ?>) (this.urls); Object j39v28 = "api"; Object j39v29 = this.urls.get("test"); if (j39v27 == null) { if (j39v28 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v27) { if (j39v29 == null && j39v27 instanceof java.util.concurrent.ConcurrentHashMap) { j39v27.remove(j39v28); } else { j39v27.put(j39v28, j39v29); } } }
+                    Helpers.addElementToObject(this.urls, "apiBackup", this.urls.get("api"));
+                    Helpers.addElementToObject(this.urls, "api", this.urls.get("test"));
                 } else
                 {
-                    { Map<Object, Object> j39v24 = (Map<Object, Object>) (Map<?, ?>) (this.urls); Object j39v25 = "apiBackup"; Object j39v26 = this.clone(this.urls.get("api")); if (j39v24 == null) { if (j39v25 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v24) { if (j39v26 == null && j39v24 instanceof java.util.concurrent.ConcurrentHashMap) { j39v24.remove(j39v25); } else { j39v24.put(j39v25, j39v26); } } }
-                    { Map<Object, Object> j39v21 = (Map<Object, Object>) (Map<?, ?>) (this.urls); Object j39v22 = "api"; Object j39v23 = this.clone(this.urls.get("test")); if (j39v21 == null) { if (j39v22 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v21) { if (j39v23 == null && j39v21 instanceof java.util.concurrent.ConcurrentHashMap) { j39v21.remove(j39v22); } else { j39v21.put(j39v22, j39v23); } } }
+                    Helpers.addElementToObject(this.urls, "apiBackup", this.clone(this.urls.get("api")));
+                    Helpers.addElementToObject(this.urls, "api", this.clone(this.urls.get("test")));
                 }
             } else
             {
@@ -5015,10 +5030,10 @@ public Object describe()
         {
             if ((this.urls.get("api") instanceof String))
             {
-                { Map<Object, Object> j39v18 = (Map<Object, Object>) (Map<?, ?>) (this.urls); Object j39v19 = "api"; Object j39v20 = ((Object)this.urls.get("apiBackup")); if (j39v18 == null) { if (j39v19 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v18) { if (j39v20 == null && j39v18 instanceof java.util.concurrent.ConcurrentHashMap) { j39v18.remove(j39v19); } else { j39v18.put(j39v19, j39v20); } } }
+                Helpers.addElementToObject(this.urls, "api", ((Object)this.urls.get("apiBackup")));
             } else
             {
-                { Map<Object, Object> j39v15 = (Map<Object, Object>) (Map<?, ?>) (this.urls); Object j39v16 = "api"; Object j39v17 = this.clone(this.urls.get("apiBackup")); if (j39v15 == null) { if (j39v16 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v15) { if (j39v17 == null && j39v15 instanceof java.util.concurrent.ConcurrentHashMap) { j39v15.remove(j39v16); } else { j39v15.put(j39v16, j39v17); } } }
+                Helpers.addElementToObject(this.urls, "api", this.clone(this.urls.get("apiBackup")));
             }
             Map<String, Object> newUrls = this.omit(this.urls, "apiBackup");
             this.urls = newUrls;
@@ -5041,15 +5056,15 @@ public Object describe()
         }
         if (Boolean.TRUE.equals(enable))
         {
-            { Map<Object, Object> j39v42 = (Map<Object, Object>) (Map<?, ?>) (this.urls); Object j39v43 = "apiBackupDemoTrading"; Object j39v44 = this.urls.get("api"); if (j39v42 == null) { if (j39v43 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v42) { if (j39v44 == null && j39v42 instanceof java.util.concurrent.ConcurrentHashMap) { j39v42.remove(j39v43); } else { j39v42.put(j39v43, j39v44); } } }
-            { Map<Object, Object> j39v39 = (Map<Object, Object>) (Map<?, ?>) (this.urls); Object j39v40 = "api"; Object j39v41 = this.urls.get("demo"); if (j39v39 == null) { if (j39v40 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v39) { if (j39v41 == null && j39v39 instanceof java.util.concurrent.ConcurrentHashMap) { j39v39.remove(j39v40); } else { j39v39.put(j39v40, j39v41); } } }
+            Helpers.addElementToObject(this.urls, "apiBackupDemoTrading", this.urls.get("api"));
+            Helpers.addElementToObject(this.urls, "api", this.urls.get("demo"));
         } else if (((Map<?, ?>)this.urls).containsKey("apiBackupDemoTrading"))
         {
-            { Map<Object, Object> j39v36 = (Map<Object, Object>) (Map<?, ?>) (this.urls); Object j39v37 = "api"; Object j39v38 = ((Object)this.urls.get("apiBackupDemoTrading")); if (j39v36 == null) { if (j39v37 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v36) { if (j39v38 == null && j39v36 instanceof java.util.concurrent.ConcurrentHashMap) { j39v36.remove(j39v37); } else { j39v36.put(j39v37, j39v38); } } }
+            Helpers.addElementToObject(this.urls, "api", ((Object)this.urls.get("apiBackupDemoTrading")));
             Map<String, Object> newUrls = this.omit(this.urls, "apiBackupDemoTrading");
             this.urls = newUrls;
         }
-        { Map<Object, Object> j39v33 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v34 = "enableDemoTrading"; Object j39v35 = enable; if (j39v33 == null) { if (j39v34 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v33) { if (j39v35 == null && j39v33 instanceof java.util.concurrent.ConcurrentHashMap) { j39v33.remove(j39v34); } else { j39v33.put(j39v34, j39v35); } } }
+        Helpers.addElementToObject(this.options, "enableDemoTrading", enable);
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters)
@@ -5318,7 +5333,7 @@ public Object describe()
     public Object parseMarkets(Object markets)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < (switch ((Object)(markets)) { case null -> 0; case List<?> j39v46 -> j39v46.size(); case String j39v47 -> j39v47.length(); case Object j39v48 -> j39v48.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v48) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(markets)) { case null -> 0; case List<?> j39v8 -> j39v8.size(); case String j39v9 -> j39v9.length(); case Object j39v10 -> j39v10.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v10) : 0; }); i++)
         {
             MarketInterface market = this.parseMarket(Helpers.GetValue(markets, i));
             // parseMarket returns undefined for a market it cannot build (e.g. unknown base or quote)
@@ -5504,7 +5519,7 @@ public Object describe()
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.watchFundingRates(((List<String>) (switch ((Object) (symbols)) { case null -> (List<String>) null; case List<?> hx4J40v51 -> (List<String>) hx4J40v51; case Object hx4J40v51 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v51.getClass().getName()); })), parameters)).join();
+            return (this.watchFundingRates(((List<String>) (switch ((Object) (symbols)) { case null -> (List<String>) null; case List<?> hx4J40v47 -> (List<String>) hx4J40v47; case Object hx4J40v47 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v47.getClass().getName()); })), parameters)).join();
         }).thenApply(FundingRates::new);
 
     }
@@ -5715,8 +5730,8 @@ public Object describe()
         // the cast is erased at transpile-time, so output matches every target language, rather than
         // branching to a bare `NaN` literal, which has no symbol in Go/Java/C#
         String stringifiedNumber = this.numberToString(number);
-        Object convertedNumber = ((Object)((Double) (switch ((Object) (stringifiedNumber)) { case null -> Double.valueOf(0.0); case Double hx4J42v8 -> Double.valueOf(hx4J42v8.doubleValue()); case Float hx4J42v8 -> Double.valueOf(hx4J42v8.doubleValue()); case Long hx4J42v8 -> Double.valueOf(hx4J42v8.doubleValue()); case Integer hx4J42v8 -> Double.valueOf(hx4J42v8.doubleValue()); case java.math.BigDecimal hx4J42v8 -> Double.valueOf(hx4J42v8.doubleValue()); case Object hx4J42v8 -> { String hx4J42v8s; try { hx4J42v8s = String.valueOf(hx4J42v8); } catch (Exception hx4J42v8e) { yield (Double) null; } try { yield Double.valueOf(Double.parseDouble(hx4J42v8s)); } catch (NumberFormatException hx4J42v8e) { yield Double.valueOf(0.0); } } })));
-        return ((Long) (switch ((Object) (convertedNumber)) { case null -> (Long) null; case Long hx4J42v7 -> hx4J42v7; case Integer hx4J42v7 -> Long.valueOf(hx4J42v7.longValue()); case Double hx4J42v7 -> Long.valueOf(hx4J42v7.longValue()); case Float hx4J42v7 -> Long.valueOf(hx4J42v7.longValue()); case java.math.BigDecimal hx4J42v7 -> Long.valueOf(hx4J42v7.longValue()); case Object hx4J42v7 -> { try { yield Long.valueOf(Long.parseLong(String.valueOf(hx4J42v7))); } catch (Exception hx4J42v7e) { yield (Long) null; } } }));
+        Object convertedNumber = ((Object)Helpers.parseFloat(stringifiedNumber));
+        return Helpers.parseInt(convertedNumber);
     }
 
     public Object parseToNumeric(Object number)
@@ -5728,9 +5743,9 @@ public Object describe()
         // in PHP:    1 == 1.0 is true, but 1 === 1.0 is false.
         if (((String)stringVersion).indexOf(".") >= 0)
         {
-            return ((Double) (switch ((Object) (stringVersion)) { case null -> Double.valueOf(0.0); case Double hx4J42v6 -> Double.valueOf(hx4J42v6.doubleValue()); case Float hx4J42v6 -> Double.valueOf(hx4J42v6.doubleValue()); case Long hx4J42v6 -> Double.valueOf(hx4J42v6.doubleValue()); case Integer hx4J42v6 -> Double.valueOf(hx4J42v6.doubleValue()); case java.math.BigDecimal hx4J42v6 -> Double.valueOf(hx4J42v6.doubleValue()); case Object hx4J42v6 -> { String hx4J42v6s; try { hx4J42v6s = String.valueOf(hx4J42v6); } catch (Exception hx4J42v6e) { yield (Double) null; } try { yield Double.valueOf(Double.parseDouble(hx4J42v6s)); } catch (NumberFormatException hx4J42v6e) { yield Double.valueOf(0.0); } } }));
+            return Helpers.parseFloat(stringVersion);
         }
-        return ((Long) (switch ((Object) (stringVersion)) { case null -> (Long) null; case Long hx4J42v5 -> hx4J42v5; case Integer hx4J42v5 -> Long.valueOf(hx4J42v5.longValue()); case Double hx4J42v5 -> Long.valueOf(hx4J42v5.longValue()); case Float hx4J42v5 -> Long.valueOf(hx4J42v5.longValue()); case java.math.BigDecimal hx4J42v5 -> Long.valueOf(hx4J42v5.longValue()); case Object hx4J42v5 -> { try { yield Long.valueOf(Long.parseLong(String.valueOf(hx4J42v5))); } catch (Exception hx4J42v5e) { yield (Long) null; } } }));
+        return Helpers.parseInt(stringVersion);
     }
 
     public Boolean isRoundNumber(Object value)
@@ -5738,7 +5753,7 @@ public Object describe()
         // this method is similar to isInteger, but this is more loyal and does not check for types.
         // i.e. isRoundNumber(1.000) returns true, while isInteger(1.000) returns false
         Object res = this.parseToNumeric((((java.util.function.BinaryOperator<Object>) (j37a, j37b) -> { if (j37a == null || j37b == null) return null; if (!(j37a instanceof String || j37a instanceof Long || j37a instanceof Integer || j37a instanceof Double)) return null; java.util.function.ToDoubleFunction<Object> j37d = (j37o) -> { if (j37o instanceof Double j37v) return j37v; if (j37o instanceof Float j37v) return j37v.doubleValue(); if (j37o instanceof Long j37v) return j37v.doubleValue(); if (j37o instanceof Integer j37v) return j37v.doubleValue(); if (j37o instanceof java.math.BigDecimal j37v) return j37v.doubleValue(); try { return Double.parseDouble(String.valueOf(j37o)); } catch (NumberFormatException j37e) { return 0.0; } }; return j37d.applyAsDouble(j37a) % j37d.applyAsDouble(j37b); }).apply(value, 1)));
-        return (switch ((Object) (res)) { case null -> false; case Long hx4J40v50 -> hx4J40v50 == 0L; case Integer hx4J40v50 -> hx4J40v50 == 0L; case Double hx4J40v50 -> hx4J40v50 == 0L; case Float hx4J40v50 -> hx4J40v50.doubleValue() == 0L; case java.math.BigDecimal hx4J40v50 -> hx4J40v50.stripTrailingZeros().scale() <= 0 && hx4J40v50.longValue() == 0L; case Object hx4J40v50 -> { try { String hx4J40v50t = String.valueOf(hx4J40v50); Double.parseDouble(hx4J40v50t); yield new java.math.BigDecimal(hx4J40v50t).compareTo(java.math.BigDecimal.valueOf(0L)) == 0; } catch (NumberFormatException hx4J40v50x) { yield false; } } });
+        return Helpers.isEqual(res, 0);
     }
 
     public Boolean isEmptyString(Object value)
@@ -5767,7 +5782,7 @@ public Object describe()
     {
         // networksById: inverse of options.networks, explicit options.networksById entries win
         Object networkIdsToCodesGenerated = this.invertFlatStringDictionary(this.safeValue(this.options, "networks", new HashMap<String, Object>() {{}}));
-        { Map<Object, Object> j39v49 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v50 = "networksById"; Object j39v51 = this.extend(networkIdsToCodesGenerated, this.safeValue(this.options, "networksById", new HashMap<String, Object>() {{}})); if (j39v49 == null) { if (j39v50 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v49) { if (j39v51 == null && j39v49 instanceof java.util.concurrent.ConcurrentHashMap) { j39v49.remove(j39v50); } else { j39v49.put(j39v50, j39v51); } } }
+        Helpers.addElementToObject(this.options, "networksById", this.extend(networkIdsToCodesGenerated, this.safeValue(this.options, "networksById", new HashMap<String, Object>() {{}})));
         this.featuresGenerator();
         this.hasAutocorrect();
         // init predefined markets if any
@@ -5804,11 +5819,11 @@ public Object describe()
         {
             String target = (targets == null || i < 0 || i >= targets.size() ? null : targets.get(i));
             Object source = (fallbacks == null || target == null ? null : fallbacks.get(target));
-            Boolean sourceDefined = ((source != null && ((Map<?, ?>)this.has).containsKey(source))) && (!java.util.Objects.equals(((Object)(this.has) instanceof Map<?, ?> j39v57 && ((Object)(source)) instanceof String && j39v57.containsKey(source) ? j39v57.get(source) : null), null));
-            Boolean targetDefined = (((Map<?, ?>)this.has).containsKey(target)) && (!java.util.Objects.equals(((Object)(this.has) instanceof Map<?, ?> j39v56 && ((Object)(target)) instanceof String && j39v56.containsKey(target) ? j39v56.get(target) : null), null));
+            Boolean sourceDefined = ((source != null && ((Map<?, ?>)this.has).containsKey(source))) && (!java.util.Objects.equals(Helpers.GetValue(this.has, source), null));
+            Boolean targetDefined = (((Map<?, ?>)this.has).containsKey(target)) && (!java.util.Objects.equals((this.has == null || target == null ? null : this.has.get(target)), null));
             if (Boolean.TRUE.equals(sourceDefined) && !Boolean.TRUE.equals(targetDefined))
             {
-                { Map<Object, Object> j39v53 = (Map<Object, Object>) (Map<?, ?>) (this.has); Object j39v54 = target; Object j39v55 = ((Object)(this.has) instanceof Map<?, ?> j39v52 && ((Object)(source)) instanceof String && j39v52.containsKey(source) ? j39v52.get(source) : null); if (j39v53 == null) { if (j39v54 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v53) { if (j39v55 == null && j39v53 instanceof java.util.concurrent.ConcurrentHashMap) { j39v53.remove(j39v54); } else { j39v53.put(j39v54, j39v55); } } }
+                Helpers.addElementToObject(this.has, target, Helpers.GetValue(this.has, source));
             }
         }
     }
@@ -5871,19 +5886,19 @@ public Object describe()
             // if marketType is not filled for this exchange, don't add that in `features`
             if (!(((Map<?, ?>)initialFeatures).containsKey(marketType)))
             {
-                { Map<Object, Object> j39v65 = (Map<Object, Object>) (Map<?, ?>) (this.features); Object j39v66 = marketType; Object j39v67 = null; if (j39v65 == null) { if (j39v66 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v65) { if (j39v67 == null && j39v65 instanceof java.util.concurrent.ConcurrentHashMap) { j39v65.remove(j39v66); } else { j39v65.put(j39v66, j39v67); } } }
+                Helpers.addElementToObject(this.features, marketType, null);
             } else
             {
                 if (java.util.Objects.equals(marketType, "spot"))
                 {
-                    { Map<Object, Object> j39v62 = (Map<Object, Object>) (Map<?, ?>) (this.features); Object j39v63 = marketType; Object j39v64 = this.featuresMapper((Map<String, Object>) (initialFeatures), marketType, (String) null); if (j39v62 == null) { if (j39v63 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v62) { if (j39v64 == null && j39v62 instanceof java.util.concurrent.ConcurrentHashMap) { j39v62.remove(j39v63); } else { j39v62.put(j39v63, j39v64); } } }
+                    Helpers.addElementToObject(this.features, marketType, this.featuresMapper((Map<String, Object>) (initialFeatures), marketType, (String) null));
                 } else
                 {
-                    { Map<Object, Object> j39v59 = (Map<Object, Object>) (Map<?, ?>) (this.features); Object j39v60 = marketType; Object j39v61 = new HashMap<String, Object>() {{}}; if (j39v59 == null) { if (j39v60 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v59) { if (j39v61 == null && j39v59 instanceof java.util.concurrent.ConcurrentHashMap) { j39v59.remove(j39v60); } else { j39v59.put(j39v60, j39v61); } } }
+                    Helpers.addElementToObject(this.features, marketType, new HashMap<String, Object>() {{}});
                     for (var j = 0; j < ((List<?>)subTypes).size(); j++)
                     {
                         String subType = (String) (subTypes == null || j < 0 || j >= subTypes.size() ? null : subTypes.get(j));
-                        Helpers.addElementToObject(((Object)(this.features) instanceof Map<?, ?> j39v58 && ((Object)(marketType)) instanceof String && j39v58.containsKey(marketType) ? j39v58.get(marketType) : null), subType, this.featuresMapper((Map<String, Object>) (initialFeatures), marketType, subType));
+                        Helpers.addElementToObject((this.features == null || marketType == null ? null : this.features.get(marketType)), subType, this.featuresMapper((Map<String, Object>) (initialFeatures), marketType, subType));
                     }
                 }
             }
@@ -5892,7 +5907,7 @@ public Object describe()
 
     public Object featuresMapper(Map<String, Object> initialFeatures, String marketType, String subType)
     {
-        Object featuresObj = (((!java.util.Objects.equals(subType, null)))) ? Helpers.GetValue(((Object)(initialFeatures) instanceof Map<?, ?> j39v87 && ((Object)(((String)marketType))) instanceof String && j39v87.containsKey(((String)marketType)) ? j39v87.get(((String)marketType)) : null), subType) : ((Object)(initialFeatures) instanceof Map<?, ?> j39v86 && ((Object)(((String)marketType))) instanceof String && j39v86.containsKey(((String)marketType)) ? j39v86.get(((String)marketType)) : null);
+        Object featuresObj = (((!java.util.Objects.equals(subType, null)))) ? Helpers.GetValue(Helpers.GetValue(initialFeatures, ((String)marketType)), subType) : Helpers.GetValue(initialFeatures, ((String)marketType));
         // if exchange does not have that market-type (eg. future>inverse)
         if (java.util.Objects.equals(featuresObj, null))
         {
@@ -5909,7 +5924,7 @@ public Object describe()
         // ### corrections ###
         //
         // createOrder
-        if ((switch ((Object)(featuresObj)) { case List<?> j39v85 -> j39v85.contains("createOrder"); case Map<?, ?> j39v84 -> j39v84.containsKey("createOrder"); case null, default -> false; }))
+        if ((switch ((Object)(featuresObj)) { case List<?> j39v17 -> j39v17.contains("createOrder"); case Map<?, ?> j39v16 -> j39v16.containsKey("createOrder"); case null, default -> false; }))
         {
             Map<String, Object> value = (Map<String, Object>) this.safeDict(Helpers.GetValue(featuresObj, "createOrder"), "attachedStopLossTakeProfit", (Object) null);
             Helpers.addElementToObject(Helpers.GetValue(featuresObj, "createOrder"), "stopLoss", value);
@@ -5919,7 +5934,7 @@ public Object describe()
                 // default 'hedged': false
                 Helpers.addElementToObject(Helpers.GetValue(featuresObj, "createOrder"), "hedged", false);
                 // default 'leverage': false
-                if (!((switch ((Object)(Helpers.GetValue(featuresObj, "createOrder"))) { case List<?> j39v79 -> j39v79.contains("leverage"); case Map<?, ?> j39v78 -> j39v78.containsKey("leverage"); case null, default -> false; })))
+                if (!((switch ((Object)(Helpers.GetValue(featuresObj, "createOrder"))) { case List<?> j39v15 -> j39v15.contains("leverage"); case Map<?, ?> j39v14 -> j39v14.containsKey("leverage"); case null, default -> false; })))
                 {
                     Helpers.addElementToObject(Helpers.GetValue(featuresObj, "createOrder"), "leverage", false);
                 }
@@ -5931,7 +5946,7 @@ public Object describe()
             }
         }
         // other methods
-        List<Object> keys = ((List<Object>) switch ((Object)(featuresObj)) { case Map<?, ?> j39v71 -> { synchronized (j39v71) { yield new ArrayList<Object>(j39v71.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> keys = ((List<Object>) switch ((Object)(featuresObj)) { case Map<?, ?> j39v13 -> { synchronized (j39v13) { yield new ArrayList<Object>(j39v13.keySet()); } } case null, default -> new ArrayList<Object>(); });
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
@@ -5939,7 +5954,7 @@ public Object describe()
             if (!this.inArray(key, new ArrayList<Object>(Arrays.asList("sandbox"))) && !java.util.Objects.equals(featureBlock, null))
             {
                 // default "symbolRequired" to false to all methods (except `createOrder`)
-                if (!((switch ((Object)(featureBlock)) { case List<?> j39v69 -> j39v69.contains("symbolRequired"); case Map<?, ?> j39v68 -> j39v68.containsKey("symbolRequired"); case null, default -> false; })))
+                if (!((switch ((Object)(featureBlock)) { case List<?> j39v12 -> j39v12.contains("symbolRequired"); case Map<?, ?> j39v11 -> j39v11.containsKey("symbolRequired"); case null, default -> false; })))
                 {
                     Helpers.addElementToObject(featureBlock, "symbolRequired", this.inArray(key, new ArrayList<Object>(Arrays.asList("createOrder", "createOrders", "fetchOHLCV"))));
                 }
@@ -5992,11 +6007,11 @@ public Object describe()
             return defaultValue;  // unsupported marketType, check "exchange.features" for details
         }
         // if marketType dict undefined
-        if (java.util.Objects.equals(((Object)(this.features) instanceof Map<?, ?> j39v105 && ((Object)(marketType)) instanceof String && j39v105.containsKey(marketType) ? j39v105.get(marketType) : null), null))
+        if (java.util.Objects.equals(Helpers.GetValue(this.features, marketType), null))
         {
             return defaultValue;
         }
-        Object methodsContainer = ((Object)(this.features) instanceof Map<?, ?> j39v104 && ((Object)(marketType)) instanceof String && j39v104.containsKey(marketType) ? j39v104.get(marketType) : null);
+        Object methodsContainer = Helpers.GetValue(this.features, marketType);
         if (java.util.Objects.equals(subType, null))
         {
             if (!java.util.Objects.equals(marketType, "spot"))
@@ -6005,16 +6020,16 @@ public Object describe()
             }
         } else
         {
-            if (!(((Map<?, ?>)((Object)(this.features) instanceof Map<?, ?> j39v103 && ((Object)(marketType)) instanceof String && j39v103.containsKey(marketType) ? j39v103.get(marketType) : null)).containsKey(subType)))
+            if (!(((Map<?, ?>)Helpers.GetValue(this.features, marketType)).containsKey(subType)))
             {
                 return defaultValue;  // unsupported subType, check "exchange.features" for details
             }
             // if subType dict undefined
-            if (java.util.Objects.equals(Helpers.GetValue(((Object)(this.features) instanceof Map<?, ?> j39v101 && ((Object)(marketType)) instanceof String && j39v101.containsKey(marketType) ? j39v101.get(marketType) : null), subType), null))
+            if (java.util.Objects.equals(Helpers.GetValue(Helpers.GetValue(this.features, marketType), subType), null))
             {
                 return defaultValue;
             }
-            methodsContainer = Helpers.GetValue(((Object)(this.features) instanceof Map<?, ?> j39v99 && ((Object)(marketType)) instanceof String && j39v99.containsKey(marketType) ? j39v99.get(marketType) : null), subType);
+            methodsContainer = Helpers.GetValue(Helpers.GetValue(this.features, marketType), subType);
         }
         // if user wanted only marketType and didn't provide methodName, eg: featureIsSupported('spot')
         if (java.util.Objects.equals(methodName, null))
@@ -6038,7 +6053,7 @@ public Object describe()
         List<Object> splited = new ArrayList<Object>(Arrays.asList(((String)paramName).split(java.util.regex.Pattern.quote(".")))); // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
         Object parentKey = (splited == null || 0 >= splited.size() ? null : splited.get(0));
         String subKey = this.safeString(splited, 1);
-        if (!((switch ((Object)(methodDict)) { case List<?> j39v97 -> ((Object)(parentKey)) != null && j39v97.contains(parentKey); case Map<?, ?> j39v96 -> ((Object)(parentKey)) instanceof String && j39v96.containsKey(parentKey); case null, default -> false; })))
+        if (!((switch ((Object)(methodDict)) { case List<?> j39v21 -> ((Object)(parentKey)) != null && j39v21.contains(parentKey); case Map<?, ?> j39v20 -> ((Object)(parentKey)) instanceof String && j39v20.containsKey(parentKey); case null, default -> false; })))
         {
             return defaultValue;  // unsupported paramName, check "exchange.features" for details');
         }
@@ -6055,7 +6070,7 @@ public Object describe()
                 return Helpers.GetValue(methodDict, parentKey);
             }
             // throw an exception for unsupported subKey
-            if (!((switch ((Object)(Helpers.GetValue(methodDict, parentKey))) { case List<?> j39v93 -> ((Object)(subKey)) != null && j39v93.contains(subKey); case Map<?, ?> j39v92 -> ((Object)(subKey)) instanceof String && j39v92.containsKey(subKey); case null, default -> false; })))
+            if (!((switch ((Object)(Helpers.GetValue(methodDict, parentKey))) { case List<?> j39v19 -> ((Object)(subKey)) != null && j39v19.contains(subKey); case Map<?, ?> j39v18 -> ((Object)(subKey)) instanceof String && j39v18.containsKey(subKey); case null, default -> false; })))
             {
                 return defaultValue;  // unsupported subKey, check "exchange.features" for details
             }
@@ -6154,13 +6169,13 @@ public Object describe()
                 Boolean currencyDeposit = (Boolean) this.safeBool(currency, "deposit", (Object) null);
                 if (java.util.Objects.equals(currencyDeposit, null) || (java.util.Objects.equals(deposit, true)))
                 {
-                    { Map<Object, Object> j39v113 = (Map<Object, Object>) (Map<?, ?>) (currency); Object j39v114 = "deposit"; Object j39v115 = deposit; if (j39v113 == null) { if (j39v114 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v113) { if (j39v115 == null && j39v113 instanceof java.util.concurrent.ConcurrentHashMap) { j39v113.remove(j39v114); } else { j39v113.put(j39v114, j39v115); } } }
+                    Helpers.addElementToObject(currency, "deposit", deposit);
                 }
                 Boolean withdraw = (Boolean) this.safeBool(network, "withdraw", (Object) null);
                 Boolean currencyWithdraw = (Boolean) this.safeBool(currency, "withdraw", (Object) null);
                 if (java.util.Objects.equals(currencyWithdraw, null) || (java.util.Objects.equals(withdraw, true)))
                 {
-                    { Map<Object, Object> j39v110 = (Map<Object, Object>) (Map<?, ?>) (currency); Object j39v111 = "withdraw"; Object j39v112 = withdraw; if (j39v110 == null) { if (j39v111 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v110) { if (j39v112 == null && j39v110 instanceof java.util.concurrent.ConcurrentHashMap) { j39v110.remove(j39v111); } else { j39v110.put(j39v111, j39v112); } } }
+                    Helpers.addElementToObject(currency, "withdraw", withdraw);
                 }
                 // find lowest fee (which is more desired)
                 String fee = this.safeString(network, "fee");
@@ -6360,20 +6375,20 @@ public Object describe()
         for (var i = 0; i < ((List<?>)marketValues).size(); i++)
         {
             Object value = (marketValues == null || i < 0 || i >= marketValues.size() ? null : marketValues.get(i));
-            if (((java.util.function.BiPredicate<Object, Object>) (hx4J44v2A, hx4J44v2B) -> { if (hx4J44v2A == null || hx4J44v2B == null) { return false; } if (hx4J44v2A instanceof List<?> hx4J44v2l) { return hx4J44v2l.contains(hx4J44v2B); } if (hx4J44v2A instanceof Map<?, ?> hx4J44v2m) { return hx4J44v2B instanceof String && hx4J44v2m.containsKey(hx4J44v2B); } return false; }).test(marketsById, Helpers.GetValue(value, "id")))
+            if (Helpers.inOp(marketsById, Helpers.GetValue(value, "id")))
             {
                 Object marketsByIdArray = ((Object)Helpers.GetValue(marketsById, Helpers.GetValue(value, "id")));
                 ((List<Object>)marketsByIdArray).add(value);
-                { Map<Object, Object> j39v125 = (Map<Object, Object>) (Map<?, ?>) (marketsById); Object j39v126 = Helpers.GetValue(value, "id"); Object j39v127 = marketsByIdArray; if (j39v125 == null) { if (j39v126 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v125) { if (j39v127 == null && j39v125 instanceof java.util.concurrent.ConcurrentHashMap) { j39v125.remove(j39v126); } else { j39v125.put(j39v126, j39v127); } } }
+                Helpers.addElementToObject(marketsById, Helpers.GetValue(value, "id"), marketsByIdArray);
             } else
             {
-                { Map<Object, Object> j39v121 = (Map<Object, Object>) (Map<?, ?>) (marketsById); Object j39v122 = Helpers.GetValue(value, "id"); Object j39v123 = new ArrayList<Object>(Arrays.asList(value)); if (j39v121 == null) { if (j39v122 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v121) { if (j39v123 == null && j39v121 instanceof java.util.concurrent.ConcurrentHashMap) { j39v121.remove(j39v122); } else { j39v121.put(j39v122, j39v123); } } }
+                Helpers.addElementToObject(marketsById, Helpers.GetValue(value, "id"), new ArrayList<Object>(Arrays.asList(value)));
             }
             // strip undefined-valued keys from the parsed market before deepExtend,
             // otherwise an explicit `taker: undefined` (from safeMarketStructure)
             // would clobber the fee defaults from this.fees['trading'] in the merge
             Map<String, Object> valueDefined = new HashMap<String, Object>() {{}};
-            List<Object> valueKeys = ((List<Object>) switch ((Object)(value)) { case Map<?, ?> j39v119 -> { synchronized (j39v119) { yield new ArrayList<Object>(j39v119.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            List<Object> valueKeys = ((List<Object>) switch ((Object)(value)) { case Map<?, ?> j39v23 -> { synchronized (j39v23) { yield new ArrayList<Object>(j39v23.keySet()); } } case null, default -> new ArrayList<Object>(); });
             for (var j = 0; j < ((List<?>)valueKeys).size(); j++)
             {
                 Object valueKey = (valueKeys == null || j < 0 || j >= valueKeys.size() ? null : valueKeys.get(j));
@@ -6407,7 +6422,7 @@ public Object describe()
         Integer numCurrencies = 0;
         if (!java.util.Objects.equals(currencies, null))
         {
-            List<Object> keys = ((List<Object>) switch ((Object)(currencies)) { case Map<?, ?> j39v116 -> { synchronized (j39v116) { yield new ArrayList<Object>(j39v116.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            List<Object> keys = ((List<Object>) switch ((Object)(currencies)) { case Map<?, ?> j39v22 -> { synchronized (j39v22) { yield new ArrayList<Object>(j39v22.keySet()); } } case null, default -> new ArrayList<Object>(); });
             numCurrencies = ((List<?>)keys).size();
         }
         if ((numCurrencies != null && numCurrencies > 0))
@@ -6421,7 +6436,7 @@ public Object describe()
             for (var i = 0; i < ((List<?>)values).size(); i++)
             {
                 Object market = (values == null || i < 0 || i >= values.size() ? null : values.get(i));
-                Object defaultCurrencyPrecision = ((((switch ((Object) (this.precisionMode)) { case null -> false; case Long hx4J40v49 -> hx4J40v49 == DECIMAL_PLACES; case Integer hx4J40v49 -> hx4J40v49 == DECIMAL_PLACES; case Double hx4J40v49 -> hx4J40v49 == DECIMAL_PLACES; case Float hx4J40v49 -> hx4J40v49.doubleValue() == DECIMAL_PLACES; case java.math.BigDecimal hx4J40v49 -> hx4J40v49.stripTrailingZeros().scale() <= 0 && hx4J40v49.longValue() == DECIMAL_PLACES; case Object hx4J40v49 -> { try { String hx4J40v49t = String.valueOf(hx4J40v49); Double.parseDouble(hx4J40v49t); yield new java.math.BigDecimal(hx4J40v49t).compareTo(java.math.BigDecimal.valueOf(DECIMAL_PLACES)) == 0; } catch (NumberFormatException hx4J40v49x) { yield false; } } })))) ? 8 : this.parseNumber("1e-8");
+                Object defaultCurrencyPrecision = (((Helpers.isEqual(this.precisionMode, DECIMAL_PLACES)))) ? 8 : this.parseNumber("1e-8");
                 Map<String, Object> marketPrecision = (Map<String, Object>) this.safeDict(market, "precision", new HashMap<String, Object>() {{}});
                 if (((Map<?, ?>)market).containsKey("base"))
                 {
@@ -6466,7 +6481,7 @@ public Object describe()
                     {
                         continue;
                     }
-                    if ((switch ((Object) (this.precisionMode)) { case null -> false; case Long hx4J40v48 -> hx4J40v48 == TICK_SIZE; case Integer hx4J40v48 -> hx4J40v48 == TICK_SIZE; case Double hx4J40v48 -> hx4J40v48 == TICK_SIZE; case Float hx4J40v48 -> hx4J40v48.doubleValue() == TICK_SIZE; case java.math.BigDecimal hx4J40v48 -> hx4J40v48.stripTrailingZeros().scale() <= 0 && hx4J40v48.longValue() == TICK_SIZE; case Object hx4J40v48 -> { try { String hx4J40v48t = String.valueOf(hx4J40v48); Double.parseDouble(hx4J40v48t); yield new java.math.BigDecimal(hx4J40v48t).compareTo(java.math.BigDecimal.valueOf(TICK_SIZE)) == 0; } catch (NumberFormatException hx4J40v48x) { yield false; } } }))
+                    if (Helpers.isEqual(this.precisionMode, TICK_SIZE))
                     {
                         if ((highestPrecision != null && (currentPrecision == null || highestPrecision > currentPrecision)))
                         {
@@ -6521,7 +6536,7 @@ public Object describe()
             Object helper = (sourceExchangeHelpers == null || i < 0 || i >= sourceExchangeHelpers.size() ? null : sourceExchangeHelpers.get(i));
             if (!java.util.Objects.equals(Helpers.GetValue(sourceExchange.options, helper), null))
             {
-                { Map<Object, Object> j39v131 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v132 = helper; Object j39v133 = Helpers.GetValue(sourceExchange.options, helper); if (j39v131 == null) { if (j39v132 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v131) { if (j39v133 == null && j39v131 instanceof java.util.concurrent.ConcurrentHashMap) { j39v131.remove(j39v132); } else { j39v131.put(j39v132, j39v133); } } }
+                Helpers.addElementToObject(this.options, helper, Helpers.GetValue(sourceExchange.options, helper));
             }
         }
         return this;
@@ -6537,7 +6552,7 @@ public Object describe()
     public Balances safeBalance(Object balance)
     {
         Object balances = this.omit(balance, new ArrayList<Object>(Arrays.asList("info", "timestamp", "datetime", "free", "used", "total")));
-        List<Object> codes = ((List<Object>) switch ((Object)(balances)) { case Map<?, ?> j39v155 -> { synchronized (j39v155) { yield new ArrayList<Object>(j39v155.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> codes = ((List<Object>) switch ((Object)(balances)) { case Map<?, ?> j39v24 -> { synchronized (j39v24) { yield new ArrayList<Object>(j39v24.keySet()); } } case null, default -> new ArrayList<Object>(); });
         ((Map<String, Object>)balance).put("free", new HashMap<String, Object>() {{}});
         ((Map<String, Object>)balance).put("used", new HashMap<String, Object>() {{}});
         ((Map<String, Object>)balance).put("total", new HashMap<String, Object>() {{}});
@@ -6622,7 +6637,7 @@ public Object describe()
             // (this as any).number = String;
             Object firstTrade = this.safeValue(rawTrades, 0);
             // parse trades if they haven't already been parsed
-            Boolean tradesAreParsed = ((!java.util.Objects.equals(firstTrade, null)) && ((switch ((Object)(firstTrade)) { case List<?> j39v186 -> j39v186.contains("info"); case Map<?, ?> j39v185 -> j39v185.containsKey("info"); case null, default -> false; })) && ((switch ((Object)(firstTrade)) { case List<?> j39v184 -> j39v184.contains("id"); case Map<?, ?> j39v183 -> j39v183.containsKey("id"); case null, default -> false; })));
+            Boolean tradesAreParsed = ((!java.util.Objects.equals(firstTrade, null)) && ((switch ((Object)(firstTrade)) { case List<?> j39v33 -> j39v33.contains("info"); case Map<?, ?> j39v32 -> j39v32.containsKey("info"); case null, default -> false; })) && ((switch ((Object)(firstTrade)) { case List<?> j39v31 -> j39v31.contains("id"); case Map<?, ?> j39v30 -> j39v30.containsKey("id"); case null, default -> false; })));
             if (!Boolean.TRUE.equals(tradesAreParsed))
             {
                 trades = this.parseTrades(rawTrades, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
@@ -6642,19 +6657,19 @@ public Object describe()
                 // move properties that are defined in trades up into the order
                 if (java.util.Objects.equals(orderDict.get("symbol"), null))
                 {
-                    { Map<Object, Object> j39v180 = (Map<Object, Object>) (Map<?, ?>) (orderDict); Object j39v181 = "symbol"; Object j39v182 = Helpers.GetValue((trades == null || 0 >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(0)), "symbol"); if (j39v180 == null) { if (j39v181 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v180) { if (j39v182 == null && j39v180 instanceof java.util.concurrent.ConcurrentHashMap) { j39v180.remove(j39v181); } else { j39v180.put(j39v181, j39v182); } } }
+                    Helpers.addElementToObject(orderDict, "symbol", Helpers.GetValue((trades == null || 0 >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(0)), "symbol"));
                 }
                 if (java.util.Objects.equals(orderDict.get("side"), null))
                 {
-                    { Map<Object, Object> j39v176 = (Map<Object, Object>) (Map<?, ?>) (orderDict); Object j39v177 = "side"; Object j39v178 = Helpers.GetValue((trades == null || 0 >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(0)), "side"); if (j39v176 == null) { if (j39v177 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v176) { if (j39v178 == null && j39v176 instanceof java.util.concurrent.ConcurrentHashMap) { j39v176.remove(j39v177); } else { j39v176.put(j39v177, j39v178); } } }
+                    Helpers.addElementToObject(orderDict, "side", Helpers.GetValue((trades == null || 0 >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(0)), "side"));
                 }
                 if (java.util.Objects.equals(orderDict.get("type"), null))
                 {
-                    { Map<Object, Object> j39v172 = (Map<Object, Object>) (Map<?, ?>) (orderDict); Object j39v173 = "type"; Object j39v174 = Helpers.GetValue((trades == null || 0 >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(0)), "type"); if (j39v172 == null) { if (j39v173 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v172) { if (j39v174 == null && j39v172 instanceof java.util.concurrent.ConcurrentHashMap) { j39v172.remove(j39v173); } else { j39v172.put(j39v173, j39v174); } } }
+                    Helpers.addElementToObject(orderDict, "type", Helpers.GetValue((trades == null || 0 >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(0)), "type"));
                 }
                 if (java.util.Objects.equals(orderDict.get("id"), null))
                 {
-                    { Map<Object, Object> j39v168 = (Map<Object, Object>) (Map<?, ?>) (orderDict); Object j39v169 = "id"; Object j39v170 = Helpers.GetValue((trades == null || 0 >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(0)), "order"); if (j39v168 == null) { if (j39v169 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v168) { if (j39v170 == null && j39v168 instanceof java.util.concurrent.ConcurrentHashMap) { j39v168.remove(j39v169); } else { j39v168.put(j39v169, j39v170); } } }
+                    Helpers.addElementToObject(orderDict, "id", Helpers.GetValue((trades == null || 0 >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(0)), "order"));
                 }
                 if (Boolean.TRUE.equals(parseFilled))
                 {
@@ -6701,7 +6716,7 @@ public Object describe()
                         Object tradeFees = this.safeValue(trade, "fees");
                         if (!java.util.Objects.equals(tradeFees, null))
                         {
-                            for (var j = 0; j < (switch ((Object)(tradeFees)) { case null -> 0; case List<?> j39v164 -> j39v164.size(); case String j39v165 -> j39v165.length(); case Object j39v166 -> j39v166.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v166) : 0; }); j++)
+                            for (var j = 0; j < (switch ((Object)(tradeFees)) { case null -> 0; case List<?> j39v27 -> j39v27.size(); case String j39v28 -> j39v28.length(); case Object j39v29 -> j39v29.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v29) : 0; }); j++)
                             {
                                 Object tradeFee = Helpers.GetValue(tradeFees, j);
                                 ((List<Object>)fees).add(this.extend(new HashMap<String, Object>() {{}}, tradeFee));
@@ -6733,7 +6748,7 @@ public Object describe()
             for (var i = 0; (reducedLength != null && i < reducedLength); i++)
             {
                 Helpers.addElementToObject(Helpers.GetValue(reducedFees, i), "cost", this.safeNumber((reducedFees == null || i < 0 || i >= ((List<?>)reducedFees).size() ? null : ((List<?>)reducedFees).get(i)), "cost", (Object) null));
-                if ((switch ((Object)((reducedFees == null || i < 0 || i >= ((List<?>)reducedFees).size() ? null : ((List<?>)reducedFees).get(i)))) { case List<?> j39v161 -> j39v161.contains("rate"); case Map<?, ?> j39v160 -> j39v160.containsKey("rate"); case null, default -> false; }))
+                if ((switch ((Object)((reducedFees == null || i < 0 || i >= ((List<?>)reducedFees).size() ? null : ((List<?>)reducedFees).get(i)))) { case List<?> j39v26 -> j39v26.contains("rate"); case Map<?, ?> j39v25 -> j39v25.containsKey("rate"); case null, default -> false; }))
                 {
                     Helpers.addElementToObject(Helpers.GetValue(reducedFees, i), "rate", this.safeNumber((reducedFees == null || i < 0 || i >= ((List<?>)reducedFees).size() ? null : ((List<?>)reducedFees).get(i)), "rate", (Object) null));
                 }
@@ -6752,7 +6767,7 @@ public Object describe()
             orderDict.put("fees", reducedFees);
             if (Boolean.TRUE.equals(parseFee) && (java.util.Objects.equals(reducedLength, 1)))
             {
-                { Map<Object, Object> j39v156 = (Map<Object, Object>) (Map<?, ?>) (orderDict); Object j39v157 = "fee"; Object j39v158 = (reducedFees == null || 0 >= ((List<?>)reducedFees).size() ? null : ((List<?>)reducedFees).get(0)); if (j39v156 == null) { if (j39v157 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v156) { if (j39v158 == null && j39v156 instanceof java.util.concurrent.ConcurrentHashMap) { j39v156.remove(j39v157); } else { j39v156.put(j39v157, j39v158); } } }
+                Helpers.addElementToObject(orderDict, "fee", (reducedFees == null || 0 >= ((List<?>)reducedFees).size() ? null : ((List<?>)reducedFees).get(0)));
             }
         }
         if (java.util.Objects.equals(amount, null))
@@ -7193,7 +7208,7 @@ public Object describe()
     public Object parseFeeNumeric(Object fee)
     {
         Helpers.addElementToObject(fee, "cost", this.safeNumber(fee, "cost", (Object) null)); // ensure numeric
-        if ((switch ((Object)(fee)) { case List<?> j39v192 -> j39v192.contains("rate"); case Map<?, ?> j39v191 -> j39v191.containsKey("rate"); case null, default -> false; }))
+        if ((switch ((Object)(fee)) { case List<?> j39v35 -> j39v35.contains("rate"); case Map<?, ?> j39v34 -> j39v34.containsKey("rate"); case null, default -> false; }))
         {
             Helpers.addElementToObject(fee, "rate", this.safeNumber(fee, "rate", (Object) null));
         }
@@ -7218,7 +7233,7 @@ public Object describe()
     public Object addKeyInArrayItems(Object obj, Object keyName)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        List<Object> keys = ((List<Object>) switch ((Object)(obj)) { case Map<?, ?> j39v194 -> { synchronized (j39v194) { yield new ArrayList<Object>(j39v194.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> keys = ((List<Object>) switch ((Object)(obj)) { case Map<?, ?> j39v36 -> { synchronized (j39v36) { yield new ArrayList<Object>(j39v36.keySet()); } } case null, default -> new ArrayList<Object>(); });
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
@@ -7237,7 +7252,7 @@ public Object describe()
     public Object invertFlatStringDictionary(Object dict)
     {
         Map<String, Object> reversed = new HashMap<String, Object>() {{}};
-        List<Object> keys = ((List<Object>) switch ((Object)(dict)) { case Map<?, ?> j39v196 -> { synchronized (j39v196) { yield new ArrayList<Object>(j39v196.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> keys = ((List<Object>) switch ((Object)(dict)) { case Map<?, ?> j39v37 -> { synchronized (j39v37) { yield new ArrayList<Object>(j39v37.keySet()); } } case null, default -> new ArrayList<Object>(); });
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
@@ -7303,7 +7318,7 @@ public Object describe()
         //     ]
         //
         Map<String, Object> reduced = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < (switch ((Object)(fees)) { case null -> 0; case List<?> j39v205 -> j39v205.size(); case String j39v206 -> j39v206.length(); case Object j39v207 -> j39v207.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v207) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(fees)) { case null -> 0; case List<?> j39v41 -> j39v41.size(); case String j39v42 -> j39v42.length(); case Object j39v43 -> j39v43.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v43) : 0; }); i++)
         {
             Object fee = Helpers.GetValue(fees, i);
             String code = this.safeString(fee, "currency");
@@ -7321,15 +7336,15 @@ public Object describe()
                     reduced.put(feeCurrencyCode, new HashMap<String, Object>() {{}});
                 }
                 String rateKey = (((java.util.Objects.equals(rate, null)))) ? "" : rate;
-                if ((switch ((Object)((reduced == null || feeCurrencyCode == null ? null : reduced.get(feeCurrencyCode)))) { case List<?> j39v203 -> ((Object)(rateKey)) != null && j39v203.contains(rateKey); case Map<?, ?> j39v202 -> ((Object)(rateKey)) instanceof String && j39v202.containsKey(rateKey); case null, default -> false; }))
+                if ((switch ((Object)((reduced == null || feeCurrencyCode == null ? null : reduced.get(feeCurrencyCode)))) { case List<?> j39v40 -> ((Object)(rateKey)) != null && j39v40.contains(rateKey); case Map<?, ?> j39v39 -> ((Object)(rateKey)) instanceof String && j39v39.containsKey(rateKey); case null, default -> false; }))
                 {
                     Helpers.addElementToObject(Helpers.GetValue((reduced == null || feeCurrencyCode == null ? null : reduced.get(feeCurrencyCode)), rateKey), "cost", Precise.stringAdd(Helpers.GetValue(Helpers.GetValue((reduced == null || feeCurrencyCode == null ? null : reduced.get(feeCurrencyCode)), rateKey), "cost"), cost));
                 } else
                 {
-                    Helpers.addElementToObject((reduced == null || feeCurrencyCode == null ? null : reduced.get(feeCurrencyCode)), rateKey, (switch (0) { default -> { HashMap<String, Object> j39v198 = new HashMap<String, Object>();
-                        j39v198.put("currency", code);
-                        j39v198.put("cost", cost);
-                        yield j39v198; } }));
+                    Helpers.addElementToObject((reduced == null || feeCurrencyCode == null ? null : reduced.get(feeCurrencyCode)), rateKey, (switch (0) { default -> { HashMap<String, Object> j39v38 = new HashMap<String, Object>();
+                        j39v38.put("currency", code);
+                        j39v38.put("cost", cost);
+                        yield j39v38; } }));
                     if (!java.util.Objects.equals(rate, null))
                     {
                         Helpers.addElementToObject(Helpers.GetValue((reduced == null || feeCurrencyCode == null ? null : reduced.get(feeCurrencyCode)), rateKey), "rate", rate);
@@ -7681,7 +7696,7 @@ public Object describe()
                 }
                 if (!java.util.Objects.equals(startRegex, null))
                 {
-                    List<Object> splitted_by_start = (List<Object>) ((java.util.function.BiFunction<Object, Object, Object>) (hx4J43a3, hx4J43b3) -> { if (hx4J43a3 == null || hx4J43b3 == null) { return java.util.Collections.emptyList(); } return Arrays.asList(String.valueOf(hx4J43a3).split(java.util.regex.Pattern.quote(String.valueOf(hx4J43b3)))); }).apply(content, startRegex);
+                    List<Object> splitted_by_start = (List<Object>) Helpers.split(content, startRegex);
                     content = (splitted_by_start == null || 1 >= splitted_by_start.size() ? null : splitted_by_start.get(1)); // we need second part after start
                 }
                 if (java.util.Objects.equals(content, null))
@@ -7690,7 +7705,7 @@ public Object describe()
                 }
                 if (!java.util.Objects.equals(endRegex, null))
                 {
-                    List<Object> splitted_by_end = (List<Object>) ((java.util.function.BiFunction<Object, Object, Object>) (hx4J43a2, hx4J43b2) -> { if (hx4J43a2 == null || hx4J43b2 == null) { return java.util.Collections.emptyList(); } return Arrays.asList(String.valueOf(hx4J43a2).split(java.util.regex.Pattern.quote(String.valueOf(hx4J43b2)))); }).apply(content, endRegex);
+                    List<Object> splitted_by_end = (List<Object>) Helpers.split(content, endRegex);
                     content = (splitted_by_end == null || 0 >= splitted_by_end.size() ? null : splitted_by_end.get(0)); // we need first part after start
                 }
                 if ((java.util.Objects.equals(returnAsJson, true)) && ((content instanceof String)))
@@ -7884,7 +7899,7 @@ public Object describe()
             return objects;
         }
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < (switch ((Object)(objects)) { case null -> 0; case List<?> j39v217 -> j39v217.size(); case String j39v218 -> j39v218.length(); case Object j39v219 -> j39v219.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v219) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(objects)) { case null -> 0; case List<?> j39v44 -> j39v44.size(); case String j39v45 -> j39v45.length(); case Object j39v46 -> j39v46.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v46) : 0; }); i++)
         {
             String objectValue = this.safeString(Helpers.GetValue(objects, i), key);
             if (java.util.Objects.equals(objectValue, value))
@@ -7983,7 +7998,7 @@ public Object describe()
         List<Object> currenciesToCheck = new ArrayList<Object>(Arrays.asList());
         if (java.util.Objects.equals(currencyCode, null))
         {
-            currenciesToCheck = ((List<Object>) switch ((Object)(this.currencies)) { case Map<?, ?> j39v221 -> { synchronized (j39v221) { yield new ArrayList<Object>(j39v221.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            currenciesToCheck = ((List<Object>) switch ((Object)(this.currencies)) { case Map<?, ?> j39v47 -> { synchronized (j39v47) { yield new ArrayList<Object>(j39v47.keySet()); } } case null, default -> new ArrayList<Object>(); });
         } else
         {
             currenciesToCheck = new ArrayList<Object>(Arrays.asList(this.safeDict(this.currencies, currencyCode, (Object) null)));
@@ -8032,7 +8047,7 @@ public Object describe()
     {
         // this method is used against raw & unparse network entries, which are just indexed by network id
         Object chosenNetworkId = null;
-        Object availableNetworkIds = ((List<Object>) switch ((Object)(indexedNetworkEntries)) { case Map<?, ?> j39v227 -> { synchronized (j39v227) { yield new ArrayList<Object>(j39v227.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        Object availableNetworkIds = ((List<Object>) switch ((Object)(indexedNetworkEntries)) { case Map<?, ?> j39v52 -> { synchronized (j39v52) { yield new ArrayList<Object>(j39v52.keySet()); } } case null, default -> new ArrayList<Object>(); });
         Integer responseNetworksLength = ((List<?>)availableNetworkIds).size();
         if (!java.util.Objects.equals(networkCode, null))
         {
@@ -8047,7 +8062,7 @@ public Object describe()
                 {
                     throw new NotSupported(((((this.id + " - ") + networkCode) + " network was not found for ") + currencyCode)) ;
                 }
-                if ((switch ((Object)(indexedNetworkEntries)) { case List<?> j39v226 -> ((Object)(networkIdOrCode)) != null && j39v226.contains(networkIdOrCode); case Map<?, ?> j39v225 -> ((Object)(networkIdOrCode)) instanceof String && j39v225.containsKey(networkIdOrCode); case null, default -> false; }))
+                if ((switch ((Object)(indexedNetworkEntries)) { case List<?> j39v51 -> ((Object)(networkIdOrCode)) != null && j39v51.contains(networkIdOrCode); case Map<?, ?> j39v50 -> ((Object)(networkIdOrCode)) instanceof String && j39v50.containsKey(networkIdOrCode); case null, default -> false; }))
                 {
                     chosenNetworkId = networkIdOrCode;
                 } else
@@ -8069,7 +8084,7 @@ public Object describe()
                 {
                     throw new ExchangeError((this.id + " selectNetworkKeyFromNetworks() missing defaultNetworkId")) ;
                 }
-                if ((switch ((Object)(indexedNetworkEntries)) { case List<?> j39v224 -> ((Object)(defaultNetworkId)) != null && j39v224.contains(defaultNetworkId); case Map<?, ?> j39v223 -> ((Object)(defaultNetworkId)) instanceof String && j39v223.containsKey(defaultNetworkId); case null, default -> false; }))
+                if ((switch ((Object)(indexedNetworkEntries)) { case List<?> j39v49 -> ((Object)(defaultNetworkId)) != null && j39v49.contains(defaultNetworkId); case Map<?, ?> j39v48 -> ((Object)(defaultNetworkId)) instanceof String && j39v48.containsKey(defaultNetworkId); case null, default -> false; }))
                 {
                     return defaultNetworkId;
                 }
@@ -8122,7 +8137,7 @@ public Object describe()
         List<Object> results = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)ohlcvs).size(); i++)
         {
-            ((List<Object>)results).add(this.parseOHLCV((ohlcvs == null || i < 0 || i >= ((List<?>)ohlcvs).size() ? null : ((List<?>)ohlcvs).get(i)), ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v45 -> (Map<String, Object>) hx4J40v45; case Object hx4J40v45 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v45.getClass().getName()); }))));
+            ((List<Object>)results).add(this.parseOHLCV((ohlcvs == null || i < 0 || i >= ((List<?>)ohlcvs).size() ? null : ((List<?>)ohlcvs).get(i)), ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v41 -> (Map<String, Object>) hx4J40v41; case Object hx4J40v41 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v41.getClass().getName()); }))));
         }
         List<Object> sorted = this.sortBy(results, 0);
         return this.filterBySinceLimit(sorted, since, limit, 0, java.util.Objects.requireNonNullElse(tail, false));
@@ -8148,14 +8163,14 @@ public Object describe()
                 Map<String, Object> market = this.safeMarket(id, (Map<String, Object>) null, (String) null, "swap");
                 String symbol = (String) market.get("symbol");
                 Boolean contract = (Boolean) this.safeBool(market, "contract", false);
-                if ((switch ((Object) (Boolean.TRUE.equals(contract) && (Boolean.TRUE.equals(noSymbols) || ((!java.util.Objects.equals(symbolsNormalized, null)) && this.inArray(symbol, symbolsNormalized))))) { case null -> false; case Boolean hx4J40v44 -> hx4J40v44.booleanValue(); case Long hx4J40v44 -> hx4J40v44 != 0L; case Integer hx4J40v44 -> hx4J40v44 != 0; case Double hx4J40v44 -> hx4J40v44 != 0.0; case String hx4J40v44 -> !hx4J40v44.isEmpty(); case List<?> hx4J40v44 -> !hx4J40v44.isEmpty(); case Map<?, ?> hx4J40v44 -> true; default -> false; }))
+                if ((Boolean.TRUE.equals(contract) && (Boolean.TRUE.equals(noSymbols) || ((!java.util.Objects.equals(symbolsNormalized, null)) && this.inArray(symbol, symbolsNormalized)))))
                 {
                     tiers.put(symbol, this.parseMarketLeverageTiers(item, market));
                 }
             }
         } else
         {
-            List<Object> keys = ((List<Object>) switch ((Object)(response)) { case Map<?, ?> j39v229 -> { synchronized (j39v229) { yield new ArrayList<Object>(j39v229.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            List<Object> keys = ((List<Object>) switch ((Object)(response)) { case Map<?, ?> j39v53 -> { synchronized (j39v53) { yield new ArrayList<Object>(j39v53.keySet()); } } case null, default -> new ArrayList<Object>(); });
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object marketId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
@@ -8163,7 +8178,7 @@ public Object describe()
                 Map<String, Object> market = this.safeMarket(java.util.Objects.toString(marketId, null), (Map<String, Object>) null, (String) null, "swap");
                 String symbol = (String) market.get("symbol");
                 Boolean contract = (Boolean) this.safeBool(market, "contract", false);
-                if ((switch ((Object) (Boolean.TRUE.equals(contract) && (Boolean.TRUE.equals(noSymbols) || ((!java.util.Objects.equals(symbolsNormalized, null)) && this.inArray(symbol, symbolsNormalized))))) { case null -> false; case Boolean hx4J40v42 -> hx4J40v42.booleanValue(); case Long hx4J40v42 -> hx4J40v42 != 0L; case Integer hx4J40v42 -> hx4J40v42 != 0; case Double hx4J40v42 -> hx4J40v42 != 0.0; case String hx4J40v42 -> !hx4J40v42.isEmpty(); case List<?> hx4J40v42 -> !hx4J40v42.isEmpty(); case Map<?, ?> hx4J40v42 -> true; default -> false; }))
+                if ((Boolean.TRUE.equals(contract) && (Boolean.TRUE.equals(noSymbols) || ((!java.util.Objects.equals(symbolsNormalized, null)) && this.inArray(symbol, symbolsNormalized)))))
                 {
                     tiers.put(symbol, this.parseMarketLeverageTiers(item, market));
                 }
@@ -8188,12 +8203,12 @@ public Object describe()
                     {
                         throw new ExchangeError((this.id + " markets not loaded")) ;
                     }
-                    for (var i = 0; i < (switch ((Object)(symbolsArray)) { case null -> 0; case List<?> j39v236 -> j39v236.size(); case String j39v237 -> j39v237.length(); case Object j39v238 -> j39v238.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v238) : 0; }); i++)
+                    for (var i = 0; i < (switch ((Object)(symbolsArray)) { case null -> 0; case List<?> j39v54 -> j39v54.size(); case String j39v55 -> j39v55.length(); case Object j39v56 -> j39v56.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v56) : 0; }); i++)
                     {
                         Object symbol = Helpers.GetValue(symbolsArray, i);
                         Helpers.addElementToObject(markets, symbol, this.deepExtend(Helpers.GetValue(markets, symbol), Helpers.GetValue(response, symbol)));
                     }
-                    { Map<Object, Object> j39v230 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v231 = "limitsLoaded"; Object j39v232 = this.milliseconds(); if (j39v230 == null) { if (j39v231 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v230) { if (j39v232 == null && j39v230 instanceof java.util.concurrent.ConcurrentHashMap) { j39v230.remove(j39v231); } else { j39v230.put(j39v231, j39v232); } } }
+                    Helpers.addElementToObject(this.options, "limitsLoaded", this.milliseconds());
                 }
             }
             return this.markets;
@@ -8215,7 +8230,7 @@ public Object describe()
         if (java.util.Objects.equals(contractSize, null) && !java.util.Objects.equals(market, null))
         {
             contractSize = this.safeNumber(market, "contractSize", (Object) null);
-            { Map<Object, Object> j39v242 = (Map<Object, Object>) (Map<?, ?>) (position); Object j39v243 = "contractSize"; Object j39v244 = contractSize; if (j39v242 == null) { if (j39v243 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v242) { if (j39v244 == null && j39v242 instanceof java.util.concurrent.ConcurrentHashMap) { j39v242.remove(j39v243); } else { j39v242.put(j39v243, j39v244); } } }
+            Helpers.addElementToObject(position, "contractSize", contractSize);
         }
         Boolean isInverse = (!java.util.Objects.equals(market, null)) && Boolean.TRUE.equals(this.safeBool(market, "inverse", false));
         String side = this.safeString(position, "side");
@@ -8245,7 +8260,7 @@ public Object describe()
         }
         if (java.util.Objects.equals(marginString, null))
         {
-            { Map<Object, Object> j39v239 = (Map<Object, Object>) (Map<?, ?>) (position); Object j39v240 = "positionMargin"; Object j39v241 = null; if (j39v239 == null) { if (j39v240 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v239) { if (j39v241 == null && j39v239 instanceof java.util.concurrent.ConcurrentHashMap) { j39v239.remove(j39v240); } else { j39v239.put(j39v240, j39v241); } } } // keep the unified key present across all exchanges
+            Helpers.addElementToObject(position, "positionMargin", null); // keep the unified key present across all exchanges
         }
         if ((java.util.Objects.equals(collateralString, null)) && (!java.util.Objects.equals(marginString, null)) && (!java.util.Objects.equals(unrealizedPnlString, null)))
         {
@@ -8666,7 +8681,7 @@ public Object describe()
         for (var i = 0; i < ((List<?>)tradesArray).size(); i++)
         {
             Map<String, Object> parsed = null;
-            if ((switch ((Object) (isWs)) { case null -> false; case Boolean hx4J40v41 -> hx4J40v41.booleanValue(); case Long hx4J40v41 -> hx4J40v41 != 0L; case Integer hx4J40v41 -> hx4J40v41 != 0; case Double hx4J40v41 -> hx4J40v41 != 0.0; case String hx4J40v41 -> !hx4J40v41.isEmpty(); case List<?> hx4J40v41 -> !hx4J40v41.isEmpty(); case Map<?, ?> hx4J40v41 -> true; default -> false; }))
+            if (Helpers.isTrue(isWs))
             {
                 parsed = (Map<String, Object>) this.parseWsTrade((Map<String, Object>) ((tradesArray == null || i < 0 || i >= tradesArray.size() ? null : tradesArray.get(i))), market);
             } else
@@ -8728,9 +8743,9 @@ public Object describe()
             Map<String, Object> itemOrItems = (Map<String, Object>) this.parseLedgerEntry((Map<String, Object>) ((arrayData == null || i < 0 || i >= arrayData.size() ? null : arrayData.get(i))), currency);
             if ((itemOrItems instanceof List))
             {
-                for (var j = 0; j < (switch ((Object)(itemOrItems)) { case null -> 0; case List<?> j39v246 -> j39v246.size(); case String j39v247 -> j39v247.length(); case Object j39v248 -> j39v248.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v248) : 0; }); j++)
+                for (var j = 0; j < (switch ((Object)(itemOrItems)) { case null -> 0; case List<?> j39v57 -> j39v57.size(); case String j39v58 -> j39v58.length(); case Object j39v59 -> j39v59.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v59) : 0; }); j++)
                 {
-                    ((List<Object>)result).add(this.extend(((Object)(itemOrItems) instanceof Map<?, ?> j39v245 && ((Object)(j)) instanceof String && j39v245.containsKey(j) ? j39v245.get(j) : null), parameters));
+                    ((List<Object>)result).add(this.extend(Helpers.GetValue(itemOrItems, j), parameters));
                 }
             } else
             {
@@ -8751,7 +8766,11 @@ public Object describe()
      * @method
      * @ignore
      * @name Exchange#incrementingNonce
-     * @description returns a strictly-increasing nonce for venues that reject duplicate nonces per signer; the unit is whatever nonce () returns — the base default is seconds, so a venue that does not override nonce () gets a second-resolution counter that drifts ahead of wall clock under load, while venues needing milliseconds override nonce () as hyperliquid does. The counter is per exchange instance, so it narrows the duplicate-nonce race but does not remove it across instances or processes.
+     * @description returns a strictly-increasing nonce for venues that reject duplicate nonces per signer;
+     * the unit is whatever nonce () returns — the base default is seconds, so a venue that does not override
+     * nonce () gets a second-resolution counter that drifts ahead of wall clock under load, while venues
+     * needing milliseconds override nonce () as hyperliquid does. The counter is per exchange instance,
+     * so it narrows the duplicate-nonce race but does not remove it across instances or processes.
      * @returns {int} a strictly-increasing nonce in the unit returned by nonce ()
      */
     public Object incrementingNonce()
@@ -8760,7 +8779,7 @@ public Object describe()
         this.lockLastNonce();
         Long lastNonce = this.safeInteger(this.options, "lastNonce", 0);
         Object result = ((((currentNonce != null && (lastNonce == null || currentNonce > lastNonce))))) ? currentNonce : (lastNonce + 1L);
-        { Map<Object, Object> j39v249 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v250 = "lastNonce"; Object j39v251 = result; if (j39v249 == null) { if (j39v250 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v249) { if (j39v251 == null && j39v249 instanceof java.util.concurrent.ConcurrentHashMap) { j39v249.remove(j39v250); } else { j39v249.put(j39v250, j39v251); } } }
+        Helpers.addElementToObject(this.options, "lastNonce", result);
         this.unlockLastNonce();
         return result;
     }
@@ -8867,7 +8886,7 @@ public Object describe()
             newArray = this.toArray(objects);
         }
         List<Object> results = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < (switch ((Object)(newArray)) { case null -> 0; case List<?> j39v254 -> j39v254.size(); case String j39v255 -> j39v255.length(); case Object j39v256 -> j39v256.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v256) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(newArray)) { case null -> 0; case List<?> j39v60 -> j39v60.size(); case String j39v61 -> j39v61.length(); case Object j39v62 -> j39v62.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v62) : 0; }); i++)
         {
             ((List<Object>)results).add(Helpers.GetValue(Helpers.GetValue(newArray, i), key));
         }
@@ -8903,7 +8922,7 @@ public Object describe()
     {
         List<Object> objectsValue = this.toArray(objects);
         // return all of them if no values were passed
-        if ((java.util.Objects.equals(values, null)) || (java.util.Objects.equals(values, null)) || (java.util.Objects.equals(values, false)) || ((switch ((Object) (values)) { case null -> false; case Long hx4J40v37 -> hx4J40v37 == 0L; case Integer hx4J40v37 -> hx4J40v37 == 0L; case Double hx4J40v37 -> hx4J40v37 == 0L; case Float hx4J40v37 -> hx4J40v37.doubleValue() == 0L; case java.math.BigDecimal hx4J40v37 -> hx4J40v37.stripTrailingZeros().scale() <= 0 && hx4J40v37.longValue() == 0L; case Object hx4J40v37 -> { try { String hx4J40v37t = String.valueOf(hx4J40v37); Double.parseDouble(hx4J40v37t); yield new java.math.BigDecimal(hx4J40v37t).compareTo(java.math.BigDecimal.valueOf(0L)) == 0; } catch (NumberFormatException hx4J40v37x) { yield false; } } })) || (java.util.Objects.equals(values, "")))
+        if ((java.util.Objects.equals(values, null)) || (java.util.Objects.equals(values, null)) || (java.util.Objects.equals(values, false)) || (Helpers.isEqual(values, 0)) || (java.util.Objects.equals(values, "")))
         {
             // return indexed ? this.indexBy (objects, key) : objects;
             if (java.util.Objects.requireNonNullElse(indexed, true))
@@ -8934,7 +8953,7 @@ public Object describe()
     {
         List<Object> objectsValue = this.toArray(objects);
         // return all of them if no values were passed
-        if ((java.util.Objects.equals(values, null)) || (java.util.Objects.equals(values, null)) || (java.util.Objects.equals(values, false)) || ((switch ((Object) (values)) { case null -> false; case Long hx4J40v36 -> hx4J40v36 == 0L; case Integer hx4J40v36 -> hx4J40v36 == 0L; case Double hx4J40v36 -> hx4J40v36 == 0L; case Float hx4J40v36 -> hx4J40v36.doubleValue() == 0L; case java.math.BigDecimal hx4J40v36 -> hx4J40v36.stripTrailingZeros().scale() <= 0 && hx4J40v36.longValue() == 0L; case Object hx4J40v36 -> { try { String hx4J40v36t = String.valueOf(hx4J40v36); Double.parseDouble(hx4J40v36t); yield new java.math.BigDecimal(hx4J40v36t).compareTo(java.math.BigDecimal.valueOf(0L)) == 0; } catch (NumberFormatException hx4J40v36x) { yield false; } } })) || (java.util.Objects.equals(values, "")))
+        if ((java.util.Objects.equals(values, null)) || (java.util.Objects.equals(values, null)) || (java.util.Objects.equals(values, false)) || (Helpers.isEqual(values, 0)) || (java.util.Objects.equals(values, "")))
         {
             // return indexed ? this.indexBy (objects, key) : objects;
             if (java.util.Objects.requireNonNullElse(indexed, true))
@@ -8982,7 +9001,7 @@ public Object describe()
             Long retryDelayMaxRetriesOnFailureDelay = (Long) ((List<Object>) retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable).get(0);
             var paramsMaxRetriesOnFailureDelay = ((List<Object>) retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable).get(1);
             Boolean fetchDataCacheEnabled = ((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } return j38g; }).test(this.fetchHistoryCacheSize, 0);
-            for (var i = 0; ((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(i, ((Object) (switch ((Object) (retriesMaxRetriesOnFailure)) { case null -> (Object) null; case Long hx4J40v35 -> (Object) (hx4J40v35 + 1L); case Integer hx4J40v35 -> (Object) (hx4J40v35.longValue() + 1L); case Double hx4J40v35 -> (Object) (hx4J40v35 + ((double) 1L)); case String hx4J40v35 -> (Object) (hx4J40v35 + "1"); default -> (Object) null; }))); i++)
+            for (var i = 0; ((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(i, ((Object) (switch ((Object) (retriesMaxRetriesOnFailure)) { case null -> (Object) null; case Long hx4J40v31 -> (Object) (hx4J40v31 + 1L); case Integer hx4J40v31 -> (Object) (hx4J40v31.longValue() + 1L); case Double hx4J40v31 -> (Object) (hx4J40v31 + ((double) 1L)); case String hx4J40v31 -> (Object) (hx4J40v31 + "1"); default -> (Object) null; }))); i++)
             {
                 Map<String, Object> fetchData = null;
                 if (Boolean.TRUE.equals(fetchDataCacheEnabled))
@@ -9018,7 +9037,7 @@ public Object describe()
                         fetchData.put("error", e);
                         this.addFetchCache(fetchData);
                     }
-                    if ((switch ((Object) (e)) { case null -> false; case Throwable hx4J44v1 -> { Throwable hx4J44v1u = hx4J44v1; while ((hx4J44v1u instanceof java.util.concurrent.CompletionException || hx4J44v1u instanceof java.util.concurrent.ExecutionException) && hx4J44v1u.getCause() != null) { hx4J44v1u = hx4J44v1u.getCause(); } yield OperationFailed.class.isInstance(hx4J44v1u); } case Object hx4J44v1 -> OperationFailed.class.isInstance(hx4J44v1); }))
+                    if (Helpers.isInstance(e, OperationFailed.class))
                     {
                         if ((retriesMaxRetriesOnFailure != null && i < retriesMaxRetriesOnFailure))
                         {
@@ -9114,7 +9133,7 @@ public Object describe()
             {
                 throw new ExchangeError((this.id + " buildOHLCVC() missing ts")) ;
             }
-            Object openingTime = ((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a == null || j36b == null) return null; if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) * ((Long) j36b)); java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; double j36r = j36d.applyAsDouble(j36a) * j36d.applyAsDouble(j36b); if (new java.math.BigDecimal(String.valueOf(j36r)).stripTrailingZeros().scale() <= 0) return (Object) ((long) j36r); return (Object) j36r; }).apply((Math.floor(Double.parseDouble(String.valueOf((((double) ts) / ((double) ms)))))), ms); // shift to the edge of m/h/d (but not M)
+            Object openingTime = Helpers.multiply((Math.floor(Double.parseDouble(String.valueOf((((double) ts) / ((double) ms)))))), ms); // shift to the edge of m/h/d (but not M)
             if (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(openingTime, java.util.Objects.requireNonNullElse(since, 0)))
             {
                 continue;
@@ -9125,7 +9144,7 @@ public Object describe()
             {
                 throw new ArgumentsRequired((this.id + " buildOHLCVC() requires a price argument")) ;
             }
-            if (((switch ((Object) (Boolean.TRUE.equals(skipZeroPrices) && !(((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } return j38g; }).test(price, 0)))) { case null -> false; case Boolean hx4J40v34 -> hx4J40v34.booleanValue(); case Long hx4J40v34 -> hx4J40v34 != 0L; case Integer hx4J40v34 -> hx4J40v34 != 0; case Double hx4J40v34 -> hx4J40v34 != 0.0; case String hx4J40v34 -> !hx4J40v34.isEmpty(); case List<?> hx4J40v34 -> !hx4J40v34.isEmpty(); case Map<?, ?> hx4J40v34 -> true; default -> false; }) && !(((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(price, 0))))
+            if (((Boolean.TRUE.equals(skipZeroPrices) && !(((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } return j38g; }).test(price, 0))) && !(((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(price, 0))))
             {
                 continue;
             }
@@ -9137,7 +9156,7 @@ public Object describe()
                 {
                     throw new ExchangeError((this.id + " buildOHLCVC() missing candle timestamp")) ;
                 }
-                isNewCandle = ((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return j38g || j38e; }).test(openingTime, ((java.util.function.BinaryOperator<Object>) (hx4J40v33A, hx4J40v33B) -> { Object hx4J40v33P = hx4J40v33A instanceof Integer hx4J40v33i ? (Object) Long.valueOf(hx4J40v33i.longValue()) : hx4J40v33A; Object hx4J40v33Q = hx4J40v33B instanceof Integer hx4J40v33i ? (Object) Long.valueOf(hx4J40v33i.longValue()) : hx4J40v33B; if (hx4J40v33P instanceof Long hx4J40v33l && hx4J40v33Q instanceof Long hx4J40v33r) { return hx4J40v33l + hx4J40v33r; } if (hx4J40v33P instanceof Double || hx4J40v33Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v33D = hx4J40v33o -> { if (hx4J40v33o instanceof Double || hx4J40v33o instanceof Float || hx4J40v33o instanceof Long || hx4J40v33o instanceof Integer || hx4J40v33o instanceof java.math.BigDecimal) { return ((Number) hx4J40v33o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v33o)); } catch (NumberFormatException hx4J40v33e) { return 0.0; } }; return hx4J40v33D.applyAsDouble(hx4J40v33P) + hx4J40v33D.applyAsDouble(hx4J40v33Q); } if (hx4J40v33P instanceof String || hx4J40v33Q instanceof String) { return String.valueOf(hx4J40v33P) + String.valueOf(hx4J40v33Q); } return null; }).apply(candleTimestamp, ms));
+                isNewCandle = ((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return j38g || j38e; }).test(openingTime, ((java.util.function.BinaryOperator<Object>) (hx4J40v29A, hx4J40v29B) -> { Object hx4J40v29P = hx4J40v29A instanceof Integer hx4J40v29i ? (Object) Long.valueOf(hx4J40v29i.longValue()) : hx4J40v29A; Object hx4J40v29Q = hx4J40v29B instanceof Integer hx4J40v29i ? (Object) Long.valueOf(hx4J40v29i.longValue()) : hx4J40v29B; if (hx4J40v29P instanceof Long hx4J40v29l && hx4J40v29Q instanceof Long hx4J40v29r) { return hx4J40v29l + hx4J40v29r; } if (hx4J40v29P instanceof Double || hx4J40v29Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v29D = hx4J40v29o -> { if (hx4J40v29o instanceof Double || hx4J40v29o instanceof Float || hx4J40v29o instanceof Long || hx4J40v29o instanceof Integer || hx4J40v29o instanceof java.math.BigDecimal) { return ((Number) hx4J40v29o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v29o)); } catch (NumberFormatException hx4J40v29e) { return 0.0; } }; return hx4J40v29D.applyAsDouble(hx4J40v29P) + hx4J40v29D.applyAsDouble(hx4J40v29Q); } if (hx4J40v29P instanceof String || hx4J40v29Q instanceof String) { return String.valueOf(hx4J40v29P) + String.valueOf(hx4J40v29Q); } return null; }).apply(candleTimestamp, ms));
             }
             if (Boolean.TRUE.equals(isNewCandle))
             {
@@ -9237,11 +9256,11 @@ public Object describe()
         {
             code = this.commonCurrencyCode(((String)currencyId).toUpperCase());
         }
-        return (Map<String, Object>) (this.safeCurrencyStructure((switch (0) { default -> { HashMap<String, Object> j39v264 = new HashMap<String, Object>();
-            j39v264.put("id", currencyId);
-            j39v264.put("code", code);
-            j39v264.put("precision", null);
-            yield j39v264; } })));
+        return (Map<String, Object>) (this.safeCurrencyStructure((switch (0) { default -> { HashMap<String, Object> j39v63 = new HashMap<String, Object>();
+            j39v63.put("id", currencyId);
+            j39v63.put("code", code);
+            j39v63.put("precision", null);
+            yield j39v63; } })));
     }
 
     public Map<String, Object> safeMarket(String marketId, Map<String, Object> market, String delimiter, String marketType)
@@ -9251,7 +9270,7 @@ public Object describe()
             if ((!java.util.Objects.equals(this.markets_by_id, null)) && (((Map<?, ?>)this.markets_by_id).containsKey(marketId)))
             {
                 Object markets = (marketId == null || this.markets_by_id == null ? null : ((Map<?, ?>)this.markets_by_id).get(marketId));
-                Integer numMarkets = (switch ((Object)(markets)) { case null -> 0; case List<?> j39v288 -> j39v288.size(); case String j39v289 -> j39v289.length(); case Object j39v290 -> j39v290.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v290) : 0; });
+                Integer numMarkets = (switch ((Object)(markets)) { case null -> 0; case List<?> j39v67 -> j39v67.size(); case String j39v68 -> j39v68.length(); case Object j39v69 -> j39v69.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v69) : 0; });
                 if ((numMarkets != null && numMarkets == 1))
                 {
                     return (Map<String, Object>) (Helpers.GetValue(markets, 0));
@@ -9262,7 +9281,7 @@ public Object describe()
                         throw new ArgumentsRequired((((this.id + " safeMarket() requires a fourth argument for ") + marketId) + " to disambiguate between different markets with the same market id")) ;
                     }
                     String marketTypeResolved = (((java.util.Objects.equals(marketType, null)))) ? this.safeString(market, "type", "") : marketType;
-                    for (var i = 0; i < (switch ((Object)(markets)) { case null -> 0; case List<?> j39v284 -> j39v284.size(); case String j39v285 -> j39v285.length(); case Object j39v286 -> j39v286.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v286) : 0; }); i++)
+                    for (var i = 0; i < (switch ((Object)(markets)) { case null -> 0; case List<?> j39v64 -> j39v64.size(); case String j39v65 -> j39v65.length(); case Object j39v66 -> j39v66.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v66) : 0; }); i++)
                     {
                         Object currentMarket = Helpers.GetValue(markets, i);
                         if (java.util.Objects.equals(Helpers.GetValue(currentMarket, marketTypeResolved), true))
@@ -9273,7 +9292,7 @@ public Object describe()
                 }
             } else if (!java.util.Objects.equals(delimiter, null) && !java.util.Objects.equals(delimiter, ""))
             {
-                List<Object> parts = (List<Object>) ((java.util.function.BiFunction<Object, Object, Object>) (hx4J43a1, hx4J43b1) -> { if (hx4J43a1 == null || hx4J43b1 == null) { return java.util.Collections.emptyList(); } return Arrays.asList(String.valueOf(hx4J43a1).split(java.util.regex.Pattern.quote(String.valueOf(hx4J43b1)))); }).apply(marketId, delimiter);
+                List<Object> parts = (List<Object>) Helpers.split(marketId, delimiter);
                 Integer partsLength = ((List<?>)parts).size();
                 HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
                 mapLiteral3.put("symbol", marketId);
@@ -9289,19 +9308,19 @@ public Object describe()
                     String quoteId = this.safeString(parts, 1);
                     String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
                     String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
-                    { Map<Object, Object> j39v279 = (Map<Object, Object>) (Map<?, ?>) (result); Object j39v280 = "baseId"; Object j39v281 = baseId; if (j39v279 == null) { if (j39v280 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v279) { if (j39v281 == null && j39v279 instanceof java.util.concurrent.ConcurrentHashMap) { j39v279.remove(j39v280); } else { j39v279.put(j39v280, j39v281); } } }
-                    { Map<Object, Object> j39v276 = (Map<Object, Object>) (Map<?, ?>) (result); Object j39v277 = "quoteId"; Object j39v278 = quoteId; if (j39v276 == null) { if (j39v277 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v276) { if (j39v278 == null && j39v276 instanceof java.util.concurrent.ConcurrentHashMap) { j39v276.remove(j39v277); } else { j39v276.put(j39v277, j39v278); } } }
+                    Helpers.addElementToObject(result, "baseId", baseId);
+                    Helpers.addElementToObject(result, "quoteId", quoteId);
                     if (!java.util.Objects.equals(base, null))
                     {
-                        { Map<Object, Object> j39v273 = (Map<Object, Object>) (Map<?, ?>) (result); Object j39v274 = "base"; Object j39v275 = base; if (j39v273 == null) { if (j39v274 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v273) { if (j39v275 == null && j39v273 instanceof java.util.concurrent.ConcurrentHashMap) { j39v273.remove(j39v274); } else { j39v273.put(j39v274, j39v275); } } }
+                        Helpers.addElementToObject(result, "base", base);
                     }
                     if (!java.util.Objects.equals(quote, null))
                     {
-                        { Map<Object, Object> j39v270 = (Map<Object, Object>) (Map<?, ?>) (result); Object j39v271 = "quote"; Object j39v272 = quote; if (j39v270 == null) { if (j39v271 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v270) { if (j39v272 == null && j39v270 instanceof java.util.concurrent.ConcurrentHashMap) { j39v270.remove(j39v271); } else { j39v270.put(j39v271, j39v272); } } }
+                        Helpers.addElementToObject(result, "quote", quote);
                     }
                     if ((!java.util.Objects.equals(base, null)) && (!java.util.Objects.equals(quote, null)))
                     {
-                        { Map<Object, Object> j39v267 = (Map<Object, Object>) (Map<?, ?>) (result); Object j39v268 = "symbol"; Object j39v269 = ((base + "/") + quote); if (j39v267 == null) { if (j39v268 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v267) { if (j39v269 == null && j39v267 instanceof java.util.concurrent.ConcurrentHashMap) { j39v267.remove(j39v268); } else { j39v267.put(j39v268, j39v269); } } }
+                        Helpers.addElementToObject(result, "symbol", ((base + "/") + quote));
                     }
                 }
                 return (Map<String, Object>) (result);
@@ -9339,7 +9358,7 @@ public Object describe()
          * @param {boolean} error throw an error that a credential is required if true
          * @returns {boolean} true if all required credentials have been set, otherwise false or an error is thrown is param error=true
          */
-        List<Object> keys = ((List<Object>) switch ((Object)(this.requiredCredentials)) { case Map<?, ?> j39v293 -> { synchronized (j39v293) { yield new ArrayList<Object>(j39v293.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> keys = ((List<Object>) switch ((Object)(this.requiredCredentials)) { case Map<?, ?> j39v70 -> { synchronized (j39v70) { yield new ArrayList<Object>(j39v70.keySet()); } } case null, default -> new ArrayList<Object>(); });
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
@@ -9531,7 +9550,7 @@ public Object describe()
             {
                 throw new NotSupported((this.id + " fetchCrossBorrowRate() is not supported yet")) ;
             }
-            CrossBorrowRates borrowRates = (this.fetchCrossBorrowRates(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v32 -> (Map<String, Object>) hx4J40v32; case Object hx4J40v32 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v32.getClass().getName()); })))).join();
+            CrossBorrowRates borrowRates = (this.fetchCrossBorrowRates(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v28 -> (Map<String, Object>) hx4J40v28; case Object hx4J40v28 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v28.getClass().getName()); })))).join();
             Map<String, Object> rate = (Map<String, Object>) this.safeDict(borrowRates, code, (Object) null);
             if (java.util.Objects.equals(rate, null))
             {
@@ -9676,7 +9695,7 @@ public Object describe()
         {
             return;
         }
-        if ((switch ((Object)(exact)) { case List<?> j39v297 -> ((Object)(str)) != null && j39v297.contains(str); case Map<?, ?> j39v296 -> ((Object)(str)) instanceof String && j39v296.containsKey(str); case null, default -> false; }))
+        if ((switch ((Object)(exact)) { case List<?> j39v72 -> ((Object)(str)) != null && j39v72.contains(str); case Map<?, ?> j39v71 -> ((Object)(str)) instanceof String && j39v71.containsKey(str); case null, default -> false; }))
         {
             Helpers.throwDynamicException(Helpers.GetValue(exact, str), message);
         }
@@ -9694,7 +9713,7 @@ public Object describe()
     public Object findBroadlyMatchedKey(Object broad, String str)
     {
         // a helper for matching error strings exactly vs broadly
-        List<Object> keys = ((List<Object>) switch ((Object)(broad)) { case Map<?, ?> j39v299 -> { synchronized (j39v299) { yield new ArrayList<Object>(j39v299.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> keys = ((List<Object>) switch ((Object)(broad)) { case Map<?, ?> j39v73 -> { synchronized (j39v73) { yield new ArrayList<Object>(j39v73.keySet()); } } case null, default -> new ArrayList<Object>(); });
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
@@ -10258,7 +10277,7 @@ public Object describe()
         {
             throw new ArgumentsRequired((this.id + " currency() requires a code argument")) ;
         }
-        List<Object> keys = ((List<Object>) switch ((Object)(this.currencies)) { case Map<?, ?> j39v302 -> { synchronized (j39v302) { yield new ArrayList<Object>(j39v302.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> keys = ((List<Object>) switch ((Object)(this.currencies)) { case Map<?, ?> j39v74 -> { synchronized (j39v74) { yield new ArrayList<Object>(j39v74.keySet()); } } case null, default -> new ArrayList<Object>(); });
         Integer numCurrencies = ((List<?>)keys).size();
         if (java.util.Objects.equals(numCurrencies, 0))
         {
@@ -10298,7 +10317,7 @@ public Object describe()
         {
             Object marketsList = (marketsById == null || symbol == null ? null : marketsById.get(symbol));
             String defaultType = this.safeString2(this.options, "defaultType", "defaultSubType", "spot");
-            for (var i = 0; i < (switch ((Object)(marketsList)) { case null -> 0; case List<?> j39v306 -> j39v306.size(); case String j39v307 -> j39v307.length(); case Object j39v308 -> j39v308.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v308) : 0; }); i++)
+            for (var i = 0; i < (switch ((Object)(marketsList)) { case null -> 0; case List<?> j39v75 -> j39v75.size(); case String j39v76 -> j39v76.length(); case Object j39v77 -> j39v77.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v77) : 0; }); i++)
             {
                 Object market = Helpers.GetValue(marketsList, i);
                 if (java.util.Objects.equals(Helpers.GetValue(market, defaultType), true))
@@ -10334,7 +10353,7 @@ public Object describe()
                 } else
                 {
                     // check if base currency is inside dict
-                    String baseCurrencyCode = ((java.util.function.Function<Object, java.util.function.BiFunction<Object, Object, String>>) hx4J43a0 -> (hx4J43b0, hx4J43c0) -> { if (hx4J43a0 == null) { return null; } String hx4J43a0s = String.valueOf(hx4J43a0); String hx4J43a0f = (hx4J43b0 == null) ? "" : String.valueOf(hx4J43b0); String hx4J43a0r = (hx4J43c0 == null) ? "" : String.valueOf(hx4J43c0); return hx4J43a0s.replaceFirst(java.util.regex.Pattern.quote(hx4J43a0f), java.util.regex.Matcher.quoteReplacement(hx4J43a0r)); }).apply(((String)currencyCode)).apply(leverageSuffix, "");
+                    String baseCurrencyCode = Helpers.replace(((String)currencyCode), leverageSuffix, "");
                     if ((!java.util.Objects.equals(existingCurrencies, null)) && (((Map<?, ?>)existingCurrencies).containsKey(baseCurrencyCode)))
                     {
                         return true;
@@ -10440,12 +10459,12 @@ public Object describe()
 
     public Boolean isTickPrecision()
     {
-        return (switch ((Object) (this.precisionMode)) { case null -> false; case Long hx4J40v30 -> hx4J40v30 == TICK_SIZE; case Integer hx4J40v30 -> hx4J40v30 == TICK_SIZE; case Double hx4J40v30 -> hx4J40v30 == TICK_SIZE; case Float hx4J40v30 -> hx4J40v30.doubleValue() == TICK_SIZE; case java.math.BigDecimal hx4J40v30 -> hx4J40v30.stripTrailingZeros().scale() <= 0 && hx4J40v30.longValue() == TICK_SIZE; case Object hx4J40v30 -> { try { String hx4J40v30t = String.valueOf(hx4J40v30); Double.parseDouble(hx4J40v30t); yield new java.math.BigDecimal(hx4J40v30t).compareTo(java.math.BigDecimal.valueOf(TICK_SIZE)) == 0; } catch (NumberFormatException hx4J40v30x) { yield false; } } });
+        return Helpers.isEqual(this.precisionMode, TICK_SIZE);
     }
 
     public Boolean isSignificantPrecision()
     {
-        return (switch ((Object) (this.precisionMode)) { case null -> false; case Long hx4J40v29 -> hx4J40v29 == SIGNIFICANT_DIGITS; case Integer hx4J40v29 -> hx4J40v29 == SIGNIFICANT_DIGITS; case Double hx4J40v29 -> hx4J40v29 == SIGNIFICANT_DIGITS; case Float hx4J40v29 -> hx4J40v29.doubleValue() == SIGNIFICANT_DIGITS; case java.math.BigDecimal hx4J40v29 -> hx4J40v29.stripTrailingZeros().scale() <= 0 && hx4J40v29.longValue() == SIGNIFICANT_DIGITS; case Object hx4J40v29 -> { try { String hx4J40v29t = String.valueOf(hx4J40v29); Double.parseDouble(hx4J40v29t); yield new java.math.BigDecimal(hx4J40v29t).compareTo(java.math.BigDecimal.valueOf(SIGNIFICANT_DIGITS)) == 0; } catch (NumberFormatException hx4J40v29x) { yield false; } } });
+        return Helpers.isEqual(this.precisionMode, SIGNIFICANT_DIGITS);
     }
 
     public Double safeNumber(Object obj, Object key, Object defaultNumber)
@@ -10472,7 +10491,7 @@ public Object describe()
         {
             return null;
         }
-        Object precisionNumber = ((Long) (switch ((Object) (precision)) { case null -> (Long) null; case Long hx4J42v4 -> hx4J42v4; case Integer hx4J42v4 -> Long.valueOf(hx4J42v4.longValue()); case Double hx4J42v4 -> Long.valueOf(hx4J42v4.longValue()); case Float hx4J42v4 -> Long.valueOf(hx4J42v4.longValue()); case java.math.BigDecimal hx4J42v4 -> Long.valueOf(hx4J42v4.longValue()); case Object hx4J42v4 -> { try { yield Long.valueOf(Long.parseLong(String.valueOf(hx4J42v4))); } catch (Exception hx4J42v4e) { yield (Long) null; } } }));
+        Object precisionNumber = Helpers.parseInt(precision);
         if (java.util.Objects.equals((precisionNumber == null ? null : ((Number) precisionNumber).longValue()), 0L))
         {
             return "1";
@@ -10480,7 +10499,7 @@ public Object describe()
         if (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } return j38g; }).test(precisionNumber, 0))
         {
             String parsedPrecision = "0.";
-            for (var i = 0; ((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(i, ((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) - ((Long) j36b)); if (j36a instanceof Double || j36b instanceof Double) { java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; return (Object) (j36d.applyAsDouble(j36a) - j36d.applyAsDouble(j36b)); } return null; }).apply(precisionNumber, 1)); i++)
+            for (var i = 0; ((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(i, Helpers.subtract(precisionNumber, 1)); i++)
             {
                 parsedPrecision = (parsedPrecision + "0");
             }
@@ -10488,7 +10507,7 @@ public Object describe()
         } else
         {
             String parsedPrecision = "1";
-            for (var i = 0; ((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(i, ((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) - ((Long) j36b)); if (j36a instanceof Double || j36b instanceof Double) { java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; return (Object) (j36d.applyAsDouble(j36a) - j36d.applyAsDouble(j36b)); } return null; }).apply(-1, precisionNumber)); i++)
+            for (var i = 0; ((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(i, Helpers.subtract(-1, precisionNumber)); i++)
             {
                 parsedPrecision = (parsedPrecision + "0");
             }
@@ -10519,9 +10538,9 @@ public Object describe()
             {
                 return null;
             }
-            Object positivePrecision = ((Long) (switch ((Object) (positivePrecisionString)) { case null -> (Long) null; case Long hx4J42v3 -> hx4J42v3; case Integer hx4J42v3 -> Long.valueOf(hx4J42v3.longValue()); case Double hx4J42v3 -> Long.valueOf(hx4J42v3.longValue()); case Float hx4J42v3 -> Long.valueOf(hx4J42v3.longValue()); case java.math.BigDecimal hx4J42v3 -> Long.valueOf(hx4J42v3.longValue()); case Object hx4J42v3 -> { try { yield Long.valueOf(Long.parseLong(String.valueOf(hx4J42v3))); } catch (Exception hx4J42v3e) { yield (Long) null; } } }));
+            Object positivePrecision = Helpers.parseInt(positivePrecisionString);
             String parsedPrecision = "1";
-            for (var i = 0; ((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(i, ((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) - ((Long) j36b)); if (j36a instanceof Double || j36b instanceof Double) { java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; return (Object) (j36d.applyAsDouble(j36a) - j36d.applyAsDouble(j36b)); } return null; }).apply(positivePrecision, 1)); i++)
+            for (var i = 0; ((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(i, Helpers.subtract(positivePrecision, 1)); i++)
             {
                 parsedPrecision = (parsedPrecision + "0");
             }
@@ -10540,7 +10559,7 @@ public Object describe()
             {
                 throw new ExchangeError((this.id + " loadTimeDifference() missing serverTime")) ;
             }
-            { Map<Object, Object> j39v311 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v312 = "timeDifference"; Object j39v313 = (after - serverTime); if (j39v311 == null) { if (j39v312 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v311) { if (j39v313 == null && j39v311 instanceof java.util.concurrent.ConcurrentHashMap) { j39v311.remove(j39v312); } else { j39v311.put(j39v312, j39v313); } } }
+            Helpers.addElementToObject(this.options, "timeDifference", (after - serverTime));
             return this.parseToInt(this.options.get("timeDifference"));
         });
 
@@ -10639,7 +10658,7 @@ public Object describe()
             }
         } else
         {
-            List<Object> marketIds = ((List<Object>) switch ((Object)(pricesData)) { case Map<?, ?> j39v315 -> { synchronized (j39v315) { yield new ArrayList<Object>(j39v315.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            List<Object> marketIds = ((List<Object>) switch ((Object)(pricesData)) { case Map<?, ?> j39v78 -> { synchronized (j39v78) { yield new ArrayList<Object>(j39v78.keySet()); } } case null, default -> new ArrayList<Object>(); });
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
                 Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
@@ -10687,7 +10706,7 @@ public Object describe()
             }
         } else
         {
-            List<Object> marketIds = ((List<Object>) switch ((Object)(tickers)) { case Map<?, ?> j39v317 -> { synchronized (j39v317) { yield new ArrayList<Object>(j39v317.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            List<Object> marketIds = ((List<Object>) switch ((Object)(tickers)) { case Map<?, ?> j39v79 -> { synchronized (j39v79) { yield new ArrayList<Object>(j39v79.keySet()); } } case null, default -> new ArrayList<Object>(); });
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
                 Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
@@ -10704,7 +10723,7 @@ public Object describe()
     public Object parseDepositAddresses(Object addresses, Object codes, Boolean indexed, Map<String, Object> parameters)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < (switch ((Object)(addresses)) { case null -> 0; case List<?> j39v319 -> j39v319.size(); case String j39v320 -> j39v320.length(); case Object j39v321 -> j39v321.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v321) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(addresses)) { case null -> 0; case List<?> j39v80 -> j39v80.size(); case String j39v81 -> j39v81.length(); case Object j39v82 -> j39v82.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v82) : 0; }); i++)
         {
             Map<String, Object> address = this.extend(this.parseDepositAddress((Map<String, Object>) (Helpers.GetValue(addresses, i)), (Map<String, Object>) null), parameters);
             ((List<Object>)result).add(address);
@@ -10723,7 +10742,7 @@ public Object describe()
     public List<Object> parseBorrowInterests(Object response, Map<String, Object> market)
     {
         List<Object> interests = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v323 -> j39v323.size(); case String j39v324 -> j39v324.length(); case Object j39v325 -> j39v325.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v325) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v83 -> j39v83.size(); case String j39v84 -> j39v84.length(); case Object j39v85 -> j39v85.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v85) : 0; }); i++)
         {
             Object row = Helpers.GetValue(response, i);
             ((List<Object>)interests).add(this.parseBorrowInterest((Map<String, Object>) (row), market));
@@ -10739,20 +10758,20 @@ public Object describe()
     public Object parseBorrowRateHistory(Object response, String code, Object since, Object limit)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v327 -> j39v327.size(); case String j39v328 -> j39v328.length(); case Object j39v329 -> j39v329.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v329) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v86 -> j39v86.size(); case String j39v87 -> j39v87.length(); case Object j39v88 -> j39v88.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v88) : 0; }); i++)
         {
             Object item = Helpers.GetValue(response, i);
             Map<String, Object> borrowRate = (Map<String, Object>) this.parseBorrowRate(item, (Map<String, Object>) null);
             ((List<Object>)result).add(borrowRate);
         }
         List<Object> sorted = this.sortBy(result, "timestamp");
-        return this.filterByCurrencySinceLimit(sorted, code, ((Long) (switch ((Object) (since)) { case null -> (Long) null; case Long hx4J40v26 -> hx4J40v26; case Number hx4J40v26 -> Long.valueOf(hx4J40v26.longValue()); case Object hx4J40v26 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v26.getClass().getName()); })), ((Long) (switch ((Object) (limit)) { case null -> (Long) null; case Long hx4J40v25 -> hx4J40v25; case Number hx4J40v25 -> Long.valueOf(hx4J40v25.longValue()); case Object hx4J40v25 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v25.getClass().getName()); })), false);
+        return this.filterByCurrencySinceLimit(sorted, code, ((Long) (switch ((Object) (since)) { case null -> (Long) null; case Long hx4J40v22 -> hx4J40v22; case Number hx4J40v22 -> Long.valueOf(hx4J40v22.longValue()); case Object hx4J40v22 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v22.getClass().getName()); })), ((Long) (switch ((Object) (limit)) { case null -> (Long) null; case Long hx4J40v21 -> hx4J40v21; case Number hx4J40v21 -> Long.valueOf(hx4J40v21.longValue()); case Object hx4J40v21 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v21.getClass().getName()); })), false);
     }
 
     public Object parseIsolatedBorrowRates(Object info)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < (switch ((Object)(info)) { case null -> 0; case List<?> j39v331 -> j39v331.size(); case String j39v332 -> j39v332.length(); case Object j39v333 -> j39v333.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v333) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(info)) { case null -> 0; case List<?> j39v89 -> j39v89.size(); case String j39v90 -> j39v90.length(); case Object j39v91 -> j39v91.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v91) : 0; }); i++)
         {
             Object item = Helpers.GetValue(info, i);
             Map<String, Object> borrowRate = (Map<String, Object>) this.parseIsolatedBorrowRate((Map<String, Object>) (item), (Map<String, Object>) null);
@@ -10765,7 +10784,7 @@ public Object describe()
     public List<Object> parseFundingRateHistories(Object response, Map<String, Object> market, Long since, Long limit)
     {
         List<Object> rates = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v335 -> j39v335.size(); case String j39v336 -> j39v336.length(); case Object j39v337 -> j39v337.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v337) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v92 -> j39v92.size(); case String j39v93 -> j39v93.length(); case Object j39v94 -> j39v94.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v94) : 0; }); i++)
         {
             Object entry = Helpers.GetValue(response, i);
             ((List<Object>)rates).add(this.parseFundingRateHistory(entry, market));
@@ -10789,7 +10808,7 @@ public Object describe()
     public Object parseFundingRates(Object response, List<String> symbols)
     {
         Map<String, Object> fundingRates = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v339 -> j39v339.size(); case String j39v340 -> j39v340.length(); case Object j39v341 -> j39v341.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v341) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v95 -> j39v95.size(); case String j39v96 -> j39v96.length(); case Object j39v97 -> j39v97.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v97) : 0; }); i++)
         {
             Object entry = Helpers.GetValue(response, i);
             Map<String, Object> parsed = (Map<String, Object>) this.parseFundingRate(entry, (Map<String, Object>) null);
@@ -10809,7 +10828,7 @@ public Object describe()
     public List<Object> parseLongShortRatioHistory(Object response, Map<String, Object> market, Long since, Long limit)
     {
         List<Object> rates = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v343 -> j39v343.size(); case String j39v344 -> j39v344.length(); case Object j39v345 -> j39v345.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v345) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v98 -> j39v98.size(); case String j39v99 -> j39v99.length(); case Object j39v100 -> j39v100.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v100) : 0; }); i++)
         {
             Object entry = Helpers.GetValue(response, i);
             ((List<Object>)rates).add(this.parseLongShortRatio((Map<String, Object>) (entry), market));
@@ -10837,7 +10856,7 @@ public Object describe()
                 ((List<Object>)keysToOmit).add("triggerPrice");
                 ((List<Object>)keysToOmit).add("stopPrice");
             }
-            triggerPriceStr = this.priceToPrecision(symbol, ((Double) (switch ((Object) (triggerPrice)) { case null -> Double.valueOf(0.0); case Double hx4J42v2 -> Double.valueOf(hx4J42v2.doubleValue()); case Float hx4J42v2 -> Double.valueOf(hx4J42v2.doubleValue()); case Long hx4J42v2 -> Double.valueOf(hx4J42v2.doubleValue()); case Integer hx4J42v2 -> Double.valueOf(hx4J42v2.doubleValue()); case java.math.BigDecimal hx4J42v2 -> Double.valueOf(hx4J42v2.doubleValue()); case Object hx4J42v2 -> { String hx4J42v2s; try { hx4J42v2s = String.valueOf(hx4J42v2); } catch (Exception hx4J42v2e) { yield (Double) null; } try { yield Double.valueOf(Double.parseDouble(hx4J42v2s)); } catch (NumberFormatException hx4J42v2e) { yield Double.valueOf(0.0); } } })));
+            triggerPriceStr = this.priceToPrecision(symbol, Helpers.parseFloat(triggerPrice));
         }
         if (!java.util.Objects.equals(stopLossPrice, null))
         {
@@ -10845,7 +10864,7 @@ public Object describe()
             {
                 ((List<Object>)keysToOmit).add("stopLossPrice");
             }
-            stopLossPriceStr = this.priceToPrecision(symbol, ((Double) (switch ((Object) (stopLossPrice)) { case null -> Double.valueOf(0.0); case Double hx4J42v1 -> Double.valueOf(hx4J42v1.doubleValue()); case Float hx4J42v1 -> Double.valueOf(hx4J42v1.doubleValue()); case Long hx4J42v1 -> Double.valueOf(hx4J42v1.doubleValue()); case Integer hx4J42v1 -> Double.valueOf(hx4J42v1.doubleValue()); case java.math.BigDecimal hx4J42v1 -> Double.valueOf(hx4J42v1.doubleValue()); case Object hx4J42v1 -> { String hx4J42v1s; try { hx4J42v1s = String.valueOf(hx4J42v1); } catch (Exception hx4J42v1e) { yield (Double) null; } try { yield Double.valueOf(Double.parseDouble(hx4J42v1s)); } catch (NumberFormatException hx4J42v1e) { yield Double.valueOf(0.0); } } })));
+            stopLossPriceStr = this.priceToPrecision(symbol, Helpers.parseFloat(stopLossPrice));
         }
         if (!java.util.Objects.equals(takeProfitPrice, null))
         {
@@ -10853,7 +10872,7 @@ public Object describe()
             {
                 ((List<Object>)keysToOmit).add("takeProfitPrice");
             }
-            takeProfitPriceStr = this.priceToPrecision(symbol, ((Double) (switch ((Object) (takeProfitPrice)) { case null -> Double.valueOf(0.0); case Double hx4J42v0 -> Double.valueOf(hx4J42v0.doubleValue()); case Float hx4J42v0 -> Double.valueOf(hx4J42v0.doubleValue()); case Long hx4J42v0 -> Double.valueOf(hx4J42v0.doubleValue()); case Integer hx4J42v0 -> Double.valueOf(hx4J42v0.doubleValue()); case java.math.BigDecimal hx4J42v0 -> Double.valueOf(hx4J42v0.doubleValue()); case Object hx4J42v0 -> { String hx4J42v0s; try { hx4J42v0s = String.valueOf(hx4J42v0); } catch (Exception hx4J42v0e) { yield (Double) null; } try { yield Double.valueOf(Double.parseDouble(hx4J42v0s)); } catch (NumberFormatException hx4J42v0e) { yield Double.valueOf(0.0); } } })));
+            takeProfitPriceStr = this.priceToPrecision(symbol, Helpers.parseFloat(takeProfitPrice));
         }
         Integer keysToOmitLength = ((List<?>)keysToOmit).size();
         Object paramsOmitted = ((((keysToOmitLength != null && keysToOmitLength > 0)))) ? this.omit(parameters, keysToOmit) : parameters;
@@ -10868,7 +10887,7 @@ public Object describe()
          * @returns {[string, object]} the trigger-direction value and omited params
          */
         String triggerDirection = this.safeString(parameters, "triggerDirection");
-        Boolean exchangeSpecificDefined = (!java.util.Objects.equals(exchangeSpecificKey, null)) && ((switch ((Object)(parameters)) { case List<?> j39v347 -> ((Object)(exchangeSpecificKey)) != null && j39v347.contains(exchangeSpecificKey); case Map<?, ?> j39v346 -> ((Object)(exchangeSpecificKey)) instanceof String && j39v346.containsKey(exchangeSpecificKey); case null, default -> false; }));
+        Boolean exchangeSpecificDefined = (!java.util.Objects.equals(exchangeSpecificKey, null)) && ((switch ((Object)(parameters)) { case List<?> j39v102 -> ((Object)(exchangeSpecificKey)) != null && j39v102.contains(exchangeSpecificKey); case Map<?, ?> j39v101 -> ((Object)(exchangeSpecificKey)) instanceof String && j39v101.containsKey(exchangeSpecificKey); case null, default -> false; }));
         Object paramsOmitted = (((!java.util.Objects.equals(triggerDirection, null)))) ? this.omit(parameters, "triggerDirection") : parameters;
         // throw exception if:
         // A) if provided value is not unified (support old "up/down" strings too)
@@ -10912,25 +10931,17 @@ public Object describe()
          * @returns {boolean} true if a post only order, false otherwise
          */
         String timeInForce = this.safeStringUpper(parameters, "timeInForce");
-        Object postOnly = this.safeBool2(parameters, "postOnly", "post_only", false);
         // we assume timeInForce is uppercase from safeStringUpper (params, 'timeInForce')
         Boolean ioc = java.util.Objects.equals(timeInForce, "IOC");
         Boolean fok = java.util.Objects.equals(timeInForce, "FOK");
         Boolean timeInForcePostOnly = java.util.Objects.equals(timeInForce, "PO");
-        if (!(switch ((Object) (postOnly)) { case null -> false; case Boolean hx4J40v21 -> hx4J40v21.booleanValue(); case Long hx4J40v21 -> hx4J40v21 != 0L; case Integer hx4J40v21 -> hx4J40v21 != 0; case Double hx4J40v21 -> hx4J40v21 != 0.0; case String hx4J40v21 -> !hx4J40v21.isEmpty(); case List<?> hx4J40v21 -> !hx4J40v21.isEmpty(); case Map<?, ?> hx4J40v21 -> true; default -> false; }))
-        {
-            postOnly = timeInForcePostOnly;
-        }
-        if (!(switch ((Object) (postOnly)) { case null -> false; case Boolean hx4J40v20 -> hx4J40v20.booleanValue(); case Long hx4J40v20 -> hx4J40v20 != 0L; case Integer hx4J40v20 -> hx4J40v20 != 0; case Double hx4J40v20 -> hx4J40v20 != 0.0; case String hx4J40v20 -> !hx4J40v20.isEmpty(); case List<?> hx4J40v20 -> !hx4J40v20.isEmpty(); case Map<?, ?> hx4J40v20 -> true; default -> false; }))
-        {
-            postOnly = exchangeSpecificParam;
-        }
-        if ((switch ((Object) (postOnly)) { case null -> false; case Boolean hx4J40v19 -> hx4J40v19.booleanValue(); case Long hx4J40v19 -> hx4J40v19 != 0L; case Integer hx4J40v19 -> hx4J40v19 != 0; case Double hx4J40v19 -> hx4J40v19 != 0.0; case String hx4J40v19 -> !hx4J40v19.isEmpty(); case List<?> hx4J40v19 -> !hx4J40v19.isEmpty(); case Map<?, ?> hx4J40v19 -> true; default -> false; }))
+        Boolean postOnly = Boolean.TRUE.equals(this.safeBool2(parameters, "postOnly", "post_only", false)) || Boolean.TRUE.equals(timeInForcePostOnly) || Helpers.isTrue(exchangeSpecificParam);
+        if (Boolean.TRUE.equals(postOnly))
         {
             if (Boolean.TRUE.equals(ioc) || Boolean.TRUE.equals(fok))
             {
                 throw new InvalidOrder(((this.id + " postOnly orders cannot have timeInForce equal to ") + timeInForce)) ;
-            } else if ((switch ((Object) (isMarketOrder)) { case null -> false; case Boolean hx4J40v18 -> hx4J40v18.booleanValue(); case Long hx4J40v18 -> hx4J40v18 != 0L; case Integer hx4J40v18 -> hx4J40v18 != 0; case Double hx4J40v18 -> hx4J40v18 != 0.0; case String hx4J40v18 -> !hx4J40v18.isEmpty(); case List<?> hx4J40v18 -> !hx4J40v18.isEmpty(); case Map<?, ?> hx4J40v18 -> true; default -> false; }))
+            } else if (Helpers.isTrue(isMarketOrder))
             {
                 throw new InvalidOrder((this.id + " market orders cannot be postOnly")) ;
             } else
@@ -10954,24 +10965,16 @@ public Object describe()
          * @returns {Array}
          */
         String timeInForce = this.safeStringUpper(parameters, "timeInForce");
-        Object postOnly = this.safeBool(parameters, "postOnly", false);
         Boolean ioc = java.util.Objects.equals(timeInForce, "IOC");
         Boolean fok = java.util.Objects.equals(timeInForce, "FOK");
         Boolean po = java.util.Objects.equals(timeInForce, "PO");
-        if (!(switch ((Object) (postOnly)) { case null -> false; case Boolean hx4J40v17 -> hx4J40v17.booleanValue(); case Long hx4J40v17 -> hx4J40v17 != 0L; case Integer hx4J40v17 -> hx4J40v17 != 0; case Double hx4J40v17 -> hx4J40v17 != 0.0; case String hx4J40v17 -> !hx4J40v17.isEmpty(); case List<?> hx4J40v17 -> !hx4J40v17.isEmpty(); case Map<?, ?> hx4J40v17 -> true; default -> false; }))
-        {
-            postOnly = po;
-        }
-        if (!(switch ((Object) (postOnly)) { case null -> false; case Boolean hx4J40v16 -> hx4J40v16.booleanValue(); case Long hx4J40v16 -> hx4J40v16 != 0L; case Integer hx4J40v16 -> hx4J40v16 != 0; case Double hx4J40v16 -> hx4J40v16 != 0.0; case String hx4J40v16 -> !hx4J40v16.isEmpty(); case List<?> hx4J40v16 -> !hx4J40v16.isEmpty(); case Map<?, ?> hx4J40v16 -> true; default -> false; }))
-        {
-            postOnly = exchangeSpecificPostOnlyOption;
-        }
-        if ((switch ((Object) (postOnly)) { case null -> false; case Boolean hx4J40v15 -> hx4J40v15.booleanValue(); case Long hx4J40v15 -> hx4J40v15 != 0L; case Integer hx4J40v15 -> hx4J40v15 != 0; case Double hx4J40v15 -> hx4J40v15 != 0.0; case String hx4J40v15 -> !hx4J40v15.isEmpty(); case List<?> hx4J40v15 -> !hx4J40v15.isEmpty(); case Map<?, ?> hx4J40v15 -> true; default -> false; }))
+        Boolean postOnly = Boolean.TRUE.equals(this.safeBool(parameters, "postOnly", false)) || Boolean.TRUE.equals(po) || Helpers.isTrue(exchangeSpecificPostOnlyOption);
+        if (Boolean.TRUE.equals(postOnly))
         {
             if (Boolean.TRUE.equals(ioc) || Boolean.TRUE.equals(fok))
             {
                 throw new InvalidOrder(((this.id + " postOnly orders cannot have timeInForce equal to ") + timeInForce)) ;
-            } else if ((switch ((Object) (isMarketOrder)) { case null -> false; case Boolean hx4J40v14 -> hx4J40v14.booleanValue(); case Long hx4J40v14 -> hx4J40v14 != 0L; case Integer hx4J40v14 -> hx4J40v14 != 0; case Double hx4J40v14 -> hx4J40v14 != 0.0; case String hx4J40v14 -> !hx4J40v14.isEmpty(); case List<?> hx4J40v14 -> !hx4J40v14.isEmpty(); case Map<?, ?> hx4J40v14 -> true; default -> false; }))
+            } else if (Helpers.isTrue(isMarketOrder))
             {
                 throw new InvalidOrder((this.id + " market orders cannot be postOnly")) ;
             } else
@@ -11039,7 +11042,7 @@ public Object describe()
     public Object parseOpenInterests(Object response, List<String> symbols)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v349 -> j39v349.size(); case String j39v350 -> j39v350.length(); case Object j39v351 -> j39v351.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v351) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v103 -> j39v103.size(); case String j39v104 -> j39v104.length(); case Object j39v105 -> j39v105.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v105) : 0; }); i++)
         {
             Object entry = Helpers.GetValue(response, i);
             Map<String, Object> parsed = (Map<String, Object>) this.parseOpenInterest(entry, (Map<String, Object>) null);
@@ -11054,7 +11057,7 @@ public Object describe()
     public List<Object> parseOpenInterestsHistory(Object response, Map<String, Object> market, Long since, Long limit)
     {
         List<Object> interests = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v353 -> j39v353.size(); case String j39v354 -> j39v354.length(); case Object j39v355 -> j39v355.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v355) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v106 -> j39v106.size(); case String j39v107 -> j39v107.length(); case Object j39v108 -> j39v108.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v108) : 0; }); i++)
         {
             Object entry = Helpers.GetValue(response, i);
             Map<String, Object> interest = (Map<String, Object>) this.parseOpenInterest(entry, market);
@@ -11322,9 +11325,9 @@ public Object describe()
         Object responseKeys = response;
         if (!Boolean.TRUE.equals(isArray))
         {
-            responseKeys = ((List<Object>) switch ((Object)(response)) { case Map<?, ?> j39v361 -> { synchronized (j39v361) { yield new ArrayList<Object>(j39v361.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            responseKeys = ((List<Object>) switch ((Object)(response)) { case Map<?, ?> j39v112 -> { synchronized (j39v112) { yield new ArrayList<Object>(j39v112.keySet()); } } case null, default -> new ArrayList<Object>(); });
         }
-        for (var i = 0; i < (switch ((Object)(responseKeys)) { case null -> 0; case List<?> j39v358 -> j39v358.size(); case String j39v359 -> j39v359.length(); case Object j39v360 -> j39v360.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v360) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(responseKeys)) { case null -> 0; case List<?> j39v109 -> j39v109.size(); case String j39v110 -> j39v110.length(); case Object j39v111 -> j39v111.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v111) : 0; }); i++)
         {
             Object entry = Helpers.GetValue(responseKeys, i);
             Object dictionary = ((Boolean.TRUE.equals(isArray))) ? entry : Helpers.GetValue(response, entry);
@@ -11374,7 +11377,7 @@ public Object describe()
          * @param {object} currency A currency structure, the response from this.currency ()
          * @returns {object} A deposit withdraw fee structure
          */
-        List<Object> networkKeys = ((List<Object>) switch ((Object)(Helpers.GetValue(fee, "networks"))) { case Map<?, ?> j39v371 -> { synchronized (j39v371) { yield new ArrayList<Object>(j39v371.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> networkKeys = ((List<Object>) switch ((Object)(Helpers.GetValue(fee, "networks"))) { case Map<?, ?> j39v113 -> { synchronized (j39v113) { yield new ArrayList<Object>(j39v113.keySet()); } } case null, default -> new ArrayList<Object>(); });
         Integer numNetworks = ((List<?>)networkKeys).size();
         if (java.util.Objects.equals(numNetworks, 1))
         {
@@ -11413,7 +11416,7 @@ public Object describe()
          * @returns {object[]} an array of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
          */
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < (switch ((Object)(incomes)) { case null -> 0; case List<?> j39v373 -> j39v373.size(); case String j39v374 -> j39v374.length(); case Object j39v375 -> j39v375.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v375) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(incomes)) { case null -> 0; case List<?> j39v114 -> j39v114.size(); case String j39v115 -> j39v115.length(); case Object j39v116 -> j39v116.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v116) : 0; }); i++)
         {
             Object entry = Helpers.GetValue(incomes, i);
             Map<String, Object> parsed = (Map<String, Object>) this.parseIncome((Map<String, Object>) (entry), market);
@@ -11578,10 +11581,10 @@ public Object describe()
                         // UNTIL filtering is required in order to work
                         if (!java.util.Objects.equals(paginationTimestamp, null))
                         {
-                            { Map<Object, Object> j39v382 = (Map<Object, Object>) (Map<?, ?>) (paramsMaxEntriesPerRequest); Object j39v383 = "until"; Object j39v384 = ((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) - ((Long) j36b)); if (j36a instanceof Double || j36b instanceof Double) { java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; return (Object) (j36d.applyAsDouble(j36a) - j36d.applyAsDouble(j36b)); } return null; }).apply(paginationTimestamp, 1); if (j39v382 == null) { if (j39v383 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v382) { if (j39v384 == null && j39v382 instanceof java.util.concurrent.ConcurrentHashMap) { j39v382.remove(j39v383); } else { j39v382.put(j39v383, j39v384); } } }
+                            Helpers.addElementToObject(paramsMaxEntriesPerRequest, "until", Helpers.subtract(paginationTimestamp, 1));
                         }
                         Object response = ((CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, null, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest })).join();
-                        Integer responseLength = (switch ((Object)(response)) { case null -> 0; case List<?> j39v379 -> j39v379.size(); case String j39v380 -> j39v380.length(); case Object j39v381 -> j39v381.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v381) : 0; });
+                        Integer responseLength = (switch ((Object)(response)) { case null -> 0; case List<?> j39v120 -> j39v120.size(); case String j39v121 -> j39v121.length(); case Object j39v122 -> j39v122.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v122) : 0; });
                         if (this.verbose)
                         {
                             String backwardMessage = ((((("Dynamic pagination call " + this.numberToString(calls)) + " method ") + method) + " response length ") + this.numberToString(responseLength));
@@ -11614,7 +11617,7 @@ public Object describe()
                     {
                         // do it forwards, starting from the since
                         Object response = ((CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, paginationTimestamp, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest })).join();
-                        Integer responseLength = (switch ((Object)(response)) { case null -> 0; case List<?> j39v376 -> j39v376.size(); case String j39v377 -> j39v377.length(); case Object j39v378 -> j39v378.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v378) : 0; });
+                        Integer responseLength = (switch ((Object)(response)) { case null -> 0; case List<?> j39v117 -> j39v117.size(); case String j39v118 -> j39v118.length(); case Object j39v119 -> j39v119.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v119) : 0; });
                         if (this.verbose)
                         {
                             String forwardMessage = ((((("Dynamic pagination call " + this.numberToString(calls)) + " method ") + method) + " response length ") + this.numberToString(responseLength));
@@ -11660,7 +11663,7 @@ public Object describe()
                 }
             }
             Object uniqueResults = result;
-            if ((switch ((Object) (removeRepeatedOption)) { case null -> false; case Boolean hx4J40v11 -> hx4J40v11.booleanValue(); case Long hx4J40v11 -> hx4J40v11 != 0L; case Integer hx4J40v11 -> hx4J40v11 != 0; case Double hx4J40v11 -> hx4J40v11 != 0.0; case String hx4J40v11 -> !hx4J40v11.isEmpty(); case List<?> hx4J40v11 -> !hx4J40v11.isEmpty(); case Map<?, ?> hx4J40v11 -> true; default -> false; }))
+            if (Helpers.isTrue(removeRepeatedOption))
             {
                 uniqueResults = this.removeRepeatedElementsFromArray(result, true);
             }
@@ -11694,7 +11697,7 @@ public Object describe()
                     }
                 } catch(Exception e)
                 {
-                    if ((switch ((Object) (e)) { case null -> false; case Throwable hx4J44v0 -> { Throwable hx4J44v0u = hx4J44v0; while ((hx4J44v0u instanceof java.util.concurrent.CompletionException || hx4J44v0u instanceof java.util.concurrent.ExecutionException) && hx4J44v0u.getCause() != null) { hx4J44v0u = hx4J44v0u.getCause(); } yield RateLimitExceeded.class.isInstance(hx4J44v0u); } case Object hx4J44v0 -> RateLimitExceeded.class.isInstance(hx4J44v0); }))
+                    if (Helpers.isInstance(e, RateLimitExceeded.class))
                     {
                         throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                     }
@@ -11730,9 +11733,9 @@ public Object describe()
             List<Object> tasks = new ArrayList<Object>(Arrays.asList());
             Long time = (((long) this.parseTimeframe(timeframe)) * 1000L);
             Object maxEntriesPerRequestValue = this.requireValue(maxEntriesPerRequestOption, "fetchPaginatedCallDeterministic() maxEntriesPerRequest is required");
-            Long step = (Long) ((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a == null || j36b == null) return null; if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) * ((Long) j36b)); java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; double j36r = j36d.applyAsDouble(j36a) * j36d.applyAsDouble(j36b); if (new java.math.BigDecimal(String.valueOf(j36r)).stripTrailingZeros().scale() <= 0) return (Object) ((long) j36r); return (Object) j36r; }).apply(time, this.parseToInt(maxEntriesPerRequestValue));
+            Long step = (Long) Helpers.multiply(time, this.parseToInt(maxEntriesPerRequestValue));
             Long until = (Long) this.safeInteger2(paramsOmitted, "until", "till"); // do not omit it here
-            Object currentSince = ((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) - ((Long) j36b)); if (j36a instanceof Double || j36b instanceof Double) { java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; return (Object) (j36d.applyAsDouble(j36a) - j36d.applyAsDouble(j36b)); } return null; }).apply(((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) - ((Long) j36b)); if (j36a instanceof Double || j36b instanceof Double) { java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; return (Object) (j36d.applyAsDouble(j36a) - j36d.applyAsDouble(j36b)); } return null; }).apply(current, (((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a == null || j36b == null) return null; if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) * ((Long) j36b)); java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; double j36r = j36d.applyAsDouble(j36a) * j36d.applyAsDouble(j36b); if (new java.math.BigDecimal(String.valueOf(j36r)).stripTrailingZeros().scale() <= 0) return (Object) ((long) j36r); return (Object) j36r; }).apply(maxCallsPaginationCalls, step))), 1);
+            Object currentSince = Helpers.subtract(Helpers.subtract(current, (Helpers.multiply(maxCallsPaginationCalls, step))), 1);
             if (!java.util.Objects.equals(since, null))
             {
                 if (!java.util.Objects.equals(until, null))
@@ -11774,7 +11777,7 @@ public Object describe()
                 }
                 ((List<Object>)tasks).add(this.safeDeterministicCall(method, symbol, ((Long) (switch ((Object) (currentSince)) { case null -> (Long) null; case Long hx4J40v10 -> hx4J40v10; case Number hx4J40v10 -> Long.valueOf(hx4J40v10.longValue()); case Object hx4J40v10 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v10.getClass().getName()); })), ((Long) (switch ((Object) (maxEntriesPerRequestValue)) { case null -> (Long) null; case Long hx4J40v9 -> hx4J40v9; case Number hx4J40v9 -> Long.valueOf(hx4J40v9.longValue()); case Object hx4J40v9 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v9.getClass().getName()); })), timeframe, paramsOmitted));
                 // this.sum keeps it numeric in PHP, where the regex transpiler turns `a + b` into string concatenation
-                currentSince = ((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) - ((Long) j36b)); if (j36a instanceof Double || j36b instanceof Double) { java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; return (Object) (j36d.applyAsDouble(j36a) - j36d.applyAsDouble(j36b)); } return null; }).apply(this.sum(currentSince, step), 1);
+                currentSince = Helpers.subtract(this.sum(currentSince, step), 1);
             }
             Object results = (((List<?>)(tasks)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             List<Object> result = new ArrayList<Object>(Arrays.asList());
@@ -11944,10 +11947,10 @@ public Object describe()
             {
                 try
                 {
-                    { Map<Object, Object> j39v388 = (Map<Object, Object>) (Map<?, ?>) (paramsMaxEntriesPerRequest); Object j39v389 = ((String)pageKey); Object j39v390 = (i + 1L); if (j39v388 == null) { if (j39v389 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v388) { if (j39v390 == null && j39v388 instanceof java.util.concurrent.ConcurrentHashMap) { j39v388.remove(j39v389); } else { j39v388.put(j39v389, j39v390); } } }
+                    Helpers.addElementToObject(paramsMaxEntriesPerRequest, ((String)pageKey), (i + 1L));
                     Object response = ((CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, since, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest })).join();
                     errors = 0;
-                    Integer responseLength = (switch ((Object)(response)) { case null -> 0; case List<?> j39v385 -> j39v385.size(); case String j39v386 -> j39v386.length(); case Object j39v387 -> j39v387.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v387) : 0; });
+                    Integer responseLength = (switch ((Object)(response)) { case null -> 0; case List<?> j39v123 -> j39v123.size(); case String j39v124 -> j39v124.length(); case Object j39v125 -> j39v125.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v125) : 0; });
                     if (this.verbose)
                     {
                         Object iteration = ((i + 1L));
@@ -11983,14 +11986,14 @@ public Object describe()
 
     public Object sortCursorPaginatedResult(Object result)
     {
-        Object first = this.safeValue(result, 0);
+        Map<String, Object> first = (Map<String, Object>) this.safeDict(result, 0, (Object) null);
         if (!java.util.Objects.equals(first, null))
         {
-            if ((switch ((Object)(first)) { case List<?> j39v394 -> j39v394.contains("timestamp"); case Map<?, ?> j39v393 -> j39v393.containsKey("timestamp"); case null, default -> false; }))
+            if (first.containsKey("timestamp"))
             {
                 return this.sortBy(result, "timestamp", true);
             }
-            if ((switch ((Object)(first)) { case List<?> j39v392 -> j39v392.contains("id"); case Map<?, ?> j39v391 -> j39v391.containsKey("id"); case null, default -> false; }))
+            if (first.containsKey("id"))
             {
                 return this.sortBy(result, "id", true);
             }
@@ -12002,7 +12005,7 @@ public Object describe()
     {
         Map<String, Object> uniqueDic = new HashMap<String, Object>() {{}};
         List<Object> uniqueResult = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < (switch ((Object)(input)) { case null -> 0; case List<?> j39v396 -> j39v396.size(); case String j39v397 -> j39v397.length(); case Object j39v398 -> j39v398.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v398) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(input)) { case null -> 0; case List<?> j39v126 -> j39v126.size(); case String j39v127 -> j39v127.length(); case Object j39v128 -> j39v128.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v128) : 0; }); i++)
         {
             Object entry = Helpers.GetValue(input, i);
             String uniqValue = ((java.util.Objects.requireNonNullElse(fallbackToTimestamp, true))) ? this.safeStringN(entry, new ArrayList<Object>(Arrays.asList("id", "timestamp", 0))) : this.safeString(entry, "id");
@@ -12023,7 +12026,7 @@ public Object describe()
     public Object removeRepeatedTradesFromArray(Object input)
     {
         Map<String, Object> uniqueResult = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < (switch ((Object)(input)) { case null -> 0; case List<?> j39v400 -> j39v400.size(); case String j39v401 -> j39v401.length(); case Object j39v402 -> j39v402.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v402) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(input)) { case null -> 0; case List<?> j39v129 -> j39v129.size(); case String j39v130 -> j39v130.length(); case Object j39v131 -> j39v131.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v131) : 0; }); i++)
         {
             Object entry = Helpers.GetValue(input, i);
             String id = this.safeString(entry, "id");
@@ -12149,7 +12152,7 @@ public Object describe()
             }
         } else
         {
-            List<Object> marketIds = ((List<Object>) switch ((Object)(greeks)) { case Map<?, ?> j39v404 -> { synchronized (j39v404) { yield new ArrayList<Object>(j39v404.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            List<Object> marketIds = ((List<Object>) switch ((Object)(greeks)) { case Map<?, ?> j39v132 -> { synchronized (j39v132) { yield new ArrayList<Object>(j39v132.keySet()); } } case null, default -> new ArrayList<Object>(); });
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
                 Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
@@ -12502,7 +12505,7 @@ public Object describe()
         {
             ((Map<String,Object>)client.subscriptions).remove((String)unsubHash);
         }
-        if (!(switch ((Object) (java.util.Objects.requireNonNullElse(subHashIsPrefix, false))) { case null -> false; case Boolean hx4J40v4 -> hx4J40v4.booleanValue(); case Long hx4J40v4 -> hx4J40v4 != 0L; case Integer hx4J40v4 -> hx4J40v4 != 0; case Double hx4J40v4 -> hx4J40v4 != 0.0; case String hx4J40v4 -> !hx4J40v4.isEmpty(); case List<?> hx4J40v4 -> !hx4J40v4.isEmpty(); case Map<?, ?> hx4J40v4 -> true; default -> false; }))
+        if (!Helpers.isTrue(java.util.Objects.requireNonNullElse(subHashIsPrefix, false)))
         {
             if ((!java.util.Objects.equals(subHash, null)) && ((subHash != null && ((Map<?, ?>)client.subscriptions).containsKey(subHash))))
             {
@@ -12515,7 +12518,7 @@ public Object describe()
             }
         } else
         {
-            List<Object> clientSubscriptions = ((List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v406 -> { synchronized (j39v406) { yield new ArrayList<Object>(j39v406.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            List<Object> clientSubscriptions = ((List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v134 -> { synchronized (j39v134) { yield new ArrayList<Object>(j39v134.keySet()); } } case null, default -> new ArrayList<Object>(); });
             for (var i = 0; i < ((List<?>)clientSubscriptions).size(); i++)
             {
                 Object sub = (clientSubscriptions == null || i < 0 || i >= clientSubscriptions.size() ? null : clientSubscriptions.get(i));
@@ -12524,7 +12527,7 @@ public Object describe()
                     ((Map<String,Object>)client.subscriptions).remove((String)sub);
                 }
             }
-            List<Object> clientFutures = ((List<Object>) switch ((Object)(client.futures)) { case Map<?, ?> j39v405 -> { synchronized (j39v405) { yield new ArrayList<Object>(j39v405.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            List<Object> clientFutures = ((List<Object>) switch ((Object)(client.futures)) { case Map<?, ?> j39v133 -> { synchronized (j39v133) { yield new ArrayList<Object>(j39v133.keySet()); } } case null, default -> new ArrayList<Object>(); });
             for (var i = 0; i < ((List<?>)clientFutures).size(); i++)
             {
                 Object future = (clientFutures == null || i < 0 || i >= clientFutures.size() ? null : clientFutures.get(i));
@@ -12621,7 +12624,7 @@ public Object describe()
                 }
             } else if ((java.util.Objects.equals(topic, "ticker") || java.util.Objects.equals(topic, "markPrice")) && (!java.util.Objects.equals(this.tickers, null)))
             {
-                List<Object> tickerSymbols = ((List<Object>) switch ((Object)(this.tickers)) { case Map<?, ?> j39v408 -> { synchronized (j39v408) { yield new ArrayList<Object>(j39v408.keySet()); } } case null, default -> new ArrayList<Object>(); });
+                List<Object> tickerSymbols = ((List<Object>) switch ((Object)(this.tickers)) { case Map<?, ?> j39v136 -> { synchronized (j39v136) { yield new ArrayList<Object>(j39v136.keySet()); } } case null, default -> new ArrayList<Object>(); });
                 for (var i = 0; i < ((List<?>)tickerSymbols).size(); i++)
                 {
                     Object tickerSymbol = (tickerSymbols == null || i < 0 || i >= tickerSymbols.size() ? null : tickerSymbols.get(i));
@@ -12632,7 +12635,7 @@ public Object describe()
                 }
             } else if (java.util.Objects.equals(topic, "bidsasks") && (!java.util.Objects.equals(this.bidsasks, null)))
             {
-                List<Object> bidsaskSymbols = ((List<Object>) switch ((Object)(this.bidsasks)) { case Map<?, ?> j39v407 -> { synchronized (j39v407) { yield new ArrayList<Object>(j39v407.keySet()); } } case null, default -> new ArrayList<Object>(); });
+                List<Object> bidsaskSymbols = ((List<Object>) switch ((Object)(this.bidsasks)) { case Map<?, ?> j39v135 -> { synchronized (j39v135) { yield new ArrayList<Object>(j39v135.keySet()); } } case null, default -> new ArrayList<Object>(); });
                 for (var i = 0; i < ((List<?>)bidsaskSymbols).size(); i++)
                 {
                     Object bidsaskSymbol = (bidsaskSymbols == null || i < 0 || i >= bidsaskSymbols.size() ? null : bidsaskSymbols.get(i));
@@ -12657,19 +12660,19 @@ public Object describe()
         Long hour = (60L * minute);
         Long day = (24L * hour);
         Long week = (7L * day);
-        if ((switch ((Object) ((((double) msInt) % ((double) week)))) { case null -> false; case Long hx4J40v3 -> hx4J40v3 == 0L; case Integer hx4J40v3 -> hx4J40v3 == 0L; case Double hx4J40v3 -> hx4J40v3 == 0L; case Float hx4J40v3 -> hx4J40v3.doubleValue() == 0L; case java.math.BigDecimal hx4J40v3 -> hx4J40v3.stripTrailingZeros().scale() <= 0 && hx4J40v3.longValue() == 0L; case Object hx4J40v3 -> { try { String hx4J40v3t = String.valueOf(hx4J40v3); Double.parseDouble(hx4J40v3t); yield new java.math.BigDecimal(hx4J40v3t).compareTo(java.math.BigDecimal.valueOf(0L)) == 0; } catch (NumberFormatException hx4J40v3x) { yield false; } } }))
+        if (((((double) msInt) % ((double) week)) == 0))
         {
             return (String.valueOf(this.parseToInt((((double) msInt) / ((double) week)))) + "w");
         }
-        if ((switch ((Object) ((((double) msInt) % ((double) day)))) { case null -> false; case Long hx4J40v2 -> hx4J40v2 == 0L; case Integer hx4J40v2 -> hx4J40v2 == 0L; case Double hx4J40v2 -> hx4J40v2 == 0L; case Float hx4J40v2 -> hx4J40v2.doubleValue() == 0L; case java.math.BigDecimal hx4J40v2 -> hx4J40v2.stripTrailingZeros().scale() <= 0 && hx4J40v2.longValue() == 0L; case Object hx4J40v2 -> { try { String hx4J40v2t = String.valueOf(hx4J40v2); Double.parseDouble(hx4J40v2t); yield new java.math.BigDecimal(hx4J40v2t).compareTo(java.math.BigDecimal.valueOf(0L)) == 0; } catch (NumberFormatException hx4J40v2x) { yield false; } } }))
+        if (((((double) msInt) % ((double) day)) == 0))
         {
             return (String.valueOf(this.parseToInt((((double) msInt) / ((double) day)))) + "d");
         }
-        if ((switch ((Object) ((((double) msInt) % ((double) hour)))) { case null -> false; case Long hx4J40v1 -> hx4J40v1 == 0L; case Integer hx4J40v1 -> hx4J40v1 == 0L; case Double hx4J40v1 -> hx4J40v1 == 0L; case Float hx4J40v1 -> hx4J40v1.doubleValue() == 0L; case java.math.BigDecimal hx4J40v1 -> hx4J40v1.stripTrailingZeros().scale() <= 0 && hx4J40v1.longValue() == 0L; case Object hx4J40v1 -> { try { String hx4J40v1t = String.valueOf(hx4J40v1); Double.parseDouble(hx4J40v1t); yield new java.math.BigDecimal(hx4J40v1t).compareTo(java.math.BigDecimal.valueOf(0L)) == 0; } catch (NumberFormatException hx4J40v1x) { yield false; } } }))
+        if (((((double) msInt) % ((double) hour)) == 0))
         {
             return (String.valueOf(this.parseToInt((((double) msInt) / ((double) hour)))) + "h");
         }
-        if ((switch ((Object) ((((double) msInt) % ((double) minute)))) { case null -> false; case Long hx4J40v0 -> hx4J40v0 == 0L; case Integer hx4J40v0 -> hx4J40v0 == 0L; case Double hx4J40v0 -> hx4J40v0 == 0L; case Float hx4J40v0 -> hx4J40v0.doubleValue() == 0L; case java.math.BigDecimal hx4J40v0 -> hx4J40v0.stripTrailingZeros().scale() <= 0 && hx4J40v0.longValue() == 0L; case Object hx4J40v0 -> { try { String hx4J40v0t = String.valueOf(hx4J40v0); Double.parseDouble(hx4J40v0t); yield new java.math.BigDecimal(hx4J40v0t).compareTo(java.math.BigDecimal.valueOf(0L)) == 0; } catch (NumberFormatException hx4J40v0x) { yield false; } } }))
+        if (((((double) msInt) % ((double) minute)) == 0))
         {
             return (String.valueOf(this.parseToInt((((double) msInt) / ((double) minute)))) + "m");
         }

@@ -662,10 +662,10 @@ public class Bydfi extends BydfiApi
         String limitMinQty = this.safeString(market, "limitMinQty");
         String minAmountString = Precise.stringMin(marketMinQty, limitMinQty);
         String contractSize = this.safeString(market, "contractFactor");
-        Object pricePrecision = this.parsePrecision(this.safeString(market, "priceOrderPrecision"));
-        Object rawAmountPrecision = this.parsePrecision(this.safeString(market, "volumePrecision"));
+        String pricePrecision = (String) this.parsePrecision(this.safeString(market, "priceOrderPrecision"));
+        String rawAmountPrecision = (String) this.parsePrecision(this.safeString(market, "volumePrecision"));
         String amountPrecision = Precise.stringDiv(rawAmountPrecision, contractSize);
-        Object basePrecision = this.parsePrecision(this.safeString(market, "basePrecision"));
+        String basePrecision = (String) this.parsePrecision(this.safeString(market, "basePrecision"));
         Double taker = this.safeNumber(market, "feeRateTaker", (Object) null);
         Double maker = this.safeNumber(market, "feeRateMaker", (Object) null);
         Double maxLeverage = this.safeNumber(market, "maxLeverageLevel", (Object) null);

@@ -133,12 +133,12 @@ public partial class krakenfutures : ccxt.krakenfutures
         List<object> marketIds = new List<object>() {};
         object messageHash = name;
         object symbolsValue = ((symbols == null)) ? new List<object>() {} : symbols;
-        for (int i = 0; i < (((object)(symbolsValue)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(symbolsValue); i++)
         {
             object symbol = getValue(symbolsValue, i);
             marketIds.Add(this.marketId(symbol));
         }
-        int length = (((object)(symbolsValue)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+        int length = getArrayLength(symbolsValue);
         if ((length == 1))
         {
             Dictionary<string, object> market = this.market((marketIds != null && 0 < marketIds.Count ? marketIds[0] : null));
@@ -887,7 +887,7 @@ public partial class krakenfutures : ccxt.krakenfutures
                 string? totalCost = "0";
                 string? totalAmount = "0";
                 object trades = (previousOrder != null && previousOrder.ContainsKey("trades") ? previousOrder["trades"] : null);
-                for (int i = 0; i < (((object)(trades)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+                for (int i = 0; i < getArrayLength(trades); i++)
                 {
                     object currentTrade = getValue(trades, i);
                     totalCost = Precise.stringAdd(totalCost, this.numberToString(getValue(currentTrade, "cost")));

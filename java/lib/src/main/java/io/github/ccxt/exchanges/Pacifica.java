@@ -795,10 +795,10 @@ public class Pacifica extends PacificaApi
                 String builder = this.safeString(this.options, "builderCode", "CCXT"); // case sensitive
                 String maxFeeRate = this.safeString(this.options, "feeRate", "0.01");
                 (this.approveBuilderCode(builder, maxFeeRate, new HashMap<String, Object>() {{}})).join();
-                { Map<Object, Object> j39v4 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v5 = "approvedBuilderFee"; Object j39v6 = true; if (j39v4 == null) { if (j39v5 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v4) { if (j39v6 == null && j39v4 instanceof java.util.concurrent.ConcurrentHashMap) { j39v4.remove(j39v5); } else { j39v4.put(j39v5, j39v6); } } }
+                Helpers.addElementToObject(this.options, "approvedBuilderFee", true);
             } catch(Exception e)
             {
-                { Map<Object, Object> j39v1 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v2 = "builderFee"; Object j39v3 = false; if (j39v1 == null) { if (j39v2 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v1) { if (j39v3 == null && j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); } else { j39v1.put(j39v2, j39v3); } } } // disable builder fee if an error occurs
+                Helpers.addElementToObject(this.options, "builderFee", false); // disable builder fee if an error occurs
             }
             return true;
         }).thenApply(res -> (Boolean) res);
@@ -1256,9 +1256,9 @@ public class Pacifica extends PacificaApi
             Object settings = this.handleOption("loadAccountSettings", "settings", (Object) null);
             if ((java.util.Objects.equals(settings, null)) || java.util.Objects.requireNonNullElse(refresh, false))
             {
-                { Map<Object, Object> j39v10 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v11 = "settings"; Object j39v12 = this.createSafeDictionary(); if (j39v10 == null) { if (j39v11 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v10) { if (j39v12 == null && j39v10 instanceof java.util.concurrent.ConcurrentHashMap) { j39v10.remove(j39v11); } else { j39v10.put(j39v11, j39v12); } } }
+                Helpers.addElementToObject(this.options, "settings", this.createSafeDictionary());
                 settings = (this.fetchAccountSettings(parameters)).join();
-                { Map<Object, Object> j39v7 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v8 = "settings"; Object j39v9 = settings; if (j39v7 == null) { if (j39v8 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v7) { if (j39v9 == null && j39v7 instanceof java.util.concurrent.ConcurrentHashMap) { j39v7.remove(j39v8); } else { j39v7.put(j39v8, j39v9); } } }
+                Helpers.addElementToObject(this.options, "settings", settings);
             }
             return null;
         });
@@ -4523,7 +4523,7 @@ public class Pacifica extends PacificaApi
         if (Boolean.TRUE.equals(this.isDictionary(value)))
         {
             Object result = new HashMap<String, Object>() {{}};
-            List<Object> keys = ((List<Object>) switch ((Object)(value)) { case Map<?, ?> j39v14 -> { synchronized (j39v14) { yield new ArrayList<Object>(j39v14.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            List<Object> keys = ((List<Object>) switch ((Object)(value)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
             Object sortedKeys = this.sort(keys);
             for (var i = 0; i < ((List<?>)sortedKeys).size(); i++)
             {

@@ -922,10 +922,10 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             {
                 symbols = new ArrayList<Object>(Arrays.asList());
             }
-            Integer symbolsLength = (switch ((Object)(symbols)) { case null -> 0; case List<?> j39v17 -> j39v17.size(); case String j39v18 -> j39v18.length(); case Object j39v19 -> j39v19.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v19) : 0; });
+            Integer symbolsLength = (switch ((Object)(symbols)) { case null -> 0; case List<?> j39v4 -> j39v4.size(); case String j39v5 -> j39v5.length(); case Object j39v6 -> j39v6.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v6) : 0; });
             if ((symbolsLength != null && symbolsLength > 0))
             {
-                for (var i = 0; i < (switch ((Object)(symbols)) { case null -> 0; case List<?> j39v14 -> j39v14.size(); case String j39v15 -> j39v15.length(); case Object j39v16 -> j39v16.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v16) : 0; }); i++)
+                for (var i = 0; i < (switch ((Object)(symbols)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
                 {
                     Object current = Helpers.GetValue(symbols, i);
                     Map<String, Object> market = null;
@@ -963,7 +963,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             }
             Map<String, Object> request = this.getSubscriptionRequest(rawSubscriptions);
             String privateOrPublic = "private";
-            if ((switch ((Object) (isPublic)) { case null -> false; case Boolean hx4J40v0 -> hx4J40v0.booleanValue(); case Long hx4J40v0 -> hx4J40v0 != 0L; case Integer hx4J40v0 -> hx4J40v0 != 0; case Double hx4J40v0 -> hx4J40v0 != 0.0; case String hx4J40v0 -> !hx4J40v0.isEmpty(); case List<?> hx4J40v0 -> !hx4J40v0.isEmpty(); case Map<?, ?> hx4J40v0 -> true; default -> false; }))
+            if (Helpers.isTrue(isPublic))
             {
                 privateOrPublic = "public";
             }

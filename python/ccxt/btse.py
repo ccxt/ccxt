@@ -1365,7 +1365,7 @@ class btse(Exchange, ImplicitAPI):
                 rows.append(row)
         return self.parse_open_interests(rows, symbolsNormalized)
 
-    def parse_open_interest(self, interest: object, market: Market = None) -> OpenInterest:
+    def parse_open_interest(self, interest: dict, market: Market = None) -> OpenInterest:
         #
         # ticker/24hr contract rows, see parseFundingRate for the full shape
         #
@@ -3510,7 +3510,7 @@ class btse(Exchange, ImplicitAPI):
                 self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
         return None
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params={}):
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params={}):
         apiName = api[0]
         requestBody = None
         requestHeaders = None

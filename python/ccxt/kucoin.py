@@ -10946,7 +10946,7 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_open_interests(data, symbolsNormalized)
 
-    def parse_open_interest(self, interest: object, market: Market = None) -> OpenInterest:
+    def parse_open_interest(self, interest: dict, market: Market = None) -> OpenInterest:
         #
         #     {
         #         "symbol": "ETHUSDTM",
@@ -11036,8 +11036,8 @@ class kucoin(Exchange, ImplicitAPI):
         uta = self.safe_bool(self.options, 'uta') is True
         return uta
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
-        apiName = api[0]
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
+        apiName = self.safe_string(api, 0)
         #
         # the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
         #                                ↑                 ↑

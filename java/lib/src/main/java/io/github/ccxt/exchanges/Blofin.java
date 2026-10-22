@@ -1738,7 +1738,7 @@ public class Blofin extends BlofinApi
             request.put(key, this.priceToPrecision(symbol, price));
         }
         Boolean postOnly = false;
-        List<Object> postOnlyqueryVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(type, "post_only"), ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
+        List<Object> postOnlyqueryVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(type, "post_only"), ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
         postOnly = (Boolean) ((List<Object>) postOnlyqueryVariable).get(0);
         query = ((List<Object>) postOnlyqueryVariable).get(1);
         if (Boolean.TRUE.equals(postOnly))
@@ -2783,7 +2783,7 @@ public class Blofin extends BlofinApi
         if (java.util.Objects.equals(chainsLength, 1))
         {
             // a single network means the currency-level fee is unambiguous
-            List<Object> networkKeys = ((List<Object>) switch ((Object)(result.get("networks"))) { case Map<?, ?> j39v4 -> { synchronized (j39v4) { yield new ArrayList<Object>(j39v4.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            List<Object> networkKeys = ((List<Object>) switch ((Object)(result.get("networks"))) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); });
             String onlyNetwork = this.safeString(networkKeys, 0);
             if (!java.util.Objects.equals(onlyNetwork, null))
             {
@@ -3274,38 +3274,38 @@ public class Blofin extends BlofinApi
                 Object orderIds = this.parseIds(ids);
                 if (!java.util.Objects.equals(tpslIds, null))
                 {
-                    for (var i = 0; i < (switch ((Object)(tpslIds)) { case null -> 0; case List<?> j39v19 -> j39v19.size(); case String j39v20 -> j39v20.length(); case Object j39v21 -> j39v21.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v21) : 0; }); i++)
+                    for (var i = 0; i < (switch ((Object)(tpslIds)) { case null -> 0; case List<?> j39v13 -> j39v13.size(); case String j39v14 -> j39v14.length(); case Object j39v15 -> j39v15.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v15) : 0; }); i++)
                     {
-                        ((List<Object>)request).add((switch (0) { default -> { HashMap<String, Object> j39v18 = new HashMap<String, Object>();
-                            j39v18.put("tpslId", Helpers.GetValue(tpslIds, i));
-                            j39v18.put("instId", market.get("id"));
-                            yield j39v18; } }));
+                        ((List<Object>)request).add((switch (0) { default -> { HashMap<String, Object> j39v12 = new HashMap<String, Object>();
+                            j39v12.put("tpslId", Helpers.GetValue(tpslIds, i));
+                            j39v12.put("instId", market.get("id"));
+                            yield j39v12; } }));
                     }
                 }
-                for (var i = 0; i < (switch ((Object)(orderIds)) { case null -> 0; case List<?> j39v14 -> j39v14.size(); case String j39v15 -> j39v15.length(); case Object j39v16 -> j39v16.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v16) : 0; }); i++)
+                for (var i = 0; i < (switch ((Object)(orderIds)) { case null -> 0; case List<?> j39v9 -> j39v9.size(); case String j39v10 -> j39v10.length(); case Object j39v11 -> j39v11.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v11) : 0; }); i++)
                 {
                     if (java.util.Objects.equals(trigger, true))
                     {
-                        ((List<Object>)request).add((switch (0) { default -> { HashMap<String, Object> j39v13 = new HashMap<String, Object>();
-                            j39v13.put("tpslId", Helpers.GetValue(orderIds, i));
-                            j39v13.put("instId", market.get("id"));
-                            yield j39v13; } }));
+                        ((List<Object>)request).add((switch (0) { default -> { HashMap<String, Object> j39v8 = new HashMap<String, Object>();
+                            j39v8.put("tpslId", Helpers.GetValue(orderIds, i));
+                            j39v8.put("instId", market.get("id"));
+                            yield j39v8; } }));
                     } else
                     {
-                        ((List<Object>)request).add((switch (0) { default -> { HashMap<String, Object> j39v11 = new HashMap<String, Object>();
-                            j39v11.put("orderId", Helpers.GetValue(orderIds, i));
-                            j39v11.put("instId", market.get("id"));
-                            yield j39v11; } }));
+                        ((List<Object>)request).add((switch (0) { default -> { HashMap<String, Object> j39v7 = new HashMap<String, Object>();
+                            j39v7.put("orderId", Helpers.GetValue(orderIds, i));
+                            j39v7.put("instId", market.get("id"));
+                            yield j39v7; } }));
                     }
                 }
             } else
             {
-                for (var i = 0; i < (switch ((Object)(clientOrderIds)) { case null -> 0; case List<?> j39v7 -> j39v7.size(); case String j39v8 -> j39v8.length(); case Object j39v9 -> j39v9.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v9) : 0; }); i++)
+                for (var i = 0; i < (switch ((Object)(clientOrderIds)) { case null -> 0; case List<?> j39v4 -> j39v4.size(); case String j39v5 -> j39v5.length(); case Object j39v6 -> j39v6.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v6) : 0; }); i++)
                 {
-                    ((List<Object>)request).add((switch (0) { default -> { HashMap<String, Object> j39v6 = new HashMap<String, Object>();
-                        j39v6.put("instId", market.get("id"));
-                        j39v6.put("clientOrderId", Helpers.GetValue(clientOrderIds, i));
-                        yield j39v6; } }));
+                    ((List<Object>)request).add((switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>();
+                        j39v3.put("instId", market.get("id"));
+                        j39v3.put("clientOrderId", Helpers.GetValue(clientOrderIds, i));
+                        yield j39v3; } }));
                 }
             }
             Map<String, Object> response = null;
@@ -4289,7 +4289,7 @@ public class Blofin extends BlofinApi
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
-        Object request = ((("/api/" + this.version) + "/") + this.implodeParams(path, parameters));
+        String request = ((("/api/" + this.version) + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         String apiUrl = this.safeString(this.urls.get("api"), "rest");
         if (java.util.Objects.equals(apiUrl, null))
@@ -4333,7 +4333,7 @@ public class Blofin extends BlofinApi
                 }
                 signedHeaders.put("Content-Type", "application/json");
             }
-            String auth = (((((java.util.function.BinaryOperator<Object>) (hx4J40v0A, hx4J40v0B) -> { Object hx4J40v0P = hx4J40v0A instanceof Integer hx4J40v0i ? (Object) Long.valueOf(hx4J40v0i.longValue()) : hx4J40v0A; Object hx4J40v0Q = hx4J40v0B instanceof Integer hx4J40v0i ? (Object) Long.valueOf(hx4J40v0i.longValue()) : hx4J40v0B; if (hx4J40v0P instanceof Long hx4J40v0l && hx4J40v0Q instanceof Long hx4J40v0r) { return hx4J40v0l + hx4J40v0r; } if (hx4J40v0P instanceof Double || hx4J40v0Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v0D = hx4J40v0o -> { if (hx4J40v0o instanceof Double || hx4J40v0o instanceof Float || hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof java.math.BigDecimal) { return ((Number) hx4J40v0o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v0o)); } catch (NumberFormatException hx4J40v0e) { return 0.0; } }; return hx4J40v0D.applyAsDouble(hx4J40v0P) + hx4J40v0D.applyAsDouble(hx4J40v0Q); } if (hx4J40v0P instanceof String || hx4J40v0Q instanceof String) { return String.valueOf(hx4J40v0P) + String.valueOf(hx4J40v0Q); } return null; }).apply(request, java.util.Objects.requireNonNullElse(method, "GET")) + timestamp) + timestamp) + sign_body);
+            String auth = ((((request + java.util.Objects.requireNonNullElse(method, "GET")) + timestamp) + timestamp) + sign_body);
             String signature = this.stringToBase64(this.hmac(this.encode(auth), this.encode(this.secret), sha256()));
             signedHeaders.put("ACCESS-SIGN", signature);
             String bodyResolved = signedBody;

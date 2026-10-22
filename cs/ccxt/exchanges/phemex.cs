@@ -941,7 +941,7 @@ public partial class phemex : Exchange
         {
             inverse = true;
             // some unhandled cases
-            if (!((market != null && ((IDictionary<string, object>)market).ContainsKey("baseCurrency"))) && ((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))(bs, quote))
+            if (!((market != null && ((IDictionary<string, object>)market).ContainsKey("baseCurrency"))) && isEqual(bs, quote))
             {
                 bs = settle;
             }
@@ -1412,7 +1412,7 @@ public partial class phemex : Exchange
         string? id = this.safeString(rawCurrency, "currency");
         string? code = this.safeCurrencyCode(id);
         string? valueScaleString = this.safeString(rawCurrency, "valueScale");
-        Int64? valueScale = (((Func<object, Int64?>)(static (object hx4pa) => { try { return Convert.ToInt64(Math.Floor(Convert.ToDouble(hx4pa))); } catch (Exception) { return null; } }))(valueScaleString));
+        Int64? valueScale = parseInt(valueScaleString);
         string? minValueEv = this.safeString(rawCurrency, "minValueEv");
         string? maxValueEv = this.safeString(rawCurrency, "maxValueEv");
         double? minAmount = null;
@@ -1518,7 +1518,8 @@ public partial class phemex : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = null;
-        bool isStableSettled = ((((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDT")) || ((((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDC"));
+        string? marketSettle = this.safeString(market, "settle");
+        bool isStableSettled = (marketSettle == "USDT") || (marketSettle == "USDC");
         if (((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true)) && isStableSettled)
         {
             response = await this.v2GetMdV2Orderbook(this.extend(request, parameters));
@@ -1693,7 +1694,8 @@ public partial class phemex : Exchange
         };
         Int64? until = this.safeInteger2(parameters, "until", "to");
         IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"until"}));
-        bool isStableSettled = ((((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDT")) || ((((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDC"));
+        string? marketSettle = this.safeString(market, "settle");
+        bool isStableSettled = (marketSettle == "USDT") || (marketSettle == "USDC");
         bool usesSpecialFromToEndpoint = ((((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true)) || isStableSettled)) && (((since != null)) || ((until != null)));
         int maxLimit = 1000;
         if (usesSpecialFromToEndpoint)
@@ -2008,7 +2010,8 @@ public partial class phemex : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = null;
-        bool isStableSettled = ((((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDT")) || ((((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDC"));
+        string? marketSettle = this.safeString(market, "settle");
+        bool isStableSettled = (marketSettle == "USDT") || (marketSettle == "USDC");
         if (((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true)) && isStableSettled)
         {
             response = await this.v2GetMdV2Trade(this.extend(request, parameters));
@@ -2238,7 +2241,7 @@ public partial class phemex : Exchange
         string? takerOrMaker = null;
         if (((trade is IList<object>) || (trade.GetType().IsGenericType && trade.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            int tradeLength = (((object)(trade)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+            int tradeLength = getArrayLength(trade);
             timestamp = this.safeIntegerProduct(trade, 0, 0.000001);
             if (tradeLength > 4)
             {
@@ -2410,7 +2413,7 @@ public partial class phemex : Exchange
                 timestamp = lastUpdateTimeNs;
             } else
             {
-                timestamp = (((((object)(timestamp)) is var c31v0) && (((object)(lastUpdateTimeNs)) is var c31v1)) ? (((c31v0 == null) || (c31v1 == null)) ? null : ((Convert.ToDouble(c31v0) > Convert.ToDouble(c31v1)) ? c31v0 : c31v1)) : null);
+                timestamp = mathMax(timestamp, lastUpdateTimeNs);
             }
             account["total"] = total;
             account["used"] = used;
@@ -3087,7 +3090,8 @@ public partial class phemex : Exchange
         IDictionary<string, object> takeProfit = this.safeDict(parameters, "takeProfit");
         bool hasStopLoss = ((stopLoss != null));
         bool hasTakeProfit = ((takeProfit != null));
-        bool isStableSettled = ((((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDT")) || ((((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDC"));
+        string? marketSettle = this.safeString(market, "settle");
+        bool isStableSettled = (marketSettle == "USDT") || (marketSettle == "USDC");
         if ((clientOrderId == null))
         {
             string brokerId = this.safeString(this.options, "brokerId", "CCXT123456");
@@ -3437,7 +3441,8 @@ public partial class phemex : Exchange
         };
         string? clientOrderId = this.safeString2(parameters, "clientOrderId", "clOrdID");
         IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"clientOrderId", "clOrdID"}));
-        bool isStableSettled = ((((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDT")) || ((((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDC"));
+        string? marketSettle = this.safeString(market, "settle");
+        bool isStableSettled = (marketSettle == "USDT") || (marketSettle == "USDC");
         if ((clientOrderId != null))
         {
             request["clOrdID"] = clientOrderId;
@@ -3539,7 +3544,8 @@ public partial class phemex : Exchange
             request["orderID"] = id;
         }
         Dictionary<string, object> response = null;
-        if ((((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDT") || (((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDC"))
+        string? marketSettle = this.safeString(market, "settle");
+        if (marketSettle == "USDT" || marketSettle == "USDC")
         {
             string? posSide = this.safeString(paramsOmitted, "posSide");
             if ((posSide == null))
@@ -3589,7 +3595,8 @@ public partial class phemex : Exchange
             request["untriggerred"] = trigger;
         }
         Dictionary<string, object> response = null;
-        if ((((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDT") || (((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDC"))
+        string? marketSettle = this.safeString(market, "settle");
+        if (marketSettle == "USDT" || marketSettle == "USDC")
         {
             response = await this.privateDeleteGOrdersAll(this.extend(request, paramsOmitted));
         } else if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
@@ -3637,7 +3644,8 @@ public partial class phemex : Exchange
             request["orderID"] = id;
         }
         Dictionary<string, object> response = null;
-        if ((((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDT") || (((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDC"))
+        string? marketSettle = this.safeString(market, "settle");
+        if (marketSettle == "USDT" || marketSettle == "USDC")
         {
             response = await this.privateGetApiDataGFuturesOrdersByOrderId(this.extend(request, paramsOmitted));
         } else if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
@@ -3651,7 +3659,7 @@ public partial class phemex : Exchange
         object order = data;
         if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            int numOrders = (((object)(data)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+            int numOrders = getArrayLength(data);
             if (numOrders < 1)
             {
                 if ((clientOrderId != null))
@@ -3717,9 +3725,10 @@ public partial class phemex : Exchange
             request["limit"] = limit;
         }
         Dictionary<string, object> response = null;
-        if ((((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDT") || (((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDC"))
+        string? marketSettle = this.safeString(market, "settle");
+        if (marketSettle == "USDT" || marketSettle == "USDC")
         {
-            request["currency"] = (market.ContainsKey("settle") ? market["settle"] : null);
+            request["currency"] = marketSettle;
             response = await this.privateGetExchangeOrderV2OrderList(this.extend(request, parameters));
         } else if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
         {
@@ -3766,9 +3775,10 @@ public partial class phemex : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = null;
+        string? marketSettle = this.safeString(market, "settle");
         try
         {
-            if ((((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDT") || (((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDC"))
+            if (marketSettle == "USDT" || marketSettle == "USDC")
             {
                 response = await this.privateGetGOrdersActiveList(this.extend(request, parameters));
             } else if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
@@ -5301,7 +5311,7 @@ public partial class phemex : Exchange
         object riskLimits = (getValue((marketResolved != null && marketResolved.ContainsKey("info") ? marketResolved["info"] : null), "riskLimits"));
         List<object> tiers = new List<object>() {};
         object minNotional = 0;
-        for (int i = 0; i < (((object)(riskLimits)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(riskLimits); i++)
         {
             IDictionary<string, object> tier = this.safeDict(riskLimits, i);
             Int64? maxNotional = this.safeInteger(tier, "limit");
@@ -5430,7 +5440,8 @@ public partial class phemex : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = null;
-        if ((((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDT") || (((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDC"))
+        string? marketSettle = this.safeString(market, "settle");
+        if (marketSettle == "USDT" || marketSettle == "USDC")
         {
             if ((isHedged != true) && (longLeverageRr == null) && (shortLeverageRr == null))
             {
@@ -5708,7 +5719,8 @@ public partial class phemex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        bool isUsdtSettled = (((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDT") || (((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDC");
+        string? marketSettle = this.safeString(market, "settle");
+        bool isUsdtSettled = marketSettle == "USDT" || marketSettle == "USDC";
         if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) != true))
         {
             throw new BadRequest ((this.id + " fetchFundingRateHistory() supports swap contracts only")) ;

@@ -894,9 +894,9 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
 
     public void handleDeltas(Object bookside, Object deltas)
     {
-        for (var i = 0; i < (switch ((Object)(deltas)) { case null -> 0; case List<?> j39v4 -> j39v4.size(); case String j39v5 -> j39v5.length(); case Object j39v6 -> j39v6.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v6) : 0; }); i++)
+        for (var i = 0; i < ((List<?>)deltas).size(); i++)
         {
-            this.handleDelta(bookside, Helpers.GetValue(deltas, i));
+            this.handleDelta(bookside, (deltas == null || i < 0 || i >= ((List<?>)deltas).size() ? null : ((List<?>)deltas).get(i)));
         }
     }
 
@@ -1070,8 +1070,8 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)) || (!java.util.Objects.equals(storedLimit, limit)))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
-            { Map<Object, Object> j39v12 = (Map<Object, Object>) (Map<?, ?>) (limits); Object j39v13 = symbol; Object j39v14 = limit; if (j39v12 == null) { if (j39v13 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v12) { if (j39v14 == null && j39v12 instanceof java.util.concurrent.ConcurrentHashMap) { j39v12.remove(j39v13); } else { j39v12.put(j39v13, j39v14); } } }
-            { Map<Object, Object> j39v9 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v10 = "orderBookLimits"; Object j39v11 = limits; if (j39v9 == null) { if (j39v10 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v9) { if (j39v11 == null && j39v9 instanceof java.util.concurrent.ConcurrentHashMap) { j39v9.remove(j39v10); } else { j39v9.put(j39v10, j39v11); } } }
+            Helpers.addElementToObject(limits, symbol, limit);
+            Helpers.addElementToObject(this.options, "orderBookLimits", limits);
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         orderbook.put("nonce", null);
@@ -1140,7 +1140,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         //
         // the confirmation carries the remaining subscriptions without identifying
         // which unsubscribe request it belongs to, so settle every pending unsubscription
-        List<Object> keys = ((List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v16 -> { synchronized (j39v16) { yield new ArrayList<Object>(j39v16.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> keys = ((List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v3 -> { synchronized (j39v3) { yield new ArrayList<Object>(j39v3.keySet()); } } case null, default -> new ArrayList<Object>(); });
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
@@ -1494,7 +1494,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         String ts = String.valueOf(this.milliseconds());
         Object randomNumber = this.randNumber(4);
         String randomPart = String.valueOf(randomNumber);
-        return ((Long) (switch ((Object) ((ts + randomPart))) { case null -> (Long) null; case Long hx4J42v0 -> hx4J42v0; case Integer hx4J42v0 -> Long.valueOf(hx4J42v0.longValue()); case Double hx4J42v0 -> Long.valueOf(hx4J42v0.longValue()); case Float hx4J42v0 -> Long.valueOf(hx4J42v0.longValue()); case java.math.BigDecimal hx4J42v0 -> Long.valueOf(hx4J42v0.longValue()); case Object hx4J42v0 -> { try { yield Long.valueOf(Long.parseLong(String.valueOf(hx4J42v0))); } catch (Exception hx4J42v0e) { yield (Long) null; } } }));
+        return Helpers.parseInt((ts + randomPart));
     }
 
     public CompletableFuture<Object> watchRequest(Object action, Map<String, Object> request)
@@ -1908,7 +1908,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         //
         String messageHash = this.safeString(message, "requestId");
         Map<String, Object> response = (Map<String, Object>) this.safeDict(message, "response", (Object) null);
-        Object fees = this.parseTradingFees(response, (Map<String, Object>) null);
+        Map<String, Object> fees = (Map<String, Object>) this.parseTradingFees(response, (Map<String, Object>) null);
         client.resolve(fees, messageHash);
     }
 

@@ -4688,8 +4688,8 @@ class htx(Exchange, ImplicitAPI):
             if rawType is not None:
                 if rawType.find('-') >= 0:
                     orderType = rawType.split('-')
-                    side = orderType[0]
-                    type = orderType[1]
+                    side = self.safe_string(orderType, 0)
+                    type = self.safe_string(orderType, 1)
                 elif type is None:
                     type = rawType
         timestamp = self.safe_integer_n(order, ['created_at', 'created-at', 'create_date', 'created_time'])
@@ -7073,7 +7073,7 @@ class htx(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         signedHeaders = None
         signedBody = None
         pathString = path
@@ -7866,9 +7866,10 @@ class htx(Exchange, ImplicitAPI):
         positions = self.safe_list(account, 'positions', [])
         position = None
         if (market['future'] is True) and (market['inverse'] is True):
+            marketId = self.safe_string(market, 'id')
             for i in range(0, len(positions)):
                 entry = positions[i]
-                if self.safe_string(entry, 'contract_code') == market['id']:
+                if self.safe_string(entry, 'contract_code') == marketId:
                     position = entry
                     break
         else:
@@ -8363,7 +8364,7 @@ class htx(Exchange, ImplicitAPI):
         openInterest['datetime'] = self.iso8601(timestamp)
         return openInterest
 
-    def parse_open_interest(self, interest: object, market: Market = None) -> OpenInterest:
+    def parse_open_interest(self, interest: dict, market: Market = None) -> OpenInterest:
         #
         # fetchOpenInterestHistory
         #
@@ -8779,7 +8780,7 @@ class htx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data')
         return self.parse_deposit_withdraw_fees(data, codes, 'currency')
 
-    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None) -> object:
+    def parse_deposit_withdraw_fee(self, fee: dict, currency: Currency = None) -> object:
         #
         #            {
         #              "currency": "sxp",

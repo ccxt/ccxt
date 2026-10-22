@@ -261,7 +261,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Long streamLimit = this.safeInteger(streamLimits, type);
             Long streamIndex = (Long) (previousStreamIndex + 1L);
             Object normalizedIndex = (streamIndex == null || streamLimit == null ? null : ((double) streamIndex) % ((double) streamLimit));
-            { Map<Object, Object> j39v4 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v5 = "streamIndex"; Object j39v6 = streamIndex; if (j39v4 == null) { if (j39v5 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v4) { if (j39v6 == null && j39v4 instanceof java.util.concurrent.ConcurrentHashMap) { j39v4.remove(j39v5); } else { j39v4.put(j39v5, j39v6); } } }
+            Helpers.addElementToObject(this.options, "streamIndex", streamIndex);
             stream = this.numberToString(normalizedIndex);
             if (!java.util.Objects.equals(subscriptionHash, null))
             {
@@ -270,16 +270,16 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Map<String, Object> subscriptionsByStreams = (Map<String, Object>) this.safeDict(this.options, "numSubscriptionsByStream", (Object) null);
             if (java.util.Objects.equals(subscriptionsByStreams, null))
             {
-                { Map<Object, Object> j39v1 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v2 = "numSubscriptionsByStream"; Object j39v3 = this.createSafeDictionary(); if (j39v1 == null) { if (j39v2 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v1) { if (j39v3 == null && j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); } else { j39v1.put(j39v2, j39v3); } } }
+                Helpers.addElementToObject(this.options, "numSubscriptionsByStream", this.createSafeDictionary());
             }
             Long subscriptionsByStream = this.safeInteger(this.options.get("numSubscriptionsByStream"), stream, 0);
-            Object newNumSubscriptions = ((java.util.function.BinaryOperator<Object>) (hx4J40v18A, hx4J40v18B) -> { Object hx4J40v18P = hx4J40v18A instanceof Integer hx4J40v18i ? (Object) Long.valueOf(hx4J40v18i.longValue()) : hx4J40v18A; Object hx4J40v18Q = hx4J40v18B instanceof Integer hx4J40v18i ? (Object) Long.valueOf(hx4J40v18i.longValue()) : hx4J40v18B; if (hx4J40v18P instanceof Long hx4J40v18l && hx4J40v18Q instanceof Long hx4J40v18r) { return hx4J40v18l + hx4J40v18r; } if (hx4J40v18P instanceof Double || hx4J40v18Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v18D = hx4J40v18o -> { if (hx4J40v18o instanceof Double || hx4J40v18o instanceof Float || hx4J40v18o instanceof Long || hx4J40v18o instanceof Integer || hx4J40v18o instanceof java.math.BigDecimal) { return ((Number) hx4J40v18o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v18o)); } catch (NumberFormatException hx4J40v18e) { return 0.0; } }; return hx4J40v18D.applyAsDouble(hx4J40v18P) + hx4J40v18D.applyAsDouble(hx4J40v18Q); } if (hx4J40v18P instanceof String || hx4J40v18Q instanceof String) { return String.valueOf(hx4J40v18P) + String.valueOf(hx4J40v18Q); } return null; }).apply(subscriptionsByStream, java.util.Objects.requireNonNullElse(numSubscriptions, 1L));
+            Object newNumSubscriptions = ((java.util.function.BinaryOperator<Object>) (hx4J40v17A, hx4J40v17B) -> { Object hx4J40v17P = hx4J40v17A instanceof Integer hx4J40v17i ? (Object) Long.valueOf(hx4J40v17i.longValue()) : hx4J40v17A; Object hx4J40v17Q = hx4J40v17B instanceof Integer hx4J40v17i ? (Object) Long.valueOf(hx4J40v17i.longValue()) : hx4J40v17B; if (hx4J40v17P instanceof Long hx4J40v17l && hx4J40v17Q instanceof Long hx4J40v17r) { return hx4J40v17l + hx4J40v17r; } if (hx4J40v17P instanceof Double || hx4J40v17Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v17D = hx4J40v17o -> { if (hx4J40v17o instanceof Double || hx4J40v17o instanceof Float || hx4J40v17o instanceof Long || hx4J40v17o instanceof Integer || hx4J40v17o instanceof java.math.BigDecimal) { return ((Number) hx4J40v17o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v17o)); } catch (NumberFormatException hx4J40v17e) { return 0.0; } }; return hx4J40v17D.applyAsDouble(hx4J40v17P) + hx4J40v17D.applyAsDouble(hx4J40v17Q); } if (hx4J40v17P instanceof String || hx4J40v17Q instanceof String) { return String.valueOf(hx4J40v17P) + String.valueOf(hx4J40v17Q); } return null; }).apply(subscriptionsByStream, java.util.Objects.requireNonNullElse(numSubscriptions, 1L));
             Long subscriptionLimitByStream = this.safeInteger(this.options.get("subscriptionLimitByStream"), type, 200);
             if ((newNumSubscriptions != null && (subscriptionLimitByStream == null || ((Number) newNumSubscriptions).doubleValue() > subscriptionLimitByStream)))
             {
                 throw new BadRequest((this.id + " reached the limit of subscriptions by stream. Increase the number of streams, or increase the stream limit or subscription limit by stream if the exchange allows.")) ;
             }
-            Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("numSubscriptionsByStream")), stream, ((java.util.function.BinaryOperator<Object>) (hx4J40v17A, hx4J40v17B) -> { Object hx4J40v17P = hx4J40v17A instanceof Integer hx4J40v17i ? (Object) Long.valueOf(hx4J40v17i.longValue()) : hx4J40v17A; Object hx4J40v17Q = hx4J40v17B instanceof Integer hx4J40v17i ? (Object) Long.valueOf(hx4J40v17i.longValue()) : hx4J40v17B; if (hx4J40v17P instanceof Long hx4J40v17l && hx4J40v17Q instanceof Long hx4J40v17r) { return hx4J40v17l + hx4J40v17r; } if (hx4J40v17P instanceof Double || hx4J40v17Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v17D = hx4J40v17o -> { if (hx4J40v17o instanceof Double || hx4J40v17o instanceof Float || hx4J40v17o instanceof Long || hx4J40v17o instanceof Integer || hx4J40v17o instanceof java.math.BigDecimal) { return ((Number) hx4J40v17o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v17o)); } catch (NumberFormatException hx4J40v17e) { return 0.0; } }; return hx4J40v17D.applyAsDouble(hx4J40v17P) + hx4J40v17D.applyAsDouble(hx4J40v17Q); } if (hx4J40v17P instanceof String || hx4J40v17Q instanceof String) { return String.valueOf(hx4J40v17P) + String.valueOf(hx4J40v17Q); } return null; }).apply(subscriptionsByStream, java.util.Objects.requireNonNullElse(numSubscriptions, 1L)));
+            Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("numSubscriptionsByStream")), stream, newNumSubscriptions);
         }
         return stream;
     }
@@ -310,7 +310,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             // this avoids matching "/wss", "/ws-api", "/ws-fapi/v1", etc.
             if (((String)baseUrl).endsWith("/ws"))
             {
-                String prefix = ((java.util.function.Function<Object[], String>) (hx4J41a) -> { if (hx4J41a[0] == null) return null; String hx4J41s = (String) hx4J41a[0]; java.util.function.ToIntFunction<Object> hx4J41i = (hx4J41o) -> (hx4J41o instanceof Integer hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Long hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Double hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Float hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof java.math.BigDecimal hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof String hx4J41n) ? Integer.parseInt(hx4J41n) : Integer.parseInt(String.valueOf(hx4J41o)); int hx4J41b = (hx4J41a[1] != null) ? hx4J41i.applyAsInt(hx4J41a[1]) : -1; if (hx4J41a[2] == null) { if (hx4J41b < 0) return hx4J41s.substring(Math.max(hx4J41s.length() + hx4J41b, 0)); if (hx4J41b > hx4J41s.length()) return ""; return hx4J41s.substring(hx4J41b); } int hx4J41e = hx4J41i.applyAsInt(hx4J41a[2]); if (hx4J41b < 0) hx4J41b = hx4J41s.length() + hx4J41b; if (hx4J41e < 0) hx4J41e = hx4J41s.length() + hx4J41e; if (hx4J41b < 0) hx4J41b = 0; if (hx4J41e > hx4J41s.length()) hx4J41e = hx4J41s.length(); if (hx4J41b > hx4J41e) hx4J41b = hx4J41e; return hx4J41s.substring(hx4J41b, hx4J41e); }).apply(new Object[] { baseUrl, 0, (((long) ((String)baseUrl).length()) - 3L) });
+                String prefix = Helpers.slice(baseUrl, 0, (((long) ((String)baseUrl).length()) - 3L));
                 return (((prefix + "/") + category) + "/ws");
             }
             return baseUrl;
@@ -350,7 +350,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         String baseUrl = (String)Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "stock");
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(streamType, "market"), "combined"))
         {
-            return ((java.util.function.Function<Object, java.util.function.BiFunction<Object, Object, String>>) hx4J43a0 -> (hx4J43b0, hx4J43c0) -> { if (hx4J43a0 == null) { return null; } String hx4J43a0s = String.valueOf(hx4J43a0); String hx4J43a0f = (hx4J43b0 == null) ? "" : String.valueOf(hx4J43b0); String hx4J43a0r = (hx4J43c0 == null) ? "" : String.valueOf(hx4J43c0); return hx4J43a0s.replaceFirst(java.util.regex.Pattern.quote(hx4J43a0f), java.util.regex.Matcher.quoteReplacement(hx4J43a0r)); }).apply(baseUrl).apply((String)"/ws", (String)"/stream");
+            return Helpers.replace(baseUrl, (String)"/ws", (String)"/stream");
         }
         return baseUrl;
     }
@@ -804,13 +804,13 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, "swap");
         String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
         Map<String, Object> liquidation = (Map<String, Object>) this.parseWsLiquidation((Map<String, Object>) (message), market);
-        Object cache = this.myLiquidations;
+        io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.myLiquidations;
         if (java.util.Objects.equals(cache, null))
         {
             Long limit = this.safeInteger(this.options, "myLiquidationsLimit", 1000);
             cache = new ArrayCache(((Number)limit).intValue());
         }
-        ((io.github.ccxt.ws.ArrayCache) cache).append(liquidation);
+        cache.append(liquidation);
         this.myLiquidations = cache;
         client.resolve(new ArrayList<Object>(Arrays.asList(liquidation)), "myLiquidations");
         client.resolve(new ArrayList<Object>(Arrays.asList(liquidation)), ("myLiquidations::" + symbol));
@@ -1058,7 +1058,6 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         });
 
     }
-    // dict literal nested inside a delay argument
     public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
     {
         return this.unWatchOrderBook(symbol, (Object) (parameters));
@@ -1255,9 +1254,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
     public void handleDeltas(Object bookside, Object deltas)
     {
-        for (var i = 0; i < (switch ((Object)(deltas)) { case null -> 0; case List<?> j39v13 -> j39v13.size(); case String j39v14 -> j39v14.length(); case Object j39v15 -> j39v15.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v15) : 0; }); i++)
+        for (var i = 0; i < ((List<?>)deltas).size(); i++)
         {
-            this.handleDelta(bookside, Helpers.GetValue(deltas, i));
+            this.handleDelta(bookside, (deltas == null || i < 0 || i >= ((List<?>)deltas).size() ? null : ((List<?>)deltas).get(i)));
         }
     }
 
@@ -3640,7 +3639,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     mapLiteral5.put("symbol", symbol);
                     mapLiteral5.put("isIsolated", isIsolated);
                     mapLiteral5.put("validity", validity);
-                    { Map<Object, Object> j39v25 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v26 = java.util.Objects.requireNonNullElse(marketType, "margin"); Object j39v27 = this.extend(options, mapLiteral5); if (j39v25 == null) { if (j39v26 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v25) { if (j39v27 == null && j39v25 instanceof java.util.concurrent.ConcurrentHashMap) { j39v25.remove(j39v26); } else { j39v25.put(j39v26, j39v27); } } }
+                    Helpers.addElementToObject(this.options, java.util.Objects.requireNonNullElse(marketType, "margin"), this.extend(options, mapLiteral5));
                     // Schedule token renewal before expiration
                     if (!java.util.Objects.equals(expirationTime, null))
                     {
@@ -3656,9 +3655,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     client.resolve(listenToken, messageHash);
                 } catch(Exception e)
                 {
-                    { Map<Object, Object> j39v22 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v23 = java.util.Objects.requireNonNullElse(marketType, "margin"); Object j39v24 = this.extend(options, new HashMap<String, Object>() {{
+                    Helpers.addElementToObject(this.options, java.util.Objects.requireNonNullElse(marketType, "margin"), this.extend(options, new HashMap<String, Object>() {{
         put( "lastAuthenticatedTime", 0 );
-    }}); if (j39v22 == null) { if (j39v23 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v22) { if (j39v24 == null && j39v22 instanceof java.util.concurrent.ConcurrentHashMap) { j39v22.remove(j39v23); } else { j39v22.put(j39v23, j39v24); } } }
+    }}));
                     client.reject(e, messageHash);
                     throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
@@ -3799,7 +3798,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
                     mapLiteral6.put("listenKey", listenKey);
                     mapLiteral6.put("lastAuthenticatedTime", time);
-                    { Map<Object, Object> j39v29 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v30 = type; Object j39v31 = this.extend(options, mapLiteral6); if (j39v29 == null) { if (j39v30 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v29) { if (j39v31 == null && j39v29 instanceof java.util.concurrent.ConcurrentHashMap) { j39v29.remove(j39v30); } else { j39v29.put(j39v30, j39v31); } } }
+                    Helpers.addElementToObject(this.options, type, this.extend(options, mapLiteral6));
                     // hoisted out of the delay call: the transpilers garble an inline
                     // dict literal nested inside a delay argument
                     Map<String, Object> delayParams = paramsOmitted;
@@ -3929,22 +3928,22 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     url = this.getPrivateWsUrl(urlType, (String) (cachedListenKey));
                 }
                 Client client = this.client(url);
-                List<Object> messageHashes = ((List<Object>) switch ((Object)(client.futures)) { case Map<?, ?> j39v38 -> { synchronized (j39v38) { yield new ArrayList<Object>(j39v38.keySet()); } } case null, default -> new ArrayList<Object>(); });
+                List<Object> messageHashes = ((List<Object>) switch ((Object)(client.futures)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
                 for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
                 {
                     Object messageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
                     client.reject(error, messageHash);
                 }
-                { Map<Object, Object> j39v35 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v36 = type; Object j39v37 = this.extend(options, new HashMap<String, Object>() {{
+                Helpers.addElementToObject(this.options, type, this.extend(options, new HashMap<String, Object>() {{
         put( "listenKey", null );
         put( "lastAuthenticatedTime", 0 );
-    }}); if (j39v35 == null) { if (j39v36 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v35) { if (j39v37 == null && j39v35 instanceof java.util.concurrent.ConcurrentHashMap) { j39v35.remove(j39v36); } else { j39v35.put(j39v36, j39v37); } } }
+    }}));
                 return null;
             }
             HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
             mapLiteral7.put("listenKey", listenKey);
             mapLiteral7.put("lastAuthenticatedTime", time);
-            { Map<Object, Object> j39v32 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v33 = type; Object j39v34 = this.extend(options, mapLiteral7); if (j39v32 == null) { if (j39v33 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v32) { if (j39v34 == null && j39v32 instanceof java.util.concurrent.ConcurrentHashMap) { j39v32.remove(j39v33); } else { j39v32.put(j39v33, j39v34); } } }
+            Helpers.addElementToObject(this.options, type, this.extend(options, mapLiteral7));
             // whether or not to schedule another listenKey keepAlive request
             Object clients = Helpers.objectValues(this.clients);
             String refreshRateKey = "listenKeyRefreshRate";
@@ -4013,8 +4012,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> parameters = (switch (0) { default -> { HashMap<String, Object> j39v41 = new HashMap<String, Object>(); j39v41.put("type", type); yield j39v41; } });
-            if ((switch ((Object) (isPortfolioMargin)) { case null -> false; case Boolean hx4J40v9 -> hx4J40v9.booleanValue(); case Long hx4J40v9 -> hx4J40v9 != 0L; case Integer hx4J40v9 -> hx4J40v9 != 0; case Double hx4J40v9 -> hx4J40v9 != 0.0; case String hx4J40v9 -> !hx4J40v9.isEmpty(); case List<?> hx4J40v9 -> !hx4J40v9.isEmpty(); case Map<?, ?> hx4J40v9 -> true; default -> false; }))
+            Map<String, Object> parameters = (switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>(); j39v2.put("type", type); yield j39v2; } });
+            if (Helpers.isTrue(isPortfolioMargin))
             {
                 ((Map<String, Object>)parameters).put("portfolioMargin", true);
             }
@@ -4455,7 +4454,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
             Map<String, Object> account = this.account();
             String delta = this.safeString(message, "d");
-            if ((!java.util.Objects.equals(accountType, null)) && (!java.util.Objects.equals(code, null)) && ((switch ((Object)((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)))) { case List<?> j39v50 -> ((Object)(code)) != null && j39v50.contains(code); case Map<?, ?> j39v49 -> ((Object)(code)) instanceof String && j39v49.containsKey(code); case null, default -> false; })))
+            if ((!java.util.Objects.equals(accountType, null)) && (!java.util.Objects.equals(code, null)) && ((switch ((Object)((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)))) { case List<?> j39v4 -> ((Object)(code)) != null && j39v4.contains(code); case Map<?, ?> j39v3 -> ((Object)(code)) instanceof String && j39v3.containsKey(code); case null, default -> false; })))
             {
                 Object previousValue = Helpers.GetValue(Helpers.GetValue((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)), code), "free");
                 if (!(previousValue instanceof String))
@@ -4791,18 +4790,18 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
             Boolean isSwap = (java.util.Objects.equals(marketType, "linear") || java.util.Objects.equals(marketType, "inverse"));
-            Object payload = new HashMap<String, Object>() {{}};
+            Map<String, Object> payload = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(marketType, "spot"))
             {
-                payload = this.editSpotOrderRequest(id, (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+                payload = (Map<String, Object>) this.editSpotOrderRequest(id, (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             } else
             {
-                payload = this.editContractOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+                payload = (Map<String, Object>) this.editContractOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             }
             Pair<Boolean, Map<String, Object>> returnRateLimitsparamsReturnRateLimitsVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "editOrderWs", "returnRateLimits", false);
             Boolean returnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.first();
             Map<String, Object> paramsReturnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.second();
-            ((Map<String, Object>)payload).put("returnRateLimits", returnRateLimits);
+            payload.put("returnRateLimits", returnRateLimits);
             Map<String, Object> message = new HashMap<String, Object>();
             message.put("id", messageHash);
             message.put("method", ((Boolean.TRUE.equals(isSwap))) ? "order.modify" : "order.cancelReplace");
@@ -5829,7 +5828,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             messageValue = (Map<String, Object>) this.safeDict(message, "o", message);
             if ((java.util.Objects.equals(e, "ALGO_UPDATE")) && !(messageValue.containsKey("T")))
             {
-                { Map<Object, Object> j39v61 = (Map<Object, Object>) (Map<?, ?>) (messageValue); Object j39v62 = "T"; Object j39v63 = this.safeInteger(message, "T"); if (j39v61 == null) { if (j39v62 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v61) { if (j39v63 == null && j39v61 instanceof java.util.concurrent.ConcurrentHashMap) { j39v61.remove(j39v62); } else { j39v61.put(j39v62, j39v63); } } } // keep the outer event time, the algo payload carries no timestamps
+                Helpers.addElementToObject(messageValue, "T", this.safeInteger(message, "T")); // keep the outer event time, the algo payload carries no timestamps
             }
         }
         if ((java.util.Objects.equals(e, "ORDER_TRADE_UPDATE")) || (java.util.Objects.equals(e, "ALGO_UPDATE")))
@@ -6111,7 +6110,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             this.positions = new HashMap<String, Object>() {{}};
         }
-        if ((switch ((Object)(this.positions)) { case List<?> j39v66 -> ((Object)(type)) != null && j39v66.contains(type); case Map<?, ?> j39v65 -> ((Object)(type)) instanceof String && j39v65.containsKey(type); case null, default -> false; }))
+        if ((switch ((Object)(this.positions)) { case List<?> j39v6 -> ((Object)(type)) != null && j39v6.contains(type); case Map<?, ?> j39v5 -> ((Object)(type)) instanceof String && j39v5.containsKey(type); case null, default -> false; }))
         {
             return;
         }
@@ -6135,8 +6134,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> parameters = (switch (0) { default -> { HashMap<String, Object> j39v69 = new HashMap<String, Object>(); j39v69.put("type", type); yield j39v69; } });
-            if ((switch ((Object) (isPortfolioMargin)) { case null -> false; case Boolean hx4J40v1 -> hx4J40v1.booleanValue(); case Long hx4J40v1 -> hx4J40v1 != 0L; case Integer hx4J40v1 -> hx4J40v1 != 0; case Double hx4J40v1 -> hx4J40v1 != 0.0; case String hx4J40v1 -> !hx4J40v1.isEmpty(); case List<?> hx4J40v1 -> !hx4J40v1.isEmpty(); case Map<?, ?> hx4J40v1 -> true; default -> false; }))
+            Map<String, Object> parameters = (switch (0) { default -> { HashMap<String, Object> j39v7 = new HashMap<String, Object>(); j39v7.put("type", type); yield j39v7; } });
+            if (Helpers.isTrue(isPortfolioMargin))
             {
                 ((Map<String, Object>)parameters).put("portfolioMargin", true);
             }
@@ -6202,7 +6201,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             this.positions = new HashMap<String, Object>() {{}};
         }
-        if (!((switch ((Object)(this.positions)) { case List<?> j39v72 -> ((Object)(accountType)) != null && j39v72.contains(accountType); case Map<?, ?> j39v71 -> ((Object)(accountType)) instanceof String && j39v71.containsKey(accountType); case null, default -> false; })))
+        if (!((switch ((Object)(this.positions)) { case List<?> j39v9 -> ((Object)(accountType)) != null && j39v9.contains(accountType); case Map<?, ?> j39v8 -> ((Object)(accountType)) instanceof String && j39v8.containsKey(accountType); case null, default -> false; })))
         {
             Helpers.addElementToObject(this.positions, accountType, new ArrayCache.ArrayCacheBySymbolBySide());
         }
@@ -6659,7 +6658,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                                     {
                                         feeCostString = "0";
                                     }
-                                    Helpers.addElementToObject(Helpers.GetValue(order.get("fees"), i), "cost", ((Double) (switch ((Object) (feeCostString)) { case null -> Double.valueOf(0.0); case Double hx4J42v1 -> Double.valueOf(hx4J42v1.doubleValue()); case Float hx4J42v1 -> Double.valueOf(hx4J42v1.doubleValue()); case Long hx4J42v1 -> Double.valueOf(hx4J42v1.doubleValue()); case Integer hx4J42v1 -> Double.valueOf(hx4J42v1.doubleValue()); case java.math.BigDecimal hx4J42v1 -> Double.valueOf(hx4J42v1.doubleValue()); case Object hx4J42v1 -> { String hx4J42v1s; try { hx4J42v1s = String.valueOf(hx4J42v1); } catch (Exception hx4J42v1e) { yield (Double) null; } try { yield Double.valueOf(Double.parseDouble(hx4J42v1s)); } catch (NumberFormatException hx4J42v1e) { yield Double.valueOf(0.0); } } })));
+                                    Helpers.addElementToObject(Helpers.GetValue(order.get("fees"), i), "cost", Helpers.parseFloat(feeCostString));
                                     insertNewFeeCurrency = false;
                                     break;
                                 }
@@ -6678,14 +6677,14 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                                 {
                                     feeCostString = "0";
                                 }
-                                Helpers.addElementToObject(order.get("fee"), "cost", ((Double) (switch ((Object) (feeCostString)) { case null -> Double.valueOf(0.0); case Double hx4J42v0 -> Double.valueOf(hx4J42v0.doubleValue()); case Float hx4J42v0 -> Double.valueOf(hx4J42v0.doubleValue()); case Long hx4J42v0 -> Double.valueOf(hx4J42v0.doubleValue()); case Integer hx4J42v0 -> Double.valueOf(hx4J42v0.doubleValue()); case java.math.BigDecimal hx4J42v0 -> Double.valueOf(hx4J42v0.doubleValue()); case Object hx4J42v0 -> { String hx4J42v0s; try { hx4J42v0s = String.valueOf(hx4J42v0); } catch (Exception hx4J42v0e) { yield (Double) null; } try { yield Double.valueOf(Double.parseDouble(hx4J42v0s)); } catch (NumberFormatException hx4J42v0e) { yield Double.valueOf(0.0); } } })));
+                                Helpers.addElementToObject(order.get("fee"), "cost", Helpers.parseFloat(feeCostString));
                             } else if (java.util.Objects.equals(fee.get("currency"), null))
                             {
                                 order.put("fee", tradeFee);
                             } else
                             {
                                 order.put("fees", new ArrayList<Object>(Arrays.asList(fee, tradeFee)));
-                                { Map<Object, Object> j39v78 = (Map<Object, Object>) (Map<?, ?>) (order); Object j39v79 = "fee"; Object j39v80 = null; if (j39v78 == null) { if (j39v79 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v78) { if (j39v80 == null && j39v78 instanceof java.util.concurrent.ConcurrentHashMap) { j39v78.remove(j39v79); } else { j39v78.put(j39v79, j39v80); } } }
+                                Helpers.addElementToObject(order, "fee", null);
                             }
                         } else
                         {
@@ -6820,7 +6819,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             this.positions = new HashMap<String, Object>() {{}};
         }
-        if (!((switch ((Object)(this.positions)) { case List<?> j39v85 -> ((Object)(accountType)) != null && j39v85.contains(accountType); case Map<?, ?> j39v84 -> ((Object)(accountType)) instanceof String && j39v84.containsKey(accountType); case null, default -> false; })))
+        if (!((switch ((Object)(this.positions)) { case List<?> j39v11 -> ((Object)(accountType)) != null && j39v11.contains(accountType); case Map<?, ?> j39v10 -> ((Object)(accountType)) instanceof String && j39v10.containsKey(accountType); case null, default -> false; })))
         {
             Helpers.addElementToObject(this.positions, accountType, new ArrayCache.ArrayCacheBySymbolBySide());
         }
@@ -6878,7 +6877,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             // private endpoint uses id as messageHash
             client.reject(e, id);
             // public endpoint stores messageHash in subscriptions
-            List<Object> subscriptionKeys = ((List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v88 -> { synchronized (j39v88) { yield new ArrayList<Object>(j39v88.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            List<Object> subscriptionKeys = ((List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v12 -> { synchronized (j39v12) { yield new ArrayList<Object>(j39v12.keySet()); } } case null, default -> new ArrayList<Object>(); });
             for (var i = 0; i < ((List<?>)subscriptionKeys).size(); i++)
             {
                 Object subscriptionHash = (subscriptionKeys == null || i < 0 || i >= subscriptionKeys.size() ? null : subscriptionKeys.get(i));
@@ -7020,7 +7019,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             //         "A": "2.52500800"
             //     }
             //
-            if (java.util.Objects.equals(eventVar, null) && ((switch ((Object)(messageValue)) { case List<?> j39v92 -> j39v92.contains("a"); case Map<?, ?> j39v91 -> j39v91.containsKey("a"); case null, default -> false; })) && ((switch ((Object)(messageValue)) { case List<?> j39v90 -> j39v90.contains("b"); case Map<?, ?> j39v89 -> j39v89.containsKey("b"); case null, default -> false; })))
+            if (java.util.Objects.equals(eventVar, null) && ((switch ((Object)(messageValue)) { case List<?> j39v16 -> j39v16.contains("a"); case Map<?, ?> j39v15 -> j39v15.containsKey("a"); case null, default -> false; })) && ((switch ((Object)(messageValue)) { case List<?> j39v14 -> j39v14.contains("b"); case Map<?, ?> j39v13 -> j39v13.containsKey("b"); case null, default -> false; })))
             {
                 this.handleBidsAsks(client, messageValue);
             }

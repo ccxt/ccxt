@@ -1256,7 +1256,8 @@ class phemex(Exchange, ImplicitAPI):
             # 'id': 123456789, // optional request id
         }
         response: dict
-        isStableSettled = (market['settle'] == 'USDT') or (market['settle'] == 'USDC')
+        marketSettle = self.safe_string(market, 'settle')
+        isStableSettled = (marketSettle == 'USDT') or (marketSettle == 'USDC')
         if (market['linear'] is True) and isStableSettled:
             response = self.v2GetMdV2Orderbook(self.extend(request, params))
         else:
@@ -1392,7 +1393,8 @@ class phemex(Exchange, ImplicitAPI):
         }
         until = self.safe_integer_2(params, 'until', 'to')
         paramsOmitted = self.omit(params, ['until'])
-        isStableSettled = (market['settle'] == 'USDT') or (market['settle'] == 'USDC')
+        marketSettle = self.safe_string(market, 'settle')
+        isStableSettled = (marketSettle == 'USDT') or (marketSettle == 'USDC')
         usesSpecialFromToEndpoint = (((market['linear'] is True) or isStableSettled)) and ((since is not None) or (until is not None))
         maxLimit = 1000
         if usesSpecialFromToEndpoint:
@@ -1658,7 +1660,8 @@ class phemex(Exchange, ImplicitAPI):
             # 'id': 123456789, // optional request id
         }
         response: dict
-        isStableSettled = (market['settle'] == 'USDT') or (market['settle'] == 'USDC')
+        marketSettle = self.safe_string(market, 'settle')
+        isStableSettled = (marketSettle == 'USDT') or (marketSettle == 'USDC')
         if (market['linear'] is True) and isStableSettled:
             response = self.v2GetMdV2Trade(self.extend(request, params))
         else:
@@ -2640,7 +2643,8 @@ class phemex(Exchange, ImplicitAPI):
         takeProfit = self.safe_dict(params, 'takeProfit')
         hasStopLoss = (stopLoss is not None)
         hasTakeProfit = (takeProfit is not None)
-        isStableSettled = (market['settle'] == 'USDT') or (market['settle'] == 'USDC')
+        marketSettle = self.safe_string(market, 'settle')
+        isStableSettled = (marketSettle == 'USDT') or (marketSettle == 'USDC')
         if clientOrderId is None:
             brokerId = self.safe_string(self.options, 'brokerId', 'CCXT123456')
             if brokerId is not None:
@@ -2885,7 +2889,8 @@ class phemex(Exchange, ImplicitAPI):
         }
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clOrdID')
         paramsOmitted = self.omit(params, ['clientOrderId', 'clOrdID'])
-        isStableSettled = (market['settle'] == 'USDT') or (market['settle'] == 'USDC')
+        marketSettle = self.safe_string(market, 'settle')
+        isStableSettled = (marketSettle == 'USDT') or (marketSettle == 'USDC')
         if clientOrderId is not None:
             request['clOrdID'] = clientOrderId
         else:
@@ -2952,7 +2957,8 @@ class phemex(Exchange, ImplicitAPI):
         else:
             request['orderID'] = id
         response: dict
-        if market['settle'] == 'USDT' or market['settle'] == 'USDC':
+        marketSettle = self.safe_string(market, 'settle')
+        if marketSettle == 'USDT' or marketSettle == 'USDC':
             posSide = self.safe_string(paramsOmitted, 'posSide')
             if posSide is None:
                 request['posSide'] = 'Merged'
@@ -2989,7 +2995,8 @@ class phemex(Exchange, ImplicitAPI):
         if trigger:
             request['untriggerred'] = trigger
         response: dict
-        if market['settle'] == 'USDT' or market['settle'] == 'USDC':
+        marketSettle = self.safe_string(market, 'settle')
+        if marketSettle == 'USDT' or marketSettle == 'USDC':
             response = self.privateDeleteGOrdersAll(self.extend(request, paramsOmitted))
             #
             #    {
@@ -3050,7 +3057,8 @@ class phemex(Exchange, ImplicitAPI):
         else:
             request['orderID'] = id
         response: dict
-        if market['settle'] == 'USDT' or market['settle'] == 'USDC':
+        marketSettle = self.safe_string(market, 'settle')
+        if marketSettle == 'USDT' or marketSettle == 'USDC':
             response = self.privateGetApiDataGFuturesOrdersByOrderId(self.extend(request, paramsOmitted))
         elif market['spot'] is True:
             response = self.privateGetApiDataSpotsOrdersByOrderId(self.extend(request, paramsOmitted))
@@ -3102,8 +3110,9 @@ class phemex(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         response: dict
-        if market['settle'] == 'USDT' or market['settle'] == 'USDC':
-            request['currency'] = market['settle']
+        marketSettle = self.safe_string(market, 'settle')
+        if marketSettle == 'USDT' or marketSettle == 'USDC':
+            request['currency'] = marketSettle
             response = self.privateGetExchangeOrderV2OrderList(self.extend(request, params))
         elif market['swap'] is True:
             response = self.privateGetExchangeOrderList(self.extend(request, params))
@@ -3138,8 +3147,9 @@ class phemex(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         response: dict
+        marketSettle = self.safe_string(market, 'settle')
         try:
-            if market['settle'] == 'USDT' or market['settle'] == 'USDC':
+            if marketSettle == 'USDT' or marketSettle == 'USDC':
                 response = self.privateGetGOrdersActiveList(self.extend(request, params))
             elif market['swap'] is True:
                 response = self.privateGetOrdersActiveList(self.extend(request, params))
@@ -4471,7 +4481,7 @@ class phemex(Exchange, ImplicitAPI):
             minNotional = maxNotional
         return tiers
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
         query = self.omit(params, self.extract_params(path))
         requestPath = '/' + self.implode_params(path, params)
@@ -4546,7 +4556,8 @@ class phemex(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         response: dict
-        if market['settle'] == 'USDT' or market['settle'] == 'USDC':
+        marketSettle = self.safe_string(market, 'settle')
+        if marketSettle == 'USDT' or marketSettle == 'USDC':
             if (not isHedged) and longLeverageRr is None and shortLeverageRr is None:
                 request['leverageRr'] = leverage
             else:
@@ -4772,7 +4783,8 @@ class phemex(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        isUsdtSettled = market['settle'] == 'USDT' or market['settle'] == 'USDC'
+        marketSettle = self.safe_string(market, 'settle')
+        isUsdtSettled = marketSettle == 'USDT' or marketSettle == 'USDC'
         if market['swap'] is not True:
             raise BadRequest(self.id + ' fetchFundingRateHistory() supports swap contracts only')
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
@@ -4939,7 +4951,7 @@ class phemex(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result')
         return self.parse_open_interest(result, market)
 
-    def parse_open_interest(self, interest: object, market: Market = None) -> OpenInterest:
+    def parse_open_interest(self, interest: dict, market: Market = None) -> OpenInterest:
         #
         #    {
         #        closeRp: '67550.1',

@@ -3015,7 +3015,7 @@ public class Tokocrypto extends TokocryptoApi
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
-        if (!((switch ((Object)(((Map<String, Object>)this.urls.get("api")).get("rest"))) { case List<?> j39v3 -> ((Object)(apiName)) != null && j39v3.contains(apiName); case Map<?, ?> j39v2 -> ((Object)(apiName)) instanceof String && j39v2.containsKey(apiName); case null, default -> false; })))
+        if (!((switch ((Object)(((Map<String, Object>)this.urls.get("api")).get("rest"))) { case List<?> j39v2 -> ((Object)(apiName)) != null && j39v2.contains(apiName); case Map<?, ?> j39v1 -> ((Object)(apiName)) instanceof String && j39v1.containsKey(apiName); case null, default -> false; })))
         {
             throw new NotSupported((((this.id + " does not have a testnet/sandbox URL for ") + apiName) + " endpoints")) ;
         }
@@ -3211,16 +3211,16 @@ public class Tokocrypto extends TokocryptoApi
 
     public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
     {
-        if ((config.containsKey("noCoin")) && !((switch ((Object)(parameters)) { case List<?> j39v12 -> j39v12.contains("coin"); case Map<?, ?> j39v11 -> j39v11.containsKey("coin"); case null, default -> false; })))
+        if ((config.containsKey("noCoin")) && !((switch ((Object)(parameters)) { case List<?> j39v10 -> j39v10.contains("coin"); case Map<?, ?> j39v9 -> j39v9.containsKey("coin"); case null, default -> false; })))
         {
             return config.get("noCoin");
-        } else if ((config.containsKey("noSymbol")) && !((switch ((Object)(parameters)) { case List<?> j39v10 -> j39v10.contains("symbol"); case Map<?, ?> j39v9 -> j39v9.containsKey("symbol"); case null, default -> false; })))
+        } else if ((config.containsKey("noSymbol")) && !((switch ((Object)(parameters)) { case List<?> j39v8 -> j39v8.contains("symbol"); case Map<?, ?> j39v7 -> j39v7.containsKey("symbol"); case null, default -> false; })))
         {
             return config.get("noSymbol");
-        } else if ((config.containsKey("noPoolId")) && !((switch ((Object)(parameters)) { case List<?> j39v8 -> j39v8.contains("poolId"); case Map<?, ?> j39v7 -> j39v7.containsKey("poolId"); case null, default -> false; })))
+        } else if ((config.containsKey("noPoolId")) && !((switch ((Object)(parameters)) { case List<?> j39v6 -> j39v6.contains("poolId"); case Map<?, ?> j39v5 -> j39v5.containsKey("poolId"); case null, default -> false; })))
         {
             return config.get("noPoolId");
-        } else if ((config.containsKey("byLimit")) && ((switch ((Object)(parameters)) { case List<?> j39v6 -> j39v6.contains("limit"); case Map<?, ?> j39v5 -> j39v5.containsKey("limit"); case null, default -> false; })))
+        } else if ((config.containsKey("byLimit")) && ((switch ((Object)(parameters)) { case List<?> j39v4 -> j39v4.contains("limit"); case Map<?, ?> j39v3 -> j39v3.containsKey("limit"); case null, default -> false; })))
         {
             Long limit = this.safeInteger(parameters, "limit");
             List<Object> byLimit = (List<Object>) this.safeList(config, "byLimit", new ArrayList<Object>(Arrays.asList()));

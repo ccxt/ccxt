@@ -1020,7 +1020,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
                 {
                     throw new AuthenticationError((this.id + " authenticate() received an empty listenKey")) ;
                 }
-                { Map<Object, Object> j39v5 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v6 = "listenKey"; Object j39v7 = listenKey; if (j39v5 == null) { if (j39v6 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v5) { if (j39v7 == null && j39v5 instanceof java.util.concurrent.ConcurrentHashMap) { j39v5.remove(j39v6); } else { j39v5.put(j39v6, j39v7); } } }
+                Helpers.addElementToObject(this.options, "listenKey", listenKey);
                 Long listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 3600000);
                 this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", (String) (listenKey), parameters);
                 // settle the flight: client.resolve () wakes every waiter and
@@ -1060,7 +1060,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             {
                 String url = this.getPrivateUrl((String) (listenKey));
                 Client client = this.client(url);
-                { Map<Object, Object> j39v8 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v9 = "listenKey"; Object j39v10 = null; if (j39v8 == null) { if (j39v9 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v8) { if (j39v10 == null && j39v8 instanceof java.util.concurrent.ConcurrentHashMap) { j39v8.remove(j39v9); } else { j39v8.put(j39v9, j39v10); } } }
+                Helpers.addElementToObject(this.options, "listenKey", null);
                 client.reject(error);
                 ((Map<String,Object>)this.clients).remove((String)url);
             }

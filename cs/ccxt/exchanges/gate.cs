@@ -2175,7 +2175,7 @@ public partial class gate : Exchange
         //     ]
         //
         List<object> result = new List<object>() {};
-        for (int i = 0; i < (((object)(spotMarketsResponse)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(spotMarketsResponse); i++)
         {
             IDictionary<string, object> spotMarket = this.safeDict(spotMarketsResponse, i, new Dictionary<string, object>() {});
             string? id = this.safeString(spotMarket, "id");
@@ -2259,14 +2259,14 @@ public partial class gate : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         List<object> result = new List<object>() {};
-        object swapSettlementCurrencies = this.getSettlementCurrencies("swap", "fetchMarkets");
+        List<object> swapSettlementCurrencies = this.getSettlementCurrencies("swap", "fetchMarkets");
         if ((this.safeBool(this.options, "sandboxMode", false) == true))
         {
             swapSettlementCurrencies = new List<object>() {"usdt"}; // gate sandbox only has usdt-margined swaps
         }
-        for (int c = 0; c < (((object)(swapSettlementCurrencies)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); c++)
+        for (int c = 0; c < (swapSettlementCurrencies?.Count ?? 0); c++)
         {
-            object settleId = getValue(swapSettlementCurrencies, c);
+            object settleId = swapSettlementCurrencies[c];
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "settle", settleId },
             };
@@ -2292,10 +2292,10 @@ public partial class gate : Exchange
             return ccxt.BaseExchange.ToMarketInterfaceList(new List<object>() {});  // right now sandbox does not have inverse swaps
         }
         List<object> result = new List<object>() {};
-        object futureSettlementCurrencies = this.getSettlementCurrencies("future", "fetchMarkets");
-        for (int c = 0; c < (((object)(futureSettlementCurrencies)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); c++)
+        List<object> futureSettlementCurrencies = this.getSettlementCurrencies("future", "fetchMarkets");
+        for (int c = 0; c < (futureSettlementCurrencies?.Count ?? 0); c++)
         {
-            object settleId = getValue(futureSettlementCurrencies, c);
+            object settleId = futureSettlementCurrencies[c];
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "settle", settleId },
             };
@@ -2844,7 +2844,7 @@ public partial class gate : Exchange
         return new List<object>() {marginMode, paramsUnifiedAccount};
     }
 
-    public virtual object getSettlementCurrencies(string? type, string? method)
+    public virtual List<object> getSettlementCurrencies(string? type, string? method)
     {
         IDictionary<string, object> options = this.safeDict(this.options, type, new Dictionary<string, object>() {}); // [ 'BTC', 'USDT' ] unified codes
         IDictionary<string, object> fetchMarketsContractOptions = this.safeDict(options, method, new Dictionary<string, object>() {});
@@ -3698,7 +3698,7 @@ public partial class gate : Exchange
     public virtual object parseFundingHistories(object response, object symbol, Int64? since, Int64? limit)
     {
         List<object> result = new List<object>() {};
-        for (int i = 0; i < (((object)(response)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(response); i++)
         {
             IDictionary<string, object> entry = this.safeDict(response, i);
             IDictionary<string, object> funding = ((IDictionary<string, object>)this.parseFundingHistory(entry));
@@ -3770,7 +3770,7 @@ public partial class gate : Exchange
             // gateeu returns an empty book for a spot limit above 100
             Int64? maxSpotLimit = this.parseToInt(this.handleOption("fetchOrderBook", "maxSpotLimit", 1000));
             Int64? maxLimit = ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) ? maxSpotLimit : 300;
-            request["limit"] = (((((object)(limit)) is var c31v0) && (((object)(maxLimit)) is var c31v1)) ? (((c31v0 == null) || (c31v1 == null)) ? null : ((Convert.ToDouble(c31v0) < Convert.ToDouble(c31v1)) ? c31v0 : c31v1)) : null);
+            request["limit"] = mathMin(limit, maxLimit);
         }
         request["with_id"] = true;
         Dictionary<string, object> response = null;
@@ -4414,7 +4414,7 @@ public partial class gate : Exchange
         };
         bool isolated = (marginMode == "margin") && (type == "spot");
         object data = response;
-        if ((((object)(data)) switch { null => false, IList<object> c33a => c33a.Contains("balances"), IList<string> c33t => c33t.Contains("balances"), List<Int64> c33g => c33g.Contains((Int64)(object)"balances"), IDictionary<string, object> c33d => c33d.ContainsKey("balances"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("balances"), _ => false }))
+        if (inOp(data, "balances"))
         {
             List<object> flatBalances = new List<object>() {};
             IDictionary<string, object> balances = this.safeDict(data, "balances", new Dictionary<string, object>() {});
@@ -4430,7 +4430,7 @@ public partial class gate : Exchange
             }
             data = flatBalances;
         }
-        for (int i = 0; i < (((object)(data)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(data); i++)
         {
             object entry = getValue(data, i);
             if (isolated)
@@ -4495,7 +4495,7 @@ public partial class gate : Exchange
         IDictionary<string, object> paramsRequest = ((IDictionary<string, object>)requestparamsRequestVariable[1]);
         request["interval"] = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         int maxLimit = ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true)) ? 1999 : 1000;
-        object limitValue = ((limit == null)) ? maxLimit : (((((object)(limit)) is var c31v2) && (((object)(maxLimit)) is var c31v3)) ? (((c31v2 == null) || (c31v3 == null)) ? null : ((Convert.ToDouble(c31v2) < Convert.ToDouble(c31v3)) ? c31v2 : c31v3)) : null);
+        object limitValue = ((limit == null)) ? maxLimit : mathMin(limit, maxLimit);
         Int64? untilMs = this.safeInteger(paramsRequest, "until");
         Int64? until = null;
         if ((untilMs != null))
@@ -4510,10 +4510,10 @@ public partial class gate : Exchange
             object distance = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))((((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(limitValue, 1)), duration);
             object toTimestamp = this.sum(GetValue(request, "from"), distance);
             Int64 currentTimestamp = this.seconds();
-            object to = (((((object)(toTimestamp)) is var c31v4) && (((object)(currentTimestamp)) is var c31v5)) ? (((c31v4 == null) || (c31v5 == null)) ? null : ((Convert.ToDouble(c31v4) < Convert.ToDouble(c31v5)) ? c31v4 : c31v5)) : null);
+            object to = mathMin(toTimestamp, currentTimestamp);
             if ((until != null))
             {
-                request["to"] = (((((object)(to)) is var c31v6) && (((object)(until)) is var c31v7)) ? (((c31v6 == null) || (c31v7 == null)) ? null : ((Convert.ToDouble(c31v6) < Convert.ToDouble(c31v7)) ? c31v6 : c31v7)) : null);
+                request["to"] = mathMin(to, until);
             } else
             {
                 request["to"] = to;
@@ -5833,7 +5833,7 @@ public partial class gate : Exchange
                 useGateFuturesDecimalSize = this.isGateFuturesContractWithDecimalSize(market);
                 if (!useGateFuturesDecimalSize)
                 {
-                    contractAmount = (((Func<object, Int64?>)(static (object hx4pa) => { try { return Convert.ToInt64(Math.Floor(Convert.ToDouble(hx4pa))); } catch (Exception) { return null; } }))(((string)signedAmount)));
+                    contractAmount = parseInt(((string)signedAmount));
                 }
             }
         }
@@ -5863,7 +5863,7 @@ public partial class gate : Exchange
                     request["price"] = "0"; // set to 0 for market orders
                 } else
                 {
-                    request["price"] = ((((object)(priceResolved)) switch { Int64 c33l => c33l == 0, int c33i => c33i == 0, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 0, decimal c33m => c33m == 0, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 0, uint c33u => (Int64)c33u == 0, short c33h => (Int64)c33h == 0, ushort c33v => (Int64)c33v == 0, byte c33y => (Int64)c33y == 0, sbyte c33e => (Int64)c33e == 0, ulong c33z => c33z == 0UL, _ => false })) ? "0" : this.priceToPrecision(symbol, priceResolved);
+                    request["price"] = (isEqual(priceResolved, 0)) ? "0" : this.priceToPrecision(symbol, priceResolved);
                 }
                 if ((reduceOnly != null))
                 {
@@ -5980,7 +5980,7 @@ public partial class gate : Exchange
                     ((IDictionary<string,object>)(request != null && request.ContainsKey("initial") ? request["initial"] : null))["price"] = "0";
                 } else
                 {
-                    ((IDictionary<string,object>)(request != null && request.ContainsKey("initial") ? request["initial"] : null))["price"] = ((((object)(priceResolved)) switch { Int64 c33l => c33l == 0, int c33i => c33i == 0, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 0, decimal c33m => c33m == 0, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 0, uint c33u => (Int64)c33u == 0, short c33h => (Int64)c33h == 0, ushort c33v => (Int64)c33v == 0, byte c33y => (Int64)c33y == 0, sbyte c33e => (Int64)c33e == 0, ulong c33z => c33z == 0UL, _ => false })) ? "0" : this.priceToPrecision(symbol, priceResolved);
+                    ((IDictionary<string,object>)(request != null && request.ContainsKey("initial") ? request["initial"] : null))["price"] = (isEqual(priceResolved, 0)) ? "0" : this.priceToPrecision(symbol, priceResolved);
                 }
                 if ((trigger == null))
                 {
@@ -6857,7 +6857,7 @@ public partial class gate : Exchange
         {
             if ((since != null))
             {
-                request["from"] = this.parseToInt((((((object)(since)) is var c31v8) && (((object)(1000)) is var c31v9)) ? (((c31v8 == null) || (c31v9 == null)) ? null : (object)(Convert.ToDouble(c31v8) / Convert.ToDouble(c31v9))) : null));
+                request["from"] = this.parseToInt(divide(since, 1000));
             }
             Int64? until = this.safeInteger(query, "until");
             if ((until != null))
@@ -8099,7 +8099,7 @@ public partial class gate : Exchange
             throw new BadRequest ((this.id + " fetchLeverageTiers only supports swap and future")) ;
         }
         Int64? requestedLimit = this.safeInteger(requestParams, "limit", 100);
-        object limit = ((requestedLimit == null)) ? 100 : (((((object)(1)) is var c31v12) && (((object)((((((object)(requestedLimit)) is var c31v10) && (((object)(100)) is var c31v11)) ? (((c31v10 == null) || (c31v11 == null)) ? null : ((Convert.ToDouble(c31v10) < Convert.ToDouble(c31v11)) ? c31v10 : c31v11)) : null))) is var c31v13)) ? (((c31v12 == null) || (c31v13 == null)) ? null : ((Convert.ToDouble(c31v12) > Convert.ToDouble(c31v13)) ? c31v12 : c31v13)) : null);
+        Int64? limit = this.parseToInt(((requestedLimit == null)) ? 100 : mathMax(1, mathMin(requestedLimit, 100)));
         object offset = this.safeInteger(requestParams, "offset", 0);
         string? contract = this.safeString(requestParams, "contract", "");
         Dictionary<string, object> paramsOmitted = this.omit(requestParams, new List<object>() {"limit", "offset"});
@@ -8128,7 +8128,7 @@ public partial class gate : Exchange
             tiers = this.extend(tiers, grouped);
             List<object> contracts = new List<object>(grouped.Keys);
             int numContracts = contracts.Count;
-            if ((contract != "") || (((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } bool c32Int(object v) { Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } bool c32Eq(object x, object y) { if (x == null && y == null) return true; if (x == null || y == null) return false; try { if (x.GetType() != y.GetType() && (!Double.TryParse(x.ToString(), out _) || !Double.TryParse(y.ToString(), out _))) return false; if (c32Int(x) && c32Int(y)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(decimal) || y.GetType() == typeof(decimal)) return Convert.ToDecimal(x) == Convert.ToDecimal(y); if (x.GetType() == typeof(int)) return (int)x == (int)y; if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) == Convert.ToDouble(y); if (x.GetType() == typeof(Single) || y.GetType() == typeof(Single)) return Convert.ToSingle(x) == Convert.ToSingle(y); if (x.GetType() == typeof(string)) return ((string)x) == ((string)y); if (x.GetType() == typeof(bool)) return ((bool)x) == ((bool)y); return false; } catch { return false; } } return !c32Gt(c32a, c32b) && !c32Eq(c32a, c32b); }))(numContracts, limit)))
+            if ((contract != "") || ((numContracts < limit)))
             {
                 break;
             }
@@ -8238,7 +8238,7 @@ public partial class gate : Exchange
         }
         object minNotional = 0;
         List<object> tiers = new List<object>() {};
-        for (int i = 0; i < (((object)(info)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(info); i++)
         {
             IDictionary<string, object> item = this.safeDict(info, i);
             double? maxNotional = this.safeNumber(item, "risk_limit");
@@ -9401,10 +9401,10 @@ public partial class gate : Exchange
         Int64? timestamp = null;
         if (rawTimestamp.Length > 10)
         {
-            timestamp = (((Func<object, Int64?>)(static (object hx4pa) => { try { return Convert.ToInt64(Math.Floor(Convert.ToDouble(hx4pa))); } catch (Exception) { return null; } }))(rawTimestamp));
+            timestamp = parseInt(rawTimestamp);
         } else
         {
-            timestamp = ((((Func<object, Int64?>)(static (object hx4pa) => { try { return Convert.ToInt64(Math.Floor(Convert.ToDouble(hx4pa))); } catch (Exception) { return null; } }))(rawTimestamp)) * 1000);
+            timestamp = (parseInt(rawTimestamp) * 1000);
         }
         string? balanceString = this.safeString(item, "balance");
         string? changeString = this.safeString(item, "change");

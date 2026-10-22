@@ -93,7 +93,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 String messageHash = ((channel + ":") + symbol);
                 ((List<Object>)messageHashes).add(messageHash);
-                if (!((switch ((Object)(subscriptions)) { case List<?> j39v4 -> ((Object)(messageHash)) != null && j39v4.contains(messageHash); case Map<?, ?> j39v3 -> ((Object)(messageHash)) instanceof String && j39v3.containsKey(messageHash); case null, default -> false; })))
+                if (!((switch ((Object)(subscriptions)) { case List<?> j39v3 -> ((Object)(messageHash)) != null && j39v3.contains(messageHash); case Map<?, ?> j39v2 -> ((Object)(messageHash)) instanceof String && j39v2.containsKey(messageHash); case null, default -> false; })))
                 {
                     HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
                     mapLiteral1.put("type", channel);
@@ -104,7 +104,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             List<Object> finalMessage = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
         put( "ticket", Upbit.this.uuid() );
     }}));
-            List<Object> channelKeys = ((List<Object>) switch ((Object)(subscriptions)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            List<Object> channelKeys = ((List<Object>) switch ((Object)(subscriptions)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
             for (var i = 0; i < ((List<?>)channelKeys).size(); i++)
             {
                 Object key = (channelKeys == null || i < 0 || i >= channelKeys.size() ? null : channelKeys.get(i));
@@ -450,7 +450,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         put( "authorization", ("Bearer " + token) );
     }} );
 }});
-            { Map<Object, Object> j39v6 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v7 = "ws"; Object j39v8 = wsOptions; if (j39v6 == null) { if (j39v7 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v6) { if (j39v8 == null && j39v6 instanceof java.util.concurrent.ConcurrentHashMap) { j39v6.remove(j39v7); } else { j39v6.put(j39v7, j39v8); } } }
+            Helpers.addElementToObject(this.options, "ws", wsOptions);
         }
     }
 
@@ -494,7 +494,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
                 channelKey = ((channel + ":") + symbolResolved);
             }
             Object subscriptions = Helpers.GetValue(client.subscriptions, subscriptionsKey);
-            Boolean isNewChannel = !((switch ((Object)(subscriptions)) { case List<?> j39v11 -> ((Object)(channelKey)) != null && j39v11.contains(channelKey); case Map<?, ?> j39v10 -> ((Object)(channelKey)) instanceof String && j39v10.containsKey(channelKey); case null, default -> false; }));
+            Boolean isNewChannel = !((switch ((Object)(subscriptions)) { case List<?> j39v6 -> ((Object)(channelKey)) != null && j39v6.contains(channelKey); case Map<?, ?> j39v5 -> ((Object)(channelKey)) instanceof String && j39v5.containsKey(channelKey); case null, default -> false; }));
             if (Boolean.TRUE.equals(isNewChannel))
             {
                 Helpers.addElementToObject(subscriptions, channelKey, request);
@@ -502,7 +502,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             // Build subscription message with all requested private channels
             // Format: [{'ticket': uuid}, {'type': 'myOrder'}, {'type': 'myAsset'}, ...]
             List<Object> requests = new ArrayList<Object>(Arrays.asList());
-            List<Object> channelKeys = ((List<Object>) switch ((Object)(subscriptions)) { case Map<?, ?> j39v9 -> { synchronized (j39v9) { yield new ArrayList<Object>(j39v9.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            List<Object> channelKeys = ((List<Object>) switch ((Object)(subscriptions)) { case Map<?, ?> j39v4 -> { synchronized (j39v4) { yield new ArrayList<Object>(j39v4.keySet()); } } case null, default -> new ArrayList<Object>(); });
             for (var i = 0; i < ((List<?>)channelKeys).size(); i++)
             {
                 ((List<Object>)requests).add(Helpers.GetValue(subscriptions, (channelKeys == null || i < 0 || i >= channelKeys.size() ? null : channelKeys.get(i))));

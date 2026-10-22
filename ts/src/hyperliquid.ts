@@ -4898,7 +4898,7 @@ export default class hyperliquid extends Exchange {
             const record = records[i];
             if (this.safeString (record, 'type') === 'vaultDeposit') {
                 const delta = this.safeDict (record, 'delta', {});
-                if (delta['vault'] === '0x' + vaultAddress) {
+                if (this.safeString (delta, 'vault') === '0x' + vaultAddress) {
                     deposits.push (record);
                 }
             }
@@ -4969,7 +4969,7 @@ export default class hyperliquid extends Exchange {
             const record = records[i];
             if (this.safeString (record, 'type') === 'vaultWithdraw') {
                 const delta = this.safeDict (record, 'delta', {});
-                if (delta['vault'] === '0x' + vaultAddress) {
+                if (this.safeString (delta, 'vault') === '0x' + vaultAddress) {
                     withdrawals.push (record);
                 }
             }
@@ -5018,7 +5018,7 @@ export default class hyperliquid extends Exchange {
         return openInterest as OpenInterest;
     }
 
-    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
+    override parseOpenInterest (interest: NullableDict, market: Market = undefined): OpenInterest {
         //
         //  {
         //      szDecimals: '2',
@@ -5305,7 +5305,7 @@ export default class hyperliquid extends Exchange {
         return undefined;
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
         const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {

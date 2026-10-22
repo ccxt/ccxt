@@ -1706,7 +1706,7 @@ public partial class bittrade : Exchange
         {
             // pick the first account
             await this.loadAccounts();
-            for (int i = 0; i < (((object)(this.accounts)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+            for (int i = 0; i < getArrayLength(this.accounts); i++)
             {
                 IDictionary<string, object> account = ((IDictionary<string, object>)getValue(this.accounts, i));
                 if ((this.safeString(account, "type") == "spot"))

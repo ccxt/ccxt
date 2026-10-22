@@ -1428,7 +1428,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             String timeframeId = this.safeString(parts, 0);
             String timeframe = this.findTimeframe(timeframeId, (Object) null);
             String prefix = (timeframe + "_");
-            String marketId = ((java.util.function.Function<Object, java.util.function.BiFunction<Object, Object, String>>) hx4J43a0 -> (hx4J43b0, hx4J43c0) -> { if (hx4J43a0 == null) { return null; } String hx4J43a0s = String.valueOf(hx4J43a0); String hx4J43a0f = (hx4J43b0 == null) ? "" : String.valueOf(hx4J43b0); String hx4J43a0r = (hx4J43c0 == null) ? "" : String.valueOf(hx4J43c0); return hx4J43a0s.replaceFirst(java.util.regex.Pattern.quote(hx4J43a0f), java.util.regex.Matcher.quoteReplacement(hx4J43a0r)); }).apply(subscription).apply((String)prefix, (String)"");
+            String marketId = Helpers.replace(subscription, (String)prefix, (String)"");
             String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, "_", marketType);
             List<Object> parsed = (List<Object>) this.parseOHLCV(ohlcv, (Map<String, Object>) null);
             Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
@@ -1805,7 +1805,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         {
             this.positions = new HashMap<String, Object>() {{}};
         }
-        if ((switch ((Object)(this.positions)) { case List<?> j39v13 -> ((Object)(type)) != null && j39v13.contains(type); case Map<?, ?> j39v12 -> ((Object)(type)) instanceof String && j39v12.containsKey(type); case null, default -> false; }))
+        if ((switch ((Object)(this.positions)) { case List<?> j39v11 -> ((Object)(type)) != null && j39v11.contains(type); case Map<?, ?> j39v10 -> ((Object)(type)) instanceof String && j39v10.containsKey(type); case null, default -> false; }))
         {
             return;
         }
@@ -2513,7 +2513,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         // }
         //
         String id = this.safeString(message, "id");
-        List<Object> keys = ((List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v20 -> { synchronized (j39v20) { yield new ArrayList<Object>(j39v20.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> keys = ((List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v12 -> { synchronized (j39v12) { yield new ArrayList<Object>(j39v12.keySet()); } } case null, default -> new ArrayList<Object>(); });
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object messageHash = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
@@ -2766,7 +2766,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         Long reqid;
         synchronized (this) {
         reqid = (Long) this.sum(this.safeInteger(this.options, "reqid", 0), 1);
-        { Map<Object, Object> j39v26 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v27 = "reqid"; Object j39v28 = reqid; if (j39v26 == null) { if (j39v27 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v26) { if (j39v28 == null && j39v26 instanceof java.util.concurrent.ConcurrentHashMap) { j39v26.remove(j39v27); } else { j39v26.put(j39v27, j39v28); } } }
+        Helpers.addElementToObject(this.options, "reqid", reqid);
         }
         return reqid;
     }

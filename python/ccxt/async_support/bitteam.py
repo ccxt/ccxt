@@ -2362,7 +2362,7 @@ class bitteam(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
         request = self.omit(params, self.extract_params(path))
         endpoint = '/' + self.implode_params(path, params)

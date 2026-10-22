@@ -1674,7 +1674,7 @@ impl WooCore {
         let mut inverse: Value = Value::Null;
         let mut margin: Value = Value::Bool(true);
         let mut contract: Value = swap.clone();
-        if contract.is_truthy() {
+        if is_true(&contract) {
             margin = Value::Bool(false);
             settleId = self.safe_string(parts, Value::Int(2), &[]);
             settle = self.safe_currency_code(settleId.clone(), &[]);
@@ -2040,7 +2040,7 @@ impl WooCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1154: bool = true;
-            while { if !__for_first_1154 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1154 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
+            while { if !__for_first_1154 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1154 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
             let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2162,7 +2162,7 @@ impl WooCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1155: bool = true;
-            while { if !__for_first_1155 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1155 = false; i.as_f64().unwrap_or(f64::NAN) < ((currencyIds.len() as i64) as f64) } {
+            while { if !__for_first_1155 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1155 = false; i.as_f64().unwrap_or(f64::NAN) < ((currencyIds.len() as i64) as f64) } {
             let mut id: Value = currencyIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut customCurrency: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2196,7 +2196,7 @@ impl WooCore {
         {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_1156: bool = true;
-            while { if !__for_first_1156 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1156 = false; j.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
+            while { if !__for_first_1156 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1156 = false; j.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut networkId: Value = keys.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut tokenEntry: Value = self.safe_dict(tokensByNetworkId.clone(), networkId.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3547,7 +3547,7 @@ impl WooCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1157: bool = true;
-            while { if !__for_first_1157 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1157 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
+            while { if !__for_first_1157 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1157 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
             let mut row: Value = rows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(row.clone(), "symbol", &[]);
             if (marketId == Value::Null) {
@@ -3949,7 +3949,7 @@ impl WooCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1158: bool = true;
-            while { if !__for_first_1158 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1158 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
+            while { if !__for_first_1158 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1158 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
             let mut balance: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
             let mut code: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "token", &[]), &[]);
             let mut account: Value = self.account();
@@ -4237,7 +4237,7 @@ impl WooCore {
         if (currency != Value::Null) {
             return currency;
         }  else {
-            let mut parts: Value = ({ let __r31a: &Value = &networkizedCode; let __r31d: &Value = &Value::Str("_".into()); match (__r31a, __r31d) { (Value::Str(__s), Value::Str(__d)) => Value::Array(__s.split(__d.as_ref()).map(|__x| Value::Str(__x.to_string().into())).collect()), _ => Value::Array(vec![]) } });
+            let mut parts: Value = split(&networkizedCode, &Value::Str("_".into()));
             let mut partsLength: Value = parts.as_array().map_or(Value::Int(0), |__a| Value::Int(__a.len() as i64));
             let mut firstPart: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);
             let mut currencyId: Value = self.safe_string(parts.clone(), Value::Int(1), &[firstPart]);
@@ -5292,7 +5292,7 @@ impl WooCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1159: bool = true;
-            while { if !__for_first_1159 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1159 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
+            while { if !__for_first_1159 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1159 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
             let mut entry: Value = rows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "fundingRateTimestamp", &[]);
@@ -5410,7 +5410,7 @@ impl WooCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1160: bool = true;
-            while { if !__for_first_1160 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1160 = false; i.as_f64().unwrap_or(f64::NAN) < ((details.len() as i64) as f64) } {
+            while { if !__for_first_1160 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1160 = false; i.as_f64().unwrap_or(f64::NAN) < ((details.len() as i64) as f64) } {
             let mut position: Value = self.safe_dict(details.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6145,7 +6145,7 @@ impl WooCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1161: bool = true;
-            while { if !__for_first_1161 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1161 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            while { if !__for_first_1161 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1161 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut entry: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut id: Value = self.safe_string_k(entry.clone(), "token", &[]);
             let mut code: Value = self.safe_currency_code(id.clone(), &[]);
@@ -6320,7 +6320,7 @@ impl WooCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1162: bool = true;
-            while { if !__for_first_1162 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1162 = false; i.as_f64().unwrap_or(f64::NAN) < ((networkKeys.len() as i64) as f64) } {
+            while { if !__for_first_1162 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1162 = false; i.as_f64().unwrap_or(f64::NAN) < ((networkKeys.len() as i64) as f64) } {
             let mut network: Value = networkKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             if (network.as_str() == Some("ERC20")) {
                 return network.as_str().map(str::to_owned);

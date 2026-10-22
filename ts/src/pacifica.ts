@@ -3058,7 +3058,7 @@ export default class pacifica extends Exchange {
         return oi as OpenInterest;
     }
 
-    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
+    override parseOpenInterest (interest: NullableDict, market: Market = undefined): OpenInterest {
         //
         //     {
         //       "funding": "0.00010529",
@@ -3693,7 +3693,7 @@ export default class pacifica extends Exchange {
         return undefined;
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         let requestBody: Str = undefined;
         const isTestnet = this.isSandboxModeEnabled;
         let urlKey: Str = 'api';

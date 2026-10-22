@@ -331,12 +331,7 @@ class bingx extends \ccxt\async\bingx {
         // Coin-M m is coin volume; v is contracts and q is already USD turnover.
         // prefer the caller's stream-derived flag so an unresolved market id on
         // the Coin-M endpoint does not silently fall back to the contract count
-        $inverse = false;
-        if ($isInverse === null) {
-            $inverse = $marketResolved['inverse'] === true;
-        } else {
-            $inverse = $isInverse;
-        }
+        $inverse = ($isInverse === true) || (($isInverse === null) && ($marketResolved['inverse'] === true));
         $baseVolumeKey = $inverse ? 'm' : 'v';
         return $this->safe_ticker(array(
             'symbol' => $marketResolved['symbol'],

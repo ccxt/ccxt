@@ -304,8 +304,8 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
                 Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
                 String symbol = (String) market.get("symbol");
                 Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) ((trades == null || i < 0 || i >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(i))), market);
-                { Map<Object, Object> j39v4 = (Map<Object, Object>) (Map<?, ?>) (trade); Object j39v5 = "timestamp"; Object j39v6 = timestamp; if (j39v4 == null) { if (j39v5 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v4) { if (j39v6 == null && j39v4 instanceof java.util.concurrent.ConcurrentHashMap) { j39v4.remove(j39v5); } else { j39v4.put(j39v5, j39v6); } } }
-                { Map<Object, Object> j39v1 = (Map<Object, Object>) (Map<?, ?>) (trade); Object j39v2 = "datetime"; Object j39v3 = this.iso8601(timestamp); if (j39v1 == null) { if (j39v2 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v1) { if (j39v3 == null && j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); } else { j39v1.put(j39v2, j39v3); } } }
+                Helpers.addElementToObject(trade, "timestamp", timestamp);
+                Helpers.addElementToObject(trade, "datetime", this.iso8601(timestamp));
                 io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
                 if (java.util.Objects.equals(stored, null))
                 {
@@ -404,7 +404,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         String type = this.safeString(message, "type", "");
         String timeframeIdFull = (type == null ? null : ((String)type).substring(Math.min(8, ((String)type).length())));
         Object timeframeEndIndex = ((String)timeframeIdFull).indexOf("_");
-        String timeframeId = ((java.util.function.Function<Object[], String>) (hx4J41a) -> { if (hx4J41a[0] == null) return null; String hx4J41s = (String) hx4J41a[0]; java.util.function.ToIntFunction<Object> hx4J41i = (hx4J41o) -> (hx4J41o instanceof Integer hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Long hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Double hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Float hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof java.math.BigDecimal hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof String hx4J41n) ? Integer.parseInt(hx4J41n) : Integer.parseInt(String.valueOf(hx4J41o)); int hx4J41b = (hx4J41a[1] != null) ? hx4J41i.applyAsInt(hx4J41a[1]) : -1; if (hx4J41a[2] == null) { if (hx4J41b < 0) return hx4J41s.substring(Math.max(hx4J41s.length() + hx4J41b, 0)); if (hx4J41b > hx4J41s.length()) return ""; return hx4J41s.substring(hx4J41b); } int hx4J41e = hx4J41i.applyAsInt(hx4J41a[2]); if (hx4J41b < 0) hx4J41b = hx4J41s.length() + hx4J41b; if (hx4J41e < 0) hx4J41e = hx4J41s.length() + hx4J41e; if (hx4J41b < 0) hx4J41b = 0; if (hx4J41e > hx4J41s.length()) hx4J41e = hx4J41s.length(); if (hx4J41b > hx4J41e) hx4J41b = hx4J41e; return hx4J41s.substring(hx4J41b, hx4J41e); }).apply(new Object[] { timeframeIdFull, 0, timeframeEndIndex });
+        String timeframeId = Helpers.slice(timeframeIdFull, 0, timeframeEndIndex);
         String marketId = this.safeString(message, "symbol", "").toLowerCase();
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
@@ -1138,11 +1138,12 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
                 return null;
             }
             this.checkRequiredCredentials(true);
-            Integer startIndex = (switch ((Object)(((Map<String, Object>)this.urls.get("api")).get("ws"))) { case null -> 0; case List<?> j39v11 -> j39v11.size(); case String j39v12 -> j39v12.length(); case Object j39v13 -> j39v13.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v13) : 0; });
+            String wsBaseUrl = this.safeString(this.urls.get("api"), "ws", "");
+            Integer startIndex = wsBaseUrl.length();
             Object urlParamsIndex = ((String)url).indexOf("?");
             Object urlLength = url.length();
             Object endIndex = ((((((Integer) urlParamsIndex) >= 0)))) ? urlParamsIndex : urlLength;
-            String request = ((java.util.function.Function<Object[], String>) (hx4J41a) -> { if (hx4J41a[0] == null) return null; String hx4J41s = (String) hx4J41a[0]; java.util.function.ToIntFunction<Object> hx4J41i = (hx4J41o) -> (hx4J41o instanceof Integer hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Long hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Double hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Float hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof java.math.BigDecimal hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof String hx4J41n) ? Integer.parseInt(hx4J41n) : Integer.parseInt(String.valueOf(hx4J41o)); int hx4J41b = (hx4J41a[1] != null) ? hx4J41i.applyAsInt(hx4J41a[1]) : -1; if (hx4J41a[2] == null) { if (hx4J41b < 0) return hx4J41s.substring(Math.max(hx4J41s.length() + hx4J41b, 0)); if (hx4J41b > hx4J41s.length()) return ""; return hx4J41s.substring(hx4J41b); } int hx4J41e = hx4J41i.applyAsInt(hx4J41a[2]); if (hx4J41b < 0) hx4J41b = hx4J41s.length() + hx4J41b; if (hx4J41e < 0) hx4J41e = hx4J41s.length() + hx4J41e; if (hx4J41b < 0) hx4J41b = 0; if (hx4J41e > hx4J41s.length()) hx4J41e = hx4J41s.length(); if (hx4J41b > hx4J41e) hx4J41b = hx4J41e; return hx4J41s.substring(hx4J41b, hx4J41e); }).apply(new Object[] { url, startIndex, endIndex });
+            String request = Helpers.slice(url, startIndex, endIndex);
             Map<String, Object> payload = new HashMap<String, Object>() {{
                 put( "request", request );
                 put( "nonce", Gemini.this.incrementingNonce() );

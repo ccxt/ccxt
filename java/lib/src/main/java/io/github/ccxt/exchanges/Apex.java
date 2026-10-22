@@ -617,7 +617,7 @@ public class Apex extends ApexApi
             // }
             List<Object> rows = (List<Object>) this.safeList(spotConfig, "assets", new ArrayList<Object>(Arrays.asList()));
             List<Object> chains = (List<Object>) this.safeList(multiChain, "chains", new ArrayList<Object>(Arrays.asList()));
-            { Map<Object, Object> j39v1 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v2 = "_temp_currencies_chains"; Object j39v3 = chains; if (j39v1 == null) { if (j39v2 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v1) { if (j39v3 == null && j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); } else { j39v1.put(j39v2, j39v3); } } }
+            Helpers.addElementToObject(this.options, "_temp_currencies_chains", chains);
             Object result = this.parseCurrencies(rows);
             ((Map<String,Object>)this.options).remove("_temp_currencies_chains");
             return result;
@@ -632,7 +632,7 @@ public class Apex extends ApexApi
         String name = this.safeString(currency, "displayName");
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         Object chains = this.options.get("_temp_currencies_chains");
-        for (var j = 0; j < (switch ((Object)(chains)) { case null -> 0; case List<?> j39v4 -> j39v4.size(); case String j39v5 -> j39v5.length(); case Object j39v6 -> j39v6.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v6) : 0; }); j++)
+        for (var j = 0; j < (switch ((Object)(chains)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); j++)
         {
             Map<String, Object> chain = (Map<String, Object>) this.safeDict(chains, j, (Object) null);
             List<Object> tokens = (List<Object>) this.safeList(chain, "tokens", new ArrayList<Object>(Arrays.asList()));
@@ -1487,7 +1487,7 @@ public class Apex extends ApexApi
                 if ((!java.util.Objects.equals(marketsById, null)) && (marketsById.containsKey(newMarketId)))
                 {
                     Object markets = (marketsById == null || newMarketId == null ? null : marketsById.get(newMarketId));
-                    Integer numMarkets = (switch ((Object)(markets)) { case null -> 0; case List<?> j39v10 -> j39v10.size(); case String j39v11 -> j39v11.length(); case Object j39v12 -> j39v12.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v12) : 0; });
+                    Integer numMarkets = (switch ((Object)(markets)) { case null -> 0; case List<?> j39v4 -> j39v4.size(); case String j39v5 -> j39v5.length(); case Object j39v6 -> j39v6.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v6) : 0; });
                     if ((numMarkets != null && numMarkets > 0))
                     {
                         if (java.util.Objects.equals(Helpers.GetValue(Helpers.GetValue(markets, 0), "id2"), marketId))
@@ -1522,7 +1522,7 @@ public class Apex extends ApexApi
         String symbolChar = this.safeString(symbol, ((((Number) index).longValue()) - 1L));
         if ((((Integer) index) > 0) && !java.util.Objects.equals(symbolChar, "-"))
         {
-            return ((((java.util.function.Function<Object[], String>) (hx4J41a) -> { if (hx4J41a[0] == null) return null; String hx4J41s = (String) hx4J41a[0]; java.util.function.ToIntFunction<Object> hx4J41i = (hx4J41o) -> (hx4J41o instanceof Integer hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Long hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Double hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Float hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof java.math.BigDecimal hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof String hx4J41n) ? Integer.parseInt(hx4J41n) : Integer.parseInt(String.valueOf(hx4J41o)); int hx4J41b = (hx4J41a[1] != null) ? hx4J41i.applyAsInt(hx4J41a[1]) : -1; if (hx4J41a[2] == null) { if (hx4J41b < 0) return hx4J41s.substring(Math.max(hx4J41s.length() + hx4J41b, 0)); if (hx4J41b > hx4J41s.length()) return ""; return hx4J41s.substring(hx4J41b); } int hx4J41e = hx4J41i.applyAsInt(hx4J41a[2]); if (hx4J41b < 0) hx4J41b = hx4J41s.length() + hx4J41b; if (hx4J41e < 0) hx4J41e = hx4J41s.length() + hx4J41e; if (hx4J41b < 0) hx4J41b = 0; if (hx4J41e > hx4J41s.length()) hx4J41e = hx4J41s.length(); if (hx4J41b > hx4J41e) hx4J41b = hx4J41e; return hx4J41s.substring(hx4J41b, hx4J41e); }).apply(new Object[] { symbol, 0, index }) + "-") + ((java.util.function.Function<Object[], String>) (hx4J41a) -> { if (hx4J41a[0] == null) return null; String hx4J41s = (String) hx4J41a[0]; java.util.function.ToIntFunction<Object> hx4J41i = (hx4J41o) -> (hx4J41o instanceof Integer hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Long hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Double hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Float hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof java.math.BigDecimal hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof String hx4J41n) ? Integer.parseInt(hx4J41n) : Integer.parseInt(String.valueOf(hx4J41o)); int hx4J41b = (hx4J41a[1] != null) ? hx4J41i.applyAsInt(hx4J41a[1]) : -1; if (hx4J41a[2] == null) { if (hx4J41b < 0) return hx4J41s.substring(Math.max(hx4J41s.length() + hx4J41b, 0)); if (hx4J41b > hx4J41s.length()) return ""; return hx4J41s.substring(hx4J41b); } int hx4J41e = hx4J41i.applyAsInt(hx4J41a[2]); if (hx4J41b < 0) hx4J41b = hx4J41s.length() + hx4J41b; if (hx4J41e < 0) hx4J41e = hx4J41s.length() + hx4J41e; if (hx4J41b < 0) hx4J41b = 0; if (hx4J41e > hx4J41s.length()) hx4J41e = hx4J41s.length(); if (hx4J41b > hx4J41e) hx4J41b = hx4J41e; return hx4J41s.substring(hx4J41b, hx4J41e); }).apply(new Object[] { symbol, index, null }));
+            return ((Helpers.slice(symbol, 0, index) + "-") + Helpers.slice(symbol, index, null));
         }
         return symbol;
     }
@@ -1546,7 +1546,7 @@ public class Apex extends ApexApi
             if (java.util.Objects.equals(accountId, "0"))
             {
                 Object accountData = (this.fetchAccount(new HashMap<String, Object>() {{}})).join();
-                { Map<Object, Object> j39v13 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v14 = "accountId"; Object j39v15 = this.safeString(accountData, "id", "0"); if (j39v13 == null) { if (j39v14 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v13) { if (j39v15 == null && j39v13 instanceof java.util.concurrent.ConcurrentHashMap) { j39v13.remove(j39v14); } else { j39v13.put(j39v14, j39v15); } } }
+                Helpers.addElementToObject(this.options, "accountId", this.safeString(accountData, "id", "0"));
             }
             return this.safeString(this.options, "accountId");
         }).thenApply(res -> (String) res);

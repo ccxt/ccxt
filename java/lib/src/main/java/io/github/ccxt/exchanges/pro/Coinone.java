@@ -481,7 +481,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-                if (((java.util.function.ToIntBiFunction<Object, Object>) (hx4J41s, hx4J41t) -> (hx4J41s instanceof List<?> hx4J41l) ? hx4J41l.indexOf(hx4J41t) : (hx4J41s instanceof String hx4J41x && hx4J41t instanceof String hx4J41y) ? hx4J41x.indexOf(hx4J41y) : -1).applyAsInt(topic, (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i))) >= 0)
+                if (Helpers.getIndexOf(topic, (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i))) >= 0)
                 {
                     Object method = (methods == null || key == null ? null : methods.get(key));
                     Helpers.callDynamically(this, method, new Object[] {client, message});

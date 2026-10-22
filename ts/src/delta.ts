@@ -3075,7 +3075,7 @@ export default class delta extends Exchange {
         return this.parseOpenInterest (result, market);
     }
 
-    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
+    override parseOpenInterest (interest: NullableDict, market: Market = undefined): OpenInterest {
         //
         //     {
         //         "close": 894.0,
@@ -4183,7 +4183,7 @@ export default class delta extends Exchange {
         } as ADL;
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
         const requestPath = '/' + this.version + '/' + this.implodeParams (path, params);
         const apiUrl = this.safeString (this.urls['api'], apiName);

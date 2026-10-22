@@ -613,7 +613,7 @@ public class Bigone extends BigoneApi
         String name = this.safeString(rawCurrency, "name");
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         List<Object> chains = (List<Object>) this.safeList(rawCurrency, "binding_gateways", new ArrayList<Object>(Arrays.asList()));
-        Object currencyMaxPrecision = this.parsePrecision(this.safeString2(rawCurrency, "withdrawal_scale", "scale"));
+        String currencyMaxPrecision = (String) this.parsePrecision(this.safeString2(rawCurrency, "withdrawal_scale", "scale"));
         for (var j = 0; j < ((List<?>)chains).size(); j++)
         {
             Object chain = (chains == null || j < 0 || j >= chains.size() ? null : chains.get(j));
@@ -624,7 +624,7 @@ public class Bigone extends BigoneApi
             String minDepositAmount = this.safeString(chain, "min_deposit_amount");
             String minWithdrawalAmount = this.safeString(chain, "min_withdrawal_amount");
             String withdrawalFee = this.safeString(chain, "withdrawal_fee");
-            Object precision = this.parsePrecision(this.safeString2(chain, "withdrawal_scale", "scale"));
+            String precision = (String) this.parsePrecision(this.safeString2(chain, "withdrawal_scale", "scale"));
             if (!java.util.Objects.equals(networkCode, null))
             {
                 HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
@@ -1236,7 +1236,7 @@ public class Bigone extends BigoneApi
 
     public Object parseContractBidsAsks(Object bidsAsks)
     {
-        List<Object> bidsAsksKeys = ((List<Object>) switch ((Object)(bidsAsks)) { case Map<?, ?> j39v4 -> { synchronized (j39v4) { yield new ArrayList<Object>(j39v4.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> bidsAsksKeys = ((List<Object>) switch ((Object)(bidsAsks)) { case Map<?, ?> j39v3 -> { synchronized (j39v3) { yield new ArrayList<Object>(j39v3.keySet()); } } case null, default -> new ArrayList<Object>(); });
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)bidsAsksKeys).size(); i++)
         {
@@ -2263,7 +2263,7 @@ public class Bigone extends BigoneApi
         Map<String, Object> headersValue = new HashMap<String, Object>() {{}};
         if (java.util.Objects.equals(apiName, "public") || java.util.Objects.equals(apiName, "webExchange") || java.util.Objects.equals(apiName, "contractPublic"))
         {
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v6 -> { synchronized (j39v6) { yield new ArrayList<Object>(j39v6.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v5 -> { synchronized (j39v5) { yield new ArrayList<Object>(j39v5.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
@@ -2280,7 +2280,7 @@ public class Bigone extends BigoneApi
             headersValue.put("Authorization", ("Bearer " + token));
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
-                if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v5 -> { synchronized (j39v5) { yield new ArrayList<Object>(j39v5.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+                if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v4 -> { synchronized (j39v4) { yield new ArrayList<Object>(j39v4.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
                 {
                     url = (url + ("?" + this.urlencode(query)));
                 }

@@ -83,7 +83,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         synchronized (this) {
         Long previousValue = this.safeInteger(this.options, "requestId", 0);
         newValue = (Long) this.sum(previousValue, 1);
-        { Map<Object, Object> j39v1 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v2 = "requestId"; Object j39v3 = newValue; if (j39v1 == null) { if (j39v2 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v1) { if (j39v3 == null && j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); } else { j39v1.put(j39v2, j39v3); } } }
+        Helpers.addElementToObject(this.options, "requestId", newValue);
         }
         return newValue;
     }
@@ -560,7 +560,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         for (var i = 0; i < ((List<?>)rawTrades).size(); i++)
         {
             Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) ((rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i))), market);
-            { Map<Object, Object> j39v4 = (Map<Object, Object>) (Map<?, ?>) (trade); Object j39v5 = "symbol"; Object j39v6 = symbol; if (j39v4 == null) { if (j39v5 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v4) { if (j39v6 == null && j39v4 instanceof java.util.concurrent.ConcurrentHashMap) { j39v4.remove(j39v5); } else { j39v4.put(j39v5, j39v6); } } }
+            Helpers.addElementToObject(trade, "symbol", symbol);
             stored.append(trade);
         }
         Helpers.addElementToObject(this.trades, symbol, stored);

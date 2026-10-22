@@ -4459,7 +4459,7 @@ class whitebit extends Exchange {
         return $this->milliseconds() - $this->safe_integer($this->options, 'timeDifference', 0);
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $query = $this->omit($params, $this->extract_params($path));
         $version = $this->safe_string($api, 0, '');
         $accessibility = $this->safe_string($api, 1);

@@ -1207,7 +1207,7 @@ class bitbns(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: str, api: list[str] = ['www'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['www'], method: str = 'GET', params: dict = {}) -> dict:
         urls = self.urls
         apiName = api[0]
         if not (apiName in urls['api']):

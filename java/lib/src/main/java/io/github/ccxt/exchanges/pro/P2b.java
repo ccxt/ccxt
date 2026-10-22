@@ -630,13 +630,13 @@ public class P2b extends io.github.ccxt.exchanges.P2b
 
     public void onError(Client client, Object error)
     {
-        { Map<Object, Object> j39v4 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v5 = "tickerSubs"; Object j39v6 = this.createSafeDictionary(); if (j39v4 == null) { if (j39v5 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v4) { if (j39v6 == null && j39v4 instanceof java.util.concurrent.ConcurrentHashMap) { j39v4.remove(j39v5); } else { j39v4.put(j39v5, j39v6); } } }
+        Helpers.addElementToObject(this.options, "tickerSubs", this.createSafeDictionary());
         super.onError(client, error);
     }
 
     public void onClose(Client client, Object error)
     {
-        { Map<Object, Object> j39v7 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v8 = "tickerSubs"; Object j39v9 = this.createSafeDictionary(); if (j39v7 == null) { if (j39v8 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v7) { if (j39v9 == null && j39v7 instanceof java.util.concurrent.ConcurrentHashMap) { j39v7.remove(j39v8); } else { j39v7.put(j39v8, j39v9); } } }
+        Helpers.addElementToObject(this.options, "tickerSubs", this.createSafeDictionary());
         super.onClose(client, error);
     }
 }

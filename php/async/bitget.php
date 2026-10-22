@@ -10594,7 +10594,7 @@ class bitget extends Exchange {
         return $this->parse_open_interest($data, $market);
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null): array {
+    public function parse_open_interest(?array $interest, ?array $market = null): array {
         //
         // default
         //
@@ -10818,7 +10818,7 @@ class bitget extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null): mixed {
+    public function parse_deposit_withdraw_fee(?array $fee, ?array $currency = null): mixed {
         //
         //     {
         //         "chains": [
@@ -12545,7 +12545,7 @@ class bitget extends Exchange {
         return $this->milliseconds() - $timeDifference;
     }
 
-    public function sign(string $path, array $api = array(), $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $api = array(), string $method = 'GET', $params = array()): array {
         $signed = $api[0] === 'private';
         $endpoint = $api[1];
         $pathPart = '/api';

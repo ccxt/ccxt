@@ -1708,7 +1708,7 @@ public class Luno extends LunoApi
 
     public Object parseLedgerComment(Object comment)
     {
-        List<Object> words = (List<Object>) ((java.util.function.BiFunction<Object, Object, Object>) (hx4J43a0, hx4J43b0) -> { if (hx4J43a0 == null || hx4J43b0 == null) { return java.util.Collections.emptyList(); } return Arrays.asList(String.valueOf(hx4J43a0).split(java.util.regex.Pattern.quote(String.valueOf(hx4J43b0)))); }).apply(comment, " ");
+        List<Object> words = (List<Object>) Helpers.split(comment, " ");
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "Withdrawal", "fee" );
             put( "Trading", "fee" );
@@ -1988,7 +1988,7 @@ public class Luno extends LunoApi
         String url = ((((apiUrl + "/") + this.version) + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         Map<String, Object> requestHeaders = null;
-        if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v4 -> { synchronized (j39v4) { yield new ArrayList<Object>(j39v4.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+        if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
         {
             url = (url + ("?" + this.urlencode(query)));
         }

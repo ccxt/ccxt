@@ -707,7 +707,7 @@ class bitfinex extends bitfinex$1["default"] {
             }
             const orderbook = this.orderbooks[symbol];
             if (isRaw) {
-                const deltas = message[1];
+                const deltas = this.safeList(message, 1, []);
                 for (let i = 0; i < deltas.length; i++) {
                     const delta = deltas[i];
                     const delta2 = this.safeNumber(delta, 2);
@@ -720,7 +720,7 @@ class bitfinex extends bitfinex$1["default"] {
                 }
             }
             else {
-                const deltas = message[1];
+                const deltas = this.safeList(message, 1, []);
                 for (let i = 0; i < deltas.length; i++) {
                     const delta = this.safeList(deltas, i);
                     const deltaAmount = this.safeNumber(delta, 2);

@@ -2794,7 +2794,7 @@ class gate extends Exchange {
         return $this->parse_deposit_withdraw_fees($response, $codes, 'currency');
     }
 
-    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null): mixed {
+    public function parse_deposit_withdraw_fee(?array $fee, ?array $currency = null): mixed {
         //
         //    {
         //        "currency": "MTN",
@@ -6884,7 +6884,7 @@ class gate extends Exchange {
             throw new BadRequest($this->id . ' fetchLeverageTiers only supports swap and future');
         }
         $requestedLimit = $this->safe_integer($requestParams, 'limit', 100);
-        $limit = ($requestedLimit === null) ? 100 : max(1, min($requestedLimit, 100));
+        $limit = $this->parse_to_int(($requestedLimit === null) ? 100 : max(1, min($requestedLimit, 100)));
         $offset = $this->safe_integer($requestParams, 'offset', 0);
         $contract = $this->safe_string($requestParams, 'contract', '');
         $paramsOmitted = $this->omit($requestParams, array( 'limit', 'offset' ));
@@ -7359,7 +7359,7 @@ class gate extends Exchange {
         return $this->milliseconds() - $timeDifference;
     }
 
-    public function sign(string $path, array $api = array(), $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $api = array(), string $method = 'GET', $params = array()): array {
         $authentication = $api[0]; // public, private
         $type = $api[1]; // spot, margin, future, delivery
         $query = $this->omit($params, $this->extract_params($path));
@@ -7640,7 +7640,7 @@ class gate extends Exchange {
         return $this->parse_open_interests_history($response, $market, $since, $limit);
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null): array {
+    public function parse_open_interest(?array $interest, ?array $market = null): array {
         //
         //    {
         //        "long_liq_size": "0",

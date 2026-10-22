@@ -1591,7 +1591,7 @@ public partial class tokocrypto : Exchange
         string? price = this.safeString(parameters, "price");
         Int64? until = this.safeInteger(parameters, "until");
         IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"price", "until"}));
-        object limitValue = ((limit == null)) ? defaultLimit : (((((object)(limit)) is var c31v0) && (((object)(maxLimit)) is var c31v1)) ? (((c31v0 == null) || (c31v1 == null)) ? null : ((Convert.ToDouble(c31v0) < Convert.ToDouble(c31v1)) ? c31v0 : c31v1)) : null);
+        object limitValue = ((limit == null)) ? defaultLimit : mathMin(limit, maxLimit);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
             { "limit", limitValue },
@@ -2591,7 +2591,7 @@ public partial class tokocrypto : Exchange
             object endTime = this.sum(since, 7776000000);
             if ((until != null))
             {
-                endTime = (((((object)(endTime)) is var c31v2) && (((object)(until)) is var c31v3)) ? (((c31v2 == null) || (c31v3 == null)) ? null : ((Convert.ToDouble(c31v2) < Convert.ToDouble(c31v3)) ? c31v2 : c31v3)) : null);
+                endTime = mathMin(endTime, until);
             }
             request["endTime"] = endTime;
         }
@@ -2902,7 +2902,7 @@ public partial class tokocrypto : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object apiName = getValue(api, 0);
-        if (!(((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), apiName)))
+        if (!(inOp(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), apiName)))
         {
             throw new NotSupported ((((this.id + " does not have a testnet/sandbox URL for ") + (apiName)) + " endpoints")) ;
         }
@@ -3006,7 +3006,7 @@ public partial class tokocrypto : Exchange
 
     public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
-        if (((((object)(code)) switch { Int64 c33l => c33l == 418, int c33i => c33i == 418, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 418, decimal c33m => c33m == 418, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 418, uint c33u => (Int64)c33u == 418, short c33h => (Int64)c33h == 418, ushort c33v => (Int64)c33v == 418, byte c33y => (Int64)c33y == 418, sbyte c33e => (Int64)c33e == 418, ulong c33z => c33z == 418UL, _ => false })) || ((((object)(code)) switch { Int64 c33l => c33l == 429, int c33i => c33i == 429, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 429, decimal c33m => c33m == 429, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 429, uint c33u => (Int64)c33u == 429, short c33h => (Int64)c33h == 429, ushort c33v => (Int64)c33v == 429, byte c33y => (Int64)c33y == 429, sbyte c33e => (Int64)c33e == 429, ulong c33z => c33z == 429UL, _ => false })))
+        if ((isEqual(code, 418)) || (isEqual(code, 429)))
         {
             throw new DDoSProtection ((string)((((((this.id + " ") + code.ToString()) + " ") + reason) + " ") + (body))) ;
         }
@@ -3093,16 +3093,16 @@ public partial class tokocrypto : Exchange
     public override object calculateRateLimiterCost(object api, object method, object path, object parameters, object config = null)
     {
         config ??= new Dictionary<string, object>();
-        if ((((IDictionary<string, object>)config).ContainsKey("noCoin")) && !((((object)(parameters)) switch { null => false, IList<object> c33a => c33a.Contains("coin"), IList<string> c33t => c33t.Contains("coin"), List<Int64> c33g => c33g.Contains((Int64)(object)"coin"), IDictionary<string, object> c33d => c33d.ContainsKey("coin"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("coin"), _ => false })))
+        if ((((IDictionary<string, object>)config).ContainsKey("noCoin")) && !(inOp(parameters, "coin")))
         {
             return ((IDictionary<string,object>)config)["noCoin"];
-        } else if ((((IDictionary<string, object>)config).ContainsKey("noSymbol")) && !((((object)(parameters)) switch { null => false, IList<object> c33a => c33a.Contains("symbol"), IList<string> c33t => c33t.Contains("symbol"), List<Int64> c33g => c33g.Contains((Int64)(object)"symbol"), IDictionary<string, object> c33d => c33d.ContainsKey("symbol"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("symbol"), _ => false })))
+        } else if ((((IDictionary<string, object>)config).ContainsKey("noSymbol")) && !(inOp(parameters, "symbol")))
         {
             return ((IDictionary<string,object>)config)["noSymbol"];
-        } else if ((((IDictionary<string, object>)config).ContainsKey("noPoolId")) && !((((object)(parameters)) switch { null => false, IList<object> c33a => c33a.Contains("poolId"), IList<string> c33t => c33t.Contains("poolId"), List<Int64> c33g => c33g.Contains((Int64)(object)"poolId"), IDictionary<string, object> c33d => c33d.ContainsKey("poolId"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("poolId"), _ => false })))
+        } else if ((((IDictionary<string, object>)config).ContainsKey("noPoolId")) && !(inOp(parameters, "poolId")))
         {
             return ((IDictionary<string,object>)config)["noPoolId"];
-        } else if ((((IDictionary<string, object>)config).ContainsKey("byLimit")) && ((((object)(parameters)) switch { null => false, IList<object> c33a => c33a.Contains("limit"), IList<string> c33t => c33t.Contains("limit"), List<Int64> c33g => c33g.Contains((Int64)(object)"limit"), IDictionary<string, object> c33d => c33d.ContainsKey("limit"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("limit"), _ => false })))
+        } else if ((((IDictionary<string, object>)config).ContainsKey("byLimit")) && (inOp(parameters, "limit")))
         {
             Int64? limit = this.safeInteger(parameters, "limit");
             List<object> byLimit = this.safeList(config, "byLimit", new List<object>() {});

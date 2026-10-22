@@ -64,7 +64,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
     public Long requestId()
     {
         Long reqid = (Long) this.sum(this.safeInteger(this.options, "correlationId", 0), 1);
-        { Map<Object, Object> j39v1 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v2 = "correlationId"; Object j39v3 = reqid; if (j39v1 == null) { if (j39v2 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v1) { if (j39v3 == null && j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); } else { j39v1.put(j39v2, j39v3); } } }
+        Helpers.addElementToObject(this.options, "correlationId", reqid);
         return reqid;
     }
 
@@ -86,7 +86,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
         headers.put("Partner-Id", brokerId);
         innerOptions.put("headers", headers);
         wsOptions.put("options", innerOptions);
-        { Map<Object, Object> j39v4 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v5 = "ws"; Object j39v6 = wsOptions; if (j39v4 == null) { if (j39v5 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v4) { if (j39v6 == null && j39v4 instanceof java.util.concurrent.ConcurrentHashMap) { j39v4.remove(j39v5); } else { j39v4.put(j39v5, j39v6); } } }
+        Helpers.addElementToObject(this.options, "ws", wsOptions);
     }
 
     public CompletableFuture<Ticker> watchTicker(String symbol, Map<String, Object> parameters)

@@ -2174,7 +2174,7 @@ class coinbaseexchange extends Exchange {
         );
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $requestHeaders = null;
         $requestBody = null;

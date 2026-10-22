@@ -10374,7 +10374,7 @@ export default class bitget extends Exchange {
         return this.parseOpenInterest (data, market);
     }
 
-    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
+    override parseOpenInterest (interest: NullableDict, market: Market = undefined): OpenInterest {
         //
         // default
         //
@@ -10590,7 +10590,7 @@ export default class bitget extends Exchange {
         return this.safeString (statuses, status as string, status);
     }
 
-    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined): any {
+    override parseDepositWithdrawFee (fee: NullableDict, currency: Currency = undefined): any {
         //
         //     {
         //         "chains": [
@@ -12241,7 +12241,7 @@ export default class bitget extends Exchange {
         return this.milliseconds () - timeDifference;
     }
 
-    override sign (path: string, api: string[] = [], method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] = [], method: string = 'GET', params: Dict = {}): Dict {
         const signed = api[0] === 'private';
         const endpoint = api[1];
         const pathPart = '/api';

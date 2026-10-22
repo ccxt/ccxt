@@ -599,7 +599,7 @@ impl MercadoCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_937: bool = true;
-            while { if !__for_first_937 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_937 = false; i.as_f64().unwrap_or(f64::NAN) < ((coins.len() as i64) as f64) } {
+            while { if !__for_first_937 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_937 = false; i.as_f64().unwrap_or(f64::NAN) < ((coins.len() as i64) as f64) } {
             let mut coin: Value = coins.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut baseId: Value = coin.clone();
             let mut quoteId: Value = Value::Str("BRL".into());
@@ -892,7 +892,7 @@ impl MercadoCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_938: bool = true;
-            while { if !__for_first_938 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_938 = false; i.as_f64().unwrap_or(f64::NAN) < ((currencyIds.len() as i64) as f64) } {
+            while { if !__for_first_938 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_938 = false; i.as_f64().unwrap_or(f64::NAN) < ((currencyIds.len() as i64) as f64) } {
             let mut currencyId: Value = currencyIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             if (matches!((&balances, &currencyId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
@@ -993,7 +993,7 @@ impl MercadoCore {
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
-        m.insert("id".to_string(), ({ let __r31v: &Value = &get_value(&get_value(&get_value(&response, &Value::Str("response_data".into())), &Value::Str("order".into())), &Value::Str("order_id".into())); Value::Str((match __r31v { Value::Str(__s) => __s.to_string(), Value::Int(__n) => __n.to_string(), Value::Float(__f) => __f.to_string(), Value::Bool(__b) => __b.to_string(), Value::Null => "null".to_string(), Value::Dict(__m) if __m.contains_key("__precise") => crate::runtime::stringify_param(__r31v), __o => format!("{}", __o) }).into()) }));
+        m.insert("id".to_string(), to_string_val(&get_value(&get_value(&get_value(&response, &Value::Str("response_data".into())), &Value::Str("order".into())), &Value::Str("order_id".into()))));
     m
 }), &[market]);
 
@@ -1224,7 +1224,7 @@ impl MercadoCore {
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("coin".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                m.insert("quantity".to_string(), ({ let __r31x: &Value = &amount; let __r31g: &Value = &Value::Int(10); let __d: usize = match (match __r31g { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1i64 } else { 0i64 }), _ => None }) { Some(__v) => __v.max(0) as usize, None => 0 }; let __n: f64 = match __r31x { Value::Int(__i) => *__i as f64, Value::Float(__f) => *__f, Value::Str(__s) => __s.trim().parse::<f64>().unwrap_or(0.0), _ => 0.0 }; Value::Str(format!("{:.*}", __d, __n).into()) }));
+                m.insert("quantity".to_string(), to_fixed(&amount, &Value::Int(10)));
                 m.insert("address".to_string(), address);
             m
         });
@@ -1511,12 +1511,12 @@ impl MercadoCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_940: bool = true;
-            while { if !__for_first_940 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_940 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
+            while { if !__for_first_940 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_940 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
             let mut trades: Value = self.safe_list(orders.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("trades".into()), &[Value::from(vec![])]);
             {
                                 let mut y: Value = Value::Int(0);
                 let mut __for_first_939: bool = true;
-                while { if !__for_first_939 { y = (match (&(y), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_939 = false; y.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
+                while { if !__for_first_939 { if let Value::Int(n) = &mut y { *n += 1; } } __for_first_939 = false; y.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
                 result.push(trades.as_array().and_then(|__arr| match &y { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
             }
             }

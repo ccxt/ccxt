@@ -571,7 +571,7 @@ public partial class p2b : Exchange
         //
         Int64? timestamp = this.safeIntegerProduct(ticker, "at", 1000);
         object tickerInner = ticker;
-        if ((((object)(ticker)) switch { null => false, IList<object> c33a => c33a.Contains("ticker"), IList<string> c33t => c33t.Contains("ticker"), List<Int64> c33g => c33g.Contains((Int64)(object)"ticker"), IDictionary<string, object> c33d => c33d.ContainsKey("ticker"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("ticker"), _ => false }))
+        if (inOp(ticker, "ticker"))
         {
             tickerInner = this.safeDict(ticker, "ticker");
         }
@@ -1221,7 +1221,7 @@ public partial class p2b : Exchange
             sinceResolved = (now - 86400000);
         }
         Dictionary<string, object> market = this.market(symbol);
-        Int64? sinceSec = this.parseToInt((((((object)(sinceResolved)) is var c31v0) && (((object)(1000)) is var c31v1)) ? (((c31v0 == null) || (c31v1 == null)) ? null : (object)(Convert.ToDouble(c31v0) / Convert.ToDouble(c31v1))) : null));
+        Int64? sinceSec = this.parseToInt(divide(sinceResolved, 1000));
         Int64? untilSec = this.parseToInt(((double?)until / 1000));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", (market.ContainsKey("id") ? market["id"] : null) },
@@ -1319,7 +1319,7 @@ public partial class p2b : Exchange
             until = now;
             sinceResolved = (now - 86400000);
         }
-        Int64? sinceSec = this.parseToInt((((((object)(sinceResolved)) is var c31v2) && (((object)(1000)) is var c31v3)) ? (((c31v2 == null) || (c31v3 == null)) ? null : (object)(Convert.ToDouble(c31v2) / Convert.ToDouble(c31v3))) : null));
+        Int64? sinceSec = this.parseToInt(divide(sinceResolved, 1000));
         Int64? untilSec = this.parseToInt(((double?)until / 1000));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "startTime", sinceSec },

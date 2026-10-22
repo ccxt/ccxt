@@ -391,7 +391,7 @@ public partial class bullish : ccxt.bullish
         // 302 ='53714.0000000'
         for (int i = 0; i < (entry?.Count ?? 0); i++)
         {
-            if (!(((object)(((Int64)i % 2L))) switch { Int64 c33l => c33l == 0, int c33i => c33i == 0, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 0, decimal c33m => c33m == 0, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 0, uint c33u => (Int64)c33u == 0, short c33h => (Int64)c33h == 0, ushort c33v => (Int64)c33v == 0, byte c33y => (Int64)c33y == 0, sbyte c33e => (Int64)c33e == 0, ulong c33z => c33z == 0UL, _ => false }))
+            if (!isEqual(((Int64)i % 2L), 0))
             {
                 continue;
             }

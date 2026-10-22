@@ -446,7 +446,7 @@ export default class opinion extends Exchange {
      * @returns {string} a unified order status, or undefined
      */
     parseWsOrderStatus(status: Int): Str;
-    handleOrder(client: any, message: Dict): void;
+    handleOrder(client: Client, message: Dict): void;
     /**
      * @method
      * @name opinion#watchMyTrades

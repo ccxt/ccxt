@@ -2662,7 +2662,7 @@ class tokocrypto extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function sign(string $path, array $api = array('public'), mixed $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         if (!(is_array($this->urls['api']['rest']) && array_key_exists($apiName ?? '', $this->urls['api']['rest']))) {
             throw new NotSupported($this->id . ' does not have a testnet/sandbox URL for ' . $apiName . ' endpoints');

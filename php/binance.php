@@ -7906,7 +7906,7 @@ class binance extends Exchange {
                 $request['endTime'] = $untilResolved;
             }
             if ($since === null) {
-                $oneWeek = 7 * 24 * 60 * 60 * 1000;
+                $oneWeek = 604800000; // 7 * 24 * 60 * 60 * 1000
                 $request['startTime'] = $untilResolved - $oneWeek;
             }
         }
@@ -9165,7 +9165,7 @@ class binance extends Exchange {
             // The time between startTime and endTime cannot be longer than 7 days.
             // The parameter fromId cannot be sent with startTime or endTime.
             $currentTimestamp = $this->milliseconds();
-            $oneWeek = 7 * 24 * 60 * 60 * 1000;
+            $oneWeek = 604800000; // 7 * 24 * 60 * 60 * 1000
             if (($currentTimestamp - $since) >= $oneWeek) {
                 if (($endTime === null) && ($this->safe_bool($market, 'linear', false))) {
                     $endTime = $this->sum($startTime, $oneWeek);
@@ -9209,7 +9209,7 @@ class binance extends Exchange {
                     $request['endTime'] = $endTimeResolved;
                 }
                 if ($since === null) {
-                    $oneWeek = 7 * 24 * 60 * 60 * 1000;
+                    $oneWeek = 604800000; // 7 * 24 * 60 * 60 * 1000
                     $request['startTime'] = $endTimeResolved - $oneWeek;
                 }
                 $response = $this->sapiGetEquityTradeHistory($this->extend($request, $paramsPaginate));
@@ -10635,7 +10635,7 @@ class binance extends Exchange {
         return $this->parse_deposit_withdraw_fees($response, $codes, 'coin');
     }
 
-    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null): mixed {
+    public function parse_deposit_withdraw_fee(?array $fee, ?array $currency = null): mixed {
         //
         //    {
         //        "coin": "BAT",
@@ -13301,7 +13301,7 @@ class binance extends Exchange {
         return $scheme . '//' . $domain . '/';
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $apiUrls = $this->safe_dict($this->urls, 'api', array());
         if (!(is_array($apiUrls) && array_key_exists($apiName ?? '', $apiUrls))) {
@@ -13543,8 +13543,8 @@ class binance extends Exchange {
             return $config['noPoolId'];
         } elseif ((is_array($config) && array_key_exists('byLimit' ?? '', $config)) && (is_array($params) && array_key_exists('limit' ?? '', $params))) {
             $limit = $params['limit'];
-            // safeValue keeps runtime identical to the prior bare index (no empty-array default)
-            $byLimit = $this->safe_value($config, 'byLimit');
+            // every 'byLimit' entry in describe() is a non-empty array literal, so the [] default is unreachable
+            $byLimit = $this->safe_list($config, 'byLimit', array());
             for ($i = 0; $i < count($byLimit); $i++) {
                 $entry = $byLimit[$i];
                 if ($limit <= $entry[0]) {
@@ -14457,7 +14457,7 @@ class binance extends Exchange {
         }
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null): array {
+    public function parse_open_interest(?array $interest, ?array $market = null): array {
         $timestamp = $this->safe_integer_2($interest, 'timestamp', 'time');
         $id = $this->safe_string($interest, 'symbol');
         $amount = $this->safe_number_2($interest, 'sumOpenInterest', 'openInterest');

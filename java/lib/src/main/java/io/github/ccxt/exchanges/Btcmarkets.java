@@ -1269,7 +1269,7 @@ public class Btcmarkets extends BtcmarketsApi
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
                 // numericIds[i] = parseInt (ids[i]);
-                ((List<Object>)numericIds).add(((Long) (switch ((Object) ((ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i)))) { case null -> (Long) null; case Long hx4J42v1 -> hx4J42v1; case Integer hx4J42v1 -> Long.valueOf(hx4J42v1.longValue()); case Double hx4J42v1 -> Long.valueOf(hx4J42v1.longValue()); case Float hx4J42v1 -> Long.valueOf(hx4J42v1.longValue()); case java.math.BigDecimal hx4J42v1 -> Long.valueOf(hx4J42v1.longValue()); case Object hx4J42v1 -> { try { yield Long.valueOf(Long.parseLong(String.valueOf(hx4J42v1))); } catch (Exception hx4J42v1e) { yield (Long) null; } } })));
+                ((List<Object>)numericIds).add(Helpers.parseInt((ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i))));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "ids", numericIds );
@@ -1376,7 +1376,7 @@ public class Btcmarkets extends BtcmarketsApi
             h2kMap1.put("type", java.util.Objects.requireNonNullElse(takerOrMaker, "taker"));
             h2kMap1.put("currency", currency);
             h2kMap1.put("rate", rate);
-            h2kMap1.put("cost", ((Double) (switch ((Object) (feeCost)) { case null -> Double.valueOf(0.0); case Double hx4J42v0 -> Double.valueOf(hx4J42v0.doubleValue()); case Float hx4J42v0 -> Double.valueOf(hx4J42v0.doubleValue()); case Long hx4J42v0 -> Double.valueOf(hx4J42v0.doubleValue()); case Integer hx4J42v0 -> Double.valueOf(hx4J42v0.doubleValue()); case java.math.BigDecimal hx4J42v0 -> Double.valueOf(hx4J42v0.doubleValue()); case Object hx4J42v0 -> { String hx4J42v0s; try { hx4J42v0s = String.valueOf(hx4J42v0); } catch (Exception hx4J42v0e) { yield (Double) null; } try { yield Double.valueOf(Double.parseDouble(hx4J42v0s)); } catch (NumberFormatException hx4J42v0e) { yield Double.valueOf(0.0); } } })));
+            h2kMap1.put("cost", Helpers.parseFloat(feeCost));
             return h2kMap1;
         }
     }

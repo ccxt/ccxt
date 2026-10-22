@@ -3563,16 +3563,16 @@ public class Lbank extends LbankApi
                 }
                 if (!java.util.Objects.equals(networkCode, null))
                 {
-                    Helpers.addElementToObject(result.get("networks"), networkCode, (switch (0) { default -> { HashMap<String, Object> j39v9 = new HashMap<String, Object>();
-                        j39v9.put("withdraw", (switch (0) { default -> { HashMap<String, Object> j39v8 = new HashMap<String, Object>();
-        j39v8.put("fee", withdrawFee);
-        j39v8.put("percentage", null);
-        yield j39v8; } }));
-                        j39v9.put("deposit", new HashMap<String, Object>() {{
+                    Helpers.addElementToObject(result.get("networks"), networkCode, (switch (0) { default -> { HashMap<String, Object> j39v7 = new HashMap<String, Object>();
+                        j39v7.put("withdraw", (switch (0) { default -> { HashMap<String, Object> j39v6 = new HashMap<String, Object>();
+        j39v6.put("fee", withdrawFee);
+        j39v6.put("percentage", null);
+        yield j39v6; } }));
+                        j39v7.put("deposit", new HashMap<String, Object>() {{
         put( "fee", null );
         put( "percentage", null );
     }});
-                        yield j39v9; } }));
+                        yield j39v7; } }));
                 }
             }
         }
@@ -3603,7 +3603,7 @@ public class Lbank extends LbankApi
         }
         if (java.util.Objects.equals((api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1)), "public"))
         {
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v13 -> { synchronized (j39v13) { yield new ArrayList<Object>(j39v13.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v8 -> { synchronized (j39v8) { yield new ArrayList<Object>(j39v8.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(this.keysort(query))));
             }
@@ -3643,7 +3643,7 @@ public class Lbank extends LbankApi
                     if (java.util.Objects.equals(cachedPem, null))
                     {
                         pem = this.convertSecretToPem(this.encode(this.secret));
-                        { Map<Object, Object> j39v10 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v11 = "pem"; Object j39v12 = pem; if (j39v10 == null) { if (j39v11 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v10) { if (j39v12 == null && j39v10 instanceof java.util.concurrent.ConcurrentHashMap) { j39v10.remove(j39v11); } else { j39v10.put(j39v11, j39v12); } } }
+                        Helpers.addElementToObject(this.options, "pem", pem);
                     } else
                     {
                         pem = cachedPem;
@@ -3685,14 +3685,14 @@ public class Lbank extends LbankApi
 
     public String convertSecretToPem(Object secret)
     {
-        Long secretLength = (((switch ((Object)(secret)) { case null -> 0; case List<?> j39v14 -> j39v14.size(); case String j39v15 -> j39v15.length(); case Object j39v16 -> j39v16.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v16) : 0; })) - 0L);
+        Long secretLength = (((switch ((Object)(secret)) { case null -> 0; case List<?> j39v9 -> j39v9.size(); case String j39v10 -> j39v10.length(); case Object j39v11 -> j39v11.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v11) : 0; })) - 0L);
         Long fullLines = this.parseToInt((((double) secretLength) / ((double) 64)));
         String pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
         for (var i = 0; ((fullLines != null && i <= fullLines)); i++)
         {
             Long start = (((long) i) * 64L);
             Object end = this.sum(start, 64);
-            pem = (pem + (((java.util.function.Function<Object[], String>) (hx4J41a) -> { if (hx4J41a[0] == null) return null; String hx4J41s = (String) hx4J41a[0]; java.util.function.ToIntFunction<Object> hx4J41i = (hx4J41o) -> (hx4J41o instanceof Integer hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Long hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Double hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Float hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof java.math.BigDecimal hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof String hx4J41n) ? Integer.parseInt(hx4J41n) : Integer.parseInt(String.valueOf(hx4J41o)); int hx4J41b = (hx4J41a[1] != null) ? hx4J41i.applyAsInt(hx4J41a[1]) : -1; if (hx4J41a[2] == null) { if (hx4J41b < 0) return hx4J41s.substring(Math.max(hx4J41s.length() + hx4J41b, 0)); if (hx4J41b > hx4J41s.length()) return ""; return hx4J41s.substring(hx4J41b); } int hx4J41e = hx4J41i.applyAsInt(hx4J41a[2]); if (hx4J41b < 0) hx4J41b = hx4J41s.length() + hx4J41b; if (hx4J41e < 0) hx4J41e = hx4J41s.length() + hx4J41e; if (hx4J41b < 0) hx4J41b = 0; if (hx4J41e > hx4J41s.length()) hx4J41e = hx4J41s.length(); if (hx4J41b > hx4J41e) hx4J41b = hx4J41e; return hx4J41s.substring(hx4J41b, hx4J41e); }).apply(new Object[] { this.secret, start, end }) + "\n")); // eslint-disable-line
+            pem = (pem + (Helpers.slice(this.secret, start, end) + "\n")); // eslint-disable-line
         }
         return (pem + "-----END PRIVATE KEY-----");
     }

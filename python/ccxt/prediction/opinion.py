@@ -1824,7 +1824,7 @@ class opinion(PredictionExchange, ImplicitAPI):
             return 'rejected'
         return None
 
-    def handle_order(self, client: object, message: dict):
+    def handle_order(self, client: Client, message: dict):
         #
         #     {
         #         "orderUpdateType": "orderConfirm",
@@ -1978,7 +1978,7 @@ class opinion(PredictionExchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def sign(self, path: str, api: list[str] = ['opinion'], method='GET', params: dict = {}):
+    def sign(self, path: str, api: list[str] = ['opinion'], method: str = 'GET', params: dict = {}):
         """
  @ignore
         builds the request url and attaches the apikey/EIP-712 authentication headers for private endpoints

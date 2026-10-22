@@ -1067,7 +1067,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         await self.wait_for_pending_unsubscribe(url, topic)
         return await self.watch(url, messageHash, message, topic)
 
-    async def un_watch_balance(self, params={}) -> object:
+    async def un_watch_balance(self, params: dict = {}) -> object:
         """
         unWatches balance
 

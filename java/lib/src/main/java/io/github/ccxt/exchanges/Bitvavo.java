@@ -581,7 +581,7 @@ public class Bitvavo extends BitvavoApi
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         Object fees = this.fees;
-        for (var i = 0; i < (switch ((Object)(markets)) { case null -> 0; case List<?> j39v6 -> j39v6.size(); case String j39v7 -> j39v7.length(); case Object j39v8 -> j39v8.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v8) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(markets)) { case null -> 0; case List<?> j39v2 -> j39v2.size(); case String j39v3 -> j39v3.length(); case Object j39v4 -> j39v4.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v4) : 0; }); i++)
         {
             Map<String, Object> market = (Map<String, Object>) this.safeDict(markets, i, (Object) null);
             String id = this.safeString(market, "market");
@@ -594,38 +594,38 @@ public class Bitvavo extends BitvavoApi
                 continue;
             }
             String status = this.safeString(market, "status");
-            ((List<Object>)result).add(this.safeMarketStructure((switch (0) { default -> { HashMap<String, Object> j39v5 = new HashMap<String, Object>();
-                j39v5.put("id", id);
-                j39v5.put("symbol", ((base + "/") + quote));
-                j39v5.put("base", base);
-                j39v5.put("quote", quote);
-                j39v5.put("settle", null);
-                j39v5.put("baseId", baseId);
-                j39v5.put("quoteId", quoteId);
-                j39v5.put("settleId", null);
-                j39v5.put("type", "spot");
-                j39v5.put("spot", true);
-                j39v5.put("margin", false);
-                j39v5.put("swap", false);
-                j39v5.put("future", false);
-                j39v5.put("option", false);
-                j39v5.put("active", (java.util.Objects.equals(status, "trading")));
-                j39v5.put("contract", false);
-                j39v5.put("linear", null);
-                j39v5.put("inverse", null);
-                j39v5.put("contractSize", null);
-                j39v5.put("expiry", null);
-                j39v5.put("expiryDatetime", null);
-                j39v5.put("strike", null);
-                j39v5.put("optionType", null);
-                j39v5.put("taker", Helpers.GetValue(Helpers.GetValue(fees, "trading"), "taker"));
-                j39v5.put("maker", Helpers.GetValue(Helpers.GetValue(fees, "trading"), "maker"));
-                j39v5.put("precision", new HashMap<String, Object>() {{
+            ((List<Object>)result).add(this.safeMarketStructure((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                j39v1.put("id", id);
+                j39v1.put("symbol", ((base + "/") + quote));
+                j39v1.put("base", base);
+                j39v1.put("quote", quote);
+                j39v1.put("settle", null);
+                j39v1.put("baseId", baseId);
+                j39v1.put("quoteId", quoteId);
+                j39v1.put("settleId", null);
+                j39v1.put("type", "spot");
+                j39v1.put("spot", true);
+                j39v1.put("margin", false);
+                j39v1.put("swap", false);
+                j39v1.put("future", false);
+                j39v1.put("option", false);
+                j39v1.put("active", (java.util.Objects.equals(status, "trading")));
+                j39v1.put("contract", false);
+                j39v1.put("linear", null);
+                j39v1.put("inverse", null);
+                j39v1.put("contractSize", null);
+                j39v1.put("expiry", null);
+                j39v1.put("expiryDatetime", null);
+                j39v1.put("strike", null);
+                j39v1.put("optionType", null);
+                j39v1.put("taker", Helpers.GetValue(Helpers.GetValue(fees, "trading"), "taker"));
+                j39v1.put("maker", Helpers.GetValue(Helpers.GetValue(fees, "trading"), "maker"));
+                j39v1.put("precision", new HashMap<String, Object>() {{
                     put( "amount", Bitvavo.this.parseNumber(Bitvavo.this.parsePrecision(Bitvavo.this.safeString(market, "quantityDecimals"))) );
                     put( "price", Bitvavo.this.safeNumber(market, "tickSize", (Object) null) );
                     put( "cost", Bitvavo.this.parseNumber(Bitvavo.this.parsePrecision(Bitvavo.this.safeString(market, "notionalDecimals"))) );
                 }});
-                j39v5.put("limits", new HashMap<String, Object>() {{
+                j39v1.put("limits", new HashMap<String, Object>() {{
                     put( "leverage", new HashMap<String, Object>() {{
                         put( "min", null );
                         put( "max", null );
@@ -643,9 +643,9 @@ public class Bitvavo extends BitvavoApi
                         put( "max", Bitvavo.this.safeNumber(market, "maxOrderInQuoteAsset", (Object) null) );
                     }} );
                 }});
-                j39v5.put("created", null);
-                j39v5.put("info", market);
-                yield j39v5; } })));
+                j39v1.put("created", null);
+                j39v1.put("info", market);
+                yield j39v1; } })));
         }
         return result;
     }
@@ -1359,7 +1359,7 @@ public class Bitvavo extends BitvavoApi
             put( "timestamp", null );
             put( "datetime", null );
         }};
-        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v9 -> j39v9.size(); case String j39v10 -> j39v10.length(); case Object j39v11 -> j39v11.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v11) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v5 -> j39v5.size(); case String j39v6 -> j39v6.length(); case Object j39v7 -> j39v7.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v7) : 0; }); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, (Object) null);
             String currencyId = this.safeString(balance, "symbol");
@@ -3130,7 +3130,7 @@ public class Bitvavo extends BitvavoApi
         Boolean getOrDelete = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"));
         if (Boolean.TRUE.equals(getOrDelete))
         {
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v13 -> { synchronized (j39v13) { yield new ArrayList<Object>(j39v13.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v9 -> { synchronized (j39v9) { yield new ArrayList<Object>(j39v9.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
@@ -3141,7 +3141,7 @@ public class Bitvavo extends BitvavoApi
             String payload = "";
             if (!Boolean.TRUE.equals(getOrDelete))
             {
-                if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v12 -> { synchronized (j39v12) { yield new ArrayList<Object>(j39v12.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+                if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v8 -> { synchronized (j39v8) { yield new ArrayList<Object>(j39v8.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
                 {
                     requestBody = this.json(query);
                     payload = requestBody;
@@ -3205,7 +3205,7 @@ public class Bitvavo extends BitvavoApi
 
     public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
     {
-        if ((config.containsKey("noMarket")) && !((switch ((Object)(parameters)) { case List<?> j39v15 -> j39v15.contains("market"); case Map<?, ?> j39v14 -> j39v14.containsKey("market"); case null, default -> false; })))
+        if ((config.containsKey("noMarket")) && !((switch ((Object)(parameters)) { case List<?> j39v11 -> j39v11.contains("market"); case Map<?, ?> j39v10 -> j39v10.containsKey("market"); case null, default -> false; })))
         {
             return config.get("noMarket");
         }

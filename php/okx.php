@@ -6830,7 +6830,7 @@ class okx extends Exchange {
         return $this->parse_transfers($transfers, $currency, $since, $limit, $params);
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $isArray = (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params)));
         $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);

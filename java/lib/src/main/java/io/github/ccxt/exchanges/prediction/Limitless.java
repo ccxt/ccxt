@@ -1348,31 +1348,31 @@ public class Limitless extends LimitlessApi
             askSizeStr = Precise.stringDiv(askSizeStr, "1000000");
         }
         Object outcomeSymbol = this.safeOutcomeSymbol((String) (null), market);
-        return (Map<String, Object>) (this.safePredictionTicker((switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-            j39v2.put("outcome", outcomeSymbol);
-            j39v2.put("outcomeId", this.safeString(market, "outcomeId"));
-            j39v2.put("label", this.safeString(market, "label"));
-            j39v2.put("market", this.safeString(market, "market"));
-            j39v2.put("timestamp", null);
-            j39v2.put("datetime", null);
-            j39v2.put("high", null);
-            j39v2.put("low", null);
-            j39v2.put("bid", this.parseNumber(bidStr));
-            j39v2.put("bidVolume", this.parseNumber(bidSizeStr));
-            j39v2.put("ask", this.parseNumber(askStr));
-            j39v2.put("askVolume", this.parseNumber(askSizeStr));
-            j39v2.put("vwap", null);
-            j39v2.put("open", null);
-            j39v2.put("close", this.parseNumber(lastStr));
-            j39v2.put("last", this.parseNumber(lastStr));
-            j39v2.put("previousClose", null);
-            j39v2.put("change", null);
-            j39v2.put("percentage", null);
-            j39v2.put("average", this.parseNumber(midStr));
-            j39v2.put("baseVolume", null);
-            j39v2.put("quoteVolume", this.parseNumber(volumeStr));
-            j39v2.put("info", ticker);
-            yield j39v2; } }), (Object) null));
+        return (Map<String, Object>) (this.safePredictionTicker((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+            j39v1.put("outcome", outcomeSymbol);
+            j39v1.put("outcomeId", this.safeString(market, "outcomeId"));
+            j39v1.put("label", this.safeString(market, "label"));
+            j39v1.put("market", this.safeString(market, "market"));
+            j39v1.put("timestamp", null);
+            j39v1.put("datetime", null);
+            j39v1.put("high", null);
+            j39v1.put("low", null);
+            j39v1.put("bid", this.parseNumber(bidStr));
+            j39v1.put("bidVolume", this.parseNumber(bidSizeStr));
+            j39v1.put("ask", this.parseNumber(askStr));
+            j39v1.put("askVolume", this.parseNumber(askSizeStr));
+            j39v1.put("vwap", null);
+            j39v1.put("open", null);
+            j39v1.put("close", this.parseNumber(lastStr));
+            j39v1.put("last", this.parseNumber(lastStr));
+            j39v1.put("previousClose", null);
+            j39v1.put("change", null);
+            j39v1.put("percentage", null);
+            j39v1.put("average", this.parseNumber(midStr));
+            j39v1.put("baseVolume", null);
+            j39v1.put("quoteVolume", this.parseNumber(volumeStr));
+            j39v1.put("info", ticker);
+            yield j39v1; } }), (Object) null));
     }
 
     /**
@@ -1940,7 +1940,7 @@ public class Limitless extends LimitlessApi
             {
                 (this.loadOutcome((String) (outcome), false)).join();
             }
-            Integer length = (switch ((Object)(ids)) { case null -> 0; case List<?> j39v4 -> j39v4.size(); case String j39v5 -> j39v5.length(); case Object j39v6 -> j39v6.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v6) : 0; });
+            Integer length = (switch ((Object)(ids)) { case null -> 0; case List<?> j39v2 -> j39v2.size(); case String j39v3 -> j39v3.length(); case Object j39v4 -> j39v4.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v4) : 0; });
             if ((length != null && length > 50))
             {
                 throw new BadRequest((this.id + " fetchOrdersByIds can only fetch up to 50 orders at a time")) ;
@@ -2582,7 +2582,7 @@ public class Limitless extends LimitlessApi
             // amounts must be integers (uint256): parseNumber yields a float that the Python EIP-712 encoder rejects
             signRequest.put("makerAmount", this.parseToInt(this.applyScale((String) (makerAmount), true)));
             signRequest.put("takerAmount", ((Boolean.TRUE.equals(isMarket))) ? 1 : ((Object) this.parseToInt(this.applyScale((String) (takerAmount), true))));
-            Object signature = this.signOrderRequest((Map<String, Object>) (signRequest), marketSymbol);
+            String signature = this.signOrderRequest((Map<String, Object>) (signRequest), (String) (marketSymbol));
             signRequest.put("signature", signature);
             // price is an unsigned hint required by the API for GTC/FAK orders (not part of the EIP-712 struct)
             if (!Boolean.TRUE.equals(isMarket) && (!java.util.Objects.equals(price, null)))
@@ -2612,7 +2612,7 @@ public class Limitless extends LimitlessApi
 
     }
 
-    public Object signOrderRequest(Map<String, Object> signRequest, Object marketSymbol)
+    public String signOrderRequest(Map<String, Object> signRequest, String marketSymbol)
     {
         this.checkRequiredCredentials(true);
         if (java.util.Objects.equals(this.privateKey, null))
@@ -2677,7 +2677,7 @@ public class Limitless extends LimitlessApi
         return ("0x" + this.hash(message, keccak(), "hex"));
     }
 
-    public Object signHash(Object hash, Object privateKey)
+    public String signHash(Object hash, Object privateKey)
     {
         Map<String,Object> signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
         Object r = signature.get("r");
@@ -2689,7 +2689,7 @@ public class Limitless extends LimitlessApi
         return result.toLowerCase();
     }
 
-    public Object signMessage(Object message, Object privateKey)
+    public String signMessage(Object message, Object privateKey)
     {
         return this.signHash(this.hashMessage(message), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))));
     }
@@ -3704,7 +3704,7 @@ public class Limitless extends LimitlessApi
                     {
                         throw new ExchangeError((this.id + " fetchRawMarketsByTags() missing name")) ;
                     }
-                    if (((java.util.function.ToIntBiFunction<Object, Object>) (hx4J41s, hx4J41t) -> (hx4J41s instanceof List<?> hx4J41l) ? hx4J41l.indexOf(hx4J41t) : (hx4J41s instanceof String hx4J41x && hx4J41t instanceof String hx4J41y) ? hx4J41x.indexOf(hx4J41y) : -1).applyAsInt(name, (wanted == null || wi < 0 || wi >= wanted.size() ? null : wanted.get(wi))) >= 0)
+                    if (Helpers.getIndexOf(name, (wanted == null || wi < 0 || wi >= wanted.size() ? null : wanted.get(wi))) >= 0)
                     {
                         matched = true;
                         break;

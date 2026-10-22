@@ -182184,7 +182184,11 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
      * @method
      * @ignore
      * @name Exchange#incrementingNonce
-     * @description returns a strictly-increasing nonce for venues that reject duplicate nonces per signer; the unit is whatever nonce () returns — the base default is seconds, so a venue that does not override nonce () gets a second-resolution counter that drifts ahead of wall clock under load, while venues needing milliseconds override nonce () as hyperliquid does. The counter is per exchange instance, so it narrows the duplicate-nonce race but does not remove it across instances or processes.
+     * @description returns a strictly-increasing nonce for venues that reject duplicate nonces per signer;
+     * the unit is whatever nonce () returns — the base default is seconds, so a venue that does not override
+     * nonce () gets a second-resolution counter that drifts ahead of wall clock under load, while venues
+     * needing milliseconds override nonce () as hyperliquid does. The counter is per exchange instance,
+     * so it narrows the duplicate-nonce race but does not remove it across instances or processes.
      * @returns {int} a strictly-increasing nonce in the unit returned by nonce ()
      */ incrementingNonce() {
         const currentNonce = this.nonce();
@@ -183792,17 +183796,11 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
          * @param {object} [params] exchange specific params
          * @returns {boolean} true if a post only order, false otherwise
          */ const timeInForce = this.safeStringUpper(params, 'timeInForce');
-        let postOnly = this.safeBool2(params, 'postOnly', 'post_only', false);
         // we assume timeInForce is uppercase from safeStringUpper (params, 'timeInForce')
         const ioc = timeInForce === 'IOC';
         const fok = timeInForce === 'FOK';
         const timeInForcePostOnly = timeInForce === 'PO';
-        if (!postOnly) {
-            postOnly = timeInForcePostOnly;
-        }
-        if (!postOnly) {
-            postOnly = exchangeSpecificParam;
-        }
+        const postOnly = this.safeBool2(params, 'postOnly', 'post_only', false) || timeInForcePostOnly || exchangeSpecificParam;
         if (postOnly) {
             if (ioc || fok) {
                 throw new _errors_js__rspack_import_2.InvalidOrder(this.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce);
@@ -183824,16 +183822,10 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
          * @param {object} [params] exchange specific params
          * @returns {Array}
          */ const timeInForce = this.safeStringUpper(params, 'timeInForce');
-        let postOnly = this.safeBool(params, 'postOnly', false);
         const ioc = timeInForce === 'IOC';
         const fok = timeInForce === 'FOK';
         const po = timeInForce === 'PO';
-        if (!postOnly) {
-            postOnly = po;
-        }
-        if (!postOnly) {
-            postOnly = exchangeSpecificPostOnlyOption;
-        }
+        const postOnly = this.safeBool(params, 'postOnly', false) || po || exchangeSpecificPostOnlyOption;
         if (postOnly) {
             if (ioc || fok) {
                 throw new _errors_js__rspack_import_2.InvalidOrder(this.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce);
@@ -184567,7 +184559,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         return this.filterBySinceLimit(sorted, since, limit, key);
     }
     sortCursorPaginatedResult(result) {
-        const first = this.safeValue(result, 0);
+        const first = this.safeDict(result, 0);
         if (first !== undefined) {
             if ('timestamp' in first) {
                 return this.sortBy(result, 'timestamp', true);
@@ -210132,7 +210124,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
                 request['endTime'] = untilResolved;
             }
             if (since === undefined) {
-                const oneWeek = 7 * 24 * 60 * 60 * 1000;
+                const oneWeek = 604800000; // 7 * 24 * 60 * 60 * 1000
                 request['startTime'] = untilResolved - oneWeek;
             }
         }
@@ -211415,7 +211407,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             // The time between startTime and endTime cannot be longer than 7 days.
             // The parameter fromId cannot be sent with startTime or endTime.
             const currentTimestamp = this.milliseconds();
-            const oneWeek = 7 * 24 * 60 * 60 * 1000;
+            const oneWeek = 604800000; // 7 * 24 * 60 * 60 * 1000
             if (currentTimestamp - since >= oneWeek) {
                 if (endTime === undefined && this.safeBool(market, 'linear', false)) {
                     endTime = this.sum(startTime, oneWeek);
@@ -211462,7 +211454,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
                     request['endTime'] = endTimeResolved;
                 }
                 if (since === undefined) {
-                    const oneWeek = 7 * 24 * 60 * 60 * 1000;
+                    const oneWeek = 604800000; // 7 * 24 * 60 * 60 * 1000
                     request['startTime'] = endTimeResolved - oneWeek;
                 }
                 response = await this.sapiGetEquityTradeHistory(this.extend(request, paramsPaginate));
@@ -215730,8 +215722,8 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             return config['noPoolId'];
         } else if ('byLimit' in config && 'limit' in params) {
             const limit = params['limit'];
-            // safeValue keeps runtime identical to the prior bare index (no empty-array default)
-            const byLimit = this.safeValue(config, 'byLimit');
+            // every 'byLimit' entry in describe() is a non-empty array literal, so the [] default is unreachable
+            const byLimit = this.safeList(config, 'byLimit', []);
             for(let i = 0; i < byLimit.length; i++){
                 const entry = byLimit[i];
                 if (limit <= entry[0]) {
@@ -231606,6 +231598,7 @@ class bitfinex extends _abstract_bitfinex_js__rspack_import_0/* ["default"] */.A
         //         ]
         //     ]
         //
+        const networks = this.safeList(response, 8, []);
         const indexed = {
             'sym': this.indexBy(this.safeList(response, 1, []), 0),
             'label': this.indexBy(this.safeList(response, 2, []), 0),
@@ -231614,13 +231607,13 @@ class bitfinex extends _abstract_bitfinex_js__rspack_import_0/* ["default"] */.A
             'pool': this.indexBy(this.safeList(response, 5, []), 0),
             'explorer': this.indexBy(this.safeList(response, 6, []), 0),
             'fees': this.indexBy(this.safeList(response, 7, []), 0),
-            'networks': this.safeList(response, 8, []),
+            'networks': networks,
             'statuses': this.indexBy(this.safeList(response, 9, []), 0),
             'marginables': this.safeList(response, 10, [])
         };
         const indexedNetworks = {};
-        for(let i = 0; i < indexed['networks'].length; i++){
-            const networkObj = this.safeList(indexed['networks'], i);
+        for(let i = 0; i < networks.length; i++){
+            const networkObj = this.safeList(networks, i);
             const networkId = this.safeString(networkObj, 0);
             const valuesList = this.safeList(networkObj, 1);
             const networkName = this.safeString(valuesList, 0);
@@ -297164,14 +297157,14 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         const request = {
             'currency': currency['id']
         };
-        const sinceResolved = since === undefined ? this.milliseconds() - 86400000 * 30 : since; // last 30 days
+        const sinceResolved = since === undefined ? this.milliseconds() - 2592000000 : since; // last 30 days
         request['startTime'] = sinceResolved;
         let endTime = this.safeInteger2(params, 'until', 'endTime');
         const paramsOmitted = this.omit(params, [
             'until'
         ]);
         if (endTime === undefined) {
-            endTime = sinceResolved + 86400000 * 30; // since + 30 days
+            endTime = sinceResolved + 2592000000; // since + 30 days
         }
         request['endTime'] = endTime;
         const response = await this.privateGetV5SpotMarginTradeInterestRateHistory(this.extend(request, paramsOmitted));
@@ -367587,7 +367580,7 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
             throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' fetchLeverageTiers only supports swap and future');
         }
         const requestedLimit = this.safeInteger(requestParams, 'limit', 100);
-        const limit = requestedLimit === undefined ? 100 : Math.max(1, Math.min(requestedLimit, 100));
+        const limit = this.parseToInt(requestedLimit === undefined ? 100 : Math.max(1, Math.min(requestedLimit, 100)));
         let offset = this.safeInteger(requestParams, 'offset', 0);
         const contract = this.safeString(requestParams, 'contract', '');
         const paramsOmitted = this.omit(requestParams, [
@@ -395248,8 +395241,8 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
             if (rawType !== undefined) {
                 if (rawType.indexOf('-') >= 0) {
                     const orderType = rawType.split('-');
-                    side = orderType[0];
-                    type = orderType[1];
+                    side = this.safeString(orderType, 0);
+                    type = this.safeString(orderType, 1);
                 } else if (type === undefined) {
                     type = rawType;
                 }
@@ -398775,9 +398768,10 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
         const positions = this.safeList(account, 'positions', []);
         let position = undefined;
         if (market['future'] === true && market['inverse'] === true) {
+            const marketId = this.safeString(market, 'id');
             for(let i = 0; i < positions.length; i++){
                 const entry = positions[i];
-                if (this.safeString(entry, 'contract_code') === market['id']) {
+                if (this.safeString(entry, 'contract_code') === marketId) {
                     position = entry;
                     break;
                 }
@@ -405332,7 +405326,7 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
             const record = records[i];
             if (this.safeString(record, 'type') === 'vaultDeposit') {
                 const delta = this.safeDict(record, 'delta', {});
-                if (delta['vault'] === '0x' + vaultAddress) {
+                if (this.safeString(delta, 'vault') === '0x' + vaultAddress) {
                     deposits.push(record);
                 }
             }
@@ -405405,7 +405399,7 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
             const record = records[i];
             if (this.safeString(record, 'type') === 'vaultWithdraw') {
                 const delta = this.safeDict(record, 'delta', {});
-                if (delta['vault'] === '0x' + vaultAddress) {
+                if (this.safeString(delta, 'vault') === '0x' + vaultAddress) {
                     withdrawals.push(record);
                 }
             }
@@ -429322,7 +429316,7 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
     sign(path, api = [
         'public'
     ], method = 'GET', params = {}) {
-        const apiName = api[0];
+        const apiName = this.safeString(api, 0);
         //
         // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
         //                                ↑                 ↑
@@ -484371,7 +484365,8 @@ class phemex extends _abstract_phemex_js__rspack_import_0/* ["default"] */.A {
             'symbol': market['id']
         };
         let response;
-        const isStableSettled = market['settle'] === 'USDT' || market['settle'] === 'USDC';
+        const marketSettle = this.safeString(market, 'settle');
+        const isStableSettled = marketSettle === 'USDT' || marketSettle === 'USDC';
         if (market['linear'] === true && isStableSettled) {
             response = await this.v2GetMdV2Orderbook(this.extend(request, params));
         } else {
@@ -484521,7 +484516,8 @@ class phemex extends _abstract_phemex_js__rspack_import_0/* ["default"] */.A {
         const paramsOmitted = this.omit(params, [
             'until'
         ]);
-        const isStableSettled = market['settle'] === 'USDT' || market['settle'] === 'USDC';
+        const marketSettle = this.safeString(market, 'settle');
+        const isStableSettled = marketSettle === 'USDT' || marketSettle === 'USDC';
         const usesSpecialFromToEndpoint = (market['linear'] === true || isStableSettled) && (since !== undefined || until !== undefined);
         let maxLimit = 1000;
         if (usesSpecialFromToEndpoint) {
@@ -484796,7 +484792,8 @@ class phemex extends _abstract_phemex_js__rspack_import_0/* ["default"] */.A {
             'symbol': market['id']
         };
         let response;
-        const isStableSettled = market['settle'] === 'USDT' || market['settle'] === 'USDC';
+        const marketSettle = this.safeString(market, 'settle');
+        const isStableSettled = marketSettle === 'USDT' || marketSettle === 'USDC';
         if (market['linear'] === true && isStableSettled) {
             response = await this.v2GetMdV2Trade(this.extend(request, params));
         } else {
@@ -485796,7 +485793,8 @@ class phemex extends _abstract_phemex_js__rspack_import_0/* ["default"] */.A {
         const takeProfit = this.safeDict(params, 'takeProfit');
         const hasStopLoss = stopLoss !== undefined;
         const hasTakeProfit = takeProfit !== undefined;
-        const isStableSettled = market['settle'] === 'USDT' || market['settle'] === 'USDC';
+        const marketSettle = this.safeString(market, 'settle');
+        const isStableSettled = marketSettle === 'USDT' || marketSettle === 'USDC';
         if (clientOrderId === undefined) {
             const brokerId = this.safeString(this.options, 'brokerId', 'CCXT123456');
             if (brokerId !== undefined) {
@@ -486097,7 +486095,8 @@ class phemex extends _abstract_phemex_js__rspack_import_0/* ["default"] */.A {
             'clientOrderId',
             'clOrdID'
         ]);
-        const isStableSettled = market['settle'] === 'USDT' || market['settle'] === 'USDC';
+        const marketSettle = this.safeString(market, 'settle');
+        const isStableSettled = marketSettle === 'USDT' || marketSettle === 'USDC';
         if (clientOrderId !== undefined) {
             request['clOrdID'] = clientOrderId;
         } else {
@@ -486188,7 +486187,8 @@ class phemex extends _abstract_phemex_js__rspack_import_0/* ["default"] */.A {
             request['orderID'] = id;
         }
         let response;
-        if (market['settle'] === 'USDT' || market['settle'] === 'USDC') {
+        const marketSettle = this.safeString(market, 'settle');
+        if (marketSettle === 'USDT' || marketSettle === 'USDC') {
             const posSide = this.safeString(paramsOmitted, 'posSide');
             if (posSide === undefined) {
                 request['posSide'] = 'Merged';
@@ -486230,7 +486230,8 @@ class phemex extends _abstract_phemex_js__rspack_import_0/* ["default"] */.A {
             request['untriggerred'] = trigger;
         }
         let response;
-        if (market['settle'] === 'USDT' || market['settle'] === 'USDC') {
+        const marketSettle = this.safeString(market, 'settle');
+        if (marketSettle === 'USDT' || marketSettle === 'USDC') {
             response = await this.privateDeleteGOrdersAll(this.extend(request, paramsOmitted));
         //
         //    {
@@ -486297,7 +486298,8 @@ class phemex extends _abstract_phemex_js__rspack_import_0/* ["default"] */.A {
             request['orderID'] = id;
         }
         let response;
-        if (market['settle'] === 'USDT' || market['settle'] === 'USDC') {
+        const marketSettle = this.safeString(market, 'settle');
+        if (marketSettle === 'USDT' || marketSettle === 'USDC') {
             response = await this.privateGetApiDataGFuturesOrdersByOrderId(this.extend(request, paramsOmitted));
         } else if (market['spot'] === true) {
             response = await this.privateGetApiDataSpotsOrdersByOrderId(this.extend(request, paramsOmitted));
@@ -486358,8 +486360,9 @@ class phemex extends _abstract_phemex_js__rspack_import_0/* ["default"] */.A {
             request['limit'] = limit;
         }
         let response;
-        if (market['settle'] === 'USDT' || market['settle'] === 'USDC') {
-            request['currency'] = market['settle'];
+        const marketSettle = this.safeString(market, 'settle');
+        if (marketSettle === 'USDT' || marketSettle === 'USDC') {
+            request['currency'] = marketSettle;
             response = await this.privateGetExchangeOrderV2OrderList(this.extend(request, params));
         } else if (market['swap'] === true) {
             response = await this.privateGetExchangeOrderList(this.extend(request, params));
@@ -486397,8 +486400,9 @@ class phemex extends _abstract_phemex_js__rspack_import_0/* ["default"] */.A {
             'symbol': market['id']
         };
         let response;
+        const marketSettle = this.safeString(market, 'settle');
         try {
-            if (market['settle'] === 'USDT' || market['settle'] === 'USDC') {
+            if (marketSettle === 'USDT' || marketSettle === 'USDC') {
                 response = await this.privateGetGOrdersActiveList(this.extend(request, params));
             } else if (market['swap'] === true) {
                 response = await this.privateGetOrdersActiveList(this.extend(request, params));
@@ -487903,7 +487907,8 @@ class phemex extends _abstract_phemex_js__rspack_import_0/* ["default"] */.A {
             'symbol': market['id']
         };
         let response;
-        if (market['settle'] === 'USDT' || market['settle'] === 'USDC') {
+        const marketSettle = this.safeString(market, 'settle');
+        if (marketSettle === 'USDT' || marketSettle === 'USDC') {
             if (!isHedged && longLeverageRr === undefined && shortLeverageRr === undefined) {
                 request['leverageRr'] = leverage;
             } else {
@@ -488143,7 +488148,8 @@ class phemex extends _abstract_phemex_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const isUsdtSettled = market['settle'] === 'USDT' || market['settle'] === 'USDC';
+        const marketSettle = this.safeString(market, 'settle');
+        const isUsdtSettled = marketSettle === 'USDT' || marketSettle === 'USDC';
         if (market['swap'] !== true) {
             throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' fetchFundingRateHistory() supports swap contracts only');
         }
@@ -503028,8 +503034,7 @@ class kalshi extends _abstract_prediction_kalshi_js__rspack_import_0/* ["default
             const parsedEvent = this.parseEvent(rawEvents[di]);
             result.push(parsedEvent);
             // register the parsed markets so populateOutcomes can index their outcomes
-            const parsedMarketsRaw = parsedEvent['markets'];
-            const parsedMarkets = parsedMarketsRaw !== undefined ? parsedMarketsRaw : [];
+            const parsedMarkets = parsedEvent['markets'];
             const parsedMarketsLength = parsedMarkets.length;
             for(let mi = 0; mi < parsedMarketsLength; mi++){
                 const m = parsedMarkets[mi];
@@ -515783,9 +515788,10 @@ class polymarket extends _abstract_prediction_polymarket_js__rspack_import_0/* [
         if (Array.isArray(response)) {
             for(let i = 0; i < response.length; i++){
                 // request echo first so the response's real orderID/status win on overlap
-                const enriched = this.extend(requests[i], response[i]);
+                const rawItem = response[i];
+                const enriched = this.extend(requests[i], rawItem);
                 const parsedItem = this.parsePredictionOrder(enriched, outcomes[i]);
-                parsedItem['info'] = response[i]; // keep info the raw exchange response
+                parsedItem['info'] = rawItem; // keep info the raw exchange response
                 result.push(parsedItem);
             }
         } else {
@@ -524142,7 +524148,8 @@ class sxbet extends _abstract_prediction_sxbet_js__rspack_import_0/* ["default"]
         //
         const rowsLength = rows.length;
         for(let i = 0; i < rowsLength; i++){
-            const row = this.safeDict(rows[i], 'trade', rows[i]);
+            const rawRow = rows[i];
+            const row = this.safeDict(rawRow, 'trade', rawRow);
             const trade = this.parseSxbetV3PublicTrade(row);
             const sym = this.safeString(trade, 'outcome');
             if (sym === undefined) {
@@ -524191,7 +524198,8 @@ class sxbet extends _abstract_prediction_sxbet_js__rspack_import_0/* ["default"]
         //
         const rowsLength = rows.length;
         for(let i = 0; i < rowsLength; i++){
-            const row = this.safeDict(rows[i], 'fill', rows[i]);
+            const rawRow = rows[i];
+            const row = this.safeDict(rawRow, 'fill', rawRow);
             const trade = this.parseSxbetV3Fill(row);
             const sym = this.safeString(trade, 'outcome');
             if (sym === undefined) {
@@ -524238,7 +524246,8 @@ class sxbet extends _abstract_prediction_sxbet_js__rspack_import_0/* ["default"]
         //
         const rowsLength = rows.length;
         for(let i = 0; i < rowsLength; i++){
-            const row = this.safeDict(rows[i], 'order', rows[i]);
+            const rawRow = rows[i];
+            const row = this.safeDict(rawRow, 'order', rawRow);
             const order = this.parsePredictionOrder(row);
             if (this.orders === undefined) {
                 const cacheLimit = this.safeInteger(this.options, 'ordersLimit', 1000);
@@ -530588,7 +530597,7 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
             if (newNumSubscriptions > subscriptionLimitByStream) {
                 throw new _base_errors_js__rspack_import_1.BadRequest(this.id + ' reached the limit of subscriptions by stream. Increase the number of streams, or increase the stream limit or subscription limit by stream if the exchange allows.');
             }
-            this.options['numSubscriptionsByStream'][stream] = subscriptionsByStream + numSubscriptions;
+            this.options['numSubscriptionsByStream'][stream] = newNumSubscriptions;
         }
         return stream;
     }
@@ -536773,12 +536782,7 @@ class bingx extends _bingx_js__rspack_import_0/* ["default"] */.A {
         // Coin-M m is coin volume; v is contracts and q is already USD turnover.
         // prefer the caller's stream-derived flag so an unresolved market id on
         // the Coin-M endpoint does not silently fall back to the contract count
-        let inverse = false;
-        if (isInverse === undefined) {
-            inverse = marketResolved['inverse'] === true;
-        } else {
-            inverse = isInverse;
-        }
+        const inverse = isInverse === true || isInverse === undefined && marketResolved['inverse'] === true;
         const baseVolumeKey = inverse ? 'm' : 'v';
         return this.safeTicker({
             'symbol': marketResolved['symbol'],
@@ -539143,7 +539147,7 @@ class bitfinex extends _bitfinex_js__rspack_import_0/* ["default"] */.A {
             }
             const orderbook = this.orderbooks[symbol];
             if (isRaw) {
-                const deltas = message[1];
+                const deltas = this.safeList(message, 1, []);
                 for(let i = 0; i < deltas.length; i++){
                     const delta = deltas[i];
                     const delta2 = this.safeNumber(delta, 2);
@@ -539159,7 +539163,7 @@ class bitfinex extends _bitfinex_js__rspack_import_0/* ["default"] */.A {
                     ]);
                 }
             } else {
-                const deltas = message[1];
+                const deltas = this.safeList(message, 1, []);
                 for(let i = 0; i < deltas.length; i++){
                     const delta = this.safeList(deltas, i);
                     const deltaAmount = this.safeNumber(delta, 2);
@@ -572010,7 +572014,8 @@ class gemini extends _gemini_js__rspack_import_0/* ["default"] */.A {
             return;
         }
         this.checkRequiredCredentials();
-        const startIndex = this.urls['api']['ws'].length;
+        const wsBaseUrl = this.safeString(this.urls['api'], 'ws', '');
+        const startIndex = wsBaseUrl.length;
         const urlParamsIndex = url.indexOf('?');
         const urlLength = url.length;
         const endIndex = urlParamsIndex >= 0 ? urlParamsIndex : urlLength;
@@ -576803,7 +576808,7 @@ class htx extends _htx_js__rspack_import_0/* ["default"] */.A {
         //         "ts":1645023376098
         //     }
         //
-        const ch = this.safeValue(message, 'ch');
+        const ch = this.safeString(message, 'ch', '');
         const parts = ch.split('.');
         const marketId = this.safeString(parts, 1);
         const market = this.safeMarket(marketId);
@@ -577587,7 +577592,7 @@ class htx extends _htx_js__rspack_import_0/* ["default"] */.A {
             };
         }
         const avgPrice = this.safeString(order, 'trade_avg_price');
-        const rawTrades = this.safeValue(order, 'trade');
+        const rawTrades = this.safeList(order, 'trade');
         let typeSideParts = [];
         let type = undefined;
         if (typeSide !== undefined) {
@@ -578803,8 +578808,9 @@ class htx extends _htx_js__rspack_import_0/* ["default"] */.A {
                 const contractCode = this.safeString(message, 'contract_code');
                 const market = contractCode !== undefined ? this.safeMarket(contractCode) : undefined;
                 if (Array.isArray(data)) {
-                    for(let i = 0; i < data.length; i++){
-                        const parsed = this.parseWsTrade(data[i], market);
+                    const dataList = this.safeList(message, 'data', []);
+                    for(let i = 0; i < dataList.length; i++){
+                        const parsed = this.parseWsTrade(dataList[i], market);
                         const symbol = this.safeString(parsed, 'symbol');
                         if (symbol !== undefined) {
                             cachedTrades.append(parsed);
@@ -582477,7 +582483,7 @@ class kraken extends _kraken_js__rspack_import_0/* ["default"] */.A {
         const integer = this.safeString(parts, 0, '');
         const decimals = this.safeString(parts, 1, '');
         let joinedResult = integer + decimals;
-        while(joinedResult.length > 0 && joinedResult[0] === '0'){
+        while(joinedResult.startsWith('0')){
             joinedResult = joinedResult.slice(1);
         }
         return joinedResult;

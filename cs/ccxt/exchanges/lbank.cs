@@ -567,7 +567,7 @@ public partial class lbank : Exchange
         string? code = this.safeCurrencyCode(id);
         object networksRaw = rawCurrency;
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
-        for (int j = 0; j < (((object)(networksRaw)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); j++)
+        for (int j = 0; j < getArrayLength(networksRaw); j++)
         {
             IDictionary<string, object> networkEntry = this.safeDict(networksRaw, j);
             string? networkId = this.safeString(networkEntry, "chain");
@@ -1357,18 +1357,18 @@ public partial class lbank : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        Int64? limitResolved = this.parseToInt(((limit == null)) ? 100 : (((((object)(limit)) is var c31v0) && (((object)(2000)) is var c31v1)) ? (((c31v0 == null) || (c31v1 == null)) ? null : ((Convert.ToDouble(c31v0) < Convert.ToDouble(c31v1)) ? c31v0 : c31v1)) : null));
+        Int64? limitResolved = this.parseToInt(((limit == null)) ? 100 : mathMin(limit, 2000));
         int duration = this.parseTimeframe(timeframeVar);
         Int64 now = this.milliseconds();
         object defaultSince = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(now, (((duration * 1000L) * limitResolved)));
         object sinceResolved = defaultSince;
-        Int64? parsedSince = this.parseToInt((((((object)(defaultSince)) is var c31v2) && (((object)(1000)) is var c31v3)) ? (((c31v2 == null) || (c31v3 == null)) ? null : (object)(Convert.ToDouble(c31v2) / Convert.ToDouble(c31v3))) : null));
+        Int64? parsedSince = this.parseToInt(divide(defaultSince, 1000));
         if ((since != null))
         {
             sinceResolved = since;
             parsedSince = this.parseToInt(((double?)since / 1000));
         }
-        object parsedLimit = (((((object)((limitResolved + 1))) is var c31v4) && (((object)(2000)) is var c31v5)) ? (((c31v4 == null) || (c31v5 == null)) ? null : ((Convert.ToDouble(c31v4) < Convert.ToDouble(c31v5)) ? c31v4 : c31v5)) : null); // max 2000;
+        object parsedLimit = mathMin((limitResolved + 1), 2000); // max 2000;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "type", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
@@ -3468,14 +3468,14 @@ public partial class lbank : Exchange
 
     public virtual string? convertSecretToPem(object secret)
     {
-        int secretLength = ((((object)(secret)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }) - 0);
+        int secretLength = (getArrayLength(secret) - 0);
         Int64? fullLines = this.parseToInt(((double)secretLength / 64));
         string pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
         for (int i = 0; (i <= fullLines); i++)
         {
             Int64 start = (i * 64L);
             Int64 end = this.sum(start, 64);
-            pem = pem + (((Func<object, object, object, string>)(static (s36s, s36a, s36b) => { if (s36s == null) { return null; } var s36str = (string)s36s; var s36start = s36a != null ? Convert.ToInt32(s36a) : -1; if (s36b == null) { if (s36start < 0) { var s36inner = s36str.Length + s36start; s36inner = s36inner < 0 ? 0 : s36inner; return s36str[(s36inner)..]; } else { return s36str[s36start..]; } } else { var s36end = Convert.ToInt32(s36b); if (s36start < 0) { s36start = s36str.Length + s36start; } if (s36end < 0) { s36end = s36str.Length + s36end; } if (s36end > s36str.Length) { s36end = s36str.Length; } return s36str[s36start..s36end]; } }))(this.secret, start, end) + "\n"); // eslint-disable-line
+            pem = pem + (slice(this.secret, start, end) + "\n"); // eslint-disable-line
         }
         return (pem + "-----END PRIVATE KEY-----");
     }

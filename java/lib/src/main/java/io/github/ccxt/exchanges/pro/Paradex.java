@@ -94,7 +94,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
     public Long requestId()
     {
         Long requestId = (Long) this.sum(this.safeInteger(this.options, "requestId", 0), 1);
-        { Map<Object, Object> j39v1 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v2 = "requestId"; Object j39v3 = requestId; if (j39v1 == null) { if (j39v2 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v1) { if (j39v3 == null && j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); } else { j39v1.put(j39v2, j39v3); } } }
+        Helpers.addElementToObject(this.options, "requestId", requestId);
         return requestId;
     }
 
@@ -1151,10 +1151,10 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             // plain variables as slice bounds, php gets end - start unparenthesized
             Long middle = (Long) (position + 1L);
             Long next = (Long) (position + 2L);
-            Integer high = ((java.util.function.ToIntBiFunction<Object, Object>) (hx4J41s, hx4J41t) -> (hx4J41s instanceof List<?> hx4J41l) ? hx4J41l.indexOf(hx4J41t) : (hx4J41s instanceof String hx4J41x && hx4J41t instanceof String hx4J41y) ? hx4J41x.indexOf(hx4J41y) : -1).applyAsInt(digits, ((java.util.function.Function<Object[], String>) (hx4J41a) -> { if (hx4J41a[0] == null) return null; String hx4J41s = (String) hx4J41a[0]; java.util.function.ToIntFunction<Object> hx4J41i = (hx4J41o) -> (hx4J41o instanceof Integer hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Long hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Double hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Float hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof java.math.BigDecimal hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof String hx4J41n) ? Integer.parseInt(hx4J41n) : Integer.parseInt(String.valueOf(hx4J41o)); int hx4J41b = (hx4J41a[1] != null) ? hx4J41i.applyAsInt(hx4J41a[1]) : -1; if (hx4J41a[2] == null) { if (hx4J41b < 0) return hx4J41s.substring(Math.max(hx4J41s.length() + hx4J41b, 0)); if (hx4J41b > hx4J41s.length()) return ""; return hx4J41s.substring(hx4J41b); } int hx4J41e = hx4J41i.applyAsInt(hx4J41a[2]); if (hx4J41b < 0) hx4J41b = hx4J41s.length() + hx4J41b; if (hx4J41e < 0) hx4J41e = hx4J41s.length() + hx4J41e; if (hx4J41b < 0) hx4J41b = 0; if (hx4J41e > hx4J41s.length()) hx4J41e = hx4J41s.length(); if (hx4J41b > hx4J41e) hx4J41b = hx4J41e; return hx4J41s.substring(hx4J41b, hx4J41e); }).apply(new Object[] { frameHex, position, middle }));
-            Integer low = ((java.util.function.ToIntBiFunction<Object, Object>) (hx4J41s, hx4J41t) -> (hx4J41s instanceof List<?> hx4J41l) ? hx4J41l.indexOf(hx4J41t) : (hx4J41s instanceof String hx4J41x && hx4J41t instanceof String hx4J41y) ? hx4J41x.indexOf(hx4J41y) : -1).applyAsInt(digits, ((java.util.function.Function<Object[], String>) (hx4J41a) -> { if (hx4J41a[0] == null) return null; String hx4J41s = (String) hx4J41a[0]; java.util.function.ToIntFunction<Object> hx4J41i = (hx4J41o) -> (hx4J41o instanceof Integer hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Long hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Double hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Float hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof java.math.BigDecimal hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof String hx4J41n) ? Integer.parseInt(hx4J41n) : Integer.parseInt(String.valueOf(hx4J41o)); int hx4J41b = (hx4J41a[1] != null) ? hx4J41i.applyAsInt(hx4J41a[1]) : -1; if (hx4J41a[2] == null) { if (hx4J41b < 0) return hx4J41s.substring(Math.max(hx4J41s.length() + hx4J41b, 0)); if (hx4J41b > hx4J41s.length()) return ""; return hx4J41s.substring(hx4J41b); } int hx4J41e = hx4J41i.applyAsInt(hx4J41a[2]); if (hx4J41b < 0) hx4J41b = hx4J41s.length() + hx4J41b; if (hx4J41e < 0) hx4J41e = hx4J41s.length() + hx4J41e; if (hx4J41b < 0) hx4J41b = 0; if (hx4J41e > hx4J41s.length()) hx4J41e = hx4J41s.length(); if (hx4J41b > hx4J41e) hx4J41b = hx4J41e; return hx4J41s.substring(hx4J41b, hx4J41e); }).apply(new Object[] { frameHex, middle, next }));
-            result = this.parseToInt(this.sum(result, ((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a == null || j36b == null) return null; if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) * ((Long) j36b)); java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; double j36r = j36d.applyAsDouble(j36a) * j36d.applyAsDouble(j36b); if (new java.math.BigDecimal(String.valueOf(j36r)).stripTrailingZeros().scale() <= 0) return (Object) ((long) j36r); return (Object) j36r; }).apply((((long) high) * 16L), factor), ((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a == null || j36b == null) return null; if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) * ((Long) j36b)); java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; double j36r = j36d.applyAsDouble(j36a) * j36d.applyAsDouble(j36b); if (new java.math.BigDecimal(String.valueOf(j36r)).stripTrailingZeros().scale() <= 0) return (Object) ((long) j36r); return (Object) j36r; }).apply(low, factor)));
-            factor = this.parseToInt(((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a == null || j36b == null) return null; if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) * ((Long) j36b)); java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; double j36r = j36d.applyAsDouble(j36a) * j36d.applyAsDouble(j36b); if (new java.math.BigDecimal(String.valueOf(j36r)).stripTrailingZeros().scale() <= 0) return (Object) ((long) j36r); return (Object) j36r; }).apply(factor, 256));
+            Integer high = Helpers.getIndexOf(digits, Helpers.slice(frameHex, position, middle));
+            Integer low = Helpers.getIndexOf(digits, Helpers.slice(frameHex, middle, next));
+            result = this.parseToInt(this.sum(result, Helpers.multiply((((long) high) * 16L), factor), Helpers.multiply(low, factor)));
+            factor = this.parseToInt(Helpers.multiply(factor, 256));
             position = this.parseToInt(next);
         }
         // an exact integer below 2^32, parseToInt keeps it and types the return as an integer
@@ -1217,7 +1217,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         Long size = this.parseToInt(length);
         Long start = (first * 2L);
         Object end = this.sum(start, (size * 2L));
-        return this.binaryToString(this.base16ToBinary(((java.util.function.Function<Object[], String>) (hx4J41a) -> { if (hx4J41a[0] == null) return null; String hx4J41s = (String) hx4J41a[0]; java.util.function.ToIntFunction<Object> hx4J41i = (hx4J41o) -> (hx4J41o instanceof Integer hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Long hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Double hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Float hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof java.math.BigDecimal hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof String hx4J41n) ? Integer.parseInt(hx4J41n) : Integer.parseInt(String.valueOf(hx4J41o)); int hx4J41b = (hx4J41a[1] != null) ? hx4J41i.applyAsInt(hx4J41a[1]) : -1; if (hx4J41a[2] == null) { if (hx4J41b < 0) return hx4J41s.substring(Math.max(hx4J41s.length() + hx4J41b, 0)); if (hx4J41b > hx4J41s.length()) return ""; return hx4J41s.substring(hx4J41b); } int hx4J41e = hx4J41i.applyAsInt(hx4J41a[2]); if (hx4J41b < 0) hx4J41b = hx4J41s.length() + hx4J41b; if (hx4J41e < 0) hx4J41e = hx4J41s.length() + hx4J41e; if (hx4J41b < 0) hx4J41b = 0; if (hx4J41e > hx4J41s.length()) hx4J41e = hx4J41s.length(); if (hx4J41b > hx4J41e) hx4J41b = hx4J41e; return hx4J41s.substring(hx4J41b, hx4J41e); }).apply(new Object[] { frameHex, start, end })));
+        return this.binaryToString(this.base16ToBinary(Helpers.slice(frameHex, start, end)));
     }
 
     public String sbeReadAddress(Object frameHex, Object offset)
@@ -1226,18 +1226,18 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         Long first = this.parseToInt(offset);
         Long rawStart = (first * 2L);
         Long rawEnd = (Long) (rawStart + 64L);
-        String raw = ((java.util.function.Function<Object[], String>) (hx4J41a) -> { if (hx4J41a[0] == null) return null; String hx4J41s = (String) hx4J41a[0]; java.util.function.ToIntFunction<Object> hx4J41i = (hx4J41o) -> (hx4J41o instanceof Integer hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Long hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Double hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Float hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof java.math.BigDecimal hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof String hx4J41n) ? Integer.parseInt(hx4J41n) : Integer.parseInt(String.valueOf(hx4J41o)); int hx4J41b = (hx4J41a[1] != null) ? hx4J41i.applyAsInt(hx4J41a[1]) : -1; if (hx4J41a[2] == null) { if (hx4J41b < 0) return hx4J41s.substring(Math.max(hx4J41s.length() + hx4J41b, 0)); if (hx4J41b > hx4J41s.length()) return ""; return hx4J41s.substring(hx4J41b); } int hx4J41e = hx4J41i.applyAsInt(hx4J41a[2]); if (hx4J41b < 0) hx4J41b = hx4J41s.length() + hx4J41b; if (hx4J41e < 0) hx4J41e = hx4J41s.length() + hx4J41e; if (hx4J41b < 0) hx4J41b = 0; if (hx4J41e > hx4J41s.length()) hx4J41e = hx4J41s.length(); if (hx4J41b > hx4J41e) hx4J41b = hx4J41e; return hx4J41s.substring(hx4J41b, hx4J41e); }).apply(new Object[] { frameHex, rawStart, rawEnd });
+        String raw = Helpers.slice(frameHex, rawStart, rawEnd);
         Object start = 63;
         for (var i = 0; i < 63; i++)
         {
             Object next = (((long) i) + 1L);
-            if (!java.util.Objects.equals(((java.util.function.Function<Object[], String>) (hx4J41a) -> { if (hx4J41a[0] == null) return null; String hx4J41s = (String) hx4J41a[0]; java.util.function.ToIntFunction<Object> hx4J41i = (hx4J41o) -> (hx4J41o instanceof Integer hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Long hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Double hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Float hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof java.math.BigDecimal hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof String hx4J41n) ? Integer.parseInt(hx4J41n) : Integer.parseInt(String.valueOf(hx4J41o)); int hx4J41b = (hx4J41a[1] != null) ? hx4J41i.applyAsInt(hx4J41a[1]) : -1; if (hx4J41a[2] == null) { if (hx4J41b < 0) return hx4J41s.substring(Math.max(hx4J41s.length() + hx4J41b, 0)); if (hx4J41b > hx4J41s.length()) return ""; return hx4J41s.substring(hx4J41b); } int hx4J41e = hx4J41i.applyAsInt(hx4J41a[2]); if (hx4J41b < 0) hx4J41b = hx4J41s.length() + hx4J41b; if (hx4J41e < 0) hx4J41e = hx4J41s.length() + hx4J41e; if (hx4J41b < 0) hx4J41b = 0; if (hx4J41e > hx4J41s.length()) hx4J41e = hx4J41s.length(); if (hx4J41b > hx4J41e) hx4J41b = hx4J41e; return hx4J41s.substring(hx4J41b, hx4J41e); }).apply(new Object[] { raw, i, next }), "0"))
+            if (!java.util.Objects.equals(Helpers.slice(raw, i, next), "0"))
             {
                 start = i;
                 break;
             }
         }
-        return ("0x" + ((java.util.function.Function<Object[], String>) (hx4J41a) -> { if (hx4J41a[0] == null) return null; String hx4J41s = (String) hx4J41a[0]; java.util.function.ToIntFunction<Object> hx4J41i = (hx4J41o) -> (hx4J41o instanceof Integer hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Long hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Double hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Float hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof java.math.BigDecimal hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof String hx4J41n) ? Integer.parseInt(hx4J41n) : Integer.parseInt(String.valueOf(hx4J41o)); int hx4J41b = (hx4J41a[1] != null) ? hx4J41i.applyAsInt(hx4J41a[1]) : -1; if (hx4J41a[2] == null) { if (hx4J41b < 0) return hx4J41s.substring(Math.max(hx4J41s.length() + hx4J41b, 0)); if (hx4J41b > hx4J41s.length()) return ""; return hx4J41s.substring(hx4J41b); } int hx4J41e = hx4J41i.applyAsInt(hx4J41a[2]); if (hx4J41b < 0) hx4J41b = hx4J41s.length() + hx4J41b; if (hx4J41e < 0) hx4J41e = hx4J41s.length() + hx4J41e; if (hx4J41b < 0) hx4J41b = 0; if (hx4J41e > hx4J41s.length()) hx4J41e = hx4J41s.length(); if (hx4J41b > hx4J41e) hx4J41b = hx4J41e; return hx4J41s.substring(hx4J41b, hx4J41e); }).apply(new Object[] { raw, start, 64 }));
+        return ("0x" + Helpers.slice(raw, start, 64));
     }
 
     public Object sbeReadVarStrings(Object frameHex, Object offset, Object count, Object frameLength)
@@ -1281,7 +1281,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             return null;
         }
         Object strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 2, frameLength);
-        Integer stringsLength = (((java.util.Objects.equals(strings, null)))) ? 0 : (switch ((Object)(strings)) { case null -> 0; case List<?> j39v10 -> j39v10.size(); case String j39v11 -> j39v11.length(); case Object j39v12 -> j39v12.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v12) : 0; });
+        Integer stringsLength = (((java.util.Objects.equals(strings, null)))) ? 0 : (switch ((Object)(strings)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; });
         if (((stringsLength == null || stringsLength < 1)))
         {
             return null;
@@ -1349,16 +1349,16 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             }
             for (var j = 0; (numInGroup != null && j < numInGroup); j++)
             {
-                ((List<Object>)inserts).add((switch (0) { default -> { HashMap<String, Object> j39v17 = new HashMap<String, Object>();
-                    j39v17.put("side", (sides == null || i < 0 || i >= sides.size() ? null : sides.get(i)));
-                    j39v17.put("price", this.sbeReadDecimal(frameHex, position));
-                    j39v17.put("size", this.sbeReadDecimal(frameHex, (position + 8L)));
-                    yield j39v17; } }));
+                ((List<Object>)inserts).add((switch (0) { default -> { HashMap<String, Object> j39v7 = new HashMap<String, Object>();
+                    j39v7.put("side", (sides == null || i < 0 || i >= sides.size() ? null : sides.get(i)));
+                    j39v7.put("price", this.sbeReadDecimal(frameHex, position));
+                    j39v7.put("size", this.sbeReadDecimal(frameHex, (position + 8L)));
+                    yield j39v7; } }));
                 position = this.parseToInt(this.sum(position, entryLength));
             }
         }
         Object strings = this.sbeReadVarStrings(frameHex, position, 1, frameLength);
-        Integer stringsLength = (((java.util.Objects.equals(strings, null)))) ? 0 : (switch ((Object)(strings)) { case null -> 0; case List<?> j39v14 -> j39v14.size(); case String j39v15 -> j39v15.length(); case Object j39v16 -> j39v16.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v16) : 0; });
+        Integer stringsLength = (((java.util.Objects.equals(strings, null)))) ? 0 : (switch ((Object)(strings)) { case null -> 0; case List<?> j39v4 -> j39v4.size(); case String j39v5 -> j39v5.length(); case Object j39v6 -> j39v6.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v6) : 0; });
         if (((stringsLength == null || stringsLength < 1)))
         {
             return null;
@@ -1392,7 +1392,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             return null;
         }
         Object strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 1, frameLength);
-        Integer stringsLength = (((java.util.Objects.equals(strings, null)))) ? 0 : (switch ((Object)(strings)) { case null -> 0; case List<?> j39v19 -> j39v19.size(); case String j39v20 -> j39v20.length(); case Object j39v21 -> j39v21.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v21) : 0; });
+        Integer stringsLength = (((java.util.Objects.equals(strings, null)))) ? 0 : (switch ((Object)(strings)) { case null -> 0; case List<?> j39v8 -> j39v8.size(); case String j39v9 -> j39v9.length(); case Object j39v10 -> j39v10.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v10) : 0; });
         if (((stringsLength == null || stringsLength < 1)))
         {
             return null;
@@ -1435,7 +1435,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             return null;
         }
         Object strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 1, frameLength);
-        Integer stringsLength = (((java.util.Objects.equals(strings, null)))) ? 0 : (switch ((Object)(strings)) { case null -> 0; case List<?> j39v23 -> j39v23.size(); case String j39v24 -> j39v24.length(); case Object j39v25 -> j39v25.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v25) : 0; });
+        Integer stringsLength = (((java.util.Objects.equals(strings, null)))) ? 0 : (switch ((Object)(strings)) { case null -> 0; case List<?> j39v11 -> j39v11.size(); case String j39v12 -> j39v12.length(); case Object j39v13 -> j39v13.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v13) : 0; });
         if (((stringsLength == null || stringsLength < 1)))
         {
             return null;
@@ -1469,7 +1469,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             return null;
         }
         Object strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 4, frameLength);
-        Integer stringsLength = (((java.util.Objects.equals(strings, null)))) ? 0 : (switch ((Object)(strings)) { case null -> 0; case List<?> j39v31 -> j39v31.size(); case String j39v32 -> j39v32.length(); case Object j39v33 -> j39v33.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v33) : 0; });
+        Integer stringsLength = (((java.util.Objects.equals(strings, null)))) ? 0 : (switch ((Object)(strings)) { case null -> 0; case List<?> j39v14 -> j39v14.size(); case String j39v15 -> j39v15.length(); case Object j39v16 -> j39v16.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v16) : 0; });
         if (((stringsLength == null || stringsLength < 4)))
         {
             return null;
@@ -1570,7 +1570,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             return null;
         }
         Object strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 6, frameLength);
-        Integer stringsLength = (((java.util.Objects.equals(strings, null)))) ? 0 : (switch ((Object)(strings)) { case null -> 0; case List<?> j39v38 -> j39v38.size(); case String j39v39 -> j39v39.length(); case Object j39v40 -> j39v40.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v40) : 0; });
+        Integer stringsLength = (((java.util.Objects.equals(strings, null)))) ? 0 : (switch ((Object)(strings)) { case null -> 0; case List<?> j39v17 -> j39v17.size(); case String j39v18 -> j39v18.length(); case Object j39v19 -> j39v19.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v19) : 0; });
         if (((stringsLength == null || stringsLength < 5)))
         {
             return null;
@@ -1634,7 +1634,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             return null;
         }
         Object strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 2, frameLength);
-        Integer stringsLength = (((java.util.Objects.equals(strings, null)))) ? 0 : (switch ((Object)(strings)) { case null -> 0; case List<?> j39v43 -> j39v43.size(); case String j39v44 -> j39v44.length(); case Object j39v45 -> j39v45.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v45) : 0; });
+        Integer stringsLength = (((java.util.Objects.equals(strings, null)))) ? 0 : (switch ((Object)(strings)) { case null -> 0; case List<?> j39v20 -> j39v20.size(); case String j39v21 -> j39v21.length(); case Object j39v22 -> j39v22.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v22) : 0; });
         if (((stringsLength == null || stringsLength < 1)))
         {
             return null;
@@ -1696,7 +1696,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             return null;
         }
         Object strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 1, frameLength);
-        Integer stringsLength = (((java.util.Objects.equals(strings, null)))) ? 0 : (switch ((Object)(strings)) { case null -> 0; case List<?> j39v47 -> j39v47.size(); case String j39v48 -> j39v48.length(); case Object j39v49 -> j39v49.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v49) : 0; });
+        Integer stringsLength = (((java.util.Objects.equals(strings, null)))) ? 0 : (switch ((Object)(strings)) { case null -> 0; case List<?> j39v23 -> j39v23.size(); case String j39v24 -> j39v24.length(); case Object j39v25 -> j39v25.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v25) : 0; });
         if (((stringsLength == null || stringsLength < 1)))
         {
             return null;

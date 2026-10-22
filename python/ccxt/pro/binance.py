@@ -249,7 +249,7 @@ class binance(ccxt.async_support.binance):
             subscriptionLimitByStream = self.safe_integer(self.options['subscriptionLimitByStream'], type, 200)
             if newNumSubscriptions > subscriptionLimitByStream:
                 raise BadRequest(self.id + ' reached the limit of subscriptions by stream. Increase the number of streams, or increase the stream limit or subscription limit by stream if the exchange allows.')
-            self.options['numSubscriptionsByStream'][stream] = subscriptionsByStream + numSubscriptions
+            self.options['numSubscriptionsByStream'][stream] = newNumSubscriptions
         return stream
 
     def get_ws_url(self, type: str, category: str) -> str:
@@ -993,7 +993,7 @@ class binance(ccxt.async_support.binance):
         amount = self.safe_float(delta, 1)
         bookside.store(price, amount)
 
-    def handle_deltas(self, bookside: object, deltas: object):
+    def handle_deltas(self, bookside: object, deltas: list[object]):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 

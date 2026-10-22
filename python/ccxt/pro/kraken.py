@@ -995,7 +995,7 @@ class kraken(ccxt.async_support.kraken):
         integer = self.safe_string(parts, 0, '')
         decimals = self.safe_string(parts, 1, '')
         joinedResult = integer + decimals
-        while((len(joinedResult) > 0) and (joinedResult[0] == '0')):
+        while(joinedResult.startswith('0')):
             joinedResult = joinedResult[1:]
         return joinedResult
 

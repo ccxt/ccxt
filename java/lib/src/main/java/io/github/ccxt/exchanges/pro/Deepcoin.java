@@ -130,7 +130,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         synchronized (this) {
         Long previousValue = this.safeInteger(this.options, "lastRequestId", 0);
         newValue = (Long) this.sum(previousValue, 1);
-        { Map<Object, Object> j39v1 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v2 = "lastRequestId"; Object j39v3 = newValue; if (j39v1 == null) { if (j39v2 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v1) { if (j39v3 == null && j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); } else { j39v1.put(j39v2, j39v3); } } }
+        Helpers.addElementToObject(this.options, "lastRequestId", newValue);
         }
         return newValue;
     }
@@ -165,7 +165,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
 
             String url = (String) Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public"), Helpers.GetValue(market, "type"));
             Long requestId = this.requestId();
-            Object request = this.createPublicRequest(market, requestId, topicID, java.util.Objects.requireNonNullElse(suffix, ""), false);
+            Map<String, Object> request = (Map<String, Object>) this.createPublicRequest(market, requestId, topicID, java.util.Objects.requireNonNullElse(suffix, ""), false);
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "subHash", messageHash );
                 put( "id", requestId );
@@ -189,7 +189,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
                 throw new BadRequest(((this.id + " no subscription for ") + messageHash)) ;
             }
             Long subId = this.safeInteger(existingSubscription, "id");
-            Object request = this.createPublicRequest(market, subId, topicID, java.util.Objects.requireNonNullElse(suffix, ""), true); // unsubscribe message uses the same id as the original subscribe message
+            Map<String, Object> request = (Map<String, Object>) this.createPublicRequest(market, subId, topicID, java.util.Objects.requireNonNullElse(suffix, ""), true); // unsubscribe message uses the same id as the original subscribe message
             String unsubHash = ("unsubscribe::" + messageHash);
             Map<String, Object> subscriptionExtended = this.extend(subscription, new HashMap<String, Object>() {{
                 put( "subHash", messageHash );
@@ -269,8 +269,8 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
                         throw new AuthenticationError((this.id + " authenticate() received an empty listenKey")) ;
                     }
                     Object newExpiryTimestamp = this.safeTimestamp(data, "expire_time");
-                    { Map<Object, Object> j39v12 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v13 = "listenKey"; Object j39v14 = listenKey; if (j39v12 == null) { if (j39v13 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v12) { if (j39v14 == null && j39v12 instanceof java.util.concurrent.ConcurrentHashMap) { j39v12.remove(j39v13); } else { j39v12.put(j39v13, j39v14); } } }
-                    { Map<Object, Object> j39v9 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v10 = "listenKeyExpiryTimestamp"; Object j39v11 = newExpiryTimestamp; if (j39v9 == null) { if (j39v10 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v9) { if (j39v11 == null && j39v9 instanceof java.util.concurrent.ConcurrentHashMap) { j39v9.remove(j39v10); } else { j39v9.put(j39v10, j39v11); } } }
+                    Helpers.addElementToObject(this.options, "listenKey", listenKey);
+                    Helpers.addElementToObject(this.options, "listenKeyExpiryTimestamp", newExpiryTimestamp);
                 }
                 // settle the flight: client.resolve wakes every waiter and drops
                 // the future from the registry under the client's own lock, so the

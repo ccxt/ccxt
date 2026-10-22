@@ -703,7 +703,7 @@ export function goChanSelfTest (): string[] {
     ok (ownOk.includes ('\tchValue := this.ParseRows(a)\n\tch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}\n'), 'own typed call send');
     // G10K-gochan2: inherited base returns
     goChanSetBaseReturnsForTest (new Map ([ [ 'BaseExchange.ParseBase', 'map[string]any' ], [ 'Exchange.ParseShadow', '' ], [ 'BaseExchange.ParseShadow', 'map[string]any' ] ]));
-    const embed = 'package ccxt\ntype X struct {\n\tExchange\n\texchangeTyped *ExchangeTyped\n}\n';
+    const embed = 'package ccxt\ntype X struct {\n\tExchange\n}\n';
     const inherited = goChanCarrierPass (embed + core ('X', '\tch <- this.ParseBase(a)\n\treturn nil\n'), table);
     ok (inherited.includes ('\tchValue := this.ParseBase(a)\n\tch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}\n'), 'inherited base typed send');
     const tryPass = (src: string) => { try { goChanCarrierPass (src, table); return false; } catch (e) { return true; } };

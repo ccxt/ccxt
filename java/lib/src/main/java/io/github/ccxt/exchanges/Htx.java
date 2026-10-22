@@ -2909,7 +2909,7 @@ public class Htx extends HtxApi
         // - market-id from fetchTciker[s]: `BTC-USDT-CW`     (linear future) or `BTC_CW`    (inverse future)
         if (!(((Map<?, ?>)this.options).containsKey("futureMarketIdsForSymbols")))
         {
-            { Map<Object, Object> j39v6 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v7 = "futureMarketIdsForSymbols"; Object j39v8 = new HashMap<String, Object>() {{}}; if (j39v6 == null) { if (j39v7 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v6) { if (j39v8 == null && j39v6 instanceof java.util.concurrent.ConcurrentHashMap) { j39v6.remove(j39v7); } else { j39v6.put(j39v7, j39v8); } } }
+            Helpers.addElementToObject(this.options, "futureMarketIdsForSymbols", new HashMap<String, Object>() {{}});
         }
         Map<String, Object> futureMarketIdsForSymbols = (Map<String, Object>) this.safeDict(this.options, "futureMarketIdsForSymbols", new HashMap<String, Object>() {{}});
         if (futureMarketIdsForSymbols.containsKey(symbolOrMarketId))
@@ -4420,8 +4420,8 @@ public class Htx extends HtxApi
             //    }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            { Map<Object, Object> j39v12 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v13 = "networkNamesByChainIds"; Object j39v14 = new HashMap<String, Object>() {{}}; if (j39v12 == null) { if (j39v13 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v12) { if (j39v14 == null && j39v12 instanceof java.util.concurrent.ConcurrentHashMap) { j39v12.remove(j39v13); } else { j39v12.put(j39v13, j39v14); } } }
-            { Map<Object, Object> j39v9 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v10 = "networkChainIdsByNames"; Object j39v11 = new HashMap<String, Object>() {{}}; if (j39v9 == null) { if (j39v10 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v9) { if (j39v11 == null && j39v9 instanceof java.util.concurrent.ConcurrentHashMap) { j39v9.remove(j39v10); } else { j39v9.put(j39v10, j39v11); } } }
+            Helpers.addElementToObject(this.options, "networkNamesByChainIds", new HashMap<String, Object>() {{}});
+            Helpers.addElementToObject(this.options, "networkChainIdsByNames", new HashMap<String, Object>() {{}});
             return this.parseCurrencies(data);
         });
 
@@ -4431,11 +4431,11 @@ public class Htx extends HtxApi
     {
         if (!(((Map<?, ?>)this.options).containsKey("networkNamesByChainIds")))
         {
-            { Map<Object, Object> j39v19 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v20 = "networkNamesByChainIds"; Object j39v21 = new HashMap<String, Object>() {{}}; if (j39v19 == null) { if (j39v20 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v19) { if (j39v21 == null && j39v19 instanceof java.util.concurrent.ConcurrentHashMap) { j39v19.remove(j39v20); } else { j39v19.put(j39v20, j39v21); } } }
+            Helpers.addElementToObject(this.options, "networkNamesByChainIds", new HashMap<String, Object>() {{}});
         }
         if (!(((Map<?, ?>)this.options).containsKey("networkChainIdsByNames")))
         {
-            { Map<Object, Object> j39v16 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v17 = "networkChainIdsByNames"; Object j39v18 = new HashMap<String, Object>() {{}}; if (j39v16 == null) { if (j39v17 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v16) { if (j39v18 == null && j39v16 instanceof java.util.concurrent.ConcurrentHashMap) { j39v16.remove(j39v17); } else { j39v16.put(j39v17, j39v18); } } }
+            Helpers.addElementToObject(this.options, "networkChainIdsByNames", new HashMap<String, Object>() {{}});
         }
         String currencyId = this.safeString(rawCurrency, "currency");
         String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
@@ -4525,7 +4525,7 @@ public class Htx extends HtxApi
         {
             return null;
         }
-        List<Object> keys = ((List<Object>) switch ((Object)(this.options.get("networkNamesByChainIds"))) { case Map<?, ?> j39v22 -> { synchronized (j39v22) { yield new ArrayList<Object>(j39v22.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> keys = ((List<Object>) switch ((Object)(this.options.get("networkNamesByChainIds"))) { case Map<?, ?> j39v6 -> { synchronized (j39v6) { yield new ArrayList<Object>(j39v6.keySet()); } } case null, default -> new ArrayList<Object>(); });
         Integer keysLength = ((List<?>)keys).size();
         if (java.util.Objects.equals(keysLength, 0))
         {
@@ -4545,7 +4545,7 @@ public class Htx extends HtxApi
         {
             return super.networkCodeToId(networkCode, (String) null);
         }
-        List<Object> keys = ((List<Object>) switch ((Object)(this.options.get("networkChainIdsByNames"))) { case Map<?, ?> j39v23 -> { synchronized (j39v23) { yield new ArrayList<Object>(j39v23.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> keys = ((List<Object>) switch ((Object)(this.options.get("networkChainIdsByNames"))) { case Map<?, ?> j39v7 -> { synchronized (j39v7) { yield new ArrayList<Object>(j39v7.keySet()); } } case null, default -> new ArrayList<Object>(); });
         Integer keysLength = ((List<?>)keys).size();
         if (java.util.Objects.equals(keysLength, 0))
         {
@@ -4814,7 +4814,7 @@ public class Htx extends HtxApi
             {
                 if (Boolean.TRUE.equals(isolated))
                 {
-                    for (var i = 0; i < (switch ((Object)(data)) { case null -> 0; case List<?> j39v27 -> j39v27.size(); case String j39v28 -> j39v28.length(); case Object j39v29 -> j39v29.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v29) : 0; }); i++)
+                    for (var i = 0; i < (switch ((Object)(data)) { case null -> 0; case List<?> j39v11 -> j39v11.size(); case String j39v12 -> j39v12.length(); case Object j39v13 -> j39v13.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v13) : 0; }); i++)
                     {
                         Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, i, (Object) null);
                         List<Object> balances = (List<Object>) this.safeList(entry, "list", new ArrayList<Object>(Arrays.asList()));
@@ -4854,7 +4854,7 @@ public class Htx extends HtxApi
                 }
             } else if (Boolean.TRUE.equals(inverse))
             {
-                for (var i = 0; i < (switch ((Object)(data)) { case null -> 0; case List<?> j39v24 -> j39v24.size(); case String j39v25 -> j39v25.length(); case Object j39v26 -> j39v26.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v26) : 0; }); i++)
+                for (var i = 0; i < (switch ((Object)(data)) { case null -> 0; case List<?> j39v8 -> j39v8.size(); case String j39v9 -> j39v9.length(); case Object j39v10 -> j39v10.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v10) : 0; }); i++)
                 {
                     Map<String, Object> balance = (Map<String, Object>) this.safeDict(data, i, (Object) null);
                     String currencyId = this.safeString(balance, "symbol");
@@ -6236,7 +6236,7 @@ public class Htx extends HtxApi
         String side = this.safeString2(order, "direction", "side");
         String contractCode = this.safeString(order, "contract_code");
         Boolean isLinearOrder = (!java.util.Objects.equals(contractCode, null)) && (!java.util.Objects.equals(marketResolved, null)) && (java.util.Objects.equals(marketResolved.get("linear"), true)) && (!java.util.Objects.equals(marketResolved.get("spot"), true));
-        Object type = null;
+        String type = null;
         if (Boolean.TRUE.equals(isLinearOrder))
         {
             type = this.safeString(order, "type");
@@ -6257,8 +6257,8 @@ public class Htx extends HtxApi
                 if (((String)rawType).indexOf("-") >= 0)
                 {
                     List<Object> orderType = new ArrayList<Object>(Arrays.asList(((String)rawType).split(java.util.regex.Pattern.quote("-"))));
-                    side = (String) (orderType == null || 0 >= orderType.size() ? null : orderType.get(0));
-                    type = (orderType == null || 1 >= orderType.size() ? null : orderType.get(1));
+                    side = this.safeString(orderType, 0);
+                    type = this.safeString(orderType, 1);
                 } else if (java.util.Objects.equals(type, null))
                 {
                     type = rawType;
@@ -8379,12 +8379,12 @@ public class Htx extends HtxApi
             {
                 request.put("chain", this.networkCodeToId(networkCode, code));
             }
-            Object amountPrecision = this.currencyToPrecision((String) (code), amount, networkCode);
+            String amountPrecision = (String) this.currencyToPrecision((String) (code), amount, networkCode);
             if (java.util.Objects.equals(amountPrecision, null))
             {
                 amountPrecision = "0";
             }
-            Object amountValue = ((Double) (switch ((Object) (amountPrecision)) { case null -> Double.valueOf(0.0); case Double hx4J42v4 -> Double.valueOf(hx4J42v4.doubleValue()); case Float hx4J42v4 -> Double.valueOf(hx4J42v4.doubleValue()); case Long hx4J42v4 -> Double.valueOf(hx4J42v4.doubleValue()); case Integer hx4J42v4 -> Double.valueOf(hx4J42v4.doubleValue()); case java.math.BigDecimal hx4J42v4 -> Double.valueOf(hx4J42v4.doubleValue()); case Object hx4J42v4 -> { String hx4J42v4s; try { hx4J42v4s = String.valueOf(hx4J42v4); } catch (Exception hx4J42v4e) { yield (Double) null; } try { yield Double.valueOf(Double.parseDouble(hx4J42v4s)); } catch (NumberFormatException hx4J42v4e) { yield Double.valueOf(0.0); } } }));
+            Object amountValue = Helpers.parseFloat(amountPrecision);
             Map<String, Object> withdrawOptions = (Map<String, Object>) this.safeDict(this.options, "withdraw", new HashMap<String, Object>() {{}});
             Boolean includeFee = (Boolean) this.safeBool(withdrawOptions, "includeFee", false);
             Map<String, Object> paramsFee = paramsNetwork;
@@ -8407,7 +8407,7 @@ public class Htx extends HtxApi
                     }
                 }
                 // fee needs to be deducted from whole amount
-                Object feeString = this.currencyToPrecision((String) (code), fee, networkCode);
+                String feeString = (String) this.currencyToPrecision((String) (code), fee, networkCode);
                 String amountString = this.numberToString(amountValue);
                 String amountSubtractedString = Precise.stringSub(amountString, feeString);
                 String amountSubtractedParsed = amountSubtractedString;
@@ -8415,19 +8415,19 @@ public class Htx extends HtxApi
                 {
                     amountSubtractedParsed = "0";
                 }
-                Object amountSubtracted = ((Double) (switch ((Object) (amountSubtractedParsed)) { case null -> Double.valueOf(0.0); case Double hx4J42v3 -> Double.valueOf(hx4J42v3.doubleValue()); case Float hx4J42v3 -> Double.valueOf(hx4J42v3.doubleValue()); case Long hx4J42v3 -> Double.valueOf(hx4J42v3.doubleValue()); case Integer hx4J42v3 -> Double.valueOf(hx4J42v3.doubleValue()); case java.math.BigDecimal hx4J42v3 -> Double.valueOf(hx4J42v3.doubleValue()); case Object hx4J42v3 -> { String hx4J42v3s; try { hx4J42v3s = String.valueOf(hx4J42v3); } catch (Exception hx4J42v3e) { yield (Double) null; } try { yield Double.valueOf(Double.parseDouble(hx4J42v3s)); } catch (NumberFormatException hx4J42v3e) { yield Double.valueOf(0.0); } } }));
-                Object feeParsed = feeString;
+                Object amountSubtracted = Helpers.parseFloat(amountSubtractedParsed);
+                String feeParsed = feeString;
                 if (java.util.Objects.equals(feeParsed, null))
                 {
                     feeParsed = "0";
                 }
-                request.put("fee", ((Double) (switch ((Object) (feeParsed)) { case null -> Double.valueOf(0.0); case Double hx4J42v2 -> Double.valueOf(hx4J42v2.doubleValue()); case Float hx4J42v2 -> Double.valueOf(hx4J42v2.doubleValue()); case Long hx4J42v2 -> Double.valueOf(hx4J42v2.doubleValue()); case Integer hx4J42v2 -> Double.valueOf(hx4J42v2.doubleValue()); case java.math.BigDecimal hx4J42v2 -> Double.valueOf(hx4J42v2.doubleValue()); case Object hx4J42v2 -> { String hx4J42v2s; try { hx4J42v2s = String.valueOf(hx4J42v2); } catch (Exception hx4J42v2e) { yield (Double) null; } try { yield Double.valueOf(Double.parseDouble(hx4J42v2s)); } catch (NumberFormatException hx4J42v2e) { yield Double.valueOf(0.0); } } })));
-                Object amountAfterFee = this.currencyToPrecision((String) (code), amountSubtracted, networkCode);
+                request.put("fee", Helpers.parseFloat(feeParsed));
+                String amountAfterFee = (String) this.currencyToPrecision((String) (code), amountSubtracted, networkCode);
                 if (java.util.Objects.equals(amountAfterFee, null))
                 {
                     amountAfterFee = "0";
                 }
-                amountValue = ((Double) (switch ((Object) (amountAfterFee)) { case null -> Double.valueOf(0.0); case Double hx4J42v1 -> Double.valueOf(hx4J42v1.doubleValue()); case Float hx4J42v1 -> Double.valueOf(hx4J42v1.doubleValue()); case Long hx4J42v1 -> Double.valueOf(hx4J42v1.doubleValue()); case Integer hx4J42v1 -> Double.valueOf(hx4J42v1.doubleValue()); case java.math.BigDecimal hx4J42v1 -> Double.valueOf(hx4J42v1.doubleValue()); case Object hx4J42v1 -> { String hx4J42v1s; try { hx4J42v1s = String.valueOf(hx4J42v1); } catch (Exception hx4J42v1e) { yield (Double) null; } try { yield Double.valueOf(Double.parseDouble(hx4J42v1s)); } catch (NumberFormatException hx4J42v1e) { yield Double.valueOf(0.0); } } }));
+                amountValue = Helpers.parseFloat(amountAfterFee);
             }
             request.put("amount", amountValue);
             Map<String, Object> response = (this.spotPrivatePostV1DwWithdrawApiCreate(this.extend(request, paramsFee))).join();
@@ -8534,14 +8534,14 @@ public class Htx extends HtxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> currency = this.currency((String) (code));
-            Object transferAmount = this.currencyToPrecision((String) (code), amount, (String) null);
+            String transferAmount = (String) this.currencyToPrecision((String) (code), amount, (String) null);
             if (java.util.Objects.equals(transferAmount, null))
             {
                 transferAmount = "0";
             }
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("currency", currency.get("id"));
-            request.put("amount", ((Double) (switch ((Object) (transferAmount)) { case null -> Double.valueOf(0.0); case Double hx4J42v0 -> Double.valueOf(hx4J42v0.doubleValue()); case Float hx4J42v0 -> Double.valueOf(hx4J42v0.doubleValue()); case Long hx4J42v0 -> Double.valueOf(hx4J42v0.doubleValue()); case Integer hx4J42v0 -> Double.valueOf(hx4J42v0.doubleValue()); case java.math.BigDecimal hx4J42v0 -> Double.valueOf(hx4J42v0.doubleValue()); case Object hx4J42v0 -> { String hx4J42v0s; try { hx4J42v0s = String.valueOf(hx4J42v0); } catch (Exception hx4J42v0e) { yield (Double) null; } try { yield Double.valueOf(Double.parseDouble(hx4J42v0s)); } catch (NumberFormatException hx4J42v0e) { yield Double.valueOf(0.0); } } })));
+            request.put("amount", Helpers.parseFloat(transferAmount));
             Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("transfer", (Map<String, Object>) null, parameters, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
@@ -8868,7 +8868,7 @@ public class Htx extends HtxApi
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(market.get("linear"), true))
             {
-                for (var i = 0; i < (switch ((Object)(data)) { case null -> 0; case List<?> j39v31 -> j39v31.size(); case String j39v32 -> j39v32.length(); case Object j39v33 -> j39v33.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v33) : 0; }); i++)
+                for (var i = 0; i < (switch ((Object)(data)) { case null -> 0; case List<?> j39v14 -> j39v14.size(); case String j39v15 -> j39v15.length(); case Object j39v16 -> j39v16.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v16) : 0; }); i++)
                 {
                     Object entry = Helpers.GetValue(data, i);
                     String marketId = this.safeString(entry, "contract_code");
@@ -9401,7 +9401,7 @@ public class Htx extends HtxApi
                     Map<String,Object> sortedQuery = this.keysort(query);
                     request = this.extend(request, sortedQuery);
                 }
-                String auth = ((java.util.function.Function<Object, java.util.function.BiFunction<Object, Object, String>>) hx4J43a0 -> (hx4J43b0, hx4J43c0) -> { if (hx4J43a0 == null) { return null; } String hx4J43a0s = String.valueOf(hx4J43a0); String hx4J43a0f = (hx4J43b0 == null) ? "" : String.valueOf(hx4J43b0); String hx4J43a0r = (hx4J43c0 == null) ? "" : String.valueOf(hx4J43c0); return hx4J43a0s.replaceFirst(java.util.regex.Pattern.quote(hx4J43a0f), java.util.regex.Matcher.quoteReplacement(hx4J43a0r)); }).apply(((String)this.urlencode(request, true))).apply("%2c", "%2C"); // in c# it manually needs to be uppercased
+                String auth = Helpers.replace(((String)this.urlencode(request, true)), "%2c", "%2C"); // in c# it manually needs to be uppercased
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 Object content2 = new ArrayList<Object>(Arrays.asList(java.util.Objects.requireNonNullElse(method, "GET"), hostname, url, auth));
                 String payload = String.join("\n", (List<String>)content2); // eslint-disable-line quotes
@@ -9463,7 +9463,7 @@ public class Htx extends HtxApi
         {
             return null;  // fallback to default error handler
         }
-        if ((switch ((Object)(response)) { case List<?> j39v37 -> j39v37.contains("status"); case Map<?, ?> j39v36 -> j39v36.containsKey("status"); case null, default -> false; }))
+        if ((switch ((Object)(response)) { case List<?> j39v20 -> j39v20.contains("status"); case Map<?, ?> j39v19 -> j39v19.containsKey("status"); case null, default -> false; }))
         {
             //
             //     {"status":"error","err-code":"o-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
@@ -9481,7 +9481,7 @@ public class Htx extends HtxApi
                 throw new ExchangeError(feedback) ;
             }
         }
-        if ((switch ((Object)(response)) { case List<?> j39v35 -> j39v35.contains("code"); case Map<?, ?> j39v34 -> j39v34.containsKey("code"); case null, default -> false; }))
+        if ((switch ((Object)(response)) { case List<?> j39v18 -> j39v18.contains("code"); case Map<?, ?> j39v17 -> j39v17.containsKey("code"); case null, default -> false; }))
         {
             // {code: '1003', message: 'invalid signature'}
             String feedback = ((this.id + " ") + body);
@@ -10015,10 +10015,11 @@ public class Htx extends HtxApi
             Object position = null;
             if ((java.util.Objects.equals(market.get("future"), true)) && (java.util.Objects.equals(market.get("inverse"), true)))
             {
+                String marketId = this.safeString(market, "id");
                 for (var i = 0; i < ((List<?>)positions).size(); i++)
                 {
                     Object entry = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
-                    if (java.util.Objects.equals(this.safeString(entry, "contract_code"), market.get("id")))
+                    if (java.util.Objects.equals(this.safeString(entry, "contract_code"), marketId))
                     {
                         position = entry;
                         break;
@@ -11136,13 +11137,13 @@ public class Htx extends HtxApi
             }
             if (!java.util.Objects.equals(networkCode, null))
             {
-                Helpers.addElementToObject(result.get("networks"), networkCode, (switch (0) { default -> { HashMap<String, Object> j39v38 = new HashMap<String, Object>();
-                    j39v38.put("withdraw", withdrawResult);
-                    j39v38.put("deposit", new HashMap<String, Object>() {{
+                Helpers.addElementToObject(result.get("networks"), networkCode, (switch (0) { default -> { HashMap<String, Object> j39v21 = new HashMap<String, Object>();
+                    j39v21.put("withdraw", withdrawResult);
+                    j39v21.put("deposit", new HashMap<String, Object>() {{
         put( "fee", null );
         put( "percentage", null );
     }});
-                    yield j39v38; } }));
+                    yield j39v21; } }));
             }
             this.assignDefaultDepositWithdrawFees(result, currency);
         }
@@ -11200,7 +11201,7 @@ public class Htx extends HtxApi
         //     ]
         //
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < (switch ((Object)(settlements)) { case null -> 0; case List<?> j39v40 -> j39v40.size(); case String j39v41 -> j39v41.length(); case Object j39v42 -> j39v42.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v42) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(settlements)) { case null -> 0; case List<?> j39v22 -> j39v22.size(); case String j39v23 -> j39v23.length(); case Object j39v24 -> j39v24.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v24) : 0; }); i++)
         {
             Map<String, Object> settlement = (Map<String, Object>) this.safeDict(settlements, i, (Object) null);
             List<Object> list = (List<Object>) this.safeList(settlement, "list", (Object) null);

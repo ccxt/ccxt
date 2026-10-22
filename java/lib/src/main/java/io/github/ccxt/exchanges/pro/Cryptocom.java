@@ -289,9 +289,9 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
 
     public void handleDeltas(Object bookside, Object deltas)
     {
-        for (var i = 0; i < (switch ((Object)(deltas)) { case null -> 0; case List<?> j39v2 -> j39v2.size(); case String j39v3 -> j39v3.length(); case Object j39v4 -> j39v4.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v4) : 0; }); i++)
+        for (var i = 0; i < ((List<?>)deltas).size(); i++)
         {
-            this.handleDelta(bookside, Helpers.GetValue(deltas, i));
+            this.handleDelta(bookside, (deltas == null || i < 0 || i >= ((List<?>)deltas).size() ? null : ((List<?>)deltas).get(i)));
         }
     }
 
@@ -378,7 +378,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             books = (Map<String, Object>) this.safeDict(data, "update", new HashMap<String, Object>() {{}});
             Long previousNonce = this.safeInteger(data, "pu");
             Object currentNonce = (orderbook == null ? null : orderbook.get("nonce"));
-            if (!((java.util.function.BiPredicate<Object, Object>) (hx4J40v0A, hx4J40v0B) -> { try { if (hx4J40v0A == null && hx4J40v0B == null) { return true; } if (hx4J40v0A == null || hx4J40v0B == null) { return false; } java.util.function.Predicate<Object> hx4J40v0N = hx4J40v0o -> { try { Double.parseDouble(String.valueOf(hx4J40v0o)); return true; } catch (Exception hx4J40v0e) { return false; } }; if (!hx4J40v0A.getClass().equals(hx4J40v0B.getClass()) && !(hx4J40v0N.test(hx4J40v0A) && hx4J40v0N.test(hx4J40v0B))) { return false; } java.util.function.Predicate<Object> hx4J40v0I = hx4J40v0o -> hx4J40v0o instanceof Byte || hx4J40v0o instanceof Short || hx4J40v0o instanceof Integer || hx4J40v0o instanceof Long || hx4J40v0o instanceof java.util.concurrent.atomic.AtomicInteger || hx4J40v0o instanceof java.util.concurrent.atomic.AtomicLong || ((hx4J40v0o instanceof Float || hx4J40v0o instanceof Double || hx4J40v0o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(hx4J40v0o)).stripTrailingZeros().scale() <= 0); java.util.function.ToDoubleFunction<Object> hx4J40v0D = hx4J40v0o -> { if (hx4J40v0o instanceof Double || hx4J40v0o instanceof Float || hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof java.math.BigDecimal) { return ((Number) hx4J40v0o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v0o)); } catch (NumberFormatException hx4J40v0e) { return 0.0; } }; if (hx4J40v0I.test(hx4J40v0A) && hx4J40v0I.test(hx4J40v0B)) { java.util.function.ToLongFunction<Object> hx4J40v0L = hx4J40v0o -> hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof Double || hx4J40v0o instanceof Float || hx4J40v0o instanceof java.math.BigDecimal ? ((Number) hx4J40v0o).longValue() : Long.parseLong(String.valueOf(hx4J40v0o)); return hx4J40v0L.applyAsLong(hx4J40v0A) == hx4J40v0L.applyAsLong(hx4J40v0B); } if (hx4J40v0A instanceof Double || hx4J40v0B instanceof Double) { return hx4J40v0D.applyAsDouble(hx4J40v0A) == hx4J40v0D.applyAsDouble(hx4J40v0B); } if (hx4J40v0A instanceof Float || hx4J40v0B instanceof Float) { java.util.function.Function<Object, Float> hx4J40v0F = hx4J40v0o -> hx4J40v0o instanceof Float || hx4J40v0o instanceof Double || hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof java.math.BigDecimal ? ((Number) hx4J40v0o).floatValue() : Float.parseFloat(String.valueOf(hx4J40v0o)); return hx4J40v0F.apply(hx4J40v0A).floatValue() == hx4J40v0F.apply(hx4J40v0B).floatValue(); } if (hx4J40v0A instanceof String && hx4J40v0B instanceof String) { return hx4J40v0A.equals(hx4J40v0B); } if (hx4J40v0A instanceof Boolean && hx4J40v0B instanceof Boolean) { return hx4J40v0A.equals(hx4J40v0B); } if (hx4J40v0N.test(hx4J40v0A) && hx4J40v0N.test(hx4J40v0B)) { return new java.math.BigDecimal(String.valueOf(hx4J40v0A)).compareTo(new java.math.BigDecimal(String.valueOf(hx4J40v0B))) == 0; } return false; } catch (Exception hx4J40v0e) { return false; } }).test(currentNonce, previousNonce))
+            if (!Helpers.isEqual(currentNonce, previousNonce))
             {
                 Object checksum = this.handleOption("watchOrderBook", "checksum", true);
                 if (java.util.Objects.equals(checksum, true))
@@ -562,7 +562,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         {
             stored.append((parsedTrades == null || j < 0 || j >= parsedTrades.size() ? null : parsedTrades.get(j)));
         }
-        String channelReplaced = ((java.util.function.Function<Object, java.util.function.BiFunction<Object, Object, String>>) hx4J43a0 -> (hx4J43b0, hx4J43c0) -> { if (hx4J43a0 == null) { return null; } String hx4J43a0s = String.valueOf(hx4J43a0); String hx4J43a0f = (hx4J43b0 == null) ? "" : String.valueOf(hx4J43b0); String hx4J43a0r = (hx4J43c0 == null) ? "" : String.valueOf(hx4J43c0); return hx4J43a0s.replaceFirst(java.util.regex.Pattern.quote(hx4J43a0f), java.util.regex.Matcher.quoteReplacement(hx4J43a0r)); }).apply(channel).apply((String)("." + marketId), (String)"");
+        String channelReplaced = Helpers.replace(channel, (String)("." + marketId), (String)"");
         client.resolve(stored, symbolSpecificMessageHash);
         client.resolve(stored, channelReplaced);
     }
@@ -1679,7 +1679,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             return false;
         } catch(Exception e)
         {
-            if ((switch ((Object) (e)) { case null -> false; case Throwable hx4J44v0 -> { Throwable hx4J44v0u = hx4J44v0; while ((hx4J44v0u instanceof java.util.concurrent.CompletionException || hx4J44v0u instanceof java.util.concurrent.ExecutionException) && hx4J44v0u.getCause() != null) { hx4J44v0u = hx4J44v0u.getCause(); } yield AuthenticationError.class.isInstance(hx4J44v0u); } case Object hx4J44v0 -> AuthenticationError.class.isInstance(hx4J44v0); }))
+            if ((e instanceof AuthenticationError))
             {
                 String messageHash = "authenticated";
                 client.reject(e, messageHash);
@@ -1834,7 +1834,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
     public void handleUnsubscribe(Client client, Map<String, Object> message)
     {
         String id = this.safeString(message, "id");
-        List<Object> keys = ((List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v16 -> { synchronized (j39v16) { yield new ArrayList<Object>(j39v16.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> keys = ((List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object messageHash = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));

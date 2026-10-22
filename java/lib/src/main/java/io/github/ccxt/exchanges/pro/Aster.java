@@ -1273,7 +1273,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             }};
             Object limit = this.safeNumber(paramsOmitted, "limit", (Object) null);
             Map<String, Object> paramsOmitted2 = this.omit(paramsOmitted, "limit");
-            if (java.util.Objects.equals(limit, null) || (!(switch ((Object) (limit)) { case null -> false; case Long hx4J40v3 -> hx4J40v3 == 5L; case Integer hx4J40v3 -> hx4J40v3 == 5L; case Double hx4J40v3 -> hx4J40v3 == 5L; case Float hx4J40v3 -> hx4J40v3.doubleValue() == 5L; case java.math.BigDecimal hx4J40v3 -> hx4J40v3.stripTrailingZeros().scale() <= 0 && hx4J40v3.longValue() == 5L; case Object hx4J40v3 -> { try { String hx4J40v3t = String.valueOf(hx4J40v3); Double.parseDouble(hx4J40v3t); yield new java.math.BigDecimal(hx4J40v3t).compareTo(java.math.BigDecimal.valueOf(5L)) == 0; } catch (NumberFormatException hx4J40v3x) { yield false; } } }) && !(switch ((Object) (limit)) { case null -> false; case Long hx4J40v2 -> hx4J40v2 == 10L; case Integer hx4J40v2 -> hx4J40v2 == 10L; case Double hx4J40v2 -> hx4J40v2 == 10L; case Float hx4J40v2 -> hx4J40v2.doubleValue() == 10L; case java.math.BigDecimal hx4J40v2 -> hx4J40v2.stripTrailingZeros().scale() <= 0 && hx4J40v2.longValue() == 10L; case Object hx4J40v2 -> { try { String hx4J40v2t = String.valueOf(hx4J40v2); Double.parseDouble(hx4J40v2t); yield new java.math.BigDecimal(hx4J40v2t).compareTo(java.math.BigDecimal.valueOf(10L)) == 0; } catch (NumberFormatException hx4J40v2x) { yield false; } } }) && !(switch ((Object) (limit)) { case null -> false; case Long hx4J40v1 -> hx4J40v1 == 20L; case Integer hx4J40v1 -> hx4J40v1 == 20L; case Double hx4J40v1 -> hx4J40v1 == 20L; case Float hx4J40v1 -> hx4J40v1.doubleValue() == 20L; case java.math.BigDecimal hx4J40v1 -> hx4J40v1.stripTrailingZeros().scale() <= 0 && hx4J40v1.longValue() == 20L; case Object hx4J40v1 -> { try { String hx4J40v1t = String.valueOf(hx4J40v1); Double.parseDouble(hx4J40v1t); yield new java.math.BigDecimal(hx4J40v1t).compareTo(java.math.BigDecimal.valueOf(20L)) == 0; } catch (NumberFormatException hx4J40v1x) { yield false; } } })))
+            if (java.util.Objects.equals(limit, null) || (!Helpers.isEqual(limit, 5) && !Helpers.isEqual(limit, 10) && !Helpers.isEqual(limit, 20)))
             {
                 limit = 20;
             }
@@ -1696,7 +1696,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             {
                 String url = ((this.safeString(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "private"), type) + "/") + listenKey);
                 Client client = this.client(url);
-                List<Object> messageHashes = ((List<Object>) switch ((Object)(client.futures)) { case Map<?, ?> j39v15 -> { synchronized (j39v15) { yield new ArrayList<Object>(j39v15.keySet()); } } case null, default -> new ArrayList<Object>(); });
+                List<Object> messageHashes = ((List<Object>) switch ((Object)(client.futures)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
                 for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
                 {
                     Object messageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
@@ -1795,7 +1795,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> parameters = (switch (0) { default -> { HashMap<String, Object> j39v19 = new HashMap<String, Object>(); j39v19.put("type", type); yield j39v19; } });
+            Map<String, Object> parameters = (switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>(); j39v2.put("type", type); yield j39v2; } });
             Balances response = (this.fetchBalance(parameters)).join();
             Helpers.addElementToObject(this.balance, type, this.extend(response, this.safeDict(this.balance, type, new HashMap<String, Object>() {{}})));
             // don't remove the future from the .futures cache
@@ -2299,7 +2299,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                                 {
                                     Object feeCost = this.sum(tradeFee.get("cost"), Helpers.GetValue(orderFee, "cost"));
                                     Object feeCostString = this.currencyToPrecision((String) (tradeFee.get("currency")), feeCost, (String) null);
-                                    Helpers.addElementToObject(Helpers.GetValue(order.get("fees"), i), "cost", (((java.util.Objects.equals(feeCostString, null)))) ? null : ((Double) (switch ((Object) (feeCostString)) { case null -> Double.valueOf(0.0); case Double hx4J42v1 -> Double.valueOf(hx4J42v1.doubleValue()); case Float hx4J42v1 -> Double.valueOf(hx4J42v1.doubleValue()); case Long hx4J42v1 -> Double.valueOf(hx4J42v1.doubleValue()); case Integer hx4J42v1 -> Double.valueOf(hx4J42v1.doubleValue()); case java.math.BigDecimal hx4J42v1 -> Double.valueOf(hx4J42v1.doubleValue()); case Object hx4J42v1 -> { String hx4J42v1s; try { hx4J42v1s = String.valueOf(hx4J42v1); } catch (Exception hx4J42v1e) { yield (Double) null; } try { yield Double.valueOf(Double.parseDouble(hx4J42v1s)); } catch (NumberFormatException hx4J42v1e) { yield Double.valueOf(0.0); } } })));
+                                    Helpers.addElementToObject(Helpers.GetValue(order.get("fees"), i), "cost", (((java.util.Objects.equals(feeCostString, null)))) ? null : Helpers.parseFloat(feeCostString));
                                     insertNewFeeCurrency = false;
                                     break;
                                 }
@@ -2314,14 +2314,14 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                             {
                                 Object feeCost = this.sum(fee.get("cost"), tradeFee.get("cost"));
                                 Object feeCostString = this.currencyToPrecision((String) (tradeFee.get("currency")), feeCost, (String) null);
-                                Helpers.addElementToObject(order.get("fee"), "cost", (((java.util.Objects.equals(feeCostString, null)))) ? null : ((Double) (switch ((Object) (feeCostString)) { case null -> Double.valueOf(0.0); case Double hx4J42v0 -> Double.valueOf(hx4J42v0.doubleValue()); case Float hx4J42v0 -> Double.valueOf(hx4J42v0.doubleValue()); case Long hx4J42v0 -> Double.valueOf(hx4J42v0.doubleValue()); case Integer hx4J42v0 -> Double.valueOf(hx4J42v0.doubleValue()); case java.math.BigDecimal hx4J42v0 -> Double.valueOf(hx4J42v0.doubleValue()); case Object hx4J42v0 -> { String hx4J42v0s; try { hx4J42v0s = String.valueOf(hx4J42v0); } catch (Exception hx4J42v0e) { yield (Double) null; } try { yield Double.valueOf(Double.parseDouble(hx4J42v0s)); } catch (NumberFormatException hx4J42v0e) { yield Double.valueOf(0.0); } } })));
+                                Helpers.addElementToObject(order.get("fee"), "cost", (((java.util.Objects.equals(feeCostString, null)))) ? null : Helpers.parseFloat(feeCostString));
                             } else if (java.util.Objects.equals(this.safeString(fee, "currency"), null))
                             {
                                 order.put("fee", tradeFee);
                             } else
                             {
                                 order.put("fees", new ArrayList<Object>(Arrays.asList(fee, tradeFee)));
-                                { Map<Object, Object> j39v21 = (Map<Object, Object>) (Map<?, ?>) (order); Object j39v22 = "fee"; Object j39v23 = null; if (j39v21 == null) { if (j39v22 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v21) { if (j39v23 == null && j39v21 instanceof java.util.concurrent.ConcurrentHashMap) { j39v21.remove(j39v22); } else { j39v21.put(j39v22, j39v23); } } }
+                                Helpers.addElementToObject(order, "fee", null);
                             }
                         } else
                         {

@@ -114,7 +114,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         Long requestId;
         synchronized (this) {
         requestId = (Long) this.sum(this.safeInteger(this.options, "requestId", 0), 1);
-        { Map<Object, Object> j39v1 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v2 = "requestId"; Object j39v3 = requestId; if (j39v1 == null) { if (j39v2 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v1) { if (j39v3 == null && j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); } else { j39v1.put(j39v2, j39v3); } } }
+        Helpers.addElementToObject(this.options, "requestId", requestId);
         }
         return requestId;
     }
@@ -906,7 +906,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         if (java.util.Objects.equals(type, "snapshot"))
         {
             Map<String, Object> book = (Map<String, Object>) this.safeDict2(message, "book", "orderbook_p", new HashMap<String, Object>() {{}});
-            Object snapshot = this.customParseOrderBook((Map<String, Object>) (book), symbol, timestamp, "bids", "asks", 0, 1, market);
+            Map<String, Object> snapshot = (Map<String, Object>) this.customParseOrderBook((Map<String, Object>) (book), symbol, timestamp, "bids", "asks", 0, 1, market);
             Helpers.addElementToObject(snapshot, "nonce", nonce);
             io.github.ccxt.ws.WsOrderBook orderbook = this.orderBook(snapshot, depth);
             Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
@@ -1339,7 +1339,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         //
         List<Object> trades = new ArrayList<Object>(Arrays.asList());
         List<Object> parsedOrders = new ArrayList<Object>(Arrays.asList());
-        if (((switch ((Object)(message)) { case List<?> j39v17 -> j39v17.contains("closed"); case Map<?, ?> j39v16 -> j39v16.containsKey("closed"); case null, default -> false; })) || ((switch ((Object)(message)) { case List<?> j39v15 -> j39v15.contains("fills"); case Map<?, ?> j39v14 -> j39v14.containsKey("fills"); case null, default -> false; })) || ((switch ((Object)(message)) { case List<?> j39v13 -> j39v13.contains("open"); case Map<?, ?> j39v12 -> j39v12.containsKey("open"); case null, default -> false; })))
+        if (((switch ((Object)(message)) { case List<?> j39v12 -> j39v12.contains("closed"); case Map<?, ?> j39v11 -> j39v11.containsKey("closed"); case null, default -> false; })) || ((switch ((Object)(message)) { case List<?> j39v10 -> j39v10.contains("fills"); case Map<?, ?> j39v9 -> j39v9.containsKey("fills"); case null, default -> false; })) || ((switch ((Object)(message)) { case List<?> j39v8 -> j39v8.contains("open"); case Map<?, ?> j39v7 -> j39v7.containsKey("open"); case null, default -> false; })))
         {
             List<Object> closed = (List<Object>) this.safeList(message, "closed", new ArrayList<Object>(Arrays.asList()));
             List<Object> open = (List<Object>) this.safeList(message, "open", new ArrayList<Object>(Arrays.asList()));
@@ -1358,12 +1358,12 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             }
         } else
         {
-            Integer messageLength = (switch ((Object)(message)) { case null -> 0; case List<?> j39v9 -> j39v9.size(); case String j39v10 -> j39v10.length(); case Object j39v11 -> j39v11.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v11) : 0; });
+            Integer messageLength = (switch ((Object)(message)) { case null -> 0; case List<?> j39v4 -> j39v4.size(); case String j39v5 -> j39v5.length(); case Object j39v6 -> j39v6.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v6) : 0; });
             if ((messageLength != null && messageLength == 0))
             {
                 return;
             }
-            for (var i = 0; i < (switch ((Object)(message)) { case null -> 0; case List<?> j39v6 -> j39v6.size(); case String j39v7 -> j39v7.length(); case Object j39v8 -> j39v8.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v8) : 0; }); i++)
+            for (var i = 0; i < (switch ((Object)(message)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
             {
                 Object update = Helpers.GetValue(message, i);
                 String action = this.safeString(update, "action");

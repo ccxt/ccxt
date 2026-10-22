@@ -793,7 +793,7 @@ public class Deepcoin extends DeepcoinApi
                 String additionalId = (this.safeString(market, "baseId", "") + this.safeString(market, "quoteId", ""));
                 if (!java.util.Objects.equals(this.markets_by_id, null))
                 {
-                    { Map<Object, Object> j39v4 = (Map<Object, Object>) (Map<?, ?>) (this.markets_by_id); Object j39v5 = additionalId; Object j39v6 = new ArrayList<Object>(Arrays.asList(market)); if (j39v4 == null) { if (j39v5 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v4) { if (j39v6 == null && j39v4 instanceof java.util.concurrent.ConcurrentHashMap) { j39v4.remove(j39v5); } else { j39v4.put(j39v5, j39v6); } } } // some endpoints return swap market id as base+quote
+                    Helpers.addElementToObject(this.markets_by_id, additionalId, new ArrayList<Object>(Arrays.asList(market))); // some endpoints return swap market id as base+quote
                 }
             }
         }

@@ -1173,7 +1173,7 @@ public partial class aster : ccxt.aster
         };
         object limit = this.safeNumber(paramsOmitted, "limit");
         Dictionary<string, object> paramsOmitted2 = this.omit(paramsOmitted, "limit");
-        if ((limit == null) || (!(((object)(limit)) switch { Int64 c33l => c33l == 5, int c33i => c33i == 5, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 5, decimal c33m => c33m == 5, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 5, uint c33u => (Int64)c33u == 5, short c33h => (Int64)c33h == 5, ushort c33v => (Int64)c33v == 5, byte c33y => (Int64)c33y == 5, sbyte c33e => (Int64)c33e == 5, ulong c33z => c33z == 5UL, _ => false }) && !(((object)(limit)) switch { Int64 c33l => c33l == 10, int c33i => c33i == 10, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 10, decimal c33m => c33m == 10, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 10, uint c33u => (Int64)c33u == 10, short c33h => (Int64)c33h == 10, ushort c33v => (Int64)c33v == 10, byte c33y => (Int64)c33y == 10, sbyte c33e => (Int64)c33e == 10, ulong c33z => c33z == 10UL, _ => false }) && !(((object)(limit)) switch { Int64 c33l => c33l == 20, int c33i => c33i == 20, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 20, decimal c33m => c33m == 20, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 20, uint c33u => (Int64)c33u == 20, short c33h => (Int64)c33h == 20, ushort c33v => (Int64)c33v == 20, byte c33y => (Int64)c33y == 20, sbyte c33e => (Int64)c33e == 20, ulong c33z => c33z == 20UL, _ => false })))
+        if ((limit == null) || (!isEqual(limit, 5) && !isEqual(limit, 10) && !isEqual(limit, 20)))
         {
             limit = 20;
         }
@@ -2151,7 +2151,7 @@ public partial class aster : ccxt.aster
                                 {
                                     object feeCost = this.sum((tradeFee != null && tradeFee.ContainsKey("cost") ? tradeFee["cost"] : null), getValue(orderFee, "cost"));
                                     string? feeCostString = this.currencyToPrecision(((string)(tradeFee != null && tradeFee.ContainsKey("currency") ? tradeFee["currency"] : null)), feeCost);
-                                    ((IDictionary<string,object>)getValue((order != null && order.ContainsKey("fees") ? order["fees"] : null), i))["cost"] = ((feeCostString == null)) ? null : (((Func<object, object>)(static (object hx4pa) => { object hx4pv = null; try { hx4pv = (Convert.ToDouble(hx4pa, global::System.Globalization.CultureInfo.InvariantCulture.NumberFormat)); } catch (Exception) { } return hx4pv; }))(feeCostString));
+                                    ((IDictionary<string,object>)getValue((order != null && order.ContainsKey("fees") ? order["fees"] : null), i))["cost"] = ((feeCostString == null)) ? null : parseFloat(feeCostString);
                                     insertNewFeeCurrency = false;
                                     break;
                                 }
@@ -2166,7 +2166,7 @@ public partial class aster : ccxt.aster
                             {
                                 object feeCost = this.sum((fee != null && fee.ContainsKey("cost") ? fee["cost"] : null), (tradeFee != null && tradeFee.ContainsKey("cost") ? tradeFee["cost"] : null));
                                 string? feeCostString = this.currencyToPrecision(((string)(tradeFee != null && tradeFee.ContainsKey("currency") ? tradeFee["currency"] : null)), feeCost);
-                                ((IDictionary<string,object>)(order != null && order.ContainsKey("fee") ? order["fee"] : null))["cost"] = ((feeCostString == null)) ? null : (((Func<object, object>)(static (object hx4pa) => { object hx4pv = null; try { hx4pv = (Convert.ToDouble(hx4pa, global::System.Globalization.CultureInfo.InvariantCulture.NumberFormat)); } catch (Exception) { } return hx4pv; }))(feeCostString));
+                                ((IDictionary<string,object>)(order != null && order.ContainsKey("fee") ? order["fee"] : null))["cost"] = ((feeCostString == null)) ? null : parseFloat(feeCostString);
                             } else if ((this.safeString(fee, "currency") == null))
                             {
                                 order["fee"] = tradeFee;

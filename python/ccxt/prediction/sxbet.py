@@ -2019,7 +2019,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
             return
         self.handle_centrifugo_frame(client, message)
 
-    def handle_centrifugo_frame(self, client: Client, msg: object):
+    def handle_centrifugo_frame(self, client: Client, msg: dict):
         keys = list(msg.keys())
         keysLength = len(keys)
         if keysLength == 0:
@@ -2339,7 +2339,8 @@ class sxbet(PredictionExchange, ImplicitAPI):
         #
         rowsLength = len(rows)
         for i in range(0, rowsLength):
-            row = self.safe_dict(rows[i], 'trade', rows[i])
+            rawRow = rows[i]
+            row = self.safe_dict(rawRow, 'trade', rawRow)
             trade = self.parse_sxbet_v3_public_trade(row)
             sym = self.safe_string(trade, 'outcome')
             if sym is None:
@@ -2384,7 +2385,8 @@ class sxbet(PredictionExchange, ImplicitAPI):
         #
         rowsLength = len(rows)
         for i in range(0, rowsLength):
-            row = self.safe_dict(rows[i], 'fill', rows[i])
+            rawRow = rows[i]
+            row = self.safe_dict(rawRow, 'fill', rawRow)
             trade = self.parse_sxbet_v3_fill(row)
             sym = self.safe_string(trade, 'outcome')
             if sym is None:
@@ -2427,7 +2429,8 @@ class sxbet(PredictionExchange, ImplicitAPI):
         #
         rowsLength = len(rows)
         for i in range(0, rowsLength):
-            row = self.safe_dict(rows[i], 'order', rows[i])
+            rawRow = rows[i]
+            row = self.safe_dict(rawRow, 'order', rawRow)
             order = self.parse_prediction_order(row)
             if self.orders is None:
                 cacheLimit = self.safe_integer(self.options, 'ordersLimit', 1000)
@@ -2464,7 +2467,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
             raise BadRequest(feedback)
         return None
 
-    def sign(self, path: str, api: list[str] = ['sxbet'], method='GET', params: dict = {}):
+    def sign(self, path: str, api: list[str] = ['sxbet'], method: str = 'GET', params: dict = {}):
         """
  @ignore
         builds the request url and attaches the x-sx-api-key header; every private v3 route authenticates with the apiKey credential, so its absence fails fast instead of surfacing a raw 401

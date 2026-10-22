@@ -770,7 +770,7 @@ public class Modetrade extends ModetradeApi
     public void setSandboxMode(Boolean enable)
     {
         super.setSandboxMode(enable);
-        { Map<Object, Object> j39v1 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v2 = "sandboxMode"; Object j39v3 = enable; if (j39v1 == null) { if (j39v2 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v1) { if (j39v3 == null && j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); } else { j39v1.put(j39v2, j39v3); } } }
+        Helpers.addElementToObject(this.options, "sandboxMode", enable);
     }
 
     /**
@@ -1064,7 +1064,7 @@ public class Modetrade extends ModetradeApi
             Object network = (networks == null || j < 0 || j >= networks.size() ? null : networks.get(j));
             // TODO: transform chain id to human readable name
             String networkId = this.safeString(network, "chain_id", "");
-            Object precision = this.parsePrecision(this.safeString(network, "decimals"));
+            String precision = (String) this.parsePrecision(this.safeString(network, "decimals"));
             if (!java.util.Objects.equals(precision, null))
             {
                 minPrecision = (((java.util.Objects.equals(minPrecision, null)))) ? precision : Precise.stringMin(precision, minPrecision);

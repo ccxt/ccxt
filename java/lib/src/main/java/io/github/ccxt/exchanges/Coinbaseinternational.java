@@ -707,7 +707,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("fetchTime", parameters);
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchTime", parameters);
             Map<String, Object> response = (this.publicGetGetTime(paramsResolved)).join();
             //
             //     {
@@ -741,7 +741,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("fetchMarkets", parameters);
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchMarkets", parameters);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (this.isNativeDeribitCredentials())
             {
@@ -973,7 +973,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("fetchCurrencies", parameters);
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchCurrencies", parameters);
             Map<String, Object> response = (this.publicGetGetCurrencies(paramsResolved)).join();
             //
             //     {
@@ -1126,7 +1126,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("fetchOHLCV", parameters);
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchOHLCV", parameters);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -1157,7 +1157,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 {
                     limitResolved = 100;
                 }
-                request.put("start_timestamp", this.sum(now, ((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a == null || j36b == null) return null; if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) * ((Long) j36b)); java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; double j36r = j36d.applyAsDouble(j36a) * j36d.applyAsDouble(j36b); if (new java.math.BigDecimal(String.valueOf(j36r)).stripTrailingZeros().scale() <= 0) return (Object) ((long) j36r); return (Object) j36r; }).apply(((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a == null || j36b == null) return null; if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) * ((Long) j36b)); java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; double j36r = j36d.applyAsDouble(j36a) * j36d.applyAsDouble(j36b); if (new java.math.BigDecimal(String.valueOf(j36r)).stripTrailingZeros().scale() <= 0) return (Object) ((long) j36r); return (Object) j36r; }).apply(((java.util.function.UnaryOperator<Object>) (j37a) -> { if (j37a instanceof Byte j37v) return (byte) -j37v; if (j37a instanceof Short j37v) return (short) -j37v; if (j37a instanceof Integer j37v) return -j37v; if (j37a instanceof Long j37v) return -j37v; if (j37a instanceof Float j37v) return -j37v; if (j37a instanceof Double j37v) return -j37v; return null; }).apply(limitResolved), duration), 1000)));
+                request.put("start_timestamp", this.sum(now, Helpers.multiply(Helpers.multiply(((java.util.function.UnaryOperator<Object>) (j37a) -> { if (j37a instanceof Byte j37v) return (byte) -j37v; if (j37a instanceof Short j37v) return (short) -j37v; if (j37a instanceof Integer j37v) return -j37v; if (j37a instanceof Long j37v) return -j37v; if (j37a instanceof Float j37v) return -j37v; if (j37a instanceof Double j37v) return -j37v; return null; }).apply(limitResolved), duration), 1000)));
                 request.put("end_timestamp", now);
             } else
             {
@@ -1168,7 +1168,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                     request.put("end_timestamp", now);
                 } else
                 {
-                    request.put("end_timestamp", this.sum(sinceResolved, ((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a == null || j36b == null) return null; if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) * ((Long) j36b)); java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; double j36r = j36d.applyAsDouble(j36a) * j36d.applyAsDouble(j36b); if (new java.math.BigDecimal(String.valueOf(j36r)).stripTrailingZeros().scale() <= 0) return (Object) ((long) j36r); return (Object) j36r; }).apply(((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a == null || j36b == null) return null; if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) * ((Long) j36b)); java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; double j36r = j36d.applyAsDouble(j36a) * j36d.applyAsDouble(j36b); if (new java.math.BigDecimal(String.valueOf(j36r)).stripTrailingZeros().scale() <= 0) return (Object) ((long) j36r); return (Object) j36r; }).apply(limitResolved, duration), 1000)));
+                    request.put("end_timestamp", this.sum(sinceResolved, Helpers.multiply(Helpers.multiply(limitResolved, duration), 1000)));
                 }
             }
             Long until = this.safeInteger(paramsPaginate, "until");
@@ -1234,7 +1234,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("fetchFundingRateHistory", parameters);
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchFundingRateHistory", parameters);
             Object paramsPaginate = paramsResolved;
             if (this.isNativeDeribitCredentials())
             {
@@ -1370,7 +1370,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("fetchTickers", parameters);
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchTickers", parameters);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -1388,7 +1388,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 {
                     continue;
                 }
-                Ticker ticker = (this.fetchTicker(symbol, ((Map<String, Object>) (switch ((Object) (paramsResolved)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v7 -> (Map<String, Object>) hx4J40v7; case Object hx4J40v7 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v7.getClass().getName()); })))).join();
+                Ticker ticker = (this.fetchTicker(symbol, paramsResolved)).join();
                 tickers.put(symbol, ticker);
             }
             return this.filterByArrayTickers(tickers, "symbol", symbolsResolved);
@@ -1412,7 +1412,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("fetchTicker", parameters);
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchTicker", parameters);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -1538,7 +1538,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("fetchOrderBook", parameters);
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchOrderBook", parameters);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -1638,14 +1638,14 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("fetchBalance", parameters);
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchBalance", parameters);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             (this.authenticateV2(new HashMap<String, Object>() {{}})).join();
             String code = this.safeString(paramsResolved, "code");
-            Object paramsOmitted = paramsResolved;
+            Map<String, Object> paramsOmitted = paramsResolved;
             if (this.isNativeDeribitCredentials())
             {
                 paramsOmitted = this.omit(paramsResolved, "code");
@@ -1968,7 +1968,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("fetchTransfers", parameters);
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchTransfers", parameters);
             if (java.util.Objects.equals(code, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchTransfers() requires a currency code argument")) ;
@@ -1998,7 +1998,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             {
                 request.put("end_timestamp", until);
             }
-            Object paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsResolved, "until") : paramsResolved;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsResolved, "until") : paramsResolved;
             (this.authenticateV2(new HashMap<String, Object>() {{}})).join();
             Map<String, Object> response = (this.privateGetGetTransactionLog(this.extend(request, paramsOmitted))).join();
             //
@@ -2122,7 +2122,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("fetchPosition", parameters);
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchPosition", parameters);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -2267,7 +2267,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("fetchPositions", parameters);
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchPositions", parameters);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -2336,7 +2336,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("fetchDepositsWithdrawals", parameters);
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchDepositsWithdrawals", parameters);
             if (java.util.Objects.equals(code, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchDepositsWithdrawals() requires a currency code argument")) ;
@@ -2365,7 +2365,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             {
                 request.put("count", limit);
             }
-            Object paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsResolved, "until") : paramsResolved;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsResolved, "until") : paramsResolved;
             (this.authenticateV2(new HashMap<String, Object>() {{}})).join();
             Map<String, Object> response = (this.privateGetGetTransactionLog(this.extend(request, paramsOmitted))).join();
             //
@@ -2446,7 +2446,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("fetchWithdrawals", parameters);
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchWithdrawals", parameters);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -2478,7 +2478,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("fetchDeposits", parameters);
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchDeposits", parameters);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -2610,7 +2610,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("createOrder", parameters);
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("createOrder", parameters);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -2711,7 +2711,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 request.put("reject_post_only", true);
                 request.put("time_in_force", "good_til_cancelled");
             }
-            Object paramsOrder = this.omit(paramsResolved, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_order_id", "postOnly", "post_only", "tif", "timeInForce", "triggerPrice", "stopPrice", "stop_price")));
+            Map<String, Object> paramsOrder = this.omit(paramsResolved, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_order_id", "postOnly", "post_only", "tif", "timeInForce", "triggerPrice", "stopPrice", "stop_price")));
             if (this.isNativeDeribitCredentials())
             {
                 paramsOrder = this.omit(paramsOrder, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only")));
@@ -2994,7 +2994,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("cancelOrder", parameters);
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("cancelOrder", parameters);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -3061,7 +3061,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("cancelAllOrders", parameters);
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("cancelAllOrders", parameters);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -3116,7 +3116,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("editOrder", parameters);
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("editOrder", parameters);
             if (this.isNativeDeribitCredentials() && (java.util.Objects.equals(amount, null)) && (java.util.Objects.equals(this.safeNumber(paramsResolved, "contracts", (Object) null), null)))
             {
                 throw new ArgumentsRequired((this.id + " editOrder() requires amount or params.contracts on Deribit")) ;
@@ -3142,7 +3142,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             {
                 request.put("trigger_price", triggerPrice);
             }
-            Object paramsOrder = this.omit(paramsResolved, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop_price")));
+            Map<String, Object> paramsOrder = this.omit(paramsResolved, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop_price")));
             (this.authenticateV2(new HashMap<String, Object>() {{}})).join();
             Map<String, Object> response = (this.privateGetEdit(this.extend(request, paramsOrder))).join();
             //
@@ -3225,7 +3225,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("fetchOrder", parameters);
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchOrder", parameters);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -3294,7 +3294,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("fetchOpenOrders", parameters);
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchOpenOrders", parameters);
             Object paramsPaginate = paramsResolved;
             if (this.isNativeDeribitCredentials())
             {
@@ -3382,7 +3382,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("fetchMyTrades", parameters);
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchMyTrades", parameters);
             Object paramsPaginate = paramsResolved;
             if (this.isNativeDeribitCredentials())
             {
@@ -3614,7 +3614,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("fetchLeverage", parameters);
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchLeverage", parameters);
             if (this.isNativeDeribitCredentials())
             {
                 throw new NotSupported((this.id + " fetchLeverage() is a Coinbase gateway method; native Deribit has no documented get_leverage endpoint")) ;
@@ -3683,7 +3683,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("setLeverage", parameters);
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("setLeverage", parameters);
             if (this.isNativeDeribitCredentials())
             {
                 throw new NotSupported((this.id + " setLeverage() is a Coinbase gateway method; native Deribit has no documented set_leverage endpoint")) ;
@@ -3743,17 +3743,17 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             Object quesPos = ((String)uri).indexOf("?");
             if ((((Integer) quesPos) > 0))
             {
-                uri = ((java.util.function.Function<Object[], String>) (hx4J41a) -> { if (hx4J41a[0] == null) return null; String hx4J41s = (String) hx4J41a[0]; java.util.function.ToIntFunction<Object> hx4J41i = (hx4J41o) -> (hx4J41o instanceof Integer hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Long hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Double hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Float hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof java.math.BigDecimal hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof String hx4J41n) ? Integer.parseInt(hx4J41n) : Integer.parseInt(String.valueOf(hx4J41o)); int hx4J41b = (hx4J41a[1] != null) ? hx4J41i.applyAsInt(hx4J41a[1]) : -1; if (hx4J41a[2] == null) { if (hx4J41b < 0) return hx4J41s.substring(Math.max(hx4J41s.length() + hx4J41b, 0)); if (hx4J41b > hx4J41s.length()) return ""; return hx4J41s.substring(hx4J41b); } int hx4J41e = hx4J41i.applyAsInt(hx4J41a[2]); if (hx4J41b < 0) hx4J41b = hx4J41s.length() + hx4J41b; if (hx4J41e < 0) hx4J41e = hx4J41s.length() + hx4J41e; if (hx4J41b < 0) hx4J41b = 0; if (hx4J41e > hx4J41s.length()) hx4J41e = hx4J41s.length(); if (hx4J41b > hx4J41e) hx4J41b = hx4J41e; return hx4J41s.substring(hx4J41b, hx4J41e); }).apply(new Object[] { uri, 0, quesPos });
+                uri = Helpers.slice(uri, 0, quesPos);
             }
         }
         String nonce = this.randomBytes(16);
         String aud = "retail_rest_api_proxy";
-        if ((switch ((Object) (java.util.Objects.requireNonNullElse(useEddsa, false))) { case null -> false; case Boolean hx4J40v6 -> hx4J40v6.booleanValue(); case Long hx4J40v6 -> hx4J40v6 != 0L; case Integer hx4J40v6 -> hx4J40v6 != 0; case Double hx4J40v6 -> hx4J40v6 != 0.0; case String hx4J40v6 -> !hx4J40v6.isEmpty(); case List<?> hx4J40v6 -> !hx4J40v6.isEmpty(); case Map<?, ?> hx4J40v6 -> true; default -> false; }))
+        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(useEddsa, false)))
         {
             aud = "cdp_service";
         }
         String iss = "coinbase-cloud";
-        if ((switch ((Object) (java.util.Objects.requireNonNullElse(useEddsa, false))) { case null -> false; case Boolean hx4J40v5 -> hx4J40v5.booleanValue(); case Long hx4J40v5 -> hx4J40v5 != 0L; case Integer hx4J40v5 -> hx4J40v5 != 0; case Double hx4J40v5 -> hx4J40v5 != 0.0; case String hx4J40v5 -> !hx4J40v5.isEmpty(); case List<?> hx4J40v5 -> !hx4J40v5.isEmpty(); case Map<?, ?> hx4J40v5 -> true; default -> false; }))
+        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(useEddsa, false)))
         {
             iss = "cdp";
         }
@@ -3766,7 +3766,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         request.put("iat", seconds);
         if (!java.util.Objects.equals(uri, null))
         {
-            if (!(switch ((Object) (java.util.Objects.requireNonNullElse(useEddsa, false))) { case null -> false; case Boolean hx4J40v3 -> hx4J40v3.booleanValue(); case Long hx4J40v3 -> hx4J40v3 != 0L; case Integer hx4J40v3 -> hx4J40v3 != 0; case Double hx4J40v3 -> hx4J40v3 != 0.0; case String hx4J40v3 -> !hx4J40v3.isEmpty(); case List<?> hx4J40v3 -> !hx4J40v3.isEmpty(); case Map<?, ?> hx4J40v3 -> true; default -> false; }))
+            if (!Helpers.isTrue(java.util.Objects.requireNonNullElse(useEddsa, false)))
             {
                 request.put("uri", uri);
             } else
@@ -3774,7 +3774,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 request.put("uris", new ArrayList<Object>(Arrays.asList(uri)));
             }
         }
-        if ((switch ((Object) (java.util.Objects.requireNonNullElse(useEddsa, false))) { case null -> false; case Boolean hx4J40v2 -> hx4J40v2.booleanValue(); case Long hx4J40v2 -> hx4J40v2 != 0L; case Integer hx4J40v2 -> hx4J40v2 != 0; case Double hx4J40v2 -> hx4J40v2 != 0.0; case String hx4J40v2 -> !hx4J40v2.isEmpty(); case List<?> hx4J40v2 -> !hx4J40v2.isEmpty(); case Map<?, ?> hx4J40v2 -> true; default -> false; }))
+        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(useEddsa, false)))
         {
             Object byteArray = this.base64ToBinary(this.secret);
             Object seed = this.arraySlice(byteArray, 0, 32);
@@ -3808,13 +3808,13 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("authenticateV2", parameters);
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("authenticateV2", parameters);
             if (this.isNativeDeribitCredentials())
             {
                 return null;
             }
             Boolean forceRefresh = (Boolean) this.safeBool(paramsResolved, "forceRefresh", false);
-            Object paramsOmitted = this.omit(paramsResolved, "forceRefresh");
+            Map<String, Object> paramsOmitted = this.omit(paramsResolved, "forceRefresh");
             Long now = this.milliseconds();
             Object token = this.getV2AccessToken();
             Long tokenExpires = this.safeInteger(this.options, "v2TokenExpires");
@@ -3849,8 +3849,8 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             Double refreshRatio = (((java.util.Objects.equals(ratio, null)))) ? 0.8 : ratio;
             Long tokenRefreshInMilliseconds = this.parseToInt(((expiresIn * 1000L) * refreshRatio));
             this.token = accessToken;
-            { Map<Object, Object> j39v4 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v5 = "v2AccessToken"; Object j39v6 = accessToken; if (j39v4 == null) { if (j39v5 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v4) { if (j39v6 == null && j39v4 instanceof java.util.concurrent.ConcurrentHashMap) { j39v4.remove(j39v5); } else { j39v4.put(j39v5, j39v6); } } }
-            { Map<Object, Object> j39v1 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v2 = "v2TokenExpires"; Object j39v3 = this.sum(now, tokenRefreshInMilliseconds); if (j39v1 == null) { if (j39v2 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v1) { if (j39v3 == null && j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); } else { j39v1.put(j39v2, j39v3); } } }
+            Helpers.addElementToObject(this.options, "v2AccessToken", accessToken);
+            Helpers.addElementToObject(this.options, "v2TokenExpires", this.sum(now, tokenRefreshInMilliseconds));
             return accessToken;
         }).thenApply(res -> (String) res);
 
@@ -3880,7 +3880,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
     {
         Object access = (((java.util.Objects.requireNonNullElse(api, "public") instanceof List))) ? (java.util.Objects.requireNonNullElse(api, "public") == null || 0 >= ((List<?>)java.util.Objects.requireNonNullElse(api, "public")).size() ? null : ((List<?>)java.util.Objects.requireNonNullElse(api, "public")).get(0)) : java.util.Objects.requireNonNullElse(api, "public");
         String rpcMethod = ((access + "/") + path);
-        Object requestParams = this.handleRouteAndParams("sign", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
+        Map<String, Object> requestParams = (Map<String, Object>) this.handleRouteAndParams("sign", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
         Boolean isNativeDeribit = this.isNativeDeribitCredentials();
         String baseApiUrl = this.safeString(this.urls.get("api"), "rest", "");
         if (Boolean.TRUE.equals(isNativeDeribit))
@@ -3916,7 +3916,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             String timestamp = String.valueOf(this.milliseconds());
             String nonce = String.valueOf(this.nonce());
             String signedRequest = (((((("/" + "api/") + this.version) + "/") + access) + "/") + path);
-            if (((Map<String, Object>)requestParams).size() > 0)
+            if (requestParams.size() > 0)
             {
                 signedRequest = (signedRequest + ("?" + this.urlencode(requestParams)));
             }
@@ -3946,7 +3946,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
             String requestUrl = url;
-            if (((Map<String, Object>)requestParams).size() > 0)
+            if (requestParams.size() > 0)
             {
                 requestUrl = (requestUrl + ("?" + this.urlencode(requestParams)));
             }
@@ -4026,14 +4026,14 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         // Bind before any await, including failed/in-flight loads; never silently reuse another backend's caches.
         if (Boolean.TRUE.equals(deribit))
         {
-            { Map<Object, Object> j39v19 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v20 = "route"; Object j39v21 = "deribit"; if (j39v19 == null) { if (j39v20 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v19) { if (j39v21 == null && j39v19 instanceof java.util.concurrent.ConcurrentHashMap) { j39v19.remove(j39v20); } else { j39v19.put(j39v20, j39v21); } } }
+            Helpers.addElementToObject(this.options, "route", "deribit");
         } else
         {
-            { Map<Object, Object> j39v16 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v17 = "route"; Object j39v18 = "coinbase"; if (j39v16 == null) { if (j39v17 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v16) { if (j39v18 == null && j39v16 instanceof java.util.concurrent.ConcurrentHashMap) { j39v16.remove(j39v17); } else { j39v16.put(j39v17, j39v18); } } }
+            Helpers.addElementToObject(this.options, "route", "coinbase");
         }
-        { Map<Object, Object> j39v13 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v14 = "routeBackend"; Object j39v15 = deribit; if (j39v13 == null) { if (j39v14 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v13) { if (j39v15 == null && j39v13 instanceof java.util.concurrent.ConcurrentHashMap) { j39v13.remove(j39v14); } else { j39v13.put(j39v14, j39v15); } } }
-        { Map<Object, Object> j39v10 = (Map<Object, Object>) (Map<?, ?>) (this.has); Object j39v11 = "fetchLeverage"; Object j39v12 = !Boolean.TRUE.equals(deribit); if (j39v10 == null) { if (j39v11 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v10) { if (j39v12 == null && j39v10 instanceof java.util.concurrent.ConcurrentHashMap) { j39v10.remove(j39v11); } else { j39v10.put(j39v11, j39v12); } } }
-        { Map<Object, Object> j39v7 = (Map<Object, Object>) (Map<?, ?>) (this.has); Object j39v8 = "setLeverage"; Object j39v9 = !Boolean.TRUE.equals(deribit); if (j39v7 == null) { if (j39v8 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v7) { if (j39v9 == null && j39v7 instanceof java.util.concurrent.ConcurrentHashMap) { j39v7.remove(j39v8); } else { j39v7.put(j39v8, j39v9); } } }
+        Helpers.addElementToObject(this.options, "routeBackend", deribit);
+        Helpers.addElementToObject(this.has, "fetchLeverage", !Boolean.TRUE.equals(deribit));
+        Helpers.addElementToObject(this.has, "setLeverage", !Boolean.TRUE.equals(deribit));
         return this.omit(paramsResolved, new ArrayList<Object>(Arrays.asList("route", "defaultRoute", "callerMethodName")));
     }
 

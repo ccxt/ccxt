@@ -3058,11 +3058,11 @@ public class Mexc extends MexcApi
                     throw new ArgumentsRequired((this.id + " createSwapOrder() marginMode parameter should be either \"cross\" or \"isolated\"")) ;
                 }
             }
-            if ((!java.util.Objects.equals(type, "limit")) && (!java.util.Objects.equals(type, "market")) && (!(switch ((Object) (type)) { case null -> false; case Long hx4J40v14 -> hx4J40v14 == 1L; case Integer hx4J40v14 -> hx4J40v14 == 1L; case Double hx4J40v14 -> hx4J40v14 == 1L; case Float hx4J40v14 -> hx4J40v14.doubleValue() == 1L; case java.math.BigDecimal hx4J40v14 -> hx4J40v14.stripTrailingZeros().scale() <= 0 && hx4J40v14.longValue() == 1L; case Object hx4J40v14 -> { try { String hx4J40v14t = String.valueOf(hx4J40v14); Double.parseDouble(hx4J40v14t); yield new java.math.BigDecimal(hx4J40v14t).compareTo(java.math.BigDecimal.valueOf(1L)) == 0; } catch (NumberFormatException hx4J40v14x) { yield false; } } })) && (!(switch ((Object) (type)) { case null -> false; case Long hx4J40v13 -> hx4J40v13 == 2L; case Integer hx4J40v13 -> hx4J40v13 == 2L; case Double hx4J40v13 -> hx4J40v13 == 2L; case Float hx4J40v13 -> hx4J40v13.doubleValue() == 2L; case java.math.BigDecimal hx4J40v13 -> hx4J40v13.stripTrailingZeros().scale() <= 0 && hx4J40v13.longValue() == 2L; case Object hx4J40v13 -> { try { String hx4J40v13t = String.valueOf(hx4J40v13); Double.parseDouble(hx4J40v13t); yield new java.math.BigDecimal(hx4J40v13t).compareTo(java.math.BigDecimal.valueOf(2L)) == 0; } catch (NumberFormatException hx4J40v13x) { yield false; } } })) && (!(switch ((Object) (type)) { case null -> false; case Long hx4J40v12 -> hx4J40v12 == 3L; case Integer hx4J40v12 -> hx4J40v12 == 3L; case Double hx4J40v12 -> hx4J40v12 == 3L; case Float hx4J40v12 -> hx4J40v12.doubleValue() == 3L; case java.math.BigDecimal hx4J40v12 -> hx4J40v12.stripTrailingZeros().scale() <= 0 && hx4J40v12.longValue() == 3L; case Object hx4J40v12 -> { try { String hx4J40v12t = String.valueOf(hx4J40v12); Double.parseDouble(hx4J40v12t); yield new java.math.BigDecimal(hx4J40v12t).compareTo(java.math.BigDecimal.valueOf(3L)) == 0; } catch (NumberFormatException hx4J40v12x) { yield false; } } })) && (!(switch ((Object) (type)) { case null -> false; case Long hx4J40v11 -> hx4J40v11 == 4L; case Integer hx4J40v11 -> hx4J40v11 == 4L; case Double hx4J40v11 -> hx4J40v11 == 4L; case Float hx4J40v11 -> hx4J40v11.doubleValue() == 4L; case java.math.BigDecimal hx4J40v11 -> hx4J40v11.stripTrailingZeros().scale() <= 0 && hx4J40v11.longValue() == 4L; case Object hx4J40v11 -> { try { String hx4J40v11t = String.valueOf(hx4J40v11); Double.parseDouble(hx4J40v11t); yield new java.math.BigDecimal(hx4J40v11t).compareTo(java.math.BigDecimal.valueOf(4L)) == 0; } catch (NumberFormatException hx4J40v11x) { yield false; } } })) && (!(switch ((Object) (type)) { case null -> false; case Long hx4J40v10 -> hx4J40v10 == 5L; case Integer hx4J40v10 -> hx4J40v10 == 5L; case Double hx4J40v10 -> hx4J40v10 == 5L; case Float hx4J40v10 -> hx4J40v10.doubleValue() == 5L; case java.math.BigDecimal hx4J40v10 -> hx4J40v10.stripTrailingZeros().scale() <= 0 && hx4J40v10.longValue() == 5L; case Object hx4J40v10 -> { try { String hx4J40v10t = String.valueOf(hx4J40v10); Double.parseDouble(hx4J40v10t); yield new java.math.BigDecimal(hx4J40v10t).compareTo(java.math.BigDecimal.valueOf(5L)) == 0; } catch (NumberFormatException hx4J40v10x) { yield false; } } })) && (!(switch ((Object) (type)) { case null -> false; case Long hx4J40v9 -> hx4J40v9 == 6L; case Integer hx4J40v9 -> hx4J40v9 == 6L; case Double hx4J40v9 -> hx4J40v9 == 6L; case Float hx4J40v9 -> hx4J40v9.doubleValue() == 6L; case java.math.BigDecimal hx4J40v9 -> hx4J40v9.stripTrailingZeros().scale() <= 0 && hx4J40v9.longValue() == 6L; case Object hx4J40v9 -> { try { String hx4J40v9t = String.valueOf(hx4J40v9); Double.parseDouble(hx4J40v9t); yield new java.math.BigDecimal(hx4J40v9t).compareTo(java.math.BigDecimal.valueOf(6L)) == 0; } catch (NumberFormatException hx4J40v9x) { yield false; } } })))
+            if ((!java.util.Objects.equals(type, "limit")) && (!java.util.Objects.equals(type, "market")) && (!Helpers.isEqual(type, 1)) && (!Helpers.isEqual(type, 2)) && (!Helpers.isEqual(type, 3)) && (!Helpers.isEqual(type, 4)) && (!Helpers.isEqual(type, 5)) && (!Helpers.isEqual(type, 6)))
             {
                 throw new InvalidOrder((this.id + " createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price")) ;
             }
-            List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), (switch ((Object) (type)) { case null -> false; case Long hx4J40v8 -> hx4J40v8 == 2L; case Integer hx4J40v8 -> hx4J40v8 == 2L; case Double hx4J40v8 -> hx4J40v8 == 2L; case Float hx4J40v8 -> hx4J40v8.doubleValue() == 2L; case java.math.BigDecimal hx4J40v8 -> hx4J40v8.stripTrailingZeros().scale() <= 0 && hx4J40v8.longValue() == 2L; case Object hx4J40v8 -> { try { String hx4J40v8t = String.valueOf(hx4J40v8); Double.parseDouble(hx4J40v8t); yield new java.math.BigDecimal(hx4J40v8t).compareTo(java.math.BigDecimal.valueOf(2L)) == 0; } catch (NumberFormatException hx4J40v8x) { yield false; } } }), parameters);
+            List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), Helpers.isEqual(type, 2), parameters);
             Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
             Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
             Object orderType = null;
@@ -3086,17 +3086,17 @@ public class Mexc extends MexcApi
             }
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("symbol", Helpers.GetValue(market, "id"));
-            request.put("vol", ((Double) (switch ((Object) (volString)) { case null -> Double.valueOf(0.0); case Double hx4J42v1 -> Double.valueOf(hx4J42v1.doubleValue()); case Float hx4J42v1 -> Double.valueOf(hx4J42v1.doubleValue()); case Long hx4J42v1 -> Double.valueOf(hx4J42v1.doubleValue()); case Integer hx4J42v1 -> Double.valueOf(hx4J42v1.doubleValue()); case java.math.BigDecimal hx4J42v1 -> Double.valueOf(hx4J42v1.doubleValue()); case Object hx4J42v1 -> { String hx4J42v1s; try { hx4J42v1s = String.valueOf(hx4J42v1); } catch (Exception hx4J42v1e) { yield (Double) null; } try { yield Double.valueOf(Double.parseDouble(hx4J42v1s)); } catch (NumberFormatException hx4J42v1e) { yield Double.valueOf(0.0); } } })));
+            request.put("vol", Helpers.parseFloat(volString));
             request.put("type", orderType);
             request.put("openType", openType);
-            if ((!(switch ((Object) (orderType)) { case null -> false; case Long hx4J40v7 -> hx4J40v7 == 5L; case Integer hx4J40v7 -> hx4J40v7 == 5L; case Double hx4J40v7 -> hx4J40v7 == 5L; case Float hx4J40v7 -> hx4J40v7.doubleValue() == 5L; case java.math.BigDecimal hx4J40v7 -> hx4J40v7.stripTrailingZeros().scale() <= 0 && hx4J40v7.longValue() == 5L; case Object hx4J40v7 -> { try { String hx4J40v7t = String.valueOf(hx4J40v7); Double.parseDouble(hx4J40v7t); yield new java.math.BigDecimal(hx4J40v7t).compareTo(java.math.BigDecimal.valueOf(5L)) == 0; } catch (NumberFormatException hx4J40v7x) { yield false; } } })) && (!(switch ((Object) (orderType)) { case null -> false; case Long hx4J40v6 -> hx4J40v6 == 6L; case Integer hx4J40v6 -> hx4J40v6 == 6L; case Double hx4J40v6 -> hx4J40v6 == 6L; case Float hx4J40v6 -> hx4J40v6.doubleValue() == 6L; case java.math.BigDecimal hx4J40v6 -> hx4J40v6.stripTrailingZeros().scale() <= 0 && hx4J40v6.longValue() == 6L; case Object hx4J40v6 -> { try { String hx4J40v6t = String.valueOf(hx4J40v6); Double.parseDouble(hx4J40v6t); yield new java.math.BigDecimal(hx4J40v6t).compareTo(java.math.BigDecimal.valueOf(6L)) == 0; } catch (NumberFormatException hx4J40v6x) { yield false; } } })) && (!java.util.Objects.equals(orderType, "market")))
+            if ((!Helpers.isEqual(orderType, 5)) && (!Helpers.isEqual(orderType, 6)) && (!java.util.Objects.equals(orderType, "market")))
             {
                 String priceString = this.priceToPrecision(symbol, price);
                 if (java.util.Objects.equals(priceString, null))
                 {
                     priceString = "0";
                 }
-                request.put("price", ((Double) (switch ((Object) (priceString)) { case null -> Double.valueOf(0.0); case Double hx4J42v0 -> Double.valueOf(hx4J42v0.doubleValue()); case Float hx4J42v0 -> Double.valueOf(hx4J42v0.doubleValue()); case Long hx4J42v0 -> Double.valueOf(hx4J42v0.doubleValue()); case Integer hx4J42v0 -> Double.valueOf(hx4J42v0.doubleValue()); case java.math.BigDecimal hx4J42v0 -> Double.valueOf(hx4J42v0.doubleValue()); case Object hx4J42v0 -> { String hx4J42v0s; try { hx4J42v0s = String.valueOf(hx4J42v0); } catch (Exception hx4J42v0e) { yield (Double) null; } try { yield Double.valueOf(Double.parseDouble(hx4J42v0s)); } catch (NumberFormatException hx4J42v0e) { yield Double.valueOf(0.0); } } })));
+                request.put("price", Helpers.parseFloat(priceString));
             }
             if ((openType != null && openType == 1))
             {
@@ -3146,7 +3146,7 @@ public class Mexc extends MexcApi
                 request.put("executeCycle", this.safeInteger(paramsOmitted, "executeCycle", 1));
                 request.put("trend", this.safeInteger(paramsOmitted, "trend", 1));
                 Object planOrderType = orderType;
-                if ((switch ((Object) (orderType)) { case null -> false; case Long hx4J40v5 -> hx4J40v5 == 6L; case Integer hx4J40v5 -> hx4J40v5 == 6L; case Double hx4J40v5 -> hx4J40v5 == 6L; case Float hx4J40v5 -> hx4J40v5.doubleValue() == 6L; case java.math.BigDecimal hx4J40v5 -> hx4J40v5.stripTrailingZeros().scale() <= 0 && hx4J40v5.longValue() == 6L; case Object hx4J40v5 -> { try { String hx4J40v5t = String.valueOf(hx4J40v5); Double.parseDouble(hx4J40v5t); yield new java.math.BigDecimal(hx4J40v5t).compareTo(java.math.BigDecimal.valueOf(6L)) == 0; } catch (NumberFormatException hx4J40v5x) { yield false; } } }))
+                if (Helpers.isEqual(orderType, 6))
                 {
                     planOrderType = 5; // 6 (convert to current price) does not exist for trigger orders, 5 is their market type
                 }
@@ -5573,16 +5573,16 @@ public class Mexc extends MexcApi
             Double minNotional = this.parseNumber(floor);
             Double mainMarginRate = this.parseNumber(maintenanceMarginRate);
             Double maxLev = this.parseNumber(Precise.stringDiv("1", initialMarginRate));
-            ((List<Object>)tiers).add((switch (0) { default -> { HashMap<String, Object> j39v7 = new HashMap<String, Object>();
-                j39v7.put("tier", this.parseNumber(Precise.stringDiv(cap, riskIncrVol)));
-                j39v7.put("symbol", this.safeSymbol(marketId, market, (String) null, "contract"));
-                j39v7.put("currency", this.safeCurrencyCode(quoteId, (Map<String, Object>) null));
-                j39v7.put("minNotional", minNotional);
-                j39v7.put("maxNotional", this.parseNumber(cap));
-                j39v7.put("maintenanceMarginRate", mainMarginRate);
-                j39v7.put("maxLeverage", maxLev);
-                j39v7.put("info", info);
-                yield j39v7; } }));
+            ((List<Object>)tiers).add((switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>();
+                j39v3.put("tier", this.parseNumber(Precise.stringDiv(cap, riskIncrVol)));
+                j39v3.put("symbol", this.safeSymbol(marketId, market, (String) null, "contract"));
+                j39v3.put("currency", this.safeCurrencyCode(quoteId, (Map<String, Object>) null));
+                j39v3.put("minNotional", minNotional);
+                j39v3.put("maxNotional", this.parseNumber(cap));
+                j39v3.put("maintenanceMarginRate", mainMarginRate);
+                j39v3.put("maxLeverage", maxLev);
+                j39v3.put("info", info);
+                yield j39v3; } }));
             initialMarginRate = Precise.stringAdd(initialMarginRate, riskIncrImr);
             maintenanceMarginRate = Precise.stringAdd(maintenanceMarginRate, riskIncrMmr);
             floor = cap;

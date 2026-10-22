@@ -1,5 +1,5 @@
 import Exchange from './abstract/poloniex.js';
-import type { TransferEntry, Int, Leverage, OrderSide, OrderType, OrderRequest, OHLCV, Trade, OrderBook, Order, Balances, Str, MarginModification, Transaction, Ticker, Tickers, Market, Strings, Currency, CurrencyInterface, Num, Currencies, TradingFees, Dict, int, DepositAddress, Position, DepositWithdrawFees, PositionModeInfo } from './base/types.js';
+import type { TransferEntry, Int, Leverage, OrderSide, OrderType, OrderRequest, OHLCV, Trade, OrderBook, Order, Balances, Str, MarginModification, Transaction, Ticker, Tickers, Market, Strings, Currency, CurrencyInterface, Num, Currencies, TradingFees, Dict, int, DepositAddress, Position, NullableDict, DepositWithdrawFees, PositionModeInfo } from './base/types.js';
 /**
  * @class poloniex
  * @augments Exchange
@@ -388,7 +388,7 @@ export default class poloniex extends Exchange {
      */
     fetchDepositWithdrawFees(codes?: Strings, params?: Dict): Promise<DepositWithdrawFees>;
     parseDepositWithdrawFees(response: any, codes?: Strings, currencyIdKey?: Str): any;
-    parseDepositWithdrawFee(fee: any, currency?: Currency): any;
+    parseDepositWithdrawFee(fee: NullableDict, currency?: Currency): any;
     /**
      * @method
      * @name poloniex#fetchDeposits

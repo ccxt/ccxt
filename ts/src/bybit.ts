@@ -7543,7 +7543,7 @@ export default class bybit extends Exchange {
         return await this.fetchDerivativesOpenInterestHistory (symbol, timeframe, since, limit, params);
     }
 
-    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
+    override parseOpenInterest (interest: NullableDict, market: Market = undefined): OpenInterest {
         //
         //    {
         //        "openInterest": 64757.62400000,
@@ -7728,12 +7728,12 @@ export default class bybit extends Exchange {
         const request: Dict = {
             'currency': currency['id'],
         };
-        const sinceResolved = (since === undefined) ? this.milliseconds () - 86400000 * 30 : since; // last 30 days
+        const sinceResolved = (since === undefined) ? this.milliseconds () - 2592000000 : since; // last 30 days
         request['startTime'] = sinceResolved;
         let endTime = this.safeInteger2 (params, 'until', 'endTime');
         const paramsOmitted: Dict = this.omit (params, [ 'until' ]);
         if (endTime === undefined) {
-            endTime = sinceResolved + 86400000 * 30; // since + 30 days
+            endTime = sinceResolved + 2592000000; // since + 30 days
         }
         request['endTime'] = endTime;
         const response = await this.privateGetV5SpotMarginTradeInterestRateHistory (this.extend (request, paramsOmitted));
@@ -8231,7 +8231,7 @@ export default class bybit extends Exchange {
         return result;
     }
 
-    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined): any {
+    override parseDepositWithdrawFee (fee: NullableDict, currency: Currency = undefined): any {
         //
         //    {
         //        "name": "BTC",
@@ -10059,7 +10059,7 @@ export default class bybit extends Exchange {
         return this.safeString (marginModes, marginMode, marginMode);
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
         let requestBody: Str = undefined;
         let requestHeaders: NullableDict = undefined;

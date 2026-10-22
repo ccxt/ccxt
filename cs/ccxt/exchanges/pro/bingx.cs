@@ -334,15 +334,8 @@ public partial class bingx : ccxt.bingx
         // Coin-M m is coin volume; v is contracts and q is already USD turnover.
         // prefer the caller's stream-derived flag so an unresolved market id on
         // the Coin-M endpoint does not silently fall back to the contract count
-        object inverse = false;
-        if ((isInverse == null))
-        {
-            inverse = (((marketResolved != null && marketResolved.ContainsKey("inverse") ? marketResolved["inverse"] : null) as bool?) == true);
-        } else
-        {
-            inverse = isInverse;
-        }
-        string baseVolumeKey = (((object)(inverse)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }) ? "m" : "v";
+        bool inverse = ((isInverse is true)) || (((isInverse == null)) && ((((marketResolved != null && marketResolved.ContainsKey("inverse") ? marketResolved["inverse"] : null) as bool?) == true)));
+        string baseVolumeKey = inverse ? "m" : "v";
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "timestamp", timestamp },
@@ -2090,7 +2083,7 @@ public partial class bingx : ccxt.bingx
             return;
         }
         // public subscriptions
-        if ((((object)(message)) switch { null => false, IList<object> c33a => c33a.Contains("ping"), IList<string> c33t => c33t.Contains("ping"), List<Int64> c33g => c33g.Contains((Int64)(object)"ping"), IDictionary<string, object> c33d => c33d.ContainsKey("ping"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("ping"), _ => false }))
+        if (inOp(message, "ping"))
         {
             this.spawn(this.pong, new object[] { client, message});
             return;

@@ -1022,7 +1022,7 @@ public partial class deribit : ccxt.deribit
         {
             throw new ArgumentsRequired ((this.id + " watchMultipleWrapper() symbolsArray is required")) ;
         }
-        for (int i = 0; i < (((object)(symbolsArray)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(symbolsArray); i++)
         {
             if ((symbolsArray == null))
             {

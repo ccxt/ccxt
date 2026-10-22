@@ -1197,14 +1197,14 @@ public class Paradex extends ParadexApi
             Map<String, Object> paramsOmitted = this.omit(paramsUntil, new ArrayList<Object>(Arrays.asList("price")));
             // exchange has undocumented limit slightly above, but 1000 is reliable limit
             Object limitResolved = ((((java.util.Objects.equals(limit, null)) || ((limit > 1000))))) ? 1000 : limit;
-            Long windowLength = this.parseToInt(((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a == null || j36b == null) return null; if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) * ((Long) j36b)); java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; double j36r = j36d.applyAsDouble(j36a) * j36d.applyAsDouble(j36b); if (new java.math.BigDecimal(String.valueOf(j36r)).stripTrailingZeros().scale() <= 0) return (Object) ((long) j36r); return (Object) j36r; }).apply(((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a == null || j36b == null) return null; if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) * ((Long) j36b)); java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; double j36r = j36d.applyAsDouble(j36a) * j36d.applyAsDouble(j36b); if (new java.math.BigDecimal(String.valueOf(j36r)).stripTrailingZeros().scale() <= 0) return (Object) ((long) j36r); return (Object) j36r; }).apply(duration, (((Object) (switch ((Object) (this.parseToInt(limitResolved))) { case null -> (Object) null; case Long hx4J40v2 -> (Object) (hx4J40v2 + 1L); case Integer hx4J40v2 -> (Object) (hx4J40v2.longValue() + 1L); case Double hx4J40v2 -> (Object) (hx4J40v2 + ((double) 1L)); case String hx4J40v2 -> (Object) (hx4J40v2 + "1"); default -> (Object) null; })))), 1000));
+            Long windowLength = this.parseToInt(Helpers.multiply(Helpers.multiply(duration, (((Object) (switch ((Object) (this.parseToInt(limitResolved))) { case null -> (Object) null; case Long hx4J40v2 -> (Object) (hx4J40v2 + 1L); case Integer hx4J40v2 -> (Object) (hx4J40v2.longValue() + 1L); case Double hx4J40v2 -> (Object) (hx4J40v2 + ((double) 1L)); case String hx4J40v2 -> (Object) (hx4J40v2 + "1"); default -> (Object) null; })))), 1000));
             if (!java.util.Objects.equals(since, null))
             {
                 ((Map<String, Object>)requestUntil).put("start_at", since);
                 if (!Boolean.TRUE.equals(hasEnd))
                 {
                     Long sinceInt = this.parseToInt(since);
-                    ((Map<String, Object>)requestUntil).put("end_at", ((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) - ((Long) j36b)); if (j36a instanceof Double || j36b instanceof Double) { java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; return (Object) (j36d.applyAsDouble(j36a) - j36d.applyAsDouble(j36b)); } return null; }).apply((sinceInt + windowLength), 1));
+                    ((Map<String, Object>)requestUntil).put("end_at", Helpers.subtract((sinceInt + windowLength), 1));
                 }
             } else
             {
@@ -1848,7 +1848,7 @@ public class Paradex extends ParadexApi
             if (java.util.Objects.equals(this.safeDict(this.options, "systemConfig", (Object) null), null))
             {
                 Map<String, Object> response = (this.publicGetSystemConfig(new HashMap<String, Object>() {{}})).join();
-                { Map<Object, Object> j39v1 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v2 = "systemConfig"; Object j39v3 = response; if (j39v1 == null) { if (j39v2 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v1) { if (j39v3 == null && j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); } else { j39v1.put(j39v2, j39v3); } } }
+                Helpers.addElementToObject(this.options, "systemConfig", response);
             }
             return this.safeDict(this.options, "systemConfig", new HashMap<String, Object>() {{}});
         }).thenApply(res -> (Map<String, Object>) res);
@@ -1902,7 +1902,7 @@ public class Paradex extends ParadexApi
                 Object msg = this.ethEncodeStructuredData(domain, messageTypes, message);
                 String signature = this.signMessage(msg, this.privateKey);
                 Object account = this.retrieveStarkAccount(signature, systemConfig.get("paraclear_account_hash"), systemConfig.get("paraclear_account_proxy_hash"));
-                { Map<Object, Object> j39v4 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v5 = "paradexAccount"; Object j39v6 = account; if (j39v4 == null) { if (j39v5 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v4) { if (j39v6 == null && j39v4 instanceof java.util.concurrent.ConcurrentHashMap) { j39v4.remove(j39v5); } else { j39v4.put(j39v5, j39v6); } } }
+                Helpers.addElementToObject(this.options, "paradexAccount", account);
             }
             return this.safeDict(this.options, "paradexAccount", new HashMap<String, Object>() {{}});
         }).thenApply(res -> (Map<String, Object>) res);
@@ -1928,8 +1928,8 @@ public class Paradex extends ParadexApi
             Object msg = this.starknetEncodeStructuredData(domain, messageTypes, req, account.get("address"));
             Object signature = this.starknetSign(msg, account.get("privateKey"));
             parameters.put("signature", signature);
-            { Map<Object, Object> j39v10 = (Map<Object, Object>) (Map<?, ?>) (parameters); Object j39v11 = "account"; Object j39v12 = account.get("address"); if (j39v10 == null) { if (j39v11 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v10) { if (j39v12 == null && j39v10 instanceof java.util.concurrent.ConcurrentHashMap) { j39v10.remove(j39v11); } else { j39v10.put(j39v11, j39v12); } } }
-            { Map<Object, Object> j39v7 = (Map<Object, Object>) (Map<?, ?>) (parameters); Object j39v8 = "public_key"; Object j39v9 = account.get("publicKey"); if (j39v7 == null) { if (j39v8 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v7) { if (j39v9 == null && j39v7 instanceof java.util.concurrent.ConcurrentHashMap) { j39v7.remove(j39v8); } else { j39v7.put(j39v8, j39v9); } } }
+            Helpers.addElementToObject(parameters, "account", account.get("address"));
+            Helpers.addElementToObject(parameters, "public_key", account.get("publicKey"));
             Map<String, Object> response = (this.privatePostOnboarding(parameters)).join();
             return response;
         });
@@ -1986,7 +1986,7 @@ public class Paradex extends ParadexApi
             Object msg = this.starknetEncodeStructuredData(domain, messageTypes, req, account.get("address"));
             Object signature = this.starknetSign(msg, account.get("privateKey"));
             parameters.put("signature", signature);
-            { Map<Object, Object> j39v19 = (Map<Object, Object>) (Map<?, ?>) (parameters); Object j39v20 = "account"; Object j39v21 = account.get("address"); if (j39v19 == null) { if (j39v20 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v19) { if (j39v21 == null && j39v19 instanceof java.util.concurrent.ConcurrentHashMap) { j39v19.remove(j39v20); } else { j39v19.put(j39v20, j39v21); } } }
+            Helpers.addElementToObject(parameters, "account", account.get("address"));
             parameters.put("timestamp", req.get("timestamp"));
             parameters.put("expiration", req.get("expiration"));
             Map<String, Object> response = (this.privatePostAuth(parameters)).join();
@@ -1996,8 +1996,8 @@ public class Paradex extends ParadexApi
             // }
             //
             String token = this.safeString(response, "jwt_token");
-            { Map<Object, Object> j39v16 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v17 = "authToken"; Object j39v18 = token; if (j39v16 == null) { if (j39v17 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v16) { if (j39v18 == null && j39v16 instanceof java.util.concurrent.ConcurrentHashMap) { j39v16.remove(j39v17); } else { j39v16.put(j39v17, j39v18); } } }
-            { Map<Object, Object> j39v13 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v14 = "expires"; Object j39v15 = expires; if (j39v13 == null) { if (j39v14 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v13) { if (j39v15 == null && j39v13 instanceof java.util.concurrent.ConcurrentHashMap) { j39v13.remove(j39v14); } else { j39v13.put(j39v14, j39v15); } } }
+            Helpers.addElementToObject(this.options, "authToken", token);
+            Helpers.addElementToObject(this.options, "expires", expires);
             return token;
         }).thenApply(res -> (String) res);
 
@@ -2663,13 +2663,13 @@ public class Paradex extends ParadexApi
                 {
                     orderStatus = "rejected";
                 }
-                ((List<Object>)orders).add(this.safeOrder((switch (0) { default -> { HashMap<String, Object> j39v22 = new HashMap<String, Object>();
-                    j39v22.put("info", result);
-                    j39v22.put("id", this.safeString(result, "id"));
-                    j39v22.put("clientOrderId", this.safeString(result, "client_id"));
-                    j39v22.put("status", orderStatus);
-                    j39v22.put("symbol", market.get("symbol"));
-                    yield j39v22; } }), market));
+                ((List<Object>)orders).add(this.safeOrder((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                    j39v1.put("info", result);
+                    j39v1.put("id", this.safeString(result, "id"));
+                    j39v1.put("clientOrderId", this.safeString(result, "client_id"));
+                    j39v1.put("status", orderStatus);
+                    j39v1.put("symbol", market.get("symbol"));
+                    yield j39v1; } }), market));
             }
             return orders;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -2986,7 +2986,7 @@ public class Paradex extends ParadexApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v23 -> j39v23.size(); case String j39v24 -> j39v24.length(); case Object j39v25 -> j39v25.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v25) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v2 -> j39v2.size(); case String j39v3 -> j39v3.length(); case Object j39v4 -> j39v4.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v4) : 0; }); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, new HashMap<String, Object>() {{}});
             String currencyId = this.safeString(balance, "token");

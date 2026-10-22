@@ -966,11 +966,11 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                     previousOrder.put("trades", new ArrayList<Object>(Arrays.asList()));
                 }
                 ((List<Object>)previousOrder.get("trades")).add(trade);
-                { Map<Object, Object> j39v22 = (Map<Object, Object>) (Map<?, ?>) (previousOrder); Object j39v23 = "lastTradeTimestamp"; Object j39v24 = trade.get("timestamp"); if (j39v22 == null) { if (j39v23 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v22) { if (j39v24 == null && j39v22 instanceof java.util.concurrent.ConcurrentHashMap) { j39v22.remove(j39v23); } else { j39v22.put(j39v23, j39v24); } } }
+                Helpers.addElementToObject(previousOrder, "lastTradeTimestamp", trade.get("timestamp"));
                 String totalCost = "0";
                 String totalAmount = "0";
                 Object trades = previousOrder.get("trades");
-                for (var i = 0; i < (switch ((Object)(trades)) { case null -> 0; case List<?> j39v19 -> j39v19.size(); case String j39v20 -> j39v20.length(); case Object j39v21 -> j39v21.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v21) : 0; }); i++)
+                for (var i = 0; i < (switch ((Object)(trades)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
                 {
                     Object currentTrade = Helpers.GetValue(trades, i);
                     totalCost = Precise.stringAdd(totalCost, this.numberToString(Helpers.GetValue(currentTrade, "cost")));
@@ -978,16 +978,16 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 }
                 if (Precise.stringGt(totalAmount, "0"))
                 {
-                    { Map<Object, Object> j39v13 = (Map<Object, Object>) (Map<?, ?>) (previousOrder); Object j39v14 = "average"; Object j39v15 = Precise.stringDiv(totalCost, totalAmount); if (j39v13 == null) { if (j39v14 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v13) { if (j39v15 == null && j39v13 instanceof java.util.concurrent.ConcurrentHashMap) { j39v13.remove(j39v14); } else { j39v13.put(j39v14, j39v15); } } }
+                    Helpers.addElementToObject(previousOrder, "average", Precise.stringDiv(totalCost, totalAmount));
                 }
-                { Map<Object, Object> j39v10 = (Map<Object, Object>) (Map<?, ?>) (previousOrder); Object j39v11 = "cost"; Object j39v12 = totalCost; if (j39v10 == null) { if (j39v11 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v10) { if (j39v12 == null && j39v10 instanceof java.util.concurrent.ConcurrentHashMap) { j39v10.remove(j39v11); } else { j39v10.put(j39v11, j39v12); } } }
+                Helpers.addElementToObject(previousOrder, "cost", totalCost);
                 String filledString = this.numberToString(trade.get("amount"));
                 String stringOrderFilled = this.safeString(previousOrder, "filled", "0");
                 String totalFilled = Precise.stringAdd(stringOrderFilled, filledString);
-                { Map<Object, Object> j39v7 = (Map<Object, Object>) (Map<?, ?>) (previousOrder); Object j39v8 = "filled"; Object j39v9 = totalFilled; if (j39v7 == null) { if (j39v8 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v7) { if (j39v9 == null && j39v7 instanceof java.util.concurrent.ConcurrentHashMap) { j39v7.remove(j39v8); } else { j39v7.put(j39v8, j39v9); } } }
+                Helpers.addElementToObject(previousOrder, "filled", totalFilled);
                 String prevAmountString = this.safeString(previousOrder, "amount");
                 String remaining = Precise.stringSub(prevAmountString, totalFilled);
-                { Map<Object, Object> j39v4 = (Map<Object, Object>) (Map<?, ?>) (previousOrder); Object j39v5 = "remaining"; Object j39v6 = remaining; if (j39v4 == null) { if (j39v5 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v4) { if (j39v6 == null && j39v4 instanceof java.util.concurrent.ConcurrentHashMap) { j39v4.remove(j39v5); } else { j39v4.put(j39v5, j39v6); } } }
+                Helpers.addElementToObject(previousOrder, "remaining", remaining);
                 if (java.util.Objects.equals(previousOrder.get("fee"), null))
                 {
                     previousOrder.put("fee", new HashMap<String, Object>() {{
@@ -1140,7 +1140,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         // no longer open on the venue - it filled or was cancelled while we were
         // disconnected. the snapshot does not say which, so mark it canceled
         // instead of leaving it open in the cache forever
-        List<Object> cachedSymbols = ((List<Object>) switch ((Object)(((io.github.ccxt.ws.ArrayCache)cachedOrders).hashmap)) { case Map<?, ?> j39v25 -> { synchronized (j39v25) { yield new ArrayList<Object>(j39v25.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> cachedSymbols = ((List<Object>) switch ((Object)(((io.github.ccxt.ws.ArrayCache)cachedOrders).hashmap)) { case Map<?, ?> j39v4 -> { synchronized (j39v4) { yield new ArrayList<Object>(j39v4.keySet()); } } case null, default -> new ArrayList<Object>(); });
         for (var i = 0; i < ((List<?>)cachedSymbols).size(); i++)
         {
             Object cachedSymbol = (cachedSymbols == null || i < 0 || i >= cachedSymbols.size() ? null : cachedSymbols.get(i));
@@ -2066,8 +2066,8 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             Object hashedChallenge = this.hash(this.encode(challenge), sha256(), "binary");
             Object base64Secret = this.base64ToBinary(this.secret);
             String signature = (String) this.hmac(hashedChallenge, base64Secret, sha512(), "base64");
-            { Map<Object, Object> j39v30 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v31 = "challenge"; Object j39v32 = challenge; if (j39v30 == null) { if (j39v31 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v30) { if (j39v32 == null && j39v30 instanceof java.util.concurrent.ConcurrentHashMap) { j39v30.remove(j39v31); } else { j39v30.put(j39v31, j39v32); } } }
-            { Map<Object, Object> j39v27 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v28 = "signedChallenge"; Object j39v29 = signature; if (j39v27 == null) { if (j39v28 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v27) { if (j39v29 == null && j39v27 instanceof java.util.concurrent.ConcurrentHashMap) { j39v27.remove(j39v28); } else { j39v27.put(j39v28, j39v29); } } }
+            Helpers.addElementToObject(this.options, "challenge", challenge);
+            Helpers.addElementToObject(this.options, "signedChallenge", signature);
             io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, messageHash);
             ((io.github.ccxt.ws.Future)future).resolve(true);
         } else

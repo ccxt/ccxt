@@ -2090,7 +2090,7 @@ class opinion extends Exchange {
         return null;
     }
 
-    public function handle_order(mixed $client, array $message) {
+    public function handle_order(Client $client, array $message) {
         //
         //     {
         //         "orderUpdateType": "orderConfirm",
@@ -2259,7 +2259,7 @@ class opinion extends Exchange {
         return null;
     }
 
-    public function sign(string $path, array $api = array('opinion'), $method = 'GET', $params = array()) {
+    public function sign(string $path, array $api = array('opinion'), string $method = 'GET', $params = array()) {
         /**
          * @ignore
          * builds the request $url and attaches the apikey/EIP-712 authentication headers for private endpoints

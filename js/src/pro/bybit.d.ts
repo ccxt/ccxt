@@ -234,7 +234,7 @@ export default class bybit extends bybitRest {
     unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
     handleOrderBook(client: Client, message: Dict): void;
     handleDelta(bookside: any, delta: any): void;
-    handleDeltas(bookside: any, deltas: any): void;
+    handleDeltas(bookside: any, deltas: any[]): void;
     /**
      * @method
      * @name bybit#watchTrades

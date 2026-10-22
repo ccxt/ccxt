@@ -1005,7 +1005,7 @@ public partial class hibachi : Exchange
             sideInternal = "BID";
         }
         string? priceInternal = "";
-        if (((price != null)) && (!(((object)(price)) switch { Int64 c33l => c33l == 0, int c33i => c33i == 0, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 0, decimal c33m => c33m == 0, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 0, uint c33u => (Int64)c33u == 0, short c33h => (Int64)c33h == 0, ushort c33v => (Int64)c33v == 0, byte c33y => (Int64)c33y == 0, sbyte c33e => (Int64)c33e == 0, ulong c33z => c33z == 0UL, _ => false })))
+        if (((price != null)) && (!isEqual(price, 0)))
         {
             priceInternal = this.priceToPrecision(symbol, price);
         }
@@ -2006,7 +2006,7 @@ public partial class hibachi : Exchange
         {
             return null;  // fallback to default error handler
         }
-        if ((((object)(response)) switch { null => false, IList<object> c33a => c33a.Contains("status"), IList<string> c33t => c33t.Contains("status"), List<Int64> c33g => c33g.Contains((Int64)(object)"status"), IDictionary<string, object> c33d => c33d.ContainsKey("status"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("status"), _ => false }))
+        if (inOp(response, "status"))
         {
             //
             //     {"errorCode":4,"message":"Invalid input: Invalid quantity: 0","status":"failed"}

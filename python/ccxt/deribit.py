@@ -3043,7 +3043,7 @@ class deribit(Exchange, ImplicitAPI):
         response = self.privateGetWithdraw(self.extend(request, paramsWithdrawTag))
         return self.parse_transaction(response, currency)
 
-    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None) -> object:
+    def parse_deposit_withdraw_fee(self, fee: dict, currency: Currency = None) -> object:
         #
         #    {
         #      "withdrawal_priorities": [],
@@ -3751,7 +3751,7 @@ class deribit(Exchange, ImplicitAPI):
         data = self.safe_dict(result, 0, {})
         return self.parse_open_interest(data, market)
 
-    def parse_open_interest(self, interest: object, market: Market = None) -> OpenInterest:
+    def parse_open_interest(self, interest: dict, market: Market = None) -> OpenInterest:
         #
         #     {
         #         "high": 93099.5,
@@ -3797,7 +3797,7 @@ class deribit(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
         request = '/' + 'api/' + self.version + '/' + apiName + '/' + path
         if apiName == 'public':

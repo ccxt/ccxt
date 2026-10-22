@@ -545,7 +545,7 @@ public class Kalshi extends KalshiApi
                 {
                     // an unknown ticker returns 'not_found', which handleErrors maps to BadSymbol —
                     // fall through to the search-driven base resolution; let network failures propagate
-                    if (!((switch ((Object) (e)) { case null -> false; case Throwable hx4J44v2 -> { Throwable hx4J44v2u = hx4J44v2; while ((hx4J44v2u instanceof java.util.concurrent.CompletionException || hx4J44v2u instanceof java.util.concurrent.ExecutionException) && hx4J44v2u.getCause() != null) { hx4J44v2u = hx4J44v2u.getCause(); } yield BadSymbol.class.isInstance(hx4J44v2u); } case Object hx4J44v2 -> BadSymbol.class.isInstance(hx4J44v2); })))
+                    if (!(Helpers.isInstance(e, BadSymbol.class)))
                     {
                         throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                     }
@@ -590,7 +590,7 @@ public class Kalshi extends KalshiApi
                     {
                         // an unknown series is a plain miss — the free-text fallback below still runs;
                         // let network failures propagate
-                        if (!((switch ((Object) (e)) { case null -> false; case Throwable hx4J44v1 -> { Throwable hx4J44v1u = hx4J44v1; while ((hx4J44v1u instanceof java.util.concurrent.CompletionException || hx4J44v1u instanceof java.util.concurrent.ExecutionException) && hx4J44v1u.getCause() != null) { hx4J44v1u = hx4J44v1u.getCause(); } yield BadSymbol.class.isInstance(hx4J44v1u); } case Object hx4J44v1 -> BadSymbol.class.isInstance(hx4J44v1); })))
+                        if (!(Helpers.isInstance(e, BadSymbol.class)))
                         {
                             throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                         }
@@ -861,27 +861,27 @@ public class Kalshi extends KalshiApi
             // reassigned local into the anonymous inner class it emits for a map literal)
             Boolean winner = winnerRaw;
             Object settleFraction = settleFractionRaw;
-            ((List<Object>)outcomes).add((switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>();
-                j39v3.put("id", (outcomeIds == null || oi < 0 || oi >= outcomeIds.size() ? null : outcomeIds.get(oi)));
-                j39v3.put("outcomeId", (outcomeIds == null || oi < 0 || oi >= outcomeIds.size() ? null : outcomeIds.get(oi)));
-                j39v3.put("outcome", outcomeHandle);
-                j39v3.put("market", marketSymbol);
-                j39v3.put("label", label);
-                j39v3.put("active", active);
-                j39v3.put("winner", winner);
-                j39v3.put("settleFraction", settleFraction);
-                j39v3.put("precision", precision);
-                j39v3.put("info", (switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-                    j39v2.put("ticker", ticker);
-                    j39v2.put("eventTicker", eventTicker);
-                    j39v2.put("seriesTicker", seriesTicker);
-                    j39v2.put("subtitle", subtitle);
-                    j39v2.put("outcomeLabel", label);
-                    j39v2.put("volume", volume);
-                    j39v2.put("liquidity", liquidity);
-                    j39v2.put("openInterest", openInt);
-                    yield j39v2; } }));
-                yield j39v3; } }));
+            ((List<Object>)outcomes).add((switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                j39v2.put("id", (outcomeIds == null || oi < 0 || oi >= outcomeIds.size() ? null : outcomeIds.get(oi)));
+                j39v2.put("outcomeId", (outcomeIds == null || oi < 0 || oi >= outcomeIds.size() ? null : outcomeIds.get(oi)));
+                j39v2.put("outcome", outcomeHandle);
+                j39v2.put("market", marketSymbol);
+                j39v2.put("label", label);
+                j39v2.put("active", active);
+                j39v2.put("winner", winner);
+                j39v2.put("settleFraction", settleFraction);
+                j39v2.put("precision", precision);
+                j39v2.put("info", (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                    j39v1.put("ticker", ticker);
+                    j39v1.put("eventTicker", eventTicker);
+                    j39v1.put("seriesTicker", seriesTicker);
+                    j39v1.put("subtitle", subtitle);
+                    j39v1.put("outcomeLabel", label);
+                    j39v1.put("volume", volume);
+                    j39v1.put("liquidity", liquidity);
+                    j39v1.put("openInterest", openInt);
+                    yield j39v1; } }));
+                yield j39v2; } }));
         }
         // effectively-final copy for the market object literal below (reassigned in the loop)
         Object marketResolvedOutcome = resolvedOutcome;
@@ -1237,31 +1237,31 @@ public class Kalshi extends KalshiApi
         {
             average = this.parseNumber(Precise.stringDiv(Precise.stringAdd(this.numberToString(bid), this.numberToString(ask)), "2"));
         }
-        return (Map<String, Object>) (this.safePredictionTicker((switch (0) { default -> { HashMap<String, Object> j39v4 = new HashMap<String, Object>();
-            j39v4.put("outcome", outcome);
-            j39v4.put("outcomeId", this.safeString2(outcomeObj, "outcomeId", "id"));
-            j39v4.put("label", this.safeString(outcomeObj, "label"));
-            j39v4.put("market", this.safeString2(outcomeObj, "market", "outcome"));
-            j39v4.put("timestamp", timestamp);
-            j39v4.put("datetime", this.iso8601(timestamp));
-            j39v4.put("high", null);
-            j39v4.put("low", null);
-            j39v4.put("bid", bid);
-            j39v4.put("bidVolume", bidVolume);
-            j39v4.put("ask", ask);
-            j39v4.put("askVolume", askVolume);
-            j39v4.put("vwap", null);
-            j39v4.put("open", null);
-            j39v4.put("close", close);
-            j39v4.put("last", close);
-            j39v4.put("previousClose", null);
-            j39v4.put("change", null);
-            j39v4.put("percentage", null);
-            j39v4.put("average", average);
-            j39v4.put("baseVolume", this.safeNumberN(raw, new ArrayList<Object>(Arrays.asList("volume_24h_fp", "volume_24h", "volume")), (Object) null));
-            j39v4.put("quoteVolume", null);
-            j39v4.put("info", raw);
-            yield j39v4; } }), market));
+        return (Map<String, Object>) (this.safePredictionTicker((switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>();
+            j39v3.put("outcome", outcome);
+            j39v3.put("outcomeId", this.safeString2(outcomeObj, "outcomeId", "id"));
+            j39v3.put("label", this.safeString(outcomeObj, "label"));
+            j39v3.put("market", this.safeString2(outcomeObj, "market", "outcome"));
+            j39v3.put("timestamp", timestamp);
+            j39v3.put("datetime", this.iso8601(timestamp));
+            j39v3.put("high", null);
+            j39v3.put("low", null);
+            j39v3.put("bid", bid);
+            j39v3.put("bidVolume", bidVolume);
+            j39v3.put("ask", ask);
+            j39v3.put("askVolume", askVolume);
+            j39v3.put("vwap", null);
+            j39v3.put("open", null);
+            j39v3.put("close", close);
+            j39v3.put("last", close);
+            j39v3.put("previousClose", null);
+            j39v3.put("change", null);
+            j39v3.put("percentage", null);
+            j39v3.put("average", average);
+            j39v3.put("baseVolume", this.safeNumberN(raw, new ArrayList<Object>(Arrays.asList("volume_24h_fp", "volume_24h", "volume")), (Object) null));
+            j39v3.put("quoteVolume", null);
+            j39v3.put("info", raw);
+            yield j39v3; } }), market));
     }
 
     /**
@@ -1339,7 +1339,7 @@ public class Kalshi extends KalshiApi
                         continue;
                     }
                     Object grouped = (outcomesByTicker == null || marketTicker == null ? null : outcomesByTicker.get(marketTicker));
-                    for (var j = 0; j < (switch ((Object)(grouped)) { case null -> 0; case List<?> j39v6 -> j39v6.size(); case String j39v7 -> j39v7.length(); case Object j39v8 -> j39v8.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v8) : 0; }); j++)
+                    for (var j = 0; j < (switch ((Object)(grouped)) { case null -> 0; case List<?> j39v4 -> j39v4.size(); case String j39v5 -> j39v5.length(); case Object j39v6 -> j39v6.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v6) : 0; }); j++)
                     {
                         Map<String, Object> ticker = this.parsePredictionTicker((Map<String, Object>) (raw), ((Map<String, Object>) (switch ((Object) (Helpers.GetValue(grouped, j))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v7 -> (Map<String, Object>) hx4J40v7; case Object hx4J40v7 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v7.getClass().getName()); })));
                         String symbolKey = this.safeString(ticker, "outcome");
@@ -1483,7 +1483,7 @@ public class Kalshi extends KalshiApi
             {
                 // reject an unsupported timeframe locally instead of silently returning 1-minute candles.
                 // hoist Object.keys(...).join(...) to a local — inline in a throw mangles in PHP
-                Object tfKeys = ((List<Object>) switch ((Object)(this.timeframes)) { case Map<?, ?> j39v12 -> { synchronized (j39v12) { yield new ArrayList<Object>(j39v12.keySet()); } } case null, default -> new ArrayList<Object>(); });
+                Object tfKeys = ((List<Object>) switch ((Object)(this.timeframes)) { case Map<?, ?> j39v7 -> { synchronized (j39v7) { yield new ArrayList<Object>(j39v7.keySet()); } } case null, default -> new ArrayList<Object>(); });
                 String supported = String.join(", ", (List<String>)tfKeys);
                 throw new BadRequest((((((this.id + " fetchOHLCV() does not support the ") + java.util.Objects.requireNonNullElse(timeframe, "1m")) + " timeframe (supported: ") + supported) + ")")) ;
             }
@@ -1567,7 +1567,7 @@ public class Kalshi extends KalshiApi
             }
             // kalshi candles carry only the period-END timestamp; thread the candle duration through so
             // parseOHLCV can stamp each candle at its OPEN (the CCXT convention)
-            { Map<Object, Object> j39v9 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v10 = "ohlcvCandleDurationSeconds"; Object j39v11 = tf; if (j39v9 == null) { if (j39v10 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v9) { if (j39v11 == null && j39v9 instanceof java.util.concurrent.ConcurrentHashMap) { j39v9.remove(j39v10); } else { j39v9.put(j39v10, j39v11); } } }
+            Helpers.addElementToObject(this.options, "ohlcvCandleDurationSeconds", tf);
             return this.parseOHLCVs(usableCandles, ((Object)outcomeObj), java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -1714,7 +1714,7 @@ public class Kalshi extends KalshiApi
         Object cost = null;
         if ((!java.util.Objects.equals(price, null)) && (!java.util.Objects.equals(amount, null)))
         {
-            cost = ((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a == null || j36b == null) return null; if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) * ((Long) j36b)); java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; double j36r = j36d.applyAsDouble(j36a) * j36d.applyAsDouble(j36b); if (new java.math.BigDecimal(String.valueOf(j36r)).stripTrailingZeros().scale() <= 0) return (Object) ((long) j36r); return (Object) j36r; }).apply(price, amount);
+            cost = Helpers.multiply(price, amount);
         }
         HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
         mapLiteral6.put("id", id);
@@ -1846,7 +1846,7 @@ public class Kalshi extends KalshiApi
         Object cost = null;
         if ((!java.util.Objects.equals(price, null)) && (!java.util.Objects.equals(amount, null)))
         {
-            cost = ((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a == null || j36b == null) return null; if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) * ((Long) j36b)); java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; double j36r = j36d.applyAsDouble(j36a) * j36d.applyAsDouble(j36b); if (new java.math.BigDecimal(String.valueOf(j36r)).stripTrailingZeros().scale() <= 0) return (Object) ((long) j36r); return (Object) j36r; }).apply(price, amount);
+            cost = Helpers.multiply(price, amount);
         }
         Boolean isTaker = (Boolean) this.safeBool(fill, "is_taker", true);
         String takerOrMaker = "maker";
@@ -2537,7 +2537,7 @@ public class Kalshi extends KalshiApi
                 Helpers.addElementToObject(order, "filled", filledCount);
             } else if ((!java.util.Objects.equals(remainingCount, null)) && (!java.util.Objects.equals(amount, null)))
             {
-                Helpers.addElementToObject(order, "filled", ((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) - ((Long) j36b)); if (j36a instanceof Double || j36b instanceof Double) { java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; return (Object) (j36d.applyAsDouble(j36a) - j36d.applyAsDouble(j36b)); } return null; }).apply(amount, remainingCount));
+                Helpers.addElementToObject(order, "filled", Helpers.subtract(amount, remainingCount));
             }
             if (!java.util.Objects.equals(remainingCount, null))
             {
@@ -2775,8 +2775,7 @@ public class Kalshi extends KalshiApi
                 Map<String, Object> parsedEvent = (Map<String, Object>) this.parseEvent((Map<String, Object>) ((rawEvents == null || di < 0 || di >= ((List<?>)rawEvents).size() ? null : ((List<?>)rawEvents).get(di))));
                 ((List<Object>)result).add(parsedEvent);
                 // register the parsed markets so populateOutcomes can index their outcomes
-                Object parsedMarketsRaw = parsedEvent.get("markets");
-                Object parsedMarkets = (((!java.util.Objects.equals(parsedMarketsRaw, null)))) ? parsedMarketsRaw : new ArrayList<Object>(Arrays.asList());
+                Object parsedMarkets = parsedEvent.get("markets");
                 Integer parsedMarketsLength = ((List<?>)parsedMarkets).size();
                 for (var mi = 0; (parsedMarketsLength != null && mi < parsedMarketsLength); mi++)
                 {
@@ -2855,7 +2854,7 @@ public class Kalshi extends KalshiApi
                     ((List<Object>)rawEvents).add(fullEvent);
                 } catch(Exception e)
                 {
-                    if (!((switch ((Object) (e)) { case null -> false; case Throwable hx4J44v0 -> { Throwable hx4J44v0u = hx4J44v0; while ((hx4J44v0u instanceof java.util.concurrent.CompletionException || hx4J44v0u instanceof java.util.concurrent.ExecutionException) && hx4J44v0u.getCause() != null) { hx4J44v0u = hx4J44v0u.getCause(); } yield BadSymbol.class.isInstance(hx4J44v0u); } case Object hx4J44v0 -> BadSymbol.class.isInstance(hx4J44v0); })))
+                    if (!(Helpers.isInstance(e, BadSymbol.class)))
                     {
                         throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                     }
@@ -3288,7 +3287,7 @@ public class Kalshi extends KalshiApi
             // INCLUDING the /trade-api/v2 prefix and any path params substituted in, but NOT
             // the query string (e.g. /trade-api/v2/portfolio/orders/{order_id})
             Object tradeApiIndex = ((String)baseUrl).indexOf("/trade-api");
-            String versionPrefix = ((java.util.function.Function<Object[], String>) (hx4J41a) -> { if (hx4J41a[0] == null) return null; String hx4J41s = (String) hx4J41a[0]; java.util.function.ToIntFunction<Object> hx4J41i = (hx4J41o) -> (hx4J41o instanceof Integer hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Long hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Double hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Float hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof java.math.BigDecimal hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof String hx4J41n) ? Integer.parseInt(hx4J41n) : Integer.parseInt(String.valueOf(hx4J41o)); int hx4J41b = (hx4J41a[1] != null) ? hx4J41i.applyAsInt(hx4J41a[1]) : -1; if (hx4J41a[2] == null) { if (hx4J41b < 0) return hx4J41s.substring(Math.max(hx4J41s.length() + hx4J41b, 0)); if (hx4J41b > hx4J41s.length()) return ""; return hx4J41s.substring(hx4J41b); } int hx4J41e = hx4J41i.applyAsInt(hx4J41a[2]); if (hx4J41b < 0) hx4J41b = hx4J41s.length() + hx4J41b; if (hx4J41e < 0) hx4J41e = hx4J41s.length() + hx4J41e; if (hx4J41b < 0) hx4J41b = 0; if (hx4J41e > hx4J41s.length()) hx4J41e = hx4J41s.length(); if (hx4J41b > hx4J41e) hx4J41b = hx4J41e; return hx4J41s.substring(hx4J41b, hx4J41e); }).apply(new Object[] { baseUrl, tradeApiIndex, null });
+            String versionPrefix = Helpers.slice(baseUrl, tradeApiIndex, null);
             String pathForSigning = ((versionPrefix + "/") + implodedPath);
             String payload = ((timestamp + java.util.Objects.requireNonNullElse(method, "GET")) + pathForSigning);
             // RSA-PSS SHA-256 signature with the private key PEM

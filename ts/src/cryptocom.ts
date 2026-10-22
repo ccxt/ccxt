@@ -2694,7 +2694,7 @@ export default class cryptocom extends Exchange {
         return [ marginMode, paramsMarginMode ];
     }
 
-    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined): any {
+    override parseDepositWithdrawFee (fee: NullableDict, currency: Currency = undefined): any {
         //
         //    {
         //        "full_name": "Alchemix",
@@ -3620,7 +3620,7 @@ export default class cryptocom extends Exchange {
         };
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         let requestHeaders: NullableDict = undefined;
         let requestBody: Str = undefined;
         const type = this.safeString (api, 0);

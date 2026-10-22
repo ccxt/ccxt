@@ -375,7 +375,7 @@ fn helperTestProperties() {
         let mut m = indexmap::IndexMap::new();
         m
     }).clone(), Value::Str("tickers".into()).clone(), exchange.prop(&&Value::Str("tickers".into())).clone(), exchange.create_safe_dictionary(&[Value::Bool(true)]).clone()]);
-    assert!(ccxt::runtime::is_true(&((exchange.prop(&&Value::Str("liquidations".into())) == Value::Null))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("liquidations".into())), &Value::Null)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("myLiquidations".into())) == Value::Null))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("orders".into())), &Value::Null)))));
     crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Map({

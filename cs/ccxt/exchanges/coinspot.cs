@@ -589,7 +589,7 @@ public partial class coinspot : Exchange
         object balances = this.safeValue2(response, "balance", "balances");
         if (((balances is IList<object>) || (balances.GetType().IsGenericType && balances.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            for (int i = 0; i < (((object)(balances)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+            for (int i = 0; i < getArrayLength(balances); i++)
             {
                 object currencies = getValue(balances, i);
                 List<object> currencyIds = new List<object>(((IDictionary<string,object>)currencies).Keys);
@@ -1108,7 +1108,7 @@ public partial class coinspot : Exchange
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> requestHeaders = null;
         string? requestBody = null;
-        int apiLength = (((object)(api)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+        int apiLength = getArrayLength(api);
         bool isVersionedApi = apiLength > 1;
         object version = isVersionedApi ? getValue(api, 0) : null;
         object accessType = isVersionedApi ? getValue(api, 1) : getValue(api, 0);

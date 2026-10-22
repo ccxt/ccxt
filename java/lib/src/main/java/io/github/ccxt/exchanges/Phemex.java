@@ -1461,7 +1461,7 @@ public class Phemex extends PhemexApi
         String id = this.safeString(rawCurrency, "currency");
         String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
         String valueScaleString = this.safeString(rawCurrency, "valueScale");
-        Object valueScale = ((Long) (switch ((Object) (valueScaleString)) { case null -> (Long) null; case Long hx4J42v0 -> hx4J42v0; case Integer hx4J42v0 -> Long.valueOf(hx4J42v0.longValue()); case Double hx4J42v0 -> Long.valueOf(hx4J42v0.longValue()); case Float hx4J42v0 -> Long.valueOf(hx4J42v0.longValue()); case java.math.BigDecimal hx4J42v0 -> Long.valueOf(hx4J42v0.longValue()); case Object hx4J42v0 -> { try { yield Long.valueOf(Long.parseLong(String.valueOf(hx4J42v0))); } catch (Exception hx4J42v0e) { yield (Long) null; } } }));
+        Object valueScale = Helpers.parseInt(valueScaleString);
         String minValueEv = this.safeString(rawCurrency, "minValueEv");
         String maxValueEv = this.safeString(rawCurrency, "maxValueEv");
         Double minAmount = null;
@@ -1469,7 +1469,7 @@ public class Phemex extends PhemexApi
         Double precision = null;
         if (!java.util.Objects.equals(valueScaleString, null))
         {
-            Object precisionString = this.parsePrecision(valueScaleString);
+            String precisionString = (String) this.parsePrecision(valueScaleString);
             precision = this.parseNumber(precisionString);
             minAmount = this.parseNumber(Precise.stringMul(minValueEv, precisionString));
             maxAmount = this.parseNumber(Precise.stringMul(maxValueEv, precisionString));
@@ -1563,7 +1563,8 @@ public class Phemex extends PhemexApi
                 put( "symbol", market.get("id") );
             }};
             Map<String, Object> response = null;
-            Boolean isStableSettled = (java.util.Objects.equals(market.get("settle"), "USDT")) || (java.util.Objects.equals(market.get("settle"), "USDC"));
+            String marketSettle = this.safeString(market, "settle");
+            Boolean isStableSettled = (java.util.Objects.equals(marketSettle, "USDT")) || (java.util.Objects.equals(marketSettle, "USDC"));
             if ((java.util.Objects.equals(market.get("linear"), true)) && Boolean.TRUE.equals(isStableSettled))
             {
                 response = (this.v2GetMdV2Orderbook(this.extend(request, parameters))).join();
@@ -1605,7 +1606,7 @@ public class Phemex extends PhemexApi
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Map<String, Object> book = (Map<String, Object>) this.safeDict2(result, "book", "orderbook_p", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeIntegerProduct(result, "timestamp", 0.000001);
-            Object orderbook = this.customParseOrderBook((Map<String, Object>) (book), symbol, timestamp, "bids", "asks", 0, 1, market);
+            Map<String, Object> orderbook = (Map<String, Object>) this.customParseOrderBook((Map<String, Object>) (book), symbol, timestamp, "bids", "asks", 0, 1, market);
             Long nonce = this.safeInteger(result, "sequence");
             return this.extend(orderbook, new HashMap<String, Object>() {{
                 put( "nonce", nonce );
@@ -1622,7 +1623,7 @@ public class Phemex extends PhemexApi
         }
         String stringN = this.numberToString(n);
         var precise = new Precise(stringN);
-        precise.decimals = this.sum(precise.decimals, ((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a == null || j36b == null) return null; if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) * ((Long) j36b)); java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; double j36r = j36d.applyAsDouble(j36a) * j36d.applyAsDouble(j36b); if (new java.math.BigDecimal(String.valueOf(j36r)).stripTrailingZeros().scale() <= 0) return (Object) ((long) j36r); return (Object) j36r; }).apply(scale, -1));
+        precise.decimals = this.sum(precise.decimals, Helpers.multiply(scale, -1));
         precise.reduce();
         String preciseString = String.valueOf(precise);
         return this.parseToNumeric(preciseString);
@@ -1742,7 +1743,8 @@ public class Phemex extends PhemexApi
             }};
             Long until = (Long) this.safeInteger2(parameters, "until", "to");
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
-            Boolean isStableSettled = (java.util.Objects.equals(market.get("settle"), "USDT")) || (java.util.Objects.equals(market.get("settle"), "USDC"));
+            String marketSettle = this.safeString(market, "settle");
+            Boolean isStableSettled = (java.util.Objects.equals(marketSettle, "USDT")) || (java.util.Objects.equals(marketSettle, "USDC"));
             Boolean usesSpecialFromToEndpoint = (((java.util.Objects.equals(market.get("linear"), true)) || Boolean.TRUE.equals(isStableSettled))) && ((!java.util.Objects.equals(since, null)) || (!java.util.Objects.equals(until, null)));
             Long maxLimit = 1000L;
             if (Boolean.TRUE.equals(usesSpecialFromToEndpoint))
@@ -2069,7 +2071,8 @@ public class Phemex extends PhemexApi
                 put( "symbol", market.get("id") );
             }};
             Map<String, Object> response = null;
-            Boolean isStableSettled = (java.util.Objects.equals(market.get("settle"), "USDT")) || (java.util.Objects.equals(market.get("settle"), "USDC"));
+            String marketSettle = this.safeString(market, "settle");
+            Boolean isStableSettled = (java.util.Objects.equals(marketSettle, "USDT")) || (java.util.Objects.equals(marketSettle, "USDC"));
             if ((java.util.Objects.equals(market.get("linear"), true)) && Boolean.TRUE.equals(isStableSettled))
             {
                 response = (this.v2GetMdV2Trade(this.extend(request, parameters))).join();
@@ -3163,7 +3166,8 @@ public class Phemex extends PhemexApi
             Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(parameters, "takeProfit", (Object) null);
             Boolean hasStopLoss = (!java.util.Objects.equals(stopLoss, null));
             Boolean hasTakeProfit = (!java.util.Objects.equals(takeProfit, null));
-            Boolean isStableSettled = (java.util.Objects.equals(market.get("settle"), "USDT")) || (java.util.Objects.equals(market.get("settle"), "USDC"));
+            String marketSettle = this.safeString(market, "settle");
+            Boolean isStableSettled = (java.util.Objects.equals(marketSettle, "USDT")) || (java.util.Objects.equals(marketSettle, "USDC"));
             if (java.util.Objects.equals(clientOrderId, null))
             {
                 String brokerId = this.safeString(this.options, "brokerId", "CCXT123456");
@@ -3517,7 +3521,8 @@ public class Phemex extends PhemexApi
             }};
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "clOrdID");
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "clOrdID")));
-            Boolean isStableSettled = (java.util.Objects.equals(market.get("settle"), "USDT")) || (java.util.Objects.equals(market.get("settle"), "USDC"));
+            String marketSettle = this.safeString(market, "settle");
+            Boolean isStableSettled = (java.util.Objects.equals(marketSettle, "USDT")) || (java.util.Objects.equals(marketSettle, "USDC"));
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 request.put("clOrdID", clientOrderId);
@@ -3623,7 +3628,8 @@ public class Phemex extends PhemexApi
                 request.put("orderID", id);
             }
             Map<String, Object> response = null;
-            if (java.util.Objects.equals(market.get("settle"), "USDT") || java.util.Objects.equals(market.get("settle"), "USDC"))
+            String marketSettle = this.safeString(market, "settle");
+            if (java.util.Objects.equals(marketSettle, "USDT") || java.util.Objects.equals(marketSettle, "USDC"))
             {
                 String posSide = this.safeString(paramsOmitted, "posSide");
                 if (java.util.Objects.equals(posSide, null))
@@ -3677,7 +3683,8 @@ public class Phemex extends PhemexApi
                 request.put("untriggerred", trigger);
             }
             Map<String, Object> response = null;
-            if (java.util.Objects.equals(market.get("settle"), "USDT") || java.util.Objects.equals(market.get("settle"), "USDC"))
+            String marketSettle = this.safeString(market, "settle");
+            if (java.util.Objects.equals(marketSettle, "USDT") || java.util.Objects.equals(marketSettle, "USDC"))
             {
                 response = (this.privateDeleteGOrdersAll(this.extend(request, paramsOmitted))).join();
             } else if (java.util.Objects.equals(market.get("swap"), true))
@@ -3731,7 +3738,8 @@ public class Phemex extends PhemexApi
                 request.put("orderID", id);
             }
             Map<String, Object> response = null;
-            if (java.util.Objects.equals(market.get("settle"), "USDT") || java.util.Objects.equals(market.get("settle"), "USDC"))
+            String marketSettle = this.safeString(market, "settle");
+            if (java.util.Objects.equals(marketSettle, "USDT") || java.util.Objects.equals(marketSettle, "USDC"))
             {
                 response = (this.privateGetApiDataGFuturesOrdersByOrderId(this.extend(request, paramsOmitted))).join();
             } else if (java.util.Objects.equals(market.get("spot"), true))
@@ -3815,9 +3823,10 @@ public class Phemex extends PhemexApi
                 request.put("limit", limit);
             }
             Map<String, Object> response = null;
-            if (java.util.Objects.equals(market.get("settle"), "USDT") || java.util.Objects.equals(market.get("settle"), "USDC"))
+            String marketSettle = this.safeString(market, "settle");
+            if (java.util.Objects.equals(marketSettle, "USDT") || java.util.Objects.equals(marketSettle, "USDC"))
             {
-                request.put("currency", market.get("settle"));
+                request.put("currency", marketSettle);
                 response = (this.privateGetExchangeOrderV2OrderList(this.extend(request, parameters))).join();
             } else if (java.util.Objects.equals(market.get("swap"), true))
             {
@@ -3868,9 +3877,10 @@ public class Phemex extends PhemexApi
                 put( "symbol", market.get("id") );
             }};
             Map<String, Object> response = null;
+            String marketSettle = this.safeString(market, "settle");
             try
             {
-                if (java.util.Objects.equals(market.get("settle"), "USDT") || java.util.Objects.equals(market.get("settle"), "USDC"))
+                if (java.util.Objects.equals(marketSettle, "USDT") || java.util.Objects.equals(marketSettle, "USDC"))
                 {
                     response = (this.privateGetGOrdersActiveList(this.extend(request, parameters))).join();
                 } else if (java.util.Objects.equals(market.get("swap"), true))
@@ -3882,7 +3892,7 @@ public class Phemex extends PhemexApi
                 }
             } catch(Exception e)
             {
-                if ((switch ((Object) (e)) { case null -> false; case Throwable hx4J44v0 -> { Throwable hx4J44v0u = hx4J44v0; while ((hx4J44v0u instanceof java.util.concurrent.CompletionException || hx4J44v0u instanceof java.util.concurrent.ExecutionException) && hx4J44v0u.getCause() != null) { hx4J44v0u = hx4J44v0u.getCause(); } yield OrderNotFound.class.isInstance(hx4J44v0u); } case Object hx4J44v0 -> OrderNotFound.class.isInstance(hx4J44v0); }))
+                if (Helpers.isInstance(e, OrderNotFound.class))
                 {
                     return new ArrayList<Object>(Arrays.asList());
                 }
@@ -5026,7 +5036,7 @@ public class Phemex extends PhemexApi
         }
         Map<String, Object> currency = this.safeCurrency((String) (currencyCode), (Map<String, Object>) null);
         String scale = this.safeString(currency.get("info"), "valueScale");
-        Object tickPrecision = this.parsePrecision(scale);
+        String tickPrecision = (String) this.parsePrecision(scale);
         return Precise.stringMul(value, tickPrecision);
     }
 
@@ -5498,7 +5508,7 @@ public class Phemex extends PhemexApi
         String queryString = "";
         if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PUT")) || (java.util.Objects.equals(url, "/positions/assign")))
         {
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v6 -> { synchronized (j39v6) { yield new ArrayList<Object>(j39v6.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v5 -> { synchronized (j39v5) { yield new ArrayList<Object>(j39v5.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
             {
                 queryString = this.urlencodeWithArrayRepeat(query);
                 url = (url + ("?" + queryString));
@@ -5599,7 +5609,8 @@ public class Phemex extends PhemexApi
                 put( "symbol", market.get("id") );
             }};
             Object response = null;
-            if (java.util.Objects.equals(market.get("settle"), "USDT") || java.util.Objects.equals(market.get("settle"), "USDC"))
+            String marketSettle = this.safeString(market, "settle");
+            if (java.util.Objects.equals(marketSettle, "USDT") || java.util.Objects.equals(marketSettle, "USDC"))
             {
                 if ((!Boolean.TRUE.equals(isHedged)) && java.util.Objects.equals(longLeverageRr, null) && java.util.Objects.equals(shortLeverageRr, null))
                 {
@@ -5889,7 +5900,8 @@ public class Phemex extends PhemexApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Boolean isUsdtSettled = java.util.Objects.equals(market.get("settle"), "USDT") || java.util.Objects.equals(market.get("settle"), "USDC");
+            String marketSettle = this.safeString(market, "settle");
+            Boolean isUsdtSettled = java.util.Objects.equals(marketSettle, "USDT") || java.util.Objects.equals(marketSettle, "USDC");
             if (!java.util.Objects.equals(market.get("swap"), true))
             {
                 throw new BadRequest((this.id + " fetchFundingRateHistory() supports swap contracts only")) ;

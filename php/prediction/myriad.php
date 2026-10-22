@@ -3359,7 +3359,7 @@ class myriad extends Exchange {
         $this->handle_centrifugo_frame($client, $message);
     }
 
-    public function handle_centrifugo_frame(Client $client, mixed $msg) {
+    public function handle_centrifugo_frame(Client $client, array $msg) {
         $keys = is_array($msg) ? array_keys($msg) : array();
         $keysLength = count($keys);
         if ($keysLength === 0) {
@@ -4028,7 +4028,7 @@ class myriad extends Exchange {
         throw new ExchangeError($feedback);
     }
 
-    public function sign(string $path, array $api = array('myriad'), $method = 'GET', $params = array()) {
+    public function sign(string $path, array $api = array('myriad'), string $method = 'GET', $params = array()) {
         /**
          * @ignore
          * builds the request $url and attaches the apiKey header for private endpoints

@@ -1864,7 +1864,7 @@ public partial class derive : Exchange
         for (int i = 0; i < (tradesArray?.Count ?? 0); i++)
         {
             object rawTrade = tradesArray[i];
-            bool isFetchTrades = !((((object)(rawTrade)) switch { null => false, IList<object> c33a => c33a.Contains("order_id"), IList<string> c33t => c33t.Contains("order_id"), List<Int64> c33g => c33g.Contains((Int64)(object)"order_id"), IDictionary<string, object> c33d => c33d.ContainsKey("order_id"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("order_id"), _ => false }));
+            bool isFetchTrades = !(inOp(rawTrade, "order_id"));
             string? liquidityRole = this.safeString(rawTrade, "liquidity_role");
             if (isFetchTrades && (liquidityRole == "maker"))
             {
@@ -4024,7 +4024,7 @@ public partial class derive : Exchange
         };
         // margin requirements come as negative subaccount-level contributions in usd terms (initial_margin = collaterals_initial_margin + positions_initial_margin, verified on live data), so they are attributed to the usdc settlement currency and clamped by the usdc cash below; other collaterals stay total-only because the shared margin pool cannot be split per currency
         string? usedUsd = "0";
-        for (int i = 0; i < (((object)(response)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(response); i++)
         {
             IDictionary<string, object> subaccount = this.safeDict(response, i);
             string? positionsMargin = this.safeString(subaccount, "positions_initial_margin", "0");

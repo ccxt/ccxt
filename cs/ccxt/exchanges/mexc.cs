@@ -2946,11 +2946,11 @@ public partial class mexc : Exchange
                 throw new ArgumentsRequired ((this.id + " createSwapOrder() marginMode parameter should be either \"cross\" or \"isolated\"")) ;
             }
         }
-        if ((!(type == "limit")) && (!(type == "market")) && (!(((object)(type)) switch { Int64 c33l => c33l == 1, int c33i => c33i == 1, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 1, decimal c33m => c33m == 1, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 1, uint c33u => (Int64)c33u == 1, short c33h => (Int64)c33h == 1, ushort c33v => (Int64)c33v == 1, byte c33y => (Int64)c33y == 1, sbyte c33e => (Int64)c33e == 1, ulong c33z => c33z == 1UL, _ => false })) && (!(((object)(type)) switch { Int64 c33l => c33l == 2, int c33i => c33i == 2, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 2, decimal c33m => c33m == 2, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 2, uint c33u => (Int64)c33u == 2, short c33h => (Int64)c33h == 2, ushort c33v => (Int64)c33v == 2, byte c33y => (Int64)c33y == 2, sbyte c33e => (Int64)c33e == 2, ulong c33z => c33z == 2UL, _ => false })) && (!(((object)(type)) switch { Int64 c33l => c33l == 3, int c33i => c33i == 3, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 3, decimal c33m => c33m == 3, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 3, uint c33u => (Int64)c33u == 3, short c33h => (Int64)c33h == 3, ushort c33v => (Int64)c33v == 3, byte c33y => (Int64)c33y == 3, sbyte c33e => (Int64)c33e == 3, ulong c33z => c33z == 3UL, _ => false })) && (!(((object)(type)) switch { Int64 c33l => c33l == 4, int c33i => c33i == 4, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 4, decimal c33m => c33m == 4, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 4, uint c33u => (Int64)c33u == 4, short c33h => (Int64)c33h == 4, ushort c33v => (Int64)c33v == 4, byte c33y => (Int64)c33y == 4, sbyte c33e => (Int64)c33e == 4, ulong c33z => c33z == 4UL, _ => false })) && (!(((object)(type)) switch { Int64 c33l => c33l == 5, int c33i => c33i == 5, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 5, decimal c33m => c33m == 5, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 5, uint c33u => (Int64)c33u == 5, short c33h => (Int64)c33h == 5, ushort c33v => (Int64)c33v == 5, byte c33y => (Int64)c33y == 5, sbyte c33e => (Int64)c33e == 5, ulong c33z => c33z == 5UL, _ => false })) && (!(((object)(type)) switch { Int64 c33l => c33l == 6, int c33i => c33i == 6, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 6, decimal c33m => c33m == 6, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 6, uint c33u => (Int64)c33u == 6, short c33h => (Int64)c33h == 6, ushort c33v => (Int64)c33v == 6, byte c33y => (Int64)c33y == 6, sbyte c33e => (Int64)c33e == 6, ulong c33z => c33z == 6UL, _ => false })))
+        if ((!(type == "limit")) && (!(type == "market")) && (!isEqual(type, 1)) && (!isEqual(type, 2)) && (!isEqual(type, 3)) && (!isEqual(type, 4)) && (!isEqual(type, 5)) && (!isEqual(type, 6)))
         {
             throw new InvalidOrder ((this.id + " createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price")) ;
         }
-        IList<object> postOnlyparamsPostOnlyVariable = (IList<object>)this.handlePostOnly((type == "market"), (((object)(type)) switch { Int64 c33l => c33l == 2, int c33i => c33i == 2, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 2, decimal c33m => c33m == 2, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 2, uint c33u => (Int64)c33u == 2, short c33h => (Int64)c33h == 2, ushort c33v => (Int64)c33v == 2, byte c33y => (Int64)c33y == 2, sbyte c33e => (Int64)c33e == 2, ulong c33z => c33z == 2UL, _ => false }), parameters);
+        IList<object> postOnlyparamsPostOnlyVariable = (IList<object>)this.handlePostOnly((type == "market"), isEqual(type, 2), parameters);
         bool postOnly = (bool)postOnlyparamsPostOnlyVariable[0];
         IDictionary<string, object> paramsPostOnly = ((IDictionary<string, object>)postOnlyparamsPostOnlyVariable[1]);
         object orderType = null;
@@ -2974,18 +2974,18 @@ public partial class mexc : Exchange
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market != null && market.ContainsKey("id") ? market["id"] : null) },
-            { "vol", (((Func<object, object>)(static (object hx4pa) => { object hx4pv = null; try { hx4pv = (Convert.ToDouble(hx4pa, global::System.Globalization.CultureInfo.InvariantCulture.NumberFormat)); } catch (Exception) { } return hx4pv; }))(volString)) },
+            { "vol", parseFloat(volString) },
             { "type", orderType },
             { "openType", openType },
         };
-        if ((!(((object)(orderType)) switch { Int64 c33l => c33l == 5, int c33i => c33i == 5, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 5, decimal c33m => c33m == 5, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 5, uint c33u => (Int64)c33u == 5, short c33h => (Int64)c33h == 5, ushort c33v => (Int64)c33v == 5, byte c33y => (Int64)c33y == 5, sbyte c33e => (Int64)c33e == 5, ulong c33z => c33z == 5UL, _ => false })) && (!(((object)(orderType)) switch { Int64 c33l => c33l == 6, int c33i => c33i == 6, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 6, decimal c33m => c33m == 6, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 6, uint c33u => (Int64)c33u == 6, short c33h => (Int64)c33h == 6, ushort c33v => (Int64)c33v == 6, byte c33y => (Int64)c33y == 6, sbyte c33e => (Int64)c33e == 6, ulong c33z => c33z == 6UL, _ => false })) && (!(orderType is "market")))
+        if ((!isEqual(orderType, 5)) && (!isEqual(orderType, 6)) && (!(orderType is "market")))
         {
             string? priceString = this.priceToPrecision(symbol, price);
             if ((priceString == null))
             {
                 priceString = "0";
             }
-            request["price"] = (((Func<object, object>)(static (object hx4pa) => { object hx4pv = null; try { hx4pv = (Convert.ToDouble(hx4pa, global::System.Globalization.CultureInfo.InvariantCulture.NumberFormat)); } catch (Exception) { } return hx4pv; }))(priceString));
+            request["price"] = parseFloat(priceString);
         }
         if ((openType == 1))
         {
@@ -3035,7 +3035,7 @@ public partial class mexc : Exchange
             request["executeCycle"] = this.safeInteger(paramsOmitted, "executeCycle", 1);
             request["trend"] = this.safeInteger(paramsOmitted, "trend", 1);
             object planOrderType = orderType;
-            if ((((object)(orderType)) switch { Int64 c33l => c33l == 6, int c33i => c33i == 6, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 6, decimal c33m => c33m == 6, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 6, uint c33u => (Int64)c33u == 6, short c33h => (Int64)c33h == 6, ushort c33v => (Int64)c33v == 6, byte c33y => (Int64)c33y == 6, sbyte c33e => (Int64)c33e == 6, ulong c33z => c33z == 6UL, _ => false }))
+            if (isEqual(orderType, 6))
             {
                 planOrderType = 5; // 6 (convert to current price) does not exist for trigger orders, 5 is their market type
             }
@@ -6749,7 +6749,7 @@ public partial class mexc : Exchange
         string? marginMode = null;
         Int64? longLeverage = null;
         Int64? shortLeverage = null;
-        for (int i = 0; i < (((object)(leverage)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(leverage); i++)
         {
             IDictionary<string, object> entry = this.safeDict(leverage, i);
             Int64? openType = this.safeInteger(entry, "openType");

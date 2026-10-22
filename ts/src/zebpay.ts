@@ -1939,7 +1939,7 @@ export default class zebpay extends Exchange {
         };
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         let bodySigned: Str = undefined;
         let headersSigned: NullableDict = undefined;
         const paramsOmitted: Dict = this.omit (params, 'defaultType');

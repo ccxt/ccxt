@@ -501,16 +501,16 @@ impl IndependentreserveCore {
             add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp));
         }
         let mut checksum: Value = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("checksum".into()), &[Value::Bool(true)]);
-        if checksum.is_truthy() && receivedSnapshot.as_bool() == Some(true) {
+        if is_true(&(checksum)) && receivedSnapshot.as_bool() == Some(true) {
             let mut storedAsks: Value = get_value(&orderbook, &Value::Str("asks".into()));
             let mut storedBids: Value = get_value(&orderbook, &Value::Str("bids".into()));
-            let mut asksLength: Value = ({ let __r29o: &Value = &storedAsks; match __r29o { Value::Dict(__d) if __d.contains_key("__sideKind") && !__d.contains_key("__cacheKind") && !matches!(__d.get("__book_cache_id"), Some(Value::Int(_))) => Value::Int(crate::value::side_entries_as_value(__r29o).map(|__s| __s.len()).unwrap_or(0) as i64), _ => Value::Int(__r29o.len() as i64) } });
-            let mut bidsLength: Value = ({ let __r29o: &Value = &storedBids; match __r29o { Value::Dict(__d) if __d.contains_key("__sideKind") && !__d.contains_key("__cacheKind") && !matches!(__d.get("__book_cache_id"), Some(Value::Int(_))) => Value::Int(crate::value::side_entries_as_value(__r29o).map(|__s| __s.len()).unwrap_or(0) as i64), _ => Value::Int(__r29o.len() as i64) } });
+            let mut asksLength: Value = get_array_length(&storedAsks);
+            let mut bidsLength: Value = get_array_length(&storedBids);
             let mut payload: Value = Value::Str("".into());
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_422: bool = true;
-                while { if !__for_first_422 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_422 = false; i.as_f64().unwrap_or(f64::NAN) < ((10i64) as f64) } {
+                while { if !__for_first_422 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_422 = false; i.as_f64().unwrap_or(f64::NAN) < ((10i64) as f64) } {
                 if i.as_f64().unwrap_or(f64::NAN) < bidsLength.as_f64().unwrap_or(f64::NAN) {
                     payload = Value::Str(format!("{}{}", Value::Str(format!("{}{}", payload, self.value_to_checksum(get_value(&get_value(&storedBids, &i), &Value::Int(0)))).into()), self.value_to_checksum(get_value(&get_value(&storedBids, &i), &Value::Int(1)))).into());
                 }
@@ -519,7 +519,7 @@ impl IndependentreserveCore {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_423: bool = true;
-                while { if !__for_first_423 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_423 = false; i.as_f64().unwrap_or(f64::NAN) < ((10i64) as f64) } {
+                while { if !__for_first_423 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_423 = false; i.as_f64().unwrap_or(f64::NAN) < ((10i64) as f64) } {
                 if i.as_f64().unwrap_or(f64::NAN) < asksLength.as_f64().unwrap_or(f64::NAN) {
                     payload = Value::Str(format!("{}{}", Value::Str(format!("{}{}", payload, self.value_to_checksum(get_value(&get_value(&storedAsks, &i), &Value::Int(0)))).into()), self.value_to_checksum(get_value(&get_value(&storedAsks, &i), &Value::Int(1)))).into());
                 }
@@ -529,7 +529,7 @@ impl IndependentreserveCore {
             let mut responseChecksum: Value = self.safe_integer_k(orderBook, "Crc32", &[]);
             if (calculatedChecksum.as_f64() != responseChecksum.as_f64()) {
                 let mut error = Value::from(crate::exchange_errors::checksum_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), self.orderbook_checksum_message(symbol.clone()))));
-                { let __r29o: &mut Value = &mut get_value(&client, &Value::Str("subscriptions".into())); let __r29k: &Value = &messageHash; match (__r29o, __r29k) { (Value::Dict(__m), Value::Str(__k)) => { if let Some(Value::Str(__u)) = __m.get("__ws_subs_url") { crate::pro::ws_client::value_subs_remove(__u, __k); } std::sync::Arc::make_mut(__m).shift_remove(&**__k); } (Value::Arr(__a), Value::Int(__i)) => { let __i = *__i as usize; let __a = std::sync::Arc::make_mut(__a); if __i < __a.len() { __a.remove(__i); } } _ => {} } };
+                remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
                 if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.orderbooks, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
                 client.reject(&[Value::from(error), messageHash.clone()]);
                 return;
@@ -545,7 +545,7 @@ impl IndependentreserveCore {
         // go/c#/java, dropping trailing zeros. decimalToPrecision with
         // Value::Int(crate::runtime::PAD_WITH_ZERO) is string-typed everywhere and emits the same digits.
         let mut result: Value = self.decimal_to_precision(value, Value::Int(crate::runtime::ROUND), Value::Int(8), &[Value::Int(crate::runtime::DECIMAL_PLACES), Value::Int(crate::runtime::PAD_WITH_ZERO)]);
-        result = ({ let __r31a: &Value = &result; let __r31o: &Value = &Value::Str(".".into()); let __r31n: &Value = &Value::Str("".into()); match (__r31a, __r31o, __r31n) { (Value::Str(__s), Value::Str(__o), Value::Str(__n)) => Value::Str(__s.replace(__o.as_ref(), __n.as_ref()).into()), _ => __r31a.clone() } });
+        result = replace_str(&result, &Value::Str(".".into()), &Value::Str("".into()));
         // remove leading zeros
         result = self.parse_number(result.clone(), &[]);
         result = self.number_to_string(result.clone());
@@ -563,8 +563,8 @@ impl IndependentreserveCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_424: bool = true;
-            while { if !__for_first_424 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_424 = false; i.as_f64().unwrap_or(f64::NAN) < ({ let __r29o: &Value = &deltas; match __r29o { Value::Dict(__d) if __d.contains_key("__sideKind") && !__d.contains_key("__cacheKind") && !matches!(__d.get("__book_cache_id"), Some(Value::Int(_))) => Value::Int(crate::value::side_entries_as_value(__r29o).map(|__s| __s.len()).unwrap_or(0) as i64), _ => Value::Int(__r29o.len() as i64) } }).as_f64().unwrap_or(f64::NAN) } {
-            self.handle_delta(bookside.clone(), get_value(&deltas, &i));
+            while { if !__for_first_424 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_424 = false; i.as_f64().unwrap_or(f64::NAN) < ((deltas.len() as i64) as f64) } {
+            self.handle_delta(bookside.clone(), deltas.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
         }
         }
 }

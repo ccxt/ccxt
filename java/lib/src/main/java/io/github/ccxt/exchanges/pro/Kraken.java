@@ -780,7 +780,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         Long reqid;
         synchronized (this) {
         reqid = (Long) this.sum(this.safeInteger(this.options, "reqid", 0), 1);
-        { Map<Object, Object> j39v21 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v22 = "reqid"; Object j39v23 = reqid; if (j39v21 == null) { if (j39v22 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v21) { if (j39v23 == null && j39v21 instanceof java.util.concurrent.ConcurrentHashMap) { j39v21.remove(j39v22); } else { j39v21.put(j39v22, j39v23); } } }
+        Helpers.addElementToObject(this.options, "reqid", reqid);
         }
         return reqid;
     }
@@ -968,7 +968,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                     throw new NotSupported((this.id + " watchOrderBook accepts limit values of 10, 25, 100, 500 and 1000 only")) ;
                 }
             }
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchMultiHelper("orderbook", "book", ((List<String>) (switch ((Object) (symbols)) { case null -> (List<String>) null; case List<?> hx4J40v4 -> (List<String>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v4.getClass().getName()); })), (switch (0) { default -> { HashMap<String, Object> j39v24 = new HashMap<String, Object>(); j39v24.put("limit", limit); yield j39v24; } }), this.extend(requiredParams, parameters))).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchMultiHelper("orderbook", "book", ((List<String>) (switch ((Object) (symbols)) { case null -> (List<String>) null; case List<?> hx4J40v4 -> (List<String>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v4.getClass().getName()); })), (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>(); j39v1.put("limit", limit); yield j39v1; } }), this.extend(requiredParams, parameters))).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
 
@@ -1026,7 +1026,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
 
             Object markets = (super.loadMarkets(java.util.Objects.requireNonNullElse(reload, false), parameters)).join();
             Map<String, Object> marketsByWsName = (Map<String, Object>) this.safeDict(this.options, "marketsByWsName", (Object) null);
-            if ((java.util.Objects.equals(marketsByWsName, null)) || (switch ((Object) (java.util.Objects.requireNonNullElse(reload, false))) { case null -> false; case Boolean hx4J40v3 -> hx4J40v3.booleanValue(); case Long hx4J40v3 -> hx4J40v3 != 0L; case Integer hx4J40v3 -> hx4J40v3 != 0; case Double hx4J40v3 -> hx4J40v3 != 0.0; case String hx4J40v3 -> !hx4J40v3.isEmpty(); case List<?> hx4J40v3 -> !hx4J40v3.isEmpty(); case Map<?, ?> hx4J40v3 -> true; default -> false; }))
+            if ((java.util.Objects.equals(marketsByWsName, null)) || Helpers.isTrue(java.util.Objects.requireNonNullElse(reload, false)))
             {
                 marketsByWsName = new HashMap<String, Object>() {{}};
                 List<String> symbols = this.symbols; // do not cast `as string[]`: this.symbols is List<Object> in Java, and List<Object>->List<String> is an illegal cast
@@ -1041,7 +1041,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                         marketsByWsName.put(wsName, market);
                     }
                 }
-                { Map<Object, Object> j39v26 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v27 = "marketsByWsName"; Object j39v28 = marketsByWsName; if (j39v26 == null) { if (j39v27 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v26) { if (j39v28 == null && j39v26 instanceof java.util.concurrent.ConcurrentHashMap) { j39v26.remove(j39v27); } else { j39v26.put(j39v27, j39v28); } } }
+                Helpers.addElementToObject(this.options, "marketsByWsName", marketsByWsName);
             }
             return markets;
         });
@@ -1193,7 +1193,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 // e.g. a re-subscription with a different limit
                 Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, depth));
                 depths.put((String)symbol, depth);
-                { Map<Object, Object> j39v37 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v38 = "wsOrderBookDepths"; Object j39v39 = depths; if (j39v37 == null) { if (j39v38 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v37) { if (j39v39 == null && j39v37 instanceof java.util.concurrent.ConcurrentHashMap) { j39v37.remove(j39v38); } else { j39v37.put(j39v38, j39v39); } } }
+                Helpers.addElementToObject(this.options, "wsOrderBookDepths", depths);
             }
             // reset in place so that references held by users keep receiving
             // updates after a reconnect snapshot (a new object would orphan them)
@@ -1240,7 +1240,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             }
             String payload = String.join("", (List<String>)payloadArray);
             Object localChecksum = this.crc32(payload, false);
-            if (!((java.util.function.BiPredicate<Object, Object>) (hx4J40v0A, hx4J40v0B) -> { try { if (hx4J40v0A == null && hx4J40v0B == null) { return true; } if (hx4J40v0A == null || hx4J40v0B == null) { return false; } java.util.function.Predicate<Object> hx4J40v0N = hx4J40v0o -> { try { Double.parseDouble(String.valueOf(hx4J40v0o)); return true; } catch (Exception hx4J40v0e) { return false; } }; if (!hx4J40v0A.getClass().equals(hx4J40v0B.getClass()) && !(hx4J40v0N.test(hx4J40v0A) && hx4J40v0N.test(hx4J40v0B))) { return false; } java.util.function.Predicate<Object> hx4J40v0I = hx4J40v0o -> hx4J40v0o instanceof Byte || hx4J40v0o instanceof Short || hx4J40v0o instanceof Integer || hx4J40v0o instanceof Long || hx4J40v0o instanceof java.util.concurrent.atomic.AtomicInteger || hx4J40v0o instanceof java.util.concurrent.atomic.AtomicLong || ((hx4J40v0o instanceof Float || hx4J40v0o instanceof Double || hx4J40v0o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(hx4J40v0o)).stripTrailingZeros().scale() <= 0); java.util.function.ToDoubleFunction<Object> hx4J40v0D = hx4J40v0o -> { if (hx4J40v0o instanceof Double || hx4J40v0o instanceof Float || hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof java.math.BigDecimal) { return ((Number) hx4J40v0o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v0o)); } catch (NumberFormatException hx4J40v0e) { return 0.0; } }; if (hx4J40v0I.test(hx4J40v0A) && hx4J40v0I.test(hx4J40v0B)) { java.util.function.ToLongFunction<Object> hx4J40v0L = hx4J40v0o -> hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof Double || hx4J40v0o instanceof Float || hx4J40v0o instanceof java.math.BigDecimal ? ((Number) hx4J40v0o).longValue() : Long.parseLong(String.valueOf(hx4J40v0o)); return hx4J40v0L.applyAsLong(hx4J40v0A) == hx4J40v0L.applyAsLong(hx4J40v0B); } if (hx4J40v0A instanceof Double || hx4J40v0B instanceof Double) { return hx4J40v0D.applyAsDouble(hx4J40v0A) == hx4J40v0D.applyAsDouble(hx4J40v0B); } if (hx4J40v0A instanceof Float || hx4J40v0B instanceof Float) { java.util.function.Function<Object, Float> hx4J40v0F = hx4J40v0o -> hx4J40v0o instanceof Float || hx4J40v0o instanceof Double || hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof java.math.BigDecimal ? ((Number) hx4J40v0o).floatValue() : Float.parseFloat(String.valueOf(hx4J40v0o)); return hx4J40v0F.apply(hx4J40v0A).floatValue() == hx4J40v0F.apply(hx4J40v0B).floatValue(); } if (hx4J40v0A instanceof String && hx4J40v0B instanceof String) { return hx4J40v0A.equals(hx4J40v0B); } if (hx4J40v0A instanceof Boolean && hx4J40v0B instanceof Boolean) { return hx4J40v0A.equals(hx4J40v0B); } if (hx4J40v0N.test(hx4J40v0A) && hx4J40v0N.test(hx4J40v0B)) { return new java.math.BigDecimal(String.valueOf(hx4J40v0A)).compareTo(new java.math.BigDecimal(String.valueOf(hx4J40v0B))) == 0; } return false; } catch (Exception hx4J40v0e) { return false; } }).test(localChecksum, c))
+            if (!Helpers.isEqual(localChecksum, c))
             {
                 var error = new ChecksumError(((this.id + " ") + this.orderbookChecksumMessage((String) (symbol))));
                 ((Map<String,Object>)client.subscriptions).remove((String)messageHash);
@@ -1270,7 +1270,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         String integer = this.safeString(parts, 0, "");
         String decimals = this.safeString(parts, 1, "");
         Object joinedResult = (integer + decimals);
-        while ((((String)joinedResult).length() > 0) && (java.util.Objects.equals(Helpers.GetValue(joinedResult, 0), "0")))
+        while (((String)joinedResult).startsWith("0"))
         {
             joinedResult = (joinedResult == null ? null : ((String)joinedResult).substring(Math.min(1, ((String)joinedResult).length())));
         }

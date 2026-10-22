@@ -2312,7 +2312,7 @@ class sxbet extends Exchange {
         $this->handle_centrifugo_frame($client, $message);
     }
 
-    public function handle_centrifugo_frame(Client $client, mixed $msg) {
+    public function handle_centrifugo_frame(Client $client, array $msg) {
         $keys = is_array($msg) ? array_keys($msg) : array();
         $keysLength = count($keys);
         if ($keysLength === 0) {
@@ -2685,7 +2685,8 @@ class sxbet extends Exchange {
         //
         $rowsLength = count($rows);
         for ($i = 0; $i < $rowsLength; $i++) {
-            $row = $this->safe_dict($rows[$i], 'trade', $rows[$i]);
+            $rawRow = $rows[$i];
+            $row = $this->safe_dict($rawRow, 'trade', $rawRow);
             $trade = $this->parse_sxbet_v3_public_trade($row);
             $sym = $this->safe_string($trade, 'outcome');
             if ($sym === null) {
@@ -2742,7 +2743,8 @@ class sxbet extends Exchange {
         //
         $rowsLength = count($rows);
         for ($i = 0; $i < $rowsLength; $i++) {
-            $row = $this->safe_dict($rows[$i], 'fill', $rows[$i]);
+            $rawRow = $rows[$i];
+            $row = $this->safe_dict($rawRow, 'fill', $rawRow);
             $trade = $this->parse_sxbet_v3_fill($row);
             $sym = $this->safe_string($trade, 'outcome');
             if ($sym === null) {
@@ -2796,7 +2798,8 @@ class sxbet extends Exchange {
         //
         $rowsLength = count($rows);
         for ($i = 0; $i < $rowsLength; $i++) {
-            $row = $this->safe_dict($rows[$i], 'order', $rows[$i]);
+            $rawRow = $rows[$i];
+            $row = $this->safe_dict($rawRow, 'order', $rawRow);
             $order = $this->parse_prediction_order($row);
             if ($this->orders === null) {
                 $cacheLimit = $this->safe_integer($this->options, 'ordersLimit', 1000);
@@ -2842,7 +2845,7 @@ class sxbet extends Exchange {
         return null;
     }
 
-    public function sign(string $path, array $api = array('sxbet'), $method = 'GET', $params = array()) {
+    public function sign(string $path, array $api = array('sxbet'), string $method = 'GET', $params = array()) {
         /**
          * @ignore
          * builds the request $url and attaches the x-sx-$api-key header; every private v3 route authenticates with the apiKey credential, so its absence fails fast instead of surfacing a raw 401

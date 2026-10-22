@@ -810,7 +810,7 @@ class zaif(Exchange, ImplicitAPI):
         nonce = float(num)
         return format(nonce, '.8f')
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
         baseApiUrl = self.safe_string(self.urls['api'], 'rest')
         if baseApiUrl is None:

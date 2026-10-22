@@ -810,16 +810,16 @@ public partial class coinsph : Exchange
     public override object calculateRateLimiterCost(object api, object method, object path, object parameters, object config = null)
     {
         config ??= new Dictionary<string, object>();
-        if ((((IDictionary<string, object>)config).ContainsKey("noSymbol")) && !((((object)(parameters)) switch { null => false, IList<object> c33a => c33a.Contains("symbol"), IList<string> c33t => c33t.Contains("symbol"), List<Int64> c33g => c33g.Contains((Int64)(object)"symbol"), IDictionary<string, object> c33d => c33d.ContainsKey("symbol"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("symbol"), _ => false })))
+        if ((((IDictionary<string, object>)config).ContainsKey("noSymbol")) && !(inOp(parameters, "symbol")))
         {
             return ((IDictionary<string,object>)config)["noSymbol"];
-        } else if ((((IDictionary<string, object>)config).ContainsKey("noSymbolAndNoSymbols")) && !((((object)(parameters)) switch { null => false, IList<object> c33a => c33a.Contains("symbol"), IList<string> c33t => c33t.Contains("symbol"), List<Int64> c33g => c33g.Contains((Int64)(object)"symbol"), IDictionary<string, object> c33d => c33d.ContainsKey("symbol"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("symbol"), _ => false })) && !((((object)(parameters)) switch { null => false, IList<object> c33a => c33a.Contains("symbols"), IList<string> c33t => c33t.Contains("symbols"), List<Int64> c33g => c33g.Contains((Int64)(object)"symbols"), IDictionary<string, object> c33d => c33d.ContainsKey("symbols"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("symbols"), _ => false })))
+        } else if ((((IDictionary<string, object>)config).ContainsKey("noSymbolAndNoSymbols")) && !(inOp(parameters, "symbol")) && !(inOp(parameters, "symbols")))
         {
             return ((IDictionary<string,object>)config)["noSymbolAndNoSymbols"];
-        } else if ((((IDictionary<string, object>)config).ContainsKey("byNumberOfSymbols")) && ((((object)(parameters)) switch { null => false, IList<object> c33a => c33a.Contains("symbols"), IList<string> c33t => c33t.Contains("symbols"), List<Int64> c33g => c33g.Contains((Int64)(object)"symbols"), IDictionary<string, object> c33d => c33d.ContainsKey("symbols"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("symbols"), _ => false })))
+        } else if ((((IDictionary<string, object>)config).ContainsKey("byNumberOfSymbols")) && (inOp(parameters, "symbols")))
         {
             object symbols = getValue(parameters, "symbols");
-            int symbolsAmount = (((object)(symbols)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+            int symbolsAmount = getArrayLength(symbols);
             List<object> byNumberOfSymbols = this.safeList(config, "byNumberOfSymbols", new List<object>() {});
             for (int i = 0; i < byNumberOfSymbols.Count; i++)
             {
@@ -830,7 +830,7 @@ public partial class coinsph : Exchange
                     return getValue(entry, 1);
                 }
             }
-        } else if ((((IDictionary<string, object>)config).ContainsKey("byLimit")) && ((((object)(parameters)) switch { null => false, IList<object> c33a => c33a.Contains("limit"), IList<string> c33t => c33t.Contains("limit"), List<Int64> c33g => c33g.Contains((Int64)(object)"limit"), IDictionary<string, object> c33d => c33d.ContainsKey("limit"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("limit"), _ => false })))
+        } else if ((((IDictionary<string, object>)config).ContainsKey("byLimit")) && (inOp(parameters, "limit")))
         {
             Int64? limit = this.safeInteger(parameters, "limit");
             List<object> byLimit = this.safeList(config, "byLimit", new List<object>() {});
@@ -1276,7 +1276,7 @@ public partial class coinsph : Exchange
             {
                 object endTimeByLimit = this.sum(since, ((this.parseTimeframe(timeframeVar) * 1000L) * ((limitResolved - 1))));
                 Int64 now = this.milliseconds();
-                request["endTime"] = (((((object)(endTimeByLimit)) is var c31v0) && (((object)(now)) is var c31v1)) ? (((c31v0 == null) || (c31v1 == null)) ? null : ((Convert.ToDouble(c31v0) < Convert.ToDouble(c31v1)) ? c31v0 : c31v1)) : null);
+                request["endTime"] = mathMin(endTimeByLimit, now);
             }
         } else if ((until != null))
         {

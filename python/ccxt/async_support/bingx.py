@@ -2016,7 +2016,7 @@ class bingx(Exchange, ImplicitAPI):
             result = self.safe_dict(response, 'data', {})
         return self.parse_open_interest(result, market)
 
-    def parse_open_interest(self, interest: object, market: Market = None) -> OpenInterest:
+    def parse_open_interest(self, interest: dict, market: Market = None) -> OpenInterest:
         #
         # linear swap
         #
@@ -5973,7 +5973,7 @@ class bingx(Exchange, ImplicitAPI):
                 #
         return self.parse_trades(fills, market, since, limit, paramsTrades)
 
-    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None) -> object:
+    def parse_deposit_withdraw_fee(self, fee: dict, currency: Currency = None) -> object:
         #
         # currencie structure
         #
@@ -6822,7 +6822,7 @@ class bingx(Exchange, ImplicitAPI):
             })
         return tiers
 
-    def sign(self, path: str, section: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, section: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         type = section[0]
         version = section[1]
         access = section[2]

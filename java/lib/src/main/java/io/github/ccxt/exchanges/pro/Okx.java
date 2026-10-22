@@ -1742,9 +1742,9 @@ public class Okx extends io.github.ccxt.exchanges.Okx
 
     public void handleDeltas(Object bookside, Object deltas)
     {
-        for (var i = 0; i < (switch ((Object)(deltas)) { case null -> 0; case List<?> j39v2 -> j39v2.size(); case String j39v3 -> j39v3.length(); case Object j39v4 -> j39v4.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v4) : 0; }); i++)
+        for (var i = 0; i < ((List<?>)deltas).size(); i++)
         {
-            this.handleDelta(bookside, Helpers.GetValue(deltas, i));
+            this.handleDelta(bookside, (deltas == null || i < 0 || i >= ((List<?>)deltas).size() ? null : ((List<?>)deltas).get(i)));
         }
     }
 
@@ -1780,7 +1780,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         Long seqId = this.safeInteger(message, "seqId");
         Long prevSeqId = this.safeInteger(message, "prevSeqId");
         Object nonce = Helpers.GetValue(orderbook, "nonce");
-        if (!java.util.Objects.equals(prevSeqId, null) && (prevSeqId == null || prevSeqId != -1) && !((java.util.function.BiPredicate<Object, Object>) (hx4J40v2A, hx4J40v2B) -> { try { if (hx4J40v2A == null && hx4J40v2B == null) { return true; } if (hx4J40v2A == null || hx4J40v2B == null) { return false; } java.util.function.Predicate<Object> hx4J40v2N = hx4J40v2o -> { try { Double.parseDouble(String.valueOf(hx4J40v2o)); return true; } catch (Exception hx4J40v2e) { return false; } }; if (!hx4J40v2A.getClass().equals(hx4J40v2B.getClass()) && !(hx4J40v2N.test(hx4J40v2A) && hx4J40v2N.test(hx4J40v2B))) { return false; } java.util.function.Predicate<Object> hx4J40v2I = hx4J40v2o -> hx4J40v2o instanceof Byte || hx4J40v2o instanceof Short || hx4J40v2o instanceof Integer || hx4J40v2o instanceof Long || hx4J40v2o instanceof java.util.concurrent.atomic.AtomicInteger || hx4J40v2o instanceof java.util.concurrent.atomic.AtomicLong || ((hx4J40v2o instanceof Float || hx4J40v2o instanceof Double || hx4J40v2o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(hx4J40v2o)).stripTrailingZeros().scale() <= 0); java.util.function.ToDoubleFunction<Object> hx4J40v2D = hx4J40v2o -> { if (hx4J40v2o instanceof Double || hx4J40v2o instanceof Float || hx4J40v2o instanceof Long || hx4J40v2o instanceof Integer || hx4J40v2o instanceof java.math.BigDecimal) { return ((Number) hx4J40v2o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v2o)); } catch (NumberFormatException hx4J40v2e) { return 0.0; } }; if (hx4J40v2I.test(hx4J40v2A) && hx4J40v2I.test(hx4J40v2B)) { java.util.function.ToLongFunction<Object> hx4J40v2L = hx4J40v2o -> hx4J40v2o instanceof Long || hx4J40v2o instanceof Integer || hx4J40v2o instanceof Double || hx4J40v2o instanceof Float || hx4J40v2o instanceof java.math.BigDecimal ? ((Number) hx4J40v2o).longValue() : Long.parseLong(String.valueOf(hx4J40v2o)); return hx4J40v2L.applyAsLong(hx4J40v2A) == hx4J40v2L.applyAsLong(hx4J40v2B); } if (hx4J40v2A instanceof Double || hx4J40v2B instanceof Double) { return hx4J40v2D.applyAsDouble(hx4J40v2A) == hx4J40v2D.applyAsDouble(hx4J40v2B); } if (hx4J40v2A instanceof Float || hx4J40v2B instanceof Float) { java.util.function.Function<Object, Float> hx4J40v2F = hx4J40v2o -> hx4J40v2o instanceof Float || hx4J40v2o instanceof Double || hx4J40v2o instanceof Long || hx4J40v2o instanceof Integer || hx4J40v2o instanceof java.math.BigDecimal ? ((Number) hx4J40v2o).floatValue() : Float.parseFloat(String.valueOf(hx4J40v2o)); return hx4J40v2F.apply(hx4J40v2A).floatValue() == hx4J40v2F.apply(hx4J40v2B).floatValue(); } if (hx4J40v2A instanceof String && hx4J40v2B instanceof String) { return hx4J40v2A.equals(hx4J40v2B); } if (hx4J40v2A instanceof Boolean && hx4J40v2B instanceof Boolean) { return hx4J40v2A.equals(hx4J40v2B); } if (hx4J40v2N.test(hx4J40v2A) && hx4J40v2N.test(hx4J40v2B)) { return new java.math.BigDecimal(String.valueOf(hx4J40v2A)).compareTo(new java.math.BigDecimal(String.valueOf(hx4J40v2B))) == 0; } return false; } catch (Exception hx4J40v2e) { return false; } }).test(nonce, prevSeqId))
+        if (!java.util.Objects.equals(prevSeqId, null) && (prevSeqId == null || prevSeqId != -1) && !Helpers.isEqual(nonce, prevSeqId))
         {
             var error = new InvalidNonce((this.id + " watchOrderBook received invalid nonce"));
             ((Map<String,Object>)client.subscriptions).remove((String)messageHash);
@@ -2380,7 +2380,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         {
             Object rawPosition = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (rawPosition), (Map<String, Object>) null);
-            if ((switch ((Object) (position.get("contracts"))) { case null -> false; case Long hx4J40v0 -> hx4J40v0 == 0L; case Integer hx4J40v0 -> hx4J40v0 == 0L; case Double hx4J40v0 -> hx4J40v0 == 0L; case Float hx4J40v0 -> hx4J40v0.doubleValue() == 0L; case java.math.BigDecimal hx4J40v0 -> hx4J40v0.stripTrailingZeros().scale() <= 0 && hx4J40v0.longValue() == 0L; case Object hx4J40v0 -> { try { String hx4J40v0t = String.valueOf(hx4J40v0); Double.parseDouble(hx4J40v0t); yield new java.math.BigDecimal(hx4J40v0t).compareTo(java.math.BigDecimal.valueOf(0L)) == 0; } catch (NumberFormatException hx4J40v0x) { yield false; } } }) && java.util.Objects.equals(this.safeString(rawPosition, "posSide"), "net"))
+            if (Helpers.isEqual(position.get("contracts"), 0) && java.util.Objects.equals(this.safeString(rawPosition, "posSide"), "net"))
             {
                 position.put("side", "long");
                 Object shortPosition = this.clone(position);
@@ -2918,7 +2918,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             }};
             for (var i = 0; (idsLength != null && i < idsLength); i++)
             {
-                Map<String, Object> arg = this.extend(instParams, (switch (0) { default -> { HashMap<String, Object> j39v8 = new HashMap<String, Object>(); j39v8.put("ordId", (ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i))); yield j39v8; } }));
+                Map<String, Object> arg = this.extend(instParams, (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>(); j39v1.put("ordId", (ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i))); yield j39v1; } }));
                 ((List<Object>)args).add(arg);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{

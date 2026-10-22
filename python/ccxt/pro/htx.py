@@ -609,7 +609,7 @@ class htx(ccxt.async_support.htx):
         amount = self.safe_float(delta, 1)
         bookside.store(price, amount)
 
-    def handle_deltas(self, bookside: object, deltas: object):
+    def handle_deltas(self, bookside: object, deltas: list[object]):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
@@ -680,7 +680,7 @@ class htx(ccxt.async_support.htx):
         #         "ts":1645023376098
         #     }
         #
-        ch = self.safe_value(message, 'ch')
+        ch = self.safe_string(message, 'ch', '')
         parts = ch.split('.')
         marketId = self.safe_string(parts, 1)
         market = self.safe_market(marketId)
@@ -1403,7 +1403,7 @@ class htx(ccxt.async_support.htx):
                 'currency': self.safe_currency_code(feeCurrencyId),
             }
         avgPrice = self.safe_string(order, 'trade_avg_price')
-        rawTrades = self.safe_value(order, 'trade')
+        rawTrades = self.safe_list(order, 'trade')
         typeSideParts = []
         type = None
         if typeSide is not None:
@@ -2504,8 +2504,9 @@ class htx(ccxt.async_support.htx):
                 contractCode = self.safe_string(message, 'contract_code')
                 market = self.safe_market(contractCode) if (contractCode is not None) else None
                 if isinstance(data, list):
-                    for i in range(0, len(data)):
-                        parsed = self.parse_ws_trade(data[i], market)
+                    dataList = self.safe_list(message, 'data', [])
+                    for i in range(0, len(dataList)):
+                        parsed = self.parse_ws_trade(dataList[i], market)
                         symbol = self.safe_string(parsed, 'symbol')
                         if symbol is not None:
                             cachedTrades.append(parsed)

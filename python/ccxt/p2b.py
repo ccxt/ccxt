@@ -1318,7 +1318,7 @@ class p2b(Exchange, ImplicitAPI):
             'trades': None,
         }, marketResolved)
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
         baseApiUrl = self.safe_string(self.urls['api'], apiName)
         if baseApiUrl is None:

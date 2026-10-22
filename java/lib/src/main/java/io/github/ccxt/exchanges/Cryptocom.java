@@ -4173,7 +4173,7 @@ public class Cryptocom extends CryptocomApi
             paramsKeys = obj;
         } else
         {
-            List<Object> objectKeys = ((List<Object>) switch ((Object)(obj)) { case Map<?, ?> j39v4 -> { synchronized (j39v4) { yield new ArrayList<Object>(j39v4.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            List<Object> objectKeys = ((List<Object>) switch ((Object)(obj)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); });
             paramsKeys = this.sort(objectKeys);
         }
         for (var i = 0; i < ((List<?>)(List<String>)(paramsKeys)).size(); i++)
@@ -4414,7 +4414,7 @@ public class Cryptocom extends CryptocomApi
         Object query = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals(access, "public"))
         {
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v5 -> { synchronized (j39v5) { yield new ArrayList<Object>(j39v5.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v3 -> { synchronized (j39v3) { yield new ArrayList<Object>(j39v3.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
@@ -4445,7 +4445,7 @@ public class Cryptocom extends CryptocomApi
             {
                 String paramsString = "{}";
                 String arrayString = "[]";
-                requestBody = ((java.util.function.Function<Object, java.util.function.BiFunction<Object, Object, String>>) hx4J43a0 -> (hx4J43b0, hx4J43c0) -> { if (hx4J43a0 == null) { return null; } String hx4J43a0s = String.valueOf(hx4J43a0); String hx4J43a0f = (hx4J43b0 == null) ? "" : String.valueOf(hx4J43b0); String hx4J43a0r = (hx4J43c0 == null) ? "" : String.valueOf(hx4J43c0); return hx4J43a0s.replaceFirst(java.util.regex.Pattern.quote(hx4J43a0f), java.util.regex.Matcher.quoteReplacement(hx4J43a0r)); }).apply(requestBody).apply((String)arrayString, (String)paramsString);
+                requestBody = Helpers.replace(requestBody, (String)arrayString, (String)paramsString);
             }
             requestHeaders = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );

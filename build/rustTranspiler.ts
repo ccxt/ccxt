@@ -9009,10 +9009,12 @@ impl std::ops::DerefMut for ${coreName} {
                 // And `while (true)` → `loop {` (rustc's `while_true` lint is
                 // an error under the CI clippy lane's `-D warnings`).
                 rustContent = this.whileTrueToLoop(rustContent);
+                rustContent = this.x45Native(rustContent); // hx5 X45
                 rustContent = this.r28Truth(rustContent); // hx4 R28
                 rustContent = this.hx4R29InlineCollectionHelpers(rustContent);
                 rustContent = this.r31Str(rustContent); // hx4 R31
                 rustContent = this.r32Native(rustContent); // hx4 R32
+                rustContent = this.x46Incr(rustContent); // hx5 X46
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
                 throw new Error(
@@ -9737,10 +9739,12 @@ impl std::ops::DerefMut for ${coreName} {
         // And `while (true)` → `loop {` (rustc's `while_true` lint is an error
         // under the CI clippy lane's `-D warnings`).
         finalFile = this.whileTrueToLoop(finalFile);
+        finalFile = this.x45Native(finalFile); // hx5 X45
         finalFile = this.r28Truth(finalFile); // hx4 R28
         finalFile = this.hx4R29InlineCollectionHelpers(finalFile);
         finalFile = this.r31Str(finalFile); // hx4 R31
         finalFile = this.r32Native(finalFile); // hx4 R32
+        finalFile = this.x46Incr(finalFile); // hx5 X46
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
         //   `export class BaseExchange { ... }`  (holds the transpile marker)
@@ -12415,7 +12419,7 @@ impl std::ops::DerefMut for ${coreName} {
     }
 
     // hx4 R28 — last pass: `is_equal(&A, &B)` prints `runtime::is_equal`'s own match inline; `is_true(&E)`
-    // becomes `E.is_truthy()` when E is proven `Value` (typed local/param, base field, `-> Value` callee),
+    // (hx5 X38) stays the helper unless E is a proven bool:
     // `(E)` when E is a top-level bool expression, a `: bool` local or a `-> bool` callee; else the helper stays.
     private _r28Rets: Map<string, Set<string>> | null = null;
     private r28Rets(content: string): Map<string, Set<string>> {
@@ -12499,7 +12503,6 @@ impl std::ops::DerefMut for ${coreName} {
         };
         let fnReturns: Map<string, Set<string>> | null = null;
         const fields = this.r28Fields();
-        const loose = (v: string) => `(match ${v} { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })`;
         const helperRe = /(?<![A-Za-z0-9_:.])is_(?:equal|true)\(/;
         const rewrites: Array<{ start: number, end: number, text: string }> = [];
         for (const sm of masked.matchAll(/(?<![A-Za-z0-9_:.])(is_true|is_equal)\(&/g)) {
@@ -12513,10 +12516,9 @@ impl std::ops::DerefMut for ${coreName} {
                 if (args.length !== 2) continue;
                 const a = args[0].trim(); const b = args[1].trim();
                 if (!a.startsWith('&') || !b.startsWith('&') || helperRe.test(a + b)) continue;
-                rewrites.push({ start, end: close + 1, text:
-                    `(match (${a}, ${b}) { (Value::Null, Value::Null) => true, (Value::Bool(__x), Value::Bool(__y)) => __x == __y, ` +
-                    `(Value::Str(__x), Value::Str(__y)) => __x == __y, (Value::Int(__x), Value::Int(__y)) => __x == __y, ` +
-                    `(Value::Float(__x), Value::Float(__y)) => __x == __y, (__a, __b) => matches!((${loose('__a')}, ${loose('__b')}), (Some(__x), Some(__y)) if __x == __y) })` });
+                this._x37Src = content;
+                const eq = this.x37Eq(a.slice(1).trim(), b.slice(1).trim(), masked, regionOf(start)); // hx5 X37
+                if (eq !== undefined) rewrites.push({ start, end: close + 1, text: eq });
                 continue;
             }
             const e0 = inner.slice(1).trim();
@@ -12525,10 +12527,12 @@ impl std::ops::DerefMut for ${coreName} {
             let text: string | undefined;
             if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(e)) {
                 const t = identType(e, start);
-                if (t === 'Value') text = `${e}.is_truthy()`;
-                else if (t === 'bool') text = e;
+                // hx5 X38: a `Value` local is not a proven bool -> helper stays,
+                // unless its only binding is a `Value::Bool(..)` box never reassigned.
+                if (t === 'bool') text = e;
+                else if (t === 'Value' && this.x38BoolBoxedLocal(masked.slice(...regionOf(start)), e)) text = `${e}.as_bool() == Some(true)`;
             } else if (/^self\.[A-Za-z_][A-Za-z0-9_]*$/.test(e)) {
-                if (fields.has(e.slice(5)) && !new RegExp(`\\bpub ${e.slice(5)}:`).test(masked)) text = `${e}.is_truthy()`;
+                // hx5 X38: base `Value` fields are not proven bools -> `is_true(&self.f)` stays.
             } else if (this.r28BoolExpr(e)) {
                 text = `(${e})`;
             } else {
@@ -12536,8 +12540,8 @@ impl std::ops::DerefMut for ${coreName} {
                 if (cm !== null && this.closeParenAt(e, cm[0].length - 1) === e.length - 1) {
                     fnReturns ??= this.r28Rets(content);
                     const rets = fnReturns.get(cm[1]);
-                    if (rets !== undefined && rets.size === 1 && rets.has('Value')) text = `${e}.is_truthy()`;
-                    else if (rets !== undefined && rets.size === 1 && rets.has('bool')) text = `(${e})`;
+                    // hx5 X38: `-> Value` callees keep the helper; only `-> bool` is native.
+                    if (rets !== undefined && rets.size === 1 && rets.has('bool')) text = `(${e})`;
                 }
             }
             if (text !== undefined) rewrites.push({ start, end: close + 1, text });
@@ -12556,27 +12560,28 @@ impl std::ops::DerefMut for ${coreName} {
     // dispatch inline (public `Value::len`, `value::side_entries_as_value`, `ws_client::value_subs_remove`).
     // Not for rust/tests (no `crate::value`); innermost-first so nested calls rewrite too.
     hx4R29InlineCollectionHelpers(content: string): string {
-        const names = [ 'in_op', 'object_keys', 'get_array_length', 'remove' ];
+        const names = [ 'in_op', 'object_keys', 'remove' ]; // hx5 X35
         if (!names.some(n => content.includes(n + '('))) return content;
-        const loose = (v: string) => `(match ${v} { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })`;
-        const eq = `(match (__r29e, __r29v) { (Value::Null, Value::Null) => true, (Value::Bool(__p), Value::Bool(__q)) => __p == __q, (Value::Str(__p), Value::Str(__q)) => __p == __q, (Value::Int(__p), Value::Int(__q)) => __p == __q, (Value::Float(__p), Value::Float(__q)) => __p == __q, (__p, __q) => matches!((${loose('__p')}, ${loose('__q')}), (Some(__x), Some(__y)) if __x == __y) })`;
         const build = (name: string, args: string[]): string | undefined => {
             const a = args.map(s => s.trim());
-            if (name === 'in_op' && a.length === 2) {
-                return `({ let __r29o: &Value = ${a[0]}; let __r29k: &Value = ${a[1]}; match (__r29o, __r29k) { (Value::Dict(__m), Value::Str(__k)) => __m.contains_key(&**__k), (Value::Arr(__a), __r29v) => __a.iter().any(|__r29e| ${eq}), _ => false } })`;
-            }
-            if (name === 'object_keys' && a.length === 1) {
-                return `({ let __r29o: &Value = ${a[0]}; match __r29o { Value::Dict(__m) => Value::List(__m.keys().filter(|__k| __k.as_str() != "__ws_subs_url" && __k.as_str() != "__ws_sub_ref").map(|__k| Value::Str(__k.clone().into())).collect()), _ => Value::List(vec![]) } })`;
-            }
-            if (name === 'get_array_length' && a.length === 1) {
-                return `({ let __r29o: &Value = ${a[0]}; match __r29o { Value::Dict(__d) if __d.contains_key("__sideKind") && !__d.contains_key("__cacheKind") && !matches!(__d.get("__book_cache_id"), Some(Value::Int(_))) => Value::Int(crate::value::side_entries_as_value(__r29o).map(|__s| __s.len()).unwrap_or(0) as i64), _ => Value::Int(__r29o.len() as i64) } })`;
-            }
-            if (name === 'remove' && a.length === 2 && a[0].startsWith('&mut ')) {
-                return `{ let __r29o: &mut Value = ${a[0]}; let __r29k: &Value = ${a[1]}; match (__r29o, __r29k) { (Value::Dict(__m), Value::Str(__k)) => { if let Some(Value::Str(__u)) = __m.get("__ws_subs_url") { crate::pro::ws_client::value_subs_remove(__u, __k); } std::sync::Arc::make_mut(__m).shift_remove(&**__k); } (Value::Arr(__a), Value::Int(__i)) => { let __i = *__i as usize; let __a = std::sync::Arc::make_mut(__a); if __i < __a.len() { __a.remove(__i); } } _ => {} } }`;
-            }
+            // hx5 X33 — in_op: no inline `match`. Native `contains_key` only on a local declared as a
+            // concrete map (`Arc<IndexMap<String, Value>>` / `IndexMap<String, Value>`) with a literal
+            // string key; every other site keeps the `in_op(..)` helper call (Null / non-map / array).
+            if (name === 'in_op') return hx5X33InOp(a, content);
+            // hx5 X34 — no inline `match` for `object_keys`: every generated receiver is a `Value` (no
+            // typed map binding exists), and the runtime fn also drops the `__ws_subs_url`/`__ws_sub_ref`
+            // tags, so no site is proven; `runtime::object_keys(..)` stays exactly as master emitted it.
+            if (name === 'object_keys') return undefined;
+            // hx5 X35 — no inline `get_array_length` match: the call text is left untouched, so an
+            // unproven operand keeps master's helper call (`Value::len` counts chars, and the helper also
+            // unwraps book/cache/side markers, so no plain `.len()` on a `&Value` matches it).
+            // hx5 X36 — `remove` is never inlined. Every generated receiver is a `Value` (no typed
+            // `IndexMap` local exists in emitted Rust), so no site proves a plain map and the native
+            // `shift_remove` would also skip `try_ws_subs_remove`; `remove(...)` stays the helper call.
+            if (name === 'remove') return undefined;
             return undefined;
         };
-        const re = /(?<![A-Za-z0-9_:.])(in_op|object_keys|get_array_length|remove)\(/g;
+        const re = /(?<![A-Za-z0-9_:.])(in_op|object_keys|remove)\(/g; // hx5 X35: get_array_length dropped
         // Repeat until no rewrite applies: each round replaces calls whose args hold no further helper call.
         for (let round = 0; round < 8; round++) {
             const masked = this.maskStringsAndComments(content);
@@ -12590,7 +12595,9 @@ impl std::ops::DerefMut for ${coreName} {
                 const close = this.closeParenAt(content, open);
                 if (close < 0) continue;
                 const inner = content.slice(open + 1, close);
-                if (/(?<![A-Za-z0-9_:.])(in_op|object_keys|get_array_length|remove)\(/.test(this.maskStringsAndComments(inner))) continue;
+                // hx5 X33: a retained `in_op(` helper call inside the args no longer blocks the outer rewrite.
+                // hx5 X35: get_array_length is no longer rewritten by this pass, so it never blocks either.
+                if (/(?<![A-Za-z0-9_:.])(object_keys|remove)\(/.test(this.maskStringsAndComments(inner))) continue;
                 const text = build(name, this.splitTopLevelCommas(inner));
                 if (text === undefined) continue;
                 if (name === 'remove' && !/^\s*;/.test(content.slice(close + 1, close + 8))) continue;
@@ -12612,35 +12619,24 @@ impl std::ops::DerefMut for ${coreName} {
     // `stringify_simple` is private: scalars inline, the `__precise` dict goes through the public
     // `runtime::stringify_param` alias, other containers through `Display` exactly like the helper.
     r31Str(content: string): string {
-        const names = [ 'to_string_val', 'join', 'split', 'replace_str', 'ends_with', 'starts_with', 'pad_end', 'pad_start', 'to_fixed' ];
+        content = this.x39Affix(content); // hx5 X39
+        // hx5 X41: pad_start/pad_end/to_fixed (and slice) are not r31 targets: no site has a proven `&str`/number
+        // operand with in-range bounds, so the master `runtime::` helper call stays. Never print their bodies inline.
+        const names = [ 'to_string_val', 'join', 'split', 'replace_str' ]; // hx5 X39: starts_with/ends_with via x39Affix
         if (!names.some(n => content.includes(n + '('))) return content;
         const str = (v: string) => `(match ${v} { Value::Str(__s) => __s.to_string(), Value::Int(__n) => __n.to_string(), Value::Float(__f) => __f.to_string(), Value::Bool(__b) => __b.to_string(), Value::Null => "null".to_string(), Value::Dict(__m) if __m.contains_key("__precise") => crate::runtime::stringify_param(${v}), __o => format!("{}", __o) })`;
-        const i64v = (v: string) => `(match ${v} { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1i64 } else { 0i64 }), _ => None })`;
-        const pad = (a: string[], start: boolean) => `({ let __r31s: &Value = ${a[0]}; let __r31l: &Value = ${a[1]}; let __r31p: &Value = ${a[2]}; let __t: usize = match ${i64v('__r31l')} { Some(__v) => __v as usize, None => 0 }; let __p: String = match __r31p { Value::Str(__x) => __x.to_string(), _ => " ".to_string() }; match __r31s { Value::Str(__sv) => { if __sv.chars().count() >= __t { Value::Str(__sv.clone()) } else { let __need = __t - __sv.chars().count(); let __fill = __p.repeat((__need / __p.chars().count().max(1)).max(1)); Value::Str(${start ? 'format!("{}{}", __fill, __sv)' : 'format!("{}{}", __sv, __fill)'}.into()) } } _ => Value::Null } })`;
         const build = (name: string, args: string[]): string | undefined => {
             const a = args.map(s => s.trim());
-            if (name === 'to_string_val' && a.length === 1) {
-                return `({ let __r31v: &Value = ${a[0]}; Value::Str(${str('__r31v')}.into()) })`;
-            }
-            if (name === 'join' && a.length === 2) {
-                return `({ let __r31a: &Value = ${a[0]}; let __r31d: &Value = ${a[1]}; let __r31j: String = ${str('__r31d')}; match __r31a { Value::Arr(__a) => Value::Str(__a.iter().map(|__r31e| ${str('__r31e')}).collect::<Vec<String>>().join(&__r31j).into()), _ => Value::Str(String::new().into()) } })`;
-            }
-            if (name === 'split' && a.length === 2) {
-                return `({ let __r31a: &Value = ${a[0]}; let __r31d: &Value = ${a[1]}; match (__r31a, __r31d) { (Value::Str(__s), Value::Str(__d)) => Value::Array(__s.split(__d.as_ref()).map(|__x| Value::Str(__x.to_string().into())).collect()), _ => Value::Array(vec![]) } })`;
-            }
-            if (name === 'replace_str' && a.length === 3) {
-                return `({ let __r31a: &Value = ${a[0]}; let __r31o: &Value = ${a[1]}; let __r31n: &Value = ${a[2]}; match (__r31a, __r31o, __r31n) { (Value::Str(__s), Value::Str(__o), Value::Str(__n)) => Value::Str(__s.replace(__o.as_ref(), __n.as_ref()).into()), _ => __r31a.clone() } })`;
-            }
-            if ((name === 'starts_with' || name === 'ends_with') && a.length === 2) {
-                return `({ let __r31a: &Value = ${a[0]}; let __r31b: &Value = ${a[1]}; match (__r31a, __r31b) { (Value::Str(__h), Value::Str(__x)) => __h.${name}(__x.as_ref()), _ => false } })`;
-            }
-            if ((name === 'pad_start' || name === 'pad_end') && a.length === 3) return pad(a, name === 'pad_start');
-            if (name === 'to_fixed' && a.length === 2) {
-                return `({ let __r31x: &Value = ${a[0]}; let __r31g: &Value = ${a[1]}; let __d: usize = match ${i64v('__r31g')} { Some(__v) => __v.max(0) as usize, None => 0 }; let __n: f64 = match __r31x { Value::Int(__i) => *__i as f64, Value::Float(__f) => *__f, Value::Str(__s) => __s.trim().parse::<f64>().unwrap_or(0.0), _ => 0.0 }; Value::Str(format!("{:.*}", __d, __n).into()) })`;
-            }
+            if (name === 'to_string_val') return this.x42ToStr(a); // hx5 X42: proven native or helper
+            // hx5 X40: split/join/replace_str are never inlined. Every r31 site reaches this pass as a
+            // `&Value` operand that no emitted declaration proves to be a `Value::Str` / `Value::Arr` of
+            // strings (and the runtime differs from a bare `.split`/`.join`/`.replace` on non-Str, null and
+            // element type), so the plain `runtime::*` helper call master emitted stays.
+            if (name === 'join' || name === 'split' || name === 'replace_str') return undefined;
+            // hx5 X39: starts_with/ends_with tier-2 arm deleted (x39Affix handles proven Str boxes).
             return undefined;
         };
-        const re = /(?<![A-Za-z0-9_:.])(to_string_val|join|split|replace_str|ends_with|starts_with|pad_end|pad_start|to_fixed)\(/g;
+        const re = /(?<![A-Za-z0-9_:.])(to_string_val|join|split|replace_str)\(/g; // hx5 X39/X41
         for (let round = 0; round < 8; round++) {
             const masked = this.maskStringsAndComments(content);
             const rewrites: Array<{ start: number, end: number, text: string }> = [];
@@ -12652,7 +12648,7 @@ impl std::ops::DerefMut for ${coreName} {
                 const close = this.closeParenAt(content, open);
                 if (close < 0) continue;
                 const inner = content.slice(open + 1, close);
-                if (new RegExp(re.source).test(this.maskStringsAndComments(inner))) continue;
+                if (/(?<![A-Za-z0-9_:.])(to_string_val)\(/.test(this.maskStringsAndComments(inner))) continue; // hx5 X40: helper-call args do not block the outer site (X39/X41: affix/pad/to_fixed no longer rewritten here)
                 const text = build(name, this.splitTopLevelCommas(inner));
                 if (text === undefined) continue;
                 rewrites.push({ start, end: close + 1, text });
@@ -12669,76 +12665,361 @@ impl std::ops::DerefMut for ${coreName} {
         return content;
     }
 
-    // hx4 R32 — `is_instance` / `is_function` / `object_values` / `shift` print runtime.rs's own body inline:
-    // is_instance = `[cls]` containment OR leading `[Kind]` in cls's errorHierarchy subtree; is_function is
-    // always false; object_values filters the ws tags; shift pops a clone (by-value arg, as the helper).
+    // hx5 X43 — the hx4 R32 inline bodies (is_instance / is_function / object_values / shift) are deleted.
+    // No call site has a type proof that makes a plain native op equivalent to the helper:
+    //   is_instance  needs the `[Cls]` / leading-`[Kind]` + errorHierarchy subtree walk (only the helper is concise);
+    //   is_function  is `false` but must still evaluate its argument (the helper does);
+    //   object_values drops the two ws tag keys, which only the helper knows;
+    //   shift        is a by-value pop of the arg (see the ndax `shift(stored.clone())` note in the X43 report).
+    // So every site keeps master's `runtime::*` helper call. The pass is kept (wired in both pipelines) as an
+    // identity so the call sites stay stable; it is trivially idempotent.
     r32Native(content: string): string {
-        const names = [ 'is_instance', 'is_function', 'object_values', 'shift' ];
-        if (!names.some(n => content.includes(n + '('))) return content;
-        const subtree = (cls: string): string[] | undefined => {
-            const find = (node: any): any => {
-                for (const k of Object.keys(node)) {
-                    if (k === cls) return node[k];
-                    const r = find(node[k]);
-                    if (r !== undefined) return r;
-                }
-                return undefined;
-            };
-            const root = find(errorHierarchy);
-            if (root === undefined) return undefined;
-            const out: string[] = [];
-            const walk = (node: any) => { for (const k of Object.keys(node)) { out.push(k); walk(node[k]); } };
-            walk(root);
-            return out;
+        return content;
+    }
+
+    // hx5 X37 — r28 `is_equal(&A, &B)`: native only where both operands are proven to hold one scalar
+    // variant or Null (`S`=Str, `B`=Bool, `I`=Int, `N`=Null). `runtime::is_equal` on such a pair is exactly
+    // `as_str()/as_bool()/as_i64()` equality: same-variant arms compare the payload, Null∘Null is true and a
+    // Null∘scalar pair (also Bool∘Bool / Int∘Int only) reaches `as_f64(Null) = None` → false. Mixed scalar
+    // kinds (`"1" == 1`, `true == 1`) coerce at runtime, so they keep the helper. The hx4 inline replay of
+    // the runtime match is gone: an unproven pair keeps `is_equal(&a, &b)` exactly as master printed it.
+    private x37Kind(e: string, masked: string, region: [number, number], depth = 0): Set<string> | undefined {
+        e = this.stripOuterParens(e.trim()).trim();
+        if (e === 'Value::Null') return new Set(['N']);
+        if (/^Value::Str\("(?:[^"\\]|\\.)*"\.(?:into|to_string)\(\)\)$/.test(e)) return new Set(['S']);
+        if (/^Value::Bool\((?:true|false)\)$/.test(e)) return new Set(['B']);
+        if (/^Value::Int\(-?[0-9]+\)$/.test(e)) return new Set(['I']);
+        // base readers whose result is one variant or the (single) default
+        const call = /^self\.(safe_string(?:_k|2|_lower_k|_upper_k|_lower|_upper)?|safe_bool(?:_k|2)?|safe_integer(?:_k|2)?)\(/.exec(e);
+        if (call !== null && this.closeParenAt(e, call[0].length - 1) === e.length - 1) {
+            const own = call[1].startsWith('safe_string') ? 'S' : call[1].startsWith('safe_bool') ? 'B' : 'I';
+            const args = this.splitTopLevelCommas(e.slice(call[0].length, -1)).map(x => x.trim());
+            const dflt = args[args.length - 1] ?? '';
+            if (dflt === '&[]') return new Set([own, 'N']);
+            const dm = /^&\[(.*)\]$/.exec(dflt);
+            if (dm === null || this.splitTopLevelCommas(dm[1]).length !== 1) return undefined;
+            const k = this.x37Kind(dm[1], masked, region, depth + 1);
+            return k === undefined ? undefined : new Set([own, ...k]);
+        }
+        if (depth > 2 || !/^[A-Za-z_][A-Za-z0-9_]*$/.test(e)) return undefined;
+        // a local: one `let`, every `let` / plain `=` write in its fn region proven; no `&mut`, no rebinding.
+        const [from, to] = region;
+        const body = masked.slice(from, to);
+        const header = body.slice(0, Math.max(0, body.indexOf('{')));
+        if (new RegExp(`\\b${e}\\s*:`).test(header)) return undefined;
+        if (new RegExp(`&mut ${e}\\b|(?<!\\|)\\|(?!\\|)[^|\\n]*\\b${e}\\b[^|\\n]*(?<!\\|)\\|(?!\\|)|\\bfor [^\\n]*\\b${e}\\b[^\\n]* in |Some\\((?:mut )?${e}\\)|Ok\\((?:mut )?${e}\\)|Err\\((?:mut )?${e}\\)|\\blet \\([^)]*\\b${e}\\b|\\b${e}\\s*(?:\\+|-|\\*|/|%)=|\\b${e}\\.(?:push|insert|clear|take)\\(`).test(body)) return undefined;
+        const out = new Set<string>(); let decls = 0; let writes = 0;
+        for (const m of body.matchAll(new RegExp(`(?:\\blet (?:mut )?${e}(?:\\s*:\\s*Value)?|(?<![A-Za-z0-9_.:&])${e})\\s*=(?![=>])`, 'g'))) {
+            if (/^let /.test(m[0])) decls++;
+            const s = (m.index as number) + m[0].length;
+            let d = 0; let i = s;
+            for (; i < body.length; i++) {
+                const c = body[i];
+                if (c === '(' || c === '[' || c === '{') d++;
+                else if (c === ')' || c === ']' || c === '}') { if (d === 0) break; d--; }
+                else if (c === ';' && d === 0) break;
+            }
+            if (body[i] !== ';') return undefined;
+            const k = this.x37Kind(this._x37Src.slice(from + s, from + i), masked, region, depth + 1);
+            if (k === undefined) return undefined;
+            writes++;
+            for (const x of k) out.add(x);
+        }
+        if (decls !== 1 || writes === 0) return undefined;
+        return out;
+    }
+
+    private _x37Src = '';
+
+    private x37Eq(a: string, b: string, masked: string, region: [number, number]): string | undefined {
+        const ka = this.x37Kind(a, masked, region);
+        if (ka === undefined) return undefined;
+        const kb = this.x37Kind(b, masked, region);
+        if (kb === undefined) return undefined;
+        const kinds = new Set([...ka, ...kb]); kinds.delete('N');
+        if (kinds.size !== 1) return undefined; // mixed scalar kinds coerce, or both sides are Null
+        const kind = [...kinds][0];
+        const acc = kind === 'S' ? 'as_str' : kind === 'B' ? 'as_bool' : 'as_i64';
+        const lit = (e: string) => {
+            const t = this.stripOuterParens(e.trim()).trim();
+            return /^Value::Str\(("(?:[^"\\]|\\.)*")\.(?:into|to_string)\(\)\)$/.exec(t)?.[1]
+                ?? /^Value::Bool\((true|false)\)$/.exec(t)?.[1] ?? /^Value::Int\((-?[0-9]+)\)$/.exec(t)?.[1];
         };
-        const build = (name: string, args: string[]): string | undefined => {
-            const a = args.map(s => s.trim());
-            if (name === 'is_function' && a.length === 1 && a[0].startsWith('&')) {
-                return `({ let _: &Value = ${a[0]}; false })`;
+        const la = lit(a); const lb = lit(b);
+        if (la !== undefined && lb !== undefined) return undefined; // constant compare: leave it
+        const onlyNull = (k: Set<string>) => k.size === 1 && k.has('N');
+        if (onlyNull(ka)) return `${b}.is_null()`;
+        if (onlyNull(kb)) return `${a}.is_null()`;
+        if (lb !== undefined) return `(${a}.${acc}() == Some(${lb}))`;
+        if (la !== undefined) return `(${b}.${acc}() == Some(${la}))`;
+        return `(${a}.${acc}() == ${b}.${acc}())`;
+    }
+
+    // hx5 X38 — `let [mut ]x[: Value] = Value::Bool(..)` as the only binding, never reassigned
+    // (no `x = `, no `&mut x`, no `set_value(&mut x`): x can only hold a bool.
+    x38BoolBoxedLocal(region: string, name: string): boolean {
+        const decls = [...region.matchAll(new RegExp(`\\blet (?:mut )?${name}\\b\\s*(?::\\s*Value\\s*)?=\\s*([^;]*);`, 'g'))];
+        if (decls.length !== 1) return false;
+        const rhs = decls[0][1].trim();
+        if (!/^Value::Bool\(/.test(rhs) || this.closeParenAt(rhs, 'Value::Bool'.length) !== rhs.length - 1) return false;
+        if (new RegExp(`(?<![A-Za-z0-9_.])${name}\\s*(?:=(?!=)|\\+=|-=)|&mut ${name}\\b|\\b${name}\\.(?:set|insert|push)`).test(region.replace(decls[0][0], ''))) return false;
+        return true;
+    }
+
+
+    // hx5 X45 — proven-variant `Value` locals. A `let x: Value` local whose every binding and every
+    // `x = ..` write is an always-Dict / always-Arr / always-Str source (never Null), and whose only
+    // `&mut x` uses are the variant-preserving runtime writers, is proven to hold that variant at every
+    // use. `x45Variant` is the marker the emission passes may consult; `x45Native` (run just before the
+    // hx4 R28..R32 tail) prints the plain native op on those locals so the tail never sees them:
+    //   get_array_length(&x)            Arr/Str -> Value::Int(x.len() as i64)   (Value::len == runtime fn)
+    //   in_op(&x, &Value::Str("k"..))   Dict    -> x.as_map().is_some_and(|__m| __m.contains_key("k"))
+    //   is_equal(&x, &Value::Str("k"..)) Str    -> (x.as_str() == Some("k"))   (either operand order)
+    //   is_equal(&x, &y)                both Str -> (x.as_str() == y.as_str())
+    //   to_string_val(&x)               Str     -> x.clone()
+    // Mixed or unproven writes keep the helper call.
+    x45Source(e: string): 'Dict' | 'Arr' | 'Str' | undefined {
+        e = e.trim();
+        while (e.startsWith('(') && this.closeParenAt(e, 0) === e.length - 1) e = e.slice(1, -1).trim();
+        const whole = (prefix: RegExp): boolean => {
+            const m = prefix.exec(e);
+            if (m === null) return false;
+            return this.closeParenAt(e, m[0].length - 1) === e.length - 1;
+        };
+        if (whole(/^Value::Map\(/) || whole(/^self\.extend\(/)) return 'Dict';
+        if (/^Value::(?:from|List|Array)\(vec!\[/.test(e) && this.closeParenAt(e, e.indexOf('(')) === e.length - 1) return 'Arr';
+        if (whole(/^self\.(?:to_array|array_concat)\(/) || whole(/^split\(/)) return 'Arr';
+        if (whole(/^Value::Str\(/)) return 'Str';
+        const sm = /^self\.safe_(dict|list|string)(?:_k|2)?\(/.exec(e);
+        if (sm !== null && this.closeParenAt(e, sm[0].length - 1) === e.length - 1) {
+            const args = this.splitTopLevelCommas(e.slice(sm[0].length, -1));
+            const last = args[args.length - 1].trim();
+            if (!last.startsWith('&[') || !last.endsWith(']')) return undefined;
+            const inner = this.splitTopLevelCommas(last.slice(2, -1));
+            if (inner.length !== 1) return undefined;
+            const want = sm[1] === 'dict' ? 'Dict' : sm[1] === 'list' ? 'Arr' : 'Str';
+            return this.x45Source(inner[0]) === want ? want : undefined;
+        }
+        return undefined;
+    }
+
+    x45StmtEnd(text: string, i: number): number {
+        let depth = 0;
+        for (; i < text.length; i++) {
+            const c = text[i];
+            if (c === '"') { i = this.endOfRustStringLiteral(text, i) - 1; continue; }
+            if (c === '(' || c === '[' || c === '{') depth++;
+            else if (c === ')' || c === ']' || c === '}') { depth--; if (depth < 0) return -1; }
+            else if (c === ';' && depth === 0) return i;
+        }
+        return -1;
+    }
+
+    x45Variant(content: string): (name: string, pos: number) => 'Dict' | 'Arr' | 'Str' | undefined {
+        const masked = this.maskStringsAndComments(content);
+        const headers: number[] = [0];
+        for (const hm of masked.matchAll(/\n[ \t]*(?:pub(?:\([a-z]+\))? )?(?:async )?fn /g)) headers.push((hm.index as number) + 1);
+        headers.push(content.length);
+        const memo = new Map<string, 'Dict' | 'Arr' | 'Str' | undefined>();
+        const okMut = /(?:(?<![A-Za-z0-9_:.])(?:add_element_to_object|set_value|append_to_array|remove)\(|if let Value::(?:Arr|Dict)\(__[a-z]+\) = )$/;
+        const readMethods = new Set([ 'clone', 'len', 'is_empty', 'as_map', 'as_array', 'as_str', 'as_i64', 'as_f64', 'as_bool', 'is_truthy', 'is_null', 'is_str', 'is_map', 'is_array', 'to_string', 'to_json' ]);
+        const prove = (name: string, from: number, to: number): 'Dict' | 'Arr' | 'Str' | undefined => {
+            const region = masked.slice(from, to);
+            const real = content.slice(from, to);
+            const header = region.slice(0, Math.max(0, region.indexOf('{')));
+            if (new RegExp(`\\b${name}\\s*:`).test(header)) return undefined;
+            const rebind = new RegExp(`(?<!\\|)\\|(?!\\|)[^|\\n]*\\b${name}\\b[^|\\n]*(?<!\\|)\\|(?!\\|)|\\bfor [^\\n]*\\b${name}\\b[^\\n]* in |[A-Za-z_:]\\((?:ref |mut )*${name}\\)|\\blet \\([^)]*\\b${name}\\b|\\b${name}\\s*@|\\b${name}\\b[^;\\n]*\\)\\s*=>|\\b${name}\\s*[-+*/%|&^]=`);
+            if (rebind.test(region) || new RegExp(`\\*\\s*${name}\\b\\s*=(?!=)`).test(region)) return undefined;
+            const variants = new Set<string>();
+            let lets = 0;
+            let allLit = true;
+            for (const m of region.matchAll(new RegExp(`(?<![A-Za-z0-9_.*])(let (?:mut )?)?${name}\\b(\\s*:\\s*([A-Za-z_][A-Za-z0-9_<>]*))?\\s*=(?!=)`, 'g'))) {
+                if (m[1] !== undefined) lets++;
+                else if (m[2] !== undefined) return undefined;
+                if (m[3] !== undefined && m[3] !== 'Value') return undefined;
+                const rs = (m.index as number) + m[0].length;
+                const end = this.x45StmtEnd(region, rs);
+                if (end < 0) return undefined;
+                const v = this.x45Source(real.slice(rs, end));
+                if (v === undefined) return undefined;
+                if (!/^\s*Value::Map\(/.test(real.slice(rs, end))) allLit = false;
+                variants.add(v);
             }
-            if (name === 'object_values' && a.length === 1 && a[0].startsWith('&')) {
-                return `({ let __r32o: &Value = ${a[0]}; match __r32o { Value::Dict(__m) => Value::List(__m.iter().filter(|(__k, _)| __k.as_str() != "__ws_subs_url" && __k.as_str() != "__ws_sub_ref").map(|(_, __v)| __v.clone()).collect()), _ => Value::List(vec![]) } })`;
+            if (lets === 0 || variants.size !== 1) return undefined;
+            for (const m of region.matchAll(new RegExp(`&mut ${name}\\b`, 'g'))) {
+                if (!okMut.test(region.slice(Math.max(0, (m.index as number) - 48), m.index as number))) return undefined;
             }
-            if (name === 'shift' && a.length === 1) {
-                return `({ let mut __r32a: Value = ${a[0]}; match &mut __r32a { Value::Arr(__a) if !__a.is_empty() => std::sync::Arc::make_mut(__a).remove(0), _ => Value::Null } })`;
+            for (const m of region.matchAll(new RegExp(`(?<![A-Za-z0-9_.])${name}\\.([A-Za-z_][A-Za-z0-9_]*)`, 'g'))) {
+                if (!readMethods.has(m[1])) return undefined;
             }
-            if (name === 'is_instance' && a.length === 2 && a[0].startsWith('&')) {
-                const m = /^&Value::Str\("([A-Za-z0-9_]+)"\.(?:into|to_string)\(\)\)$/.exec(a[1]);
-                if (m === null) return undefined;
-                const cls = m[1];
-                const subs = subtree(cls) ?? [];
-                const walk = subs.length === 0 ? '' : ` || matches!(__s.find('[').and_then(|__a| __s[__a + 1..].find(']').map(|__b| &__s[__a + 1..__a + 1 + __b])), Some(${subs.map(x => `"${x}"`).join(' | ')}))`;
-                return `({ let __r32v: &Value = ${a[0]}; matches!(__r32v, Value::Str(__s) if __s.contains("[${cls}]")${walk}) })`;
+            const v0 = [...variants][0] as 'Dict' | 'Arr' | 'Str';
+            // A Dict built only from `Value::Map({..})` literals can never carry the ws-subscription tag keys
+            // `object_keys` filters out, so its plain key list equals the helper's.
+            return v0 === 'Dict' && allLit && !real.includes('__ws_sub') && !new RegExp(`&mut ${name}\\b`).test(region) ? 'DictLit' as any : v0;
+        };
+        const lookup = (name: string, pos: number) => {
+            if (!/^[a-z_][A-Za-z0-9_]*$/.test(name) || name === 'self') return undefined;
+            let lo = 0;
+            for (let h = 0; h + 1 < headers.length; h++) if (headers[h] <= pos) lo = h;
+            const key = `${lo}:${name}`;
+            if (!memo.has(key)) memo.set(key, prove(name, headers[lo], headers[lo + 1]));
+            const r = memo.get(key) as string | undefined;
+            if (r === 'DictLit') return 'Dict';
+            return r as 'Dict' | 'Arr' | 'Str' | undefined;
+        };
+        const fn = lookup as ((name: string, pos: number) => 'Dict' | 'Arr' | 'Str' | undefined) & { literal?: (name: string, pos: number) => boolean };
+        fn.literal = (name: string, pos: number) => {
+            if (lookup(name, pos) !== 'Dict') return false;
+            let lo = 0;
+            for (let h = 0; h + 1 < headers.length; h++) if (headers[h] <= pos) lo = h;
+            return memo.get(`${lo}:${name}`) === ('DictLit' as any);
+        };
+        return fn;
+    }
+
+    x45Native(content: string): string {
+        if (!/(?:get_array_length|in_op|is_equal|to_string_val|object_keys)\(&/.test(content)) return content;
+        const variant = this.x45Variant(content);
+        const masked = this.maskStringsAndComments(content);
+        const ident = /^&([a-z_][A-Za-z0-9_]*)$/;
+        const strLit = /^&Value::Str\(("(?:[^"\\]|\\.)*")\.(?:into|to_string)\(\)\)$/;
+        const rewrites: Array<{ start: number, end: number, text: string }> = [];
+        for (const m of masked.matchAll(/(?<![A-Za-z0-9_:.])(get_array_length|in_op|is_equal|to_string_val|object_keys)\(&/g)) {
+            const start = m.index as number;
+            const open = start + m[1].length;
+            const close = this.closeParenAt(content, open);
+            if (close < 0) continue;
+            const args = this.splitTopLevelCommas(content.slice(open + 1, close)).map(s => s.trim());
+            let text: string | undefined;
+            if ((m[1] === 'get_array_length' || m[1] === 'to_string_val') && args.length === 1) {
+                const x = ident.exec(args[0]);
+                const v = x === null ? undefined : variant(x[1], start);
+                if (m[1] === 'get_array_length' && (v === 'Arr' || v === 'Str')) text = `Value::Int(${x![1]}.len() as i64)`;
+                if (m[1] === 'to_string_val' && v === 'Str') text = `${x![1]}.clone()`;
+            } else if (m[1] === 'in_op' && args.length === 2) {
+                const x = ident.exec(args[0]); const k = strLit.exec(args[1]);
+                const kv = ident.exec(args[1]);
+                const v = x === null ? undefined : variant(x[1], start);
+                if (x !== null && k !== null && v === 'Dict') text = `${x[1]}.as_map().is_some_and(|__m| __m.contains_key(${k[1]}))`;
+                else if (x !== null && kv !== null && kv[1] !== x[1] && v === 'Dict') text = `${x[1]}.as_map().is_some_and(|__m| ${kv[1]}.as_str().is_some_and(|__k| __m.contains_key(__k)))`;
+            } else if (m[1] === 'object_keys' && args.length === 1) {
+                const x = ident.exec(args[0]);
+                if (x !== null && variant.literal!(x[1], start)) text = `Value::Array(${x[1]}.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default())`;
+            } else if (m[1] === 'is_equal' && args.length === 2) {
+                const [a, b] = args;
+                const xa = ident.exec(a); const xb = ident.exec(b);
+                const sa = xa !== null && variant(xa[1], start) === 'Str';
+                const sb = xb !== null && variant(xb[1], start) === 'Str';
+                const la = strLit.exec(a); const lb = strLit.exec(b);
+                if (sa && sb) text = `(${xa![1]}.as_str() == ${xb![1]}.as_str())`;
+                else if (sa && lb !== null) text = `(${xa![1]}.as_str() == Some(${lb[1]}))`;
+                else if (sb && la !== null) text = `(${xb![1]}.as_str() == Some(${la[1]}))`;
             }
+            if (text !== undefined) rewrites.push({ start, end: close + 1, text });
+        }
+        if (rewrites.length === 0) return content;
+        let out = ''; let at = 0;
+        for (const r of rewrites) {
+            if (r.start < at) continue;
+            out += content.slice(at, r.start) + r.text;
+            at = r.end;
+        }
+        return out + content.slice(at);
+    }
+
+    // hx5 X46 — `for (let i = 0; ...; i++)` over a `Value` counter. The ast
+    // printer emits the incrementor as the full `printNativeNumeric` match
+    // (`i = (match (&(i), &(Value::Int(1))) { 5 arms })`), ~300 chars per loop.
+    // Proof: the counter is declared `let mut i: Value = Value::Int(N);` right
+    // before the loop flag, and inside that `for` block the only write to `i`
+    // is this incrementor. Int ± Int stays Int, so `i` is always `Value::Int`
+    // and the match only ever takes its Int/Int arm: emit that arm natively.
+    // Unproven counters are left exactly as printed.
+    x46Incr(content: string): string {
+        const incrRe = /while \{ if !(__for_first_\d+) \{ (\w+) = \(match \(&\(\2\), &\(Value::Int\(1\)\)\) \{ \(Value::Int\(x\), Value::Int\(y\)\) => Value::Int\(x ([+-]) y\), \(Value::Int\(x\), Value::Float\(y\)\) => Value::Float\(\*x as f64 \3 \*y\), \(Value::Float\(x\), Value::Int\(y\)\) => Value::Float\(\*x \3 \*y as f64\), \(Value::Float\(x\), Value::Float\(y\)\) => Value::Float\(x \3 y\), _ => Value::Null \}\); \}/g;
+        const rewrites: Array<{ start: number, end: number, text: string }> = [];
+        let m: RegExpExecArray | null;
+        while ((m = incrRe.exec(content)) !== null) {
+            const [whole, flag, v, sign] = m;
+            const flagDecl = content.lastIndexOf(`let mut ${flag}: bool = true;`, m.index);
+            if (flagDecl < 0) continue;
+            const declRe = new RegExp(`let mut ${v}: Value = Value::Int\\(-?\\d+\\);\\s*$`);
+            if (!declRe.test(content.slice(Math.max(0, flagDecl - 200), flagDecl))) continue;
+            // The `{` printForStatement opened before the declaration.
+            const blockOpen = content.lastIndexOf('{', content.lastIndexOf(`let mut ${v}: Value`, flagDecl));
+            let depth = 0, end = -1;
+            for (let k = blockOpen; k < content.length; k++) {
+                const c = content[k];
+                if (c === '"') { k++; while (k < content.length && content[k] !== '"') { if (content[k] === '\\') k++; k++; } continue; }
+                if (c === '{') depth++;
+                else if (c === '}' && --depth === 0) { end = k; break; }
+            }
+            if (end < 0) continue;
+            const block = content.slice(blockOpen, end).replace(whole, '');
+            const esc = v.replace(/[$]/g, '\\$');
+            const writes = new RegExp(`(?<![\\w.])${esc}\\s*(=(?!=)|[-+*/%]=)|&mut\\s+${esc}\\b|let\\s+(mut\\s+)?${esc}\\b`, 'g');
+            const hits = block.match(writes) || [];
+            // Exactly one hit: the declaration itself.
+            if (hits.length !== 1) continue;
+            const text = `while { if !${flag} { if let Value::Int(n) = &mut ${v} { *n ${sign}= 1; } }`;
+            rewrites.push({ start: m.index, end: m.index + whole.length, text });
+        }
+        if (rewrites.length === 0) return content;
+        let out = '', at = 0;
+        for (const r of rewrites) { out += content.slice(at, r.start) + r.text; at = r.end; }
+        return out + content.slice(at);
+    }
+
+    // hx5 X39 — case/affix helpers: `starts_with`/`ends_with` go native ONLY when both
+    // args are a proven `&Value::Str(E.into())` box (E is then a &str/String, evaluated once,
+    // and the helper's `(Str, Str)` arm is exactly `h.starts_with(p)`); every other site keeps
+    // the plain `runtime` helper call. `to_upper`/`to_lower` are never inlined here: a native
+    // `to_uppercase()` needs a proven `&str` receiver, and no such site reaches this pass.
+    x39Affix(content: string): string {
+        if (!content.includes('starts_with(') && !content.includes('ends_with(')) return content;
+        const strBox = (arg: string): string | undefined => {
+            const t = arg.trim();
+            if (!t.startsWith('&Value::Str(')) return undefined;
+            const open = t.indexOf('(');
+            const close = this.closeParenAt(t, open);
+            if (close !== t.length - 1) return undefined;
+            const m = /^([\s\S]+)\.(?:into|to_string)\(\)$/.exec(t.slice(open + 1, close).trim());
+            if (m === null) return undefined;
+            const e = m[1].trim();
+            if (/^"(?:[^"\\]|\\.)*"$/.test(e)) return e;
+            if (/^format!\(/.test(e) && this.closeParenAt(e, e.indexOf('(')) === e.length - 1) return e;
             return undefined;
         };
-        const re = /(?<![A-Za-z0-9_:.])(is_instance|is_function|object_values|shift)\(/g;
-        for (let round = 0; round < 8; round++) {
-            const masked = this.maskStringsAndComments(content);
-            const rewrites: Array<{ start: number, end: number, text: string }> = [];
-            for (const m of masked.matchAll(re)) {
-                const start = m.index as number;
-                const name = m[1];
-                if (/\bfn\s+$/.test(masked.slice(Math.max(0, start - 8), start))) continue;
-                const open = start + name.length;
-                const close = this.closeParenAt(content, open);
-                if (close < 0) continue;
-                const inner = content.slice(open + 1, close);
-                if (/(?<![A-Za-z0-9_:.])(is_instance|is_function|object_values|shift)\(/.test(this.maskStringsAndComments(inner))) continue;
-                const text = build(name, this.splitTopLevelCommas(inner));
-                if (text === undefined) continue;
-                rewrites.push({ start, end: close + 1, text });
-            }
-            if (rewrites.length === 0) break;
-            let out = ''; let at = 0;
-            for (const r of rewrites) {
-                if (r.start < at) continue;
-                out += content.slice(at, r.start) + r.text;
-                at = r.end;
-            }
-            content = out + content.slice(at);
+        const re = /(?<![A-Za-z0-9_:.])(starts_with|ends_with)\(/g;
+        const masked = this.maskStringsAndComments(content);
+        let out = ''; let at = 0;
+        for (const m of masked.matchAll(re)) {
+            const start = m.index as number;
+            if (start < at) continue;
+            if (/\bfn\s+$/.test(masked.slice(Math.max(0, start - 8), start))) continue;
+            const open = start + m[1].length;
+            const close = this.closeParenAt(content, open);
+            if (close < 0) continue;
+            const args = this.splitTopLevelCommas(content.slice(open + 1, close));
+            if (args.length !== 2) continue;
+            const h = strBox(args[0]); const n = strBox(args[1]);
+            if (h === undefined || n === undefined) continue;
+            out += content.slice(at, start) + `(${h}).${m[1]}(&*${n})`;
+            at = close + 1;
         }
-        return content;
+        return out + content.slice(at);
+    }
+
+    // hx5 X42 — `to_string_val(&X)`: plain native only when X is a literal `Value::Str(E)` box
+    // (helper = `Value::Str(stringify_simple(..))`, identity on Str, so the box itself is
+    // the result and E is evaluated once). Every other operand keeps the helper call verbatim:
+    // `Display` differs from `stringify_simple` on Arr/Dict and the `__precise` dict.
+    // parse_int/parse_float are emitted as `crate::runtime::parse_*`, never inlined by r31: left alone.
+    x42ToStr(a: string[]): string | undefined {
+        if (a.length !== 1) return undefined;
+        const m = /^&\s*(Value::Str\(([\s\S]*)\))$/.exec(a[0]);
+        if (m === null || this.closeParenAt(m[1], 'Value::Str'.length) !== m[1].length - 1) return undefined;
+        return m[1];
     }
 }
 
@@ -12776,4 +13057,21 @@ if (isMainEntry(import.meta.url)) {
     } else {
         await t.transpileEverything(force, child, false);
     }
+}
+
+// hx5 X33 — `in_op` arm of the r29 pass: plain native op on a proven map, else the helper call.
+function hx5X33InOp (a: string[], content: string): string | undefined {
+    if (a.length !== 2) return undefined;
+    const recv = /^&([A-Za-z_][A-Za-z0-9_]*)$/.exec(a[0]);
+    const key = /^&Value::Str\(("(?:[^"\\]|\\.)*")\.into\(\)\)$/.exec(a[1]);
+    if (recv === null || key === null) return undefined;
+    const x = recv[1];
+    const declRe = new RegExp('\\blet\\s+(?:mut\\s+)?' + x + '\\s*:\\s*([^=;]+?)\\s*=', 'g');
+    const types = [ ...content.matchAll(declRe) ].map(m => m[1].replace(/\s+/g, ''));
+    const mapTy = /^(?:(?:std::sync::)?Arc<)?(?:indexmap::)?IndexMap<String,Value>>?$/;
+    if (types.length === 0 || !types.every(t => mapTy.test(t))) return undefined;
+    // A parameter / closure binding of the same name could shadow the proven local: require no `x:` binder outside `let`.
+    const binder = new RegExp('(?<!let\\s(?:mut\\s)?)[(,|]\\s*(?:mut\\s+)?' + x + '\\s*:');
+    if (binder.test(content)) return undefined;
+    return `${x}.contains_key(${key[1]})`;
 }

@@ -3272,7 +3272,7 @@ class poloniex(Exchange, ImplicitAPI):
                         depositWithdrawFees[code]['networks'] = self.extend(depositWithdrawFees[code]['networks'], networkObject)
         return depositWithdrawFees
 
-    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None) -> object:
+    def parse_deposit_withdraw_fee(self, fee: dict, currency: Currency = None) -> object:
         depositWithdrawFee = self.deposit_withdraw_fee({})
         currencyCode = self.safe_string(currency, 'code')
         depositWithdrawFee['info'][currencyCode] = fee
@@ -3786,7 +3786,7 @@ class poloniex(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
         isArray = isinstance(params, list)
         url = self.urls['api']['spot']

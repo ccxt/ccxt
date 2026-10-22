@@ -4946,8 +4946,8 @@ export default class htx extends Exchange {
             if (rawType !== undefined) {
                 if (rawType.indexOf ('-') >= 0) {
                     const orderType = rawType.split ('-');
-                    side = orderType[0];
-                    type = orderType[1];
+                    side = this.safeString (orderType, 0);
+                    type = this.safeString (orderType, 1);
                 } else if (type === undefined) {
                     type = rawType;
                 }
@@ -7575,7 +7575,7 @@ export default class htx extends Exchange {
         return this.milliseconds () - this.safeInteger (this.options, 'timeDifference', 0);
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         let signedHeaders = undefined;
         let signedBody: Str = undefined;
         const pathString: string = path;
@@ -8434,9 +8434,10 @@ export default class htx extends Exchange {
         const positions: Dict[] = this.safeList (account, 'positions', []);
         let position: NullableDict = undefined;
         if ((market['future'] === true) && (market['inverse'] === true)) {
+            const marketId = this.safeString (market, 'id');
             for (let i = 0; i < positions.length; i++) {
                 const entry = positions[i];
-                if (this.safeString (entry, 'contract_code') === market['id']) {
+                if (this.safeString (entry, 'contract_code') === marketId) {
                     position = entry;
                     break;
                 }
@@ -8966,7 +8967,7 @@ export default class htx extends Exchange {
         return openInterest as OpenInterest;
     }
 
-    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
+    override parseOpenInterest (interest: NullableDict, market: Market = undefined): OpenInterest {
         //
         // fetchOpenInterestHistory
         //
@@ -9403,7 +9404,7 @@ export default class htx extends Exchange {
         return this.parseDepositWithdrawFees (data, codes, 'currency');
     }
 
-    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined): any {
+    override parseDepositWithdrawFee (fee: NullableDict, currency: Currency = undefined): any {
         //
         //            {
         //              "currency": "sxp",

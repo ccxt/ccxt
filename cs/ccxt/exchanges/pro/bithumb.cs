@@ -593,7 +593,7 @@ public partial class bithumb : ccxt.bithumb
 
     public override void handleBookDeltas(ccxt.pro.IOrderBook orderbook, object deltas)
     {
-        for (int i = 0; i < (((object)(deltas)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(deltas); i++)
         {
             this.handleBookDelta(orderbook, getValue(deltas, i));
         }
@@ -1202,12 +1202,12 @@ public partial class bithumb : ccxt.bithumb
             this.handlePong(client, message);
             return;
         }
-        if (((((object)(message)) switch { null => false, IList<object> c33a => c33a.Contains("pong"), IList<string> c33t => c33t.Contains("pong"), List<Int64> c33g => c33g.Contains((Int64)(object)"pong"), IDictionary<string, object> c33d => c33d.ContainsKey("pong"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("pong"), _ => false })) || ((((object)(message)) switch { null => false, IList<object> c33a => c33a.Contains("PINGPONG"), IList<string> c33t => c33t.Contains("PINGPONG"), List<Int64> c33g => c33g.Contains((Int64)(object)"PINGPONG"), IDictionary<string, object> c33d => c33d.ContainsKey("PINGPONG"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("PINGPONG"), _ => false })))
+        if ((inOp(message, "pong")) || (inOp(message, "PINGPONG")))
         {
             this.handlePong(client, message);
             return;
         }
-        if ((((object)(message)) switch { null => false, IList<object> c33a => c33a.Contains("ping"), IList<string> c33t => c33t.Contains("ping"), List<Int64> c33g => c33g.Contains((Int64)(object)"ping"), IDictionary<string, object> c33d => c33d.ContainsKey("ping"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("ping"), _ => false }))
+        if (inOp(message, "ping"))
         {
             this.handlePing(client, message);
             return;

@@ -173,7 +173,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         {
             throw new ArgumentsRequired ((this.id + " watchTickers() symbols is required")) ;
         }
-        int symbolsLength = (((object)(symbols)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+        int symbolsLength = getArrayLength(symbols);
         if ((symbolsLength == 0))
         {
             throw new BadSymbol ((this.id + " watchTickers requires a non-empty symbols array")) ;
@@ -776,7 +776,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                         string? totalCost = "0";
                         string? totalAmount = "0";
                         object trades = (previousOrder != null && previousOrder.ContainsKey("trades") ? previousOrder["trades"] : null);
-                        for (int i = 0; i < (((object)(trades)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+                        for (int i = 0; i < getArrayLength(trades); i++)
                         {
                             IDictionary<string, object> tradeEntry = this.safeDict(trades, i);
                             totalCost = this.safeString(tradeEntry, "cost", "0");

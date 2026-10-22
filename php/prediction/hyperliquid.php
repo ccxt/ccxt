@@ -256,7 +256,7 @@ class hyperliquid extends Exchange {
         return $base . ':' . $label;
     }
 
-    public function build_outcome_parent_symbol(array $desc, float $outcomeId, $name = '', array $question = array()): string {
+    public function build_outcome_parent_symbol(array $desc, float $outcomeId, string $name = '', array $question = array()): string {
         /**
          * @ignore
          * builds a market id (parent outcome without YES/NO) from a parsed description, e.g. BTC_ABOVE_78213_20260503 for priceBinary outcomes or OUTCOME_9345 for non-priceBinary outcomes using the $name field
@@ -2150,7 +2150,7 @@ class hyperliquid extends Exchange {
         return $this->sign_hash($this->hash_message($message), mb_substr($privateKey, -64));
     }
 
-    public function construct_phantom_agent(mixed $hash, $isTestnet = true): array {
+    public function construct_phantom_agent(mixed $hash, bool $isTestnet = true): array {
         $source = 'a';
         if ($isTestnet) {
             $source = 'b';
@@ -2313,7 +2313,7 @@ class hyperliquid extends Exchange {
         return strtolower($normalized);
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'POST', $params = array()) {
+    public function sign(string $path, array $api = array('public'), string $method = 'POST', $params = array()) {
         $apiGroup = $api[0];
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         if ($sandboxMode) {

@@ -1984,7 +1984,7 @@ public class Woo extends WooApi
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             data = (Map<String, Object>) this.safeDict(this.safeList(data, "rows", (Object) null), 0, data);
-            { Map<Object, Object> j39v1 = (Map<Object, Object>) (Map<?, ?>) (data); Object j39v2 = "timestamp"; Object j39v3 = this.safeString(response, "timestamp"); if (j39v1 == null) { if (j39v2 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v1) { if (j39v3 == null && j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); } else { j39v1.put(j39v2, j39v3); } } }
+            Helpers.addElementToObject(data, "timestamp", this.safeString(response, "timestamp"));
             return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
@@ -3389,7 +3389,7 @@ public class Woo extends WooApi
         Map<String, Object> networkEntry = (Map<String, Object>) ((((java.util.Objects.equals(networkCode, null)))) ? null : this.safeDict(Helpers.GetValue(currency, "networks"), networkCode, (Object) null));
         if (java.util.Objects.equals(networkEntry, null))
         {
-            List<Object> supportedNetworks = ((List<Object>) switch ((Object)(Helpers.GetValue(currency, "networks"))) { case Map<?, ?> j39v5 -> { synchronized (j39v5) { yield new ArrayList<Object>(j39v5.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            List<Object> supportedNetworks = ((List<Object>) switch ((Object)(Helpers.GetValue(currency, "networks"))) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
             throw new BadRequest(((this.id + "  can not determine a network code, please provide unified \"network\" param, one from the following: ") + this.json(supportedNetworks))) ;
         }
         String currentyNetworkId = this.safeString(networkEntry, "currencyNetworkId");
@@ -3584,7 +3584,7 @@ public class Woo extends WooApi
             return currency;
         } else
         {
-            List<Object> parts = (List<Object>) ((java.util.function.BiFunction<Object, Object, Object>) (hx4J43a0, hx4J43b0) -> { if (hx4J43a0 == null || hx4J43b0 == null) { return java.util.Collections.emptyList(); } return Arrays.asList(String.valueOf(hx4J43a0).split(java.util.regex.Pattern.quote(String.valueOf(hx4J43b0)))); }).apply(networkizedCode, "_");
+            List<Object> parts = (List<Object>) Helpers.split(networkizedCode, "_");
             Integer partsLength = (parts == null ? 0 : parts.size());
             String firstPart = this.safeString(parts, 0);
             String currencyId = this.safeString(parts, 1, firstPart);
@@ -5539,6 +5539,6 @@ public class Woo extends WooApi
     public void setSandboxMode(Boolean enable)
     {
         super.setSandboxMode(enable);
-        { Map<Object, Object> j39v8 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v9 = "sandboxMode"; Object j39v10 = enable; if (j39v8 == null) { if (j39v9 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v8) { if (j39v10 == null && j39v8 instanceof java.util.concurrent.ConcurrentHashMap) { j39v8.remove(j39v9); } else { j39v8.put(j39v9, j39v10); } } }
+        Helpers.addElementToObject(this.options, "sandboxMode", enable);
     }
 }

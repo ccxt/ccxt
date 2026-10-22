@@ -4339,7 +4339,7 @@ public class Binance extends BinanceApi
     public void setSandboxMode(Boolean enable)
     {
         super.setSandboxMode(enable);
-        { Map<Object, Object> j39v1 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v2 = "sandboxMode"; Object j39v3 = enable; if (j39v1 == null) { if (j39v2 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v1) { if (j39v3 == null && j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); } else { j39v1.put(j39v2, j39v3); } } }
+        Helpers.addElementToObject(this.options, "sandboxMode", enable);
     }
 
     public MarketInterface createExpiredOptionMarket(Object symbol)
@@ -4360,7 +4360,7 @@ public class Binance extends BinanceApi
         Long strike = this.safeInteger(optionParts, 2);
         String strikeAsString = this.safeString(optionParts, 2);
         String optionType = this.safeString(optionParts, 3);
-        Object datetime = this.convertExpireDate(expiry);
+        String datetime = (String) this.convertExpireDate(expiry);
         Long timestamp = this.parse8601(datetime);
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
         mapLiteral1.put("id", ((((((base + "-") + expiry) + "-") + strikeAsString) + "-") + optionType));
@@ -4455,7 +4455,7 @@ public class Binance extends BinanceApi
                     defaultType = defaultSubType;
                 }
                 // end diff
-                for (var i = 0; i < (switch ((Object)(markets)) { case null -> 0; case List<?> j39v6 -> j39v6.size(); case String j39v7 -> j39v7.length(); case Object j39v8 -> j39v8.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v8) : 0; }); i++)
+                for (var i = 0; i < (switch ((Object)(markets)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
                 {
                     Object market = Helpers.GetValue(markets, i);
                     if (Boolean.TRUE.equals(this.safeBool(market, defaultType, false)))
@@ -4677,15 +4677,15 @@ public class Binance extends BinanceApi
         }
         if (Boolean.TRUE.equals(enable))
         {
-            { Map<Object, Object> j39v20 = (Map<Object, Object>) (Map<?, ?>) (this.urls); Object j39v21 = "apiBackupDemoTrading"; Object j39v22 = this.urls.get("api"); if (j39v20 == null) { if (j39v21 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v20) { if (j39v22 == null && j39v20 instanceof java.util.concurrent.ConcurrentHashMap) { j39v20.remove(j39v21); } else { j39v20.put(j39v21, j39v22); } } }
-            { Map<Object, Object> j39v17 = (Map<Object, Object>) (Map<?, ?>) (this.urls); Object j39v18 = "api"; Object j39v19 = this.urls.get("demo"); if (j39v17 == null) { if (j39v18 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v17) { if (j39v19 == null && j39v17 instanceof java.util.concurrent.ConcurrentHashMap) { j39v17.remove(j39v18); } else { j39v17.put(j39v18, j39v19); } } }
+            Helpers.addElementToObject(this.urls, "apiBackupDemoTrading", this.urls.get("api"));
+            Helpers.addElementToObject(this.urls, "api", this.urls.get("demo"));
         } else if (((Map<?, ?>)this.urls).containsKey("apiBackupDemoTrading"))
         {
-            { Map<Object, Object> j39v14 = (Map<Object, Object>) (Map<?, ?>) (this.urls); Object j39v15 = "api"; Object j39v16 = this.urls.get("apiBackupDemoTrading"); if (j39v14 == null) { if (j39v15 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v14) { if (j39v16 == null && j39v14 instanceof java.util.concurrent.ConcurrentHashMap) { j39v14.remove(j39v15); } else { j39v14.put(j39v15, j39v16); } } }
+            Helpers.addElementToObject(this.urls, "api", this.urls.get("apiBackupDemoTrading"));
             Map<String, Object> newUrls = this.omit(this.urls, "apiBackupDemoTrading");
             this.urls = newUrls;
         }
-        { Map<Object, Object> j39v11 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v12 = "enableDemoTrading"; Object j39v13 = enable; if (j39v11 == null) { if (j39v12 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v11) { if (j39v13 == null && j39v11 instanceof java.util.concurrent.ConcurrentHashMap) { j39v11.remove(j39v12); } else { j39v11.put(j39v12, j39v13); } } }
+        Helpers.addElementToObject(this.options, "enableDemoTrading", enable);
     }
 
     /**
@@ -4784,7 +4784,7 @@ public class Binance extends BinanceApi
     public Object parseCurrenciesCustom(Object responseCurrencies, Object marginablesById)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < (switch ((Object)(responseCurrencies)) { case null -> 0; case List<?> j39v24 -> j39v24.size(); case String j39v25 -> j39v25.length(); case Object j39v26 -> j39v26.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v26) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(responseCurrencies)) { case null -> 0; case List<?> j39v4 -> j39v4.size(); case String j39v5 -> j39v5.length(); case Object j39v6 -> j39v6.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v6) : 0; }); i++)
         {
             Map<String, Object> parsed = (Map<String, Object>) this.parseCurrency(Helpers.GetValue(responseCurrencies, i));
             if (java.util.Objects.equals(parsed, null))
@@ -5090,22 +5090,22 @@ public class Binance extends BinanceApi
             }
             Object results = (((List<?>)(promisesRaw)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             List<Object> markets = new ArrayList<Object>(Arrays.asList());
-            { Map<Object, Object> j39v39 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v40 = "crossMarginPairsData"; Object j39v41 = new ArrayList<Object>(Arrays.asList()); if (j39v39 == null) { if (j39v40 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v39) { if (j39v41 == null && j39v39 instanceof java.util.concurrent.ConcurrentHashMap) { j39v39.remove(j39v40); } else { j39v39.put(j39v40, j39v41); } } }
-            { Map<Object, Object> j39v36 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v37 = "isolatedMarginPairsData"; Object j39v38 = new ArrayList<Object>(Arrays.asList()); if (j39v36 == null) { if (j39v37 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v36) { if (j39v38 == null && j39v36 instanceof java.util.concurrent.ConcurrentHashMap) { j39v36.remove(j39v37); } else { j39v36.put(j39v37, j39v38); } } }
+            Helpers.addElementToObject(this.options, "crossMarginPairsData", new ArrayList<Object>(Arrays.asList()));
+            Helpers.addElementToObject(this.options, "isolatedMarginPairsData", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)results).size(); i++)
             {
                 Object res = this.safeValue(results, i);
                 if (Boolean.TRUE.equals(fetchMargins) && (res instanceof List))
                 {
                     List<Object> keysList = new ArrayList<Object>(((Map<String, Object>)this.indexBy(res, "symbol")).keySet());
-                    Integer length = (switch ((Object)(this.options.get("crossMarginPairsData"))) { case null -> 0; case List<?> j39v33 -> j39v33.size(); case String j39v34 -> j39v34.length(); case Object j39v35 -> j39v35.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v35) : 0; });
+                    Integer length = (switch ((Object)(this.options.get("crossMarginPairsData"))) { case null -> 0; case List<?> j39v7 -> j39v7.size(); case String j39v8 -> j39v8.length(); case Object j39v9 -> j39v9.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v9) : 0; });
                     // first one is the cross-margin promise
                     if ((length != null && length == 0))
                     {
-                        { Map<Object, Object> j39v30 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v31 = "crossMarginPairsData"; Object j39v32 = keysList; if (j39v30 == null) { if (j39v31 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v30) { if (j39v32 == null && j39v30 instanceof java.util.concurrent.ConcurrentHashMap) { j39v30.remove(j39v31); } else { j39v30.put(j39v31, j39v32); } } }
+                        Helpers.addElementToObject(this.options, "crossMarginPairsData", keysList);
                     } else
                     {
-                        { Map<Object, Object> j39v27 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v28 = "isolatedMarginPairsData"; Object j39v29 = keysList; if (j39v27 == null) { if (j39v28 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v27) { if (j39v29 == null && j39v27 instanceof java.util.concurrent.ConcurrentHashMap) { j39v27.remove(j39v28); } else { j39v27.put(j39v28, j39v29); } } }
+                        Helpers.addElementToObject(this.options, "isolatedMarginPairsData", keysList);
                     }
                 } else
                 {
@@ -5641,7 +5641,7 @@ public class Binance extends BinanceApi
         Boolean cross = (java.util.Objects.equals(type, "margin")) || (java.util.Objects.equals(marginMode, "cross"));
         if (java.util.Objects.requireNonNullElse(isPortfolioMargin, false))
         {
-            for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v52 -> j39v52.size(); case String j39v53 -> j39v53.length(); case Object j39v54 -> j39v54.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v54) : 0; }); i++)
+            for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v16 -> j39v16.size(); case String j39v17 -> j39v17.length(); case Object j39v18 -> j39v18.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v18) : 0; }); i++)
             {
                 Map<String, Object> entry = (Map<String, Object>) this.safeDict(response, i, (Object) null);
                 Map<String, Object> account = this.account();
@@ -5737,7 +5737,7 @@ public class Binance extends BinanceApi
             }
         } else if (java.util.Objects.equals(type, "funding"))
         {
-            for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v49 -> j39v49.size(); case String j39v50 -> j39v50.length(); case Object j39v51 -> j39v51.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v51) : 0; }); i++)
+            for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v13 -> j39v13.size(); case String j39v14 -> j39v14.length(); case Object j39v15 -> j39v15.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v15) : 0; }); i++)
             {
                 Map<String, Object> entry = (Map<String, Object>) this.safeDict(response, i, (Object) null);
                 Map<String, Object> account = this.account();
@@ -5760,7 +5760,7 @@ public class Binance extends BinanceApi
             {
                 balances = this.safeList(response, "assets", new ArrayList<Object>(Arrays.asList()));
             }
-            for (var i = 0; i < (switch ((Object)(balances)) { case null -> 0; case List<?> j39v46 -> j39v46.size(); case String j39v47 -> j39v47.length(); case Object j39v48 -> j39v48.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v48) : 0; }); i++)
+            for (var i = 0; i < (switch ((Object)(balances)) { case null -> 0; case List<?> j39v10 -> j39v10.size(); case String j39v11 -> j39v11.length(); case Object j39v12 -> j39v12.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v12) : 0; }); i++)
             {
                 Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
                 // skip stale/uninitialized assets, whose updateTime is 0, their balances are not valid (see https://github.com/ccxt/ccxt/issues/27997)
@@ -6762,7 +6762,7 @@ public class Binance extends BinanceApi
     public Object parseTickersForRolling(Object response, Object symbols)
     {
         List<Object> results = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v57 -> j39v57.size(); case String j39v58 -> j39v58.length(); case Object j39v59 -> j39v59.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v59) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v19 -> j39v19.size(); case String j39v20 -> j39v20.length(); case Object j39v21 -> j39v21.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v21) : 0; }); i++)
         {
             String marketId = this.safeString(Helpers.GetValue(response, i), "symbol");
             Map<String, Object> tickerMarket = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, "spot");
@@ -7021,7 +7021,7 @@ public class Binance extends BinanceApi
                     if ((since > 0))
                     {
                         int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
-                        Object endTime = this.sum(since, ((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) - ((Long) j36b)); if (j36a instanceof Double || j36b instanceof Double) { java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; return (Object) (j36d.applyAsDouble(j36a) - j36d.applyAsDouble(j36b)); } return null; }).apply(((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a == null || j36b == null) return null; if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) * ((Long) j36b)); java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; double j36r = j36d.applyAsDouble(j36a) * j36d.applyAsDouble(j36b); if (new java.math.BigDecimal(String.valueOf(j36r)).stripTrailingZeros().scale() <= 0) return (Object) ((long) j36r); return (Object) j36r; }).apply(((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a == null || j36b == null) return null; if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) * ((Long) j36b)); java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; double j36r = j36d.applyAsDouble(j36a) * j36d.applyAsDouble(j36b); if (new java.math.BigDecimal(String.valueOf(j36r)).stripTrailingZeros().scale() <= 0) return (Object) ((long) j36r); return (Object) j36r; }).apply(limitValue, duration), 1000), 1));
+                        Object endTime = this.sum(since, Helpers.subtract(Helpers.multiply(Helpers.multiply(limitValue, duration), 1000), 1));
                         Long now = this.milliseconds();
                         request.put("endTime", (now == null ? null : (((Number) now).doubleValue() < ((Number) endTime).doubleValue() ? (Object) (now) : (Object) (endTime))));
                     }
@@ -7921,7 +7921,7 @@ public class Binance extends BinanceApi
             Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (parameters), "editContractOrder", "papi", "portfolioMargin", false);
             Boolean isPortfolioMargin = isPortfolioMarginparamsPapiVariable.first();
             Map<String, Object> paramsPapi = isPortfolioMarginparamsPapiVariable.second();
-            Object request = this.editContractOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, paramsPapi);
+            Map<String, Object> request = (Map<String, Object>) this.editContractOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, paramsPapi);
             Map<String, Object> response = null;
             if (java.util.Objects.equals(market.get("linear"), true))
             {
@@ -8059,7 +8059,7 @@ public class Binance extends BinanceApi
                 {
                     throw new NotSupported((this.id + " editOrders() does not support portfolio margin orders")) ;
                 }
-                Object orderRequest = this.editContractOrderRequest(id, marketId, type, side, amount, price, orderParams);
+                Map<String, Object> orderRequest = (Map<String, Object>) this.editContractOrderRequest(id, marketId, type, side, amount, price, orderParams);
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
             List<String> symbols = this.marketSymbols(orderSymbols, (Object) null, false, true, true);
@@ -10207,8 +10207,8 @@ public class Binance extends BinanceApi
                 }
                 if (java.util.Objects.equals(since, null))
                 {
-                    Long oneWeek = ((((7L * 24L) * 60L) * 60L) * 1000L);
-                    request.put("startTime", (untilResolved - oneWeek));
+                    Integer oneWeek = 604800000; // 7 * 24 * 60 * 60 * 1000
+                    request.put("startTime", (untilResolved - ((long) oneWeek)));
                 }
             }
             Object response = null;
@@ -11632,7 +11632,7 @@ public class Binance extends BinanceApi
                 // The time between startTime and endTime cannot be longer than 7 days.
                 // The parameter fromId cannot be sent with startTime or endTime.
                 Long currentTimestamp = this.milliseconds();
-                Long oneWeek = ((((7L * 24L) * 60L) * 60L) * 1000L);
+                Integer oneWeek = 604800000; // 7 * 24 * 60 * 60 * 1000
                 if ((oneWeek == null || ((currentTimestamp - since)) >= oneWeek))
                 {
                     if ((java.util.Objects.equals(endTime, null)) && Boolean.TRUE.equals((this.safeBool(market, "linear", false))))
@@ -11693,8 +11693,8 @@ public class Binance extends BinanceApi
                     }
                     if (java.util.Objects.equals(since, null))
                     {
-                        Long oneWeek = ((((7L * 24L) * 60L) * 60L) * 1000L);
-                        request.put("startTime", (endTimeResolved - oneWeek));
+                        Integer oneWeek = 604800000; // 7 * 24 * 60 * 60 * 1000
+                        request.put("startTime", (endTimeResolved - ((long) oneWeek)));
                     }
                     response = (this.sapiGetEquityTradeHistory(this.extend(request, paramsPaginate))).join();
                 } else if (java.util.Objects.equals(type, "spot") || java.util.Objects.equals(type, "margin"))
@@ -13518,14 +13518,14 @@ public class Binance extends BinanceApi
                     Object market = Helpers.GetValue(markets, symbol);
                     if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
                     {
-                        linearFees.put((String)symbol, (switch (0) { default -> { HashMap<String, Object> j39v70 = new HashMap<String, Object>();
-                            j39v70.put("info", new HashMap<String, Object>() {{
+                        linearFees.put((String)symbol, (switch (0) { default -> { HashMap<String, Object> j39v23 = new HashMap<String, Object>();
+                            j39v23.put("info", new HashMap<String, Object>() {{
             put( "feeTier", feeTier );
         }});
-                            j39v70.put("symbol", symbol);
-                            j39v70.put("maker", maker);
-                            j39v70.put("taker", taker);
-                            yield j39v70; } }));
+                            j39v23.put("symbol", symbol);
+                            j39v23.put("maker", maker);
+                            j39v23.put("taker", taker);
+                            yield j39v23; } }));
                     }
                 }
                 return linearFees;
@@ -13557,14 +13557,14 @@ public class Binance extends BinanceApi
                     Object market = Helpers.GetValue(markets, symbol);
                     if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
                     {
-                        inverseFees.put((String)symbol, (switch (0) { default -> { HashMap<String, Object> j39v60 = new HashMap<String, Object>();
-                            j39v60.put("info", new HashMap<String, Object>() {{
+                        inverseFees.put((String)symbol, (switch (0) { default -> { HashMap<String, Object> j39v22 = new HashMap<String, Object>();
+                            j39v22.put("info", new HashMap<String, Object>() {{
             put( "feeTier", feeTier );
         }});
-                            j39v60.put("symbol", symbol);
-                            j39v60.put("maker", maker);
-                            j39v60.put("taker", taker);
-                            yield j39v60; } }));
+                            j39v22.put("symbol", symbol);
+                            j39v22.put("maker", maker);
+                            j39v22.put("taker", taker);
+                            yield j39v22; } }));
                     }
                 }
                 return inverseFees;
@@ -13914,15 +13914,15 @@ public class Binance extends BinanceApi
             String maintenanceMargin = this.safeString(position, "maintMargin");
             // check for maintenance margin so empty positions are not returned
             Boolean isPositionOpen = (!java.util.Objects.equals(maintenanceMargin, "0")) && (!java.util.Objects.equals(maintenanceMargin, "0.00000000"));
-            if (!(switch ((Object) (java.util.Objects.requireNonNullElse(filterClosed, false))) { case null -> false; case Boolean hx4J40v3 -> hx4J40v3.booleanValue(); case Long hx4J40v3 -> hx4J40v3 != 0L; case Integer hx4J40v3 -> hx4J40v3 != 0; case Double hx4J40v3 -> hx4J40v3 != 0.0; case String hx4J40v3 -> !hx4J40v3.isEmpty(); case List<?> hx4J40v3 -> !hx4J40v3.isEmpty(); case Map<?, ?> hx4J40v3 -> true; default -> false; }) || Boolean.TRUE.equals(isPositionOpen))
+            if (!Helpers.isTrue(java.util.Objects.requireNonNullElse(filterClosed, false)) || Boolean.TRUE.equals(isPositionOpen))
             {
                 // sometimes not all the codes are correctly returned...
                 if (balances.containsKey(code))
                 {
-                    Map<String, Object> parsed = this.parseAccountPosition((Map<String, Object>) (this.extend(position, (switch (0) { default -> { HashMap<String, Object> j39v83 = new HashMap<String, Object>();
-                        j39v83.put("crossMargin", Helpers.GetValue((balances == null || code == null ? null : balances.get(code)), "crossMargin"));
-                        j39v83.put("crossWalletBalance", Helpers.GetValue((balances == null || code == null ? null : balances.get(code)), "crossWalletBalance"));
-                        yield j39v83; } }))), market);
+                    Map<String, Object> parsed = this.parseAccountPosition((Map<String, Object>) (this.extend(position, (switch (0) { default -> { HashMap<String, Object> j39v24 = new HashMap<String, Object>();
+                        j39v24.put("crossMargin", Helpers.GetValue((balances == null || code == null ? null : balances.get(code)), "crossMargin"));
+                        j39v24.put("crossWalletBalance", Helpers.GetValue((balances == null || code == null ? null : balances.get(code)), "crossWalletBalance"));
+                        yield j39v24; } }))), market);
                     ((List<Object>)result).add(parsed);
                 }
             }
@@ -14517,7 +14517,7 @@ public class Binance extends BinanceApi
                 {
                     throw new NotSupported((this.id + " loadLeverageBrackets() supports linear and inverse contracts only")) ;
                 }
-                { Map<Object, Object> j39v86 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v87 = "leverageBrackets"; Object j39v88 = this.createSafeDictionary(); if (j39v86 == null) { if (j39v87 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v86) { if (j39v88 == null && j39v86 instanceof java.util.concurrent.ConcurrentHashMap) { j39v86.remove(j39v87); } else { j39v86.put(j39v87, j39v88); } } }
+                Helpers.addElementToObject(this.options, "leverageBrackets", this.createSafeDictionary());
                 if (java.util.Objects.equals(response, null))
                 {
                     throw new NullResponse((this.id + " loadLeverageBrackets() returned empty response")) ;
@@ -15426,7 +15426,7 @@ public class Binance extends BinanceApi
                 // https://github.com/ccxt/ccxt/pull/11624
                 // POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
                 // binanceusdm
-                if ((switch ((Object) (e)) { case null -> false; case Throwable hx4J44v0 -> { Throwable hx4J44v0u = hx4J44v0; while ((hx4J44v0u instanceof java.util.concurrent.CompletionException || hx4J44v0u instanceof java.util.concurrent.ExecutionException) && hx4J44v0u.getCause() != null) { hx4J44v0u = hx4J44v0u.getCause(); } yield MarginModeAlreadySet.class.isInstance(hx4J44v0u); } case Object hx4J44v0 -> MarginModeAlreadySet.class.isInstance(hx4J44v0); }))
+                if (Helpers.isInstance(e, MarginModeAlreadySet.class))
                 {
                     Object throwMarginModeAlreadySet = this.handleOption("setMarginMode", "throwMarginModeAlreadySet", false);
                     if (java.util.Objects.equals(throwMarginModeAlreadySet, true))
@@ -16477,23 +16477,23 @@ public class Binance extends BinanceApi
 
     public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
     {
-        if ((config.containsKey("noCoin")) && !((switch ((Object)(parameters)) { case List<?> j39v99 -> j39v99.contains("coin"); case Map<?, ?> j39v98 -> j39v98.containsKey("coin"); case null, default -> false; })))
+        if ((config.containsKey("noCoin")) && !((switch ((Object)(parameters)) { case List<?> j39v32 -> j39v32.contains("coin"); case Map<?, ?> j39v31 -> j39v31.containsKey("coin"); case null, default -> false; })))
         {
             return config.get("noCoin");
-        } else if ((config.containsKey("noSymbol")) && !((switch ((Object)(parameters)) { case List<?> j39v97 -> j39v97.contains("symbol"); case Map<?, ?> j39v96 -> j39v96.containsKey("symbol"); case null, default -> false; })))
+        } else if ((config.containsKey("noSymbol")) && !((switch ((Object)(parameters)) { case List<?> j39v30 -> j39v30.contains("symbol"); case Map<?, ?> j39v29 -> j39v29.containsKey("symbol"); case null, default -> false; })))
         {
             return config.get("noSymbol");
-        } else if ((config.containsKey("noPoolId")) && !((switch ((Object)(parameters)) { case List<?> j39v95 -> j39v95.contains("poolId"); case Map<?, ?> j39v94 -> j39v94.containsKey("poolId"); case null, default -> false; })))
+        } else if ((config.containsKey("noPoolId")) && !((switch ((Object)(parameters)) { case List<?> j39v28 -> j39v28.contains("poolId"); case Map<?, ?> j39v27 -> j39v27.containsKey("poolId"); case null, default -> false; })))
         {
             return config.get("noPoolId");
-        } else if ((config.containsKey("byLimit")) && ((switch ((Object)(parameters)) { case List<?> j39v93 -> j39v93.contains("limit"); case Map<?, ?> j39v92 -> j39v92.containsKey("limit"); case null, default -> false; })))
+        } else if ((config.containsKey("byLimit")) && ((switch ((Object)(parameters)) { case List<?> j39v26 -> j39v26.contains("limit"); case Map<?, ?> j39v25 -> j39v25.containsKey("limit"); case null, default -> false; })))
         {
             Object limit = Helpers.GetValue(parameters, "limit");
-            // safeValue keeps runtime identical to the prior bare index (no empty-array default)
-            Object byLimit = this.safeValue(config, "byLimit");
+            // every 'byLimit' entry in describe() is a non-empty array literal, so the [] default is unreachable
+            List<Object> byLimit = (List<Object>) this.safeList(config, "byLimit", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)byLimit).size(); i++)
             {
-                Object entry = (byLimit == null || i < 0 || i >= ((List<?>)byLimit).size() ? null : ((List<?>)byLimit).get(i));
+                Object entry = (byLimit == null || i < 0 || i >= byLimit.size() ? null : byLimit.get(i));
                 if (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return (!j38g && !j38e) || j38e; }).test(limit, Helpers.GetValue(entry, 0)))
                 {
                     return Helpers.GetValue(entry, 1);
@@ -16512,7 +16512,7 @@ public class Binance extends BinanceApi
             // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             if (java.util.Objects.equals((api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0)), "private"))
             {
-                { Map<Object, Object> j39v100 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v101 = "hasAlreadyAuthenticatedSuccessfully"; Object j39v102 = true; if (j39v100 == null) { if (j39v101 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v100) { if (j39v102 == null && j39v100 instanceof java.util.concurrent.ConcurrentHashMap) { j39v100.remove(j39v101); } else { j39v100.put(j39v101, j39v102); } } }
+                Helpers.addElementToObject(this.options, "hasAlreadyAuthenticatedSuccessfully", true);
             }
             return response;
         });
@@ -16569,7 +16569,7 @@ public class Binance extends BinanceApi
             {
                 throw new NullResponse((this.id + " parseMarginModification() returned empty response")) ;
             }
-            return this.extend(this.parseMarginModification((Map<String, Object>) (response), market), (switch (0) { default -> { HashMap<String, Object> j39v103 = new HashMap<String, Object>(); j39v103.put("code", code); yield j39v103; } }));
+            return this.extend(this.parseMarginModification((Map<String, Object>) (response), market), (switch (0) { default -> { HashMap<String, Object> j39v33 = new HashMap<String, Object>(); j39v33.put("code", code); yield j39v33; } }));
         });
 
     }

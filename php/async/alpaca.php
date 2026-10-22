@@ -2328,7 +2328,7 @@ class alpaca extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $endpoint = '/' . $this->implode_params($path, $params);
         $baseApiUrl = $this->safe_string($this->urls['api'], $api[0]);
         if ($baseApiUrl === null) {

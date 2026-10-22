@@ -1993,7 +1993,7 @@ public partial class pacifica : Exchange
         //  Create (Only Limit or Market, never stop order or tpsl order)
         //  Cancel (Only common (limit) orders)
         //
-        int lenActions = (((object)(actions)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+        int lenActions = getArrayLength(actions);
         object maxLenOption = this.handleOption("batchOrdersRequest", "batchOrdersMax");
         if ((maxLenOption != null))
         {
@@ -4262,7 +4262,7 @@ public partial class pacifica : Exchange
 
     public virtual object sortJsonKeys(object value)
     {
-        if ((((object)(this.isDictionary(value))) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
+        if (isTrue(this.isDictionary(value)))
         {
             Dictionary<string, object> result = new Dictionary<string, object>() {};
             List<object> keys = new List<object>(((IDictionary<string,object>)value).Keys);
@@ -4276,7 +4276,7 @@ public partial class pacifica : Exchange
         } else if (((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             List<object> result = new List<object>() {};
-            for (int i = 0; i < (((object)(value)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+            for (int i = 0; i < getArrayLength(value); i++)
             {
                 ((IList<object>)result).Add(this.sortJsonKeys(getValue(value, i)));
             }

@@ -1503,7 +1503,7 @@ public partial class hitbtc : ccxt.hitbtc
         if (((result is IList<object>) || (result.GetType().IsGenericType && result.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             List<object> parsedOrders = new List<object>() {};
-            for (int i = 0; i < (((object)(result)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+            for (int i = 0; i < getArrayLength(result); i++)
             {
                 ccxt.Order parsedOrder = this.parseWsOrder(getValue(result, i));
                 parsedOrders.Add(ccxt.BaseExchange.FromOrder(parsedOrder));
@@ -1572,7 +1572,7 @@ public partial class hitbtc : ccxt.hitbtc
             {
                 // to do improve this, not very reliable right now
                 IDictionary<string, object> first = this.safeDict(result, 0, new Dictionary<string, object>() {});
-                int arrayLength = (((object)(result)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+                int arrayLength = getArrayLength(result);
                 if (((arrayLength == 0)) || (first.ContainsKey("client_order_id")))
                 {
                     this.handleOrderRequest(client, message);

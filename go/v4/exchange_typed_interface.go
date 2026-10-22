@@ -219,7 +219,7 @@ func CreateExchange(exchangeId string, options map[string]any) IExchange {
 	exchangeId = strings.ToLower(exchangeId)
 	switch exchangeId {
 	case "exchange":
-		itf := NewExchangeTyped(nil)
+		itf := &Exchange{}
 		return itf
 	case "alpaca":
 		itf := NewAlpaca(options)

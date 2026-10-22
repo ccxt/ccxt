@@ -698,7 +698,7 @@ public class Ndax extends NdaxApi
             String sessionToken = this.safeString(response, "SessionToken");
             if (!java.util.Objects.equals(sessionToken, null))
             {
-                { Map<Object, Object> j39v7 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v8 = "sessionToken"; Object j39v9 = sessionToken; if (j39v7 == null) { if (j39v8 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v7) { if (j39v9 == null && j39v7 instanceof java.util.concurrent.ConcurrentHashMap) { j39v7.remove(j39v8); } else { j39v7.put(j39v8, j39v9); } } }
+                Helpers.addElementToObject(this.options, "sessionToken", sessionToken);
                 return response;
             }
             String pending2faToken = this.safeString(response, "Pending2FaToken");
@@ -708,7 +708,7 @@ public class Ndax extends NdaxApi
                 {
                     throw new AuthenticationError((this.id + " signIn() requires exchange.twofa credentials")) ;
                 }
-                { Map<Object, Object> j39v4 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v5 = "pending2faToken"; Object j39v6 = pending2faToken; if (j39v4 == null) { if (j39v5 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v4) { if (j39v6 == null && j39v4 instanceof java.util.concurrent.ConcurrentHashMap) { j39v4.remove(j39v5); } else { j39v4.put(j39v5, j39v6); } } }
+                Helpers.addElementToObject(this.options, "pending2faToken", pending2faToken);
                 request = new HashMap<String, Object>() {{
                     put( "Code", totp(Ndax.this.twofa) );
                 }};
@@ -721,7 +721,7 @@ public class Ndax extends NdaxApi
                 //     }
                 //
                 sessionToken = this.safeString(responseInner, "SessionToken");
-                { Map<Object, Object> j39v1 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v2 = "sessionToken"; Object j39v3 = sessionToken; if (j39v1 == null) { if (j39v2 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v1) { if (j39v3 == null && j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); } else { j39v1.put(j39v2, j39v3); } } }
+                Helpers.addElementToObject(this.options, "sessionToken", sessionToken);
                 return responseInner;
             }
             return response;
@@ -959,7 +959,7 @@ public class Ndax extends NdaxApi
             put( "datetime", null );
             put( "nonce", null );
         }};
-        for (var i = 0; i < (switch ((Object)(orderbook)) { case null -> 0; case List<?> j39v11 -> j39v11.size(); case String j39v12 -> j39v12.length(); case Object j39v13 -> j39v13.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v13) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(orderbook)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
         {
             Object level = Helpers.GetValue(orderbook, i);
             Long newTimestamp = this.safeInteger(level, 2);
@@ -1584,7 +1584,7 @@ public class Ndax extends NdaxApi
             put( "timestamp", null );
             put( "datetime", null );
         }};
-        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v14 -> j39v14.size(); case String j39v15 -> j39v15.length(); case Object j39v16 -> j39v16.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v16) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v4 -> j39v4.size(); case String j39v5 -> j39v5.length(); case Object j39v6 -> j39v6.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v6) : 0; }); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, (Object) null);
             String currencyId = this.safeString(balance, "ProductId");
@@ -2706,7 +2706,7 @@ public class Ndax extends NdaxApi
         //
         String depositInfoString = this.safeString(depositAddress, "DepositInfo", "[]");
         Object depositInfo = Helpers.parseJson(depositInfoString);
-        Integer depositInfoLength = (switch ((Object)(depositInfo)) { case null -> 0; case List<?> j39v17 -> j39v17.size(); case String j39v18 -> j39v18.length(); case Object j39v19 -> j39v19.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v19) : 0; });
+        Integer depositInfoLength = (switch ((Object)(depositInfo)) { case null -> 0; case List<?> j39v7 -> j39v7.size(); case String j39v8 -> j39v8.length(); case Object j39v9 -> j39v9.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v9) : 0; });
         String lastString = this.safeString(depositInfo, (depositInfoLength - 1L), "");
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)lastString).split(java.util.regex.Pattern.quote("?memo="))));
         String address = this.safeString(parts, 0);
@@ -3139,7 +3139,7 @@ public class Ndax extends NdaxApi
             Helpers.addElementToObject(withdrawTemplate, "ExternalAddress", address);
             if (!java.util.Objects.equals(tagWithdrawTag, null))
             {
-                if ((switch ((Object)(withdrawTemplate)) { case List<?> j39v21 -> j39v21.contains("Memo"); case Map<?, ?> j39v20 -> j39v20.containsKey("Memo"); case null, default -> false; }))
+                if ((switch ((Object)(withdrawTemplate)) { case List<?> j39v11 -> j39v11.contains("Memo"); case Map<?, ?> j39v10 -> j39v10.containsKey("Memo"); case null, default -> false; }))
                 {
                     Helpers.addElementToObject(withdrawTemplate, "Memo", tagWithdrawTag);
                 }
@@ -3201,7 +3201,7 @@ public class Ndax extends NdaxApi
                     query = this.omit(query, "pending2faToken");
                 }
             }
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v23 -> { synchronized (j39v23) { yield new ArrayList<Object>(j39v23.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v13 -> { synchronized (j39v13) { yield new ArrayList<Object>(j39v13.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
@@ -3236,7 +3236,7 @@ public class Ndax extends NdaxApi
                 bodySigned = this.json(query);
             } else
             {
-                if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v22 -> { synchronized (j39v22) { yield new ArrayList<Object>(j39v22.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+                if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v12 -> { synchronized (j39v12) { yield new ArrayList<Object>(j39v12.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
                 {
                     url = (url + ("?" + this.urlencode(query)));
                 }

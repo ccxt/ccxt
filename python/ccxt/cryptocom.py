@@ -2541,7 +2541,7 @@ class cryptocom(Exchange, ImplicitAPI):
                 marginMode = 'cross'
         return [marginMode, paramsMarginMode]
 
-    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None) -> object:
+    def parse_deposit_withdraw_fee(self, fee: dict, currency: Currency = None) -> object:
         #
         #    {
         #        "full_name": "Alchemix",
@@ -3397,7 +3397,7 @@ class cryptocom(Exchange, ImplicitAPI):
             'tierBased': None,
         }
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         requestHeaders = None
         requestBody = None
         type = self.safe_string(api, 0)

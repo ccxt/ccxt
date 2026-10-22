@@ -858,6 +858,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #         ]
         #     ]
         #
+        networks = self.safe_list(response, 8, [])
         indexed = {
             'sym': self.index_by(self.safe_list(response, 1, []), 0),
             'label': self.index_by(self.safe_list(response, 2, []), 0),
@@ -866,13 +867,13 @@ class bitfinex(Exchange, ImplicitAPI):
             'pool': self.index_by(self.safe_list(response, 5, []), 0),
             'explorer': self.index_by(self.safe_list(response, 6, []), 0),
             'fees': self.index_by(self.safe_list(response, 7, []), 0),
-            'networks': self.safe_list(response, 8, []),
+            'networks': networks,
             'statuses': self.index_by(self.safe_list(response, 9, []), 0),
             'marginables': self.safe_list(response, 10, []),
         }
         indexedNetworks = {}
-        for i in range(0, len(indexed['networks'])):
-            networkObj = self.safe_list(indexed['networks'], i)
+        for i in range(0, len(networks)):
+            networkObj = self.safe_list(networks, i)
             networkId = self.safe_string(networkObj, 0)
             valuesList = self.safe_list(networkObj, 1)
             networkName = self.safe_string(valuesList, 0)
@@ -2917,7 +2918,7 @@ class bitfinex(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
         request = '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))

@@ -466,7 +466,7 @@ impl SxbetCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1479: bool = true;
-            while { if !__for_first_1479 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1479 = false; i.as_f64().unwrap_or(f64::NAN) < rawMarketsLength } {
+            while { if !__for_first_1479 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1479 = false; i.as_f64().unwrap_or(f64::NAN) < rawMarketsLength } {
             markets.push(self.parse_sxbet_market(rawMarkets.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)));
         }
         }
@@ -524,7 +524,7 @@ impl SxbetCore {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1480: bool = true;
-                while { if !__for_first_1480 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1480 = false; i.as_f64().unwrap_or(f64::NAN) < pageMarketsLength } {
+                while { if !__for_first_1480 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1480 = false; i.as_f64().unwrap_or(f64::NAN) < pageMarketsLength } {
                 rawMarkets.push(pageMarkets.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
             }
             }
@@ -555,7 +555,7 @@ impl SxbetCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1481: bool = true;
-            while { if !__for_first_1481 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1481 = false; i.as_f64().unwrap_or(f64::NAN) < rawMarketsLength } {
+            while { if !__for_first_1481 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1481 = false; i.as_f64().unwrap_or(f64::NAN) < rawMarketsLength } {
             let mut raw: Value = rawMarkets.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             if (self.safe_string_k(raw.clone(), "sportXeventId", &[]).as_str() == sportXeventId.as_str()) {
                 result.push(raw);
@@ -625,7 +625,7 @@ impl SxbetCore {
         {
                         let mut oi: Value = Value::Int(0);
             let mut __for_first_1482: bool = true;
-            while { if !__for_first_1482 { oi = (match (&(oi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1482 = false; oi.as_f64().unwrap_or(f64::NAN) < ((outcomeLabels.len() as i64) as f64) } {
+            while { if !__for_first_1482 { if let Value::Int(n) = &mut oi { *n += 1; } } __for_first_1482 = false; oi.as_f64().unwrap_or(f64::NAN) < ((outcomeLabels.len() as i64) as f64) } {
             let mut label: Value = outcomeLabels.as_array().and_then(|__arr| match &oi { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut outcomeHandle: Value = self.slug_to_outcome_symbol(eventSlug.clone(), marketSlug.clone(), label.clone());
             outcomes.push(Value::Map({
@@ -752,7 +752,7 @@ impl SxbetCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1483: bool = true;
-            while { if !__for_first_1483 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1483 = false; i.as_f64().unwrap_or(f64::NAN) < tagsLength } {
+            while { if !__for_first_1483 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1483 = false; i.as_f64().unwrap_or(f64::NAN) < tagsLength } {
             append_to_array(&mut queries, tags.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
         }
         }
@@ -794,7 +794,7 @@ impl SxbetCore {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1484: bool = true;
-                while { if !__for_first_1484 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1484 = false; i.as_f64().unwrap_or(f64::NAN) < preFilterLength } {
+                while { if !__for_first_1484 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1484 = false; i.as_f64().unwrap_or(f64::NAN) < preFilterLength } {
                 if self.matches_event_query(rawMarkets.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), queries.clone()).as_bool() == Some(true) {
                     if let Value::Arr(__a) = &mut filtered { std::sync::Arc::make_mut(__a).push(rawMarkets.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)); }
                 }
@@ -811,7 +811,7 @@ impl SxbetCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1485: bool = true;
-            while { if !__for_first_1485 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1485 = false; i.as_f64().unwrap_or(f64::NAN) < rawMarketsLength } {
+            while { if !__for_first_1485 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1485 = false; i.as_f64().unwrap_or(f64::NAN) < rawMarketsLength } {
             let mut raw: Value = rawMarkets.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut sportXeventId: Value = self.safe_string_k(raw.clone(), "sportXeventId", &[]);
             if (sportXeventId == Value::Null) {
@@ -832,7 +832,7 @@ impl SxbetCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1487: bool = true;
-            while { if !__for_first_1487 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1487 = false; i.as_f64().unwrap_or(f64::NAN) < orderLength } {
+            while { if !__for_first_1487 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1487 = false; i.as_f64().unwrap_or(f64::NAN) < orderLength } {
             let mut fixtureId: Value = order.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null);
             let mut event: Value = self.parse_event(fixtureId.clone(), grouped.as_map().and_then(|__m| fixtureId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null));
             let mut evMarkets: Value = self.safe_list_k(event.clone(), "markets", &[Value::from(vec![])]);
@@ -840,7 +840,7 @@ impl SxbetCore {
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_1486: bool = true;
-                while { if !__for_first_1486 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1486 = false; j.as_f64().unwrap_or(f64::NAN) < evMarketsLength } {
+                while { if !__for_first_1486 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1486 = false; j.as_f64().unwrap_or(f64::NAN) < evMarketsLength } {
                 let mut m: Value = evMarkets.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 add_element_to_object(&mut self.markets, &crate::value::get_value_k(&m, "market"), m.clone());
             }
@@ -907,7 +907,7 @@ impl SxbetCore {
         {
                         let mut qi: Value = Value::Int(0);
             let mut __for_first_1489: bool = true;
-            while { if !__for_first_1489 { qi = (match (&(qi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1489 = false; qi.as_f64().unwrap_or(f64::NAN) < queriesLength } {
+            while { if !__for_first_1489 { if let Value::Int(n) = &mut qi { *n += 1; } } __for_first_1489 = false; qi.as_f64().unwrap_or(f64::NAN) < queriesLength } {
             let mut query: Value = (queries.as_array().and_then(|__arr| match &qi { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
             if (query.as_str() == Some("")) {
                 continue;
@@ -915,7 +915,7 @@ impl SxbetCore {
             {
                                 let mut fi: Value = Value::Int(0);
                 let mut __for_first_1488: bool = true;
-                while { if !__for_first_1488 { fi = (match (&(fi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1488 = false; fi.as_f64().unwrap_or(f64::NAN) < ((fields.len() as i64) as f64) } {
+                while { if !__for_first_1488 { if let Value::Int(n) = &mut fi { *n += 1; } } __for_first_1488 = false; fi.as_f64().unwrap_or(f64::NAN) < ((fields.len() as i64) as f64) } {
                 let mut field: Value = fields.as_array().and_then(|__arr| match &fi { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 if (field == Value::Null) {
                     continue;
@@ -956,7 +956,7 @@ impl SxbetCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1490: bool = true;
-            while { if !__for_first_1490 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1490 = false; i.as_f64().unwrap_or(f64::NAN) < rawMarketsLength } {
+            while { if !__for_first_1490 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1490 = false; i.as_f64().unwrap_or(f64::NAN) < rawMarketsLength } {
             let mut raw: Value = rawMarkets.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut parsed: Value = self.parse_sxbet_market(raw.clone());
             if (parsed == Value::Null) {
@@ -1136,7 +1136,7 @@ impl SxbetCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1491: bool = true;
-            while { if !__for_first_1491 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1491 = false; i.as_f64().unwrap_or(f64::NAN) < hexLength } {
+            while { if !__for_first_1491 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1491 = false; i.as_f64().unwrap_or(f64::NAN) < hexLength } {
             let mut ch: Value = get_value(&lowerHex, &i);
             let mut ch: Value = get_value(&lowerHex, &i);
             let mut digitValue: Value = self.parse_to_int(Value::Int(digits.as_str().zip(ch.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)));
@@ -1198,7 +1198,7 @@ impl SxbetCore {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1492: bool = true;
-                while { if !__for_first_1492 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1492 = false; i.as_f64().unwrap_or(f64::NAN) < ((30i64) as f64) } {
+                while { if !__for_first_1492 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1492 = false; i.as_f64().unwrap_or(f64::NAN) < ((30i64) as f64) } {
                 self.sleep(Value::Int(2000)).await;
                 let mut state: Value = self.fetch_sxbet_proxy().await;
                 if matches!(self.safe_bool_k(state, "deployed", &[Value::Bool(false)]), Value::Bool(true)) {
@@ -1617,7 +1617,7 @@ impl SxbetCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1493: bool = true;
-            while { if !__for_first_1493 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1493 = false; i.as_f64().unwrap_or(f64::NAN) < cancelledLength } {
+            while { if !__for_first_1493 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1493 = false; i.as_f64().unwrap_or(f64::NAN) < cancelledLength } {
             result.push(self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string(cancelled.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("orderId".into()), &[]));
@@ -1632,7 +1632,7 @@ impl SxbetCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1494: bool = true;
-            while { if !__for_first_1494 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1494 = false; i.as_f64().unwrap_or(f64::NAN) < notCancelledLength } {
+            while { if !__for_first_1494 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1494 = false; i.as_f64().unwrap_or(f64::NAN) < notCancelledLength } {
             // the venue reports why (e.g. NOT_FOUND) - the order was not cancelled, report it honestly
             result.push(self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1648,7 +1648,7 @@ impl SxbetCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1495: bool = true;
-            while { if !__for_first_1495 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1495 = false; i.as_f64().unwrap_or(f64::NAN) < unconfirmedLength } {
+            while { if !__for_first_1495 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1495 = false; i.as_f64().unwrap_or(f64::NAN) < unconfirmedLength } {
             result.push(self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string(unconfirmed.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("orderId".into()), &[]));
@@ -1727,7 +1727,7 @@ impl SxbetCore {
         {
                         let mut c: Value = Value::Int(0);
             let mut __for_first_1497: bool = true;
-            while { if !__for_first_1497 { c = (match (&(c), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1497 = false; c.as_f64().unwrap_or(f64::NAN) < chunkCount.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1497 { if let Value::Int(n) = &mut c { *n += 1; } } __for_first_1497 = false; c.as_f64().unwrap_or(f64::NAN) < chunkCount.as_f64().unwrap_or(f64::NAN) } {
             let mut chunkIndex: Value = self.parse_to_int(c.clone());
             let mut chunkWidth: Value = self.parse_to_int(chunkSize.clone());
             let mut start: Value = (match (&(chunkIndex), &(chunkWidth)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
@@ -1739,11 +1739,11 @@ impl SxbetCore {
             }
             let mut orderItems: Vec<Value> = Vec::new();
             let mut chunkIds: Value = self.array_slice(ids.clone(), start, &[end]);
-            let mut chunkIdsLength: Value = ({ let __r29o: &Value = &chunkIds; match __r29o { Value::Dict(__d) if __d.contains_key("__sideKind") && !__d.contains_key("__cacheKind") && !matches!(__d.get("__book_cache_id"), Some(Value::Int(_))) => Value::Int(crate::value::side_entries_as_value(__r29o).map(|__s| __s.len()).unwrap_or(0) as i64), _ => Value::Int(__r29o.len() as i64) } });
+            let mut chunkIdsLength: Value = get_array_length(&chunkIds);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1496: bool = true;
-                while { if !__for_first_1496 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1496 = false; i.as_f64().unwrap_or(f64::NAN) < chunkIdsLength.as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1496 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1496 = false; i.as_f64().unwrap_or(f64::NAN) < chunkIdsLength.as_f64().unwrap_or(f64::NAN) } {
                 orderItems.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("orderId".to_string(), get_value(&chunkIds, &i));
@@ -1811,7 +1811,7 @@ impl SxbetCore {
         {
                         let mut guard: Value = Value::Int(0);
             let mut __for_first_1498: bool = true;
-            while { if !__for_first_1498 { guard = (match (&(guard), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1498 = false; guard.as_f64().unwrap_or(f64::NAN) < ((50i64) as f64) } {
+            while { if !__for_first_1498 { if let Value::Int(n) = &mut guard { *n += 1; } } __for_first_1498 = false; guard.as_f64().unwrap_or(f64::NAN) < ((50i64) as f64) } {
             if !(hasMore.as_bool() == Some(true)) {
                 break;
             }
@@ -2109,7 +2109,7 @@ impl SxbetCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1499: bool = true;
-            while { if !__for_first_1499 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1499 = false; i.as_f64().unwrap_or(f64::NAN) < rawTradesLength } {
+            while { if !__for_first_1499 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1499 = false; i.as_f64().unwrap_or(f64::NAN) < rawTradesLength } {
             if let Value::Arr(__a) = &mut trades { std::sync::Arc::make_mut(__a).push(self.parse_sxbet_v3_public_trade(rawTrades.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null))); }
         }
         }
@@ -2170,7 +2170,7 @@ impl SxbetCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1500: bool = true;
-            while { if !__for_first_1500 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1500 = false; i.as_f64().unwrap_or(f64::NAN) < rawFillsLength } {
+            while { if !__for_first_1500 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1500 = false; i.as_f64().unwrap_or(f64::NAN) < rawFillsLength } {
             if let Value::Arr(__a) = &mut trades { std::sync::Arc::make_mut(__a).push(self.parse_sxbet_v3_fill(rawFills.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[])); }
         }
         }
@@ -2294,7 +2294,7 @@ impl SxbetCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1501: bool = true;
-            while { if !__for_first_1501 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1501 = false; i.as_f64().unwrap_or(f64::NAN) < balancesLength } {
+            while { if !__for_first_1501 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1501 = false; i.as_f64().unwrap_or(f64::NAN) < balancesLength } {
             let mut row: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
             let mut tokenAddress: Value = self.safe_string_lower_k(row.clone(), "tokenAddress", &[Value::Str("".into())]);
             // every sxbet market is denominated in the active base token, surfaced under 'USDC';
@@ -2347,7 +2347,7 @@ impl SxbetCore {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1502: bool = true;
-                while { if !__for_first_1502 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1502 = false; i.as_f64().unwrap_or(f64::NAN) < outcomesLength } {
+                while { if !__for_first_1502 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1502 = false; i.as_f64().unwrap_or(f64::NAN) < outcomesLength } {
                 let mut outcomeObj: Value = self.outcome(outcomesList.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
                 let mut hash: Value = self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("marketHash".into()), &[Value::Str("".into())]);
                 if let Value::Dict(__d) = &mut wantedMarkets { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&hash), Value::Bool(true)); }
@@ -2374,7 +2374,7 @@ impl SxbetCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1503: bool = true;
-            while { if !__for_first_1503 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1503 = false; i.as_f64().unwrap_or(f64::NAN) < rawPositionsLength } {
+            while { if !__for_first_1503 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1503 = false; i.as_f64().unwrap_or(f64::NAN) < rawPositionsLength } {
             let mut raw: Value = rawPositions.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut marketHash: Value = self.safe_string_k(raw.clone(), "marketHash", &[Value::Str("".into())]);
             if outcomesLength > ((0i64) as f64) {
@@ -2508,7 +2508,7 @@ impl SxbetCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1504: bool = true;
-            while { if !__for_first_1504 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1504 = false; i.as_f64().unwrap_or(f64::NAN) < rawTradesLength } {
+            while { if !__for_first_1504 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1504 = false; i.as_f64().unwrap_or(f64::NAN) < rawTradesLength } {
             let mut settlement: Value = self.parse_settlement(rawTrades.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[]);
             if (wantedOutcomeId == Value::Null) || (self.safe_string_k(settlement.clone(), "outcomeId", &[]).as_str() == wantedOutcomeId.as_str()) {
                 result.push(settlement);
@@ -2757,7 +2757,7 @@ impl SxbetCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1505: bool = true;
-            while { if !__for_first_1505 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1505 = false; i.as_f64().unwrap_or(f64::NAN) < outcomesLength } {
+            while { if !__for_first_1505 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1505 = false; i.as_f64().unwrap_or(f64::NAN) < outcomesLength } {
             self.load_outcome(outcomesList.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[]).await;
             let mut outcomeObj: Value = self.outcome(outcomesList.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
             let mut marketHash: Value = self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("marketHash".into()), &[Value::Str("".into())]);
@@ -2780,7 +2780,7 @@ impl SxbetCore {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1506: bool = true;
-                while { if !__for_first_1506 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1506 = false; i.as_f64().unwrap_or(f64::NAN) < hashesLength.as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1506 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1506 = false; i.as_f64().unwrap_or(f64::NAN) < hashesLength.as_f64().unwrap_or(f64::NAN) } {
                 let mut marketHash: Value = hashesOrder.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut snapshot: Value = self.fetch_sxbet_book_snapshot(marketHash.clone()).await;
                 if let Value::Dict(__d) = &mut rowsByHash { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&marketHash), self.parse_sxbet_snapshot_best_odds(snapshot)); }
@@ -2793,7 +2793,7 @@ impl SxbetCore {
         {
                         let mut c: Value = Value::Int(0);
             let mut __for_first_1508: bool = true;
-            while { if !__for_first_1508 { c = (match (&(c), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1508 = false; c.as_f64().unwrap_or(f64::NAN) < chunkCount.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1508 { if let Value::Int(n) = &mut c { *n += 1; } } __for_first_1508 = false; c.as_f64().unwrap_or(f64::NAN) < chunkCount.as_f64().unwrap_or(f64::NAN) } {
             let mut chunkIndex: Value = self.parse_to_int(c.clone());
             let mut chunkWidth: Value = self.parse_to_int(chunkSize.clone());
             let mut start: Value = (match (&(chunkIndex), &(chunkWidth)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
@@ -2809,7 +2809,7 @@ impl SxbetCore {
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_1507: bool = true;
-                while { if !__for_first_1507 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1507 = false; j.as_f64().unwrap_or(f64::NAN) < rowsLength } {
+                while { if !__for_first_1507 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1507 = false; j.as_f64().unwrap_or(f64::NAN) < rowsLength } {
                 let mut row: Value = rows.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut rowHash: Value = self.safe_string_k(row.clone(), "marketHash", &[]);
                 if (rowHash != Value::Null) {
@@ -2842,7 +2842,7 @@ impl SxbetCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1509: bool = true;
-            while { if !__for_first_1509 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1509 = false; i.as_f64().unwrap_or(f64::NAN) < outcomesLength } {
+            while { if !__for_first_1509 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1509 = false; i.as_f64().unwrap_or(f64::NAN) < outcomesLength } {
             let mut outcomeObj: Value = self.outcome(outcomesList.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
             let mut marketHash: Value = self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("marketHash".into()), &[Value::Str("".into())]);
             let mut raw: Value = self.safe_dict(rowsByHash.clone(), marketHash, &[]);
@@ -3018,14 +3018,14 @@ impl SxbetCore {
         let snapshot = snapshot.as_map().unwrap_or(&__snapshot_empty);
         let mut oneDenom: Value = Value::Str("100000000000000000000".into());
         let mut usdcDecimals: Value = Value::Str("1000000".into());
-        let mut ownLevels: Value = (if isOutcomeOne.is_truthy() { (match snapshot.get("outcomeOne") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }) } else { (match snapshot.get("outcomeTwo") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }) });
-        let mut oppositeLevels: Value = (if isOutcomeOne.is_truthy() { (match snapshot.get("outcomeTwo") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }) } else { (match snapshot.get("outcomeOne") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }) });
+        let mut ownLevels: Value = (if is_true(&(isOutcomeOne)) { (match snapshot.get("outcomeOne") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }) } else { (match snapshot.get("outcomeTwo") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }) });
+        let mut oppositeLevels: Value = (if is_true(&(isOutcomeOne)) { (match snapshot.get("outcomeTwo") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }) } else { (match snapshot.get("outcomeOne") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }) });
         let mut bids: Vec<Value> = Vec::new();
         let mut ownLevelsLength: f64 = ((ownLevels.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1510: bool = true;
-            while { if !__for_first_1510 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1510 = false; i.as_f64().unwrap_or(f64::NAN) < ownLevelsLength } {
+            while { if !__for_first_1510 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1510 = false; i.as_f64().unwrap_or(f64::NAN) < ownLevelsLength } {
             let mut level: Value = self.safe_dict(ownLevels.clone(), i.clone(), &[]);
             let mut percentageOdds: Value = self.safe_string_k(level.clone(), "percentageOdds", &[]);
             let mut size: Value = self.safe_string_k(level.clone(), "size", &[Value::Str("0".into())]);
@@ -3039,7 +3039,7 @@ impl SxbetCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1511: bool = true;
-            while { if !__for_first_1511 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1511 = false; i.as_f64().unwrap_or(f64::NAN) < oppositeLevelsLength } {
+            while { if !__for_first_1511 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1511 = false; i.as_f64().unwrap_or(f64::NAN) < oppositeLevelsLength } {
             let mut level: Value = self.safe_dict(oppositeLevels.clone(), i.clone(), &[]);
             let mut percentageOdds: Value = self.safe_string_k(level.clone(), "percentageOdds", &[]);
             let mut size: Value = self.safe_string_k(level, "size", &[Value::Str("0".into())]);
@@ -3193,7 +3193,7 @@ impl SxbetCore {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1512: bool = true;
-                while { if !__for_first_1512 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1512 = false; i.as_f64().unwrap_or(f64::NAN) < linesLength } {
+                while { if !__for_first_1512 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1512 = false; i.as_f64().unwrap_or(f64::NAN) < linesLength } {
                 let mut line: Value = lines.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 if ((line.len() as i64) as f64) > ((0i64) as f64) {
                     let mut parsed: Value = json_parse(&line);
@@ -3207,19 +3207,21 @@ impl SxbetCore {
 }
 
     pub fn handle_centrifugo_frame(&mut self, mut client: Value, mut msg: Value) {
-        let mut keys: Value = ({ let __r29o: &Value = &msg; match __r29o { Value::Dict(__m) => Value::List(__m.keys().filter(|__k| __k.as_str() != "__ws_subs_url" && __k.as_str() != "__ws_sub_ref").map(|__k| Value::Str(__k.clone().into())).collect()), _ => Value::List(vec![]) } });
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &msg { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+        let mut keys: Value = object_keys(&msg);
         let mut keysLength: f64 = ((keys.len() as i64) as f64);
         if (keysLength == 0.0) {
             self.spawn(&[Value::Null.clone(), client.clone(), msg.clone()]);
             return;
         }
-        let mut requestIdString: Value = self.safe_string_k(msg.clone(), "id", &[]);
+        let mut requestIdString: Value = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut pendingRequests: Value = self.safe_dict_k(self.options.clone(), "wsPendingRequests", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
         let mut pendingEntry: Value = self.safe_dict(pendingRequests.clone(), requestIdString.clone(), &[]);
-        let mut errorReply: Value = self.safe_dict_k(msg.clone(), "error", &[]);
+        let mut errorReply: Value = (match __pro_message.get("error").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
         if (errorReply != Value::Null) {
             // a rejected connect (bad or expired realtime token) or subscribe (unauthorized or
             // unknown channel) - fail the awaiting future and clear the subscription hash that
@@ -3232,8 +3234,8 @@ impl SxbetCore {
                 if (subscription.as_str() == Some("connect")) {
                     if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsConnected".into(), Value::Bool(false)); }
                 }
-                if (subscription != Value::Null) && (({ let __r29o: &Value = &get_value(&client, &Value::Str("subscriptions".into())); let __r29k: &Value = &subscription; match (__r29o, __r29k) { (Value::Dict(__m), Value::Str(__k)) => __m.contains_key(&**__k), (Value::Arr(__a), __r29v) => __a.iter().any(|__r29e| (match (__r29e, __r29v) { (Value::Null, Value::Null) => true, (Value::Bool(__p), Value::Bool(__q)) => __p == __q, (Value::Str(__p), Value::Str(__q)) => __p == __q, (Value::Int(__p), Value::Int(__q)) => __p == __q, (Value::Float(__p), Value::Float(__q)) => __p == __q, (__p, __q) => matches!(((match __p { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), (match __q { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })), (Some(__x), Some(__y)) if __x == __y) })), _ => false } })) {
-                    { let __r29o: &mut Value = &mut get_value(&client, &Value::Str("subscriptions".into())); let __r29k: &Value = &subscription; match (__r29o, __r29k) { (Value::Dict(__m), Value::Str(__k)) => { if let Some(Value::Str(__u)) = __m.get("__ws_subs_url") { crate::pro::ws_client::value_subs_remove(__u, __k); } std::sync::Arc::make_mut(__m).shift_remove(&**__k); } (Value::Arr(__a), Value::Int(__i)) => { let __i = *__i as usize; let __a = std::sync::Arc::make_mut(__a); if __i < __a.len() { __a.remove(__i); } } _ => {} } };
+                if (subscription != Value::Null) && (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &subscription)) {
+                    remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &subscription);
                 }
                 { let __be_tmp = self.omit(pendingRequests.clone(), requestIdString.clone(), &[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsPendingRequests".into(), __be_tmp); } }
                 client.reject(&[Value::from(error.clone()), failedHash]);
@@ -3247,14 +3249,14 @@ impl SxbetCore {
             // a successful command ack - the tracked request has served its purpose
             { let __be_tmp = self.omit(pendingRequests, requestIdString, &[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsPendingRequests".into(), __be_tmp); } }
         }
-        let mut connectReply: Value = self.safe_dict_k(msg.clone(), "connect", &[]);
+        let mut connectReply: Value = (match __pro_message.get("connect").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
         if (connectReply != Value::Null) {
             // connect acknowledged - unblock connectSxbetCentrifugo so channel subscribes can be sent
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsConnected".into(), Value::Bool(true)); }
             client.resolve(&[Value::Bool(true), Value::Str("centrifugoConnected".into())]);
             return;
         }
-        let mut push: Value = self.safe_dict_k(msg, "push", &[]);
+        let mut push: Value = (match __pro_message.get("push").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
         if (push == Value::Null) {
             return;
         }
@@ -3390,13 +3392,13 @@ impl SxbetCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut watchedSyms: Value = ({ let __r29o: &Value = &watchedBooks; match __r29o { Value::Dict(__m) => Value::List(__m.keys().filter(|__k| __k.as_str() != "__ws_subs_url" && __k.as_str() != "__ws_sub_ref").map(|__k| Value::Str(__k.clone().into())).collect()), _ => Value::List(vec![]) } });
+        let mut watchedSyms: Value = object_keys(&watchedBooks);
         let mut timestamp: Value = self.milliseconds();
         let mut watchedSymsLength: f64 = ((watchedSyms.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1513: bool = true;
-            while { if !__for_first_1513 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1513 = false; i.as_f64().unwrap_or(f64::NAN) < watchedSymsLength } {
+            while { if !__for_first_1513 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1513 = false; i.as_f64().unwrap_or(f64::NAN) < watchedSymsLength } {
             let mut sym: Value = watchedSyms.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             if (self.safe_string(watchedBooks.clone(), sym.clone(), &[]).as_str() != marketHash.as_str()) {
                 continue;
@@ -3444,13 +3446,13 @@ impl SxbetCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1515: bool = true;
-            while { if !__for_first_1515 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1515 = false; i.as_f64().unwrap_or(f64::NAN) < rowsLength } {
+            while { if !__for_first_1515 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1515 = false; i.as_f64().unwrap_or(f64::NAN) < rowsLength } {
             let mut refreshed: Value = self.apply_sxbet_ws_snapshot(rows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
             let mut refreshedLength: f64 = ((refreshed.len() as i64) as f64);
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_1514: bool = true;
-                while { if !__for_first_1514 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1514 = false; j.as_f64().unwrap_or(f64::NAN) < refreshedLength } {
+                while { if !__for_first_1514 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1514 = false; j.as_f64().unwrap_or(f64::NAN) < refreshedLength } {
                 let mut sym: Value = refreshed.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 client.resolve(&[self.safe_value(self.orderbooks.clone(), sym.clone(), &[]), Value::Str(format!("{}{}", Value::Str("orderbook::".into()), sym).into())]);
             }
@@ -3532,12 +3534,12 @@ impl SxbetCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut watchedSyms: Value = ({ let __r29o: &Value = &watchedTickers; match __r29o { Value::Dict(__m) => Value::List(__m.keys().filter(|__k| __k.as_str() != "__ws_subs_url" && __k.as_str() != "__ws_sub_ref").map(|__k| Value::Str(__k.clone().into())).collect()), _ => Value::List(vec![]) } });
+        let mut watchedSyms: Value = object_keys(&watchedTickers);
         let mut rowsLength: f64 = ((rows.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1517: bool = true;
-            while { if !__for_first_1517 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1517 = false; i.as_f64().unwrap_or(f64::NAN) < rowsLength } {
+            while { if !__for_first_1517 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1517 = false; i.as_f64().unwrap_or(f64::NAN) < rowsLength } {
             let mut entry: Value = self.safe_dict(rows.clone(), i.clone(), &[]);
             let mut marketHash: Value = self.safe_string_k(entry.clone(), "marketHash", &[]);
             if (marketHash == Value::Null) {
@@ -3572,7 +3574,7 @@ impl SxbetCore {
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_1516: bool = true;
-                while { if !__for_first_1516 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1516 = false; j.as_f64().unwrap_or(f64::NAN) < watchedSymsLength } {
+                while { if !__for_first_1516 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1516 = false; j.as_f64().unwrap_or(f64::NAN) < watchedSymsLength } {
                 let mut sym: Value = watchedSyms.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 if (self.safe_string(watchedTickers.clone(), sym.clone(), &[]).as_str() != marketHash.as_str()) {
                     continue;
@@ -3674,8 +3676,9 @@ impl SxbetCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1518: bool = true;
-            while { if !__for_first_1518 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1518 = false; i.as_f64().unwrap_or(f64::NAN) < rowsLength } {
-            let mut row: Value = self.safe_dict(rows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("trade".into()), &[rows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)]);
+            while { if !__for_first_1518 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1518 = false; i.as_f64().unwrap_or(f64::NAN) < rowsLength } {
+            let mut rawRow: Value = rows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut row: Value = self.safe_dict_k(rawRow.clone(), "trade", &[rawRow.clone()]);
             let mut trade: Value = self.parse_sxbet_v3_public_trade(row);
             let mut sym: Value = self.safe_string_k(trade.clone(), "outcome", &[]);
             if (sym == Value::Null) {
@@ -3739,8 +3742,9 @@ impl SxbetCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1519: bool = true;
-            while { if !__for_first_1519 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1519 = false; i.as_f64().unwrap_or(f64::NAN) < rowsLength } {
-            let mut row: Value = self.safe_dict(rows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("fill".into()), &[rows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)]);
+            while { if !__for_first_1519 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1519 = false; i.as_f64().unwrap_or(f64::NAN) < rowsLength } {
+            let mut rawRow: Value = rows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut row: Value = self.safe_dict_k(rawRow.clone(), "fill", &[rawRow.clone()]);
             let mut trade: Value = self.parse_sxbet_v3_fill(row, &[]);
             let mut sym: Value = self.safe_string_k(trade.clone(), "outcome", &[]);
             if (sym == Value::Null) {
@@ -3802,8 +3806,9 @@ impl SxbetCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1520: bool = true;
-            while { if !__for_first_1520 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1520 = false; i.as_f64().unwrap_or(f64::NAN) < rowsLength } {
-            let mut row: Value = self.safe_dict(rows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("order".into()), &[rows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)]);
+            while { if !__for_first_1520 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1520 = false; i.as_f64().unwrap_or(f64::NAN) < rowsLength } {
+            let mut rawRow: Value = rows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut row: Value = self.safe_dict_k(rawRow.clone(), "order", &[rawRow.clone()]);
             let mut order: Value = self.parse_prediction_order(row, &[]);
             if (self.orders.clone() == Value::Null) {
                 let mut cacheLimit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
@@ -3835,7 +3840,7 @@ impl SxbetCore {
         // validation failures arrive in string-array form, business errors in single-code-string form
         let mut messageString: Value = Value::Null;
         if (matches!(&message, Value::Arr(_))) {
-            messageString = ({ let __r31a: &Value = &message; let __r31d: &Value = &Value::Str(", ".into()); let __r31j: String = (match __r31d { Value::Str(__s) => __s.to_string(), Value::Int(__n) => __n.to_string(), Value::Float(__f) => __f.to_string(), Value::Bool(__b) => __b.to_string(), Value::Null => "null".to_string(), Value::Dict(__m) if __m.contains_key("__precise") => crate::runtime::stringify_param(__r31d), __o => format!("{}", __o) }); match __r31a { Value::Arr(__a) => Value::Str(__a.iter().map(|__r31e| (match __r31e { Value::Str(__s) => __s.to_string(), Value::Int(__n) => __n.to_string(), Value::Float(__f) => __f.to_string(), Value::Bool(__b) => __b.to_string(), Value::Null => "null".to_string(), Value::Dict(__m) if __m.contains_key("__precise") => crate::runtime::stringify_param(__r31e), __o => format!("{}", __o) })).collect::<Vec<String>>().join(&__r31j).into()), _ => Value::Str(String::new().into()) } });
+            messageString = join(&message, &Value::Str(", ".into()));
         }  else {
             messageString = message;
         }
@@ -3896,7 +3901,7 @@ impl SxbetCore {
         // /orders-v3/all and /orders-v3/event - take query parameters, like every GET
         let mut sendAsQuery: bool = method.as_str() == Some("GET");
         if (method.as_str() == Some("DELETE")) {
-            let mut hasOrdersList: bool = ({ let __r29o: &Value = &query; let __r29k: &Value = &Value::Str("orders".into()); match (__r29o, __r29k) { (Value::Dict(__m), Value::Str(__k)) => __m.contains_key(&**__k), (Value::Arr(__a), __r29v) => __a.iter().any(|__r29e| (match (__r29e, __r29v) { (Value::Null, Value::Null) => true, (Value::Bool(__p), Value::Bool(__q)) => __p == __q, (Value::Str(__p), Value::Str(__q)) => __p == __q, (Value::Int(__p), Value::Int(__q)) => __p == __q, (Value::Float(__p), Value::Float(__q)) => __p == __q, (__p, __q) => matches!(((match __p { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), (match __q { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })), (Some(__x), Some(__y)) if __x == __y) })), _ => false } });
+            let mut hasOrdersList: bool = in_op(&query, &Value::Str("orders".into()));
             sendAsQuery = !hasOrdersList;
         }
         let mut bodyValue: Value = Value::Null;
@@ -3906,7 +3911,7 @@ impl SxbetCore {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), querystring).into())).into());
             }
         }  else {
-            let mut queryKeys: Value = ({ let __r29o: &Value = &query; match __r29o { Value::Dict(__m) => Value::List(__m.keys().filter(|__k| __k.as_str() != "__ws_subs_url" && __k.as_str() != "__ws_sub_ref").map(|__k| Value::Str(__k.clone().into())).collect()), _ => Value::List(vec![]) } });
+            let mut queryKeys: Value = object_keys(&query);
             let mut queryKeysLength: f64 = ((queryKeys.len() as i64) as f64);
             if queryKeysLength > ((0i64) as f64) {
                 bodyValue = json_stringify(&query);

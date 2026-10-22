@@ -1155,7 +1155,7 @@ class bybit extends \ccxt\async\bybit {
         $bookside->storeArray($bidAsk);
     }
 
-    public function handle_deltas(mixed $bookside, mixed $deltas) {
+    public function handle_deltas(mixed $bookside, array $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($bookside, $deltas[$i]);
         }

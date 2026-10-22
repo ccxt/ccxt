@@ -1063,7 +1063,7 @@ public class Hibachi extends HibachiApi
             sideInternal = "BID";
         }
         String priceInternal = "";
-        if ((!java.util.Objects.equals(price, null)) && (!(switch ((Object) (price)) { case null -> false; case Long hx4J40v4 -> hx4J40v4 == 0L; case Integer hx4J40v4 -> hx4J40v4 == 0L; case Double hx4J40v4 -> hx4J40v4 == 0L; case Float hx4J40v4 -> hx4J40v4.doubleValue() == 0L; case java.math.BigDecimal hx4J40v4 -> hx4J40v4.stripTrailingZeros().scale() <= 0 && hx4J40v4.longValue() == 0L; case Object hx4J40v4 -> { try { String hx4J40v4t = String.valueOf(hx4J40v4); Double.parseDouble(hx4J40v4t); yield new java.math.BigDecimal(hx4J40v4t).compareTo(java.math.BigDecimal.valueOf(0L)) == 0; } catch (NumberFormatException hx4J40v4x) { yield false; } } })))
+        if ((!java.util.Objects.equals(price, null)) && (!Helpers.isEqual(price, 0)))
         {
             priceInternal = this.priceToPrecision(symbol, price);
         }

@@ -371,7 +371,7 @@ public partial class gemini : ccxt.gemini
         string? type = this.safeString(message, "type", "");
         string? timeframeIdFull = ((type == null) ? null : type.Substring(Math.Min(8, type.Length)));
         int timeframeEndIndex = (timeframeIdFull?.IndexOf("_", StringComparison.Ordinal) ?? -1);
-        string? timeframeId = ((Func<object, object, object, string>)(static (s36s, s36a, s36b) => { if (s36s == null) { return null; } var s36str = (string)s36s; var s36start = s36a != null ? Convert.ToInt32(s36a) : -1; if (s36b == null) { if (s36start < 0) { var s36inner = s36str.Length + s36start; s36inner = s36inner < 0 ? 0 : s36inner; return s36str[(s36inner)..]; } else { return s36str[s36start..]; } } else { var s36end = Convert.ToInt32(s36b); if (s36start < 0) { s36start = s36str.Length + s36start; } if (s36end < 0) { s36end = s36str.Length + s36end; } if (s36end > s36str.Length) { s36end = s36str.Length; } return s36str[s36start..s36end]; } }))(timeframeIdFull, 0, timeframeEndIndex);
+        string? timeframeId = slice(timeframeIdFull, 0, timeframeEndIndex);
         string marketId = this.safeString(message, "symbol", "").ToLower();
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = this.safeSymbol(marketId, market);
@@ -853,7 +853,7 @@ public partial class gemini : ccxt.gemini
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         ccxt.pro.ArrayCache orders = this.orders;
-        for (int i = 0; i < (((object)(message)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(message); i++)
         {
             ccxt.Order order = this.parseWsOrder(getValue(message, i));
             orders.append(ccxt.BaseExchange.FromOrder(order));
@@ -1084,11 +1084,12 @@ public partial class gemini : ccxt.gemini
             return;
         }
         this.checkRequiredCredentials();
-        int startIndex = (((object)(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"))) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+        string? wsBaseUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws", "");
+        int startIndex = wsBaseUrl.Length;
         int urlParamsIndex = url.IndexOf("?", StringComparison.Ordinal);
         int urlLength = url.Length;
         int endIndex = (urlParamsIndex >= 0) ? urlParamsIndex : urlLength;
-        string? request = ((Func<object, object, object, string>)(static (s36s, s36a, s36b) => { if (s36s == null) { return null; } var s36str = (string)s36s; var s36start = s36a != null ? Convert.ToInt32(s36a) : -1; if (s36b == null) { if (s36start < 0) { var s36inner = s36str.Length + s36start; s36inner = s36inner < 0 ? 0 : s36inner; return s36str[(s36inner)..]; } else { return s36str[s36start..]; } } else { var s36end = Convert.ToInt32(s36b); if (s36start < 0) { s36start = s36str.Length + s36start; } if (s36end < 0) { s36end = s36str.Length + s36end; } if (s36end > s36str.Length) { s36end = s36str.Length; } return s36str[s36start..s36end]; } }))(url, startIndex, endIndex);
+        string? request = slice(url, startIndex, endIndex);
         Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "request", request },
             { "nonce", this.incrementingNonce() },

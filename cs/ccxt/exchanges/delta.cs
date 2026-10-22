@@ -2298,7 +2298,7 @@ public partial class delta : Exchange
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "id", (((Func<object, Int64?>)(static (object hx4pa) => { try { return Convert.ToInt64(Math.Floor(Convert.ToDouble(hx4pa))); } catch (Exception) { return null; } }))(id)) },
+            { "id", parseInt(id) },
             { "product_id", (market.ContainsKey("numericId") ? market["numericId"] : null) },
         };
         if ((amount != null))
@@ -2308,7 +2308,7 @@ public partial class delta : Exchange
             {
                 sizeString = "0";
             }
-            request["size"] = (((Func<object, Int64?>)(static (object hx4pa) => { try { return Convert.ToInt64(Math.Floor(Convert.ToDouble(hx4pa))); } catch (Exception) { return null; } }))(sizeString));
+            request["size"] = parseInt(sizeString);
         }
         if ((price != null))
         {
@@ -2356,7 +2356,7 @@ public partial class delta : Exchange
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "id", (((Func<object, Int64?>)(static (object hx4pa) => { try { return Convert.ToInt64(Math.Floor(Convert.ToDouble(hx4pa))); } catch (Exception) { return null; } }))(id)) },
+            { "id", parseInt(id) },
             { "product_id", (market.ContainsKey("numericId") ? market["numericId"] : null) },
         };
         Dictionary<string, object> response = await this.privateDeleteOrders(this.extend(request, parameters));

@@ -4712,7 +4712,7 @@ class xt(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_open_interest(result, market)
 
-    def parse_open_interest(self, interest: object, market: Market = None) -> OpenInterest:
+    def parse_open_interest(self, interest: dict, market: Market = None) -> OpenInterest:
         #
         #     {
         #         "symbol": "btc_usdt",
@@ -5522,7 +5522,7 @@ class xt(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def sign(self, path: str, api: list[str] = [], method='GET', params={}):
+    def sign(self, path: str, api: list[str] = [], method: str = 'GET', params={}):
         signed = api[0] == 'private'
         endpoint = api[1]
         request = '/' + self.implode_params(path, params)

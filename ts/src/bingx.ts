@@ -2093,7 +2093,7 @@ export default class bingx extends Exchange {
         return this.parseOpenInterest (result, market);
     }
 
-    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
+    override parseOpenInterest (interest: NullableDict, market: Market = undefined): OpenInterest {
         //
         // linear swap
         //
@@ -6328,7 +6328,7 @@ export default class bingx extends Exchange {
         return this.parseTrades (fills, market, since, limit, paramsTrades);
     }
 
-    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined): any {
+    override parseDepositWithdrawFee (fee: NullableDict, currency: Currency = undefined): any {
         //
         // currencie structure
         //
@@ -7246,7 +7246,7 @@ export default class bingx extends Exchange {
         return tiers as LeverageTier[];
     }
 
-    override sign (path: string, section: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, section: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         let type = section[0];
         let version = section[1];
         let access = section[2];

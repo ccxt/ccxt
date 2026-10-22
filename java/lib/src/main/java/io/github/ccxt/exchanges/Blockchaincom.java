@@ -397,17 +397,17 @@ public class Blockchaincom extends BlockchaincomApi
                 // price precision
                 String minPriceIncrementString = this.safeString(market, "min_price_increment");
                 String minPriceIncrementScaleString = this.safeString(market, "min_price_increment_scale");
-                Object minPriceScalePrecisionString = this.parsePrecision(minPriceIncrementScaleString);
+                String minPriceScalePrecisionString = (String) this.parsePrecision(minPriceIncrementScaleString);
                 String pricePrecisionString = Precise.stringMul(minPriceIncrementString, minPriceScalePrecisionString);
                 // amount precision
                 String lotSizeString = this.safeString(market, "lot_size");
                 String lotSizeScaleString = this.safeString(market, "lot_size_scale");
-                Object lotSizeScalePrecisionString = this.parsePrecision(lotSizeScaleString);
+                String lotSizeScalePrecisionString = (String) this.parsePrecision(lotSizeScaleString);
                 String amountPrecisionString = Precise.stringMul(lotSizeString, lotSizeScalePrecisionString);
                 // minimum order size
                 String minOrderSizeString = this.safeString(market, "min_order_size");
                 String minOrderSizeScaleString = this.safeString(market, "min_order_size_scale");
-                Object minOrderSizeScalePrecisionString = this.parsePrecision(minOrderSizeScaleString);
+                String minOrderSizeScalePrecisionString = (String) this.parsePrecision(minOrderSizeScaleString);
                 String minOrderSizePreciseString = Precise.stringMul(minOrderSizeString, minOrderSizeScalePrecisionString);
                 Double minOrderSize = this.parseNumber(minOrderSizePreciseString);
                 // maximum order size
@@ -416,7 +416,7 @@ public class Blockchaincom extends BlockchaincomApi
                 if (!java.util.Objects.equals(maxOrderSizeRaw, "0"))
                 {
                     String maxOrderSizeScaleString = this.safeString(market, "max_order_size_scale");
-                    Object maxOrderSizeScalePrecisionString = this.parsePrecision(maxOrderSizeScaleString);
+                    String maxOrderSizeScalePrecisionString = (String) this.parsePrecision(maxOrderSizeScaleString);
                     String maxOrderSizeValueString = Precise.stringMul(maxOrderSizeRaw, maxOrderSizeScalePrecisionString);
                     maxOrderSize = this.parseNumber(maxOrderSizeValueString);
                 }

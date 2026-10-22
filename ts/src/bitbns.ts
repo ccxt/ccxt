@@ -1290,7 +1290,7 @@ export default class bitbns extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path: string, api: string[] = [ 'www' ], method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] = [ 'www' ], method: string = 'GET', params: Dict = {}): Dict {
         const urls = this.urls;
         const apiName = api[0];
         if (!(apiName in urls['api'])) {

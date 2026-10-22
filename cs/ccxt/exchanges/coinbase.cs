@@ -955,7 +955,7 @@ public partial class coinbase : Exchange
         if ((accountId == null))
         {
             await this.loadAccounts();
-            for (int i = 0; i < (((object)(this.accounts)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+            for (int i = 0; i < getArrayLength(this.accounts); i++)
             {
                 IDictionary<string, object> account = ((IDictionary<string, object>)getValue(this.accounts, i));
                 if (((this.safeString(account, "code") == code)) && ((this.safeString(account, "type") == "wallet")))
@@ -3353,7 +3353,7 @@ public partial class coinbase : Exchange
             await this.loadMarkets();
         }
         await this.loadAccounts(false, parameters);
-        for (int i = 0; i < (((object)(this.accounts)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(this.accounts); i++)
         {
             IDictionary<string, object> account = ((IDictionary<string, object>)getValue(this.accounts, i));
             if ((this.safeString(account, "code") == code))
@@ -5811,12 +5811,12 @@ public partial class coinbase : Exchange
         if ((url != null))
         {
             uri = add(add(method, " "), url.Replace("https://", (string)""));
-            int quesPos = (((object)(uri)) switch { IList<object> c33a => c33a.IndexOf("?"), IList<string> c33t => c33t.IndexOf((string)(object)"?"), string c33s => c33s.IndexOf((string)(object)"?"), _ => -1 });
+            int quesPos = getIndexOf(uri, "?");
             // Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
             // Also it's not possible that the question mark is first character, only check > 0 here.
             if (quesPos > 0)
             {
-                uri = ((Func<object, object, object, string>)(static (s36s, s36a, s36b) => { if (s36s == null) { return null; } var s36str = (string)s36s; var s36start = s36a != null ? Convert.ToInt32(s36a) : -1; if (s36b == null) { if (s36start < 0) { var s36inner = s36str.Length + s36start; s36inner = s36inner < 0 ? 0 : s36inner; return s36str[(s36inner)..]; } else { return s36str[s36start..]; } } else { var s36end = Convert.ToInt32(s36b); if (s36start < 0) { s36start = s36str.Length + s36start; } if (s36end < 0) { s36end = s36str.Length + s36end; } if (s36end > s36str.Length) { s36end = s36str.Length; } return s36str[s36start..s36end]; } }))(uri, 0, quesPos);
+                uri = slice(uri, 0, quesPos);
             }
         }
         // eddsa {"sub":"d2efa49a-369c-43d7-a60e-ae26e28853c2","iss":"cdp","aud":["cdp_service"],"uris":["GET api.coinbase.com/api/v3/brokerage/transaction_summary"]}
@@ -6092,7 +6092,7 @@ public partial class coinbase : Exchange
             }
         }
         bool? advancedTrade = this.safeBool(this.options, "advanced");
-        if (!((((object)(response)) switch { null => false, IList<object> c33a => c33a.Contains("data"), IList<string> c33t => c33t.Contains("data"), List<Int64> c33g => c33g.Contains((Int64)(object)"data"), IDictionary<string, object> c33d => c33d.ContainsKey("data"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("data"), _ => false })) && ((advancedTrade != true)))
+        if (!(inOp(response, "data")) && ((advancedTrade != true)))
         {
             throw new ExchangeError (((this.id + " failed due to a malformed response ") + this.json(response))) ;
         }

@@ -439,7 +439,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         String channel = this.safeString(message, "topic");
         Object data = this.safeValue(message, "data", new HashMap<String, Object>() {{}});
         // usually the first message is an empty array
-        Integer dataLength = (switch ((Object)(data)) { case null -> 0; case List<?> j39v3 -> j39v3.size(); case String j39v4 -> j39v4.length(); case Object j39v5 -> j39v5.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v5) : 0; });
+        Integer dataLength = (switch ((Object)(data)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; });
         if ((dataLength != null && dataLength == 0))
         {
             return;
@@ -588,7 +588,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
                 expires = String.valueOf(expires);
                 // we need to memoize these values to avoid generating a new url on each method execution
                 // that would trigger a new connection on each received message
-                { Map<Object, Object> j39v6 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v7 = "ws-expires"; Object j39v8 = expires; if (j39v6 == null) { if (j39v7 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v6) { if (j39v8 == null && j39v6 instanceof java.util.concurrent.ConcurrentHashMap) { j39v6.remove(j39v7); } else { j39v6.put(j39v7, j39v8); } } }
+                Helpers.addElementToObject(this.options, "ws-expires", expires);
             }
             Object url = ((Map<String, Object>)this.urls.get("api")).get("ws");
             String auth = (("CONNECT" + "/stream") + expires);
@@ -624,7 +624,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             }
         } catch(Exception e)
         {
-            if ((switch ((Object) (e)) { case null -> false; case Throwable hx4J44v0 -> { Throwable hx4J44v0u = hx4J44v0; while ((hx4J44v0u instanceof java.util.concurrent.CompletionException || hx4J44v0u instanceof java.util.concurrent.ExecutionException) && hx4J44v0u.getCause() != null) { hx4J44v0u = hx4J44v0u.getCause(); } yield AuthenticationError.class.isInstance(hx4J44v0u); } case Object hx4J44v0 -> AuthenticationError.class.isInstance(hx4J44v0); }))
+            if ((e instanceof AuthenticationError))
             {
                 return false;
             }
@@ -760,13 +760,13 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
 
     public void onError(Client client, Object error)
     {
-        { Map<Object, Object> j39v10 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v11 = "ws-expires"; Object j39v12 = null; if (j39v10 == null) { if (j39v11 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v10) { if (j39v12 == null && j39v10 instanceof java.util.concurrent.ConcurrentHashMap) { j39v10.remove(j39v11); } else { j39v10.put(j39v11, j39v12); } } }
+        Helpers.addElementToObject(this.options, "ws-expires", null);
         super.onError(client, error);
     }
 
     public void onClose(Client client, Object error)
     {
-        { Map<Object, Object> j39v13 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v14 = "ws-expires"; Object j39v15 = null; if (j39v13 == null) { if (j39v14 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v13) { if (j39v15 == null && j39v13 instanceof java.util.concurrent.ConcurrentHashMap) { j39v13.remove(j39v14); } else { j39v13.put(j39v14, j39v15); } } }
+        Helpers.addElementToObject(this.options, "ws-expires", null);
         super.onClose(client, error);
     }
 }

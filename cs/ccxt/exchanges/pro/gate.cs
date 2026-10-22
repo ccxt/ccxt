@@ -520,7 +520,7 @@ public partial class gate : ccxt.gate
         {
             // the subscription limit seeds the rest snapshot, gateeu returns an empty book above 100
             Int64? maxSpotLimit = this.parseToInt(this.handleOption("fetchOrderBook", "maxSpotLimit", 1000));
-            limitResolved = (((((object)(limitResolved)) is var c31v0) && (((object)(maxSpotLimit)) is var c31v1)) ? (((c31v0 == null) || (c31v1 == null)) ? null : ((Convert.ToDouble(c31v0) < Convert.ToDouble(c31v1)) ? c31v0 : c31v1)) : null);
+            limitResolved = mathMin(limitResolved, maxSpotLimit);
         }
         List<object> payload = new List<object>() {};
         object channel = "";
@@ -532,7 +532,7 @@ public partial class gate : ccxt.gate
         {
             channel = "spot.obu";
             string? finalInterval = interval;
-            if ((((object)(limitResolved)) switch { Int64 c33l => c33l == 400, int c33i => c33i == 400, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 400, decimal c33m => c33m == 400, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 400, uint c33u => (Int64)c33u == 400, short c33h => (Int64)c33h == 400, ushort c33v => (Int64)c33v == 400, byte c33y => (Int64)c33y == 400, sbyte c33e => (Int64)c33e == 400, ulong c33z => c33z == 400UL, _ => false }))
+            if (isEqual(limitResolved, 400))
             {
                 finalInterval = "400";
             }
@@ -602,7 +602,7 @@ public partial class gate : ccxt.gate
         {
             channel = "spot.obu";
             string? finalInterval = intervalOption;
-            if ((((object)(limit)) switch { Int64 c33l => c33l == 400, int c33i => c33i == 400, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 400, decimal c33m => c33m == 400, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 400, uint c33u => (Int64)c33u == 400, short c33h => (Int64)c33h == 400, ushort c33v => (Int64)c33v == 400, byte c33y => (Int64)c33y == 400, sbyte c33e => (Int64)c33e == 400, ulong c33z => c33z == 400UL, _ => false }))
+            if (isEqual(limit, 400))
             {
                 finalInterval = "400";
             }
@@ -1679,7 +1679,7 @@ public partial class gate : ccxt.gate
         {
             this.positions = new Dictionary<string, object>() {};
         }
-        if (((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))(this.positions, type))
+        if (inOp(this.positions, type))
         {
             return;
         }
@@ -2586,7 +2586,7 @@ public partial class gate : ccxt.gate
         object url = this.safeValue(api, type);
         if (((type is "swap")) || ((type is "future")))
         {
-            return (((object)(isInverse)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }) ? getValue(url, "btc") : getValue(url, "usdt");
+            return isTrue(isInverse) ? getValue(url, "btc") : getValue(url, "usdt");
         } else
         {
             return url;
@@ -2750,7 +2750,7 @@ public partial class gate : ccxt.gate
         requiresUid ??= false;
         this.checkRequiredCredentials();
         // uid is required for some subscriptions only so it's not a part of required credentials
-        if ((((object)(requiresUid)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
+        if (isTrue(requiresUid))
         {
             if ((this.uid == null) || (this.uid.Length == 0))
             {
@@ -2760,7 +2760,7 @@ public partial class gate : ccxt.gate
         List<object> idArray = new List<object>() {this.uid};
         List<object> payloadWithUid = ((payload == null)) ? idArray : this.arrayConcat(idArray, payload);
         object payloadValue = payload;
-        if ((((object)(requiresUid)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
+        if (isTrue(requiresUid))
         {
             payloadValue = payloadWithUid;
         }

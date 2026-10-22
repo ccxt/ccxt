@@ -1764,7 +1764,7 @@ class backpack extends Exchange {
         return $this->parse_open_interest($interest, $market);
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null): array {
+    public function parse_open_interest(?array $interest, ?array $market = null): array {
         //
         //     [
         //         {
@@ -3377,7 +3377,7 @@ class backpack extends Exchange {
         return $this->milliseconds() - $timeDifference;
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $endpoint = '/' . $path;
         $apiUrl = $this->safe_string($this->urls['api'], $apiName);
