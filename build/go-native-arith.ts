@@ -2423,175 +2423,7 @@ export function hx4G37Check (): string[] {
     return problems;
 }
 
-// hx4 G42
-// Truthiness / type-check helpers -> inline closures that replay exchange_helpers.go exactly (same derefScalar
-// unwrap as G36's `d`, same type switches; *sync.Map is matched by reflect name so no `sync` import is needed).
-const HX4G42_HELPERS = [ 'EvalTruthy', 'IsTrue', 'IsArray', 'IsString', 'IsNumber', 'IsBool', 'IsDictionary', 'IsObject', 'IsFunction', 'IsInstance', 'GetValueBool' ];
-const HX4G42_SYNCMAP = 't := reflect.TypeOf(x); t != nil && t.Kind() == reflect.Pointer && t.Elem().PkgPath() == "sync" && t.Elem().Name() == "Map"';
-
-function hx4G42Template (helper: string, p: string): { head: string, body: string[] } | undefined {
-    const one = (ret: string, body: string[]) => ({ 'head': 'func(v any) ' + ret + ' {', 'body': [ ...HX4G36_DEREF, ...body ] });
-    if ((helper === 'EvalTruthy') || (helper === 'IsTrue')) {
-        return one ('bool', [ 'switch x := d(v).(type) {', 'case nil:', '\treturn false',
-            'case int, int32, int64, uint, uint32, uint64:', '\treturn x != 0',
-            'case float32, float64:', '\treturn x != 0.0',
-            'case string:', '\treturn x != ""', 'case bool:', '\treturn x',
-            'case []any:', '\treturn len(x) > 0', 'case map[string]any:', '\treturn len(x) > 0',
-            'case []string:', '\treturn len(x) > 0', 'case []int64:', '\treturn len(x) > 0', 'case []float64:', '\treturn len(x) > 0',
-            'case []bool:', '\treturn len(x) > 0', 'case []int:', '\treturn len(x) > 0',
-            'default:', '\tif ' + HX4G42_SYNCMAP + ' {', '\t\tif reflect.ValueOf(x).IsZero() {', '\t\t\treturn false', '\t\t}',
-            '\t\tfound := false', '\t\tx.(interface{ Range(func(any, any) bool) }).Range(func(_, _ any) bool {', '\t\t\tfound = true', '\t\t\treturn false', '\t\t})', '\t\treturn found', '\t}',
-            '\treturn true', '}' ]);
-    }
-    if (helper === 'IsArray') {
-        return one ('bool', [ 'switch d(v).(type) {',
-            'case []any, [][]any, ' + p + 'IOrderBookSide, []map[string]any, ' + p + 'ListCache, []string, []bool, []int, []int8, []int16, []int32, []int64, []float32, []float64, []uint, []uint8, []uint16, []uint32, []uint64:',
-            '\treturn true', '}', 'return false' ]);
-    }
-    if ((helper === 'IsString') || (helper === 'IsBool')) {
-        return one ('bool', [ '_, ok := d(v).(' + ((helper === 'IsString') ? 'string' : 'bool') + ')', 'return ok' ]);
-    }
-    if (helper === 'IsNumber') {
-        return one ('bool', [ 'switch d(v).(type) {', 'case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64:', '\treturn true', '}', 'return false' ]);
-    }
-    if (helper === 'IsDictionary') {
-        return one ('bool', [ 'x := d(v)', 'switch x.(type) {', 'case map[string]any, ' + p + 'Dict, map[any]any, ' + p + 'OrderBookInterface:', '\treturn true', '}',
-            'if ' + HX4G42_SYNCMAP + ' {', '\treturn true', '}', 'return false' ]);
-    }
-    if (helper === 'IsObject') {
-        return one ('bool', [ 'x := d(v)', 'if x == nil {', '\treturn false', '}', 'switch reflect.TypeOf(x).Kind() {',
-            'case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Ptr, reflect.Struct, reflect.UnsafePointer:', '\treturn true', '}', 'return false' ]);
-    }
-    if (helper === 'IsFunction') {
-        return one ('bool', [ 'x := d(v)', 'return x != nil && reflect.TypeOf(x).Kind() == reflect.Func' ]);
-    }
-    if (helper === 'IsInstance') {
-        return { 'head': 'func(value any, typ any) bool {', 'body': [
-            'name := func() string {', '\tr := reflect.ValueOf(typ)', '\tif r.Kind() != reflect.Func {', '\t\treturn ""', '\t}',
-            '\tparts := (strings.Split)(runtime.FuncForPC(r.Pointer()).Name(), ".")', '\treturn parts[len(parts)-1]', '}',
-            'if s, ok := value.(string); ok && strings.HasPrefix(s, "panic") {', '\treturn (strings.Contains)(s, name())', '}',
-            'if e, ok := value.(*' + p + 'Error); ok && e != nil {', '\tn := name()', '\tif n == "" {', '\t\treturn false', '\t}', '\tif n == "BaseError" {', '\t\treturn true', '\t}',
-            '\tfor current, seen := e.Type, 0; seen <= len(' + p + 'ErrorParents); seen++ {', '\t\tif string(current) == n {', '\t\t\treturn true', '\t\t}',
-            '\t\tparent, ok := ' + p + 'ErrorParents[current]', '\t\tif !ok {', '\t\t\treturn false', '\t\t}', '\t\tcurrent = parent', '\t}', '\treturn false', '}',
-            'return reflect.TypeOf(value) == reflect.TypeOf(typ)' ] };
-    }
-    return undefined;
-}
-
-// GetValueBool(s, N, lit): only for a first argument every declaration of which in the file is `var s []any`
-function hx4G42ValueBool (masked: string, args: string[]): { head: string, body: string[], args: string } | undefined {
-    const [ s, i, def ] = args;
-    if (!/^\w+$/.test (s) || !/^\d+$/.test (i) || !/^(?:true|false)$/.test (def)) {
-        return undefined;
-    }
-    if (new RegExp ('(?<![\\w.])' + s + '\\s*:=').test (masked)) {
-        return undefined;
-    }
-    if (!new RegExp ('\\bvar ' + s + ' \\[\\]any = ').test (masked) || new RegExp ('\\bvar ' + s + ' (?!\\[\\]any = )').test (masked) || new RegExp ('[(,]\\s*' + s + '\\s+[\\w*[]').test (masked)) {
-        return undefined;
-    }
-    return { 'head': 'func(s []any, def bool) bool {', 'args': s + ', ' + def, 'body': [ ...HX4G36_DEREF,
-        'if len(s) > ' + i + ' {', '\tif b, ok := d(s[' + i + ']).(bool); ok {', '\t\treturn b', '\t}', '}', 'return def' ] };
-}
-
-export function hx4G42InlineTypeChecks (content: string, aligner?: Hx4G36Aligner): string {
-    // the import splice lands after the banner: a banner above the package clause keeps the helpers
-    if ((content.indexOf ('IT IS GENERATED AND WILL BE OVERWRITTEN') < 0) || !/^package \w+\n/.test (content)) {
-        return content;
-    }
-    const rx = new RegExp ('(?<![\\w.])(?:ccxt\\.|this\\.)?(' + HX4G42_HELPERS.join ('|') + ')\\(', 'g');
-    let masked = goArithMask (content);
-    if (!rx.test (masked)) {
-        return content;
-    }
-    rx.lastIndex = 0;
-    // closure bodies name these packages / ccxt types: a local shadowing any of them keeps the helpers
-    if (/(?<![\w.])(?:reflect|strings|runtime|Error|ErrorParents|Dict|ListCache|IOrderBookSide|OrderBookInterface)\s*(?::=|,\s*\w+\s*:?=)|\bvar (?:reflect|strings|runtime|Error|ErrorParents|Dict|ListCache)\b|[(,]\s*(?:reflect|strings|runtime)\s+[\w*[]/.test (masked)) {
-        return content;
-    }
-    const p = /^package ccxt$/m.test (content) ? '' : 'ccxt.';
-    const ownMethods = new Set ([ ...masked.matchAll (/^func \(\w+ \*?\w+\) (IsDictionary|IsArray)\(/gm) ].map ((m) => m[1]));
-    const calls = [ ...masked.matchAll (rx) ].map ((m) => ({ 'start': m.index as number, 'helper': m[1], 'self': m[0].startsWith ('this.'), 'open': (m.index as number) + m[0].length - 1 }))
-        .filter ((c) => !/\bfunc\s*(?:\([^)]*\)\s*)?$/.test (masked.slice (Math.max (0, c.start - 80), c.start)))
-        .filter ((c) => !c.self || ((c.helper === 'IsDictionary') && !ownMethods.has ('IsDictionary')));
-    calls.sort ((x, y) => y.start - x.start);
-    let text = content;
-    const used = new Set<string> ();
-    let marked = false;
-    for (const call of calls) {
-        const close = goArithClose (masked, call.open);
-        if (close < 0) {
-            continue;
-        }
-        const spans = goArithArgs (masked, call.open, close);
-        const args = spans.map (([ s, e ]) => text.slice (s, e).trim ());
-        const expected = (call.helper === 'IsInstance') ? 2 : ((call.helper === 'GetValueBool') ? 3 : 1);
-        if ((spans.length !== expected) || args.some ((a) => a === '')) {
-            continue;
-        }
-        const tpl: { head: string, body: string[], args?: string } | undefined = (call.helper === 'GetValueBool') ? hx4G42ValueBool (masked, args) : hx4G42Template (call.helper, p);
-        if (tpl === undefined) {
-            continue;
-        }
-        const lineStart = text.lastIndexOf ('\n', call.start - 1) + 1;
-        const indent = /^\t*/.exec (text.slice (lineStart))[0];
-        const body = tpl.body.map ((l) => indent + '\t' + l).join ('\n');
-        let native = tpl.head + '\n' + body + '\n' + indent + '}(' + (tpl.args ?? args.join (', ')) + ')';
-        for (const pkg of [ 'reflect', 'strings', 'runtime' ]) {
-            if (new RegExp ('\\b' + pkg + '\\.').test (body)) {
-                used.add (pkg);
-            }
-        }
-        const keyed = /^\t*"(?:[^"\\]|\\.)*":/.test (text.slice (lineStart, call.start)) && (aligner !== undefined);
-        const maskedNative = goArithMask (native);
-        if (keyed) {
-            native = HX4G36_MARK + native;
-            marked = true;
-        }
-        text = text.slice (0, call.start) + native + text.slice (close + 1);
-        masked = masked.slice (0, call.start) + (keyed ? ' '.repeat (HX4G36_MARK.length) : '') + maskedNative + masked.slice (close + 1);
-    }
-    if (marked) {
-        const lines = text.split ('\n');
-        for (let k = lines.length - 1; k >= 0; k--) {
-            if (lines[k].includes (HX4G36_MARK)) {
-                lines[k] = lines[k].split (HX4G36_MARK).join ('');
-                hx4G36Realign (lines, k, aligner as Hx4G36Aligner);
-            }
-        }
-        text = lines.join ('\n');
-    }
-    for (const pkg of [ 'strings', 'runtime', 'reflect' ]) {
-        if (used.has (pkg)) {
-            text = hx4G36AddImport (text, pkg);
-            if (!new RegExp ('^import "' + pkg + '"$|^\\s+"' + pkg + '"$', 'm').test (text)) {
-                return content;
-            }
-        }
-    }
-    return text;
-}
-
-export function hx4G42Check (aligner?: Hx4G36Aligner): string[] {
-    const head = 'package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n\n';
-    const problems: string[] = [];
-    const left = (s: string) => new RegExp ('(?<![\\w.])(?:ccxt\\.|this\\.)?(?:' + HX4G42_HELPERS.join ('|') + ')\\(').test (goArithMask (s));
-    const out = hx4G42InlineTypeChecks (head + 'func (this *K) F(a any, e any) any {\n\tvar pv []any = this.HandlePostOnly(false, false, a)\n\tif IsArray(a) && !EvalTruthy(GetValue(a, "x")) || this.IsDictionary(a) {\n\t\treturn GetValueBool(pv, 0, false)\n\t}\n\treturn IsInstance(e, BadSymbol)\n}\n', aligner);
-    if (left (out) || !out.includes ('import "reflect"') || !out.includes ('import "runtime"') || !out.includes ('import "strings"') || !out.includes ('}(pv, false)')) {
-        problems.push ('hx4 G42: not lowered: ' + out);
-    }
-    const pro = hx4G42InlineTypeChecks (head.replace ('package ccxt', 'package ccxtpro') + 'func (this *K) F(a any) any {\n\treturn ccxt.IsArray(a)\n}\n', aligner);
-    if (left (pro) || !pro.includes ('ccxt.IOrderBookSide, []map[string]any, ccxt.ListCache')) {
-        problems.push ('hx4 G42: ccxt. prefix: ' + pro);
-    }
-    // a GetValueBool receiver that is not a declared []any keeps the helper; a shadowed package keeps the file
-    const anyRecv = head + 'func F(pv any) any {\n\treturn GetValueBool(pv, 0, false)\n}\n';
-    const shadow = head + 'func F(strings any) any {\n\treturn IsString(strings)\n}\n';
-    if ((hx4G42InlineTypeChecks (anyRecv, aligner) !== anyRecv) || (hx4G42InlineTypeChecks (shadow, aligner) !== shadow)) {
-        problems.push ('hx4 G42: negative cases rewritten');
-    }
-    return problems;
-}
+// hx4 G42 (closures removed by hx5 X25; the pass now lives in the `// hx5 X25` block at the end of the file)
 
 // hx4 G43
 // Last tier for the case & affix string helpers: each ToUpper/ToLower/Trim/StartsWith/EndsWith/PadStart/PadEnd call
@@ -3354,5 +3186,117 @@ export function hx4G40Check (aligner?: unknown): string[] {
     if (hx4G40InlineIsEqual (once) !== once) {
         problems.push ('hx5 X23: not idempotent');
     }
+    return problems;
+}
+
+// hx5 X25
+// Truthiness / type-check helpers: a call whose single operand is a once-declared typed local or parameter prints the
+// plain native test; every other call keeps the helper exactly as master emitted it (never an inline closure).
+// derefScalar folds a nil *T / nil []any / nil []string / nil map to nil, so each pointer or container form is a nil test.
+function hx5X25DeclaredType (fn: string, name: string): string | undefined {
+    const header = fn.split ('\n')[1] || '';
+    const body = fn.slice (header.length + 1);
+    const decls = body.match (new RegExp ('\\bvar ' + name + ' ([\\w*.\\[\\]]+)(?= =|\\n)', 'g')) || [];
+    const param = header.match (new RegExp ('[(,]\\s*' + name + ' ([\\w*.\\[\\]]+)\\s*[,)]'));
+    // a `:=`, closure parameter, range variable or `&x` could rebind or alias the name
+    const shadow = new RegExp ('(?<![.\\w])' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|&' + name + '\\b|\\bfunc\\b[^{\\n]*[(,]\\s*' + name + ' ').test (body);
+    if (shadow || (decls.length + (param ? 1 : 0)) !== 1) {
+        return undefined;
+    }
+    return param ? param[1] : (decls[0] as string).replace (/^var \w+ /, '');
+}
+
+function hx5X25Native (helper: string, x: string, t: string): string | undefined {
+    const nonNil = '(' + x + ' != nil)';
+    const ints = [ 'int', 'int32', 'int64', 'uint', 'uint32', 'uint64' ];
+    if ((helper === 'EvalTruthy') || (helper === 'IsTrue')) {
+        if (t === 'bool') { return x; }
+        if (t === '*bool') { return '(' + x + ' != nil && *' + x + ')'; }
+        if (t === 'string') { return '(' + x + ' != "")'; }
+        if (t === '*string') { return '(' + x + ' != nil && *' + x + ' != "")'; }
+        if (ints.includes (t) || (t === 'float64')) { return '(' + x + ' != 0)'; }
+        if ([ '[]any', '[]string', 'map[string]any' ].includes (t)) { return '(len(' + x + ') > 0)'; }
+        return undefined;
+    }
+    const nilTests: { [h: string]: string[] } = {
+        'IsString': [ '*string' ],
+        'IsBool': [ '*bool' ],
+        'IsNumber': [ '*int64', '*float64', '*int' ],
+        'IsInteger': [],
+        'IsArray': [ '[]any', '[]string', '*[]any', '*[]string' ],
+        'IsDictionary': [ 'map[string]any', '*map[string]any' ],
+    };
+    return (nilTests[helper] || []).includes (t) ? nonNil : undefined;
+}
+
+function hx5X25Func (fn: string): string {
+    const rx = /(?<![\w.])(?:ccxt\.)?(EvalTruthy|IsTrue|IsString|IsBool|IsNumber|IsArray|IsDictionary)\((?:\((\w+)\)|(\w+))\)/g;
+    const masked = goArithMask (fn);
+    const cache = new Map<string, string | undefined> ();
+    const hits = [ ...masked.matchAll (rx) ];
+    let out = fn;
+    for (let k = hits.length - 1; k >= 0; k--) {
+        const m = hits[k];
+        const x = m[2] || m[3];
+        if (!cache.has (x)) {
+            cache.set (x, hx5X25DeclaredType (masked, x));
+        }
+        const t = cache.get (x);
+        const native = (t === undefined) ? undefined : hx5X25Native (m[1], x, t);
+        if (native === undefined) {
+            continue;
+        }
+        const start = m.index as number;
+        const end = start + m[0].length;
+        const lineStart = out.lastIndexOf ('\n', start - 1) + 1;
+        let lineEnd = out.indexOf ('\n', end);
+        lineEnd = (lineEnd < 0) ? out.length : lineEnd;
+        // `(x != nil) && IsString(x)` would print a duplicate operand: go vet rejects `redundant and/or`
+        const rest = out.slice (lineStart, start) + out.slice (end, lineEnd);
+        const esc = (v: string) => v.replace (/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const bare = esc (native.replace (/^\((.*)\)$/, '$1'));
+        const operand = new RegExp ('(?:&&|\\|\\|)\\s*!?\\(*' + bare + '\\)*\\s*(?:&&|\\|\\||\\)|\\{|$)|(?:^|\\(|&&|\\|\\||\\bif\\s|return\\s)\\s*!?\\(*' + bare + '\\)*\\s*(?:&&|\\|\\|)');
+        if (operand.test (rest.replace (/\s+/g, ' '))) {
+            continue;
+        }
+        out = out.slice (0, start) + native + out.slice (end);
+    }
+    return out;
+}
+
+export function hx4G42InlineTypeChecks (content: string, _aligner?: Hx4G36Aligner): string {
+    if (content.indexOf ('IT IS GENERATED AND WILL BE OVERWRITTEN') < 0) {
+        return content;
+    }
+    return content.replace (/\nfunc [\s\S]*?\n\}/g, ((fn: string) => hx5X25Func (fn)) as any);
+}
+
+export function hx4G42Check (aligner?: Hx4G36Aligner): string[] {
+    const head = 'package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n\n';
+    const problems: string[] = [];
+    const ok = (c: boolean, m: string) => { if (!c) { problems.push ('hx5 X25: ' + m); } };
+    const f = (sig: string, body: string) => hx4G42InlineTypeChecks (head + 'func (this *K) F(' + sig + ') any {\n' + body + '\treturn nil\n}\n', aligner);
+    // unproven operands keep the helper verbatim: no closure, no import
+    const helpers = '\tvar pv []any = this.HandlePostOnly(false, false, a)\n\tif IsArray(a) && !EvalTruthy(GetValue(a, "x")) || this.IsDictionary(a) {\n\t\treturn GetValueBool(pv, 0, false)\n\t}\n\treturn IsInstance(e, BadSymbol)\n';
+    const kept = f ('a any, e any', helpers);
+    ok (kept.includes ('IsArray(a) && !EvalTruthy(GetValue(a, "x")) || this.IsDictionary(a)') && kept.includes ('GetValueBool(pv, 0, false)') && kept.includes ('IsInstance(e, BadSymbol)') && !kept.includes ('func(') && !kept.includes ('import'), 'helpers kept: ' + kept);
+    // proven operands print the plain native test
+    ok (f ('b bool', '\tif EvalTruthy(b) {\n\t}\n').includes ('if b {'), 'bool param');
+    ok (f ('', '\tvar s *string = this.SafeString(o, "k")\n\tif IsString(s) {\n\t}\n').includes ('if (s != nil) {'), '*string IsString');
+    ok (f ('', '\tvar s *string = this.SafeString(o, "k")\n\tif ccxt.IsTrue(s) {\n\t}\n').includes ('if (s != nil && *s != "") {'), '*string IsTrue');
+    ok (f ('', '\tvar l []any = this.SafeList(o, "k")\n\tif !IsArray(l) || !EvalTruthy(l) {\n\t}\n').includes ('if !(l != nil) || !(len(l) > 0) {'), '[]any');
+    ok (f ('', '\tvar m map[string]any = MapTyped(o)\n\tif IsDictionary(m) {\n\t}\n').includes ('if (m != nil) {'), 'map IsDictionary');
+    ok (f ('n int64', '\tif IsTrue(n) && IsNumber(n) {\n\t}\n').includes ('if (n != 0) && IsNumber(n) {'), 'int64');
+    // a duplicate operand, a rebound name, an `any` operand and an address-taken local keep the helper
+    ok (f ('', '\tvar s *string = this.SafeString(o, "k")\n\tif (s != nil) && IsString(s) {\n\t}\n').includes ('(s != nil) && IsString(s)'), 'redundant and kept');
+    ok (f ('b bool', '\tif b && EvalTruthy(b) {\n\t}\n').includes ('b && EvalTruthy(b)'), 'redundant bool kept');
+    ok (f ('b bool, c bool', '\tif c && EvalTruthy(b) {\n\t}\n').includes ('if c && b {'), 'distinct bool');
+    ok (f ('', '\tvar s *string = nil\n\tfn := func(s any) bool { return IsString(s) }\n\t_ = fn\n').includes ('return IsString(s)'), 'shadowed kept');
+    ok (f ('a any', '\tif IsString(a) {\n\t}\n').includes ('IsString(a)'), 'any kept');
+    ok (f ('', '\tvar l []any = nil\n\tp := &l\n\t_ = p\n\tif IsArray(l) {\n\t}\n').includes ('IsArray(l)'), 'address-taken kept');
+    ok (f ('', '\t// IsString(s)\n\tvar s string = "x"\n\t_ = s\n').includes ('// IsString(s)'), 'comment untouched');
+    // idempotent
+    const once = f ('b bool, s *string', '\tif EvalTruthy(b) && IsString(s) {\n\t}\n');
+    ok (hx4G42InlineTypeChecks (once, aligner) === once, 'idempotent');
     return problems;
 }
