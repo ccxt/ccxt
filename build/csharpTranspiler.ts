@@ -12990,195 +12990,12 @@ function hx4C30SnippetChecks (): string[] {
 // becomes the object overload's body inline (each operand evaluated once, left to right, via `is var` locals).
 // A pair of declared numeric operands binds a typed twin, so its result is cast back to the twin's return type.
 export function hx4C31NativeMath (content: string): string {
-    if (!/(?<![\w.])(?:divide|mod|mathMin|mathMax|prefixUnaryNeg)\(/.test (content) || /^namespace Tests\b/m.test (content)) {
-        return content;
-    }
-    const lines = content.split ('\n');
-    const masked = lines.map (csharpHelperMaskLine);
-    let counter = Math.max (-1, ...Array.from (content.matchAll (/\bc31v(\d+)\b/g), (m) => Number (m[1]))) + 1;
-    const fresh = () => 'c31v' + (counter++);
-    const signatures = [];
-    for (let i = 0; i < masked.length; i++) {
-        if (CSHARP_HELPER_SIGNATURE_RE.test (masked[i]) && !masked[i].trimEnd ().endsWith (';')) signatures.push (i);
-    }
-    let changed = false;
-    for (let n = 0; n < signatures.length; n++) {
-        const start = signatures[n];
-        const end = (n + 1 < signatures.length) ? signatures[n + 1] : lines.length;
-        const region = { start, end, params: csharpHelperSignatureParams (masked, start), declarations: [], lines: masked, bound: new Set<string> (), forInt: new Set<string> () };
-        for (let i = start; i < end; i++) {
-            const d = csharpHelperDeclarationOfLine (masked[i]);
-            if (d !== undefined) region.declarations.push ({ line: i, name: d.name, type: d.type, value: d.value });
-        }
-        for (let i = start + 1; i < end; i++) {
-            for (const b of masked[i].matchAll (/\bfor[ ]*\([ ]*int[ ]+([A-Za-z_]\w*)[ ]*=/g)) region.forInt.add (b[1]);
-            for (const b of masked[i].matchAll (/(?:\bfor(?:each)?[ ]*\([ ]*([A-Za-z_][\w<>?,]*)[ ]+|\bout[ ]+[A-Za-z_][\w<>?]*[ ]+|\bis[ ]+[A-Za-z_][\w<>?]*[ ]+|\bcatch[ ]*\([ ]*[A-Za-z_][\w.]*[ ]+)([A-Za-z_]\w*)/g)) {
-                if (b[1] !== 'int') region.bound.add (b[2]);
-            }
-            for (const b of masked[i].matchAll (/([A-Za-z_]\w*)[ ]*=>/g)) region.bound.add (b[1]);
-            for (const b of masked[i].matchAll (/\(([^()]*)\)[ ]*=>/g)) {
-                for (const p of b[1].split (',')) region.bound.add (p.trim ().split (/\s+/).pop ());
-            }
-        }
-        // the C# static type of an operand: a numeric kind, 'object', or undefined (unproven)
-        const opType = (text: string, line: number): string | undefined => {
-            const bare = hx4C05StripParens (text);
-            if (/^-?\d{1,9}$/.test (bare)) return 'int';
-            if (/^\d{1,18}L$/.test (bare)) return 'Int64';
-            if (/^-?\d+\.\d+$/.test (bare)) return 'double';
-            if (bare === 'null') return 'object';
-            if (/^this\.(milliseconds|seconds)\(\)$/.test (bare)) return 'Int64';
-            if (/^this\.parseToInt\(/.test (bare) && (hx4C05ClosingParen (bare, 15) === bare.length - 1)) return 'Int64?';
-            if (/^getValue\(/.test (bare) && (hx4C05ClosingParen (bare, 8) === bare.length - 1)) return 'object';
-            if (/^Math\.Pow\(/.test (bare) && (hx4C05ClosingParen (bare, 8) === bare.length - 1)) return 'double';
-            // this pass's own inline forms
-            const own = (t: string) => t.startsWith ('(((((object)(') && (hx4C05ClosingParen (t, 0) === t.length - 1) && / is var c31v\d+\)/.test (t);
-            if (own (text.trim ()) || own ('(' + bare + ')')) return 'object';
-            const cast = /^\((double\??|Int64\??)\)/.exec (bare);
-            const castBody = (cast === null) ? '' : bare.slice (cast[0].length).replace (/^\((.*)!\)$/, '$1');
-            if ((cast !== null) && own (castBody)) return cast[1];
-            // helper calls left in place: the overload C# binds for the operand types
-            const call = /^(subtract|multiply|this\.sum)\(/.exec (bare);
-            if ((call !== null) && (hx4C05ClosingParen (bare, call[0].length - 1) === bare.length - 1)) {
-                const comma = csharpHelperTopLevelComma (bare, call[0].length - 1, bare.length - 1);
-                if ((comma === undefined) || (csharpHelperTopLevelComma (bare, comma, bare.length - 1) !== undefined)) return undefined;
-                const a = opType (bare.slice (call[0].length, comma), line);
-                const b = opType (bare.slice (comma + 1, bare.length - 1), line);
-                const has = (t: string) => (a === t) || (b === t);
-                if ((call[1] === 'multiply') && (has ('double') || has ('double?'))) return 'object'; // no double twin
-                if ((a === undefined) || (b === undefined)) return undefined;
-                const integral = (t: string) => (t === 'int') || (t === 'Int64');
-                const nullable = (t: string) => (t === 'Int64?') || (t === 'int?');
-                if (call[1] === 'this.sum') return ((integral (a) || nullable (a)) && (integral (b) || nullable (b))) ? 'Int64' : 'object';
-                if (has ('object')) return 'object';
-                if (call[1] === 'subtract') {
-                    if ((a === 'int') && (b === 'int')) return 'int';
-                    if (integral (a) && integral (b)) return 'Int64';
-                    if ([ a, b ].every ((t) => integral (t) || (t === 'double'))) return 'double';
-                    return 'object';
-                }
-                if (integral (a) && integral (b)) return 'Int64';
-                if ([ a, b ].every ((t) => integral (t) || nullable (t))) return 'Int64?';
-                return 'object';
-            }
-            if (/^[A-Za-z_]\w*$/.test (bare)) {
-                const t = c15NameType (region, bare, line);
-                if (t === undefined) return undefined;
-                if ([ 'int', 'Int64', 'double', 'Int64?', 'double?', 'int?', 'object' ].includes (t)) return t;
-                if ([ 'string', 'string?', 'bool', 'bool?' ].includes (t) || /^(I?List|I?Dictionary)</.test (t)) return 'object';
-            }
-            return undefined;
-        };
-        // the twin a typed pair binds (C# overload resolution), 'object' for the object overload, undefined if unproven
-        const twin = (name: string, a: string | undefined, b: string | undefined): string | undefined => {
-            if ((a === undefined) || (b === undefined)) return undefined;
-            if ((a === 'object') || (b === 'object')) return 'object';
-            const integral = (t: string) => (t === 'int') || (t === 'Int64');
-            if (integral (a) && integral (b)) return (name === 'divide') ? 'double' : 'Int64';
-            const toDouble = (t: string) => integral (t) || (t === 'double');
-            if (toDouble (a) && toDouble (b)) return (name === 'divide') ? 'double' : 'Int64';
-            const toNullable = (t: string) => integral (t) || (t === 'Int64?') || (t === 'int?');
-            if (toNullable (a) && toNullable (b)) return (name === 'divide') ? 'double?' : 'Int64?';
-            return 'object';
-        };
-        const rewrite = (text: string, line: number): string => {
-            let out = '';
-            let last = 0;
-            const callRe = /(?<![A-Za-z0-9_.])(divide|mod|mathMin|mathMax)\(/g;
-            let m;
-            while ((m = callRe.exec (text)) !== null) {
-                const open = m.index + m[0].length - 1;
-                const close = hx4C05ClosingParen (text, open);
-                if (close === undefined) continue;
-                const comma = csharpHelperTopLevelComma (text, open, close);
-                if ((comma === undefined) || (csharpHelperTopLevelComma (text, comma, close) !== undefined)) continue;
-                const rawA = text.slice (open + 1, comma);
-                const rawB = text.slice (comma + 1, close);
-                const A = rewrite (rawA, line).trim ();
-                const B = rewrite (rawB, line).trim ();
-                const kind = (m[1] === 'mathMin' || m[1] === 'mathMax') ? 'object' : twin (m[1], opType (A, line) ?? opType (rawA, line), opType (B, line) ?? opType (rawB, line));
-                let native: string | undefined;
-                if (kind !== undefined) {
-                    const x = fresh ();
-                    const y = fresh ();
-                    const head = '(((object)(' + A + ')) is var ' + x + ') && (((object)(' + B + ')) is var ' + y + ')';
-                    const isNull = '(' + x + ' == null) || (' + y + ' == null)';
-                    let body: string;
-                    if (m[1] === 'divide') {
-                        body = '(' + isNull + ') ? null : (object)(Convert.ToDouble(' + x + ') / Convert.ToDouble(' + y + '))';
-                    } else if (m[1] === 'mod') {
-                        body = '(' + isNull + ' || !((' + x + ' is string) || (' + x + ' is Int64) || (' + x + ' is int) || (' + x + ' is uint) || (' + x + ' is double))) ? null : (object)Convert.ToInt64(Convert.ToDouble(' + x + ') % Convert.ToDouble(' + y + '))';
-                    } else {
-                        body = '(' + isNull + ') ? null : ((Convert.ToDouble(' + x + ') ' + ((m[1] === 'mathMin') ? '<' : '>') + ' Convert.ToDouble(' + y + ')) ? ' + x + ' : ' + y + ')';
-                    }
-                    native = '((' + head + ') ? (' + body + ') : null)';
-                    if (kind !== 'object') native = '((' + kind + ')' + (kind.endsWith ('?') ? native : '(' + native + '!)') + ')'; // non-null operands: never null
-                }
-                out += text.slice (last, m.index) + (native ?? (m[1] + '(' + A + ', ' + B + ')'));
-                last = close + 1;
-                callRe.lastIndex = close + 1;
-            }
-            return out + text.slice (last);
-        };
-        for (let i = start + 1; i < end; i++) {
-            if (!/(?<![A-Za-z0-9_.])(?:divide|mod|mathMin|mathMax|prefixUnaryNeg)\(/.test (masked[i]) || /['@$\u0001]/.test (lines[i])) continue;
-            const comment = masked[i].indexOf ('//');
-            const code = (comment < 0) ? lines[i] : lines[i].slice (0, comment);
-            const strings = [];
-            const opaque = code.replace (/"(?:[^"\\]|\\.)*"/g, (s) => { strings.push (s); return '\u0001' + '\u0002'.repeat (s.length - 2) + '\u0001'; });
-            const saved = counter;
-            // prefixUnaryNeg(ref x) on a declared `object` x: the object overload's type switch, written back in place
-            let text = opaque.replace (/(?<![A-Za-z0-9_.])prefixUnaryNeg\(ref ([A-Za-z_]\w*)\)/g, (all, x) => {
-                // c15NameType refuses every ref-written name: this ref is the read being rewritten
-                const declared = region.bound.has (x) ? undefined : csharpHelperReceiverType (region, x, i, region.params);
-                if ((declared === undefined) || (declared.type !== 'object')) return all;
-                const v = [ fresh (), fresh (), fresh () ];
-                return '((' + x + ' is Int64 ' + v[0] + ') ? (' + x + ' = -' + v[0] + ') : (' + x + ' is int ' + v[1] + ') ? (' + x + ' = -' + v[1] + ') : (' + x + ' is double ' + v[2] + ') ? (' + x + ' = -' + v[2] + ') : (' + x + ' == null) ? throw new NullReferenceException() : (object)null)';
-            });
-            text = rewrite (text, i);
-            let k = 0;
-            const rewritten = text.replace (/\u0001\u0002*\u0001/g, () => strings[k++]);
-            if ((k !== strings.length) || (rewritten === code)) { counter = saved; continue; }
-            lines[i] = rewritten + ((comment < 0) ? '' : lines[i].slice (comment));
-            masked[i] = csharpHelperMaskLine (lines[i]);
-            changed = true;
-        }
-    }
-    return changed ? lines.join ('\n') : content;
+    return hx5X07NativeMath (content); // hx5 X07: native on proven numerics, helper call otherwise
 }
 
 // hx4 C31 snippet checks (run from csharpHx4SelfTest)
 function hx4C31SelfTest (): string[] {
-    const problems: string[] = [];
-    const wrap = (body: string, ns = 'ccxt') => `namespace ${ns};\npublic partial class t : Exchange\n{\n    public virtual object f(object o, object duration, Int64? since = null, Int64? limit = null)\n    {\n${body}\n    }\n}\n`;
-    const cases: [string, string, string][] = [
-        [ 'mathMin object pair', '        object r = mathMin(limit, 1000);', 'object r = (((((object)(limit)) is var c31v0) && (((object)(1000)) is var c31v1)) ? (((c31v0 == null) || (c31v1 == null)) ? null : ((Convert.ToDouble(c31v0) < Convert.ToDouble(c31v1)) ? c31v0 : c31v1)) : null);' ],
-        [ 'mathMax', '        object r = mathMax(o, 0);', '((Convert.ToDouble(c31v0) > Convert.ToDouble(c31v1)) ? c31v0 : c31v1)' ],
-        [ 'divide object', '        object r = this.parseToInt(divide(o, 1000));', 'this.parseToInt((((((object)(o)) is var c31v0) && (((object)(1000)) is var c31v1)) ? (((c31v0 == null) || (c31v1 == null)) ? null : (object)(Convert.ToDouble(c31v0) / Convert.ToDouble(c31v1))) : null));' ],
-        [ 'divide Int64 twin', '        Int64 a = 4;\n        double r = divide(a, 2);', 'double r = ((double)((((((object)(a)) is var c31v0)' ],
-        [ 'mod Int64? twin', '        Int64? a = this.safeInteger(o, "a");\n        Int64? r = mod(a, limit);', 'Int64? r = ((Int64?)(((((object)(a)) is var c31v0)' ],
-        [ 'mod object', '        bool r = this.isRoundNumber(mod(1000, o));', '(c31v0 is uint) || (c31v0 is double))) ? null : (object)Convert.ToInt64(Convert.ToDouble(c31v0) % Convert.ToDouble(c31v1))) : null));' ],
-        [ 'nested divide', '        double d = (Math.Floor(Double.Parse((divide(divide(duration, 1000), 60)).ToString())));', 'is var c31v2) && (((object)(60)) is var c31v3))' ],
-        [ 'neg object local', '        object x = this.parseToInt("1");\n        object s = (true) ? prefixUnaryNeg(ref x) : x;', '((x is Int64 c31v0) ? (x = -c31v0) : (x is int c31v1) ? (x = -c31v1) : (x is double c31v2) ? (x = -c31v2) : (x == null) ? throw new NullReferenceException() : (object)null)' ],
-    ];
-    const keeps: [string, string][] = [
-        [ 'string literal line', '        object r = mathMin(o, \'a\');' ],
-        [ 'neg typed local', '        Int64 x = 1;\n        Int64 s = prefixUnaryNeg(ref x);' ],
-        [ 'other helpers', '        object r = subtract(o, 1);' ],
-    ];
-    for (const [ name, body, expected ] of cases) {
-        const out = hx4C31NativeMath (wrap (body));
-        if (!out.includes (expected)) problems.push (`hx4 C31 ${name}: ${out.slice (-600)}`);
-        if (/(?<![\w.])(?:divide|mod|mathMin|mathMax|prefixUnaryNeg)\(/.test (out)) problems.push (`hx4 C31 ${name}: helper left`);
-        if (hx4C31NativeMath (out) !== out) problems.push (`hx4 C31 ${name}: not idempotent`);
-    }
-    for (const [ name, body ] of keeps) {
-        const out = hx4C31NativeMath (wrap (body));
-        if (out !== wrap (body)) problems.push (`hx4 C31 keeps ${name}: ${out.slice (-500)}`);
-    }
-    const tests = wrap ('        object r = mathMin(o, 1);', 'Tests');
-    if (hx4C31NativeMath (tests) !== tests) problems.push ('hx4 C31 tests namespace changed');
-    return problems;
+    return hx5X07SnippetChecks ();
 }
 
 // hx4 C32 — final-text tail after C29: every remaining isLessThan / isGreaterThan / isLessThanOrEqual /
@@ -13713,5 +13530,194 @@ function hx5X06SnippetChecks (): string[] {
     const early = wrap ('        if (isEqual(s, "a")) { }');
     if (hx5X06NativeEquality (false, early) !== early) problems.push ('hx5 X06 fired in a non-final pass');
     if (hx5X06NativeEquality (true, wrap ('        if (isEqual(s, "a")) { }', 'Tests')) !== wrap ('        if (isEqual(s, "a")) { }', 'Tests')) problems.push ('hx5 X06 tests namespace changed');
+    return problems;
+}
+
+// hx5 X07 — divide / mathMin / mathMax / prefixUnaryNeg on proven numerics become the plain native op; every other
+// call (and every mod: native `%` changes the helper's double-modulo / OverflowException semantics) stays the helper
+// call exactly as master emitted it. Never an inlined helper body.
+//   divide(a, b), a and b non-null int/Int64/double  -> ((double)a / b)   == the double twins' body
+//   divide(a, b), a and b int/Int64/int?/Int64? (one nullable) -> ((double?)a / b) == divide(Int64?, Int64?)
+//   mathMin/mathMax(a, b), both int -> ((object)Math.Min(a, b)) (same box; Int64 stays the helper: its double compare can pick the larger above 2^53)
+//   prefixUnaryNeg(ref x), x declared int/Int64/double -> (x = -x)        == the typed overloads' body
+export function hx5X07NativeMath (content: string): string {
+    if (!/(?<![\w.])(?:divide|mathMin|mathMax|prefixUnaryNeg)\(/.test (content) || /^namespace Tests\b/m.test (content)) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const masked = lines.map (csharpHelperMaskLine);
+    const signatures = [];
+    for (let i = 0; i < masked.length; i++) {
+        if (CSHARP_HELPER_SIGNATURE_RE.test (masked[i]) && !masked[i].trimEnd ().endsWith (';')) signatures.push (i);
+    }
+    const integral = (t: string) => (t === 'int') || (t === 'Int64');
+    const nullableInt = (t: string) => (t === 'Int64?') || (t === 'int?');
+    const primary = (t: string) => (/^[A-Za-z_][\w.]*$/.test (t) || /^\d+(\.\d+)?L?$/.test (t) || ((t[0] === '(') && (hx4C05ClosingParen (t, 0) === t.length - 1))) ? t : '(' + t + ')';
+    let changed = false;
+    for (let n = 0; n < signatures.length; n++) {
+        const start = signatures[n];
+        const end = (n + 1 < signatures.length) ? signatures[n + 1] : lines.length;
+        const region = { start, end, params: csharpHelperSignatureParams (masked, start), declarations: [], lines: masked, bound: new Set<string> (), forInt: new Set<string> () };
+        for (let i = start; i < end; i++) {
+            const d = csharpHelperDeclarationOfLine (masked[i]);
+            if (d !== undefined) region.declarations.push ({ line: i, name: d.name, type: d.type, value: d.value });
+        }
+        for (let i = start + 1; i < end; i++) {
+            for (const b of masked[i].matchAll (/\bfor[ ]*\([ ]*int[ ]+([A-Za-z_]\w*)[ ]*=/g)) region.forInt.add (b[1]);
+            for (const b of masked[i].matchAll (/(?:\bfor(?:each)?[ ]*\([ ]*([A-Za-z_][\w<>?,]*)[ ]+|\bout[ ]+[A-Za-z_][\w<>?]*[ ]+|\bis[ ]+[A-Za-z_][\w<>?]*[ ]+|\bcatch[ ]*\([ ]*[A-Za-z_][\w.]*[ ]+)([A-Za-z_]\w*)/g)) {
+                if (b[1] !== 'int') region.bound.add (b[2]);
+            }
+            for (const b of masked[i].matchAll (/([A-Za-z_]\w*)[ ]*=>/g)) region.bound.add (b[1]);
+            for (const b of masked[i].matchAll (/\(([^()]*)\)[ ]*=>/g)) {
+                for (const p of b[1].split (',')) region.bound.add (p.trim ().split (/\s+/).pop ());
+            }
+        }
+        const emitted = new Map<string, string> (); // native text this pass produced -> its C# static type
+        // the C# static type of an operand ('int' | 'Int64' | 'double' | 'Int64?' | 'int?' | 'double?' | 'object'), undefined if unproven
+        const opType = (text: string, line: number): string | undefined => {
+            const bare = hx4C05StripParens (text);
+            if (emitted.has (bare)) return emitted.get (bare);
+            if (/^-?\d{1,9}$/.test (bare)) return 'int';
+            if (/^\d{1,18}L$/.test (bare)) return 'Int64';
+            if (/^-?\d+\.\d+$/.test (bare)) return 'double';
+            if (/^this\.(milliseconds|seconds)\(\)$/.test (bare)) return 'Int64';
+            if (/^this\.parseToInt\(/.test (bare) && (hx4C05ClosingParen (bare, 15) === bare.length - 1)) return 'Int64?';
+            if (/^Math\.Pow\(/.test (bare) && (hx4C05ClosingParen (bare, 8) === bare.length - 1)) return 'double';
+            // helper calls left in place: the overload C# binds for the operand types
+            const call = /^(subtract|multiply|this\.sum|divide|mod)\(/.exec (bare);
+            if ((call !== null) && (hx4C05ClosingParen (bare, call[0].length - 1) === bare.length - 1)) {
+                const comma = csharpHelperTopLevelComma (bare, call[0].length - 1, bare.length - 1);
+                if ((comma === undefined) || (csharpHelperTopLevelComma (bare, comma, bare.length - 1) !== undefined)) return undefined;
+                const a = opType (bare.slice (call[0].length, comma), line);
+                const b = opType (bare.slice (comma + 1, bare.length - 1), line);
+                const has = (t: string) => (a === t) || (b === t);
+                if ((call[1] === 'multiply') && (has ('double') || has ('double?'))) return 'object'; // no double twin
+                if ((a === undefined) || (b === undefined)) return undefined;
+                if (call[1] === 'this.sum') return ((integral (a) || nullableInt (a)) && (integral (b) || nullableInt (b))) ? 'Int64' : 'object';
+                if (has ('object')) return 'object';
+                const toDouble = (t: string) => integral (t) || (t === 'double');
+                const toNullable = (t: string) => integral (t) || nullableInt (t);
+                if (call[1] === 'divide' || call[1] === 'mod') {
+                    if (toDouble (a) && toDouble (b)) return (call[1] === 'divide') ? 'double' : 'Int64';
+                    if (toNullable (a) && toNullable (b)) return (call[1] === 'divide') ? 'double?' : 'Int64?';
+                    return 'object';
+                }
+                if (call[1] === 'subtract') {
+                    if ((a === 'int') && (b === 'int')) return 'int';
+                    if (integral (a) && integral (b)) return 'Int64';
+                    if ([ a, b ].every (toDouble)) return 'double';
+                    return 'object';
+                }
+                if (integral (a) && integral (b)) return 'Int64';
+                if ([ a, b ].every (toNullable)) return 'Int64?';
+                return 'object';
+            }
+            if (/^[A-Za-z_]\w*$/.test (bare)) {
+                const t = c15NameType (region, bare, line);
+                if (t === undefined) return undefined;
+                if ([ 'int', 'Int64', 'double', 'Int64?', 'double?', 'int?' ].includes (t)) return t;
+                return 'object';
+            }
+            return undefined;
+        };
+        const rewrite = (text: string, line: number): string => {
+            let out = '';
+            let last = 0;
+            const callRe = /(?<![A-Za-z0-9_.])(divide|mod|mathMin|mathMax)\(/g;
+            let m;
+            while ((m = callRe.exec (text)) !== null) {
+                const open = m.index + m[0].length - 1;
+                const close = hx4C05ClosingParen (text, open);
+                if (close === undefined) continue;
+                const comma = csharpHelperTopLevelComma (text, open, close);
+                if ((comma === undefined) || (csharpHelperTopLevelComma (text, comma, close) !== undefined)) continue;
+                const A = rewrite (text.slice (open + 1, comma), line).trim ();
+                const B = rewrite (text.slice (comma + 1, close), line).trim ();
+                const a = opType (A, line);
+                const b = opType (B, line);
+                let native: string | undefined;
+                if ((a !== undefined) && (b !== undefined)) {
+                    const toDouble = (t: string) => integral (t) || (t === 'double');
+                    if (m[1] === 'divide' && toDouble (a) && toDouble (b)) {
+                        native = '((double)' + primary (A) + ' / ' + primary (B) + ')';
+                        emitted.set (hx4C05StripParens (native), 'double');
+                    } else if (m[1] === 'divide' && [ a, b ].every ((t) => integral (t) || nullableInt (t))) {
+                        native = '((double?)' + primary (A) + ' / ' + primary (B) + ')';
+                        emitted.set (hx4C05StripParens (native), 'double?');
+                    } else if ((m[1] === 'mathMin' || m[1] === 'mathMax') && (a === 'int') && (b === 'int')) { // Int64 excluded: the helper's double compare collapses values > 2^53
+                        native = '((object)Math.' + m[1].slice (4) + '(' + A + ', ' + B + '))';
+                        emitted.set (hx4C05StripParens (native), 'object');
+                    }
+                }
+                out += text.slice (last, m.index) + (native ?? (m[1] + '(' + A + ', ' + B + ')'));
+                last = close + 1;
+                callRe.lastIndex = close + 1;
+            }
+            return out + text.slice (last);
+        };
+        for (let i = start + 1; i < end; i++) {
+            if (!/(?<![A-Za-z0-9_.])(?:divide|mathMin|mathMax|prefixUnaryNeg)\(/.test (masked[i]) || /['@$\u0001]/.test (lines[i])) continue;
+            const comment = masked[i].indexOf ('//');
+            const code = (comment < 0) ? lines[i] : lines[i].slice (0, comment);
+            const strings = [];
+            const opaque = code.replace (/"(?:[^"\\]|\\.)*"/g, (s) => { strings.push (s); return '\u0001' + '\u0002'.repeat (s.length - 2) + '\u0001'; });
+            let text = opaque.replace (/(?<![A-Za-z0-9_.])prefixUnaryNeg\(ref ([A-Za-z_]\w*)\)/g, (all, x) => {
+                const declared = region.bound.has (x) ? undefined : csharpHelperReceiverType (region, x, i, region.params);
+                if ((declared === undefined) || ![ 'int', 'Int64', 'long', 'double' ].includes (declared.type)) return all;
+                return '(' + x + ' = -' + x + ')';
+            });
+            text = rewrite (text, i);
+            let k = 0;
+            const rewritten = text.replace (/\u0001\u0002*\u0001/g, () => strings[k++]);
+            if ((k !== strings.length) || (rewritten === code)) continue;
+            lines[i] = rewritten + ((comment < 0) ? '' : lines[i].slice (comment));
+            masked[i] = csharpHelperMaskLine (lines[i]);
+            changed = true;
+        }
+    }
+    return changed ? lines.join ('\n') : content;
+}
+
+// hx5 X07 snippet checks (run from csharpHx4SelfTest via hx4C31SnippetChecks)
+function hx5X07SnippetChecks (): string[] {
+    const problems: string[] = [];
+    const wrap = (body: string, ns = 'ccxt') => `namespace ${ns};\npublic partial class t : Exchange\n{\n    public virtual object f(object o, object duration, Int64? since = null, Int64? limit = null)\n    {\n${body}\n    }\n}\n`;
+    const cases: [string, string, string][] = [
+        [ 'divide Int64 twin', '        Int64 a = 4;\n        double r = divide(a, 2);', 'double r = ((double)a / 2);' ],
+        [ 'divide double twin', '        double a = 1.5;\n        int b = 2;\n        object r = divide(a, b);', 'object r = ((double)a / b);' ],
+        [ 'divide Int64? twin', '        Int64? a = this.safeInteger(o, "a");\n        object r = divide(a, 1000);', 'object r = ((double?)a / 1000);' ],
+        [ 'nested divide', '        Int64 a = this.milliseconds();\n        double d = divide(divide(a, 1000), 60);', 'double d = ((double)((double)a / 1000) / 60);' ],
+        [ 'divide of milliseconds', '        object r = divide(this.milliseconds(), 1000);', 'object r = ((double)(this.milliseconds()) / 1000);' ],
+        [ 'mathMax int pair', '        int a = 1;\n        object r = mathMax(a, 0);', 'object r = ((object)Math.Max(a, 0));' ],
+        [ 'neg typed local', '        Int64 x = 1;\n        Int64 s = prefixUnaryNeg(ref x);', 'Int64 s = (x = -x);' ],
+    ];
+    const keeps: [string, string][] = [
+        [ 'mathMin Int64 pair (double compare > 2^53)', '        Int64 a = 1;\n        Int64 b = 2;\n        object r = mathMin(a, b);' ],
+        [ 'mathMin nullable', '        object r = mathMin(limit, 1000);' ],
+        [ 'mathMax object', '        object r = mathMax(o, 0);' ],
+        [ 'mathMin mixed int/Int64 (box type)', '        Int64 a = 1;\n        object r = mathMin(a, 1000);' ],
+        [ 'mathMin double (NaN order)', '        double a = 1.5;\n        object r = mathMin(a, 2.5);' ],
+        [ 'divide object', '        object r = this.parseToInt(divide(o, 1000));' ],
+        [ 'divide unknown', '        object r = divide(this.foo(), 1000);' ],
+        [ 'nested divide object', '        double d = (Math.Floor(Double.Parse((divide(divide(duration, 1000), 60)).ToString())));' ],
+        [ 'mod Int64 twin (double-modulo semantics)', '        Int64 a = 4;\n        Int64 r = mod(a, 3);' ],
+        [ 'mod object', '        bool r = this.isRoundNumber(mod(1000, o));' ],
+        [ 'neg object local', '        object x = this.parseToInt("1");\n        object s = (true) ? prefixUnaryNeg(ref x) : x;' ],
+        [ 'string literal line', '        object r = mathMin(o, \'a\');' ],
+        [ 'other helpers', '        object r = subtract(o, 1);' ],
+    ];
+    const blob = /\bc31v\d|is var |switch \{|=> /;
+    for (const [ name, body, expected ] of cases) {
+        const out = hx5X07NativeMath (wrap (body));
+        if (!out.includes (expected)) problems.push (`hx5 X07 ${name}: ${out.slice (-400)}`);
+        if (blob.test (out)) problems.push (`hx5 X07 ${name}: inlined body`);
+        if (hx5X07NativeMath (out) !== out) problems.push (`hx5 X07 ${name}: not idempotent`);
+    }
+    for (const [ name, body ] of keeps) {
+        const out = hx5X07NativeMath (wrap (body));
+        if (out !== wrap (body)) problems.push (`hx5 X07 keeps ${name}: ${out.slice (-400)}`);
+    }
+    const tests = wrap ('        Int64 a = 1;\n        object r = divide(a, 2);', 'Tests');
+    if (hx5X07NativeMath (tests) !== tests) problems.push ('hx5 X07 tests namespace changed');
     return problems;
 }
