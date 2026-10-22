@@ -2425,171 +2425,83 @@ export function hx4G37Check (): string[] {
 
 // hx4 G42 (closures removed by hx5 X25; the pass now lives in the `// hx5 X25` block at the end of the file)
 
-// hx4 G46
-// Last-resort lowering of the parse & coercion helpers (ToString, StringArg, ParseInt, ParseFloat, ToFloat64,
-// ToFixed, Int64Arg): each call becomes an inline closure repeating the exchange_helpers.go body with stdlib
-// calls only; `strconv.Parse*(` is spelled `(strconv.Parse*)(` so it is not read as the helper of that name.
-const HX4G46_ARITY: { [h: string]: number } = { 'ToString': 1, 'StringArg': 1, 'ParseInt': 1, 'ParseFloat': 1, 'ToFloat64': 1, 'ToFixed': 2, 'Int64Arg': 1 };
 
-function hx4G46ParseIntBody (name: string): string[] {
-    const ints = [ 'int', 'int8', 'int16', 'int32', 'uint', 'uint8', 'uint16', 'uint32', 'float32', 'float64' ];
-    return [ name + ' := func(v any) int64 {', '\tswitch x := d(v).(type) {',
-        ...ints.flatMap ((t) => [ '\tcase ' + t + ':', '\t\treturn int64(x)' ]),
-        '\tcase int64:', '\t\treturn x',
-        '\tcase string:', '\t\tif i, err := (strconv.ParseInt)(x, 10, 64); err == nil {', '\t\t\treturn i', '\t\t}',
-        '\t}', '\treturn math.MinInt64', '}' ];
+// hx5 X29
+// Parse & coercion helpers (ToString, StringArg, ParseInt, ToFloat64, Int64Arg): a call collapses to the plain
+// value or conversion only when the operand's single declaration (a `var` or signature param) proves a scalar
+// type the helper passes through unchanged; every other call keeps the helper exactly as master emitted it.
+// ParseFloat (returns any, nil on failure) and ToFixed always keep the helper; so do `ParseInt(r.Value)`
+// (`*int64`, nil maps to math.MinInt64) and `ToString(this.Nonce())` (`any`, overridden per exchange).
+function hx5X29Native (helper: string, type: string | undefined, arg: string): string | undefined {
+    const table: { [h: string]: { [t: string]: string } } = {
+        'ToString': { 'string': '$' },
+        'StringArg': { 'string': '$' },
+        'ParseInt': { 'int64': '$', 'int': 'int64($)' },
+        'Int64Arg': { 'int64': '$', 'int': 'int64($)' },
+        'ToFloat64': { 'float64': '$', 'int64': 'float64($)', 'int': 'float64($)' },
+    };
+    const form = (type === undefined) ? undefined : table[helper]?.[type];
+    return (form === undefined) ? undefined : form.replace ('$', arg);
 }
 
-function hx4G46Template (helper: string, ccxtPrefix: string): { head: string, body: string[] } {
-    const panicArg = (what: string) => 'panic(' + ccxtPrefix + 'ArgumentsRequired(fmt.Sprintf("expected ' + what + ' argument, got %T: %v", v, v)))';
-    if (helper === 'StringArg') {
-        return { 'head': 'func(v any) string {', 'body': [ 'switch x := v.(type) {', 'case string:', '\treturn x', 'case *string:', '\tif x != nil {', '\t\treturn *x', '\t}', '}', panicArg ('a string') ] };
-    }
-    if (helper === 'Int64Arg') {
-        return { 'head': 'func(v any) int64 {', 'body': [ ...HX4G36_DEREF, 'switch x := d(v).(type) {', 'case int:', '\treturn int64(x)', 'case int32:', '\treturn int64(x)', 'case int64:', '\treturn x',
-            'case float64:', '\tif (x == math.Trunc(x)) && (math.Abs(x) < 9.2e18) {', '\t\treturn int64(x)', '\t}', '}', panicArg ('an integer') ] };
-    }
-    if (helper === 'ToFloat64') {
-        return { 'head': 'func(v any) float64 {', 'body': [ ...HX4G36_DEREF, ...HX4G36_TOFLOAT, 'return f(d(v))' ] };
-    }
-    if (helper === 'ParseInt') {
-        return { 'head': 'func(v any) int64 {', 'body': [ ...HX4G36_DEREF, ...hx4G46ParseIntBody ('p'), 'return p(v)' ] };
-    }
-    if (helper === 'ToFixed') {
-        return { 'head': 'func(a, b any) float64 {', 'body': [ ...HX4G36_DEREF, ...HX4G36_TOFLOAT, ...hx4G46ParseIntBody ('p'),
-            'num := f(d(a))', 'm := math.Pow(10, float64(p(b)))', 'return math.Round(num*m) / m' ] };
-    }
-    if (helper === 'ParseFloat') {
-        const kinds = [ 'float32', 'int', 'int8', 'int16', 'int32', 'int64', 'uint', 'uint8', 'uint16', 'uint32', 'uint64' ];
-        return { 'head': 'func(v any) any {', 'body': [ ...HX4G36_DEREF, 'switch x := d(v).(type) {',
-            ...kinds.flatMap ((t) => [ 'case ' + t + ':', '\treturn float64(x)' ]), 'case float64:', '\treturn x',
-            'case string:', '\tif r, err := (strconv.ParseFloat)(x, 64); err == nil {', '\t\treturn r', '\t}', '}', 'return nil' ] };
-    }
-    // ToString
-    return { 'head': 'func(v any) string {', 'body': [ ...HX4G36_DEREF, ...HX4G36_TOFLOAT,
-        'var ts func(v any) string', 'ts = func(v any) string {', '\tswitch x := d(v).(type) {', '\tcase string:', '\t\treturn x',
-        '\tcase int, int8, int16, int32, int64:', '\t\treturn fmt.Sprintf("%d", x)', '\tcase uint, uint8, uint16, uint32, uint64:', '\t\treturn fmt.Sprintf("%d", x)',
-        '\tcase float32, float64:', '\t\tif c := f(x); c == math.Trunc(c) {', '\t\t\treturn fmt.Sprintf("%d", int(c))', '\t\t}', '\t\treturn fmt.Sprintf("%f", x)',
-        '\tcase bool:', '\t\treturn fmt.Sprintf("%t", x)', '\tdefault:', '\t\tval := reflect.ValueOf(x)', '\t\tswitch val.Kind() {',
-        '\t\tcase reflect.Map:', '\t\t\tresult := \"{\"', '\t\t\tfor _, key := range val.MapKeys() {', '\t\t\t\tresult += fmt.Sprintf("%v: %v, ", ts(key.Interface()), ts(val.MapIndex(key).Interface()))', '\t\t\t}',
-        '\t\t\tif len(result) > 1 {', '\t\t\t\tresult = result[:len(result)-2]', '\t\t\t}', '\t\t\treturn result + \"}\"',
-        '\t\tcase reflect.Slice, reflect.Array:', '\t\t\tresult := \"[\"', '\t\t\tfor i := 0; i < val.Len(); i++ {', '\t\t\t\tresult += fmt.Sprintf("%v, ", ts(val.Index(i).Interface()))', '\t\t\t}',
-        '\t\t\tif len(result) > 1 {', '\t\t\t\tresult = result[:len(result)-2]', '\t\t\t}', '\t\t\treturn result + \"]\"',
-        '\t\tcase reflect.Func:', '\t\t\treturn fmt.Sprintf("Function: %v", val.Type().String())', '\t\t}', '\t\treturn fmt.Sprintf("%v", x)', '\t}', '}', 'return ts(v)' ] };
-}
-
-// the header comment can sit after the first declaration (exchange_wrappers.go): import right after the package clause then
-function hx4G46AddImport (content: string, pkg: string): string {
-    const lines = content.split ('\n');
-    const head = lines.findIndex ((l) => l.startsWith ('// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md'));
-    const decl = lines.findIndex ((l) => /^(?:type|func|var|const) /.test (l));
-    if ((head < 0) || (decl < 0) || (head < decl) || new RegExp ('^import "' + pkg + '"$|^\\s+"' + pkg + '"$', 'm').test (content)) {
-        return hx4G36AddImport (content, pkg);
-    }
-    const pkgLine = lines.findIndex ((l) => l.startsWith ('package '));
-    if ((pkgLine < 0) || (lines[pkgLine + 1] !== '')) {
-        return content;
-    }
-    lines.splice (pkgLine + 1, 0, '', 'import "' + pkg + '"');
-    return lines.join ('\n');
-}
-
-const HX4G46_MARK = '\u0001hx4G46\u0001';
-
-export function hx4G46InlineParse (content: string, aligner?: Hx4G36Aligner): string {
+export function hx5X29ParseNative (content: string): string {
     if (content.indexOf ('IT IS GENERATED AND WILL BE OVERWRITTEN') < 0) {
         return content;
     }
-    const pkgs = [ 'fmt', 'math', 'reflect', 'strconv' ];
-    let masked = goArithMask (content);
-    if (/(?<![\w.])(?:fmt|math|reflect|strconv)\s*(?::=|,\s*\w+\s*:?=)|\bvar (?:fmt|math|reflect|strconv)\b|[(,]\s*(?:fmt|math|reflect|strconv)\s+[\w*[]/.test (masked)) {
-        return content;
-    }
-    const ccxtPrefix = /^package ccxt$/m.test (content) ? '' : 'ccxt.';
-    const rx = new RegExp ('(?<![\\w.])(?:ccxt\\.)?(' + Object.keys (HX4G46_ARITY).join ('|') + ')\\(', 'g');
-    const calls = [ ...masked.matchAll (rx) ].map ((m) => ({ 'start': m.index as number, 'helper': m[1], 'open': (m.index as number) + m[0].length - 1 }))
-        .filter ((c) => !/\bfunc\s*(?:\([^)]*\)\s*)?$/.test (masked.slice (Math.max (0, c.start - 80), c.start)));
-    calls.sort ((x, y) => y.start - x.start);
-    let text = content;
-    const used = new Set<string> ();
-    let marked = false;
-    for (const call of calls) {
-        const close = goArithClose (masked, call.open);
-        if (close < 0) {
+    const rx = /(?<![\w.])(?:ccxt\.)?(ToString|StringArg|ParseInt|Int64Arg|ToFloat64)\(\s*([A-Za-z_]\w*)\s*\)/g;
+    const lines = content.split ('\n');
+    const out: string[] = [];
+    let i = 0;
+    while (i < lines.length) {
+        if (!lines[i].startsWith ('func ')) {
+            out.push (lines[i]);
+            i++;
             continue;
         }
-        const spans = goArithArgs (masked, call.open, close);
-        if ((spans.length !== HX4G46_ARITY[call.helper]) || spans.some (([ s, e ]) => masked.slice (s, e).trim () === '')) {
-            continue;
+        let end = i;
+        while ((end < lines.length) && (lines[end] !== '}') && !(end === i && lines[i].endsWith ('}'))) {
+            end++;
         }
-        const lineStart = text.lastIndexOf ('\n', call.start - 1) + 1;
-        const indent = /^\t*/.exec (text.slice (lineStart))[0];
-        const tpl = hx4G46Template (call.helper, ccxtPrefix);
-        const body = tpl.body.map ((l) => indent + '\t' + l).join ('\n');
-        const args = spans.map (([ s, e ]) => text.slice (s, e).trim ()).join (', ');
-        let native = tpl.head + '\n' + body + '\n' + indent + '}(' + args + ')';
-        for (const pkg of pkgs) {
-            if (new RegExp ('\\b' + pkg + '\\.').test (body)) {
-                used.add (pkg);
+        const fn = lines.slice (i, end + 1).join ('\n');
+        const masked = goArithMask (fn);
+        const signature = masked.slice (0, masked.indexOf ('\n') < 0 ? masked.length : masked.indexOf ('\n'));
+        let text = fn;
+        const hits = [ ...masked.matchAll (rx) ].filter ((m) => !/\bfunc\s*(?:\([^)]*\)\s*)?$/.test (masked.slice (Math.max (0, (m.index as number) - 80), m.index as number)));
+        for (const m of hits.reverse ()) {
+            const name = m[2];
+            if ((name === 'nil') || (name === 'true') || (name === 'false')) {
+                continue;
+            }
+            const native = hx5X29Native (m[1], goArithDeclaredType (masked, signature, name), name);
+            if (native !== undefined) {
+                const at = m.index as number;
+                text = text.slice (0, at) + native + text.slice (at + m[0].length);
             }
         }
-        const keyed = /^\t*"(?:[^"\\]|\\.)*":/.test (text.slice (lineStart, call.start)) && (aligner !== undefined);
-        const maskedNative = goArithMask (native);
-        if (keyed) {
-            native = HX4G46_MARK + native;
-            marked = true;
-        }
-        text = text.slice (0, call.start) + native + text.slice (close + 1);
-        masked = masked.slice (0, call.start) + (keyed ? ' '.repeat (HX4G36_MARK.length) : '') + maskedNative + masked.slice (close + 1);
+        out.push (text);
+        i = end + 1;
     }
-    // a bare stdlib Parse* call of an earlier closure (G35 Subtract) reads as the helper: parenthesise the callee
-    text = text.replace (/(?<![\w.(])strconv\.(ParseFloat|ParseInt)\(/g, '(strconv.$1)(');
-    text = text.replace (/(?<![\w.(])(precise\w*)\.ToString\(\)/g, '($1.ToString)()');   // PreciseStruct method, not the helper
-    if (marked) {
-        const lines = text.split ('\n');
-        for (let k = lines.length - 1; k >= 0; k--) {
-            if (lines[k].includes (HX4G46_MARK)) {
-                lines[k] = lines[k].split (HX4G46_MARK).join ('');
-                hx4G36Realign (lines, k, aligner as Hx4G36Aligner);
-            }
-        }
-        text = lines.join ('\n');
-    }
-    for (const pkg of [ 'strconv', 'reflect', 'math', 'fmt' ]) {
-        if (used.has (pkg)) {
-            text = hx4G46AddImport (text, pkg);
-            if (!new RegExp ('^import "' + pkg + '"$|^\\s+"' + pkg + '"$', 'm').test (text)) {
-                return content;     // no header to splice the import into: keep the helpers
-            }
-        }
-    }
-    return text;
+    return out.join ('\n');
 }
 
-export function hx4G46Check (aligner?: Hx4G36Aligner): string[] {
+export function hx5X29Check (): string[] {
     const head = 'package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n\n';
     const problems: string[] = [];
-    const ok = (c: boolean, what: string) => { if (!c) { problems.push ('hx4 G46: ' + what); } };
-    const left = (s: string) => /(?<![\w.])(?:ccxt\.)?(ToString|StringArg|ParseInt|ParseFloat|ToFloat64|ToFixed|Int64Arg)\(/.test (goArithMask (s));
-    const out = hx4G46InlineParse (head + 'func (this *K) F(a any, b any) any {\n\tvar s string = ToString(ParseInt(a))\n\tthis.G(StringArg(s), ToFixed(ParseFloat(b), 2), ToFloat64(a), Int64Arg(b))\n\treturn s\n}\n', aligner);
-    ok (!left (out), 'calls left: ' + out);
-    ok ([ 'fmt', 'math', 'reflect', 'strconv' ].every ((p) => out.includes ('import "' + p + '"\n')), 'imports: ' + out);
-    ok (out.includes ('\tpanic(ArgumentsRequired(fmt.Sprintf(') && out.includes ('(strconv.ParseInt)(x, 10, 64)') && out.includes ('return math.MinInt64'), 'bodies: ' + out);
-    ok (out.includes ('\tvar s string = func(v any) string {\n') && out.includes ('\t}(func(v any) int64 {\n'), 'nesting: ' + out);
-    const pro = hx4G46InlineParse ('package ccxtpro\n\nimport ccxt "github.com/ccxt/ccxt/go/v4"\n\n' + head.slice (14) + 'func F(a any) any {\n\treturn ccxt.StringArg(a)\n}\n', aligner);
-    ok (!left (pro) && pro.includes ('panic(ccxt.ArgumentsRequired('), 'pro package prefix: ' + pro);
-    const keep = head + 'func ToString(v any) string {\n\treturn x.ToString() + this.NumberToString(v)\n}\n';
-    ok (hx4G46InlineParse (keep, aligner) === keep, 'declaration / method calls rewritten');
-    const shadow = head + 'func F(fmt any) any {\n\treturn ToString(fmt)\n}\n';
-    ok (hx4G46InlineParse (shadow, aligner) === shadow, 'shadowed fmt rewritten');
-    const hand = 'package ccxt\n\nfunc F(a any) any {\n\treturn ToString(a)\n}\n';
-    ok (hx4G46InlineParse (hand, aligner) === hand, 'hand-written file rewritten');
-    const sub = hx4G46InlineParse (head + 'import "strconv"\n\nfunc F(p string) {\n\tif f, e := strconv.ParseFloat(p, 64); e == nil {\n\t\t_ = f\n\t}\n}\n', aligner);
-    ok (sub.includes ('(strconv.ParseFloat)(p, 64)') && !left (sub), 'stdlib spelling: ' + sub);
-    const pr = hx4G46InlineParse (head + 'func F(precise *PreciseStruct) string {\n\treturn precise.ToString()\n}\n', aligner);
-    ok (pr.includes ('return (precise.ToString)()'), 'precise method spelling: ' + pr);
-    const late = hx4G46InlineParse ('package ccxt\n\ntype T struct{}\n\n' + head.slice (14) + 'func F(a any) int64 {\n\treturn ParseInt(a)\n}\n', aligner);
-    ok (/^package ccxt\n\n(?:import "\w+"\n\n)+type T struct\{\}\n/.test (late) && late.includes ('import "strconv"') && !left (late), 'late header import: ' + late);
+    const ok = (c: boolean, what: string) => { if (!c) { problems.push ('hx5 X29: ' + what); } };
+    const src = head + 'func (this *K) F(a any, s string, n int64, k int, f float64) any {\n\tvar t string = ToString(s)\n\tthis.G(StringArg(s), ParseInt(n), ParseInt(k), ToFloat64(f), ToFloat64(n), Int64Arg(n))\n\tthis.H(ToString(a), ParseInt(a), ParseFloat(s), ToFixed(f, 2), Int64Arg(a), ToString(n))\n\treturn t\n}\n';
+    const out = hx5X29ParseNative (src);
+    ok (out.includes ('\tvar t string = s\n') && out.includes ('this.G(s, n, int64(k), f, float64(n), n)'), 'proven operands not native: ' + out);
+    ok (out.includes ('this.H(ToString(a), ParseInt(a), ParseFloat(s), ToFixed(f, 2), Int64Arg(a), ToString(n))'), 'unproven / excluded calls must keep the helper: ' + out);
+    ok (!/func\(v any\)|\(strconv\.|\.ToString\)\(\)|import "/.test (out), 'inline closure / respelling / import emitted: ' + out);
+    ok (hx5X29ParseNative (out) === out, 'not idempotent');
+    const twice = head + 'func F(s string) string {\n\tvar s string = \"\"\n\treturn ToString(s)\n}\n';
+    ok (hx5X29ParseNative (twice) === twice, 'twice-declared name rewritten');
+    const keep = head + 'func F(r AsyncResult[*int64], p *string) any {\n\tx := ParseInt(r.Value)\n\t_ = ToString(this.Nonce())\n\t_ = ToString(p)\n\tif f, e := strconv.ParseFloat(p, 64); e == nil {\n\t\t_ = precise.ToString()\n\t}\n\treturn x\n}\n';
+    ok (hx5X29ParseNative (keep) === keep, 'wrapper / nonce / pointer / stdlib spelling changed: ' + hx5X29ParseNative (keep));
+    const hand = 'package ccxt\n\nfunc F(s string) any {\n\treturn ToString(s)\n}\n';
+    ok (hx5X29ParseNative (hand) === hand, 'hand-written file rewritten');
+    const decl = head + 'func ToString(v string) string {\n\treturn x.ToString()\n}\n';
+    ok (hx5X29ParseNative (decl) === decl, 'declaration / method call rewritten');
     return problems;
 }
 
