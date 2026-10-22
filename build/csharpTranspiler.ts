@@ -13152,13 +13152,10 @@ export function hx4C33NativeHelperCalls (objectNull: boolean, content: string): 
         if (k === 'null') return `(((object)(${x})) == null)`;
         if ((k === 'true') || (k === 'false')) return `(((object)(${x})) is ${k})`;
         if (lit) return neverNumeric (k.slice (1, -1)) ? `(((object)(${x})) is ${k})` : undefined;
-        const num = /^-?\d{1,8}$/.exec (k);
-        if ((num === null) || (Math.abs (Number (k)) > 16777216)) return undefined;
-        // double/float: IsInteger's decimal rounding decides (2000.0000000000002 == 2000); NaN/inf/huge -> false
-        const ulongArm = (Number (k) >= 0) ? `ulong c33z => c33z == ${Number (k)}UL` : 'ulong => false';
-        return sw (x, `Int64 c33l => c33l == ${k}, int c33i => c33i == ${k}, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == ${k}, decimal c33m => c33m == ${k}, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == ${k}, uint c33u => (Int64)c33u == ${k}, short c33h => (Int64)c33h == ${k}, ushort c33v => (Int64)c33v == ${k}, byte c33y => (Int64)c33y == ${k}, sbyte c33e => (Int64)c33e == ${k}, ${ulongArm}, _ => false`);
+        return undefined; // hx5 X05: integer literals are decided per line by x05TypedIsEqual
     };
     const lines = content.split ('\n');
+    const x05Regions = x05RegionFinder (lines); // hx5 X05
     let changed = false;
     for (let i = 0; i < lines.length; i++) {
         let masked = csharpHelperMaskLine (lines[i]);
@@ -13180,7 +13177,7 @@ export function hx4C33NativeHelperCalls (objectNull: boolean, content: string): 
                 masks.push (masked.substring (cuts[a] + 1, cuts[a + 1]).trim ());
             }
             if (args.some ((a) => a.length === 0)) continue;
-            const text = rewrite (m[1], args, masks);
+            const text = rewrite (m[1], args, masks) ?? ((m[1] === 'isEqual') ? x05TypedIsEqual (x05Regions, i, args) : undefined); // hx5 X05
             if (text === undefined) continue;
             lines[i] = lines[i].substring (0, s) + text + lines[i].substring (close + 1);
             masked = csharpHelperMaskLine (lines[i]);
@@ -13193,13 +13190,14 @@ export function hx4C33NativeHelperCalls (objectNull: boolean, content: string): 
 // hx4 C33 snippet checks (run from csharpHx4SelfTest)
 function hx4C33SnippetChecks (): string[] {
     const problems: string[] = [];
-    const wrap = (body: string, ns = 'ccxt') => `namespace ${ns};\npublic partial class t : Exchange\n{\n    public virtual object f(object x, object y)\n    {\n${body}\n    }\n}\n`;
+    const wrap = (body: string, ns = 'ccxt') => `namespace ${ns};\npublic partial class t : Exchange\n{\n    public virtual object f(object x, object y, int z = 0)\n    {\n${body}\n    }\n}\n`;
     const cases: [string, string, string][] = [
         [ 'isEqual null', '        if (!isEqual(x, null)) { }', 'if (!(((object)(x)) == null)) { }' ],
         [ 'isEqual true', '        if (isEqual(getValue(x, "a"), true)) { }', 'if ((((object)(getValue(x, "a"))) is true)) { }' ],
         [ 'isEqual word', '        if (isEqual(x, "buy")) { }', 'if ((((object)(x)) is "buy")) { }' ],
-        [ 'isEqual int', '        if (isEqual(x, -1)) { }', 'Int64 c33l => c33l == -1, int c33i => c33i == -1,' ],
-        [ 'isEqual int ulong', '        if (isEqual(x, 0)) { }', 'ulong c33z => c33z == 0UL, _ => false' ],
+        [ 'isEqual int local', '        Int64 n = this.milliseconds();\n        if (isEqual(n, -1)) { }', 'if ((n == -1)) { }' ],
+        [ 'isEqual int param', '        if (isEqual(0, z)) { }', 'if ((z == 0)) { }' ],
+        [ 'isEqual Int64? local', '        Int64? n = this.safeInteger(x, "a");\n        if (isEqual(n, 3)) { }', 'if ((n == 3)) { }' ],
         [ 'nested', '        if (isTrue(isEqual(x, null))) { }', 'if (isTrue((((object)(x)) == null))) { }' ], // hx5 X02: helper call kept
     ];
     const keeps: [string, string][] = [
@@ -13207,6 +13205,10 @@ function hx4C33SnippetChecks (): string[] {
         [ 'isEqual NaN', '        if (isEqual(x, "NaN")) { }' ],
         [ 'isEqual two names', '        if (isEqual(x, y)) { }' ],
         [ 'isEqual big int', '        if (isEqual(x, 100000000)) { }' ],
+        [ 'isEqual object int', '        if (isEqual(x, -1)) { }' ],
+        [ 'isEqual object zero', '        if (isEqual(x, 0)) { }' ],
+        [ 'isEqual double local', '        double d = 1.5;\n        if (isEqual(d, 1)) { }' ],
+        [ 'isEqual twice-declared', '        int n = 1;\n        Int64 n = 2;\n        if (isEqual(n, 1)) { }' ],
         [ 'inOp name key', '        if (inOp(x, y)) { }' ],
         [ 'inOp lit keeps helper (hx5 X03)', '        if (inOp(x, "k")) { }' ],
         [ 'inOp nested lit keeps helper (hx5 X03)', '        if (inOp(getValue(x, "a"), "k")) { }' ],
@@ -13728,4 +13730,57 @@ function hx5X07SnippetChecks (): string[] {
 function c32ProvenShape (bare: string): boolean {
     const atoms = bare.replace (/\bthis\.(?:milliseconds|seconds)\(\)|(?<![\w.])getArrayLength\([A-Za-z_]\w*\)|\bthis\.parseTimeframe\([A-Za-z_]\w*\)|(?<![\w.])[A-Za-z_]\w*\.(?:Length|Count)\b/g, 'cxatom');
     return /^[\w ()+*-]+$/.test (atoms) && !/\w[ ]*\(/.test (atoms) && !/\d[A-Za-z_]/.test (atoms);
+}
+
+// hx5 X05 — C33 isEqual(X, int literal): the plain `X == n` only when the printed declaration proves X an
+// int / Int64 (or their nullable forms: a null box answers false in both); every other site keeps isEqual
+function x05RegionFinder (lines: string[]): (line: number) => any {
+    const masked = lines.map (csharpHelperMaskLine);
+    const signatures: number[] = [];
+    for (let i = 0; i < masked.length; i++) {
+        if (CSHARP_HELPER_SIGNATURE_RE.test (masked[i]) && !masked[i].trimEnd ().endsWith (';')) signatures.push (i);
+    }
+    const cache = new Map<number, any> ();
+    return (line: number) => {
+        let n = -1;
+        for (let k = 0; k < signatures.length; k++) if (signatures[k] < line) n = k;
+        if (n < 0) return undefined;
+        if (cache.has (n)) return cache.get (n);
+        const start = signatures[n];
+        const end = (n + 1 < signatures.length) ? signatures[n + 1] : lines.length;
+        const region = { start, end, params: csharpHelperSignatureParams (masked, start), declarations: [], lines: masked, bound: new Set<string> (), forInt: new Set<string> (), forInt64: new Set<string> () };
+        for (let i = start; i < end; i++) {
+            const d = csharpHelperDeclarationOfLine (masked[i]);
+            if (d !== undefined) region.declarations.push ({ line: i, name: d.name, type: d.type, value: d.value });
+        }
+        for (let i = start + 1; i < end; i++) {
+            for (const b of masked[i].matchAll (/\bfor[ ]*\([ ]*(int|Int64)[ ]+([A-Za-z_]\w*)[ ]*=/g)) (b[1] === 'int' ? region.forInt : region.forInt64).add (b[2]);
+            for (const b of masked[i].matchAll (/(?:\bfor(?:each)?[ ]*\([ ]*([A-Za-z_][\w<>?,]*)[ ]+|\bout[ ]+[A-Za-z_][\w<>?]*[ ]+|\bis[ ]+[A-Za-z_][\w<>?]*[ ]+|\bcatch[ ]*\([ ]*[A-Za-z_][\w.]*[ ]+)([A-Za-z_]\w*)/g)) {
+                if ((b[1] !== 'int') && (b[1] !== 'Int64')) region.bound.add (b[2]);
+            }
+            for (const b of masked[i].matchAll (/([A-Za-z_]\w*)[ ]*=>/g)) region.bound.add (b[1]);
+            for (const b of masked[i].matchAll (/\(([^()]*)\)[ ]*=>/g)) {
+                for (const p of b[1].split (',')) region.bound.add (p.trim ().split (/\s+/).pop ());
+            }
+        }
+        cache.set (n, region);
+        return region;
+    };
+}
+
+function x05TypedIsEqual (regionOf: (line: number) => any, line: number, args: string[]): string | undefined {
+    if (args.length !== 2) return undefined;
+    const isLit = (t: string) => /^-?\d{1,9}$/.test (hx4C05StripParens (t));
+    const [ a, b ] = args;
+    const [ name, lit ] = isLit (b) ? [ a, b ] : (isLit (a) ? [ b, a ] : [ undefined, undefined ]);
+    if (name === undefined) return undefined;
+    const bare = hx4C05StripParens (name);
+    if (!/^[A-Za-z_]\w*$/.test (bare)) return undefined;
+    const region = regionOf (line);
+    if (region === undefined) return undefined;
+    const type = c23NameType (region, bare, line);
+    if (![ 'int', 'Int64', 'long', 'int?', 'Int64?', 'long?' ].includes (type)) return undefined;
+    const n = hx4C05StripParens (lit);
+    if (type.startsWith ('int') && (Math.abs (Number (n)) > 2147483647)) return undefined;
+    return '(' + bare + ' == ' + n + ')';
 }
