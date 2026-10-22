@@ -97,7 +97,8 @@ class lbank extends lbank$1["default"] {
             'pair': market['id'],
         };
         if (since !== undefined) {
-            message['start'] = this.parseToInt(Math.floor(since / 1000));
+            const sinceInt = this.parseToInt(since);
+            message['start'] = this.parseToInt(sinceInt / 1000);
         }
         if (limit !== undefined) {
             message['size'] = limit;

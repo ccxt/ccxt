@@ -964,10 +964,10 @@ export declare class BaseExchange {
     parseFundingRates(response: any, symbols?: Strings): FundingRates;
     parseLongShortRatio(info: Dict, market?: Market): LongShortRatio;
     parseLongShortRatioHistory(response: any, market?: Market, since?: Int, limit?: Int): LongShortRatio[];
-    handleTriggerPricesAndParams(symbol: any, params: any, omitParams?: boolean): any[];
-    handleTriggerDirectionAndParams(params: any, exchangeSpecificKey?: Str, allowEmpty?: Bool): any[];
-    handleTriggerAndParams(params: any): any[];
-    isTriggerOrder(params: any): any[];
+    handleTriggerPricesAndParams(symbol: any, params: any, omitParams?: boolean): [Str, Str, Str, Dict];
+    handleTriggerDirectionAndParams(params: any, exchangeSpecificKey?: Str, allowEmpty?: Bool): [Str, Dict];
+    handleTriggerAndParams(params: any): [Bool, Dict];
+    isTriggerOrder(params: any): [Bool, Dict];
     isPostOnly(isMarketOrder: boolean, exchangeSpecificParam: any, params?: Dict): boolean;
     handlePostOnly(isMarketOrder: boolean, exchangeSpecificPostOnlyOption: boolean, params?: Dict): [boolean, Dict];
     fetchLastPrices(symbols?: Strings, params?: Dict): Promise<LastPrices>;

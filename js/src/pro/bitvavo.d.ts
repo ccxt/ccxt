@@ -179,7 +179,7 @@ export default class bitvavo extends bitvavoRest {
     handleOrderBookSnapshot(client: Client, message: Dict): void;
     handleOrderBookSubscription(client: Client, message: Dict, subscription: Dict): void;
     handleOrderBookSubscriptions(client: Client, message: Dict, marketIds: any[]): void;
-    unWatchChannels(topic: string, channels: any[], subMessageHashes: string[], subscriptionArgs: Dict, params?: {}): Promise<any>;
+    unWatchChannels(topic: string, channels: any[], subMessageHashes: string[], subscriptionArgs: Dict, params?: Dict): Promise<any>;
     handleUnsubscriptionStatus(client: Client, message: Dict): Dict;
     /**
      * @method

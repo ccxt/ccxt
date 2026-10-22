@@ -1603,10 +1603,9 @@ export default class xt extends xtRest {
         //
         const id = this.safeString(message, 'id');
         const subscriptionsById = this.indexBy(client.subscriptions, 'id');
-        let unsubscribe = false;
         if (id !== undefined) {
             const subscription = this.safeDict(subscriptionsById, id, {});
-            unsubscribe = this.safeBool(subscription, 'unsubscribe', false);
+            const unsubscribe = this.safeBool(subscription, 'unsubscribe', false);
             if (unsubscribe) {
                 this.handleUnSubscription(client, subscription);
             }

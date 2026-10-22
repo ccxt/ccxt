@@ -243,15 +243,14 @@ class apex extends apex$1["default"] {
         // are already subscribed, skip the subscribe entirely.
         const client = this.client(url);
         const newTopics = [];
-        let newTopicsCount = 0;
         for (let i = 0; i < topics.length; i++) {
             if (!(messageHashes[i] in client.subscriptions)) {
                 newTopics.push(topics[i]);
-                newTopicsCount = newTopicsCount + 1;
             }
         }
+        const newTopicsLength = newTopics.length;
         let message = undefined;
-        if (newTopicsCount > 0) {
+        if (newTopicsLength > 0) {
             const request = {
                 'op': 'subscribe',
                 'args': newTopics,

@@ -2384,7 +2384,7 @@ class gate extends gate$1["default"] {
             'currency': currency['id'], // todo: currencies have network-junctions
         };
         const response = await this.privateWalletGetDepositAddress(this.extend(request, params));
-        const addresses = this.safeValue(response, 'multichain_addresses');
+        const addresses = this.safeList(response, 'multichain_addresses', []);
         const currencyId = this.safeString(response, 'currency');
         const codeValue = this.safeCurrencyCode(currencyId);
         const result = {};
@@ -2867,7 +2867,8 @@ class gate extends gate$1["default"] {
         const [request, query] = this.prepareRequest(market, this.safeString(market, 'type'), params);
         if (limit !== undefined) {
             // gateeu returns an empty book for a spot limit above 100
-            const maxLimit = (market['spot'] === true) ? this.handleOption('fetchOrderBook', 'maxSpotLimit', 1000) : 300;
+            const maxSpotLimit = this.parseToInt(this.handleOption('fetchOrderBook', 'maxSpotLimit', 1000));
+            const maxLimit = (market['spot'] === true) ? maxSpotLimit : 300;
             request['limit'] = Math.min(limit, maxLimit);
         }
         request['with_id'] = true;
@@ -2951,12 +2952,13 @@ class gate extends gate$1["default"] {
         //         "update": 1634350208.724
         //     }
         //
-        let timestamp = this.safeInteger(response, 'current');
-        if (timestamp === undefined) {
+        const current = this.safeInteger(response, 'current');
+        if (current === undefined) {
             throw new errors.ExchangeError(this.id + ' method() missing timestamp');
         }
+        let timestamp = current;
         if (market['spot'] !== true) {
-            timestamp = timestamp * 1000;
+            timestamp = current * 1000;
         }
         const priceKey = (market['spot'] === true) ? 0 : 'p';
         const amountKey = (market['spot'] === true) ? 1 : 's';
@@ -3004,9 +3006,11 @@ class gate extends gate$1["default"] {
         }
         let ticker = undefined;
         if (market['option'] === true) {
+            const optionMarketId = this.safeString(market, 'id');
             for (let i = 0; i < response.length; i++) {
                 const entry = response[i];
-                if (this.safeString(entry, 'name') === market['id']) {
+                const entryName = this.safeString(entry, 'name');
+                if (entryName === optionMarketId) {
                     ticker = entry;
                     break;
                 }
@@ -3527,9 +3531,10 @@ class gate extends gate$1["default"] {
         request['interval'] = this.safeString(this.timeframes, timeframe, timeframe);
         const maxLimit = (market['contract'] === true) ? 1999 : 1000;
         const limitValue = (limit === undefined) ? maxLimit : Math.min(limit, maxLimit);
-        let until = this.safeInteger(paramsRequest, 'until');
-        if (until !== undefined) {
-            until = this.parseToInt(until / 1000);
+        const untilMs = this.safeInteger(paramsRequest, 'until');
+        let until = undefined;
+        if (untilMs !== undefined) {
+            until = this.parseToInt(untilMs / 1000);
         }
         const paramsOmitted = this.omit(paramsRequest, 'until');
         if (since !== undefined) {
@@ -3888,14 +3893,14 @@ class gate extends gate$1["default"] {
         }
         let marginMode = undefined;
         let request = {};
-        let query = undefined;
+        let query;
         const market = (symbol !== undefined) ? this.market(symbol) : undefined;
         const until = this.safeInteger(paramsPaginate, 'until');
         const paramsOmitted = this.omit(paramsPaginate, ['until']);
         const [type, paramsMarketType] = this.handleMarketTypeAndParams('fetchMyTrades', market, paramsOmitted);
         const contract = (type === 'swap') || (type === 'future') || (type === 'option');
         if (contract) {
-            let contractQuery = undefined;
+            let contractQuery;
             [request, contractQuery] = this.prepareRequest(market, type, paramsMarketType);
             query = (type === 'option') ? this.omit(contractQuery, 'order_id') : contractQuery;
         }
@@ -6193,14 +6198,15 @@ class gate extends gate$1["default"] {
             'currency': currency['id'], // todo: currencies have network-junctions
             'amount': truncated,
         };
-        if (!(fromId in this.options['accountsByType'])) {
+        const accountsByType = this.safeDict(this.options, 'accountsByType', {});
+        if (!(fromId in accountsByType)) {
             request['from'] = 'margin';
             request['currency_pair'] = fromId;
         }
         else {
             request['from'] = fromId;
         }
-        if (!(toId in this.options['accountsByType'])) {
+        if (!(toId in accountsByType)) {
             request['to'] = 'margin';
             request['currency_pair'] = toId;
         }
@@ -6728,7 +6734,8 @@ class gate extends gate$1["default"] {
         if (type !== 'future' && type !== 'swap') {
             throw new errors.BadRequest(this.id + ' fetchLeverageTiers only supports swap and future');
         }
-        const limit = Math.max(1, Math.min(this.safeInteger(requestParams, 'limit', 100), 100));
+        const requestedLimit = this.safeInteger(requestParams, 'limit', 100);
+        const limit = (requestedLimit === undefined) ? 100 : Math.max(1, Math.min(requestedLimit, 100));
         let offset = this.safeInteger(requestParams, 'offset', 0);
         const contract = this.safeString(requestParams, 'contract', '');
         const paramsOmitted = this.omit(requestParams, ['limit', 'offset']);

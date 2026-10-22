@@ -300,7 +300,8 @@ export default class woo extends wooRest {
                 if (ts === undefined) {
                     continue;
                 }
-                if (ts < orderbook['timestamp']) {
+                const orderbookTimestamp = this.safeInteger(orderbook, 'timestamp');
+                if ((orderbookTimestamp !== undefined) && (ts < orderbookTimestamp)) {
                     continue;
                 }
                 else {
@@ -518,7 +519,7 @@ export default class woo extends wooRest {
         //     }
         //
         const topic = this.safeString(message, 'topic');
-        const data = this.safeValue(message, 'data');
+        const data = this.safeList(message, 'data', []);
         const timestamp = this.safeInteger(message, 'ts');
         const result = [];
         for (let i = 0; i < data.length; i++) {
@@ -970,7 +971,7 @@ export default class woo extends wooRest {
         }
         const paramsOmitted = this.omit(params, ['stop', 'trigger']);
         let messageHash = topic;
-        const symbolResolved = (symbol !== undefined) ? this.symbol(symbol) : symbol;
+        const symbolResolved = (symbol !== undefined) ? this.symbol(symbol) : undefined;
         if (symbolResolved !== undefined) {
             messageHash += ':' + symbolResolved;
         }
@@ -1010,7 +1011,7 @@ export default class woo extends wooRest {
         }
         const paramsOmitted = this.omit(params, ['stop', 'trigger']);
         let messageHash = 'myTrades';
-        const symbolResolved = (symbol !== undefined) ? this.symbol(symbol) : symbol;
+        const symbolResolved = (symbol !== undefined) ? this.symbol(symbol) : undefined;
         if (symbolResolved !== undefined) {
             messageHash += ':' + symbolResolved;
         }
@@ -1449,7 +1450,7 @@ export default class woo extends wooRest {
         //    }
         //
         const data = this.safeDict(message, 'data');
-        const balances = this.safeValue(data, 'balances');
+        const balances = this.safeDict(data, 'balances', {});
         const keys = Object.keys(balances);
         const ts = this.safeInteger(message, 'ts');
         this.balance['info'] = data;

@@ -821,7 +821,7 @@ class mexc extends mexc$1["default"] {
         if ((nonce === undefined) || (firstDeltaNonce === undefined)) {
             return -1;
         }
-        if (nonce < firstDeltaNonce - 1) {
+        if ((nonce !== undefined) && (firstDeltaNonce !== undefined) && (nonce < firstDeltaNonce - 1)) {
             return -1;
         }
         for (let i = 0; i < cache.length; i++) {

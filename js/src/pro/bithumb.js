@@ -330,9 +330,10 @@ export default class bithumb extends bithumbRest {
         const time = this.safeString(ticker, 'time', '');
         const kstDatetime = date.slice(0, 4) + '-' + date.slice(4, 6) + '-' + date.slice(6, 8) + 'T' + time.slice(0, 2) + ':' + time.slice(2, 4) + ':' + time.slice(4, 6);
         // date/time are the exchange's local KST wall-clock, not UTC — shift -9h like parseWsTrade
-        let timestamp = this.parse8601(kstDatetime);
-        if (timestamp !== undefined) {
-            timestamp = (timestamp - 32400000);
+        let timestamp = undefined;
+        const kstTimestamp = this.parse8601(kstDatetime);
+        if (kstTimestamp !== undefined) {
+            timestamp = kstTimestamp - 32400000;
         }
         const marketId = this.safeString(ticker, 'symbol');
         return this.safeTicker({
@@ -703,7 +704,11 @@ export default class bithumb extends bithumbRest {
         const marketId = this.safeString(trade, 'symbol');
         const datetime = this.safeString(trade, 'contDtm');
         // that date is not UTC iso8601, but exchange's local time, -9hr difference
-        const timestamp = this.parseToInt(this.parse8601(datetime)) - 32400000;
+        let timestamp = undefined;
+        const kstTimestamp = this.parse8601(datetime);
+        if (kstTimestamp !== undefined) {
+            timestamp = kstTimestamp - 32400000;
+        }
         const sideId = this.safeString(trade, 'buySellGb');
         return this.safeTrade({
             'id': undefined,

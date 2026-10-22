@@ -814,7 +814,7 @@ class coinbase extends coinbase$1["default"] {
             await this.loadAccounts();
             for (let i = 0; i < this.accounts.length; i++) {
                 const account = this.accounts[i];
-                if (account['code'] === code && account['type'] === 'wallet') {
+                if ((this.safeString(account, 'code') === code) && (this.safeString(account, 'type') === 'wallet')) {
                     accountId = this.safeString(account, 'id');
                     break;
                 }
@@ -3032,7 +3032,7 @@ class coinbase extends coinbase$1["default"] {
         await this.loadAccounts(false, params);
         for (let i = 0; i < this.accounts.length; i++) {
             const account = this.accounts[i];
-            if (account['code'] === code) {
+            if (this.safeString(account, 'code') === code) {
                 return this.safeString(account, 'id');
             }
         }
@@ -3951,10 +3951,13 @@ class coinbase extends coinbase$1["default"] {
             await this.loadMarkets();
         }
         const maxLimit = 300;
-        const limitValue = (limit === undefined) ? maxLimit : Math.min(limit, maxLimit);
+        let limitValue = this.parseToInt(maxLimit);
+        if ((limit !== undefined) && (limit < maxLimit)) {
+            limitValue = this.parseToInt(limit);
+        }
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limitValue, timeframe, paramsPaginate, maxLimit - 1);
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limitValue, timeframe, paramsPaginate, 299);
         }
         const market = this.market(symbol);
         const request = {
@@ -5165,7 +5168,10 @@ class coinbase extends coinbase$1["default"] {
             const availableBalance = this.parseNumber(availableBalanceStr);
             const totalBalanceFiatStr = this.safeString(position, 'total_balance_fiat', '0');
             const totalBalanceFiat = this.parseNumber(totalBalanceFiatStr);
-            const holdAmount = totalBalanceFiat - availableBalance;
+            let holdAmount = 0;
+            if ((totalBalanceFiat !== undefined) && (availableBalance !== undefined) && (totalBalanceFiat > availableBalance)) {
+                holdAmount = totalBalanceFiat - availableBalance;
+            }
             const costBasisDict = this.safeDict(position, 'cost_basis', {});
             const costBasisStr = this.safeString(costBasisDict, 'value', '0');
             const averageEntryPriceDict = this.safeDict(position, 'average_entry_price', {});
@@ -5173,7 +5179,7 @@ class coinbase extends coinbase$1["default"] {
             const positionData = {
                 'currency': currencyCode,
                 'available_balance': availableBalance,
-                'hold_amount': holdAmount > 0 ? holdAmount : 0,
+                'hold_amount': holdAmount,
                 'wallet_name': portfolioName,
                 'account_id': portfolioUuid,
                 'account_uuid': this.safeString(position, 'account_uuid', ''),
@@ -5337,7 +5343,7 @@ class coinbase extends coinbase$1["default"] {
                     authorizationString = 'Bearer ' + token;
                 }
                 else {
-                    const nonce = this.nonce();
+                    const nonce = this.parseToInt(this.nonce());
                     const timestamp = this.parseToInt(nonce / 1000);
                     const timestampString = timestamp.toString();
                     const auth = timestampString + method + savedPath + payload;

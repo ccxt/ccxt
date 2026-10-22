@@ -1390,8 +1390,8 @@ class bingx extends bingx$1["default"] {
         };
         let response;
         const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('fetchTrades', market, params);
+        const maxLimit = (marketType === 'spot') ? 500 : 1000;
         if (limit !== undefined) {
-            const maxLimit = (marketType === 'spot') ? 500 : 1000;
             request['limit'] = Math.min(limit, maxLimit);
         }
         if (marketType === 'spot') {
@@ -3355,7 +3355,9 @@ class bingx extends bingx$1["default"] {
             if (((typeValue === 'LIMIT') || (typeValue === 'TRIGGER_LIMIT') || (typeValue === 'STOP') || (typeValue === 'TAKE_PROFIT')) && !isTrailing) {
                 request['price'] = this.parseToNumeric(this.priceToPrecision(symbol, price));
             }
-            let reduceOnly = this.safeBool(paramsTakeProfit, 'reduceOnly', false);
+            const reduceOnlyParam = this.safeBool(paramsTakeProfit, 'reduceOnly', false);
+            // stop loss / take profit price orders are always reduce only
+            const reduceOnly = (reduceOnlyParam === true) || (!isTriggerOrder && (isStopLossPriceOrder || isTakeProfitPriceOrder));
             if (isTriggerOrder) {
                 request['stopPrice'] = this.parseToNumeric(this.priceToPrecision(symbol, triggerPrice));
                 if (isMarketOrder || (typeValue === 'TRIGGER_MARKET')) {
@@ -3367,7 +3369,6 @@ class bingx extends bingx$1["default"] {
             }
             else if (isStopLossPriceOrder || isTakeProfitPriceOrder) {
                 // This can be used to set the stop loss and take profit, but the position needs to be opened first
-                reduceOnly = true;
                 if (isStopLossPriceOrder) {
                     request['stopPrice'] = this.parseToNumeric(this.priceToPrecision(symbol, stopLossPrice));
                     if (isMarketOrder || (typeValue === 'STOP_MARKET')) {
@@ -4085,14 +4086,15 @@ class bingx extends bingx$1["default"] {
         if ((feeCurrencyCode === undefined)) {
             if (marketResolved['spot'] === true) {
                 if (side === 'buy') {
-                    feeCurrencyCode = marketResolved['base'];
+                    feeCurrencyCode = this.safeString(marketResolved, 'base');
                 }
                 else {
-                    feeCurrencyCode = marketResolved['quote'];
+                    feeCurrencyCode = this.safeString(marketResolved, 'quote');
                 }
             }
             else {
-                feeCurrencyCode = (marketResolved['inverse'] === true) ? marketResolved['settle'] : marketResolved['quote'];
+                const feeKey = (marketResolved['inverse'] === true) ? 'settle' : 'quote';
+                feeCurrencyCode = this.safeString(marketResolved, feeKey);
             }
         }
         let stopLoss = this.safeValue(orderData, 'stopLoss');
@@ -5647,16 +5649,17 @@ class bingx extends bingx$1["default"] {
         const currencyId = this.safeString(depositAddress, 'coin');
         const currencyResolved = this.safeCurrency(currencyId, currency);
         const code = currencyResolved['code'];
-        let address = this.safeString2(depositAddress, 'addressWithPrefix', 'address');
+        const rawAddress = this.safeString2(depositAddress, 'addressWithPrefix', 'address');
         const networkId = this.safeString(depositAddress, 'network');
         const networkCode = this.networkIdToCode(networkId, code);
         // despite its name the addressWithPrefix field sometimes arrives without
         // the 0x prefix on the evm networks, see https://github.com/ccxt/ccxt/issues/24331
-        if (address !== undefined) {
-            const isPrefixed = address.startsWith('0x') || address.startsWith('0X');
+        let address = rawAddress;
+        if (rawAddress !== undefined) {
+            const isPrefixed = rawAddress.startsWith('0x') || rawAddress.startsWith('0X');
             const evmNetworks = ['BEP20', 'ERC20', 'HECO', 'MATIC', 'POLYGON', 'ARBITRUM', 'OPTIMISM', 'AVAXC', 'BASE', 'FTM', 'LINEA', 'ZKSYNC', 'OPBNB'];
             if (!isPrefixed && this.inArray(networkCode, evmNetworks)) {
-                address = '0x' + address;
+                address = '0x' + rawAddress;
             }
         }
         this.checkAddress(address);

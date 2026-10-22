@@ -567,8 +567,9 @@ class nado extends nado$1["default"] {
             };
             placeOrder['trigger'] = trigger;
         }
-        let appendix = this.safeString(paramsRecvWindow, 'appendix');
-        if (appendix === undefined) {
+        const rawAppendix = this.safeString(paramsRecvWindow, 'appendix');
+        let appendix = rawAppendix;
+        if (rawAppendix === undefined) {
             appendix = this.createOrderAppendix(isTriggerOrder, paramsRecvWindow);
         }
         order['appendix'] = appendix;
@@ -670,8 +671,9 @@ class nado extends nado$1["default"] {
         const [recvWindow, paramsRecvWindow] = this.handleOptionIntegerAndParams(paramsExpiration, 'editOrder', 'recvWindow', 5000);
         const cancelNonce = this.createOrderNonce(recvWindow);
         const orderNonce = Precise["default"].stringAdd(cancelNonce, '1');
-        let appendix = this.safeString(paramsRecvWindow, 'appendix');
-        if (appendix === undefined) {
+        const rawAppendix = this.safeString(paramsRecvWindow, 'appendix');
+        let appendix = rawAppendix;
+        if (rawAppendix === undefined) {
             appendix = this.createOrderAppendix(false, paramsRecvWindow);
         }
         const requestId = this.safeInteger(paramsRecvWindow, 'id');
@@ -1456,6 +1458,12 @@ class nado extends nado$1["default"] {
             currency = this.currency(code);
         }
         const [subaccount, paramsSubaccount] = this.handleOptionStringAndParams(params, methodName, 'subaccount', 'default');
+        const limitRequest = {
+            'raw': 100,
+        };
+        if (limit !== undefined) {
+            limitRequest['raw'] = Math.min(limit, 500);
+        }
         const eventsRequest = {
             'subaccounts': [
                 this.createSubaccount(this.walletAddress, subaccount),
@@ -1463,9 +1471,7 @@ class nado extends nado$1["default"] {
             'event_types': [
                 eventType,
             ],
-            'limit': {
-                'raw': (limit === undefined) ? 100 : Math.min(limit, 500),
-            },
+            'limit': limitRequest,
         };
         if (currency !== undefined) {
             eventsRequest['product_ids'] = [
@@ -1967,14 +1973,18 @@ class nado extends nado$1["default"] {
             throw new errors.BadSymbol(this.id + ' fetchFundingHistory() supports swap contracts only');
         }
         const [subaccount, paramsSubaccount] = this.handleOptionStringAndParams(params, 'fetchFundingHistory', 'subaccount', 'default');
+        const fundingRequest = {
+            'subaccount': this.createSubaccount(this.walletAddress, subaccount),
+            'product_ids': [
+                this.parseToInt(market['id']),
+            ],
+            'limit': 100,
+        };
+        if (limit !== undefined) {
+            fundingRequest['limit'] = Math.min(limit, 100);
+        }
         const request = {
-            'interest_and_funding': {
-                'subaccount': this.createSubaccount(this.walletAddress, subaccount),
-                'product_ids': [
-                    this.parseToInt(market['id']),
-                ],
-                'limit': (limit === undefined) ? 100 : Math.min(limit, 100),
-            },
+            'interest_and_funding': fundingRequest,
         };
         const response = await this.archivePost(this.deepExtend(request, paramsSubaccount));
         //
@@ -2334,10 +2344,13 @@ class nado extends nado$1["default"] {
                 side = 'buy';
             }
         }
-        let price = this.safeString(trade, 'price');
-        if (price === undefined) {
-            const parsedPrice = this.parseX18(this.safeString(order, 'priceX18'));
-            price = (parsedPrice === undefined) ? undefined : this.numberToString(parsedPrice);
+        const tradePrice = this.safeString(trade, 'price');
+        let price = tradePrice;
+        if (tradePrice === undefined) {
+            const orderPriceX18 = this.safeString(order, 'priceX18');
+            if (orderPriceX18 !== undefined) {
+                price = this.numberToString(this.parseX18(orderPriceX18));
+            }
         }
         let takerOrMaker = undefined;
         const isTaker = this.safeBool(trade, 'is_taker');
@@ -2919,8 +2932,9 @@ class nado extends nado$1["default"] {
                 }
             }
             else {
-                status = this.safeString(order, 'status', 'rejected');
-                if ((status === 'success') || (status.indexOf('waiting') >= 0)) {
+                const rawStatus = this.safeString(order, 'status', 'rejected');
+                status = rawStatus;
+                if ((rawStatus === 'success') || (rawStatus.indexOf('waiting') >= 0)) {
                     status = 'open';
                 }
             }
@@ -3054,18 +3068,13 @@ class nado extends nado$1["default"] {
             throw new errors.ArgumentsRequired(this.id + ' padHex() requires length');
         }
         const zeros = '00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
-        let padded = undefined;
         if (left) {
-            padded = (zeros + value);
+            const paddedLeft = zeros + value;
+            const start = paddedLeft.length - this.parseToInt(length);
+            return paddedLeft.slice(start, paddedLeft.length);
         }
-        else {
-            padded = (value + zeros);
-        }
-        if (left) {
-            const start = padded.length - length;
-            return padded.slice(start, padded.length);
-        }
-        return padded.slice(0, length);
+        const paddedRight = value + zeros;
+        return paddedRight.slice(0, length);
     }
     signOrder(order, productId, chainId) {
         const domain = {
@@ -3168,10 +3177,8 @@ class nado extends nado$1["default"] {
         if (baseApiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
-        let url = baseApiUrl;
-        if (path !== '') {
-            url += '/' + this.implodeParams(path, params);
-        }
+        const pathSuffix = (path !== '') ? ('/' + this.implodeParams(path, params)) : '';
+        let url = baseApiUrl + pathSuffix;
         const query = this.omit(params, this.extractParams(path));
         const headersValue = {};
         if ((endpoint === 'gateway') || (endpoint === 'archive')) {

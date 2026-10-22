@@ -841,9 +841,11 @@ class krakenfutures extends krakenfutures$1["default"] {
                     messageHash = 'orders:verbose';
                 }
                 // get order without symbol
+                const cancelledOrderId = this.safeString(message, 'order_id');
                 for (let i = 0; i < orders.length; i++) {
                     const currentOrder = orders[i];
-                    if (currentOrder['id'] === message['order_id']) {
+                    const currentOrderId = this.safeString(currentOrder, 'id');
+                    if (currentOrderId === cancelledOrderId) {
                         const info = this.extend(this.safeDict(currentOrder, 'info', {}), {
                             'reason': reason,
                         });
@@ -1595,8 +1597,9 @@ class krakenfutures extends krakenfutures$1["default"] {
         for (let i = 0; i < trades.length; i++) {
             const trade = trades[i];
             const parsedTrade = this.parseWsMyTrade(trade);
-            if (parsedTrade['symbol'] !== undefined) {
-                tradeSymbols[parsedTrade['symbol']] = true;
+            const tradeSymbol = this.safeString(parsedTrade, 'symbol');
+            if (tradeSymbol !== undefined) {
+                tradeSymbols[tradeSymbol] = true;
             }
             stored.append(parsedTrade);
         }

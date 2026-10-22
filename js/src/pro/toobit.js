@@ -1023,13 +1023,12 @@ export default class toobit extends toobitRest {
         let messageHash = '';
         let symbolsNormalized = symbols;
         if (!this.isEmpty(symbols)) {
-            symbolsNormalized = this.marketSymbols(symbols);
-        }
-        if (!this.isEmpty(symbols)) {
-            if (symbolsNormalized === undefined) {
+            const marketSymbols = this.marketSymbols(symbols);
+            if (marketSymbols === undefined) {
                 throw new ArgumentsRequired(this.id + ' watchPositions() symbols is required');
             }
-            messageHash = '::' + symbolsNormalized.join(',');
+            symbolsNormalized = marketSymbols;
+            messageHash = '::' + marketSymbols.join(',');
         }
         messageHash = type + ':positions' + messageHash;
         const url = this.getUserStreamUrl();

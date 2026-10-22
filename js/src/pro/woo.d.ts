@@ -6,7 +6,7 @@ export default class woo extends wooRest {
     describe(): any;
     requestId(url: string): number;
     watchPublic(messageHash: string, message: Dict): Promise<any>;
-    unwatchPublic(subHash: string, symbol: Str, topic: string, params?: {}): Promise<any>;
+    unwatchPublic(subHash: string, symbol: Str, topic: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name woo#watchOrderBook

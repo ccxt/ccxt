@@ -274,8 +274,8 @@ class p2b extends p2b$1["default"] {
         //        "id": null
         //    }
         //
-        let data = this.safeList(message, 'params');
-        data = this.safeList(data, 0);
+        const params = this.safeList(message, 'params');
+        const data = this.safeList(params, 0);
         const method = this.safeString(message, 'method');
         const splitMethod = method.split('.');
         const channel = this.safeString(splitMethod, 0);

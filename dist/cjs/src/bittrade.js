@@ -676,23 +676,25 @@ class bittrade extends bittrade$1["default"] {
         let bidVolume = undefined;
         let ask = undefined;
         let askVolume = undefined;
-        if ('bid' in ticker) {
-            if (Array.isArray(ticker['bid'])) {
-                bid = this.safeString(ticker['bid'], 0);
-                bidVolume = this.safeString(ticker['bid'], 1);
-            }
-            else {
-                bid = this.safeString(ticker, 'bid');
+        const bidList = this.safeList(ticker, 'bid');
+        if (bidList !== undefined) {
+            bid = this.safeString(bidList, 0);
+            bidVolume = this.safeString(bidList, 1);
+        }
+        else {
+            bid = this.safeString(ticker, 'bid');
+            if (bid !== undefined) {
                 bidVolume = this.safeString(ticker, 'bidSize');
             }
         }
-        if ('ask' in ticker) {
-            if (Array.isArray(ticker['ask'])) {
-                ask = this.safeString(ticker['ask'], 0);
-                askVolume = this.safeString(ticker['ask'], 1);
-            }
-            else {
-                ask = this.safeString(ticker, 'ask');
+        const askList = this.safeList(ticker, 'ask');
+        if (askList !== undefined) {
+            ask = this.safeString(askList, 0);
+            askVolume = this.safeString(askList, 1);
+        }
+        else {
+            ask = this.safeString(ticker, 'ask');
+            if (ask !== undefined) {
                 askVolume = this.safeString(ticker, 'askSize');
             }
         }
@@ -764,10 +766,10 @@ class bittrade extends bittrade$1["default"] {
         //     }
         //
         if ('tick' in response) {
-            if ((response['tick'] === undefined) || (response['tick'] === null)) {
+            const tick = this.safeDict(response, 'tick');
+            if (tick === undefined) {
                 throw new errors.BadSymbol(this.id + ' fetchOrderBook() returned empty response: ' + this.json(response));
             }
-            const tick = this.safeDict(response, 'tick');
             const timestamp = this.safeInteger(tick, 'ts', this.safeInteger(response, 'ts'));
             const result = this.parseOrderBook(tick, symbol, timestamp);
             result['nonce'] = this.safeInteger(tick, 'version');
@@ -1219,21 +1221,9 @@ class bittrade extends bittrade$1["default"] {
             const balance = balances[i];
             const currencyId = this.safeString(balance, 'currency');
             const code = this.safeCurrencyCode(currencyId);
-            let account = undefined;
-            if ((code !== undefined) && (code in result)) {
-                account = result[code];
-            }
-            else {
-                account = this.account();
-            }
-            if (account === undefined) {
-                throw new errors.ExchangeError(this.id + ' parseBalance() could not resolve account');
-            }
+            const account = ((code !== undefined) && (code in result)) ? result[code] : this.account();
             if (this.safeString(balance, 'type') === 'trade') {
                 account['free'] = this.safeString(balance, 'balance');
-            }
-            if (account === undefined) {
-                throw new errors.ExchangeError(this.id + ' parseBalance() could not resolve account');
             }
             if (this.safeString(balance, 'type') === 'frozen') {
                 account['used'] = this.safeString(balance, 'balance');
@@ -1393,7 +1383,7 @@ class bittrade extends bittrade$1["default"] {
             await this.loadAccounts();
             for (let i = 0; i < this.accounts.length; i++) {
                 const account = this.accounts[i];
-                if (account['type'] === 'spot') {
+                if (this.safeString(account, 'type') === 'spot') {
                     accountId = this.safeString(account, 'id');
                     if (accountId !== undefined) {
                         break;
@@ -1477,8 +1467,9 @@ class bittrade extends bittrade$1["default"] {
         let side = undefined;
         let type = undefined;
         let status = undefined;
-        if ('type' in order) {
-            const orderType = order['type'].split('-');
+        const orderTypeRaw = this.safeString(order, 'type');
+        if (orderTypeRaw !== undefined) {
+            const orderType = orderTypeRaw.split('-');
             side = orderType[0];
             type = orderType[1];
             status = this.parseOrderStatus(this.safeString(order, 'state'));
@@ -1845,8 +1836,8 @@ class bittrade extends bittrade$1["default"] {
         const networkId = this.safeString(depositAddress, 'chain');
         const networks = this.safeDict(currencyResolved, 'networks', {});
         const networksById = this.indexBy(networks, 'id');
-        const networkValue = this.safeValue(networksById, networkId, networkId);
-        const network = this.safeString(networkValue, 'network');
+        const networkEntry = this.safeDict(networksById, networkId);
+        const network = this.safeString(networkEntry, 'network');
         this.checkAddress(address);
         return {
             'currency': code,
@@ -1867,10 +1858,7 @@ class bittrade extends bittrade$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        let limitResolved = limit;
-        if (limit === undefined || limit > 100) {
-            limitResolved = 100;
-        }
+        const limitResolved = ((limit === undefined) || (limit > 100)) ? 100 : limit;
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -1885,9 +1873,7 @@ class bittrade extends bittrade$1["default"] {
         if (currency !== undefined) {
             request['currency'] = currency['id'];
         }
-        if (limitResolved !== undefined) {
-            request['size'] = limitResolved; // max 100
-        }
+        request['size'] = limitResolved; // max 100
         const response = await this.privateGetQueryDepositWithdraw(this.extend(request, params));
         // return response
         const data = this.safeList(response, 'data', []);
@@ -1904,10 +1890,7 @@ class bittrade extends bittrade$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        let limitResolved = limit;
-        if (limit === undefined || limit > 100) {
-            limitResolved = 100;
-        }
+        const limitResolved = ((limit === undefined) || (limit > 100)) ? 100 : limit;
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -1922,9 +1905,7 @@ class bittrade extends bittrade$1["default"] {
         if (currency !== undefined) {
             request['currency'] = currency['id'];
         }
-        if (limitResolved !== undefined) {
-            request['size'] = limitResolved; // max 100
-        }
+        request['size'] = limitResolved; // max 100
         const response = await this.privateGetQueryDepositWithdraw(this.extend(request, params));
         // return response
         const data = this.safeList(response, 'data', []);
@@ -2054,7 +2035,7 @@ class bittrade extends bittrade$1["default"] {
         const request = {
             'address': address, // only supports existing addresses in your withdraw address list
             'amount': amount,
-            'currency': currency['id'].toLowerCase(),
+            'currency': this.safeStringLower(currency, 'id'),
         };
         if (tagWithdrawTag !== undefined) {
             request['addr-tag'] = tagWithdrawTag; // only for XRP?
@@ -2115,9 +2096,8 @@ class bittrade extends bittrade$1["default"] {
             const requestSorted = this.keysort(request);
             let auth = this.urlencode(requestSorted);
             // unfortunately, PHP demands double quotes for the escaped newline symbol
-            const content = [method, this.hostname, url, auth];
             // eslint-disable-next-line quotes
-            const payload = content.join("\n");
+            const payload = method + "\n" + this.hostname + "\n" + url + "\n" + auth;
             const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha256, 'base64');
             auth += '&' + this.urlencode({ 'Signature': signature });
             url += '?' + auth;
@@ -2153,7 +2133,7 @@ class bittrade extends bittrade$1["default"] {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
-        if ('status' in response) {
+        if (this.safeString(response, 'status') !== undefined) {
             //
             //     {"status":"error","err-code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
             //

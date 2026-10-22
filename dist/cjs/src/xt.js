@@ -1498,7 +1498,7 @@ class xt extends xt$1["default"] {
             // window start return one pre-since candle, shifting paginated windows and
             // dropping one candle per page - align up so the rounding is a no-op, see https://github.com/ccxt/ccxt/issues/25285
             const duration = this.parseTimeframe(timeframe) * 1000;
-            request['startTime'] = Math.ceil(since / duration) * duration;
+            request['startTime'] = this.parseToInt(Math.ceil(since / duration)) * duration;
         }
         let limitResolved = limit;
         if (limit !== undefined) {
@@ -2017,7 +2017,7 @@ class xt extends xt$1["default"] {
         //     }
         //
         const marketId = this.safeString(ticker, 's');
-        let marketType = (market !== undefined) ? this.safeString(market, 'type') : undefined;
+        let marketType = this.safeString(market, 'type');
         const hasSpotKeys = ('cv' in ticker) || ('aq' in ticker);
         if (marketType === undefined) {
             marketType = hasSpotKeys ? 'spot' : 'contract';
@@ -2370,7 +2370,7 @@ class xt extends xt$1["default"] {
         //    }
         //
         const marketId = this.safeString2(trade, 's', 'symbol');
-        let marketType = (market !== undefined) ? this.safeString(market, 'type') : undefined;
+        let marketType = this.safeString(market, 'type');
         const hasSpotKeys = ('b' in trade) || ('bizType' in trade) || ('oi' in trade);
         if (marketType === undefined) {
             marketType = hasSpotKeys ? 'spot' : 'contract';
@@ -4807,7 +4807,7 @@ class xt extends xt$1["default"] {
             const tier = this.safeDict(brackets, i);
             const marketId = this.safeString(info, 'symbol');
             const marketResolved = this.safeMarket(marketId, market, '_', 'contract');
-            const minNotional = this.safeNumber(brackets[i - 1], 'maxNominalValue', 0);
+            const minNotional = this.safeNumber(this.safeDict(brackets, i - 1), 'maxNominalValue', 0);
             tiers.push({
                 'tier': this.safeInteger(tier, 'bracket'),
                 'symbol': this.safeSymbol(marketId, marketResolved, '_', 'contract'),
@@ -4973,10 +4973,8 @@ class xt extends xt$1["default"] {
         const marketId = this.safeString(contract, 'symbol');
         const symbol = this.safeSymbol(marketId, market, '_', 'swap');
         const timestamp = this.safeInteger(contract, 'nextCollectionTime');
-        let interval = this.safeString(contract, 'collectionInternal');
-        if (interval !== undefined) {
-            interval = interval + 'h';
-        }
+        const collectionInterval = this.safeString(contract, 'collectionInternal');
+        const interval = (collectionInterval !== undefined) ? (collectionInterval + 'h') : undefined;
         return {
             'info': contract,
             'symbol': symbol,
@@ -5941,14 +5939,8 @@ class xt extends xt$1["default"] {
             const timestamp = this.numberToString(this.nonce());
             if ((payload === '/v4/order') || (payload === '/future/trade/v1/order/create') || (payload === '/future/trade/v1/entrust/create-plan') || (payload === '/future/trade/v1/entrust/create-profit') || (payload === '/future/trade/v1/order/create-batch')) {
                 const id = 'CCXT';
-                if (query === undefined) {
-                    throw new errors.NullResponse(this.id + ' sign() returned empty body');
-                }
                 if (payload.indexOf('future') > -1) {
                     query['clientMedia'] = id;
-                    if (query === undefined) {
-                        throw new errors.NullResponse(this.id + ' sign() returned empty body');
-                    }
                 }
                 else {
                     query['media'] = id;

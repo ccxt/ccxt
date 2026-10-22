@@ -1074,10 +1074,10 @@ export default class whitebit extends Exchange {
         //
         const result = {};
         // Process all markets from the loaded markets cache
-        const markets = this.markets;
-        if (markets === undefined) {
+        if (this.markets === undefined) {
             throw new ExchangeError(this.id + ' markets not loaded');
         }
+        const markets = this.markets;
         const marketIds = Object.keys(markets);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
@@ -1089,14 +1089,7 @@ export default class whitebit extends Exchange {
             const symbol = marketSymbol;
             // Filter by symbols if specified
             if (symbols !== undefined) {
-                let symbolFound = false;
-                for (let j = 0; j < symbols.length; j++) {
-                    if (symbols[j] === symbol) {
-                        symbolFound = true;
-                        break;
-                    }
-                }
-                if (!symbolFound) {
+                if (!this.inArray(symbol, symbols)) {
                     continue; // Skip symbols not in requested list
                 }
             }
@@ -1244,17 +1237,18 @@ export default class whitebit extends Exchange {
             };
             // Add fee information if available
             if (feeData !== undefined) {
-                const depositFee = feeData['deposit'];
-                const withdrawFee = feeData['withdraw'];
+                const depositFee = this.safeDict(feeData, 'deposit');
+                const withdrawFee = this.safeDict(feeData, 'withdraw');
                 if ((depositFee !== undefined) && (depositFee !== null)) {
                     const depositFeeData = {
                         'fixed': this.safeNumber(depositFee, 'fixed'),
                     };
-                    if ((depositFee['flex'] !== undefined) && (depositFee['flex'] !== null)) {
+                    const depositFlex = this.safeDict(depositFee, 'flex');
+                    if (depositFlex !== undefined) {
                         depositFeeData['flex'] = {
-                            'min': this.safeNumber(depositFee['flex'], 'min_fee'),
-                            'max': this.safeNumber(depositFee['flex'], 'max_fee'),
-                            'percent': this.safeNumber(depositFee['flex'], 'percent'),
+                            'min': this.safeNumber(depositFlex, 'min_fee'),
+                            'max': this.safeNumber(depositFlex, 'max_fee'),
+                            'percent': this.safeNumber(depositFlex, 'percent'),
                         };
                     }
                     limits['deposit']['fee'] = depositFeeData;
@@ -1263,19 +1257,21 @@ export default class whitebit extends Exchange {
                     const withdrawFeeData = {
                         'fixed': this.safeNumber(withdrawFee, 'fixed'),
                     };
-                    if ((withdrawFee['flex'] !== undefined) && (withdrawFee['flex'] !== null)) {
+                    const withdrawFlex = this.safeDict(withdrawFee, 'flex');
+                    if (withdrawFlex !== undefined) {
                         withdrawFeeData['flex'] = {
-                            'min': this.safeNumber(withdrawFee['flex'], 'min_fee'),
-                            'max': this.safeNumber(withdrawFee['flex'], 'max_fee'),
-                            'percent': this.safeNumber(withdrawFee['flex'], 'percent'),
+                            'min': this.safeNumber(withdrawFlex, 'min_fee'),
+                            'max': this.safeNumber(withdrawFlex, 'max_fee'),
+                            'percent': this.safeNumber(withdrawFlex, 'percent'),
                         };
                     }
                     limits['withdraw']['fee'] = withdrawFeeData;
                 }
             }
             // Add network-specific limits if available
-            if (currency['networks'] !== undefined) {
-                limits['networks'] = currency['networks'];
+            const currencyNetworks = this.safeDict(currency, 'networks');
+            if (currencyNetworks !== undefined) {
+                limits['networks'] = currencyNetworks;
             }
             result[code] = {
                 'info': currency,
@@ -1890,15 +1886,14 @@ export default class whitebit extends Exchange {
             'market': market['id'],
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
         };
-        const maxLimit = 1440;
-        const sinceLimit = (limit === undefined) ? maxLimit : Math.min(limit, maxLimit);
-        const limitResolved = (since !== undefined) ? sinceLimit : limit;
+        const cappedLimit = ((limit === undefined) || (limit > 1440)) ? 1440 : limit;
+        const limitResolved = (since !== undefined) ? cappedLimit : limit;
         if (since !== undefined) {
             const start = this.parseToInt(since / 1000);
             request['start'] = start;
         }
-        if (limitResolved !== undefined) {
-            request['limit'] = Math.min(limitResolved, 1440);
+        if ((since !== undefined) || (limit !== undefined)) {
+            request['limit'] = cappedLimit;
         }
         const response = await this.v1PublicGetKline(this.extend(request, params));
         //
@@ -2550,7 +2545,8 @@ export default class whitebit extends Exchange {
                 results.push(this.extend(order, { 'status': 'closed' }));
             }
         }
-        return this.filterBySymbolSinceLimit(this.sortBy(results, 'timestamp'), symbolResolved, since, limit);
+        const sorted = this.sortBy(results, 'timestamp');
+        return this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit);
     }
     parseOrderType(type) {
         const types = {
@@ -3125,10 +3121,8 @@ export default class whitebit extends Exchange {
             'amount': this.currencyToPrecision(code, amount),
             'address': address,
         };
-        let uniqueId = this.safeValue(paramsWithdrawTag, 'uniqueId');
-        if (uniqueId === undefined) {
-            uniqueId = this.uuid22();
-        }
+        const uniqueIdParam = this.safeValue(paramsWithdrawTag, 'uniqueId');
+        const uniqueId = (uniqueIdParam === undefined) ? this.uuid22() : uniqueIdParam;
         request['uniqueId'] = uniqueId;
         if (tag !== undefined) {
             request['memo'] = tag;
@@ -4226,7 +4220,7 @@ export default class whitebit extends Exchange {
     }
     sign(path, api = ['public'], method = 'GET', params = {}) {
         const query = this.omit(params, this.extractParams(path));
-        const version = this.safeValue(api, 0);
+        const version = this.safeString(api, 0, '');
         const accessibility = this.safeString(api, 1);
         const publicHeaders = {};
         publicHeaders['User-Agent'] = 'ccxt/' + this.id + '-' + this.version;

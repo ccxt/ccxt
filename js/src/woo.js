@@ -1800,8 +1800,12 @@ export default class woo extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
+        let triggerAfter = 0;
+        if ((timeout !== undefined) && (timeout > 0)) {
+            triggerAfter = (timeout > 900000) ? 900000 : timeout;
+        }
         const request = {
-            'triggerAfter': (timeout > 0) ? Math.min(timeout, 900000) : 0,
+            'triggerAfter': triggerAfter,
         };
         const response = await this.v3PrivatePostTradeCancelAllAfter(this.extend(request, params));
         //

@@ -1590,7 +1590,7 @@ export default class kraken extends Exchange {
         //     }
         //
         const result = this.safeDict(response, 'result', {});
-        const trades = this.safeValue(result, id);
+        const trades = this.safeList(result, id, []);
         // trades is a sorted array: last (most recent trade) goes last
         const length = trades.length;
         if (length <= 0) {
@@ -1758,7 +1758,7 @@ export default class kraken extends Exchange {
             await this.loadMarkets();
         }
         const ordersRequests = [];
-        let orderSymbols = [];
+        const orderSymbols = [];
         let symbol = undefined;
         let market = undefined;
         for (let i = 0; i < orders.length; i++) {
@@ -1788,7 +1788,7 @@ export default class kraken extends Exchange {
             const orderRequest = this.orderRequest('createOrders', marketId, type, req, amount, price, orderParams);
             ordersRequests.push(orderRequest[0]);
         }
-        orderSymbols = this.marketSymbols(orderSymbols, undefined, false, true, true);
+        this.marketSymbols(orderSymbols, undefined, false, true, true);
         let response = undefined;
         let request = {
             'orders': ordersRequests,
@@ -2008,13 +2008,7 @@ export default class kraken extends Exchange {
         const orderOmitted = this.omit(order, 'usingCost');
         const description = this.safeDict(orderOmitted, 'descr', {});
         const orderDescriptionObj = this.safeDict(orderOmitted, 'descr'); // can be null
-        let orderDescription = undefined;
-        if (orderDescriptionObj !== undefined) {
-            orderDescription = this.safeString(orderDescriptionObj, 'order');
-        }
-        else {
-            orderDescription = this.safeString(orderOmitted, 'descr');
-        }
+        const orderDescription = (orderDescriptionObj !== undefined) ? this.safeString(orderDescriptionObj, 'order') : this.safeString(orderOmitted, 'descr');
         let side = undefined;
         let rawType = undefined;
         let marketId = undefined;
@@ -2270,10 +2264,9 @@ export default class kraken extends Exchange {
                 request['reduce_only'] = 'true'; // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
             }
         }
-        let close = this.safeDict(paramsOmitted2, 'close');
-        if (close !== undefined) {
-            close = this.extend({}, close);
-            close = (close === undefined) ? {} : close;
+        const rawClose = this.safeDict(paramsOmitted2, 'close');
+        if (rawClose !== undefined) {
+            const close = this.extend({}, rawClose);
             const closePrice = this.safeValue(close, 'price');
             if (closePrice !== undefined) {
                 close['price'] = this.priceToPrecision(symbol, closePrice);
@@ -2484,17 +2477,20 @@ export default class kraken extends Exchange {
         const options = this.safeDict(this.options, 'fetchOrderTrades', {});
         const batchSize = this.safeInteger(options, 'batchSize', 20);
         const numTradeIds = tradeIds.length;
-        let numBatches = this.parseToInt(numTradeIds / batchSize);
-        numBatches = this.sum(numBatches, 1);
-        let result = [];
-        for (let j = 0; j < numBatches; j++) {
-            const requestIds = [];
-            for (let k = 0; k < batchSize; k++) {
-                const index = this.sum(j * batchSize, k);
-                if (index < numTradeIds) {
-                    requestIds.push(tradeIds[index]);
-                }
+        // full batches of batchSize ids, then the remainder (an empty one when the ids divide evenly)
+        const batches = [];
+        let batch = [];
+        for (let i = 0; i < numTradeIds; i++) {
+            batch.push(tradeIds[i]);
+            if (batch.length >= batchSize) {
+                batches.push(batch);
+                batch = [];
             }
+        }
+        batches.push(batch);
+        let result = [];
+        for (let j = 0; j < batches.length; j++) {
+            const requestIds = batches[j];
             const request = {
                 'txid': requestIds.join(','),
             };
@@ -3249,7 +3245,7 @@ export default class kraken extends Exchange {
     }
     addPaginationCursorToResult(result) {
         const cursor = this.safeString(result, 'next_cursor');
-        const data = this.safeValue(result, 'withdrawals');
+        const data = this.safeList(result, 'withdrawals', []);
         const dataLength = data.length;
         if (cursor !== undefined && dataLength > 0) {
             const last = data[dataLength - 1];

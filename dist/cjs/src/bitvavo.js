@@ -1114,12 +1114,11 @@ class bitvavo extends bitvavo$1["default"] {
             request['end'] = this.sum(since, sinceLimit * duration * 1000);
         }
         const [requestUntil, paramsUntil] = this.handleUntilOption('end', request, params);
-        let limitResolved = limit;
-        if ((since !== undefined) && (limit === undefined)) {
-            limitResolved = 1440;
+        if (limit !== undefined) {
+            requestUntil['limit'] = Math.min(limit, 1440); // default 1440, max 1440
         }
-        if (limitResolved !== undefined) {
-            requestUntil['limit'] = Math.min(limitResolved, 1440); // default 1440, max 1440
+        else if (since !== undefined) {
+            requestUntil['limit'] = 1440;
         }
         return this.extend(requestUntil, paramsUntil);
     }

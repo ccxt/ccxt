@@ -2033,8 +2033,18 @@ class BaseExchange {
         return value;
     }
     checkOptionBool(methodName, optionName, value) {
-        // the statically typed ports throw on a present non-boolean value; here it passes through unchanged
-        return value;
+        // "true"/"false" strings and 1/0 numbers read as booleans; any other present non-boolean throws BadRequest
+        if ((value === undefined) || (value === null)) {
+            return undefined;
+        }
+        if ((value === true) || (value === 'true') || (value === 1)) {
+            return true;
+        }
+        if ((value === false) || (value === 'false') || (value === 0)) {
+            return false;
+        }
+        const label = (methodName === undefined) ? 'exchange-wide' : methodName + '()';
+        throw new errors.BadRequest(this.id + ' ' + label + ' option ' + optionName + ' must be a boolean');
     }
     checkOptionInteger(methodName, optionName, value) {
         // the statically typed ports throw on a present value that is not an integral number; here it passes through unchanged
@@ -3021,10 +3031,10 @@ class BaseExchange {
             if (arrayLength > 0) {
                 let ascending = true;
                 if ((key in array[0])) {
-                    const first = array[0][key];
-                    const last = array[arrayLength - 1][key];
+                    const first = this.safeFloat(array[0], key);
+                    const last = this.safeFloat(array[arrayLength - 1], key);
                     if (first !== undefined && last !== undefined) {
-                        ascending = first <= last; // true if array is sorted in ascending order based on 'timestamp'
+                        ascending = last >= first; // true if array is sorted in ascending order based on 'timestamp'
                     }
                 }
                 if (fromStart) {
@@ -3053,8 +3063,8 @@ class BaseExchange {
             result = [];
             for (let i = 0; i < parsedArray.length; i++) {
                 const entry = parsedArray[i];
-                const value = this.safeValue(entry, key);
-                if ((value !== undefined) && (value !== null) && (value !== 0) && (value >= since)) {
+                const value = this.safeInteger(entry, key);
+                if ((value !== undefined) && (value !== 0) && (value >= since)) {
                     result.push(entry);
                 }
             }
@@ -3081,8 +3091,8 @@ class BaseExchange {
                 // KeyError in python/php — prediction structures key on outcome, not symbol
                 const entryFiledEqualValue = this.safeValue(entry, field) === value;
                 const firstCondition = valueIsDefined ? entryFiledEqualValue : true;
-                const entryKeyValue = this.safeValue(entry, key);
-                const entryKeyGESince = (entryKeyValue !== undefined) && (entryKeyValue !== null) && (entryKeyValue !== 0) && (since !== undefined) && (entryKeyValue >= since);
+                const entryKeyValue = this.safeInteger(entry, key);
+                const entryKeyGESince = (entryKeyValue !== undefined) && (entryKeyValue !== 0) && (since !== undefined) && (entryKeyValue >= since);
                 const secondCondition = sinceIsDefined ? entryKeyGESince : true;
                 if (firstCondition && secondCondition) {
                     result.push(entry);
@@ -4060,7 +4070,7 @@ class BaseExchange {
                         continue;
                     }
                     if (this.precisionMode === TICK_SIZE) {
-                        if (currentPrecision < highestPrecision) {
+                        if (highestPrecision > currentPrecision) {
                             highestPrecisionCurrency = currentCurrency;
                         }
                     }
@@ -5527,7 +5537,10 @@ class BaseExchange {
                     position['initialMargin'] = this.parseNumber(derivedEntryMargin);
                     marginString = derivedEntryMargin;
                     position['positionMargin'] = this.parseNumber(derivedEntryMargin);
-                    const derivedCollateral = (unrealizedPnlString !== undefined) ? Precise["default"].stringAdd(derivedEntryMargin, unrealizedPnlString) : derivedEntryMargin;
+                    let derivedCollateral = derivedEntryMargin;
+                    if (unrealizedPnlString !== undefined) {
+                        derivedCollateral = Precise["default"].stringAdd(derivedEntryMargin, unrealizedPnlString);
+                    }
                     if (Precise["default"].stringGt(derivedCollateral, '0')) {
                         collateralString = derivedCollateral;
                         position['collateral'] = this.parseNumber(derivedCollateral);
@@ -5539,16 +5552,19 @@ class BaseExchange {
                 const totalSize = Precise["default"].stringMul(contractsString, contractSizeString);
                 if (Precise["default"].stringGt(marginBuffer, '0') && Precise["default"].stringGt(totalSize, '0')) {
                     const bufferPerUnit = Precise["default"].stringDiv(marginBuffer, totalSize);
-                    let derivedLp = undefined;
+                    let derivedLp = Precise["default"].stringAdd(entryPriceString, bufferPerUnit);
+                    if (side === 'long') {
+                        derivedLp = Precise["default"].stringSub(entryPriceString, bufferPerUnit);
+                    }
                     if (isInverse) {
                         const invEntry = Precise["default"].stringDiv('1', entryPriceString);
-                        const invLp = (side === 'long') ? Precise["default"].stringAdd(invEntry, bufferPerUnit) : Precise["default"].stringSub(invEntry, bufferPerUnit);
-                        if (Precise["default"].stringGt(invLp, '0')) {
-                            derivedLp = Precise["default"].stringDiv('1', invLp);
+                        let invDerivedLp = Precise["default"].stringSub(invEntry, bufferPerUnit);
+                        if (side === 'long') {
+                            invDerivedLp = Precise["default"].stringAdd(invEntry, bufferPerUnit);
                         }
-                    }
-                    else {
-                        derivedLp = (side === 'long') ? Precise["default"].stringSub(entryPriceString, bufferPerUnit) : Precise["default"].stringAdd(entryPriceString, bufferPerUnit);
+                        // 1 / invDerivedLp keeps its sign (undefined at 0), so the > 0 guard below
+                        // rejects exactly the values a separate invDerivedLp > 0 check would
+                        derivedLp = Precise["default"].stringDiv('1', invDerivedLp);
                     }
                     if ((derivedLp !== undefined) && Precise["default"].stringGt(derivedLp, '0')) {
                         liquidationPriceString = derivedLp;
@@ -5561,16 +5577,19 @@ class BaseExchange {
                 const totalSize = Precise["default"].stringMul(contractsString, contractSizeString);
                 if (Precise["default"].stringGt(marginBuffer, '0') && Precise["default"].stringGt(totalSize, '0')) {
                     const bufferPerUnit = Precise["default"].stringDiv(marginBuffer, totalSize);
-                    let derivedEp = undefined;
+                    let derivedEp = Precise["default"].stringSub(liquidationPriceString, bufferPerUnit);
+                    if (side === 'long') {
+                        derivedEp = Precise["default"].stringAdd(liquidationPriceString, bufferPerUnit);
+                    }
                     if (isInverse) {
                         const invLp = Precise["default"].stringDiv('1', liquidationPriceString);
-                        const invEp = (side === 'long') ? Precise["default"].stringSub(invLp, bufferPerUnit) : Precise["default"].stringAdd(invLp, bufferPerUnit);
-                        if (Precise["default"].stringGt(invEp, '0')) {
-                            derivedEp = Precise["default"].stringDiv('1', invEp);
+                        let invEp = Precise["default"].stringAdd(invLp, bufferPerUnit);
+                        if (side === 'long') {
+                            invEp = Precise["default"].stringSub(invLp, bufferPerUnit);
                         }
-                    }
-                    else {
-                        derivedEp = (side === 'long') ? Precise["default"].stringAdd(liquidationPriceString, bufferPerUnit) : Precise["default"].stringSub(liquidationPriceString, bufferPerUnit);
+                        // 1 / invEp keeps its sign (undefined at 0), so the > 0 guard below
+                        // rejects exactly the values a separate invEp > 0 check would
+                        derivedEp = Precise["default"].stringDiv('1', invEp);
                     }
                     if ((derivedEp !== undefined) && Precise["default"].stringGt(derivedEp, '0')) {
                         entryPriceString = derivedEp;
@@ -5616,7 +5635,10 @@ class BaseExchange {
             // 1. notional <-> markPrice / contracts / contractSize
             if ((notionalString === undefined) && hasMarkPrice && hasContracts && hasContractSize) {
                 const totalSize = Precise["default"].stringMul(contractsString, contractSizeString);
-                const derivedNotional = isInverse ? Precise["default"].stringDiv(totalSize, markPriceString) : Precise["default"].stringMul(totalSize, markPriceString);
+                let derivedNotional = Precise["default"].stringMul(totalSize, markPriceString);
+                if (isInverse) {
+                    derivedNotional = Precise["default"].stringDiv(totalSize, markPriceString);
+                }
                 if (Precise["default"].stringGt(derivedNotional, '0')) {
                     notionalString = derivedNotional;
                     position['notional'] = this.parseNumber(derivedNotional);
@@ -5624,24 +5646,33 @@ class BaseExchange {
             }
             else if ((markPriceString === undefined) && (entryPriceString === undefined) && (lastPriceString === undefined) && hasNotional && hasContracts && hasContractSize) {
                 const totalSize = Precise["default"].stringMul(contractsString, contractSizeString);
-                const derivedMark = isInverse ? Precise["default"].stringDiv(totalSize, notionalString) : Precise["default"].stringDiv(notionalString, totalSize);
+                let derivedMark = Precise["default"].stringDiv(notionalString, totalSize);
+                if (isInverse) {
+                    derivedMark = Precise["default"].stringDiv(totalSize, notionalString);
+                }
                 if (Precise["default"].stringGt(derivedMark, '0')) {
                     markPriceString = derivedMark;
                     position['markPrice'] = this.parseNumber(derivedMark);
                 }
             }
             else if ((contractsString === undefined) && hasNotional && hasMarkPrice && hasContractSize) {
-                const derivedContracts = isInverse ? Precise["default"].stringDiv(Precise["default"].stringMul(notionalString, markPriceString), contractSizeString) : Precise["default"].stringDiv(notionalString, Precise["default"].stringMul(markPriceString, contractSizeString));
-                if (Precise["default"].stringGt(derivedContracts, '0')) {
-                    contractsString = derivedContracts;
-                    position['contracts'] = this.parseNumber(derivedContracts);
+                let notionalContracts = Precise["default"].stringDiv(notionalString, Precise["default"].stringMul(markPriceString, contractSizeString));
+                if (isInverse) {
+                    notionalContracts = Precise["default"].stringDiv(Precise["default"].stringMul(notionalString, markPriceString), contractSizeString);
+                }
+                if (Precise["default"].stringGt(notionalContracts, '0')) {
+                    contractsString = notionalContracts;
+                    position['contracts'] = this.parseNumber(notionalContracts);
                 }
             }
             else if ((contractSizeString === undefined) && hasNotional && hasMarkPrice && hasContracts) {
-                const derivedContractSize = isInverse ? Precise["default"].stringDiv(Precise["default"].stringMul(notionalString, markPriceString), contractsString) : Precise["default"].stringDiv(notionalString, Precise["default"].stringMul(markPriceString, contractsString));
-                if (Precise["default"].stringGt(derivedContractSize, '0')) {
-                    contractSizeString = derivedContractSize;
-                    position['contractSize'] = this.parseNumber(derivedContractSize);
+                let notionalContractSize = Precise["default"].stringDiv(notionalString, Precise["default"].stringMul(markPriceString, contractsString));
+                if (isInverse) {
+                    notionalContractSize = Precise["default"].stringDiv(Precise["default"].stringMul(notionalString, markPriceString), contractsString);
+                }
+                if (Precise["default"].stringGt(notionalContractSize, '0')) {
+                    contractSizeString = notionalContractSize;
+                    position['contractSize'] = this.parseNumber(notionalContractSize);
                 }
             }
             // 2. unrealizedPnl from entryPrice, markPrice, contracts, contractSize, side
@@ -6110,7 +6141,7 @@ class BaseExchange {
         const skipZeroPrices = this.safeBool(options, 'skipZeroPrices', true);
         for (let i = 0; i < oldest; i++) {
             const trade = trades[i];
-            const ts = trade['timestamp'];
+            const ts = this.safeInteger(trade, 'timestamp');
             const price = trade['price'];
             if ((ts === undefined) || (price === undefined)) {
                 continue;
@@ -6461,7 +6492,7 @@ class BaseExchange {
     }
     /* eslint-enable no-unused-vars */
     handleOptionBoolAndParams(params, methodName, optionName, defaultValue = undefined) {
-        // handleOptionAndParams read as a boolean; the statically typed ports throw on another type
+        // handleOptionAndParams read as a boolean (see checkOptionBool)
         const [value, newParams] = this.handleOptionAndParams(params, methodName, optionName, defaultValue);
         return [this.checkOptionBool(methodName, optionName, value), newParams];
     }
@@ -7035,7 +7066,7 @@ class BaseExchange {
         }
         else {
             let parsedPrecision = '1';
-            for (let i = 0; i < precisionNumber * -1 - 1; i++) {
+            for (let i = 0; i < -1 - precisionNumber; i++) {
                 parsedPrecision = parsedPrecision + '0';
             }
             return parsedPrecision + '0';
@@ -7961,7 +7992,7 @@ class BaseExchange {
         const tasks = [];
         const time = this.parseTimeframe(timeframe) * 1000;
         const maxEntriesPerRequestValue = this.requireValue(maxEntriesPerRequestOption, 'fetchPaginatedCallDeterministic() maxEntriesPerRequest is required');
-        const step = time * maxEntriesPerRequestValue;
+        const step = time * this.parseToInt(maxEntriesPerRequestValue);
         const until = this.safeInteger2(paramsOmitted, 'until', 'till'); // do not omit it here
         let currentSince = current - (maxCallsPaginationCalls * step) - 1;
         if (since !== undefined) {
@@ -8713,7 +8744,8 @@ class BaseExchange {
         }
     }
     timeframeFromMilliseconds(ms) {
-        if (ms <= 0) {
+        const msInt = this.parseToInt(ms);
+        if (msInt <= 0) {
             return '';
         }
         const second = 1000;
@@ -8721,20 +8753,20 @@ class BaseExchange {
         const hour = 60 * minute;
         const day = 24 * hour;
         const week = 7 * day;
-        if (ms % week === 0) {
-            return (ms / week) + 'w';
+        if (msInt % week === 0) {
+            return this.parseToInt(msInt / week).toString() + 'w';
         }
-        if (ms % day === 0) {
-            return (ms / day) + 'd';
+        if (msInt % day === 0) {
+            return this.parseToInt(msInt / day).toString() + 'd';
         }
-        if (ms % hour === 0) {
-            return (ms / hour) + 'h';
+        if (msInt % hour === 0) {
+            return this.parseToInt(msInt / hour).toString() + 'h';
         }
-        if (ms % minute === 0) {
-            return (ms / minute) + 'm';
+        if (msInt % minute === 0) {
+            return this.parseToInt(msInt / minute).toString() + 'm';
         }
-        if (ms % second === 0) {
-            return (ms / second) + 's';
+        if (msInt % 1000 === 0) {
+            return this.parseToInt(msInt / 1000).toString() + 's';
         }
         return '';
     }

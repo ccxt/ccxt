@@ -149,7 +149,7 @@ export default class sxbet extends Exchange {
      * @param {string} hex the hex string, no '0x' prefix
      * @returns {int} the parsed integer
      */
-    hexToInt(hex: string): number;
+    hexToInt(hex: string): int;
     /**
      * @ignore
      * @method

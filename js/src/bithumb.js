@@ -995,10 +995,8 @@ export default class bithumb extends Exchange {
             const marketIdsChunks = [];
             const promises = [];
             // the exchange rejects more than 200 market ids per request
-            let maxMarketIdsPerRequest = this.safeInteger(this.options, 'fetchTickersGeneration2MaxMarketIdsPerRequest', 200);
-            if ((maxMarketIdsPerRequest === undefined) || (maxMarketIdsPerRequest < 1)) {
-                maxMarketIdsPerRequest = 200;
-            }
+            const maxMarketIdsOption = this.safeInteger(this.options, 'fetchTickersGeneration2MaxMarketIdsPerRequest', 200);
+            const maxMarketIdsPerRequest = this.parseToInt(((maxMarketIdsOption === undefined) || (maxMarketIdsOption < 1)) ? 200 : maxMarketIdsOption);
             let marketIdsChunk = [];
             for (let i = 0; i < marketIdsLength; i++) {
                 marketIdsChunk.push(marketIds[i]);
@@ -1148,7 +1146,7 @@ export default class bithumb extends Exchange {
                     const currencyId = currencyIds[j];
                     const ticker = data[currencyId];
                     const base = this.safeCurrencyCode(currencyId);
-                    if ((base === undefined) || (quote === undefined)) {
+                    if (base === undefined) {
                         continue;
                     }
                     const symbol = base + '/' + quote;
@@ -1459,26 +1457,33 @@ export default class bithumb extends Exchange {
         //     }
         //
         // a workaround for their bug in date format, hours are not 0-padded
-        let timestamp = this.safeInteger(trade, 'timestamp');
-        const isGenerationTwo = (timestamp !== undefined);
+        const generationTwoTimestamp = this.safeInteger(trade, 'timestamp');
+        let timestamp = generationTwoTimestamp;
+        const isGenerationTwo = (generationTwoTimestamp !== undefined);
         const transactionDatetime = this.safeString(trade, 'transaction_date');
         if (transactionDatetime !== undefined) {
             const parts = transactionDatetime.split(' ');
             const numParts = parts.length;
             if (numParts > 1) {
                 const transactionDate = parts[0];
-                let transactionTime = parts[1];
-                if (transactionTime.length < 8) {
-                    transactionTime = '0' + transactionTime;
+                const rawTransactionTime = this.safeString(parts, 1, '');
+                let transactionTime = rawTransactionTime;
+                if (rawTransactionTime.length < 8) {
+                    transactionTime = '0' + rawTransactionTime;
                 }
-                timestamp = this.parse8601(transactionDate + ' ' + transactionTime);
+                const kstTimestamp = this.parse8601(transactionDate + ' ' + transactionTime);
+                timestamp = kstTimestamp;
+                if ((kstTimestamp !== undefined) && (!isGenerationTwo)) {
+                    timestamp = kstTimestamp - 9 * 3600000; // they report UTC + 9 hours, server in Korean timezone
+                }
             }
             else {
-                timestamp = this.safeIntegerProduct(trade, 'transaction_date', 0.001);
+                const productTimestamp = this.safeIntegerProduct(trade, 'transaction_date', 0.001);
+                timestamp = productTimestamp;
+                if ((productTimestamp !== undefined) && (!isGenerationTwo)) {
+                    timestamp = productTimestamp - 9 * 3600000; // they report UTC + 9 hours, server in Korean timezone
+                }
             }
-        }
-        if ((timestamp !== undefined) && (!isGenerationTwo)) {
-            timestamp -= 9 * 3600000; // they report UTC + 9 hours, server in Korean timezone
         }
         const type = undefined;
         let side = this.safeStringLower2(trade, 'ask_bid', 'type');
@@ -1495,10 +1500,8 @@ export default class bithumb extends Exchange {
         const marketId = this.safeString(trade, 'market');
         const marketResolved = this.safeMarket(marketId, market);
         const priceString = this.safeString2(trade, 'price', 'trade_price');
-        let amountString = this.safeString(trade, 'trade_volume');
-        if (amountString === undefined) {
-            amountString = this.fixCommaNumber(this.safeString2(trade, 'units_traded', 'units'));
-        }
+        const tradeVolume = this.safeString(trade, 'trade_volume');
+        const amountString = (tradeVolume === undefined) ? this.fixCommaNumber(this.safeString2(trade, 'units_traded', 'units')) : tradeVolume;
         const costString = this.safeString(trade, 'total');
         let fee = undefined;
         const feeCostString = this.safeString(trade, 'fee');
@@ -1620,7 +1623,7 @@ export default class bithumb extends Exchange {
             throw new ArgumentsRequired(this.id + ' createOrders() requires a non-empty orders array');
         }
         const ordersRequests = [];
-        let orderSymbols = [];
+        const orderSymbols = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = this.safeDict(orders, i);
             const symbol = this.safeString(rawOrder, 'symbol');
@@ -1642,8 +1645,8 @@ export default class bithumb extends Exchange {
             const orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
             ordersRequests.push(orderRequest);
         }
-        orderSymbols = this.marketSymbols(orderSymbols, undefined, false, true, true);
-        const market = this.market(orderSymbols[0]);
+        const symbols = this.marketSymbols(orderSymbols, undefined, false, true, true);
+        const market = this.market(symbols[0]);
         const request = {
             'batch_orders': ordersRequests,
         };
@@ -1722,21 +1725,16 @@ export default class bithumb extends Exchange {
             if (side === 'buy') {
                 typeRequest = 'price';
                 // for market buy it requires the amount of quote currency to spend
-                let cost = this.safeString(paramsOrder, 'cost');
+                const costParam = this.safeString(paramsOrder, 'cost');
                 const [createMarketBuyOrderRequiresPrice, paramsRequiresPrice] = this.handleOptionBoolAndParams(this.omit(paramsOrder, 'cost'), 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
                 paramsOrder = paramsRequiresPrice;
+                const amountString = this.numberToString(amount);
+                let cost = (costParam === undefined) ? amountString : costParam;
                 if (createMarketBuyOrderRequiresPrice) {
-                    if ((price === undefined) && (cost === undefined)) {
+                    if ((price === undefined) && (costParam === undefined)) {
                         throw new InvalidOrder(this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
                     }
-                    else {
-                        const amountString = this.numberToString(amount);
-                        const priceString = this.numberToString(price);
-                        cost = Precise.stringMul(amountString, priceString);
-                    }
-                }
-                else {
-                    cost = (cost === undefined) ? this.numberToString(amount) : cost;
+                    cost = Precise.stringMul(amountString, this.numberToString(price));
                 }
                 request['price'] = this.priceToPrecision(symbol, cost);
             }
@@ -3377,11 +3375,11 @@ export default class bithumb extends Exchange {
                 requestHeaders['Authorization'] = 'Bearer ' + token;
             }
             else {
-                requestBody = this.urlencode(this.extend({
+                const encodedBody = this.urlencode(this.extend({
                     'endpoint': endpoint,
                 }, query));
                 // bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
-                const bodyParts = requestBody.split('%20');
+                const bodyParts = encodedBody.split('%20');
                 requestBody = bodyParts.join('+');
                 const nonce = this.nonce().toString();
                 const auth = endpoint + "\0" + requestBody + "\0" + nonce; // eslint-disable-line quotes

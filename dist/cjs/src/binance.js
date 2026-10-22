@@ -3457,7 +3457,7 @@ class binance extends binance$1["default"] {
         }
         const fetchMargins = this.safeBool(this.options, 'fetchMargins', false);
         for (let i = 0; i < fetchMarkets.length; i++) {
-            const marketType = fetchMarkets[i];
+            const marketType = this.safeString(fetchMarkets, i);
             if (marketType === 'spot') {
                 promisesRaw.push(this.publicGetExchangeInfo(params));
                 if ((fetchMargins) && this.checkRequiredCredentials(false) && (!isDemoEnv)) {
@@ -6149,7 +6149,7 @@ class binance extends binance$1["default"] {
             await this.loadMarkets();
         }
         const ordersRequests = [];
-        let orderSymbols = [];
+        const orderSymbols = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = this.safeDict(orders, i);
             const marketId = this.safeString(rawOrder, 'symbol');
@@ -6168,8 +6168,8 @@ class binance extends binance$1["default"] {
             const orderRequest = this.editContractOrderRequest(id, marketId, type, side, amount, price, orderParams);
             ordersRequests.push(orderRequest);
         }
-        orderSymbols = this.marketSymbols(orderSymbols, undefined, false, true, true);
-        const market = this.market(orderSymbols[0]);
+        const symbols = this.marketSymbols(orderSymbols, undefined, false, true, true);
+        const market = this.market(symbols[0]);
         if ((market['spot'] === true) || (market['option'] === true)) {
             throw new errors.NotSupported(this.id + ' editOrders() does not support ' + market['type'] + ' orders');
         }
@@ -6967,7 +6967,7 @@ class binance extends binance$1["default"] {
             await this.loadMarkets();
         }
         const ordersRequests = [];
-        let orderSymbols = [];
+        const orderSymbols = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = this.safeDict(orders, i);
             const marketId = this.safeString(rawOrder, 'symbol');
@@ -6989,8 +6989,8 @@ class binance extends binance$1["default"] {
             const orderRequest = this.createOrderRequest(marketId, type, side, amount, price, this.extend(orderParams, { 'isAlgoOrder': false }));
             ordersRequests.push(orderRequest);
         }
-        orderSymbols = this.marketSymbols(orderSymbols, undefined, false, true, true);
-        const market = this.market(orderSymbols[0]);
+        const symbols = this.marketSymbols(orderSymbols, undefined, false, true, true);
+        const market = this.market(symbols[0]);
         if (market['spot'] === true) {
             throw new errors.NotSupported(this.id + ' createOrders() does not support ' + market['type'] + ' orders');
         }
@@ -7874,7 +7874,7 @@ class binance extends binance$1["default"] {
         }
         const request = {};
         let market = undefined;
-        let stock = undefined;
+        let stock = false;
         let paramsStock = undefined;
         [stock, paramsStock] = this.handleOptionBoolAndParams(params, 'fetchOrder', 'stock', false);
         if (symbol !== undefined) {
@@ -8010,11 +8010,14 @@ class binance extends binance$1["default"] {
         }
         const request = {};
         let market = undefined;
-        let stock = undefined;
+        let stock = false;
         [stock, paramsPaginate] = this.handleOptionBoolAndParams(paramsPaginate, 'fetchOrders', 'stock', false);
         if (symbol !== undefined) {
             market = this.market(symbol);
-            stock = this.safeBool(market, 'stock', false);
+            stock = false;
+            if (this.safeBool(market, 'stock', false)) {
+                stock = true;
+            }
             request['symbol'] = market['id'];
         }
         let type = undefined;
@@ -8036,7 +8039,7 @@ class binance extends binance$1["default"] {
                 throw new errors.ArgumentsRequired(this.id + ' fetchOrders() requires a symbol argument');
             }
         }
-        let until = this.safeIntegerN(paramsPaginate, ['until', 'till', 'endTime']);
+        const until = this.safeIntegerN(paramsPaginate, ['until', 'till', 'endTime']);
         paramsPaginate = this.omit(paramsPaginate, ['stop', 'trigger', 'conditional', 'until', 'till', 'endTime']);
         if (since !== undefined) {
             request['startTime'] = since;
@@ -8058,13 +8061,14 @@ class binance extends binance$1["default"] {
             request['endTime'] = until;
         }
         if (stock) {
+            const nowMs = this.milliseconds();
+            const untilResolved = (until !== undefined) ? until : nowMs;
             if (until === undefined) {
-                until = this.milliseconds();
-                request['endTime'] = until;
+                request['endTime'] = untilResolved;
             }
             if (since === undefined) {
                 const oneWeek = 7 * 24 * 60 * 60 * 1000;
-                request['startTime'] = until - oneWeek;
+                request['startTime'] = untilResolved - oneWeek;
             }
         }
         let response = undefined;
@@ -8375,7 +8379,7 @@ class binance extends binance$1["default"] {
         let isPortfolioMargin = undefined;
         [isPortfolioMargin, paramsMarginMode] = this.handleOptionBoolAndParams2(paramsMarginMode, 'fetchOpenOrders', 'papi', 'portfolioMargin', false);
         const isConditional = this.safeBoolN(paramsMarginMode, ['stop', 'trigger', 'conditional']);
-        let stock = undefined;
+        let stock = false;
         [stock, paramsMarginMode] = this.handleOptionBoolAndParams(paramsMarginMode, 'fetchOpenOrders', 'stock', false);
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -8718,12 +8722,15 @@ class binance extends binance$1["default"] {
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let market = undefined;
-        let stock = undefined;
+        let stock = false;
         let paramsStock = undefined;
         [stock, paramsStock] = this.handleOptionBoolAndParams(params, 'fetchClosedOrders', 'stock', false);
         if (symbol !== undefined) {
             market = this.market(symbol);
-            stock = this.safeBool(market, 'stock', false);
+            stock = false;
+            if (this.safeBool(market, 'stock', false)) {
+                stock = true;
+            }
         }
         else if (!stock) {
             throw new errors.ArgumentsRequired(this.id + ' fetchClosedOrders() requires a symbol argument');
@@ -8762,12 +8769,15 @@ class binance extends binance$1["default"] {
      */
     async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let market = undefined;
-        let stock = undefined;
+        let stock = false;
         let paramsStock = undefined;
         [stock, paramsStock] = this.handleOptionBoolAndParams(params, 'fetchCanceledOrders', 'stock', false);
         if (symbol !== undefined) {
             market = this.market(symbol);
-            stock = this.safeBool(market, 'stock', false);
+            stock = false;
+            if (this.safeBool(market, 'stock', false)) {
+                stock = true;
+            }
         }
         else if (!stock) {
             throw new errors.ArgumentsRequired(this.id + ' fetchCanceledOrders() requires a symbol argument');
@@ -8806,12 +8816,15 @@ class binance extends binance$1["default"] {
      */
     async fetchCanceledAndClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let market = undefined;
-        let stock = undefined;
+        let stock = false;
         let paramsStock = undefined;
         [stock, paramsStock] = this.handleOptionBoolAndParams(params, 'fetchCanceledAndClosedOrders', 'stock', false);
         if (symbol !== undefined) {
             market = this.market(symbol);
-            stock = this.safeBool(market, 'stock', false);
+            stock = false;
+            if (this.safeBool(market, 'stock', false)) {
+                stock = true;
+            }
         }
         else if (!stock) {
             throw new errors.ArgumentsRequired(this.id + ' fetchCanceledAndClosedOrders() requires a symbol argument');
@@ -8857,7 +8870,7 @@ class binance extends binance$1["default"] {
         }
         const request = {};
         let market = undefined;
-        let stock = undefined;
+        let stock = false;
         let paramsStock = undefined;
         [stock, paramsStock] = this.handleOptionBoolAndParams(params, 'cancelOrder', 'stock', false);
         if (symbol !== undefined) {
@@ -9009,7 +9022,7 @@ class binance extends binance$1["default"] {
         }
         const request = {};
         let market = undefined;
-        let stock = undefined;
+        let stock = false;
         let paramsStock = undefined;
         [stock, paramsStock] = this.handleOptionBoolAndParams(params, 'cancelAllOrders', 'stock', false);
         if (symbol !== undefined) {
@@ -9351,11 +9364,14 @@ class binance extends binance$1["default"] {
         let market = undefined;
         let type = undefined;
         let marginMode = undefined;
-        let stock = undefined;
+        let stock = false;
         [stock, paramsPaginate] = this.handleOptionBoolAndParams(paramsPaginate, 'fetchMyTrades', 'stock', false);
         if (symbol !== undefined) {
             market = this.market(symbol);
-            stock = this.safeBool(market, 'stock', false);
+            stock = false;
+            if (this.safeBool(market, 'stock', false)) {
+                stock = true;
+            }
             request['symbol'] = market['id'];
         }
         [type, paramsPaginate] = this.handleMarketTypeAndParams('fetchMyTrades', market, paramsPaginate);
@@ -9371,7 +9387,7 @@ class binance extends binance$1["default"] {
             // The parameter fromId cannot be sent with startTime or endTime.
             const currentTimestamp = this.milliseconds();
             const oneWeek = 7 * 24 * 60 * 60 * 1000;
-            if ((currentTimestamp - startTime) >= oneWeek) {
+            if ((currentTimestamp - since) >= oneWeek) {
                 if ((endTime === undefined) && (this.safeBool(market, 'linear', false))) {
                     endTime = this.sum(startTime, oneWeek);
                     const endTimeValue = (endTime === undefined) ? 0 : endTime;
@@ -9410,13 +9426,14 @@ class binance extends binance$1["default"] {
             let isPortfolioMargin = undefined;
             [isPortfolioMargin, paramsPaginate] = this.handleOptionBoolAndParams2(paramsPaginate, 'fetchMyTrades', 'papi', 'portfolioMargin', false);
             if (stock) {
+                // request['endTime'] holds endTime whenever endTime is defined
+                const endTimeResolved = this.safeInteger(request, 'endTime', this.milliseconds());
                 if (endTime === undefined) {
-                    endTime = this.milliseconds();
-                    request['endTime'] = endTime;
+                    request['endTime'] = endTimeResolved;
                 }
                 if (since === undefined) {
                     const oneWeek = 7 * 24 * 60 * 60 * 1000;
-                    request['startTime'] = endTime - oneWeek;
+                    request['startTime'] = endTimeResolved - oneWeek;
                 }
                 response = await this.sapiGetEquityTradeHistory(this.extend(request, paramsPaginate));
             }
@@ -10356,9 +10373,10 @@ class binance extends binance$1["default"] {
             'asset': currency['id'],
             'amount': this.currencyToPrecision(code, amount),
         };
-        request['type'] = this.safeString(params, 'type');
+        const requestType = this.safeString(params, 'type');
+        request['type'] = requestType;
         let paramsOmitted = this.omit(params, 'type');
-        if (request['type'] === undefined) {
+        if (requestType === undefined) {
             const symbol = this.safeString(paramsOmitted, 'symbol');
             let market = undefined;
             if (symbol !== undefined) {
@@ -11633,15 +11651,12 @@ class binance extends binance$1["default"] {
         const marketResolved = this.safeMarket(marketId, market, undefined, 'contract');
         const symbol = this.safeString(marketResolved, 'symbol');
         const leverageString = this.omitZero(this.safeString(position, 'leverage')); // portfolio-margin accounts may return leverage "0", see #29244
-        const leverage = (leverageString !== undefined) ? parseInt(leverageString) : undefined;
         const initialMarginString = this.safeString(position, 'initialMargin');
         const initialMargin = this.parseNumber(initialMarginString);
         let initialMarginPercentageString = undefined;
         if (leverageString !== undefined) {
             initialMarginPercentageString = Precise["default"].stringDiv('1', leverageString, 8);
-            if (leverage === undefined) {
-                throw new errors.ExchangeError(this.id + ' method() missing leverage');
-            }
+            const leverage = this.parseToInt(leverageString);
             const rational = this.isRoundNumber(1000 % leverage);
             if (!rational) {
                 initialMarginPercentageString = Precise["default"].stringDiv(Precise["default"].stringAdd(initialMarginPercentageString, '1e-8'), '1', 8);
@@ -11992,7 +12007,7 @@ class binance extends binance$1["default"] {
         let initialMarginPercentageString = undefined;
         const leverageString = this.omitZero(this.safeString(position, 'leverage')); // portfolio-margin accounts may return leverage "0", see #29244
         if (leverageString !== undefined) {
-            const leverage = parseInt(leverageString);
+            const leverage = this.parseToInt(leverageString);
             const rational = this.isRoundNumber(1000 % leverage);
             initialMarginPercentageString = Precise["default"].stringDiv('1', leverageString, 8);
             if (!rational) {
@@ -13554,8 +13569,8 @@ class binance extends binance$1["default"] {
     }
     sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
-        const urls = this.urls;
-        if (!(apiName in urls['api'])) {
+        const apiUrls = this.safeDict(this.urls, 'api', {});
+        if (!(apiName in apiUrls)) {
             throw new errors.NotSupported(this.id + ' does not have a testnet/sandbox URL for ' + apiName + ' endpoints');
         }
         const baseApiUrl = this.safeString(this.urls['api'], apiName);
@@ -15746,19 +15761,11 @@ class binance extends binance$1["default"] {
         const request = {};
         const msInThirtyDays = 2592000000;
         const now = this.milliseconds();
-        if (since !== undefined) {
-            request['startTime'] = since;
-        }
-        else {
-            request['startTime'] = now - msInThirtyDays;
-        }
+        const startTime = (since !== undefined) ? since : (now - msInThirtyDays);
+        request['startTime'] = startTime;
         const endTime = this.safeInteger2(params, 'endTime', 'until');
-        if (endTime !== undefined) {
-            request['endTime'] = endTime;
-        }
-        else {
-            request['endTime'] = now;
-        }
+        const endTimeResolved = (endTime !== undefined) ? endTime : now;
+        request['endTime'] = endTimeResolved;
         const paramsOmitted = this.omit(params, 'until');
         let response = undefined;
         let responseQuery = undefined;
@@ -15794,7 +15801,7 @@ class binance extends binance$1["default"] {
             //
         }
         else {
-            if ((request['endTime'] - request['startTime']) > msInThirtyDays) {
+            if ((endTimeResolved - startTime) > msInThirtyDays) {
                 throw new errors.BadRequest(this.id + ' fetchConvertTradeHistory () the max interval between startTime and endTime is 30 days.');
             }
             if (limit !== undefined) {
