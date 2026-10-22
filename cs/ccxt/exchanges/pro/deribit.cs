@@ -184,7 +184,7 @@ public partial class deribit : ccxt.deribit
         Dictionary<string, object> market = this.market(symbol);
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         string? interval = this.safeString(parameters, "interval", "100ms");
-        object paramsOmitted = this.omit(parameters, "interval");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "interval"));
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -226,7 +226,7 @@ public partial class deribit : ccxt.deribit
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         string? interval = this.safeString(parameters, "interval", "100ms");
-        object paramsOmitted = this.omit(parameters, "interval");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "interval"));
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -520,7 +520,7 @@ public partial class deribit : ccxt.deribit
         string? symbolResolved = ((symbol != null)) ? this.symbol(symbol) : null;
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         string? interval = this.safeString(parameters, "interval", "raw");
-        object paramsOmitted = this.omit(parameters, "interval");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "interval"));
         string channel = ("user.trades.any.any." + interval);
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
@@ -803,7 +803,7 @@ public partial class deribit : ccxt.deribit
         string? currency = this.safeString(parameters, "currency", "any");
         string? interval = this.safeString(parameters, "interval", "raw");
         string? kind = this.safeString(parameters, "kind", "any");
-        object paramsOmitted = this.omit(parameters, "interval", "currency", "kind");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "interval", "currency", "kind"));
         string channel = ((((("user.orders." + kind) + ".") + currency) + ".") + interval);
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
@@ -1022,7 +1022,7 @@ public partial class deribit : ccxt.deribit
         {
             throw new ArgumentsRequired ((this.id + " watchMultipleWrapper() symbolsArray is required")) ;
         }
-        for (int i = 0; i < getArrayLength(symbolsArray); i++)
+        for (int i = 0; i < (((object)(symbolsArray)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             if ((symbolsArray == null))
             {
@@ -1054,7 +1054,7 @@ public partial class deribit : ccxt.deribit
             { "id", this.requestId() },
         };
         Dictionary<string, object> extendedRequest = this.deepExtend(request, parameters);
-        int maxMessageByteLimit = (32768 - 1); // 'Message Too Big: limit 32768B'
+        int maxMessageByteLimit = 32767; // 'Message Too Big: limit 32768B'
         string jsonedText = this.json(extendedRequest);
         if (jsonedText.Length >= maxMessageByteLimit)
         {

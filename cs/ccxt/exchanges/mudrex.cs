@@ -299,7 +299,7 @@ public partial class mudrex : Exchange
             return null;
         }
         bool? success = this.safeBool(response, "success", true);
-        if ((success != true))
+        if (success != true)
         {
             List<object> errors = this.safeList(response, "errors", new List<object>() {});
             IDictionary<string, object> first = this.safeDict(errors, 0, new Dictionary<string, object>() {});
@@ -310,11 +310,11 @@ public partial class mudrex : Exchange
             this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), text, ((this.id + " ") + text));
             string msg = ((this.id + " ") + text);
             string low = text.ToLower();
-            if (isEqual(code, 401) || low.IndexOf("auth", StringComparison.Ordinal) >= 0)
+            if ((((object)(code)) switch { Int64 c33l => c33l == 401, int c33i => c33i == 401, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 401, decimal c33m => c33m == 401, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 401, uint c33u => (Int64)c33u == 401, short c33h => (Int64)c33h == 401, ushort c33v => (Int64)c33v == 401, byte c33y => (Int64)c33y == 401, sbyte c33e => (Int64)c33e == 401, ulong c33z => c33z == 401UL, _ => false }) || low.IndexOf("auth", StringComparison.Ordinal) >= 0)
             {
                 throw new AuthenticationError (msg) ;
             }
-            if (isEqual(code, 429) || low.IndexOf("rate", StringComparison.Ordinal) >= 0)
+            if ((((object)(code)) switch { Int64 c33l => c33l == 429, int c33i => c33i == 429, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 429, decimal c33m => c33m == 429, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 429, uint c33u => (Int64)c33u == 429, short c33h => (Int64)c33h == 429, ushort c33v => (Int64)c33v == 429, byte c33y => (Int64)c33y == 429, sbyte c33e => (Int64)c33e == 429, ulong c33z => c33z == 429UL, _ => false }) || low.IndexOf("rate", StringComparison.Ordinal) >= 0)
             {
                 throw new RateLimitExceeded (msg) ;
             }
@@ -322,7 +322,7 @@ public partial class mudrex : Exchange
             {
                 throw new InsufficientFunds (msg) ;
             }
-            if (isEqual(code, 400))
+            if ((((object)(code)) switch { Int64 c33l => c33l == 400, int c33i => c33i == 400, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 400, decimal c33m => c33m == 400, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 400, uint c33u => (Int64)c33u == 400, short c33h => (Int64)c33h == 400, ushort c33v => (Int64)c33v == 400, byte c33y => (Int64)c33y == 400, sbyte c33e => (Int64)c33e == 400, ulong c33z => c33z == 400UL, _ => false }))
             {
                 throw new BadRequest (msg) ;
             }
@@ -373,34 +373,16 @@ public partial class mudrex : Exchange
         };
         // the endpoint requires an explicit time window (in seconds)
         int duration = this.parseTimeframe(timeframeVar);
-        Int64? requestLimit = limit;
-        if ((requestLimit == null))
-        {
-            requestLimit = ((Int64?)500);
-        }
+        Int64? requestLimit = ((limit == null)) ? 500 : limit;
         Int64 now = this.seconds();
-        object startTime = null;
-        if ((since != null))
-        {
-            startTime = this.parseToInt(((double?)since / 1000));
-        } else
-        {
-            startTime = subtract(now, multiply(duration, requestLimit));
-        }
-        if ((startTime == null))
-        {
-            throw new ExchangeError ((this.id + " fetchOHLCV() missing startTime")) ;
-        }
-        object endTime = add(startTime, multiply(duration, requestLimit));
+        Int64? windowLength = (duration * requestLimit);
+        object defaultStart = (now - windowLength);
+        Int64? startTime = this.parseToInt(((since != null)) ? (((double?)since / 1000)) : defaultStart);
+        Int64? windowEnd = this.parseToInt(add(startTime, (duration * requestLimit)));
         Int64? until = this.safeInteger(parameters, "until");
-        object paramsOmitted = this.omit(parameters, new List<object>() {"price", "until"});
-        if ((until != null))
-        {
-            endTime = this.parseToInt(((double?)until / 1000));
-        } else if (isGreaterThan(endTime, now))
-        {
-            endTime = now;
-        }
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"price", "until"}));
+        Int64? cappedEnd = ((windowEnd > now)) ? now : windowEnd;
+        Int64? endTime = this.parseToInt(((until != null)) ? (((double?)until / 1000)) : cappedEnd);
         request["start_time"] = startTime;
         request["end_time"] = endTime;
         Dictionary<string, object> response = null;
@@ -496,7 +478,7 @@ public partial class mudrex : Exchange
         object data = this.safeValue(response, "data", new List<object>() {});
         object rows = ((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? data : this.safeList(data, "items", new List<object>() {});
         Dictionary<string, object> resultTickers = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(rows); i++)
+        for (int i = 0; i < (((object)(rows)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             object t = getValue(rows, i);
             string? sym = this.safeString(t, "symbol");
@@ -560,7 +542,7 @@ public partial class mudrex : Exchange
         object offset = 0;
         int pageLimit = 100;
         bool paging = true;
-        while ((paging == true))
+        while (paging)
         {
             Dictionary<string, object> q = this.extend(new Dictionary<string, object>() {
                 { "limit", pageLimit },
@@ -579,7 +561,7 @@ public partial class mudrex : Exchange
                     items = this.safeList(data, "results", new List<object>() {});
                     itemsLength = (items?.Count ?? 0);
                 }
-                if (((itemsLength == 0)) && (inOp(data, "symbol")))
+                if (((itemsLength == 0)) && ((((object)(data)) switch { null => false, IList<object> c33a => c33a.Contains("symbol"), IList<string> c33t => c33t.Contains("symbol"), List<Int64> c33g => c33g.Contains((Int64)(object)"symbol"), IDictionary<string, object> c33d => c33d.ContainsKey("symbol"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("symbol"), _ => false })))
                 {
                     items = new List<object>() {data};
                 }
@@ -813,7 +795,7 @@ public partial class mudrex : Exchange
             { "margin_type", marginType },
             { "leverage", leverage },
         };
-        object paramsOmitted = this.omit(parameters, new List<object>() {"marginType"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"marginType"}));
         Dictionary<string, object> response = await this.privatePostFuturesAssetIdLeverage(this.extend(request, paramsOmitted));
         return ccxt.BaseExchange.ToDict(response);
     }
@@ -860,7 +842,7 @@ public partial class mudrex : Exchange
             {
                 throw new ArgumentsRequired ((this.id + " createOrder() requires a positionId parameter to place a stopLossPrice or takeProfitPrice order")) ;
             }
-            object paramsOmitted = this.omit(parameters, new List<object>() {"stopLossPrice", "takeProfitPrice", "positionId", "position_id"});
+            IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"stopLossPrice", "takeProfitPrice", "positionId", "position_id"}));
             Dictionary<string, object> riskRequest = new Dictionary<string, object>() {
                 { "position_id", positionId },
             };
@@ -906,7 +888,7 @@ public partial class mudrex : Exchange
             request["is_stoploss"] = true;
             request["stoploss_price"] = this.priceToPrecision(symbol, this.safeStringN(stopLoss, new List<object>() {"triggerPrice", "stopPrice", "price"}));
         }
-        object orderParams = this.omit(parameters, new List<object>() {"leverage", "reduceOnly", "takeProfit", "stopLoss"});
+        IDictionary<string, object> orderParams = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"leverage", "reduceOnly", "takeProfit", "stopLoss"}));
         Dictionary<string, object> response = await this.privatePostFuturesAssetIdOrder(this.extend(request, orderParams));
         IDictionary<string, object> data = this.safeDict(response, "data", response);
         // the create response omits the order/trigger type, so parse a merged copy - the base derivations, like timeInForce, need to see them - then keep the untouched raw payload under info
@@ -1373,27 +1355,27 @@ public partial class mudrex : Exchange
      * @param {float} [params.amount] the amount to close for a partial close, closes the whole position if not provided
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<IDictionary<string, object>> closePosition(string symbol, string side = null, object parameters = null)
+    public async override Task<ccxt.Order> ClosePosition(string symbol, string side = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
+        Dictionary<string, object> market = this.market(symbol);
         string? positionId = this.safeString(parameters, "position_id");
         object amount = this.safeValue(parameters, "amount");
         if ((positionId == null))
         {
-            Dictionary<string, object> market = this.market(symbol);
             List<object> positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(new List<object>() {symbol}, parameters));
             for (int i = 0; i < (positions?.Count ?? 0); i++)
             {
                 object p = positions[i];
-                if ((side != null) && !isEqual(getValue(p, "side"), side))
+                if ((side != null) && !((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))(getValue(p, "side"), side))
                 {
                     continue;
                 }
-                if (isEqual(getValue(p, "symbol"), (market.ContainsKey("symbol") ? market["symbol"] : null)))
+                if (((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))(getValue(p, "symbol"), (market.ContainsKey("symbol") ? market["symbol"] : null)))
                 {
                     positionId = this.safeString(p, "id");
                     break;
@@ -1417,13 +1399,15 @@ public partial class mudrex : Exchange
             {
                 request["limit_price"] = lp;
             }
-            object partialParams = this.omit(parameters, new List<object>() {"order_type", "limit_price", "amount", "position_id"});
+            IDictionary<string, object> partialParams = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"order_type", "limit_price", "amount", "position_id"}));
             Dictionary<string, object> partialResponse = await this.privatePostFuturesPositionsPositionIdClosePartial(this.extend(request, partialParams));
-            return ((IDictionary<string, object>)((object)(partialResponse)));
+            IDictionary<string, object> partialData = this.safeDict(partialResponse, "data", partialResponse);
+            return this.parseOrder(partialData, market);
         }
-        object closeParams = this.omit(parameters, new List<object>() {"position_id"});
+        IDictionary<string, object> closeParams = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"position_id"}));
         Dictionary<string, object> response = await this.privatePostFuturesPositionsPositionIdClose(this.extend(request, closeParams));
-        return ((IDictionary<string, object>)((object)(response)));
+        IDictionary<string, object> data = this.safeDict(response, "data", response);
+        return this.parseOrder(data, market);
     }
 
     /**
@@ -1451,7 +1435,7 @@ public partial class mudrex : Exchange
             for (int i = 0; i < (positions?.Count ?? 0); i++)
             {
                 object p = positions[i];
-                if (isEqual(getValue(p, "symbol"), symbol))
+                if (((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))(getValue(p, "symbol"), symbol))
                 {
                     positionId = this.safeString(p, "id");
                     break;
@@ -1466,7 +1450,7 @@ public partial class mudrex : Exchange
             { "position_id", positionId },
             { "margin", this.costToPrecision(symbol, amount) },
         };
-        object paramsOmitted = this.omit(parameters, new List<object>() {"position_id"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"position_id"}));
         Dictionary<string, object> response = await this.privatePostFuturesPositionsPositionIdAddMargin(this.extend(request, paramsOmitted));
         return ((Dictionary<string, object>)((object)(this.extend(response, new Dictionary<string, object>() {}))));
     }
@@ -1485,7 +1469,7 @@ public partial class mudrex : Exchange
     {
         object amountVar = amount;
         parameters ??= new Dictionary<string, object>();
-        return await this.addMargin(symbol,ccxt.BaseExchange.ToDoubleArgRequired(prefixUnaryNeg(ref amountVar)), parameters);
+        return await this.addMargin(symbol,ccxt.BaseExchange.ToDoubleArgRequired((-amount)), parameters);
     }
 
     /**
@@ -1516,21 +1500,17 @@ public partial class mudrex : Exchange
         (Int64?, object) maxCallsparamsPaginationCallsVariable = this.handleOptionIntegerAndParams(parameters, "fetchMyTrades", "paginationCalls", 10);
         Int64? maxCalls = maxCallsparamsPaginationCallsVariable.Item1;
         IDictionary<string, object> paramsPaginationCalls = ((IDictionary<string, object>)maxCallsparamsPaginationCallsVariable.Item2);
-        object pageSize = 0;
-        if ((limit != null))
-        {
-            // every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
-            pageSize = (limit * 2);
-        }
+        // every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
+        Int64? pageSize = ((limit == null)) ? 0 : (limit * 2);
         List<object> allRows = new List<object>() {};
-        object transactionsCount = 0;
-        object calls = 0;
+        Int64 transactionsCount = 0;
+        Int64 calls = 0;
         object offset = 0;
         bool paging = true;
-        while ((paging == true))
+        while (paging)
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {};
-            if (isGreaterThan(pageSize, 0))
+            if (((limit != null)) && ((limit > 0)))
             {
                 request["limit"] = pageSize;
                 request["offset"] = offset;
@@ -1538,27 +1518,30 @@ public partial class mudrex : Exchange
             Dictionary<string, object> response = await this.privateGetFuturesFeeHistory(this.extend(request, paramsPaginationCalls));
             List<object> data = this.safeList(response, "data", new List<object>() {});
             int dataLength = data.Count;
-            for (int i = 0; i < dataLength; i++)
+            for (int i = 0; i < data.Count; i++)
             {
-                object entry = (data != null && i < data.Count ? data[i] : null);
+                object entry = data[i];
                 allRows.Add(entry);
                 if ((this.safeString(entry, "fee_type") == "TRANSACTION"))
                 {
                     // count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
-                    if (((market == null)) || (isEqual(this.safeString(entry, "symbol"), (market.ContainsKey("id") ? market["id"] : null))))
+                    if (((market == null)) || (((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))(this.safeString(entry, "symbol"), (market.ContainsKey("id") ? market["id"] : null))))
                     {
-                        transactionsCount = this.sum(transactionsCount, 1);
+                        transactionsCount = (transactionsCount + 1);
                     }
                 }
             }
-            calls = this.sum(calls, 1);
+            calls = (calls + 1);
             paging = false;
             // the page cap bounds the walk when the requested symbol has few or no rows anywhere near the top of the history
-            if (((limit != null)) && (isEqual(dataLength, pageSize)) && (isLessThan(transactionsCount, limit)) && (isLessThan(calls, maxCalls)))
+            if (((limit != null)) && ((dataLength == pageSize)))
             {
-                // this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
-                offset = this.sum(offset, pageSize);
-                paging = true;
+                if (((transactionsCount < limit)) && ((calls < maxCalls)))
+                {
+                    // this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
+                    offset = this.sum(offset, pageSize);
+                    paging = true;
+                }
             }
         }
         // a REBATE row is a partial refund of one fill's TRANSACTION fee, matched by symbol, time and notional - each rebate is consumed once, so equal fills sharing a key net exactly one refund apiece
@@ -1587,7 +1570,7 @@ public partial class mudrex : Exchange
             string? rebate = null;
             for (int j = 0; j < (rebateKeys?.Count ?? 0); j++)
             {
-                if (isEqual(rebateKeys[j], (transactionKeys != null && i < transactionKeys.Count ? transactionKeys[i] : null)))
+                if (((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))(rebateKeys[j], (transactionKeys != null && i < transactionKeys.Count ? transactionKeys[i] : null)))
                 {
                     rebate = this.safeString(rebateAmounts, j);
                     // blank the consumed key so the next equal fill matches the next rebate, never the same one twice

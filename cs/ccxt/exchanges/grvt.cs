@@ -719,8 +719,8 @@ public partial class grvt : Exchange
 
     public virtual bool usesPrivateKey()
     {
-        bool privateKeyDefined = (this.privateKey != null) && !isEqual(this.privateKey, "");
-        bool apiKeyDefined = (this.apiKey != null) && !isEqual(this.apiKey, "");
+        bool privateKeyDefined = (this.privateKey != null) && !(this.privateKey == "");
+        bool apiKeyDefined = (this.apiKey != null) && !(this.apiKey == "");
         if (privateKeyDefined && apiKeyDefined)
         {
             throw new ExchangeError ("You should provide either \"privateKey\" or \"apikey & secret\"") ;
@@ -745,7 +745,7 @@ public partial class grvt : Exchange
         //     await this.signInWithApiKey (params);
         // }
         parameters ??= new Dictionary<string, object>();
-        if ((this.privateKey == null) || isEqual(this.privateKey, ""))
+        if ((this.privateKey == null) || (this.privateKey == ""))
         {
             throw new PermissionDenied ("Private key is required for this operation. If you used joined GRVT through email registration instead of Web3 wallet, then read: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-grvt-exchange-in-ccxt") ;
         }
@@ -813,7 +813,7 @@ public partial class grvt : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         bool? builderFee = this.safeBool(parameters, "builderFee", this.safeBool(this.options, "builderFee", true)); // we shouldn't omit here
-        if ((builderFee != true))
+        if (builderFee != true)
         {
             return ((bool?)((object)(false)));  // skip if builder fee is not enabled
         }
@@ -1245,8 +1245,12 @@ public partial class grvt : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument", this.marketId(symbol) },
         };
-        Int64? limitResolved = ((limit == null)) ? 100 : limit;
-        if ((limitResolved == null || limitResolved <= 500))
+        object limitResolved = 100;
+        if ((limit != null))
+        {
+            limitResolved = limit;
+        }
+        if ((limit == null) || (limit == null || limit <= 500))
         {
             request["depth"] = this.findNearestCeiling(new List<object>() {10, 50, 100, 500}, limitResolved);
         }
@@ -1975,22 +1979,19 @@ public partial class grvt : Exchange
         string? addressTo = this.safeString(transaction, "to_account_id");
         string? currencyId = this.safeString(transaction, "currency");
         string? code = this.safeCurrencyCode(currencyId, currency);
-        if ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("transfer_metadata")))
+        string? metaData = ((string)this.omitZero(this.safeString(transaction, "transfer_metadata")));
+        if ((metaData != null))
         {
-            string? metaData = ((string)this.omitZero(this.safeString(transaction, "transfer_metadata")));
-            if ((metaData != null))
+            object parsedMeta = this.parseJson(metaData);
+            direction = this.safeStringLower(parsedMeta, "direction");
+            txId = this.safeString(parsedMeta, "provider_tx_id");
+            networkCode = this.networkIdToCode(this.safeString(parsedMeta, "chainid"), code);
+            if (direction == "withdrawal")
             {
-                object parsedMeta = this.parseJson(metaData);
-                direction = this.safeStringLower(parsedMeta, "direction");
-                txId = this.safeString(parsedMeta, "provider_tx_id");
-                networkCode = this.networkIdToCode(this.safeString(parsedMeta, "chainid"), code);
-                if (direction == "withdrawal")
-                {
-                    addressTo = this.safeString(parsedMeta, "endpoint");
-                } else if (direction == "deposit")
-                {
-                    addressFrom = this.safeString(parsedMeta, "endpoint");
-                }
+                addressTo = this.safeString(parsedMeta, "endpoint");
+            } else if (direction == "deposit")
+            {
+                addressFrom = this.safeString(parsedMeta, "endpoint");
             }
         }
         Int64? timestamp = this.safeIntegerProduct2(transaction, "event_time", "initiated_time", 0.000001);
@@ -2091,7 +2092,7 @@ public partial class grvt : Exchange
         List<object> rows = this.safeList(response, "result", new List<object>() {});
         List<object> transfers = ((List<object>)this.parseTransfers(rows, currency, since, limit));
         List<object> filteredResults = this.filterTransfersByType(transfers, "internal", false);
-        return ccxt.BaseExchange.ToTransferEntryList((filteredResults != null && 1 < filteredResults.Count ? filteredResults[1] : null));
+        return ccxt.BaseExchange.ToTransferEntryList(this.toArray((filteredResults != null && 1 < filteredResults.Count ? filteredResults[1] : null)));
     }
 
     public virtual List<object> filterTransfersByType(IList<object> transfers, object transferType, bool? onlyMainAccount = null)
@@ -2107,7 +2108,7 @@ public partial class grvt : Exchange
                 string? metadata = this.safeString(getValue(transfer, "info"), "transfer_metadata");
                 object parsedMetadata = this.parseJson(metadata);
                 string? direction = this.safeString(parsedMetadata, "direction");
-                if (isEqual(direction, transferType))
+                if (((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))(direction, transferType))
                 {
                     matchedResults.Add(transfer);
                 } else
@@ -2344,7 +2345,7 @@ public partial class grvt : Exchange
         {
             throw new BadRequest ((this.id + " withdraw() requires a network parameter")) ;
         }
-        ((IDictionary<string,object>)GetValue(request, "signature"))["chain_id"] = networkId;
+        ((IDictionary<string,object>)(request != null && request.ContainsKey("signature") ? request["signature"] : null))["chain_id"] = networkId;
         request = this.createSignedRequest(request, "EIP712_WITHDRAWAL_TYPE", currency);
         Dictionary<string, object> response = await this.privateTradingPostFullV1Withdrawal(this.extend(request, query));
         //
@@ -2409,7 +2410,7 @@ public partial class grvt : Exchange
         {
             clientOrderId = ((this.nonce().ToString() + "000") + this.requestId().ToString());
         }
-        object paramsOmitted3 = this.omit(parameters, new List<object>() {"clientOrderId"});
+        IDictionary<string, object> paramsOmitted3 = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"clientOrderId"}));
         bool isMarketOrder = ((type == "market"));
         string subAccountId = this.getSubAccountId(paramsOmitted3);
         bool? isReduceOnly = this.safeBool(paramsOmitted3, "reduceOnly", false);
@@ -2454,7 +2455,7 @@ public partial class grvt : Exchange
                 timeInForce = "IMMEDIATE_OR_CANCEL";
             }
         }
-        object paramsOmitted2 = this.omit(paramsOmitted3, new List<object>() {"reduceOnly", "postOnly", "timeInForce"});
+        Dictionary<string, object> paramsOmitted2 = this.omit(paramsOmitted3, new List<object>() {"reduceOnly", "postOnly", "timeInForce"});
         // Trigger & SL & TP
         IList<object> triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable = (IList<object>)this.handleTriggerPricesAndParams(symbol, paramsOmitted2);
         var triggerPrice = triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable[0];
@@ -2599,43 +2600,46 @@ public partial class grvt : Exchange
 
     public virtual Int64? convertToBigIntCustom(object x)
     {
-        return ((Int64?)((object)(parseInt(x))));
+        return ((Int64?)((object)((((Func<object, Int64?>)(static (object hx4pa) => { try { return Convert.ToInt64(Math.Floor(Convert.ToDouble(hx4pa))); } catch (Exception) { return null; } }))(x)))));
     }
 
     public virtual Dictionary<string, object> eipMessageForOrder(IDictionary<string, object> order, string? structureType)
     {
-        string priceMultiplier = "1000000000";
+        int priceMultiplier = 1000000000;
         List<object> orderLegs = this.safeList(order, "legs", new List<object>() {});
         List<object> legs = new List<object>() {};
         for (int i = 0; i < orderLegs.Count; i++)
         {
             object leg = orderLegs[i];
             Dictionary<string, object> market = this.market(getValue(leg, "instrument"));
-            Int64? bigInt10 = this.convertToBigIntCustom("10");
             int precisionValue = this.precisionFromString(this.safeString((market.ContainsKey("precision") ? market["precision"] : null), "base"));
-            string precisionValueStr = precisionValue.ToString();
-            double sizeMultiplier = Math.Pow(Convert.ToDouble(bigInt10), Convert.ToDouble(this.convertToBigIntCustom(precisionValueStr)));
-            object size = getValue(leg, "size");
-            List<object> sizeParts = ((string)size).Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
+            double sizeMultiplier = Math.Pow(Convert.ToDouble(10), Convert.ToDouble(precisionValue));
+            string? size = this.safeString(leg, "size");
+            if ((size == null))
+            {
+                throw new ArgumentsRequired ((this.id + " order leg requires a size")) ;
+            }
+            List<object> sizeParts = size.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
             string? sizeDec = this.safeString(sizeParts, 1, "");
-            Int64 sizeDecLength = add(sizeDec.Length, 0); // php tr
-            string sizeDecLengthStr = sizeDecLength.ToString();
-            object sizeInteger = divide(multiply(this.convertToBigIntCustom(((string)size).Replace(".", (string)"")), sizeMultiplier), (Math.Pow(Convert.ToDouble(bigInt10), Convert.ToDouble(this.convertToBigIntCustom(sizeDecLengthStr)))));
+            Int64 sizeDecLength = (sizeDec.Length + 0L); // php tr
+            Int64? sizeDigits = (((Func<object, Int64?>)(static (object hx4pa) => { try { return Convert.ToInt64(Math.Floor(Convert.ToDouble(hx4pa))); } catch (Exception) { return null; } }))(size.Replace(".", (string)"")));
+            double denominator = Math.Pow(Convert.ToDouble(10), Convert.ToDouble(sizeDecLength));
+            object sizeInteger = ((((((object)(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(sizeDigits, sizeMultiplier))) is var c35v0) && (((object)(denominator)) is var c35v1)) ? (((c35v0 == null) || (c35v1 == null)) ? null : (object)(Convert.ToDouble(c35v0) / Convert.ToDouble(c35v1))) : null));
             Dictionary<string, object> legOrder = new Dictionary<string, object>() {
                 { "assetID", getValue((market.ContainsKey("info") ? market["info"] : null), "instrument_hash") },
                 { "contractSize", this.parseToInt(sizeInteger) },
                 { "isBuyingContract", getValue(leg, "is_buying_asset") },
             };
             string? limitPrice = this.safeString(leg, "limit_price");
-            if (!isEqual(this.omitZero(limitPrice), null))
+            if (((limitPrice != null)) && (!(this.omitZero(limitPrice) == null)))
             {
-                object price = getValue(leg, "limit_price");
-                List<object> limitParts = ((string)price).Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
+                string? price = limitPrice;
+                List<object> limitParts = price.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
                 string? limitDec = this.safeString(limitParts, 1, "");
-                Int64 limitDecLength = add(limitDec.Length, 0); // php tr
-                string limitDecLengthStr = limitDecLength.ToString();
-                Int64? powerNum = (limitDecLengthStr == "0") ? 0 : this.convertToBigIntCustom(limitDecLengthStr);
-                double? priceInteger = (((this.convertToBigIntCustom(((string)price).Replace(".", (string)"")) * this.convertToBigIntCustom(priceMultiplier)) / (Math.Pow(Convert.ToDouble(bigInt10), Convert.ToDouble(powerNum)))));
+                Int64 limitDecLength = (limitDec.Length + 0L); // php tr
+                Int64? priceDigits = (((Func<object, Int64?>)(static (object hx4pa) => { try { return Convert.ToInt64(Math.Floor(Convert.ToDouble(hx4pa))); } catch (Exception) { return null; } }))(price.Replace(".", (string)"")));
+                denominator = Math.Pow(Convert.ToDouble(10), Convert.ToDouble(limitDecLength));
+                double? priceInteger = ((priceDigits * priceMultiplier) / denominator);
                 legOrder["limitPrice"] = this.parseToInt(priceInteger);
             } else
             {
@@ -2656,7 +2660,7 @@ public partial class grvt : Exchange
         if ((structureType == "EIP712_ORDER_WITH_BUILDER_TYPE") && (this.safeBool(this.options, "builderFee", true) == true))
         {
             returnValue["builder"] = (order != null && order.ContainsKey("builder") ? order["builder"] : null);
-            returnValue["builderFee"] = this.parseToInt(multiply(this.convertToBigIntCustom(this.feeAmountMultiplier()), parseFloat((order != null && order.ContainsKey("builder_fee") ? order["builder_fee"] : null)))); // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
+            returnValue["builderFee"] = this.parseToInt(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(this.convertToBigIntCustom(this.feeAmountMultiplier()), (((Func<object, object>)(static (object hx4pa) => { object hx4pv = null; try { hx4pv = (Convert.ToDouble(hx4pa, global::System.Globalization.CultureInfo.InvariantCulture.NumberFormat)); } catch (Exception) { } return hx4pv; }))((order != null && order.ContainsKey("builder_fee") ? order["builder_fee"] : null))))); // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
         }
         return returnValue;
     }
@@ -3675,7 +3679,7 @@ public partial class grvt : Exchange
         if ((structureType == "EIP712_TRANSFER_TYPE"))
         {
             Int64? amountMultiplier = this.convertToBigIntCustom("1000000");
-            object amountInt = multiply((request != null && request.ContainsKey("num_tokens") ? request["num_tokens"] : null), amountMultiplier);
+            object amountInt = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))((request != null && request.ContainsKey("num_tokens") ? request["num_tokens"] : null), amountMultiplier);
             if ((currencyObj == null))
             {
                 throw new ExchangeError ((this.id + " createSignedRequest() missing currencyObj")) ;
@@ -3701,7 +3705,7 @@ public partial class grvt : Exchange
                 { "fromAccount", (request != null && request.ContainsKey("from_account_id") ? request["from_account_id"] : null) },
                 { "toEthAddress", (request != null && request.ContainsKey("to_eth_address") ? request["to_eth_address"] : null) },
                 { "tokenCurrency", getValue(currencyObj, "numericId") },
-                { "numTokens", this.parseToInt(multiply((request != null && request.ContainsKey("num_tokens") ? request["num_tokens"] : null), amountMultiplier)) },
+                { "numTokens", this.parseToInt(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))((request != null && request.ContainsKey("num_tokens") ? request["num_tokens"] : null), amountMultiplier)) },
                 { "nonce", getValue((request != null && request.ContainsKey("signature") ? request["signature"] : null), "nonce") },
                 { "expiration", getValue((request != null && request.ContainsKey("signature") ? request["signature"] : null), "expiration") },
             };
@@ -3714,8 +3718,8 @@ public partial class grvt : Exchange
             messageData = new Dictionary<string, object>() {
                 { "mainAccountID", (request != null && request.ContainsKey("main_account_id") ? request["main_account_id"] : null) },
                 { "builderAccountID", (request != null && request.ContainsKey("builder_account_id") ? request["builder_account_id"] : null) },
-                { "maxFutureFeeRate", this.parseToInt(multiply(parseFloat((request != null && request.ContainsKey("max_futures_fee_rate") ? request["max_futures_fee_rate"] : null)), amountMultiplier)) },
-                { "maxSpotFeeRate", this.parseToInt(multiply(parseFloat((request != null && request.ContainsKey("max_spot_fee_rate") ? request["max_spot_fee_rate"] : null)), amountMultiplier)) },
+                { "maxFutureFeeRate", this.parseToInt(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))((((Func<object, object>)(static (object hx4pa) => { object hx4pv = null; try { hx4pv = (Convert.ToDouble(hx4pa, global::System.Globalization.CultureInfo.InvariantCulture.NumberFormat)); } catch (Exception) { } return hx4pv; }))((request != null && request.ContainsKey("max_futures_fee_rate") ? request["max_futures_fee_rate"] : null))), amountMultiplier)) },
+                { "maxSpotFeeRate", this.parseToInt(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))((((Func<object, object>)(static (object hx4pa) => { object hx4pv = null; try { hx4pv = (Convert.ToDouble(hx4pa, global::System.Globalization.CultureInfo.InvariantCulture.NumberFormat)); } catch (Exception) { } return hx4pv; }))((request != null && request.ContainsKey("max_spot_fee_rate") ? request["max_spot_fee_rate"] : null))), amountMultiplier)) },
                 { "nonce", getValue((request != null && request.ContainsKey("signature") ? request["signature"] : null), "nonce") },
                 { "expiration", getValue((request != null && request.ContainsKey("signature") ? request["signature"] : null), "expiration") },
             };
@@ -3756,7 +3760,8 @@ public partial class grvt : Exchange
 
     public virtual Dictionary<string, object> defaultSignature()
     {
-        object expiration = add((this.milliseconds() * 1000000), ((1000000 * this.safeInteger(this.options, "expirationSeconds", 30)) * 1000));
+        Int64? expirationSeconds = this.safeInteger(this.options, "expirationSeconds", 30);
+        object expiration = add((this.milliseconds() * 1000000), ((1000000 * expirationSeconds) * 1000));
         return new Dictionary<string, object>() {
             { "signer", "" },
             { "r", "" },
@@ -3775,7 +3780,7 @@ public partial class grvt : Exchange
         Int64? until = this.safeInteger2(parameters, "until", "till");
         if ((until != null))
         {
-            request[(string)key] = this.numberToString(this.parseToInt(multiply(until, multiplier)));
+            request[(string)key] = this.numberToString(this.parseToInt(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(until, multiplier)));
             return new List<object>() {request, this.omit(parameters, new List<object>() {"until", "till"})};
         }
         return new List<object>() {request, parameters};
@@ -3810,7 +3815,7 @@ public partial class grvt : Exchange
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
                 queryString = this.urlencode(query);
-                url = add(url, ("?" + queryString));
+                url = (url + ("?" + queryString));
             }
         } else if ((method == "POST"))
         {
@@ -3832,7 +3837,7 @@ public partial class grvt : Exchange
             }
         }
         bool isPrivate = ((string)apiName).StartsWith("private");
-        if ((isPrivate == true))
+        if (isPrivate)
         {
             this.checkRequiredCredentials();
             if (queryString != "")

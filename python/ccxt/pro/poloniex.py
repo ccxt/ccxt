@@ -171,8 +171,7 @@ class poloniex(ccxt.async_support.poloniex):
         else:
             if symbols is None:
                 raise ArgumentsRequired(self.id + ' subscribe() symbols is required')
-            ids = self.market_ids(symbols)
-            marketIds = [] if (ids is None) else ids
+            marketIds = self.market_ids(symbols)
         symbolsSuffix = '' if (symbols is None) else ','.join(symbols)
         symbolsHash = None
         if self.is_empty(symbols):
@@ -547,7 +546,7 @@ class poloniex(ccxt.async_support.poloniex):
         options = self.safe_dict(self.options, 'watchBalance')
         fetchBalanceSnapshot = self.safe_bool(options, 'fetchBalanceSnapshot', False)
         awaitBalanceSnapshot = self.safe_bool(options, 'awaitBalanceSnapshot', True)
-        if (fetchBalanceSnapshot is True) and (awaitBalanceSnapshot is True):
+        if (fetchBalanceSnapshot) and (awaitBalanceSnapshot):
             await client.future(name + ':fetchBalanceSnapshot')
         return await self.subscribe(name, name, True, None, params)
 
@@ -556,7 +555,7 @@ class poloniex(ccxt.async_support.poloniex):
             return
         options = self.safe_dict(self.options, 'watchBalance')
         fetchBalanceSnapshot = self.safe_bool(options, 'fetchBalanceSnapshot', False)
-        if fetchBalanceSnapshot is True:
+        if fetchBalanceSnapshot:
             messageHash = type + ':fetchBalanceSnapshot'
             if not (messageHash in client.futures):
                 client.future(messageHash)
@@ -633,8 +632,8 @@ class poloniex(ccxt.async_support.poloniex):
         #        ]
         #    }
         #
-        data = self.safe_value(message, 'data')
-        data = self.safe_value(data, 0)
+        dataList = self.safe_list(message, 'data')
+        data = self.safe_dict(dataList, 0)
         channel = self.safe_string(message, 'channel')
         marketId = self.safe_string(data, 'symbol')
         symbol = self.safe_symbol(marketId)

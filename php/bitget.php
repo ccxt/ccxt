@@ -318,6 +318,17 @@ class bitget extends Exchange {
                             'v3/market/futures-long-short' => array( 'cost' => 20 ),
                             'v3/market/futures-position-long-short' => array( 'cost' => 20 ),
                             'v3/market/futures-account-long-short' => array( 'cost' => 20 ),
+                            'v3/stockplus/market/static' => array( 'cost' => 2 ),
+                            'v3/stockplus/market/quote' => array( 'cost' => 2 ),
+                            'v3/stockplus/market/intraday' => array( 'cost' => 2 ),
+                            'v3/stockplus/market/depth' => array( 'cost' => 2 ),
+                            'v3/stockplus/market/candlestick' => array( 'cost' => 2 ),
+                            'v3/stockplus/market/history-candlestick' => array( 'cost' => 2 ),
+                            'v3/stockplus/market/trade' => array( 'cost' => 2 ),
+                            'v3/stockplus/market/option-quote' => array( 'cost' => 2 ),
+                            'v3/stockplus/market/option-chain-info' => array( 'cost' => 2 ),
+                            'v3/stockplus/market/option-expiry-date' => array( 'cost' => 2 ),
+                            'v3/stockplus/market/option-volume' => array( 'cost' => 2 ),
                             'v3/reality/market/stock-info' => array( 'cost' => 20 ),
                             'v3/reality/market/states' => array( 'cost' => 20 ),
                             'v3/reality/market/calendar' => array( 'cost' => 20 ),
@@ -909,6 +920,17 @@ class bitget extends Exchange {
                             'v3/position/current-position' => array( 'cost' => 1 ),
                             'v3/position/history-position' => array( 'cost' => 1 ),
                             'v3/position/adlRank' => array( 'cost' => 20 ),
+                            'v3/account/reality-orderbook' => array( 'cost' => 2 ),
+                            'v3/account/reality-fills' => array( 'cost' => 2 ),
+                            'v3/stockplus/asset/transfer-records' => array( 'cost' => 2 ),
+                            'v3/stockplus/asset/account' => array( 'cost' => 2 ),
+                            'v3/stockplus/asset/stock-position' => array( 'cost' => 2 ),
+                            'v3/stockplus/asset/cash-flow' => array( 'cost' => 2 ),
+                            'v3/stockplus/trade/today-orders' => array( 'cost' => 20 ),
+                            'v3/stockplus/trade/history-orders' => array( 'cost' => 20 ),
+                            'v3/stockplus/trade/order-detail' => array( 'cost' => 20 ),
+                            'v3/stockplus/trade/today-executions' => array( 'cost' => 20 ),
+                            'v3/stockplus/trade/history-executions' => array( 'cost' => 20 ),
                             'v3/tax/records' => array( 'cost' => 20 ),
                             'v3/trade/order-info' => array( 'cost' => 1 ),
                             'v3/trade/unfilled-orders' => array( 'cost' => 1 ),
@@ -931,8 +953,6 @@ class bitget extends Exchange {
                             'v3/account/eligible-loan-info' => array( 'cost' => 2 ),
                             'v3/account/eligible-discount-rate' => array( 'cost' => 1 ),
                             'v3/account/funding-financial-records' => array( 'cost' => 2 ),
-                            'v3/account/reality-orderbook' => array( 'cost' => 2 ),
-                            'v3/account/reality-fills' => array( 'cost' => 2 ),
                             'v3/copy/futures/trading-pairs' => array( 'cost' => 4 ),
                             'v3/copy/futures/position-summary' => array( 'cost' => 4 ),
                             'v3/copy/futures/max-transferable' => array( 'cost' => 20 ),
@@ -967,15 +987,6 @@ class bitget extends Exchange {
                             'v3/stockplus/market/intraday' => array( 'cost' => 2 ),
                             'v3/stockplus/market/history-candlestick' => array( 'cost' => 2 ),
                             'v3/stockplus/market/candlestick' => array( 'cost' => 2 ),
-                            'v3/stockplus/trade/today-orders' => array( 'cost' => 20 ),
-                            'v3/stockplus/trade/history-orders' => array( 'cost' => 20 ),
-                            'v3/stockplus/trade/order-detail' => array( 'cost' => 20 ),
-                            'v3/stockplus/trade/today-executions' => array( 'cost' => 20 ),
-                            'v3/stockplus/trade/history-executions' => array( 'cost' => 20 ),
-                            'v3/stockplus/asset/account' => array( 'cost' => 2 ),
-                            'v3/stockplus/asset/cash-flow' => array( 'cost' => 2 ),
-                            'v3/stockplus/asset/stock-position' => array( 'cost' => 2 ),
-                            'v3/stockplus/asset/transfer-records' => array( 'cost' => 2 ),
                             'v3/p2p/ad-list' => array( 'cost' => 2 ),
                             'v3/p2p/ad-info' => array( 'cost' => 2 ),
                             'v3/p2p/ad-limit' => array( 'cost' => 2 ),
@@ -1013,6 +1024,10 @@ class bitget extends Exchange {
                             'v3/loan/borrow' => array( 'cost' => 2 ),
                             'v3/loan/repay' => array( 'cost' => 2 ),
                             'v3/loan/revise-pledge' => array( 'cost' => 2 ),
+                            'v3/stockplus/asset/transfer' => array( 'cost' => 4 ),
+                            'v3/stockplus/trade/place-order' => array( 'cost' => 20 ),
+                            'v3/stockplus/trade/modify-order' => array( 'cost' => 20 ),
+                            'v3/stockplus/trade/cancel-order' => array( 'cost' => 20 ),
                             'v3/trade/place-order' => array( 'cost' => 2 ),
                             'v3/trade/place-strategy-order' => array( 'cost' => 2 ),
                             'v3/trade/modify-order' => array( 'cost' => 2 ),
@@ -1052,10 +1067,6 @@ class bitget extends Exchange {
                             'v3/trade/grid/modify-neutral-grid-interval' => array( 'cost' => 20 ),
                             'v3/user/set-rate-limit-quota' => array( 'cost' => 4 ),
                             'v3/user/sub-account/agent-create' => array( 'cost' => 20 ),
-                            'v3/stockplus/trade/place-order' => array( 'cost' => 20 ),
-                            'v3/stockplus/trade/cancel-order' => array( 'cost' => 20 ),
-                            'v3/stockplus/trade/modify-order' => array( 'cost' => 20 ),
-                            'v3/stockplus/asset/transfer' => array( 'cost' => 4 ),
                             'v3/p2p/ad-create' => array( 'cost' => 2 ),
                             'v3/p2p/ad-update' => array( 'cost' => 2 ),
                             'v3/p2p/ad-operate' => array( 'cost' => 2 ),
@@ -1724,7 +1735,7 @@ class bitget extends Exchange {
                 ),
                 'fetchTrades' => array(
                     'spot' => array(
-                        'method' => 'publicSpotGetV2SpotMarketFillsHistory', // or publicSpotGetV2SpotMarketFills
+                        'method' => 'publicSpotGetV2SpotMarketFillsHistory', // or publicSpotGetV2SpotMarketFills or privateUtaGetV3AccountRealityFills
                     ),
                     'swap' => array(
                         'method' => 'publicMixGetV2MixMarketFillsHistory', // or publicMixGetV2MixMarketFills
@@ -2121,13 +2132,15 @@ class bitget extends Exchange {
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
+         * @param {boolean} [$params->stock] set to true if you would like to fetch tokenized $stock markets
          * @return {array[]} an array of objects representing market data
          */
         if ($this->safe_bool($this->options, 'adjustForTimeDifference', false)) {
             $this->load_time_difference();
         }
-        list($uta, $paramsUTA) = $this->handle_uta_and_params($params, 'fetchMarkets', false);
-        if ($uta === true) {
+        list($stock, $paramsStock) = $this->handle_option_bool_and_params($params, 'fetchMarkets', 'stock', false);
+        list($uta, $paramsUTA) = $this->handle_uta_and_params($paramsStock, 'fetchMarkets', false);
+        if (($stock === true) || ($uta === true)) {
             return $this->fetch_uta_markets($paramsUTA);
         }
         return $this->fetch_default_markets($paramsUTA);
@@ -2146,7 +2159,7 @@ class bitget extends Exchange {
         $promises = array();
         $fetchMargins = false;
         for ($i = 0; $i < count($types); $i++) {
-            $type = $types[$i];
+            $type = $this->safe_string($types, $i);
             if (($type === 'swap') || ($type === 'future')) {
                 $subTypes = array( 'USDT-FUTURES', 'COIN-FUTURES', 'USDC-FUTURES', 'SUSDT-FUTURES', 'SCOIN-FUTURES', 'SUSDC-FUTURES' );
                 for ($j = 0; $j < count($subTypes); $j++) {
@@ -2182,12 +2195,12 @@ class bitget extends Exchange {
                     $entry = $this->safe_dict($data, $j, array());
                     $entrySymbol = $this->safe_string($entry, 'symbol');
                     $entryBorrowable = $this->safe_bool($entry, 'isBorrowable', true);
-                    if (($entryBorrowable === true) && $this->safe_bool($entry, 'isCrossBorrowable', true)) {
+                    if (($entryBorrowable) && $this->safe_bool($entry, 'isCrossBorrowable', true)) {
                         $crossKeys[] = $entrySymbol;
                     }
                     $isolatedBase = $this->safe_bool($entry, 'isIsolatedBaseBorrowable', true);
                     $isolatedQuote = $this->safe_bool_2($entry, 'isIsolatedQuotedBorrowable', 'isIsolatedQuoteBorrowable', true);
-                    if (($entryBorrowable === true) && (($isolatedBase === true) || ($isolatedQuote === true))) {
+                    if (($entryBorrowable) && (($isolatedBase) || ($isolatedQuote))) {
                         $isolatedKeys[] = $entrySymbol;
                     }
                 }
@@ -2309,8 +2322,9 @@ class bitget extends Exchange {
                     $symbol = $symbol . ':' . $settle;
                 } elseif ($symbolType === 'delivery') {
                     $expiry = $this->safe_integer($market, 'deliveryTime');
-                    $expiryDatetime = $this->iso8601($expiry);
-                    $expiryParts = explode('-', $expiryDatetime);
+                    $expiryIso = $this->iso8601($expiry);
+                    $expiryDatetime = $expiryIso;
+                    $expiryParts = explode('-', $expiryIso);
                     $yearPart = $this->safe_string($expiryParts, 0, '');
                     $dayPart = $this->safe_string($expiryParts, 2, '');
                     $year = mb_substr($yearPart, 2, 4 - 2);
@@ -2444,7 +2458,11 @@ class bitget extends Exchange {
         //         "maxSymbolOrderNum": "400",
         //         "maxProductOrderNum": "400",
         //         "status": "online",
-        //         "maintainTime": ""
+        //         "maintainTime": "",
+        //         "areaSymbol": "yes",
+        //         "maxPositionNum": "200",
+        //         "isReality": "yes",
+        //         "launchTime": "1786698824814"
         //     }
         //
         // margin uta
@@ -2526,8 +2544,9 @@ class bitget extends Exchange {
             if (($base === null) || ($quote === null)) {
                 continue;
             }
+            $isRealityValue = $this->safe_string_lower($market, 'isReality', '');
+            $isReality = ($isRealityValue === 'yes');
             $settleId = null;
-            $settle = null;
             if ($category === 'USDT-FUTURES') {
                 $settleId = 'USDT';
             } elseif ($category === 'USDC-FUTURES') {
@@ -2535,13 +2554,12 @@ class bitget extends Exchange {
             } elseif ($category === 'COIN-FUTURES') {
                 $settleId = $base;
             }
-            if ($settleId !== null) {
-                $settle = $this->safe_currency_code($settleId);
-            }
+            $settle = $this->safe_currency_code($settleId);
             $symbol = $base . '/' . $quote;
             $type = null;
             $swap = false;
             $spot = false;
+            $stock = false;
             $future = false;
             $contract = false;
             $pricePrecision = null;
@@ -2554,9 +2572,10 @@ class bitget extends Exchange {
             $marginModes = null;
             $isMarginTradingAllowed = false;
             $isUtaMargin = ($category === 'MARGIN');
-            if ($isUtaMargin || ($category === 'SPOT')) {
+            if ($isReality || $isUtaMargin || ($category === 'SPOT')) {
                 $type = 'spot';
                 $spot = true;
+                $stock = $isReality;
                 if ($isUtaMargin) {
                     $isolatedBase = $this->safe_string($market, 'isIsolatedBaseBorrowable');
                     $isolatedQuote = $this->safe_string($market, 'isIsolatedQuotedBorrowable');
@@ -2576,8 +2595,9 @@ class bitget extends Exchange {
                     $symbol = $symbol . ':' . $settle;
                 } elseif ($symbolType === 'delivery') {
                     $expiry = $this->safe_integer($market, 'deliveryTime');
-                    $expiryDatetime = $this->iso8601($expiry);
-                    $expiryParts = explode('-', $expiryDatetime);
+                    $expiryIso = $this->iso8601($expiry);
+                    $expiryDatetime = $expiryIso;
+                    $expiryParts = explode('-', $expiryIso);
                     $yearPart = $this->safe_string($expiryParts, 0, '');
                     $dayPart = $this->safe_string($expiryParts, 2, '');
                     $year = mb_substr($yearPart, 2, 4 - 2);
@@ -2620,6 +2640,7 @@ class bitget extends Exchange {
                 'swap' => $swap,
                 'future' => $future,
                 'option' => false,
+                'stock' => $stock,
                 'active' => $active,
                 'contract' => $contract,
                 'linear' => $linear,
@@ -3024,7 +3045,10 @@ class bitget extends Exchange {
             }
             return $this->fetch_paginated_call_cursor('fetchDeposits', null, $since, $limit, $paramsPaginate, 'idLessThan', 'idLessThan', null, 100);
         }
-        $defaultWindow = ($uta === true) ? 2592000000 : 7776000000; // uta allows a window of 30 days at most, else 90 days
+        $defaultWindow = 7776000000; // uta allows a window of 30 days at most, else 90 days
+        if ($uta === true) {
+            $defaultWindow = 2592000000;
+        }
         $sinceResolved = ($since === null) ? $this->milliseconds() - $defaultWindow : $since;
         $request = array(
             'startTime' => $sinceResolved,
@@ -3177,7 +3201,7 @@ class bitget extends Exchange {
         $result['type'] = 'withdrawal';
         $withdrawOptions = $this->safe_dict($this->options, 'withdraw', array());
         $fillResponseFromRequest = $this->safe_bool($withdrawOptions, 'fillResponseFromRequest', true);
-        if ($fillResponseFromRequest === true) {
+        if ($fillResponseFromRequest) {
             $result['currency'] = $code;
             $result['amount'] = $amount;
             $result['tag'] = $tag;
@@ -3220,7 +3244,10 @@ class bitget extends Exchange {
         if ($code !== null) {
             $currency = $this->currency($code);
         }
-        $defaultWindow = ($uta === true) ? 2592000000 : 7776000000; // uta allows a window of 30 days at most, else 90 days
+        $defaultWindow = 7776000000; // uta allows a window of 30 days at most, else 90 days
+        if ($uta === true) {
+            $defaultWindow = 2592000000;
+        }
         $sinceResolved = ($since === null) ? $this->milliseconds() - $defaultWindow : $since;
         $request = array(
             'startTime' => $sinceResolved,
@@ -3411,7 +3438,7 @@ class bitget extends Exchange {
         );
     }
 
-    public function parse_transaction_type(?string $type) {
+    public function parse_transaction_type(?string $type): ?string {
         // the wire says withdraw, and a unified transaction says withdrawal
         $types = array(
             'withdraw' => 'withdrawal',
@@ -3419,7 +3446,7 @@ class bitget extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'success' => 'ok',
             'Pending' => 'pending',
@@ -3513,11 +3540,13 @@ class bitget extends Exchange {
          * @see https://www.bitget.com/api-doc/spot/market/Get-Orderbook
          * @see https://www.bitget.com/api-doc/contract/market/Get-Merge-Depth
          * @see https://www.bitget.com/api-doc/uta/public/OrderBook
+         * @see https://www.bitget.com/api-doc/uta/reality/market/Reality-OrderBook
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
+         * @param {boolean} [$params->stock] set to true if you would like to fetch tokenized $stock order books
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
@@ -3532,8 +3561,20 @@ class bitget extends Exchange {
         }
         list($productType, $paramsProductType) = $this->handle_product_type_and_params($market, $params);
         $response = null;
-        list($uta, $paramsUTA) = $this->handle_uta_and_params($paramsProductType, 'fetchOrderBook', false);
-        if ($uta === true) {
+        $stockDefault = $this->safe_bool($market, 'stock', false);
+        list($stock, $paramsStock) = $this->handle_option_bool_and_params($paramsProductType, 'fetchOrderBook', 'stock', $stockDefault);
+        list($uta, $paramsUTA) = $this->handle_uta_and_params($paramsStock, 'fetchOrderBook', false);
+        $isStock = ($stock === true);
+        $isStockOrUta = ($isStock || ($uta === true));
+        if ($isStock) {
+            if ($limit !== null) {
+                throw new BadRequest($this->id . ' fetchOrderBook() does not support limit for tokenized stock markets');
+            }
+            if (!$this->check_required_credentials(false)) {
+                throw new BadRequest($this->id . ' fetchOrderBook() requires a whitelisted API key for tokenized stock markets');
+            }
+            $response = $this->privateUtaGetV3AccountRealityOrderbook($this->extend($request, $paramsUTA));
+        } elseif ($uta === true) {
             $request['category'] = $productType;
             $response = $this->publicUtaGetV3MarketOrderbook($this->extend($request, $paramsUTA));
         } elseif ($market['spot'] === true) {
@@ -3554,7 +3595,7 @@ class bitget extends Exchange {
         //       }
         //     }
         //
-        // uta
+        // uta and tokenized stocks
         //
         //     {
         //         "code": "00000",
@@ -3569,11 +3610,9 @@ class bitget extends Exchange {
         //
         $data = $this->safe_dict($response, 'data', array());
         $bidsKey = 'bids';
-        if ($uta === true) {
-            $bidsKey = 'b';
-        }
         $asksKey = 'asks';
-        if ($uta === true) {
+        if ($isStockOrUta) {
+            $bidsKey = 'b';
             $asksKey = 'a';
         }
         $timestamp = $this->safe_integer($data, 'ts');
@@ -3734,6 +3773,7 @@ class bitget extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
+         * @param {boolean} [$params->stock] set to true if you would like to fetch tokenized $stock tickers
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
         if ($this->markets === null) {
@@ -3745,8 +3785,12 @@ class bitget extends Exchange {
         );
         list($productType, $paramsProductType) = $this->handle_product_type_and_params($market, $params);
         $response = null;
-        list($uta, $paramsUTA) = $this->handle_uta_and_params($paramsProductType, 'fetchTicker', false);
-        if ($uta === true) {
+        $stockDefault = $this->safe_bool($market, 'stock', false);
+        list($stock, $paramsStock) = $this->handle_option_bool_and_params($paramsProductType, 'fetchTicker', 'stock', $stockDefault);
+        list($uta, $paramsUTA) = $this->handle_uta_and_params($paramsStock, 'fetchTicker', false);
+        $isStock = ($stock === true);
+        $isStockOrUta = ($isStock || ($uta === true));
+        if ($isStockOrUta) {
             $request['category'] = $productType;
             $response = $this->publicUtaGetV3MarketTickers($this->extend($request, $paramsUTA));
         } elseif ($market['spot'] === true) {
@@ -3922,6 +3966,7 @@ class bitget extends Exchange {
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
+         * @param {boolean} [$params->stock] set to true if you would like to fetch tokenized $stock tickers
          * @param {string} [$params->subType] *contract only* 'linear', 'inverse'
          * @param {string} [$params->productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
@@ -3930,9 +3975,11 @@ class bitget extends Exchange {
             $this->load_markets();
         }
         $market = null;
+        $stockDefault = null;
         if ($symbols !== null) {
             $symbol = $this->safe_string($symbols, 0);
             $market = $this->market($symbol);
+            $stockDefault = $this->safe_bool($market, 'stock', false);
         }
         $response = null;
         $request = array();
@@ -3942,22 +3989,45 @@ class bitget extends Exchange {
         // with higher priority and only default to spot, if `subType` is not set in params
         $passedSubType = $this->safe_string($paramsMarketType, 'subType');
         list($productType, $paramsProductType) = $this->handle_product_type_and_params($market, $paramsMarketType);
+        list($stock, $paramsStock) = $this->handle_option_bool_and_params($paramsProductType, 'fetchTickers', 'stock', $stockDefault);
         // only if passedSubType && productType is undefined, then use spot
-        list($uta, $paramsUTA) = $this->handle_uta_and_params($paramsProductType, 'fetchTickers', false);
-        if ($uta === true) {
+        list($uta, $paramsUTA) = $this->handle_uta_and_params($paramsStock, 'fetchTickers', false);
+        $isStock = ($stock === true);
+        $isStockOrUta = ($isStock || ($uta === true));
+        if ($isStockOrUta) {
             if ($symbols !== null) {
                 $symbolsLength = count($symbols);
                 if ($symbolsLength === 1) {
                     $request['symbol'] = $this->safe_string($market, 'id');
                 }
             }
-            $request['category'] = $productType;
+            if ($isStock) {
+                $request['category'] = 'SPOT';
+            } elseif (!(is_array($request) && array_key_exists('category' ?? '', $request))) {
+                $request['category'] = $productType;
+            }
             $response = $this->publicUtaGetV3MarketTickers($this->extend($request, $paramsUTA));
         } elseif ($type === 'spot' && $passedSubType === null) {
             $response = $this->publicSpotGetV2SpotMarketTickers($this->extend($request, $paramsUTA));
         } else {
             $request['productType'] = $productType;
             $response = $this->publicMixGetV2MixMarketTickers($this->extend($request, $paramsUTA));
+        }
+        $symbolsResolved = $symbols;
+        if ($isStock && ($symbols === null)) {
+            // for returning only tokenized stock symbols
+            $symbolsResolved = array();
+            for ($i = 0; $i < count($this->symbols); $i++) {
+                $symbol = $this->symbols[$i];
+                $entry = $this->market($symbol);
+                $isStockMarket = $this->safe_bool($entry, 'stock', false);
+                if ($isStockMarket) {
+                    $marketSymbol = $this->safe_string($entry, 'symbol');
+                    if ($marketSymbol !== null) {
+                        $symbolsResolved[] = $marketSymbol;
+                    }
+                }
+            }
         }
         //
         // spot
@@ -4076,7 +4146,7 @@ class bitget extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
-        return $this->parse_tickers($data, $symbols);
+        return $this->parse_tickers($data, $symbolsResolved);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -4242,12 +4312,14 @@ class bitget extends Exchange {
          * @see https://www.bitget.com/api-doc/contract/market/Get-Recent-Fills
          * @see https://www.bitget.com/api-doc/contract/market/Get-Fills-History
          * @see https://www.bitget.com/api-doc/uta/public/Fills
+         * @see https://www.bitget.com/api-doc/uta/reality/market/Reality-Fills
          *
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
+         * @param {boolean} [$params->stock] set to true if you would like to fetch tokenized $stock trades
          * @param {int} [$params->until] *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* the latest time in ms to fetch trades for
          * @param {boolean} [$params->paginate] *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* default false, when true will automatically $paginate by calling this endpoint multiple times
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
@@ -4258,17 +4330,27 @@ class bitget extends Exchange {
         $paginate = false;
         $paramsPaginate = null;
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchTrades', 'paginate', false);
+        $market = $this->market($symbol);
+        $stockDefault = $this->safe_bool($market, 'stock', false);
         if ($paginate) {
+            // the recursive calls read 'stock' and 'uta' themselves, so only peek at the flag here
+            $stockForPagination = $this->handle_option_bool_and_params($paramsPaginate, 'fetchTrades', 'stock', $stockDefault)[0];
+            if ($stockForPagination === true) {
+                throw new BadRequest($this->id . ' fetchTrades() does not support paginate for tokenized stock markets');
+            }
             return $this->fetch_paginated_call_cursor('fetchTrades', $symbol, $since, $limit, $paramsPaginate, 'idLessThan', 'idLessThan');
         }
-        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
+        $stock = null;
+        list($stock, $paramsPaginate) = $this->handle_option_bool_and_params($paramsPaginate, 'fetchTrades', 'stock', $stockDefault);
         $uta = null;
         list($uta, $paramsPaginate) = $this->handle_uta_and_params($paramsPaginate, 'fetchTrades', false);
+        $isStock = ($stock === true);
+        $isStockOrUta = ($isStock || ($uta === true));
         if ($limit !== null) {
-            if ($uta === true) {
+            if ($isStockOrUta) {
                 $request['limit'] = min($limit, 100);
             } elseif ($market['contract'] === true) {
                 $request['limit'] = min($limit, 1000);
@@ -4280,7 +4362,16 @@ class bitget extends Exchange {
         $response = null;
         $productType = null;
         list($productType, $paramsPaginate) = $this->handle_product_type_and_params($market, $paramsPaginate);
-        if ($uta === true) {
+        if ($isStock) {
+            if ($since !== null) {
+                throw new BadRequest($this->id . ' fetchTrades() does not support since for tokenized stock markets');
+            }
+            if (!$this->check_required_credentials(false)) {
+                throw new BadRequest($this->id . ' fetchTrades() requires a whitelisted API key for tokenized stock markets');
+            }
+            $paramsPaginate = $this->omit($paramsPaginate, array( 'until', 'idLessThan' ));
+            $response = $this->privateUtaGetV3AccountRealityFills($this->extend($request, $paramsPaginate));
+        } elseif ($uta === true) {
             if ($productType === 'SPOT') {
                 $marginMode = null;
                 list($marginMode, $paramsPaginate) = $this->handle_margin_mode_and_params('fetchTrades', $paramsPaginate);
@@ -4357,7 +4448,7 @@ class bitget extends Exchange {
         //         ]
         //     }
         //
-        // uta
+        // uta and tokenized stock
         //
         //     {
         //         "code": "00000",
@@ -4478,7 +4569,7 @@ class bitget extends Exchange {
             $paramsMarginMode = $this->omit($paramsMarginMode, 'margin');
             $request = array();
             if ($marketType === 'spot') {
-                if (($marginMode !== null) || ($utaMargin === true)) {
+                if (($marginMode !== null) || ($utaMargin)) {
                     $request['category'] = 'MARGIN';
                 } else {
                     $request['category'] = 'SPOT';
@@ -4525,7 +4616,7 @@ class bitget extends Exchange {
         if ($marketType === 'spot') {
             $margin = $this->safe_bool($paramsMarginMode, 'margin', false);
             $paramsMarginMode = $this->omit($paramsMarginMode, 'margin');
-            if (($marginMode !== null) || ($margin === true)) {
+            if (($marginMode !== null) || ($margin)) {
                 $response = $this->publicMarginGetV2MarginCurrencies($paramsMarginMode);
             } else {
                 $response = $this->publicSpotGetV2SpotPublicSymbols($paramsMarginMode);
@@ -4677,6 +4768,7 @@ class bitget extends Exchange {
          * @param {int} [$limit] the maximum amount of $candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
+         * @param {boolean} [$params->stock] set to true if you would like to fetch tokenized $stock candlesticks
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @param {boolean} [$params->useHistoryEndpoint] whether to force to use historical endpoint (it has max $limit of 200, 100 for $uta)
          * @param {boolean} [$params->useHistoryEndpointForPagination] whether to force to use historical endpoint for pagination (default true)
@@ -4698,7 +4790,7 @@ class bitget extends Exchange {
             $maxLimitForHistoryEndpoint = 100; // the uta history endpoint rejects a limit above 100
         }
         if ($paginate) {
-            $limitForPagination = ($useHistoryEndpointForPagination === true) ? $maxLimitForHistoryEndpoint : $maxLimitForRecentEndpoint;
+            $limitForPagination = ($useHistoryEndpointForPagination) ? $maxLimitForHistoryEndpoint : $maxLimitForRecentEndpoint;
             $paramsWithUta = $this->extend($paramsUTA, array( 'uta' => $uta ));
             return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsWithUta, $limitForPagination);
         }
@@ -4706,10 +4798,14 @@ class bitget extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
+        $stockDefault = $this->safe_bool($market, 'stock', false);
+        list($stock, $paramsStock) = $this->handle_option_bool_and_params($paramsUTA, 'fetchOHLCV', 'stock', $stockDefault);
         $marketType = null;
         $timeframes = null;
         $timeframesOption = $this->handle_option('fetchOHLCV', 'timeframes');
-        if ($uta === true) {
+        $isStock = ($stock === true);
+        $isStockOrUta = ($isStock || ($uta === true));
+        if ($isStockOrUta) {
             $timeframes = $timeframesOption['uta'];
             $request['interval'] = $this->safe_string($timeframes, $timeframe, $timeframe);
         } else {
@@ -4720,11 +4816,9 @@ class bitget extends Exchange {
         $msInDay = 86400000;
         $now = $this->milliseconds();
         $duration = $this->parse_timeframe($timeframe) * 1000;
-        $until = $this->safe_integer($paramsUTA, 'until');
+        $until = $this->safe_integer($paramsStock, 'until');
         $limitDefined = $limit !== null;
-        $sinceDefined = $since !== null;
-        $untilDefined = $until !== null;
-        $paramsOmitted = $this->omit($paramsUTA, array( 'until' ));
+        $paramsOmitted = $this->omit($paramsStock, array( 'until' ));
         // retrievable periods listed here:
         // - https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
         // - https://www.bitget.com/api-doc/contract/market/Get-Candle-Data#description
@@ -4734,57 +4828,62 @@ class bitget extends Exchange {
         }
         $ohlcOptions = $this->safe_dict($this->options['fetchOHLCV'], $key, array());
         $maxLimitPerTimeframe = $this->safe_dict($ohlcOptions, 'maxLimitPerTimeframe', array());
-        $maxLimitForThisTimeframe = $this->safe_integer($maxLimitPerTimeframe, $timeframe, $limit);
+        $timeframeLimitValue = $this->safe_integer($maxLimitPerTimeframe, $timeframe);
+        // the per-timeframe cap only applies to a user-supplied limit
+        $timeframeLimit = ($timeframeLimitValue === null) ? $maxLimitForRecentEndpoint : $timeframeLimitValue;
+        $requestedLimit = ($limit === null) ? $defaultLimit : $limit;
+        $limitCapped = ($requestedLimit > $maxLimitForRecentEndpoint) ? $maxLimitForRecentEndpoint : $requestedLimit;
+        // the per-timeframe cap only applies to a user-supplied limit
+        $recentLimit = (($limit !== null) && ($limitCapped > $timeframeLimit)) ? $timeframeLimit : $limitCapped;
+        $limitResolved = $recentLimit;
+        $recentDuration = $recentLimit * $duration;
         $recentEndpointDaysMap = $this->safe_dict($this->options['fetchOHLCV'], 'maxRecentDaysPerTimeframe', array());
         $recentEndpointAvailableDays = $this->safe_integer($recentEndpointDaysMap, $timeframe);
-        $recentEndpointBoundaryTs = $now - ($recentEndpointAvailableDays - 1) * $msInDay;
-        $limitResolved = $defaultLimit;
-        if ($limitDefined) {
-            $limitCapped = min($limit, $maxLimitForRecentEndpoint);
-            $limitResolved = min($limitCapped, $maxLimitForThisTimeframe);
-        }
-        $limitMultipliedDuration = $limitResolved * $duration;
+        $historicalEndpointNeeded = ($useHistoryEndpoint === true);
         // exchange aligns from endTime, so it's important, not startTime
         // startTime is supported only on "recent" endpoint, not on "historical" endpoint
         $calculatedStartTime = null;
         $calculatedEndTime = null;
-        if ($sinceDefined) {
+        if ($since !== null) {
             $calculatedStartTime = $since;
             $request['startTime'] = $since;
-            if (!$untilDefined) {
-                $calculatedEndTime = $this->sum($calculatedStartTime, $limitMultipliedDuration);
-                if ($calculatedEndTime > $now) {
+            if ($until === null) {
+                $calculatedEndTime = $this->sum($since, $recentDuration);
+                if ($since > $now - $recentDuration) {
                     $calculatedEndTime = $now;
                 }
                 $request['endTime'] = $calculatedEndTime;
             }
-        }
-        if ($untilDefined) {
-            $calculatedEndTime = $until;
-            if ($calculatedEndTime > $now) {
-                $calculatedEndTime = $now;
+            if (($recentEndpointAvailableDays !== null) && ($since <= $now - ($recentEndpointAvailableDays - 1) * $msInDay)) {
+                $historicalEndpointNeeded = true;
             }
-            $request['endTime'] = $calculatedEndTime;
-            if (!$sinceDefined) {
-                $calculatedStartTime = $calculatedEndTime - $limitMultipliedDuration;
+        }
+        if ($until !== null) {
+            $untilEndTime = ($until > $now) ? $now : $until;
+            $calculatedEndTime = $untilEndTime;
+            $request['endTime'] = $untilEndTime;
+            if ($since === null) {
+                $untilStartTime = $untilEndTime - $recentDuration;
+                $calculatedStartTime = $untilStartTime;
                 // we do not need to set "startTime" here
+                if (($recentEndpointAvailableDays !== null) && ($untilStartTime <= $now - ($recentEndpointAvailableDays - 1) * $msInDay)) {
+                    $historicalEndpointNeeded = true;
+                }
             }
         }
-        // if historical endpoint is needed, we should re-set the variables
-        $historicalEndpointNeeded = false;
-        if (($calculatedStartTime !== null && $calculatedStartTime <= $recentEndpointBoundaryTs) || ($useHistoryEndpoint === true)) {
-            $historicalEndpointNeeded = true;
+        if ($historicalEndpointNeeded) {
             // only for "historical-candles" - ensure we use correct max limit
-            $limitResolved = min($limitResolved, $maxLimitForHistoryEndpoint);
-            $limitMultipliedDuration = $limitResolved * $duration;
-            $calculatedStartTime = $calculatedEndTime - $limitMultipliedDuration;
+            $historicalLimit = ($recentLimit > $maxLimitForHistoryEndpoint) ? $maxLimitForHistoryEndpoint : $recentLimit;
+            $limitResolved = $historicalLimit;
+            $historicalDuration = $historicalLimit * $duration;
+            $calculatedStartTime = $calculatedEndTime - $historicalDuration;
             $request['startTime'] = $calculatedStartTime;
             // for contract, maximum 90 days allowed between start-end times
             if ($market['spot'] !== true) {
-                $maxDistanceDaysForContracts = 90;
-                // only correct if request is larger
-                if ($calculatedEndTime - $calculatedStartTime > $maxDistanceDaysForContracts * $msInDay) {
-                    $calculatedEndTime = $this->sum($calculatedStartTime, $maxDistanceDaysForContracts * $msInDay);
+                $maxDistanceForContracts = 90 * $msInDay;
+                // endTime - startTime is historicalDuration here; an undefined endTime never passed this check
+                if (($calculatedEndTime !== null) && ($historicalDuration > $maxDistanceForContracts)) {
+                    $calculatedEndTime = $this->sum($calculatedStartTime, $maxDistanceForContracts);
                     $request['endTime'] = $calculatedEndTime;
                 }
             }
@@ -4795,7 +4894,10 @@ class bitget extends Exchange {
         $response = null;
         list($priceType, $paramsPrice) = $this->handle_param_string($paramsOmitted, 'price');
         list($productType, $paramsProductType) = $this->handle_product_type_and_params($market, $paramsPrice);
-        if ($uta === true) {
+        if ($isStock && ($priceType !== null)) {
+            throw new BadRequest($this->id . ' fetchOHLCV() for stock markets supports only market-price candles');
+        }
+        if ($isStockOrUta) {
             if ($priceType !== null) {
                 if ($priceType === 'mark') {
                     $request['type'] = 'MARK';
@@ -4875,6 +4977,7 @@ class bitget extends Exchange {
          * @param {string} [$params->productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
          * @param {string} [$params->uta] set to true for the unified trading account ($uta), defaults to false
          * @param {string} [$params->type] 'funding' to fetch the $uta funding-account $assets ($uta only, classic accounts route funding through 'spot')
+         * @param {boolean} [$params->stock] set to true if you would like to fetch tokenized $stock account balances
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         if ($this->markets === null) {
@@ -4884,12 +4987,15 @@ class bitget extends Exchange {
         $marketType = null;
         $marginMode = null;
         $response = null;
+        list($stock, $paramsStock) = $this->handle_option_bool_and_params($params, 'fetchBalance', 'stock', false);
         $uta = null;
         $paramsUTA = null;
-        list($uta, $paramsUTA) = $this->handle_uta_and_params($params, 'fetchBalance', false);
+        list($uta, $paramsUTA) = $this->handle_uta_and_params($paramsStock, 'fetchBalance', false);
+        $isStock = ($stock === true);
+        $isStockOrUta = ($isStock || ($uta === true));
         list($marketType, $paramsUTA) = $this->handle_market_type_and_params('fetchBalance', null, $paramsUTA);
         list($marginMode, $paramsUTA) = $this->handle_margin_mode_and_params('fetchBalance', $paramsUTA);
-        if ($uta === true) {
+        if ($isStockOrUta) {
             $assets = null;
             if ($marketType === 'funding') {
                 $response = $this->privateUtaGetV3AccountFundingAssets($this->extend($request, $paramsUTA));
@@ -5176,7 +5282,7 @@ class bitget extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'new' => 'open',
             'init' => 'open',
@@ -5584,6 +5690,7 @@ class bitget extends Exchange {
          * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Place-Order
          * @see https://www.bitget.com/api-doc/uta/trade/Place-Order
          * @see https://www.bitget.com/api-doc/uta/strategy/Place-Strategy-Order
+         * @see https://www.bitget.com/api-doc/uta/reality/trade/Place-Reality-Order
          *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
@@ -5595,9 +5702,9 @@ class bitget extends Exchange {
          * @param {float} [$params->triggerPrice] *swap only* The $price at which a trigger order is triggered at
          * @param {float} [$params->stopLossPrice] *swap only* The $price at which a stop loss order is triggered at
          * @param {float} [$params->takeProfitPrice] *swap only* The $price at which a take profit order is triggered at
-         * @param {array} [$params->takeProfit] *takeProfit object in $params* containing the $triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+         * @param {array} [$params->takeProfit] *$takeProfit object in $params* containing the $triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
          * @param {float} [$params->takeProfit.triggerPrice] *swap only* take profit trigger $price
-         * @param {array} [$params->stopLoss] *stopLoss object in $params* containing the $triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+         * @param {array} [$params->stopLoss] *$stopLoss object in $params* containing the $triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
          * @param {float} [$params->stopLoss.triggerPrice] *swap only* stop loss trigger $price
          * @param {string} [$params->timeInForce] "GTC", "IOC", "FOK", or "PO"
          * @param {string} [$params->marginMode] 'isolated' or 'cross' for spot margin trading
@@ -5614,6 +5721,7 @@ class bitget extends Exchange {
          * @param {bool} [$params->hedged] *swap and future only* true for hedged mode, false for one way mode, default is false
          * @param {bool} [$params->reduceOnly] true or false whether the order is reduce-only
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
+         * @param {boolean} [$params->stock] set to true if you would like to place tokenized $stock orders
          * @param {string} [$params->posSide] *$uta only* hedged two-way position $side, long or short
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
@@ -5623,20 +5731,35 @@ class bitget extends Exchange {
         $market = $this->market($symbol);
         $marginParams = $this->handle_margin_mode_and_params('createOrder', $params);
         $marginMode = $marginParams[0];
-        $triggerPrice = $this->safe_number_2($params, 'stopPrice', 'triggerPrice');
-        $stopLossTriggerPrice = $this->safe_number($params, 'stopLossPrice');
-        $takeProfitTriggerPrice = $this->safe_number($params, 'takeProfitPrice');
+        $stockDefault = $this->safe_bool($market, 'stock', false);
+        list($stock, $paramsStock) = $this->handle_option_bool_and_params($params, 'createOrder', 'stock', $stockDefault);
+        $triggerPrice = $this->safe_number_2($paramsStock, 'stopPrice', 'triggerPrice');
+        $stopLossTriggerPrice = $this->safe_number($paramsStock, 'stopLossPrice');
+        $takeProfitTriggerPrice = $this->safe_number($paramsStock, 'takeProfitPrice');
+        $stopLoss = $this->safe_dict($paramsStock, 'stopLoss');
+        $takeProfit = $this->safe_dict($paramsStock, 'takeProfit');
         $trailingPercent = $this->safe_string_2($params, 'trailingPercent', 'callbackRatio');
         $isTrailingPercentOrder = $trailingPercent !== null;
         $isTriggerOrder = $triggerPrice !== null;
         $isStopLossTriggerOrder = $stopLossTriggerPrice !== null;
         $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
         $isStopLossOrTakeProfitTrigger = $isStopLossTriggerOrder || $isTakeProfitTriggerOrder;
+        $hasStopLoss = $stopLoss !== null;
+        $hasTakeProfit = $takeProfit !== null;
         $response = null;
-        list($uta, $paramsUTA) = $this->handle_uta_and_params($params, 'createOrder', false);
-        if ($uta === true) {
+        list($uta, $paramsUTA) = $this->handle_uta_and_params($paramsStock, 'createOrder', false);
+        $isStock = ($stock === true);
+        $isStockOrUta = ($isStock || ($uta === true));
+        if ($isStock) {
+            if ($isTriggerOrder || $isStopLossOrTakeProfitTrigger || $hasStopLoss || $hasTakeProfit || $isTrailingPercentOrder) {
+                throw new InvalidOrder($this->id . ' createOrder() only supports market and limit orders for tokenized stock markets');
+            }
+        }
+        if ($isStockOrUta) {
             $request = $this->create_uta_order_request($symbol, $type, $side, $amount, $price, $paramsUTA);
-            if ($isStopLossOrTakeProfitTrigger) {
+            if ($isStock) {
+                $response = $this->privateUtaPostV3TradePlaceRealityOrder($request);
+            } elseif ($isStopLossOrTakeProfitTrigger) {
                 $response = $this->privateUtaPostV3TradePlaceStrategyOrder($request);
             } else {
                 $response = $this->privateUtaPostV3TradePlaceOrder($request);
@@ -5775,7 +5898,7 @@ class bitget extends Exchange {
             if ($timeInForce !== null) {
                 $timeInForce = strtoupper($timeInForce);
             }
-            if ($postOnly === true) {
+            if ($postOnly) {
                 $request['timeInForce'] = 'post_only';
             } elseif ($timeInForce === 'GTC') {
                 $request['timeInForce'] = 'gtc';
@@ -5788,7 +5911,7 @@ class bitget extends Exchange {
         $reduceOnly = $this->safe_bool($paramsProductType, 'reduceOnly', false);
         $hedged = null;
         list($hedged, $paramsProductType) = $this->handle_param_bool($paramsProductType, 'hedged', false);
-        if ($reduceOnly === true) {
+        if ($reduceOnly) {
             if (($hedged === true) || $isStopLossOrTakeProfitTrigger) {
                 $reduceOnlyPosSide = 'short';
                 if ($side === 'sell') {
@@ -5859,7 +5982,7 @@ class bitget extends Exchange {
         //     throw new ExchangeError (this.id + ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent');
         // }
         //
-        if ($this->sum($isTriggerOrder, $isStopLossTriggerOrder, $isTakeProfitTriggerOrder, $isTrailingPercentOrder) > 1) {
+        if (($isTriggerOrder && ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder || $isTrailingPercentOrder)) || ($isStopLossTriggerOrder && ($isTakeProfitTriggerOrder || $isTrailingPercentOrder)) || ($isTakeProfitTriggerOrder && $isTrailingPercentOrder)) {
             throw new ExchangeError($this->id . ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent');
         }
         if ($type === 'limit') {
@@ -5876,7 +5999,7 @@ class bitget extends Exchange {
         if ($timeInForce !== null) {
             $timeInForce = strtoupper($timeInForce);
         }
-        if ($postOnly === true) {
+        if ($postOnly) {
             $request['force'] = 'post_only';
         } elseif ($timeInForce === 'GTC') {
             $request['force'] = 'GTC';
@@ -5985,7 +6108,7 @@ class bitget extends Exchange {
                 }
                 $request['marginMode'] = $marginModeRequest;
                 $requestSide = $side;
-                if ($reduceOnly === true) {
+                if ($reduceOnly) {
                     if ($hedged !== true) {
                         $request['reduceOnly'] = 'YES';
                     } else {
@@ -6065,7 +6188,7 @@ class bitget extends Exchange {
             $this->load_markets();
         }
         $ordersRequests = array();
-        $symbol = null;
+        $symbol = $this->safe_string($this->safe_dict($orders, 0), 'symbol');
         $marginMode = null;
         for ($i = 0; $i < count($orders); $i++) {
             $rawOrder = $this->safe_dict($orders, $i);
@@ -6140,7 +6263,7 @@ class bitget extends Exchange {
             return $this->create_uta_orders($orders, $paramsUTA);
         }
         $ordersRequests = array();
-        $symbol = null;
+        $symbol = $this->safe_string($this->safe_dict($orders, 0), 'symbol');
         $marginMode = null;
         for ($i = 0; $i < count($orders); $i++) {
             $rawOrder = $this->safe_dict($orders, $i);
@@ -6297,7 +6420,7 @@ class bitget extends Exchange {
         // if (multipleTriggers) {
         //     throw new ExchangeError (this.id + ' editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent');
         // }
-        if ($this->sum($isTriggerOrder, $isStopLossOrder, $isTakeProfitOrder, $isTrailingPercentOrder) > 1) {
+        if (($isTriggerOrder && ($isStopLossOrder || $isTakeProfitOrder || $isTrailingPercentOrder)) || ($isStopLossOrder && ($isTakeProfitOrder || $isTrailingPercentOrder)) || ($isTakeProfitOrder && $isTrailingPercentOrder)) {
             throw new ExchangeError($this->id . ' editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent');
         }
         $paramsOmitted = $this->omit($params, array( 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'clientOrderId', 'trailingTriggerPrice', 'trailingPercent' ));
@@ -6344,7 +6467,7 @@ class bitget extends Exchange {
             $cost = $this->safe_string($paramsOmitted, 'cost');
             $paramsOmitted = $this->omit($paramsOmitted, 'cost');
             $editMarketBuyOrderRequiresPrice = $this->safe_bool($this->options, 'editMarketBuyOrderRequiresPrice', true);
-            if ((($editMarketBuyOrderRequiresPrice === true) || ($cost !== null)) && $isMarketOrder && ($side === 'buy')) {
+            if ((($editMarketBuyOrderRequiresPrice) || ($cost !== null)) && $isMarketOrder && ($side === 'buy')) {
                 if ($price === null && $cost === null) {
                     throw new InvalidOrder($this->id . ' editOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively provide `cost` in the params');
                 } else {
@@ -6473,6 +6596,7 @@ class bitget extends Exchange {
          * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Cancel-Order
          * @see https://www.bitget.com/api-doc/uta/trade/Cancel-Order
          * @see https://www.bitget.com/api-doc/uta/strategy/Cancel-Strategy-Order
+         * @see https://www.bitget.com/api-doc/uta/reality/trade/Cancel-Reality-Order
          *
          * @param {string} $id $order $id
          * @param {string} $symbol unified $symbol of the $market the $order was made in
@@ -6482,6 +6606,7 @@ class bitget extends Exchange {
          * @param {string} [$params->planType] *swap only* either profit_plan, loss_plan, normal_plan, pos_profit, pos_loss, moving_plan or track_plan
          * @param {boolean} [$params->trailing] set to true if you want to cancel a $trailing $order
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
+         * @param {boolean} [$params->stock] set to true if you would like to cancel tokenized $stock orders
          * @param {string} [$params->clientOrderId] the $clientOrderId of the $order, $id does not need to be provided if $clientOrderId is provided
          * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
@@ -6496,6 +6621,9 @@ class bitget extends Exchange {
         $response = array();
         $paramsMarginMode = null;
         list($marginMode, $paramsMarginMode) = $this->handle_margin_mode_and_params('cancelOrder', $params);
+        $stockDefault = $this->safe_bool($market, 'stock', false);
+        $stock = null;
+        list($stock, $paramsMarginMode) = $this->handle_option_bool_and_params($paramsMarginMode, 'cancelOrder', 'stock', $stockDefault);
         $request = array();
         $trailing = $this->safe_bool($paramsMarginMode, 'trailing');
         $trigger = $this->safe_bool_2($paramsMarginMode, 'stop', 'trigger');
@@ -6505,10 +6633,15 @@ class bitget extends Exchange {
         }
         $uta = null;
         list($uta, $paramsMarginMode) = $this->handle_uta_and_params($paramsMarginMode, 'cancelOrder', false);
+        $isStock = ($stock === true);
+        $isStockOrUta = ($isStock || ($uta === true));
         $isPlanOrder = ($trigger === true) || ($trailing === true);
         $isContract = ($market['swap'] === true) || ($market['future'] === true);
-        $isContractTriggerEndpoint = $isContract && $isPlanOrder && ($uta !== true);
+        $isContractTriggerEndpoint = $isContract && $isPlanOrder && !$isStockOrUta;
         $clientOrderId = $this->safe_string_2($paramsMarginMode, 'clientOrderId', 'clientOid');
+        if ($isStock && $isPlanOrder) {
+            throw new InvalidOrder($this->id . ' cancelOrder() does not support trigger or trailing orders for tokenized stock markets');
+        }
         if ($isContractTriggerEndpoint) {
             $orderIdList = array();
             $orderId = array();
@@ -6528,7 +6661,9 @@ class bitget extends Exchange {
                 $request['orderId'] = $id;
             }
         }
-        if ($uta === true) {
+        if ($isStock) {
+            $response = $this->privateUtaPostV3TradeCancelRealityOrder($this->extend($request, $paramsMarginMode));
+        } elseif ($isStockOrUta) {
             if ($trigger === true) {
                 $response = $this->privateUtaPostV3TradeCancelStrategyOrder($this->extend($request, $paramsMarginMode));
             } else {
@@ -6565,7 +6700,7 @@ class bitget extends Exchange {
             throw new NotSupported($this->id . ' cancelOrder() does not support ' . $market['type'] . ' orders');
         }
         //
-        // spot, swap, future and spot margin
+        // spot, swap, future, spot margin and tokenized stock
         //
         //     {
         //         "code": "00000",
@@ -6620,7 +6755,7 @@ class bitget extends Exchange {
             $orderInfo = $this->safe_list($data, 'successList', array());
             $order = $this->safe_dict($orderInfo, 0, array());
         } else {
-            if (($uta === true) && ($trigger === true)) {
+            if ($isStockOrUta && ($trigger === true)) {
                 $order = $response;
             } else {
                 $order = $data;
@@ -8843,7 +8978,7 @@ class bitget extends Exchange {
         }
         $method = null;
         $useHistoryEndpoint = $this->safe_bool($paramsPaginate, 'useHistoryEndpoint', false);
-        if ($useHistoryEndpoint === true) {
+        if ($useHistoryEndpoint) {
             $method = 'privateMixGetV2MixPositionHistoryPosition';
         } else {
             list($method, $paramsPaginate) = $this->handle_option_string_and_params($paramsPaginate, 'fetchPositions', 'method', 'privateMixGetV2MixPositionAllPosition');
@@ -8869,7 +9004,7 @@ class bitget extends Exchange {
         } elseif ($method === 'privateMixGetV2MixPositionAllPosition') {
             $marginCoin = $this->safe_string($paramsPaginate, 'marginCoin', 'USDT');
             if ($market !== null) {
-                $marginCoin = $market['settleId'];
+                $marginCoin = $this->safe_string($market, 'settleId');
             } elseif ($productType === 'USDT-FUTURES') {
                 $marginCoin = 'USDT';
             } elseif ($productType === 'USDC-FUTURES') {
@@ -9750,7 +9885,7 @@ class bitget extends Exchange {
         return $this->parse_funding_histories($bills, $market, $since, $limit);
     }
 
-    public function parse_funding_history(?array $contract, ?array $market = null) {
+    public function parse_funding_history(?array $contract, ?array $market = null): array {
         //
         //     {
         //         "billId": "1111499428100472833",
@@ -12155,7 +12290,7 @@ class bitget extends Exchange {
         }
         $headersResult = $requestHeaders;
         $sandboxMode = $this->safe_bool_2($this->options, 'sandboxMode', 'sandbox', false);
-        if (($sandboxMode === true) && ($path !== 'v2/public/time') && ($path !== 'v3/market/current-fund-rate')) {
+        if (($sandboxMode) && ($path !== 'v2/public/time') && ($path !== 'v3/market/current-fund-rate')) {
             // https://github.com/ccxt/ccxt/issues/25252#issuecomment-2662742336
             if ($headersResult === null) {
                 $headersResult = array();

@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/deepcoin.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Bool, Currency, DepositAddress, Dict, Fee, FeeString, FundingRate, FundingRateHistory, FundingRates, int, Int, LedgerEntry, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, SubType, Ticker, Tickers, Trade, Transaction, TransferEntry, Endpoint } from './base/types.js';
+import type { Balances, Bool, Currency, DepositAddress, Dict, NullableDict, Fee, FeeString, FundingRate, FundingRateHistory, FundingRates, int, Int, LedgerEntry, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, SubType, Ticker, Tickers, Trade, Transaction, TransferEntry, Endpoint } from './base/types.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound, NotSupported, NullResponse } from './base/errors.js';
 
 // ---------------------------------------------------------------------------
@@ -414,14 +414,14 @@ export default class deepcoin extends Exchange {
         } else {
             types = this.safeList (this.options, 'fetchMarkets', types) as List; // backward-support
         }
-        let promises: List = [];
+        const promises: List = [];
         let result: List = [];
         for (let i = 0; i < types.length; i++) {
             promises.push (this.fetchMarketsByType (types[i], params));
         }
-        promises = await Promise.all (promises);
-        for (let i = 0; i < promises.length; i++) {
-            result = this.arrayConcat (result, promises[i]);
+        const responses = await Promise.all (promises);
+        for (let i = 0; i < responses.length; i++) {
+            result = this.arrayConcat (result, responses[i]);
         }
         return result;
     }
@@ -523,7 +523,7 @@ export default class deepcoin extends Exchange {
         if ((base === undefined) || (quote === undefined)) {
             return undefined;
         }
-        let symbol = base + '/' + quote;
+        let symbol: string = base + '/' + quote;
         let isLinear: Bool = undefined;
         if (swap) {
             isLinear = (quoteId !== 'USD');
@@ -693,9 +693,9 @@ export default class deepcoin extends Exchange {
             request['after'] = until;
         }
         const calculateUntil = this.safeBool (paramsPaginate, 'calculateUntil', false);
-        const keysToOmit = (calculateUntil === true) ? [ 'price', 'until', 'calculateUntil' ] : [ 'price', 'until' ];
+        const keysToOmit = (calculateUntil) ? [ 'price', 'until', 'calculateUntil' ] : [ 'price', 'until' ];
         const paramsOmitted = this.omit (paramsPaginate, keysToOmit);
-        if (calculateUntil === true) {
+        if (calculateUntil) {
             if (since !== undefined) {
                 // the exchange do not have a since param for this endpoint
                 // we calculate until (after) for correct pagination
@@ -938,8 +938,8 @@ export default class deepcoin extends Exchange {
         }, marketResolved);
     }
 
-    parseTakerOrMaker (execType: Str) {
-        const types = {
+    parseTakerOrMaker (execType: Str): Str {
+        const types: Dict = {
             'T': 'taker',
             'M': 'maker',
         };
@@ -1238,16 +1238,17 @@ export default class deepcoin extends Exchange {
         const paramsOmitted = (network !== undefined) ? this.omit (params, 'network') : params;
         const addressess = await this.fetchDepositAddresses ([ code ], paramsOmitted);
         const length = addressess.length;
-        let address = this.safeDict (addressess, 0, {});
+        let index = 0;
         if ((network !== undefined) && (length > 1)) {
+            // the last entry on the requested network wins
             for (let i = 0; i < length; i++) {
-                const entry = addressess[i];
-                if (entry['network'] === network) {
-                    address = entry;
+                const entryNetwork = this.safeString (this.safeDict (addressess, i, {}), 'network');
+                if (entryNetwork === network) {
+                    index = i;
                 }
             }
         }
-        return address as DepositAddress;
+        return this.safeDict (addressess, index, {}) as DepositAddress;
     }
 
     override parseDepositAddress (response: Dict, currency: Currency = undefined): DepositAddress {
@@ -1417,7 +1418,7 @@ export default class deepcoin extends Exchange {
      */
     override async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params: Dict = {}): Promise<TransferEntry> {
         const [ userIdOption, paramsUserId ] = this.handleOptionStringAndParams (params, 'transfer', 'userId');
-        let userId = undefined;
+        let userId: Str = undefined;
         if (userIdOption !== undefined && userIdOption !== '') {
             userId = userIdOption;
         } else {
@@ -1456,7 +1457,7 @@ export default class deepcoin extends Exchange {
         const transfer = this.parseTransfer (data, currency);
         const transferOptions = this.safeDict (this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool (transferOptions, 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest === true) {
+        if (fillResponseFromRequest) {
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
             transfer['amount'] = amount;
@@ -1654,7 +1655,7 @@ export default class deepcoin extends Exchange {
         } else if (!isMarketOrder) {
             throw new BadRequest (this.id + ' createOrder() requires a price argument for limit orders');
         }
-        let paramsRequest = undefined;
+        let paramsRequest: NullableDict = undefined;
         if (market['spot'] === true) {
             const cost = this.safeString (paramsOrderType, 'cost');
             if (cost !== undefined) {
@@ -1681,7 +1682,7 @@ export default class deepcoin extends Exchange {
             request['mrgPosition'] = mrgPosition;
             let posSide: Str = undefined;
             const reduceOnly = this.safeBool (paramsMrgPosition, 'reduceOnly', false);
-            if (reduceOnly === true) {
+            if (reduceOnly) {
                 if (side === 'buy') {
                     posSide = 'short';
                 } else if (side === 'sell') {
@@ -1763,7 +1764,7 @@ export default class deepcoin extends Exchange {
         request['isCrossMargin'] = isCrossMargin;
         request['tdMode'] = marginModeOption;
         if (market['swap'] === true) {
-            if (reduceOnly === true) {
+            if (reduceOnly) {
                 if (side === 'buy') {
                     request['posSide'] = 'short';
                 } else if (side === 'sell') {
@@ -1986,7 +1987,7 @@ export default class deepcoin extends Exchange {
             request['limit'] = limit; // default 100
         }
         let response = undefined;
-        if (trigger === true) {
+        if (trigger) {
             if (methodName !== 'fetchCanceledAndClosedOrders') {
                 throw new BadRequest (this.id + ' ' + methodName + '() does not support trigger orders');
             }
@@ -2147,7 +2148,7 @@ export default class deepcoin extends Exchange {
         const trigger = this.safeBool (params, 'trigger', false);
         const paramsOmitted = this.omit (params, 'trigger');
         let response = undefined;
-        if (trigger === true) {
+        if (trigger) {
             request['instType'] = this.convertToInstrumentType (market['type']);
             //
             //     {
@@ -2260,7 +2261,7 @@ export default class deepcoin extends Exchange {
         };
         let response = undefined;
         const trigger = this.safeBool (params, 'trigger', false);
-        if (trigger === true) {
+        if (trigger) {
             const paramsOmitted = this.omit (params, 'trigger');
             response = await this.privatePostDeepcoinTradeCancelTriggerOrder (this.extend (request, paramsOmitted));
         } else {

@@ -558,10 +558,11 @@ class bitfinex extends Exchange {
     }
 
     public function is_fiat(mixed $code): bool {
-        return (is_array($this->options['fiat']) && array_key_exists($code ?? '', $this->options['fiat']));
+        $fiat = $this->safe_dict($this->options, 'fiat', array());
+        return (is_array($fiat) && array_key_exists($code ?? '', $fiat));
     }
 
-    public function get_currency_name(string $code) {
+    public function get_currency_name(string $code): string {
         // temporary fix for transpiler recognition, even though this is in parent class
         if (is_array($this->options['currencyNames']) && array_key_exists($code ?? '', $this->options['currencyNames'])) {
             return $this->options['currencyNames'][$code];
@@ -645,7 +646,7 @@ class bitfinex extends Exchange {
         for ($i = 0; $i < count($markets); $i++) {
             $pairObj = $this->safe_list($markets, $i);
             $id = $this->safe_string_upper($pairObj, 0);
-            $market = $this->safe_value($pairObj, 1, array());
+            $market = $this->safe_list($pairObj, 1, array());
             $spot = true;
             $type = null;
             if (mb_strpos($id, 'F0') !== false) {
@@ -902,7 +903,8 @@ class bitfinex extends Exchange {
         $name = $this->safe_string($label, 1);
         $pool = $this->safe_list($indexed['pool'], $id, array());
         $rawType = $this->safe_string($pool, 1);
-        $isCryptoCoin = ($rawType !== null) || (is_array($indexed['explorer']) && array_key_exists($id ?? '', $indexed['explorer'])); // "hacky" solution
+        $explorer = $this->safe_dict($indexed, 'explorer', array());
+        $isCryptoCoin = ($rawType !== null) || (is_array($explorer) && array_key_exists($id ?? '', $explorer)); // "hacky" solution
         $type = $isCryptoCoin ? 'crypto' : null;
         $feeValues = $this->safe_list($indexed['fees'], $id, array());
         $fees = $this->safe_list($feeValues, 1, array());
@@ -1005,8 +1007,7 @@ class bitfinex extends Exchange {
             }
             $type = $this->safe_string($balance, 0);
             $currencyId = $this->safe_string_lower($balance, 1, '');
-            $start = strlen($currencyId) - 2;
-            $isDerivativeCode = mb_substr($currencyId, $start) === 'f0';
+            $isDerivativeCode = ($currencyId !== null) && (str_ends_with($currencyId, 'f0') === true);
             // this will only filter the derivative codes if the requestedType is 'derivatives'
             $derivativeCondition = (!$isDerivative || $isDerivativeCode);
             if (($accountType === $type) && $derivativeCondition) {
@@ -1159,8 +1160,7 @@ class bitfinex extends Exchange {
         $currencyId = null;
         if ($type === 'derivatives') {
             $currencyId = $this->safe_string($underlying, 0, $transferId);
-            $start = strlen($currencyId) - 2;
-            $isDerivativeCode = mb_substr($currencyId, $start) === 'F0';
+            $isDerivativeCode = str_ends_with($currencyId, 'F0');
             if (!$isDerivativeCode) {
                 $currencyId = $currencyId . 'F0';
             }
@@ -1206,7 +1206,7 @@ class bitfinex extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'nonce' => null,
         );
-        $priceIndex = ($fullRequest['precision'] === 'R0') ? 1 : 0;
+        $priceIndex = ($this->safe_string($fullRequest, 'precision') === 'R0') ? 1 : 0;
         $orders = $this->to_array($orderbook);
         for ($i = 0; $i < count($orders); $i++) {
             $order = $orders[$i];
@@ -1631,7 +1631,7 @@ class bitfinex extends Exchange {
         );
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         if ($status === null) {
             return null;
         }
@@ -1652,7 +1652,7 @@ class bitfinex extends Exchange {
         return $this->safe_string($statuses, $state, $status);
     }
 
-    public function parse_order_flags(?string $flags) {
+    public function parse_order_flags(?string $flags): ?array {
         // flags can be added to each other...
         $flagValues = array(
             '1024' => array( 'reduceOnly' ),
@@ -1802,7 +1802,7 @@ class bitfinex extends Exchange {
         }
         $ioc = ($timeInForce === 'IOC');
         $fok = ($timeInForce === 'FOK');
-        $postOnly = (($postOnlyParam === true) || ($timeInForce === 'PO'));
+        $postOnly = (($postOnlyParam) || ($timeInForce === 'PO'));
         if (($ioc || $fok) && ($price === null)) {
             throw new InvalidOrder($this->id . ' createOrder() requires a price argument with IOC and FOK orders');
         }
@@ -1825,11 +1825,12 @@ class bitfinex extends Exchange {
         $request['type'] = $orderType;
         // flag values may be summed to combine flags
         $flags = 0;
-        if ($postOnly) {
-            $flags = $this->sum($flags, 4096);
-        }
-        if ($reduceOnly === true) {
-            $flags = $this->sum($flags, 1024);
+        if ($postOnly && $reduceOnly) {
+            $flags = 5120;
+        } elseif ($postOnly) {
+            $flags = 4096;
+        } elseif ($reduceOnly) {
+            $flags = 1024;
         }
         if ($flags !== 0) {
             $request['flags'] = $flags;
@@ -2038,7 +2039,7 @@ class bitfinex extends Exchange {
             $market = $this->market($symbol);
         }
         if ($cid !== null) {
-            $cidDate = $this->safe_value($params, 'cidDate'); // client order id date
+            $cidDate = $this->safe_string($params, 'cidDate'); // client order id date
             if ($cidDate === null) {
                 throw new InvalidOrder($this->id . " canceling an order by clientOrderId ('cid') requires both 'cid' and 'cid_date' ('YYYY-MM-DD')");
             }
@@ -2159,7 +2160,7 @@ class bitfinex extends Exchange {
             'id' => array( intval($id) ),
         );
         $orders = $this->fetch_open_orders($symbol, null, null, $this->extend($request, $params));
-        $order = $this->safe_value($orders, 0);
+        $order = $this->safe_dict($orders, 0);
         if ($order === null) {
             throw new OrderNotFound($this->id . ' order ' . $id . ' not found');
         }
@@ -2182,7 +2183,7 @@ class bitfinex extends Exchange {
             'id' => array( intval($id) ),
         );
         $orders = $this->fetch_closed_orders($symbol, null, null, $this->extend($request, $params));
-        $order = $this->safe_value($orders, 0);
+        $order = $this->safe_dict($orders, 0);
         if ($order === null) {
             throw new OrderNotFound($this->id . ' order ' . $id . ' not found');
         }
@@ -2501,7 +2502,7 @@ class bitfinex extends Exchange {
         );
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'SUCCESS' => 'ok',
             'COMPLETED' => 'ok',
@@ -2595,9 +2596,10 @@ class bitfinex extends Exchange {
                 $feeCost = Precise::string_abs($feeCost);
             }
             $amount = $this->safe_number($data, 5);
-            $id = $this->safe_integer($data, 0);
+            $withdrawId = $this->safe_integer($data, 0);
+            $id = $withdrawId;
             $status = 'ok';
-            if ($id === 0) {
+            if ($withdrawId === 0) {
                 $id = null;
                 $status = 'failed';
             }
@@ -2880,7 +2882,7 @@ class bitfinex extends Exchange {
         }
         $withdrawOptions = $this->safe_dict($this->options, 'withdraw', array());
         $includeFee = $this->safe_bool($withdrawOptions, 'includeFee', false);
-        if ($includeFee === true) {
+        if ($includeFee) {
             $request['fee_deduct'] = 1;
         }
         $response = $this->privatePostAuthWWithdraw($this->extend($request, $paramsOmitted2));
@@ -3131,7 +3133,7 @@ class bitfinex extends Exchange {
         return $response;
     }
 
-    public function parse_ledger_entry_type(?string $type) {
+    public function parse_ledger_entry_type(?string $type): ?string {
         if ($type === null) {
             return null;
         } elseif (mb_strpos($type, 'fee') !== false || mb_strpos($type, 'charged') !== false) {
@@ -3877,7 +3879,7 @@ class bitfinex extends Exchange {
         //         ]
         //     ]
         //
-        $marginStatusRaw = $data[0];
+        $marginStatusRaw = $this->safe_integer($data, 0);
         $marginStatus = 'failed';
         if ($marginStatusRaw === 1) {
             $marginStatus = 'ok';
@@ -4014,17 +4016,18 @@ class bitfinex extends Exchange {
                 $request['price_aux_limit'] = $this->price_to_precision($symbol, $price);
             }
         }
-        $postOnly = (($postOnlyParam === true) || ($timeInForce === 'PO'));
+        $postOnly = (($postOnlyParam) || ($timeInForce === 'PO'));
         if (($type !== 'market') && ($triggerPrice === null)) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         // flag values may be summed to combine flags
         $flags = 0;
-        if ($postOnly) {
-            $flags = $this->sum($flags, 4096);
-        }
-        if ($reduceOnly === true) {
-            $flags = $this->sum($flags, 1024);
+        if ($postOnly && $reduceOnly) {
+            $flags = 5120;
+        } elseif ($postOnly) {
+            $flags = 4096;
+        } elseif ($reduceOnly) {
+            $flags = 1024;
         }
         if ($flags !== 0) {
             $request['flags'] = $flags;

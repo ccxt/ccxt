@@ -842,7 +842,7 @@ export default class apex extends Exchange {
             'symbol': this.safeString (market, 'id2'),
         };
         // default is 200 when requested with `since`, max 200
-        const limitResolved = (limit === undefined) ? 200 : Math.min (limit, 200);
+        const limitResolved = (limit === undefined || limit > 200) ? 200 : limit;
         request['limit'] = limitResolved;
         const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end', request, params, 0.001);
         if (since !== undefined) {
@@ -1245,7 +1245,7 @@ export default class apex extends Exchange {
         }, marketResolved);
     }
 
-    parseTimeInForce (timeInForce: Str) {
+    parseTimeInForce (timeInForce: Str): Str {
         const timeInForces: Dict = {
             'GOOD_TIL_CANCEL': 'GOOD_TIL_CANCEL',
             'FILL_OR_KILL': 'FILL_OR_KILL',
@@ -1255,7 +1255,7 @@ export default class apex extends Exchange {
         return this.safeString (timeInForces, timeInForce);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         if (status !== undefined) {
             const statuses: Dict = {
                 'PENDING': 'open',
@@ -1270,7 +1270,7 @@ export default class apex extends Exchange {
         return undefined;
     }
 
-    parseOrderType (type: Str) {
+    parseOrderType (type: Str): Str {
         const types: Dict = {
             'LIMIT': 'limit',
             'MARKET': 'market',
@@ -1283,12 +1283,11 @@ export default class apex extends Exchange {
     }
 
     override safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
-        let marketResolved: Market = undefined;
+        let marketResolved: Market = market;
         if (market === undefined && marketId !== undefined) {
-            const marketsMap = this.markets;
             const marketsById = this.markets_by_id;
-            if ((marketsMap !== undefined) && (marketId in marketsMap)) {
-                marketResolved = marketsMap[marketId];
+            if ((this.markets !== undefined) && (marketId in this.markets)) {
+                marketResolved = this.markets[marketId];
             } else if ((marketsById !== undefined) && (marketId in marketsById)) {
                 marketResolved = marketsById[marketId];
             } else {
@@ -1297,18 +1296,17 @@ export default class apex extends Exchange {
                     const markets = marketsById[newMarketId];
                     const numMarkets = markets.length;
                     if (numMarkets > 0) {
-                        if (marketsById[newMarketId][0]['id2'] === marketId) {
-                            marketResolved = marketsById[newMarketId][0];
+                        if (markets[0]['id2'] === marketId) {
+                            marketResolved = markets[0];
                         }
                     }
                 }
             }
         }
-        const marketValue = (marketResolved === undefined) ? market : marketResolved;
-        return super.safeMarket (marketId, marketValue, delimiter, marketType);
+        return super.safeMarket (marketId, marketResolved, delimiter, marketType);
     }
 
-    generateRandomClientIdOmni (_accountId: Str) {
+    generateRandomClientIdOmni (_accountId: Str): string {
         const hasAccountId = (_accountId !== undefined) && (_accountId !== '');
         let accountId: Str = undefined;
         if (hasAccountId) {
@@ -1319,7 +1317,7 @@ export default class apex extends Exchange {
         return 'apexomni-' + accountId + '-' + this.milliseconds ().toString () + '-' + this.randNumber (6).toString ();
     }
 
-    addHyphenBeforeUsdt (symbol: string) {
+    addHyphenBeforeUsdt (symbol: string): string {
         const uppercaseSymbol = symbol.toUpperCase ();
         const index = uppercaseSymbol.indexOf ('USDT');
         const symbolChar = this.safeString (symbol, index - 1);
@@ -1329,7 +1327,7 @@ export default class apex extends Exchange {
         return symbol;
     }
 
-    getSeeds () {
+    getSeeds (): string {
         const seeds = this.safeString (this.options, 'seeds');
         if (seeds === undefined) {
             throw new ArgumentsRequired (this.id + ' the "seeds" key is required in the options to access private endpoints. You can find it in API Management > Omni Key, and then set it as exchange.options["seeds"] = XXXX');
@@ -1337,13 +1335,13 @@ export default class apex extends Exchange {
         return seeds;
     }
 
-    async getAccountId () {
+    async getAccountId (): Promise<Str> {
         const accountId = this.safeString (this.options, 'accountId', '0');
         if (accountId === '0') {
             const accountData = await this.fetchAccount ();
             this.options['accountId'] = this.safeString (accountData, 'id', '0');
         }
-        return this.options['accountId'];
+        return this.safeString (this.options, 'accountId');
     }
 
     /**
@@ -1412,12 +1410,9 @@ export default class apex extends Exchange {
         }
         const paramsOmitted: Dict = this.omit (params, 'timeInForce');
         const paramsOmitted2: Dict = this.omit (paramsOmitted, 'postOnly');
-        let clientOrderId = this.safeStringN (paramsOmitted2, [ 'clientId', 'clientOrderId', 'client_order_id' ]);
+        const clientOrderId = this.safeStringN (paramsOmitted2, [ 'clientId', 'clientOrderId', 'client_order_id' ]);
         const accountId = await this.getAccountId ();
-        if (clientOrderId === undefined) {
-            clientOrderId = this.generateRandomClientIdOmni (accountId);
-        }
-        const finalClientOrderId = clientOrderId; // java req
+        const finalClientOrderId = (clientOrderId !== undefined) ? clientOrderId : this.generateRandomClientIdOmni (accountId);
         const paramsOmitted3: Dict = this.omit (paramsOmitted2, [ 'clientId', 'clientOrderId', 'client_order_id', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice' ]);
         const finalOrderPrice = orderPrice; // java req
         const orderToSign: Dict = {
@@ -1442,7 +1437,7 @@ export default class apex extends Exchange {
             'size': orderSize,
             'price': finalOrderPrice,
             'limitFee': limitFee,
-            'expiration': Math.floor (timeNow / 1000 + 30 * 24 * 60 * 60),
+            'expiration': this.parseToInt (timeNow / 1000) + 30 * 24 * 60 * 60,
             'timeInForce': timeInForce,
             'clientId': finalClientOrderId,
             'brokerId': this.safeString (this.options, 'brokerId', '6956'),
@@ -1498,7 +1493,8 @@ export default class apex extends Exchange {
         const accountId = this.safeString (accountData, 'id', '');
         let currency = {};
         let assets: Dict[] = [];
-        if (fromAccount.toLowerCase () === 'contract') {
+        const isContract = fromAccount.toLowerCase () === 'contract';
+        if (isContract) {
             assets = contractAssets;
         } else {
             assets = spotAssets;
@@ -1512,15 +1508,14 @@ export default class apex extends Exchange {
         const decimalsNum = this.safeNumber (currency, 'decimals', 0);
         const decimalsNumber = (decimalsNum === undefined) ? 0 : decimalsNum;
         const mathPowResult = (Math.pow (10, decimalsNumber));
-        const amountNumber = this.parseToInt (amount * mathPowResult);
+        const amountNum = this.parseNumber (amount);
+        const amountValue = (amountNum === undefined) ? 0 : amountNum;
+        const amountNumber = this.parseToInt (amountValue * mathPowResult);
         const timestampSeconds = this.parseToInt (this.milliseconds () / 1000);
-        let clientOrderId = this.safeStringN (params, [ 'clientId', 'clientOrderId', 'client_order_id' ]);
-        if (clientOrderId === undefined) {
-            clientOrderId = this.generateRandomClientIdOmni (this.safeString (this.options, 'accountId'));
-        }
-        const finalClientOrderId = clientOrderId; // java req
+        const clientOrderId = this.safeStringN (params, [ 'clientId', 'clientOrderId', 'client_order_id' ]);
+        const finalClientOrderId = (clientOrderId !== undefined) ? clientOrderId : this.generateRandomClientIdOmni (this.safeString (this.options, 'accountId'));
         const paramsOmitted: Dict = this.omit (params, [ 'clientId', 'clientOrderId', 'client_order_id' ]);
-        if (fromAccount.toLowerCase () === 'contract') {
+        if (isContract) {
             const formattedUint32 = '4294967295';
             const zkSignAccountId = Precise.stringMod (accountId, formattedUint32);
             const expireTime = timestampSeconds + 3600 * 24 * 28;

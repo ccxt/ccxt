@@ -21,7 +21,7 @@ fn helperTestInitThrottler() {
     let mut rateLimit: Value = crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("rateLimit".into()));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&rateLimit, &Value::Float(10.8))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&tokenBucket, &Value::Str("delay".into())), &Value::Float(0.001))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&tokenBucket, &Value::Str("refillRate".into())), &divide(&Value::Int(1), &rateLimit))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&tokenBucket, &Value::Str("refillRate".into())), &(match (&(Value::Int(1)), &(rateLimit)) { (__a, __b) => match (__a.as_f64(), (match __b { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })) { (Some(__x), Some(__y)) if __y != 0.0 => Value::Float(__x / __y), _ => Value::Null } }))))));
     // fix decimal/integer issues across langs
     assert!(ccxt::runtime::is_true(&(exchange.in_array(get_value(&tokenBucket, &Value::Str("capacity".into())), Value::from(vec![Value::Int(1), Value::Int(1)])))));
     let mut cost: Value = exchange.parse_to_numeric(exchange.safe_string2(tokenBucket.clone(), Value::Str("cost".into()), Value::Str("defaultCost".into()), &[])); // python sync, todo fix
@@ -227,9 +227,9 @@ fn helperTestProperties() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("enableRateLimit".into())), &Value::Bool(true))))));
     assert!(ccxt::runtime::is_true(&((crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("rateLimiterAlgorithm".into())).as_str() == Some("leakyBucket")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("rateLimit".into())), &Value::Int(2000))))));
-    assert!(ccxt::runtime::is_true(&((exchange.prop(&&Value::Str("certified".into())).as_bool() == Some(false)))));
-    assert!(ccxt::runtime::is_true(&((exchange.prop(&&Value::Str("pro".into())).as_bool() == Some(false)))));
-    assert!(ccxt::runtime::is_true(&((exchange.prop(&&Value::Str("alias".into())).as_bool() == Some(false)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&exchange.prop(&&Value::Str("certified".into())))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&exchange.prop(&&Value::Str("pro".into())))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&exchange.prop(&&Value::Str("alias".into())))))));
     let mut httpExceptionKeys: Value = Value::from(vec![Value::Str("400".into()), Value::Str("401".into()), Value::Str("403".into()), Value::Str("404".into()), Value::Str("405".into()), Value::Str("407".into()), Value::Str("408".into()), Value::Str("409".into()), Value::Str("410".into()), Value::Str("418".into()), Value::Str("422".into()), Value::Str("429".into()), Value::Str("451".into()), Value::Str("500".into()), Value::Str("501".into()), Value::Str("502".into()), Value::Str("503".into()), Value::Str("504".into()), Value::Str("511".into()), Value::Str("520".into()), Value::Str("521".into()), Value::Str("522".into()), Value::Str("525".into()), Value::Str("526".into()), Value::Str("530".into())]);
     // php errors with below, bcz integer key cast
     // testSharedMethods.assertDeepEqual (exchange, {}, 'httpExceptionKeys', Object.keys (testSharedMethods.exchangeProp (exchange, 'httpExceptions')), httpExceptionKeys); // todo: add better deepAssert with error classes
@@ -344,7 +344,7 @@ fn helperTestProperties() {
         m
     }).clone(), Value::Str("status".into()).clone(), exchange.prop(&&Value::Str("status".into())).clone(), status.clone()]);
     assert!(ccxt::runtime::is_true(&((exchange.prop(&&Value::Str("timeout".into())).as_f64() == Some(10000.0)))));
-    assert!(ccxt::runtime::is_true(&((exchange.prop(&&Value::Str("verbose".into())).as_bool() == Some(false)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&exchange.prop(&&Value::Str("verbose".into())))))));
     // assert!(ccxt::runtime::is_true(&(testSharedMethods.exchangeProp (exchange, 'newUpdates') === true))); // todo WS
     assert!(ccxt::runtime::is_true(&(Value::Bool(!is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("reloadingMarkets".into())), &Value::Bool(true))))));
     assert!(ccxt::runtime::is_true(&((crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("marketsLoading".into())) == Value::Null))));

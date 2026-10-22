@@ -166,7 +166,8 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         :param int side: outcome side, 0 = YES, 1 = NO
         :returns int: the outcome side encoding
         """
-        return self.sum(10 * outcomeId, side)
+        outcomeIdInt = self.parse_to_int(outcomeId)
+        return self.sum(10 * outcomeIdInt, side)
 
     def outcome_asset_id(self, encoding: float) -> float:
         """
@@ -558,12 +559,17 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         midStr = self.number_to_string(midPx)
         parts = midStr.split('.')
         intPart = parts[0]
-        significantDigits = max(5, len(intPart))
-        maxDecimals = 8 - szDecimals
-        pricePrecisionDecimals = max(1, min(maxDecimals, significantDigits - len(intPart)))
+        intPartLength = len(intPart)
+        szDecimalsInt = self.parse_to_int(szDecimals)
+        maxDecimals = 8 - szDecimalsInt
+        # significantDigits - intPartLength, with significantDigits = max (5, intPartLength)
+        digitsLeft = 0
+        if intPartLength <= 5:
+            digitsLeft = 5 - intPartLength
+        cappedDecimals = maxDecimals if (maxDecimals < digitsLeft) else digitsLeft
+        # appends max (1, cappedDecimals) - 1 zeros
         zeros = ''
-        zeroCount = pricePrecisionDecimals - 1
-        for zi in range(0, zeroCount):
+        for zi in range(1, cappedDecimals):
             zeros = zeros + '0'
         return self.parse_to_numeric('0.' + zeros + '1')
 
@@ -786,10 +792,11 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             tf = self.parse_timeframe(timeframe)
             candleCount = limit if (limit is not None) else 100
             startOffset = tf * candleCount * -1000
-            startTime = self.sum(until, startOffset)
+            shiftedStart = self.sum(until, startOffset)
+            startTime = shiftedStart
             if startTime is None:
                 raise ExchangeError(self.id + ' fetchOHLCV() missing startTime')
-            if startTime < 0:
+            if shiftedStart < 0:
                 startTime = 0
         request = {
             'type': 'candleSnapshot',
@@ -1126,7 +1133,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         defaultTif = 'Gtc'
         if isMarket:
             defaultTif = 'Ioc'
-        if postOnly is True:
+        if postOnly:
             defaultTif = 'Alo'
         tif = self.capitalize(self.safe_string_lower(params, 'timeInForce', defaultTif))  # eslint-disable-line
         if price is None:
@@ -1753,7 +1760,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             # push through a local and write the slice back — the go transpiler's
             # AppendToArray reassigns only a local copy of a map-stored array, so a
             # direct push on groupMap[parentSymbol] loses the element in go
-            parentMarkets = self.safe_value(groupMap, parentSymbol)
+            parentMarkets = self.safe_list(groupMap, parentSymbol, [])
             parentMarkets.append(mkt)
             if parentSymbol is not None:
                 groupMap[parentSymbol] = parentMarkets
@@ -1768,7 +1775,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         # so getEvent() resolves these events by any of the three keys
         return self.apply_event_fetch_params(events, params, queries)
 
-    def parse_event(self, raw: dict) -> object:
+    def parse_event(self, raw: dict) -> PredictionEvent:
         """
  @ignore
         parses a grouped set of outcome markets into a unified prediction event object
@@ -1945,7 +1952,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         nonce = self.incrementing_nonce()
         isSandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         payload = {
-            'hyperliquidChain': 'Testnet' if (isSandboxMode is True) else 'Mainnet',
+            'hyperliquidChain': 'Testnet' if (isSandboxMode) else 'Mainnet',
             'maxFeeRate': maxFeeRate,
             'builder': builder,
             'nonce': nonce,
@@ -1973,7 +1980,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         # async for the PHP and typed transpilers, which mishandle an async body that never suspends
         await self.load_markets()
         buildFee = self.safe_bool(self.options, 'builderFee', False)
-        if buildFee is not True:
+        if not buildFee:
             return None
         if self.safe_bool(self.options, 'approvedBuilderFee', False):
             return None  # already approved
@@ -2009,7 +2016,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         apiGroup = api[0]
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         baseUrl: str
-        if sandboxMode is True:
+        if sandboxMode:
             testUrls = self.safe_dict(self.urls, 'test', {})
             baseUrl = self.safe_string(testUrls, apiGroup, self.safe_string(testUrls, 'public', ''))
         else:

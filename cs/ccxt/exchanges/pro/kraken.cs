@@ -128,7 +128,7 @@ public partial class kraken : ccxt.kraken
         IList<object> postOnlyparamsPostOnlyVariable = (IList<object>)this.handlePostOnly(isMarket, false, parameters);
         bool postOnly = (bool)postOnlyparamsPostOnlyVariable[0];
         IDictionary<string, object> paramsPostOnly = ((IDictionary<string, object>)postOnlyparamsPostOnlyVariable[1]);
-        if ((postOnly == true))
+        if (postOnly)
         {
             ((IDictionary<string,object>)(request != null && request.ContainsKey("params") ? request["params"] : null))["post_only"] = true;
         }
@@ -1186,17 +1186,12 @@ public partial class kraken : ccxt.kraken
     public virtual string? formatNumber(object data)
     {
         List<object> parts = ((string)data).Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
-        object integer = this.safeString(parts, 0);
+        string integer = this.safeString(parts, 0, "");
         string? decimals = this.safeString(parts, 1, "");
-        string? joinedResult = ((string)add(integer, decimals));
-        object i = 0;
-        while (isEqual(getValue(joinedResult, i), "0"))
+        string? joinedResult = (integer + decimals);
+        while ((joinedResult.Length > 0) && (((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))((joinedResult != null ? joinedResult[0].ToString() : null), "0")))
         {
-            i = add(i, 1);
-        }
-        if (isGreaterThan(i, 0))
-        {
-            joinedResult = slice(joinedResult, i, null);
+            joinedResult = ((joinedResult == null) ? null : joinedResult.Substring(Math.Min(1, joinedResult.Length)));
         }
         return ((string?)((object)(joinedResult)));
     }
@@ -1241,8 +1236,9 @@ public partial class kraken : ccxt.kraken
         object subscription = this.safeValue(client.subscriptions, authenticated);
         Int64 now = this.seconds();
         Int64? start = this.safeInteger(subscription, "start");
-        Int64? expires = this.safeInteger(subscription, "expires");
-        if (((subscription == null)) || (((subscription != null)) && isLessThanOrEqual((add(start, expires)), now)))
+        Int64? expires = this.safeInteger(subscription, "expires", -1);
+        bool expired = ((start != null)) && ((expires >= 0)) && ((start == null || start <= ((now - expires))));
+        if (((subscription == null)) || expired)
         {
             // single-flight leader election, see
             // https://github.com/ccxt/ccxt/issues/29393: the staleness gate
@@ -1551,17 +1547,18 @@ public partial class kraken : ccxt.kraken
                 Dictionary<string, object> newOrder = ccxt.BaseExchange.FromOrder(parsed);
                 if ((previousOrder != null))
                 {
-                    Dictionary<string, object> newRawOrder = this.extend(GetValue(previousOrder, "info"), GetValue(newOrder, "info"));
+                    Dictionary<string, object> newRawOrder = this.extend((previousOrder != null && previousOrder.ContainsKey("info") ? previousOrder["info"] : null), (newOrder != null && newOrder.ContainsKey("info") ? newOrder["info"] : null));
                     newOrder = ccxt.BaseExchange.FromOrder(this.parseWsOrder(newRawOrder));
                 }
                 int length = (stored?.Count ?? 0);
                 if ((length == limit) && ((previousOrder == null)))
                 {
-                    object first = getValue(stored, 0);
+                    object first = (stored != null && 0 < stored.Count ? stored[0] : null);
                     IDictionary<string, object> symbolsByOrderId = this.safeDict(this.options, "symbolsByOrderId", new Dictionary<string, object>() {});
-                    if (inOp(symbolsByOrderId, getValue(first, "id")))
+                    string? firstId = this.safeString(first, "id");
+                    if (((firstId != null)) && (((firstId != null) && symbolsByOrderId.ContainsKey(firstId))))
                     {
-                        symbolsByOrderId.Remove((string)getValue(first, "id"));
+                        symbolsByOrderId.Remove(firstId);
                     }
                 }
                 stored.append(newOrder);
@@ -1885,7 +1882,7 @@ public partial class kraken : ccxt.kraken
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});
             }
         }
-        if (isEqual(this.handleErrorMessage(client, (Dictionary<string, object>)message), true))
+        if ((this.handleErrorMessage(client, (Dictionary<string, object>)message) == true))
         {
             string? eventVar = this.safeString2(message, "event", "method");
             Dictionary<string, object> methods = new Dictionary<string, object>() {

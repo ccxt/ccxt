@@ -214,7 +214,7 @@ public class Binance extends BinanceApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object queries = (List<Object>)(this.parseSearchQueries(parameters));
+            List<Object> queries = (List<Object>)(this.parseSearchQueries(parameters));
             Integer queriesLength = ((List<?>)queries).size();
             if ((queriesLength != null && queriesLength > 0))
             {
@@ -241,7 +241,7 @@ public class Binance extends BinanceApi
             Integer rawTopicsLength = ((List<?>)rawTopics).size();
             for (var i = 0; (rawTopicsLength != null && i < rawTopicsLength); i++)
             {
-                Object parsedEvent = this.parseEvent((Map<String, Object>) ((rawTopics == null || i < 0 || i >= ((List<?>)rawTopics).size() ? null : ((List<?>)rawTopics).get(i))));
+                Map<String, Object> parsedEvent = this.parseEvent((Map<String, Object>) ((rawTopics == null || i < 0 || i >= ((List<?>)rawTopics).size() ? null : ((List<?>)rawTopics).get(i))));
                 ((List<Object>)parsedEvents).add(parsedEvent);
                 Object eventMarkets = (List<Object>)(this.safeList(parsedEvent, "markets", new ArrayList<Object>(Arrays.asList())));
                 Integer eventMarketsLength = ((List<?>)eventMarkets).size();
@@ -271,24 +271,18 @@ public class Binance extends BinanceApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object maxTopicsResolved = (((java.util.Objects.equals(maxTopics, null)))) ? this.safeInteger(this.options, "maxFetchMarketsLimit", 200) : maxTopics;
-            Long pageLimit = this.safeInteger(this.options, "marketsPageLimit", 100);
-            if ((pageLimit != null && pageLimit > 100))
-            {
-                pageLimit = 100L;
-            }
+            Long maxTopicsOption = this.safeInteger(this.options, "maxFetchMarketsLimit", 200);
+            Object maxTopicsResolved = (((!java.util.Objects.equals(maxTopics, null)))) ? maxTopics : maxTopicsOption;
+            Long pageLimitOption = this.safeInteger(this.options, "marketsPageLimit", 100);
+            Object pageLimit = ((((pageLimitOption != null && pageLimitOption > 100)))) ? 100 : pageLimitOption;
             List<Object> collected = new ArrayList<Object>(Arrays.asList());
             Object offset = 0;
             while (true)
             {
-                Object reqLimit = pageLimit;
                 Integer collectedLength = ((List<?>)collected).size();
-                Object remaining = Helpers.subtract(maxTopicsResolved, collectedLength);
-                if (Helpers.isLessThan(remaining, reqLimit))
-                {
-                    reqLimit = remaining;
-                }
-                if (Helpers.isLessThanOrEqual(reqLimit, 0))
+                Object remaining = ((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) - ((Long) j36b)); if (j36a instanceof Double || j36b instanceof Double) { java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; return (Object) (j36d.applyAsDouble(j36a) - j36d.applyAsDouble(j36b)); } return null; }).apply(maxTopicsResolved, collectedLength);
+                Object reqLimit = (((((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(remaining, pageLimit)))) ? remaining : pageLimit;
+                if (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return (!j38g && !j38e) || j38e; }).test(reqLimit, 0))
                 {
                     break;
                 }
@@ -328,14 +322,14 @@ public class Binance extends BinanceApi
                 //         "hasMore": true
                 //     }
                 //
-                Object pageTopics = (List<Object>)(this.safeList(response, "marketTopics", new ArrayList<Object>(Arrays.asList())));
+                List<Object> pageTopics = (List<Object>)(this.safeList(response, "marketTopics", new ArrayList<Object>(Arrays.asList())));
                 Integer pageTopicsLength = ((List<?>)pageTopics).size();
                 for (var i = 0; (pageTopicsLength != null && i < pageTopicsLength); i++)
                 {
-                    ((List<Object>)collected).add((pageTopics == null || i < 0 || i >= ((List<?>)pageTopics).size() ? null : ((List<?>)pageTopics).get(i)));
+                    ((List<Object>)collected).add((pageTopics == null || i < 0 || i >= pageTopics.size() ? null : pageTopics.get(i)));
                 }
                 Boolean hasMore = (Boolean) this.safeBool(response, "hasMore", false);
-                if ((!java.util.Objects.equals(hasMore, true)) || (Helpers.isLessThan(pageTopicsLength, reqLimit)))
+                if ((!Boolean.TRUE.equals(hasMore)) || (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(pageTopicsLength, reqLimit)))
                 {
                     break;
                 }
@@ -386,13 +380,13 @@ public class Binance extends BinanceApi
             for (var i = 0; (rawTopicsLength != null && i < rawTopicsLength); i++)
             {
                 Object rawTopic = (rawTopics == null || i < 0 || i >= ((List<?>)rawTopics).size() ? null : ((List<?>)rawTopics).get(i));
-                Object rawMarkets = (List<Object>)(this.safeList(rawTopic, "markets", new ArrayList<Object>(Arrays.asList())));
+                List<Object> rawMarkets = (List<Object>)(this.safeList(rawTopic, "markets", new ArrayList<Object>(Arrays.asList())));
                 Integer rawMarketsLength = ((List<?>)rawMarkets).size();
                 Boolean hasOutcomes = false;
                 if ((rawMarketsLength != null && rawMarketsLength > 0))
                 {
                     Map<String, Object> firstMarket = (Map<String, Object>) this.safeDict(rawMarkets, 0, new HashMap<String, Object>() {{}});
-                    Object firstOutcomes = (List<Object>)(this.safeList(firstMarket, "outcomes", new ArrayList<Object>(Arrays.asList())));
+                    List<Object> firstOutcomes = (List<Object>)(this.safeList(firstMarket, "outcomes", new ArrayList<Object>(Arrays.asList())));
                     Integer firstOutcomesLength = ((List<?>)firstOutcomes).size();
                     hasOutcomes = ((firstOutcomesLength != null && firstOutcomesLength > 0));
                 }
@@ -439,11 +433,11 @@ public class Binance extends BinanceApi
         return BaseExchange.supplyAsync(() -> {
 
             Boolean allowUnscopedFetchEvents = (Boolean) this.safeBool(this.options, "allowUnscopedFetchEvents", false);
-            if (!java.util.Objects.equals(allowUnscopedFetchEvents, true))
+            if (!Boolean.TRUE.equals(allowUnscopedFetchEvents))
             {
-                this.requireEventQuery(Helpers.toMapArg(parameters));
+                this.requireEventQuery(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v5 -> (Map<String, Object>) hx4J40v5; case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v5.getClass().getName()); })));
             }
-            List<Object> queries = this.parseSearchQueries(Helpers.toMapArg(parameters));
+            List<Object> queries = this.parseSearchQueries(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); })));
             // binance has no tag taxonomy — resolve requested tags through the semantic search too
             List<Object> tags = (List<Object>) this.safeList(parameters, "tags", new ArrayList<Object>(Arrays.asList()));
             Integer tagsLength = ((List<?>)tags).size();
@@ -477,10 +471,10 @@ public class Binance extends BinanceApi
             Object rawTopics = new ArrayList<Object>(Arrays.asList());
             if ((allQueriesLength != null && allQueriesLength > 0))
             {
-                rawTopics = (this.fetchEventsByQuery(allQueries, fetchCap, Helpers.toMapArg(rest))).join();
+                rawTopics = (this.fetchEventsByQuery(allQueries, fetchCap, ((Map<String, Object>) (switch ((Object) (rest)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })))).join();
             } else if (!java.util.Objects.equals(eventId, null))
             {
-                Object detail = (this.fetchRawTopicDetail(eventId, Helpers.toMapArg(rest))).join();
+                Object detail = (this.fetchRawTopicDetail(eventId, ((Map<String, Object>) (switch ((Object) (rest)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })))).join();
                 rawTopics = new ArrayList<Object>(Arrays.asList(detail));
             } else
             {
@@ -521,13 +515,13 @@ public class Binance extends BinanceApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; (rawTopicsLength != null && i < rawTopicsLength); i++)
             {
-                Object parsedEvent = this.parseEvent((Map<String, Object>) ((rawTopics == null || i < 0 || i >= ((List<?>)rawTopics).size() ? null : ((List<?>)rawTopics).get(i))));
+                Map<String, Object> parsedEvent = this.parseEvent((Map<String, Object>) ((rawTopics == null || i < 0 || i >= ((List<?>)rawTopics).size() ? null : ((List<?>)rawTopics).get(i))));
                 ((List<Object>)result).add(parsedEvent);
-                Object parsedMarkets = (List<Object>)(this.safeList(parsedEvent, "markets", new ArrayList<Object>(Arrays.asList())));
+                List<Object> parsedMarkets = (List<Object>)(this.safeList(parsedEvent, "markets", new ArrayList<Object>(Arrays.asList())));
                 Integer parsedMarketsLength = ((List<?>)parsedMarkets).size();
                 for (var mi = 0; (parsedMarketsLength != null && mi < parsedMarketsLength); mi++)
                 {
-                    Object m = (parsedMarkets == null || mi < 0 || mi >= ((List<?>)parsedMarkets).size() ? null : ((List<?>)parsedMarkets).get(mi));
+                    Object m = (parsedMarkets == null || mi < 0 || mi >= parsedMarkets.size() ? null : parsedMarkets.get(mi));
                     // prediction market rows are keyed by the unified 'market' handle
                     String handle = this.safeString(m, "market");
                     if (!java.util.Objects.equals(handle, null))
@@ -541,7 +535,7 @@ public class Binance extends BinanceApi
             // binance topics lack, and the query filter would drop semantic-search matches whose
             // title uses different words than the query
             Object postParams = this.omit(paramsOmitted, postOmitKeys);
-            return this.applyEventFetchParams(result, Helpers.toMapArg(postParams), new ArrayList<Object>(Arrays.asList()));
+            return this.applyEventFetchParams(result, ((Map<String, Object>) (switch ((Object) (postParams)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })), new ArrayList<Object>(Arrays.asList()));
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionEvent::new).collect(Collectors.toList()));
 
     }
@@ -565,14 +559,8 @@ public class Binance extends BinanceApi
             Map<String, Object> seen = new HashMap<String, Object>() {{}};
             List<Object> collected = new ArrayList<Object>(Arrays.asList());
             Integer queriesLength = ((List<?>)queries).size();
-            Object limitResolved = limit;
-            if (java.util.Objects.equals(limit, null))
-            {
-                limitResolved = 20;
-            } else if (Helpers.isGreaterThan(limit, 50))
-            {
-                limitResolved = 50;
-            }
+            Object limitValue = (((java.util.Objects.equals(limit, null)))) ? 20 : limit;
+            Object limitResolved = (((((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } return j38g; }).test(limitValue, 50)))) ? 50 : limitValue;
             for (var qi = 0; (queriesLength != null && qi < queriesLength); qi++)
             {
                 Map<String, Object> request = new HashMap<String, Object>();
@@ -609,7 +597,7 @@ public class Binance extends BinanceApi
             }
             Object capped = collected;
             Integer collectedLength = ((List<?>)collected).size();
-            if ((!java.util.Objects.equals(limitResolved, null)) && (Helpers.isGreaterThan(collectedLength, limitResolved)))
+            if (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } return j38g; }).test(collectedLength, limitResolved))
             {
                 capped = this.arraySlice(collected, 0, limitResolved);
             }
@@ -648,7 +636,7 @@ public class Binance extends BinanceApi
      * @param {object} rawTopic the raw market topic object
      * @returns {object} an event structure
      */
-    public Object parseEvent(Map<String, Object> rawTopic)
+    public Map<String, Object> parseEvent(Map<String, Object> rawTopic)
     {
         //
         //     {
@@ -678,13 +666,13 @@ public class Binance extends BinanceApi
         //         "markets": [ { "marketId": 5567895, "title": "UP", "outcomes": [ ... ] } ]
         //     }
         //
-        Object rawMarkets = (List<Object>)(this.safeList(rawTopic, "markets", new ArrayList<Object>(Arrays.asList())));
+        List<Object> rawMarkets = (List<Object>)(this.safeList(rawTopic, "markets", new ArrayList<Object>(Arrays.asList())));
         List<Object> marketsList = new ArrayList<Object>(Arrays.asList());
         Boolean anyActive = false;
         Integer rawMarketsLength = ((List<?>)rawMarkets).size();
         for (var i = 0; (rawMarketsLength != null && i < rawMarketsLength); i++)
         {
-            Map<String, Object> parsed = this.parseTopicMarket((Map<String, Object>) ((rawMarkets == null || i < 0 || i >= ((List<?>)rawMarkets).size() ? null : ((List<?>)rawMarkets).get(i))), (Map<String, Object>) (rawTopic));
+            Map<String, Object> parsed = this.parseTopicMarket((Map<String, Object>) ((rawMarkets == null || i < 0 || i >= rawMarkets.size() ? null : rawMarkets.get(i))), (Map<String, Object>) (rawTopic));
             ((List<Object>)marketsList).add(parsed);
             if (Boolean.TRUE.equals(this.safeBool(parsed, "active", false)))
             {
@@ -802,8 +790,8 @@ public class Binance extends BinanceApi
             if (Boolean.TRUE.equals(resolved) && (!java.util.Objects.equals(price, null)))
             {
                 winnerRaw = Precise.stringEq(price, "1");
-                settleFractionRaw = ((Helpers.isTrue((winnerRaw)))) ? 1 : 0;
-                if (Helpers.isTrue(winnerRaw))
+                settleFractionRaw = ((Boolean.TRUE.equals(winnerRaw))) ? 1 : 0;
+                if (Boolean.TRUE.equals(winnerRaw))
                 {
                     resolvedOutcomeRaw = outcomeHandle;
                 }
@@ -925,7 +913,7 @@ public class Binance extends BinanceApi
         return BaseExchange.supplyAsync(() -> {
 
             (this.loadOutcome((String) (outcome), false)).join();
-            Object outcomeObj = this.outcome((String) (outcome));
+            Map<String, Object> outcomeObj = this.outcome((String) (outcome));
             Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "marketId", Binance.this.safeString(info, "marketId") );
@@ -934,7 +922,7 @@ public class Binance extends BinanceApi
             //
             //     { "marketId": 5567895, "lastTradePrice": "0.52" }
             //
-            return this.parsePredictionTicker((Map<String, Object>) (response), Helpers.toMapArg(((Object)outcomeObj)));
+            return this.parsePredictionTicker((Map<String, Object>) (response), outcomeObj);
         }).thenApply(PredictionTicker::new);
 
     }
@@ -980,31 +968,31 @@ public class Binance extends BinanceApi
                 last = this.parseNumber(lastString);
             }
         }
-        return (Map<String, Object>) (this.safePredictionTicker(Helpers.newMap(
-            "outcome", this.safeString(outcomeObj, "outcome"),
-            "outcomeId", this.safeString2(outcomeObj, "outcomeId", "id"),
-            "label", this.safeString(outcomeObj, "label"),
-            "market", this.safeString(outcomeObj, "market"),
-            "timestamp", null,
-            "datetime", null,
-            "high", null,
-            "low", null,
-            "bid", null,
-            "bidVolume", null,
-            "ask", null,
-            "askVolume", null,
-            "vwap", null,
-            "open", null,
-            "close", last,
-            "last", last,
-            "previousClose", null,
-            "change", null,
-            "percentage", null,
-            "average", null,
-            "baseVolume", null,
-            "quoteVolume", null,
-            "info", raw
-        ), market));
+        return (Map<String, Object>) (this.safePredictionTicker((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+            j39v1.put("outcome", this.safeString(outcomeObj, "outcome"));
+            j39v1.put("outcomeId", this.safeString2(outcomeObj, "outcomeId", "id"));
+            j39v1.put("label", this.safeString(outcomeObj, "label"));
+            j39v1.put("market", this.safeString(outcomeObj, "market"));
+            j39v1.put("timestamp", null);
+            j39v1.put("datetime", null);
+            j39v1.put("high", null);
+            j39v1.put("low", null);
+            j39v1.put("bid", null);
+            j39v1.put("bidVolume", null);
+            j39v1.put("ask", null);
+            j39v1.put("askVolume", null);
+            j39v1.put("vwap", null);
+            j39v1.put("open", null);
+            j39v1.put("close", last);
+            j39v1.put("last", last);
+            j39v1.put("previousClose", null);
+            j39v1.put("change", null);
+            j39v1.put("percentage", null);
+            j39v1.put("average", null);
+            j39v1.put("baseVolume", null);
+            j39v1.put("quoteVolume", null);
+            j39v1.put("info", raw);
+            yield j39v1; } }), market));
     }
 
     /**
@@ -1031,7 +1019,7 @@ public class Binance extends BinanceApi
             Integer outcomesLength = ((List<?>)outcomes).size();
             for (var i = 0; (outcomesLength != null && i < outcomesLength); i++)
             {
-                Object outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))));
+                Map<String, Object> outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))));
                 Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
                 String marketId = this.safeString(info, "marketId");
                 if (java.util.Objects.equals(marketId, null))
@@ -1046,7 +1034,7 @@ public class Binance extends BinanceApi
                     response = (this.sapiPrivateGetOrderBookLastTradePrice(this.extend(request, parameters))).join();
                     responsesByMarketId.put(marketId, response);
                 }
-                Map<String, Object> ticker = this.parsePredictionTicker((Map<String, Object>) (response), Helpers.toMapArg(((Object)outcomeObj)));
+                Map<String, Object> ticker = this.parsePredictionTicker((Map<String, Object>) (response), outcomeObj);
                 String symbolKey = this.safeString(ticker, "outcome", (outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i)));
                 result.put(symbolKey, ticker);
             }
@@ -1282,9 +1270,9 @@ public class Binance extends BinanceApi
             {
                 return (this.fetchPaginatedCallIncremental("fetchOpenOrders", outcome, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest)).join();
             }
-            Object page = (this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1L);
+            Long page = (Long) (this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1L);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Long offSet = this.safeInteger(paramsMaxEntriesPerRequest, "offset", Helpers.multiply(page, maxEntriesPerRequest));
+            Long offSet = this.safeInteger(paramsMaxEntriesPerRequest, "offset", ((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a == null || j36b == null) return null; if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) * ((Long) j36b)); java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; double j36r = j36d.applyAsDouble(j36a) * j36d.applyAsDouble(j36b); if (new java.math.BigDecimal(String.valueOf(j36r)).stripTrailingZeros().scale() <= 0) return (Object) ((long) j36r); return (Object) j36r; }).apply(page, maxEntriesPerRequest));
             if ((offSet != null && offSet > 0))
             {
                 request.put("offset", offSet);
@@ -1379,9 +1367,9 @@ public class Binance extends BinanceApi
             {
                 return (this.fetchPaginatedCallIncremental("fetchOrders", outcome, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest)).join();
             }
-            Object page = (this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1L);
+            Long page = (Long) (this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1L);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Long offSet = this.safeInteger(paramsMaxEntriesPerRequest, "offset", Helpers.multiply(page, maxEntriesPerRequest));
+            Long offSet = this.safeInteger(paramsMaxEntriesPerRequest, "offset", ((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a == null || j36b == null) return null; if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) * ((Long) j36b)); java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; double j36r = j36d.applyAsDouble(j36a) * j36d.applyAsDouble(j36b); if (new java.math.BigDecimal(String.valueOf(j36r)).stripTrailingZeros().scale() <= 0) return (Object) ((long) j36r); return (Object) j36r; }).apply(page, maxEntriesPerRequest));
             if ((offSet != null && offSet > 0))
             {
                 request.put("offset", offSet);
@@ -1533,11 +1521,11 @@ public class Binance extends BinanceApi
             // }
             //
             List<Object> data = (List<Object>) this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
-            Object positions = this.parsePredictionPositions(data, new HashMap<String, Object>() {{}});
             if (java.util.Objects.equals(outcomes, null))
             {
-                return positions;
+                return this.parsePredictionPositions(data, new HashMap<String, Object>() {{}});
             }
+            Object positions = this.parsePredictionPositions(data, new HashMap<String, Object>() {{}});
             List<Object> filtered = new ArrayList<Object>(Arrays.asList());
             Integer positionsLength = ((List<?>)positions).size();
             for (var i = 0; (positionsLength != null && i < positionsLength); i++)
@@ -1584,7 +1572,7 @@ public class Binance extends BinanceApi
             //
             List<Object> positions = (List<Object>) this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
             Object parsedPositions = this.parsePredictionPositions(positions, new HashMap<String, Object>() {{}});
-            Object filteredPositions = this.filterByOutcomeSinceLimit(parsedPositions, Helpers.toStringArg(outcome), (Long) null, (Long) null, false);
+            Object filteredPositions = this.filterByOutcomeSinceLimit(parsedPositions, java.util.Objects.toString(outcome, null), (Long) null, (Long) null, false);
             return this.safeDict(filteredPositions, 0, (Object) null);
         }).thenApply(PredictionPosition::new);
 
@@ -1682,11 +1670,11 @@ public class Binance extends BinanceApi
             {
                 return (this.fetchPaginatedCallIncremental("fetchMyTrades", outcome, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest)).join();
             }
-            Object page = (this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1L);
+            Long page = (Long) (this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1L);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "status", "FILLED" );
             }};
-            Long offSet = this.safeInteger(paramsMaxEntriesPerRequest, "offset", Helpers.multiply(page, maxEntriesPerRequest));
+            Long offSet = this.safeInteger(paramsMaxEntriesPerRequest, "offset", ((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a == null || j36b == null) return null; if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) * ((Long) j36b)); java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; double j36r = j36d.applyAsDouble(j36a) * j36d.applyAsDouble(j36b); if (new java.math.BigDecimal(String.valueOf(j36r)).stripTrailingZeros().scale() <= 0) return (Object) ((long) j36r); return (Object) j36r; }).apply(page, maxEntriesPerRequest));
             if ((offSet != null && offSet > 0))
             {
                 request.put("offset", offSet);
@@ -1858,10 +1846,9 @@ public class Binance extends BinanceApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object cachedWallet = this.safeDict(this.options, "wallet", (Object) null);
-            if (!java.util.Objects.equals(cachedWallet, null))
+            if (!java.util.Objects.equals(this.safeDict(this.options, "wallet", (Object) null), null))
             {
-                return cachedWallet;
+                return this.safeDict(this.options, "wallet", (Object) null);
             }
             String walletAddress = (String) ((List<Object>)this.handleOptionStringAndParams((Map<String, Object>) (parameters), (String) (methodName), "walletAddress", this.walletAddress)).get(0);
             Map<String, Object> response = (this.sapiPrivateGetWalletList(new HashMap<String, Object>() {{}})).join();
@@ -1879,9 +1866,8 @@ public class Binance extends BinanceApi
             List<Object> wallets = (List<Object>) this.safeList(response, "wallets", new ArrayList<Object>(Arrays.asList()));
             if (java.util.Objects.equals(walletAddress, null))
             {
-                cachedWallet = this.safeDict(wallets, 0, (Object) null);
-                Helpers.addElementToObject(this.options, "wallet", cachedWallet);
-                return cachedWallet;
+                { Map<Object, Object> j39v11 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v12 = "wallet"; Object j39v13 = this.safeDict(wallets, 0, (Object) null); if (j39v11 == null) { if (j39v12 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v11) { if (j39v13 == null && j39v11 instanceof java.util.concurrent.ConcurrentHashMap) { j39v11.remove(j39v12); } else { j39v11.put(j39v12, j39v13); } } }
+                return this.safeDict(this.options, "wallet", (Object) null);
             }
             Integer walletLength = ((List<?>)wallets).size();
             for (var i = 0; (walletLength != null && i < walletLength); i++)
@@ -1889,16 +1875,11 @@ public class Binance extends BinanceApi
                 String w = this.safeString((wallets == null || i < 0 || i >= wallets.size() ? null : wallets.get(i)), "walletAddress", "");
                 if (java.util.Objects.equals(w, walletAddress))
                 {
-                    cachedWallet = (wallets == null || i < 0 || i >= wallets.size() ? null : wallets.get(i));
-                    break;
+                    { Map<Object, Object> j39v8 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v9 = "wallet"; Object j39v10 = (wallets == null || i < 0 || i >= wallets.size() ? null : wallets.get(i)); if (j39v8 == null) { if (j39v9 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v8) { if (j39v10 == null && j39v8 instanceof java.util.concurrent.ConcurrentHashMap) { j39v8.remove(j39v9); } else { j39v8.put(j39v9, j39v10); } } }
+                    return this.safeDict(this.options, "wallet", (Object) null);
                 }
             }
-            if (java.util.Objects.equals(cachedWallet, null))
-            {
-                throw new NotSupported(((this.id + "fetchWallet could'n find wallet ") + walletAddress)) ;
-            }
-            Helpers.addElementToObject(this.options, "wallet", cachedWallet);
-            return cachedWallet;
+            throw new NotSupported(((this.id + "fetchWallet could'n find wallet ") + walletAddress)) ;
         });
 
     }
@@ -2067,19 +2048,19 @@ public class Binance extends BinanceApi
                 throw new ArgumentsRequired((this.id + " createOrder requires accountType (SPOT, FUNDING)")) ;
             }
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "accountType", "cost")));
-            Map<String, Object> quoteRequest = this.extend(commonRequest, Helpers.newMap(
-                "tokenId", outcomeObj.get("id"),
-                "side", sideUpper,
-                "amountIn", Precise.stringMul(this.amountToPrecision(marketSymbol, amountStr), "1000000000000000000")
-            ));
+            Map<String, Object> quoteRequest = this.extend(commonRequest, (switch (0) { default -> { HashMap<String, Object> j39v16 = new HashMap<String, Object>();
+                j39v16.put("tokenId", outcomeObj.get("id"));
+                j39v16.put("side", sideUpper);
+                j39v16.put("amountIn", Precise.stringMul(this.amountToPrecision(marketSymbol, amountStr), "1000000000000000000"));
+                yield j39v16; } }));
             Object quote = (this.fetchQuote((Map<String, Object>) (quoteRequest), paramsOmitted)).join();
             String quoteId = this.safeString(quote, "quoteId");
-            Map<String, Object> orderRequest = this.extend(commonRequest, Helpers.newMap(
-                "walletId", Helpers.GetValue(wallet, "walletId"),
-                "quoteId", quoteId,
-                "timeInForce", timeInForce,
-                "accountType", accountType
-            ));
+            Map<String, Object> orderRequest = this.extend(commonRequest, (switch (0) { default -> { HashMap<String, Object> j39v15 = new HashMap<String, Object>();
+                j39v15.put("walletId", Helpers.GetValue(wallet, "walletId"));
+                j39v15.put("quoteId", quoteId);
+                j39v15.put("timeInForce", timeInForce);
+                j39v15.put("accountType", accountType);
+                yield j39v15; } }));
             Map<String, Object> response = (this.sapiPrivatePostTradePlaceOrderBundle(this.extend(orderRequest, paramsOmitted))).join();
             HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
             mapLiteral6.put("id", this.safeString(response, "orderId"));

@@ -834,7 +834,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
                 'channel' => 'auth',
                 'token' => $this->secret,
             );
-            return $this->watch($url, $messageHash, $this->extend($request, $params), $messageHash);
+            return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
         }
         return Async\await($future);
     }

@@ -821,10 +821,6 @@ export default class modetrade extends Exchange {
         const amount = this.safeString (trade, 'executed_quantity');
         const order_id = this.safeString (trade, 'order_id');
         const fee = this.parseTokenAndFeeTemp (trade, 'fee_asset', 'fee');
-        const feeCost = this.safeString (fee, 'cost');
-        if ((feeCost !== undefined) && (fee !== undefined)) {
-            fee['cost'] = feeCost;
-        }
         const cost = Precise.stringMul (price, amount);
         const side = this.safeStringLower (trade, 'side');
         const id = this.safeString (trade, 'id');
@@ -913,7 +909,7 @@ export default class modetrade extends Exchange {
         const fundingTimeString = this.safeString (fundingRate, 'last_funding_rate_timestamp');
         const nextFundingTimeString = this.safeString (fundingRate, 'next_funding_time');
         const millisecondsInterval = Precise.stringSub (nextFundingTimeString, fundingTimeString);
-        const fundingSymbol = (marketValue !== undefined) ? marketValue['symbol'] : undefined;
+        const fundingSymbol = this.safeString (marketValue, 'symbol');
         return {
             'info': fundingRate,
             'symbol': fundingSymbol,
@@ -1617,7 +1613,7 @@ export default class modetrade extends Exchange {
         }, marketResolved);
     }
 
-    parseTimeInForce (timeInForce: Str) {
+    parseTimeInForce (timeInForce: Str): Str {
         const timeInForces: Dict = {
             'ioc': 'IOC',
             'fok': 'FOK',
@@ -1629,7 +1625,7 @@ export default class modetrade extends Exchange {
         return this.safeString (timeInForces, timeInForce);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         if (status !== undefined) {
             const statuses: Dict = {
                 'NEW': 'open',
@@ -1650,7 +1646,7 @@ export default class modetrade extends Exchange {
         return undefined;
     }
 
-    parseOrderType (type: Str) {
+    parseOrderType (type: Str): Str {
         const types: Dict = {
             'LIMIT': 'limit',
             'MARKET': 'market',
@@ -1699,7 +1695,8 @@ export default class modetrade extends Exchange {
         const hasStopLoss = stopLoss !== undefined;
         const hasTakeProfit = takeProfit !== undefined;
         const algoType = this.safeString (params, 'algoType');
-        const isConditional = triggerPrice !== undefined || hasStopLoss || hasTakeProfit || (this.safeValue (params, 'childOrders') !== undefined);
+        const paramsChildOrders = this.safeValue (params, 'childOrders');
+        const isConditional = triggerPrice !== undefined || hasStopLoss || hasTakeProfit || (paramsChildOrders !== undefined);
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringLower (params, 'timeInForce');
         const postOnly = this.isPostOnly (isMarket, undefined, params);
@@ -1818,7 +1815,8 @@ export default class modetrade extends Exchange {
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const stopLoss = this.safeValue (params, 'stopLoss');
         const takeProfit = this.safeValue (params, 'takeProfit');
-        const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue (params, 'childOrders') !== undefined);
+        const childOrders = this.safeValue (params, 'childOrders');
+        const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (childOrders !== undefined);
         let response: Dict;
         if (isConditional) {
             response = await this.v1PrivatePostAlgoOrder (request);
@@ -1887,7 +1885,8 @@ export default class modetrade extends Exchange {
             const triggerPrice = this.safeString2 (orderParams, 'triggerPrice', 'stopPrice');
             const stopLoss = this.safeDict (orderParams, 'stopLoss');
             const takeProfit = this.safeDict (orderParams, 'takeProfit');
-            const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue (orderParams, 'childOrders') !== undefined);
+            const childOrders = this.safeValue (orderParams, 'childOrders');
+            const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (childOrders !== undefined);
             if (isConditional) {
                 throw new NotSupported (this.id + ' createOrders() only support non-stop order');
             }
@@ -1950,7 +1949,8 @@ export default class modetrade extends Exchange {
         if (triggerPrice !== undefined) {
             request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
         }
-        const isConditional = (triggerPrice !== undefined) || (this.safeValue (params, 'childOrders') !== undefined);
+        const childOrders = this.safeValue (params, 'childOrders');
+        const isConditional = (triggerPrice !== undefined) || (childOrders !== undefined);
         let orderQtyKey: Str = 'order_quantity';
         if (isConditional) {
             orderQtyKey = 'quantity';
@@ -2028,7 +2028,7 @@ export default class modetrade extends Exchange {
     override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
         const paramsOmitted: Dict = this.omit (params, [ 'stop', 'trigger' ]);
-        if ((trigger !== true) && (symbol === undefined)) {
+        if ((!trigger) && (symbol === undefined)) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         if (this.markets === undefined) {
@@ -2046,7 +2046,7 @@ export default class modetrade extends Exchange {
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
         const paramsClientOrder: Dict = this.omit (paramsOmitted, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
         let response: Dict;
-        if (trigger === true) {
+        if (trigger) {
             if (isByClientOrder) {
                 request['client_order_id'] = clientOrderIdExchangeSpecific;
                 response = await this.v1PrivateDeleteAlgoClientOrder (this.extend (request, paramsClientOrder));
@@ -2084,7 +2084,7 @@ export default class modetrade extends Exchange {
         } else {
             extendParams['id'] = id;
         }
-        if (trigger === true) {
+        if (trigger) {
             return this.extend (this.parseOrder (response), extendParams) as Order;
         }
         const data = this.safeDict (response, 'data', {});
@@ -2210,7 +2210,7 @@ export default class modetrade extends Exchange {
         const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
         const paramsOmitted: Dict = this.omit (params, [ 'stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id' ]);
         let response: Dict;
-        if (trigger === true) {
+        if (trigger) {
             if (clientOrderId !== undefined && clientOrderId !== '') {
                 request['client_order_id'] = clientOrderId;
                 response = await this.v1PrivateGetAlgoClientOrderClientOrderId (this.extend (request, paramsOmitted));
@@ -2280,7 +2280,7 @@ export default class modetrade extends Exchange {
             await this.loadMarkets ();
         }
         const isTrigger = this.safeBool2 (params, 'stop', 'trigger', false);
-        const maxLimit = (isTrigger === true) ? 100 : 500;
+        const maxLimit = (isTrigger) ? 100 : 500;
         const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchOrders', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchOrders', symbol, since, limit, paramsPaginate, 'page', maxLimit) as Order[];
@@ -2300,12 +2300,12 @@ export default class modetrade extends Exchange {
         } else {
             request['size'] = maxLimit;
         }
-        if (isTrigger === true) {
+        if (isTrigger) {
             request['algo_type'] = 'STOP';
         }
         const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end_t', request, paramsOmitted);
         let response: Dict;
-        if (isTrigger === true) {
+        if (isTrigger) {
             response = await this.v1PrivateGetAlgoOrders (this.extend (requestUntil, paramsUntil));
         } else {
             response = await this.v1PrivateGetOrders (this.extend (requestUntil, paramsUntil));
@@ -2567,7 +2567,7 @@ export default class modetrade extends Exchange {
         return this.parseBalance (data);
     }
 
-    async getAssetHistoryRows (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any> {
+    async getAssetHistoryRows (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2752,7 +2752,7 @@ export default class modetrade extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             'NEW': 'pending',
             'CONFIRMING': 'pending',
@@ -3233,7 +3233,7 @@ export default class modetrade extends Exchange {
             const isOrder = path === 'algo/order' || path === 'order' || path === 'batch-order';
             if (isPostOrPut && isOrder) {
                 const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
-                if (isSandboxMode !== true) {
+                if (!isSandboxMode) {
                     const brokerId = this.safeString (this.options, 'brokerId', 'CCXTMODE');
                     if (path === 'batch-order') {
                         const ordersList = this.safeList (paramsSorted, 'orders', []);

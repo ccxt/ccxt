@@ -25,7 +25,7 @@ export default class bybit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} [enableUnifiedMargin, enableUnifiedAccount]
      */
-    isUnifiedEnabled(params?: Dict): Promise<any[]>;
+    isUnifiedEnabled(params?: Dict): Promise<[boolean, boolean]>;
     /**
      * @method
      * @name bybit#upgradeUnifiedTradeAccount

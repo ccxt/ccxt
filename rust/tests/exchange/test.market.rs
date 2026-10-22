@@ -191,7 +191,7 @@ pub fn testMarket(mut exchange: Value, mut skippedProperties: Value, mut method:
         assert!(ccxt::runtime::is_true(&(((contract.as_bool() != Some(true)) && (linear == Value::Null) && (inverse == Value::Null) && (option.as_bool() != Some(true)) && (swap.as_bool() != Some(true)) && (future.as_bool() != Some(true))))));
     }  else {
         // if not spot, any of the below should be true
-        assert!(ccxt::runtime::is_true(&(((contract.as_bool() == Some(true)) && ((future.as_bool() == Some(true)) || (swap.as_bool() == Some(true)) || (option.as_bool() == Some(true)) || (isIndex.as_bool() == Some(true)))))));
+        assert!(ccxt::runtime::is_true(&(((contract.as_bool() == Some(true)) && ((future.as_bool() == Some(true)) || (swap.as_bool() == Some(true)) || (option.as_bool() == Some(true)) || is_true(&(isIndex)))))));
     }
     let mut contractSize: Value = exchange.safe_string(market.clone(), Value::Str("contractSize".into()), &[]);
     // contract fields
@@ -221,7 +221,7 @@ pub fn testMarket(mut exchange: Value, mut skippedProperties: Value, mut method:
     }
     // future, swap and option should be mutually exclusive
     if (market.as_map().and_then(|__m| __m.get("future")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-        assert!(ccxt::runtime::is_true(&(((market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) && (market.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) && (isIndex.as_bool() != Some(true))))));
+        assert!(ccxt::runtime::is_true(&(((market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) && (market.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) && (!is_true(&isIndex))))));
     }  else if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
         assert!(ccxt::runtime::is_true(&(((future.as_bool() != Some(true)) && (option.as_bool() != Some(true))))));
     }  else if (market.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {

@@ -435,15 +435,10 @@ class lighter(Exchange, ImplicitAPI):
             }
 
     def get_lighter_private_key(self, strAccountIndex: str, strApiKeyIndex: str):
-        if not ('auths' in self.options):
-            return None
-        if not (strAccountIndex in self.options['auths']):
-            return None
-        if not (strApiKeyIndex in self.options['auths'][strAccountIndex]):
-            return None
-        if not ('lighterPrivateKey' in self.options['auths'][strAccountIndex][strApiKeyIndex]):
-            return None
-        return self.options['auths'][strAccountIndex][strApiKeyIndex]['lighterPrivateKey']
+        auths = self.safe_dict(self.options, 'auths')
+        accountAuths = self.safe_dict(auths, strAccountIndex)
+        apiKeyAuths = self.safe_dict(accountAuths, strApiKeyIndex)
+        return self.safe_string(apiKeyAuths, 'lighterPrivateKey')
 
     async def pre_load_lighter_library(self, params: dict = {}) -> bool:
         """
@@ -464,16 +459,18 @@ class lighter(Exchange, ImplicitAPI):
             return True
         signer = await self.load_account(self.options['chainId'], self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex)
         await self.handle_builder_fee_approval(accountIndex, apiKeyIndex)
-        return(signer is not None)
+        loaded = (signer is not None)
+        return loaded
 
     def handle_api_key_index(self, params: object, methodName1: str, optionName1: str, optionName2: str, defaultValue: object = None) -> list:
         apiKeyIndexOption, paramsApiKeyIndex = self.handle_option_and_params_2(params, methodName1, optionName1, optionName2, defaultValue)
-        apiKeyIndex = apiKeyIndexOption
-        if (apiKeyIndex is None) or (apiKeyIndex < 4) or (apiKeyIndex > 254):
-            # apiKeyIndex = this.randNumber (2);
-            apiKeyIndex = 254
-            self.options['apiKeyIndex'] = apiKeyIndex  # default to a value to avoid overriding other keys
-        return [self.parse_to_int(apiKeyIndex), paramsApiKeyIndex]
+        apiKeyIndex = self.safe_integer([apiKeyIndexOption], 0)
+        if (apiKeyIndex is not None) and (apiKeyIndex >= 4) and (apiKeyIndex <= 254):
+            return [self.parse_to_int(apiKeyIndex), paramsApiKeyIndex]
+        # apiKeyIndex = this.randNumber (2);
+        defaultApiKeyIndex = 254
+        self.options['apiKeyIndex'] = defaultApiKeyIndex  # default to a value to avoid overriding other keys
+        return [defaultApiKeyIndex, paramsApiKeyIndex]
 
     async def handle_account_index(self, params: object, methodName1: str, optionName1: str, optionName2: str, defaultValue: object = None) -> list:
         accountIndexOption, paramsAccountIndex = self.handle_option_and_params_2(params, methodName1, optionName1, optionName2, defaultValue)
@@ -552,10 +549,9 @@ class lighter(Exchange, ImplicitAPI):
         accountAuths = self.safe_dict(auths, accountIndex)
         cachedAuth = self.safe_dict(accountAuths, apiKeyIndex)
         cachedDeadline = self.safe_integer(cachedAuth, 'deadline')
-        if cachedDeadline is not None:
-            minimumDeadline = self.seconds() + self.safe_integer(self.options, 'authDeadlineMinimumRemaining', 60)
-            if cachedDeadline >= minimumDeadline:
-                return self.safe_string(cachedAuth, 'token')
+        minimumRemaining = self.safe_integer(self.options, 'authDeadlineMinimumRemaining', 60)
+        if (cachedDeadline is not None) and (minimumRemaining is not None) and (cachedDeadline - minimumRemaining >= self.seconds()):
+            return self.safe_string(cachedAuth, 'token')
         deadline = self.seconds() + self.safe_integer(self.options, 'authDeadlineExpiry', 28800)
         request = {
             'deadline': deadline,
@@ -567,7 +563,7 @@ class lighter(Exchange, ImplicitAPI):
         self.options['auths'][accountIndex][apiKeyIndex]['token'] = token
         return token
 
-    def pow(self, n: str, m: str):
+    def pow(self, n: str, m: str) -> Str:
         r = Precise.string_mul(n, '1')
         c = self.parse_to_int(m)
         if c < 0:
@@ -588,7 +584,7 @@ class lighter(Exchange, ImplicitAPI):
         prefix = self.binary_concat(x19, self.encode('Ethereum Signed Message:'), newline, self.encode(self.number_to_string(binaryMessageLength)))
         return '0x' + self.hash(self.binary_concat(prefix, binaryMessage), 'keccak', 'hex')
 
-    def sign_hash(self, hash: object, privateKey: object) -> str:
+    def sign_hash(self, hash: str, privateKey: str) -> str:
         self.check_required_credentials()
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
         r = signature['r']
@@ -596,7 +592,7 @@ class lighter(Exchange, ImplicitAPI):
         v = self.int_to_base16(self.sum(27, signature['v']))
         return '0x' + r.rjust(64, '0') + s.rjust(64, '0') + v
 
-    def sign_l1_and_prepare_tx_info(self, txInfo: object, message: object, privateKey: object) -> str:
+    def sign_l1_and_prepare_tx_info(self, txInfo: object, message: object, privateKey: str) -> str:
         hashMessage = self.hash_message(message)
         signature = self.sign_hash(hashMessage, privateKey)
         decTxInfo = self.parse_json(txInfo)
@@ -605,10 +601,10 @@ class lighter(Exchange, ImplicitAPI):
 
     async def handle_builder_fee_approval(self, accountIndex: float, apiKeyIndex: float) -> bool:
         buildFee = self.safe_bool(self.options, 'builderFee', True)
-        if buildFee is not True:
+        if not buildFee:
             return False
         approvedBuilderFee = self.safe_bool(self.options, 'approvedBuilderFee', False)
-        if approvedBuilderFee is True:
+        if approvedBuilderFee:
             return True
         standardTier = False
         try:
@@ -628,12 +624,13 @@ class lighter(Exchange, ImplicitAPI):
             return False
         return True
 
-    async def check_if_standard_tier(self, accountIndex: float):
+    async def check_if_standard_tier(self, accountIndex: float) -> bool:
         tiersForAccountIndexes = self.safe_dict(self.options, 'tiersForAccountIndexes', {})
         accountIndexStr = str(accountIndex)
         isStandardTier = self.safe_bool(tiersForAccountIndexes, accountIndexStr)
         if isStandardTier is not None:
-            return isStandardTier
+            cachedIsStandard = (isStandardTier is True)
+            return cachedIsStandard
         accountLimits = await self.privateGetAccountLimits({'account_index': accountIndex})
         #
         #    {
@@ -752,8 +749,8 @@ class lighter(Exchange, ImplicitAPI):
         request['api_key_index'] = apiKeyIndex
         request['account_index'] = self.parse_to_int(accountIndex)
         triggerPrice = self.safe_string_2(paramsOrderExpiry, 'triggerPrice', 'stopPrice')
-        stopLossPrice = self.safe_value(paramsOrderExpiry, 'stopLossPrice', triggerPrice)
-        takeProfitPrice = self.safe_value(paramsOrderExpiry, 'takeProfitPrice')
+        stopLossPrice = self.safe_string(paramsOrderExpiry, 'stopLossPrice', triggerPrice)
+        takeProfitPrice = self.safe_string(paramsOrderExpiry, 'takeProfitPrice')
         stopLoss = self.safe_dict(paramsOrderExpiry, 'stopLoss')
         takeProfit = self.safe_dict(paramsOrderExpiry, 'takeProfit')
         hasStopLoss = (stopLoss is not None)
@@ -813,7 +810,7 @@ class lighter(Exchange, ImplicitAPI):
         request['order_expiry'] = orderExpiry
         request['order_type'] = orderTypeNum
         request['time_in_force'] = timeInForceNum
-        request['reduce_only'] = 1 if (reduceOnly is True) else 0
+        request['reduce_only'] = 1 if (reduceOnly) else 0
         request['client_order_index'] = clientOrderId
         request['base_amount'] = self.parse_to_int(Precise.string_mul(amountStr, amountScale))
         request['avg_execution_price'] = self.parse_to_int(Precise.string_mul(priceStr, priceScale))
@@ -859,16 +856,16 @@ class lighter(Exchange, ImplicitAPI):
         if (accountIndex is None) or (apiKeyIndex is None):
             raise ArgumentsRequired(self.id + ' fetchNonce() requires accountIndex and apiKeyIndex.')
         if 'nonce' in params:
-            return self.safe_integer(params, 'nonce')
+            return self.parse_to_int(self.safe_integer(params, 'nonce'))
         nonceInOptions = self.safe_integer(self.options, 'nonce')
         if nonceInOptions is not None:
-            return nonceInOptions
+            return self.parse_to_int(nonceInOptions)
         # avoid skipNonce for l1 operations
         skipNonce = self.handle_option_bool_and_params(params, 'fetchNonce', 'skipNonce', True)[0]
         if skipNonce:
             return self.milliseconds()
         response = await self.publicGetNextNonce({'account_index': accountIndex, 'api_key_index': apiKeyIndex})
-        return self.safe_integer(response, 'nonce')
+        return self.parse_to_int(self.safe_integer(response, 'nonce'))
 
     async def sign_and_create_order(self, method: str, symbol: Str, type: OrderType, side: OrderSide, amount: Num, price: Num = None, params: dict = {}) -> list[object]:
         if self.markets is None:
@@ -1162,9 +1159,10 @@ class lighter(Exchange, ImplicitAPI):
             type = self.safe_string(market, 'market_type')
             if type == 'perp':
                 type = 'swap'
-            baseId = self.safe_string(market, 'symbol')
-            if baseId is not None and baseId.find('/') != -1:
-                baseId = baseId.split('/')[0]
+            marketSymbol = self.safe_string(market, 'symbol')
+            baseId = marketSymbol
+            if marketSymbol is not None and marketSymbol.find('/') != -1:
+                baseId = marketSymbol.split('/')[0]
             quoteId = 'USDC'
             settleId = 'USDC' if (type == 'swap') else None
             base = self.safe_currency_code(baseId)
@@ -1598,12 +1596,15 @@ class lighter(Exchange, ImplicitAPI):
             else:
                 endTs = now
         else:
-            endTs = until if (until is not None) else now
-            defaultLimit = 100
-            if limit is not None:
-                startTs = endTs - self.parse_timeframe(timeframe) * 1000 * limit
+            count = self.safe_integer({'limit': limit}, 'limit', 100)
+            timeframeMs = self.parse_timeframe(timeframe) * 1000
+            span = timeframeMs * count
+            if until is not None:
+                endTs = until
+                startTs = until - span
             else:
-                startTs = endTs - self.parse_timeframe(timeframe) * 1000 * defaultLimit
+                endTs = now
+                startTs = now - span
         request = {
             'market_id': market['id'],
             'count_back': 0,
@@ -2235,13 +2236,12 @@ class lighter(Exchange, ImplicitAPI):
         marketResolved = self.safe_market(marketId, market)
         timestamp = self.safe_timestamp(order, 'timestamp')
         isAsk = self.safe_bool(order, 'is_ask')
-        if isAsk is None:
-            isAskAsInteger = self.safe_integer(order, 'is_ask')
-            if isAskAsInteger is not None:
-                isAsk = isAskAsInteger == 1
+        isAskAsInteger = self.safe_integer(order, 'is_ask')
         side = None
         if isAsk is not None:
-            side = 'sell' if isAsk else 'buy'
+            side = 'sell' if (isAsk is True) else 'buy'
+        elif isAskAsInteger is not None:
+            side = 'sell' if (isAskAsInteger == 1) else 'buy'
         type = self.safe_string(order, 'type')
         if type is None:
             typeAsInteger = self.safe_integer(order, 'order_type')
@@ -2255,17 +2255,13 @@ class lighter(Exchange, ImplicitAPI):
             if type.find('take-profit') >= 0:
                 takeProfitPrice = triggerPrice
         # Try to parse to integer first, because parsing an integer to a string wouldn't result in undefined
-        tif = None
         tifAsInteger = self.safe_integer(order, 'time_in_force')
-        if tifAsInteger is not None:
-            tif = self.parse_order_time_in_force_integer(tifAsInteger)
-        else:
-            tif = self.safe_string(order, 'time_in_force')
-        reduceOnly = self.safe_bool(order, 'reduce_only')
-        if reduceOnly is None:
-            reduceOnlyAsInteger = self.safe_integer(order, 'reduce_only')
-            if reduceOnlyAsInteger is not None:
-                reduceOnly = reduceOnlyAsInteger == 1
+        tif = self.parse_order_time_in_force_integer(tifAsInteger) if (tifAsInteger is not None) else self.safe_string(order, 'time_in_force')
+        reduceOnlyAsBool = self.safe_bool(order, 'reduce_only')
+        reduceOnlyAsInteger = self.safe_integer(order, 'reduce_only')
+        reduceOnly = reduceOnlyAsBool
+        if (reduceOnlyAsBool is None) and (reduceOnlyAsInteger is not None):
+            reduceOnly = (reduceOnlyAsInteger == 1)
         status = self.safe_string(order, 'status')
         return self.safe_order({
             'info': order,
@@ -2295,7 +2291,7 @@ class lighter(Exchange, ImplicitAPI):
             'trades': None,
         }, marketResolved)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'in-progress': 'open',
             'pending': 'open',
@@ -2355,7 +2351,7 @@ class lighter(Exchange, ImplicitAPI):
         }
         return self.safe_string(timeInForces, tif, tif)
 
-    def parse_order_time_in_force_integer(self, tifInteger: object):
+    def parse_order_time_in_force_integer(self, tifInteger: float) -> Str:
         timeInForces = {
             '0': 'immediate-or-cancel',
             '1': 'good-till-time',
@@ -2680,7 +2676,7 @@ class lighter(Exchange, ImplicitAPI):
             'internal': None,
         }
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             'failed': 'failed',
             'pending': 'pending',
@@ -2905,10 +2901,10 @@ class lighter(Exchange, ImplicitAPI):
                 orderId = self.safe_string(trade, 'bid_id')
         # public trades use Lighter's taker-side convention
         if (side is None) and (isMakerAsk is not None):
-            side = 'buy' if (isMakerAsk is True) else 'sell'
+            side = 'buy' if (isMakerAsk) else 'sell'
         takerOrMaker = None
         if side is not None and isMakerAsk is not None:
-            isMaker = isMakerAsk if (side == 'sell') else not isMakerAsk
+            isMaker = (isMakerAsk is True) if (side == 'sell') else (isMakerAsk is False)
             takerOrMaker = 'maker' if isMaker else 'taker'
         return self.safe_trade({
             'info': trade,

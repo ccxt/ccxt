@@ -1138,14 +1138,14 @@ class cex extends Exchange {
 
     public function fetch_open_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
-         * fetches information on an open order made by the user
+         * fetches information on an open $order made by the user
          *
          * @see https://trade.cex.io/docs/#rest-private-api-calls-orders
          *
-         * @param {string} $id order $id
-         * @param {string} [$symbol] unified $symbol of the market the order was made in
+         * @param {string} $id $order $id
+         * @param {string} [$symbol] unified $symbol of the market the $order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1154,19 +1154,20 @@ class cex extends Exchange {
             'orderId' => intval($id),
         );
         $result = $this->fetch_open_orders($symbol, null, null, $this->extend($request, $params));
-        return $result[0];
+        $order = $this->safe_dict($result, 0);
+        return $order;
     }
 
     public function fetch_closed_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
-         * fetches information on an closed order made by the user
+         * fetches information on an closed $order made by the user
          *
          * @see https://trade.cex.io/docs/#rest-private-api-calls-orders
          *
-         * @param {string} $id order $id
-         * @param {string} [$symbol] unified $symbol of the market the order was made in
+         * @param {string} $id $order $id
+         * @param {string} [$symbol] unified $symbol of the market the $order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1175,10 +1176,11 @@ class cex extends Exchange {
             'orderId' => intval($id),
         );
         $result = $this->fetch_closed_orders($symbol, null, null, $this->extend($request, $params));
-        return $result[0];
+        $order = $this->safe_dict($result, 0);
+        return $order;
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'PENDING_NEW' => 'open',
             'NEW' => 'open',
@@ -1617,7 +1619,7 @@ class cex extends Exchange {
         );
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'rejected' => 'rejected',
             'pending' => 'pending',

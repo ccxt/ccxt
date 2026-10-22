@@ -1622,16 +1622,19 @@ export default class weex extends Exchange {
             if (priceType !== undefined) {
                 request['priceType'] = priceType;
             }
-            let startTime = since;
-            let endTime = until;
+            let startTime: Int = since;
+            let endTime: Int = until;
             if ((since === undefined) || (until === undefined)) {
                 const now = this.milliseconds ();
                 const duration = this.parseTimeframe (timeframe) * 1000;
-                let numberOfCandles = maxHistoricalLimit;
-                if (limitResolved !== undefined && limitResolved !== null && limitResolved !== 0) {
-                    numberOfCandles = limitResolved;
+                let timeDelta = maxHistoricalLimit * duration;
+                if (limit !== undefined && limit !== null && limit !== 0) {
+                    if (limit > 1000) {
+                        timeDelta = 1000 * duration;
+                    } else {
+                        timeDelta = limit * duration;
+                    }
                 }
-                const timeDelta = numberOfCandles * duration;
                 if ((since === undefined) && (until === undefined)) {
                     endTime = now;
                     startTime = now - timeDelta;
@@ -2019,12 +2022,12 @@ export default class weex extends Exchange {
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         // the demo trading API only provides the swap account, don't let the default spot type break a bare fetchBalance() call
         let type = marketType;
-        if ((sandboxMode === true) && (requestedType === undefined)) {
+        if ((sandboxMode) && (requestedType === undefined)) {
             type = 'swap';
         }
         let response = undefined;
         if (type === 'spot') {
-            if (sandboxMode === true) {
+            if (sandboxMode) {
                 throw new NotSupported (this.id + ' fetchBalance() only supports the swap account in sandbox mode, use params["type"] = "swap"');
             }
             //
@@ -2066,7 +2069,7 @@ export default class weex extends Exchange {
             //         }
             //     ]
             //
-            if (sandboxMode === true) {
+            if (sandboxMode) {
                 response = await this.contractPrivateGetCapiV3SimBalance (paramsMarketType);
             } else {
                 response = await this.contractPrivateGetCapiV3AccountBalance (paramsMarketType);
@@ -2084,7 +2087,7 @@ export default class weex extends Exchange {
         for (let i = 0; i < balances.length; i++) {
             const entry = this.safeDict (balances, i);
             let currencyId = this.safeString (entry, 'asset');
-            if ((sandboxMode === true) && (currencyId === 'SUSDT')) {
+            if ((sandboxMode) && (currencyId === 'SUSDT')) {
                 currencyId = 'USDT'; // demo trading balances are denominated in the demo asset SUSDT
             }
             const code = this.safeCurrencyCode (currencyId);
@@ -2202,7 +2205,7 @@ export default class weex extends Exchange {
             return await this.createContractOrder (symbol, type, side, amount, price, params);
         } else {
             const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
-            if (sandboxMode === true) {
+            if (sandboxMode) {
                 throw new NotSupported (this.id + ' createOrder() only supports swap markets in sandbox mode');
             }
             return await this.createSpotOrder (symbol, type, side, amount, price, params);
@@ -2317,11 +2320,11 @@ export default class weex extends Exchange {
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let response: Dict | undefined = undefined;
         if (triggerPrice !== undefined) {
-            if (sandboxMode === true) {
+            if (sandboxMode) {
                 throw new NotSupported (this.id + ' createOrder() does not support stopLossPrice or takeProfitPrice orders in sandbox mode');
             }
             response = await this.contractPrivatePostCapiV3AlgoOrder (request);
-        } else if (sandboxMode === true) {
+        } else if (sandboxMode) {
             response = await this.contractPrivatePostCapiV3SimOrder (request);
         } else {
             response = await this.contractPrivatePostCapiV3Order (request);
@@ -2332,7 +2335,7 @@ export default class weex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    createContractOrderRequest (symbol: Str, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params: Dict = {}) {
+    createContractOrderRequest (symbol: Str, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
         }
@@ -2360,11 +2363,8 @@ export default class weex extends Exchange {
         if (isTrigger && (isStopLoss || isTakeProfit)) {
             throw new BadRequest (this.id + ' createOrder() cannot use the triggerPrice parameter together with the stopLossPrice or takeProfitPrice parameters');
         }
-        let reduceOnly = this.safeBool (query, 'reduceOnly');
-        if (isStopLoss || isTakeProfit) {
-            reduceOnly = true;
-        }
-        const isReduceOnly = (reduceOnly === true);
+        const reduceOnly = this.safeBool (query, 'reduceOnly');
+        const isReduceOnly = isStopLoss || isTakeProfit || (reduceOnly === true);
         let positionSide = 'LONG';
         if (isReduceOnly) {
             if (side === 'buy') {
@@ -2489,7 +2489,7 @@ export default class weex extends Exchange {
         return this.extend (request, paramsOmitted);
     }
 
-    encodeTriggerPriceType (triggerPriceType: Str) {
+    encodeTriggerPriceType (triggerPriceType: Str): Str {
         const types: Dict = {
             'mark': 'MARK_PRICE',
             'last': 'CONTRACT_PRICE',
@@ -2521,7 +2521,7 @@ export default class weex extends Exchange {
         }
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
         const trigger = this.safeBool (paramsMarketType, 'trigger', false);
-        if ((trigger === true) && id === undefined) {
+        if ((trigger) && id === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires an id argument for trigger orders');
         }
         const request: Dict = {};
@@ -2549,7 +2549,7 @@ export default class weex extends Exchange {
             //     }
             //
             response = await this.privateDeleteApiV3Order (this.extend (request, paramsOmitted));
-        } else if (trigger === true) {
+        } else if (trigger) {
             response = await this.contractPrivateDeleteCapiV3AlgoOrder (this.extend (request, paramsOmitted));
         } else {
             response = await this.contractPrivateDeleteCapiV3Order (this.extend (request, paramsOmitted));
@@ -2594,7 +2594,7 @@ export default class weex extends Exchange {
                 throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument for spot markets');
             }
             response = await this.privateDeleteApiV3OpenOrders (this.extend (request, paramsOmitted));
-        } else if (trigger === true) {
+        } else if (trigger) {
             response = await this.contractPrivateDeleteCapiV3AlgoOpenOrders (this.extend (request, paramsOmitted));
         } else {
             response = await this.contractPrivateDeleteCapiV3AllOpenOrders (this.extend (request, paramsOmitted));
@@ -2794,7 +2794,7 @@ export default class weex extends Exchange {
             }
             const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, paramsPaginate);
             const trigger = this.safeBool (paramsUntil, 'trigger', false);
-            if (trigger === true) {
+            if (trigger) {
                 const paramsOmitted: Dict = this.omit (paramsUntil, 'trigger');
                 //
                 //     [
@@ -3042,7 +3042,7 @@ export default class weex extends Exchange {
         const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, paramsPaginate);
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let response = undefined;
-        if (sandboxMode === true) {
+        if (sandboxMode) {
             response = await this.contractPrivateGetCapiV3SimOrderHistory (this.extend (requestUntil, paramsUntil));
         } else {
             response = await this.contractPrivateGetCapiV3OrderHistory (this.extend (requestUntil, paramsUntil));
@@ -3239,7 +3239,7 @@ export default class weex extends Exchange {
         }, marketResolved);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'new': 'open',
             'partial_fill': 'closed',
@@ -3253,7 +3253,7 @@ export default class weex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderType (type: Str) {
+    parseOrderType (type: Str): Str {
         const types: Dict = {
             'LIMIT': 'limit',
             'MARKET': 'market',
@@ -3269,7 +3269,7 @@ export default class weex extends Exchange {
     handleOrderOrPositionError (errorCode: Str, errorMessage: Str, order: Dict) {
         const errorCodeValue: string = (errorCode === undefined) ? '' : errorCode;
         const errorMessageValue: string = (errorMessage === undefined) ? '' : errorMessage;
-        if ((errorCodeValue === '') && (errorMessageValue === '')) {
+        if (((errorCode === undefined) || (errorCode === '')) && ((errorMessage === undefined) || (errorMessage === ''))) {
             // some endpoints could return an empty string if there is no error
             return;
         }
@@ -3554,7 +3554,7 @@ export default class weex extends Exchange {
         }, currencyResolved) as LedgerEntry;
     }
 
-    parseLedgerType (type: Str) {
+    parseLedgerType (type: Str): Str {
         const types: Dict = {
             'transfer_in': 'transfer',
             'transfer_out': 'transfer',
@@ -3610,8 +3610,9 @@ export default class weex extends Exchange {
         }
         const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, paramsPaginate);
         // the exchange rejects startTime and endTime when either is sent alone, they only work as a pair
-        const hasSince = ('startTime' in requestUntil);
-        const hasUntil = ('endTime' in requestUntil);
+        const hasSince = (since !== undefined);
+        const until = this.safeInteger2 (paramsPaginate, 'until', 'till');
+        const hasUntil = (until !== undefined);
         if (hasSince && !hasUntil) {
             requestUntil['endTime'] = this.milliseconds ();
         } else if (hasUntil && !hasSince) {
@@ -3686,7 +3687,7 @@ export default class weex extends Exchange {
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let response = undefined;
-        if (sandboxMode === true) {
+        if (sandboxMode) {
             response = await this.contractPrivateGetCapiV3SimPositionAllPosition (params);
         } else {
             response = await this.contractPrivateGetCapiV3AccountPositionAllPosition (params);
@@ -3724,7 +3725,7 @@ export default class weex extends Exchange {
         }
         const market = this.market (symbol);
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
-        if (sandboxMode === true) {
+        if (sandboxMode) {
             // the demo trading API does not provide a single-position endpoint
             return await this.fetchPositions ([ market['symbol'] ], params);
         }
@@ -3911,8 +3912,8 @@ export default class weex extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.contractPrivatePostCapiV3ClosePositions (this.extend (request, params));
-        const orders = this.parseOrders (response, market);
-        return this.safeDict (orders, 0) as Order;
+        const order = this.safeDict (response, 0, {});
+        return this.parseOrder (order, market);
     }
 
     /**
@@ -4029,7 +4030,7 @@ export default class weex extends Exchange {
         } as MarginMode;
     }
 
-    parseMarginType (marginType: Str) {
+    parseMarginType (marginType: Str): Str {
         const marginTypes: Dict = {
             'CROSSED': 'cross',
             'ISOLATED': 'isolated',
@@ -4062,7 +4063,7 @@ export default class weex extends Exchange {
         return await this.contractPrivatePostCapiV3AccountMarginType (this.extend (request, params));
     }
 
-    encodeMarginMode (marginMode: Str) {
+    encodeMarginMode (marginMode: Str): string {
         const marginTypes: Dict = {
             'cross': 'CROSSED',
             'isolated': 'ISOLATED',
@@ -4338,7 +4339,7 @@ export default class weex extends Exchange {
     toSandboxMarketId (market: Market): Str {
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         const baseId = this.safeString (market, 'baseId');
-        if ((sandboxMode === true) && (baseId !== undefined)) {
+        if ((sandboxMode) && (baseId !== undefined)) {
             // demo trading only has USDT-margined linear markets quoted in the demo asset SUSDT (e.g. BTCSUSDT), revisit if weex ever adds a non-USDT settle
             return baseId + 'SUSDT';
         }
@@ -4355,7 +4356,7 @@ export default class weex extends Exchange {
      */
     fromSandboxMarketId (marketId: Str): Str {
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
-        if ((sandboxMode !== true) || (marketId === undefined)) {
+        if ((!sandboxMode) || (marketId === undefined)) {
             return marketId;
         }
         if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
@@ -4392,7 +4393,7 @@ export default class weex extends Exchange {
         let requestHeaders: NullableDict = undefined;
         if (isPrivate) {
             const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
-            if ((sandboxMode === true) && (path.indexOf ('capi/v3/sim/') !== 0)) {
+            if ((sandboxMode) && (path.indexOf ('capi/v3/sim/') !== 0)) {
                 // guard against accidental live private calls with sandbox mode enabled, the demo trading API only provides the capi/v3/sim/ endpoints
                 throw new NotSupported (this.id + ' ' + path + ' is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets');
             }

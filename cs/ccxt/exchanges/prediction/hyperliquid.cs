@@ -163,7 +163,8 @@ public partial class hyperliquid : PredictionExchange
      */
     public virtual object outcomeEncoding(object outcomeId, object side)
     {
-        return this.sum(multiply(10, outcomeId), side);
+        Int64? outcomeIdInt = this.parseToInt(outcomeId);
+        return this.sum((10 * outcomeIdInt), side);
     }
 
     /**
@@ -227,8 +228,8 @@ public partial class hyperliquid : PredictionExchange
             int colonIndex = (part?.IndexOf(":", StringComparison.Ordinal) ?? -1);
             if (colonIndex > -1)
             {
-                string? key = slice(part, 0, colonIndex);
-                string? value = slice(part, add(colonIndex, 1), null);
+                string? key = ((Func<object, object, object, string>)(static (s36s, s36a, s36b) => { if (s36s == null) { return null; } var s36str = (string)s36s; var s36start = s36a != null ? Convert.ToInt32(s36a) : -1; if (s36b == null) { if (s36start < 0) { var s36inner = s36str.Length + s36start; s36inner = s36inner < 0 ? 0 : s36inner; return s36str[(s36inner)..]; } else { return s36str[s36start..]; } } else { var s36end = Convert.ToInt32(s36b); if (s36start < 0) { s36start = s36str.Length + s36start; } if (s36end < 0) { s36end = s36str.Length + s36end; } if (s36end > s36str.Length) { s36end = s36str.Length; } return s36str[s36start..s36end]; } }))(part, 0, colonIndex);
+                string? value = ((Func<object, object, object, string>)(static (s36s, s36a, s36b) => { if (s36s == null) { return null; } var s36str = (string)s36s; var s36start = s36a != null ? Convert.ToInt32(s36a) : -1; if (s36b == null) { if (s36start < 0) { var s36inner = s36str.Length + s36start; s36inner = s36inner < 0 ? 0 : s36inner; return s36str[(s36inner)..]; } else { return s36str[s36start..]; } } else { var s36end = Convert.ToInt32(s36b); if (s36start < 0) { s36start = s36str.Length + s36start; } if (s36end < 0) { s36end = s36str.Length + s36end; } if (s36end > s36str.Length) { s36end = s36str.Length; } return s36str[s36start..s36end]; } }))(part, (colonIndex + 1L), null);
                 result[(string)key] = value;
             }
         }
@@ -257,7 +258,7 @@ public partial class hyperliquid : PredictionExchange
             expiryDate = getValue(expiry.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>(), 0);
         }
         string label = "NO";
-        if (isEqual(side, 0))
+        if ((((object)(side)) switch { Int64 c33l => c33l == 0, int c33i => c33i == 0, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 0, decimal c33m => c33m == 0, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 0, uint c33u => (Int64)c33u == 0, short c33h => (Int64)c33h == 0, ushort c33v => (Int64)c33v == 0, byte c33y => (Int64)c33y == 0, sbyte c33e => (Int64)c33e == 0, ulong c33z => c33z == 0UL, _ => false }))
         {
             label = "YES";
         }
@@ -353,7 +354,7 @@ public partial class hyperliquid : PredictionExchange
                             bucketLabel = ("ABOVE_" + ((thresholds != null && lastIdx < thresholds.Count ? thresholds[lastIdx] : null)));
                         } else
                         {
-                            bucketLabel = ((("BETWEEN_" + (getValue(thresholds, subtract(index, 1)))) + "_") + (getValue(thresholds, index)));
+                            bucketLabel = ((("BETWEEN_" + (getValue(thresholds, (index - 1)))) + "_") + ((thresholds != null && index != null && index < thresholds.Count ? thresholds[(int)index] : null)));
                         }
                         object bs = ((questionUnderlying.ToUpper() + "_") + bucketLabel);
                         if (((expiryDate != null)) && (!(expiryDate is "")))
@@ -684,19 +685,26 @@ public partial class hyperliquid : PredictionExchange
      */
     public virtual object calculatePricePrecision(object midPx, object szDecimals)
     {
-        if (isLessThanOrEqual(midPx, 0))
+        if (((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } bool c32Int(object v) { Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } bool c32Eq(object x, object y) { if (x == null && y == null) return true; if (x == null || y == null) return false; try { if (x.GetType() != y.GetType() && (!Double.TryParse(x.ToString(), out _) || !Double.TryParse(y.ToString(), out _))) return false; if (c32Int(x) && c32Int(y)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(decimal) || y.GetType() == typeof(decimal)) return Convert.ToDecimal(x) == Convert.ToDecimal(y); if (x.GetType() == typeof(int)) return (int)x == (int)y; if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) == Convert.ToDouble(y); if (x.GetType() == typeof(Single) || y.GetType() == typeof(Single)) return Convert.ToSingle(x) == Convert.ToSingle(y); if (x.GetType() == typeof(string)) return ((string)x) == ((string)y); if (x.GetType() == typeof(bool)) return ((bool)x) == ((bool)y); return false; } catch { return false; } } return !c32Gt(c32a, c32b) || c32Eq(c32a, c32b); }))(midPx, 0))
         {
             return 0.0001;
         }
         string? midStr = this.numberToString(midPx);
         List<object> parts = midStr.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
         string? intPart = ((string)(parts != null && 0 < parts.Count ? parts[0] : null));
-        object significantDigits = Math.Max(5, intPart.Length);
-        object maxDecimals = subtract(8, szDecimals);
-        object pricePrecisionDecimals = mathMax(1, mathMin(maxDecimals, subtract(significantDigits, intPart.Length)));
+        int intPartLength = intPart.Length;
+        Int64? szDecimalsInt = this.parseToInt(szDecimals);
+        object maxDecimals = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(8, szDecimalsInt);
+        // significantDigits - intPartLength, with significantDigits = max (5, intPartLength)
+        int digitsLeft = 0;
+        if (intPartLength <= 5)
+        {
+            digitsLeft = (5 - intPartLength);
+        }
+        object cappedDecimals = (((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } bool c32Int(object v) { Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } bool c32Eq(object x, object y) { if (x == null && y == null) return true; if (x == null || y == null) return false; try { if (x.GetType() != y.GetType() && (!Double.TryParse(x.ToString(), out _) || !Double.TryParse(y.ToString(), out _))) return false; if (c32Int(x) && c32Int(y)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(decimal) || y.GetType() == typeof(decimal)) return Convert.ToDecimal(x) == Convert.ToDecimal(y); if (x.GetType() == typeof(int)) return (int)x == (int)y; if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) == Convert.ToDouble(y); if (x.GetType() == typeof(Single) || y.GetType() == typeof(Single)) return Convert.ToSingle(x) == Convert.ToSingle(y); if (x.GetType() == typeof(string)) return ((string)x) == ((string)y); if (x.GetType() == typeof(bool)) return ((bool)x) == ((bool)y); return false; } catch { return false; } } return !c32Gt(c32a, c32b) && !c32Eq(c32a, c32b); }))(maxDecimals, digitsLeft)) ? maxDecimals : digitsLeft;
+        // appends max (1, cappedDecimals) - 1 zeros
         string zeros = "";
-        object zeroCount = subtract(pricePrecisionDecimals, 1);
-        for (int zi = 0; isLessThan(zi, zeroCount); zi++)
+        for (int zi = 1; ((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } bool c32Int(object v) { Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } bool c32Eq(object x, object y) { if (x == null && y == null) return true; if (x == null || y == null) return false; try { if (x.GetType() != y.GetType() && (!Double.TryParse(x.ToString(), out _) || !Double.TryParse(y.ToString(), out _))) return false; if (c32Int(x) && c32Int(y)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(decimal) || y.GetType() == typeof(decimal)) return Convert.ToDecimal(x) == Convert.ToDecimal(y); if (x.GetType() == typeof(int)) return (int)x == (int)y; if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) == Convert.ToDouble(y); if (x.GetType() == typeof(Single) || y.GetType() == typeof(Single)) return Convert.ToSingle(x) == Convert.ToSingle(y); if (x.GetType() == typeof(string)) return ((string)x) == ((string)y); if (x.GetType() == typeof(bool)) return ((bool)x) == ((bool)y); return false; } catch { return false; } } return !c32Gt(c32a, c32b) && !c32Eq(c32a, c32b); }))(zi, cappedDecimals); zi++)
         {
             zeros = (zeros + "0");
         }
@@ -849,7 +857,7 @@ public partial class hyperliquid : PredictionExchange
         object mid = this.safeNumber(raw, "mid");
         if ((mid == null) && (bid != null) && (ask != null))
         {
-            mid = divide(this.sum(bid, ask), 2);
+            mid = (((((object)(this.sum(bid, ask))) is var c31v0) && (((object)(2)) is var c31v1)) ? (((c31v0 == null) || (c31v1 == null)) ? null : (object)(Convert.ToDouble(c31v0) / Convert.ToDouble(c31v1))) : null);
         }
         // day volume lives on the parent market's ctx; resolve it from the outcome's parent market
         string? parentSymbol = this.safeString(mkt, "market");
@@ -971,12 +979,13 @@ public partial class hyperliquid : PredictionExchange
             int tf = this.parseTimeframe(timeframeVar);
             Int64? candleCount = ((limit != null)) ? limit : 100;
             Int64? startOffset = ((tf * candleCount) * -1000);
-            startTime = this.sum(until, startOffset);
+            Int64 shiftedStart = this.sum(until, startOffset);
+            startTime = shiftedStart;
             if ((startTime == null))
             {
                 throw new ExchangeError ((this.id + " fetchOHLCV() missing startTime")) ;
             }
-            if (isLessThan(startTime, 0))
+            if (shiftedStart < 0)
             {
                 startTime = 0;
             }
@@ -990,7 +999,7 @@ public partial class hyperliquid : PredictionExchange
                 { "endTime", until },
             } },
         };
-        object paramsOmitted = this.omit(parameters, "until");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "until"));
         object response = await this.publicPostInfo(this.extend(request, paramsOmitted));
         //
         //     [
@@ -1286,7 +1295,7 @@ public partial class hyperliquid : PredictionExchange
         int colonIndex = outcomeInput.IndexOf(":", StringComparison.Ordinal);
         if (colonIndex > -1 && (colonIndex < (outcomeInput.Length - 1)))
         {
-            string side = ((string)slice(outcomeInput, add(colonIndex, 1), null)).ToUpper();
+            string side = ((string)((Func<object, object, object, string>)(static (s36s, s36a, s36b) => { if (s36s == null) { return null; } var s36str = (string)s36s; var s36start = s36a != null ? Convert.ToInt32(s36a) : -1; if (s36b == null) { if (s36start < 0) { var s36inner = s36str.Length + s36start; s36inner = s36inner < 0 ? 0 : s36inner; return s36str[(s36inner)..]; } else { return s36str[s36start..]; } } else { var s36end = Convert.ToInt32(s36b); if (s36start < 0) { s36start = s36str.Length + s36start; } if (s36end < 0) { s36end = s36str.Length + s36end; } if (s36end > s36str.Length) { s36end = s36str.Length; } return s36str[s36start..s36end]; } }))(outcomeInput, (colonIndex + 1L), null)).ToUpper();
             if (side == "YES" || side == "NO")
             {
                 return side;
@@ -1342,11 +1351,11 @@ public partial class hyperliquid : PredictionExchange
         for (int i = 0; i < (candidates?.Count ?? 0); i++)
         {
             object key = candidates[i];
-            if (inOp(this.outcomes, key))
+            if (((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))(this.outcomes, key))
             {
                 return this.safeDict(this.outcomes, key, new Dictionary<string, object>() {});
             }
-            if (inOp(this.outcomes_by_id, key))
+            if (((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))(this.outcomes_by_id, key))
             {
                 return this.safeDict(this.outcomes_by_id, key, new Dictionary<string, object>() {});
             }
@@ -1560,7 +1569,7 @@ public partial class hyperliquid : PredictionExchange
         Int64? assetId = this.safeInteger(outcomeInfo, "assetId");
         Int64? nonce = this.incrementingNonce();
         object clientOrderId = this.safeValue2(parameters, "clientOrderId", "client_id");
-        object paramsOmitted = this.omit(parameters, new List<object>() {"clientOrderId", "client_id"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"clientOrderId", "client_id"}));
         List<object> cancelReq = new List<object>() {};
         Dictionary<string, object> cancelAction = new Dictionary<string, object>() {
             { "type", "cancel" },
@@ -1570,7 +1579,7 @@ public partial class hyperliquid : PredictionExchange
         {
             object cloids = ((clientOrderId is IList<object>) || (clientOrderId.GetType().IsGenericType && clientOrderId.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? clientOrderId : new List<object>() {clientOrderId};
             cancelAction["type"] = "cancelByCloid";
-            for (int i = 0; i < getArrayLength(cloids); i++)
+            for (int i = 0; i < (((object)(cloids)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
             {
                 cancelReq.Add(new Dictionary<string, object>() {
                     { "asset", assetId },
@@ -1682,7 +1691,7 @@ public partial class hyperliquid : PredictionExchange
         {
             rawOrders = response;
         }
-        for (int i = 0; i < getArrayLength(rawOrders); i++)
+        for (int i = 0; i < (((object)(rawOrders)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             object order = getValue(rawOrders, i);
             ordersWithStatus.Add(this.extend(order, new Dictionary<string, object>() {
@@ -1730,7 +1739,7 @@ public partial class hyperliquid : PredictionExchange
         {
             historicalOrders = response;
         }
-        for (int i = 0; i < getArrayLength(historicalOrders); i++)
+        for (int i = 0; i < (((object)(historicalOrders)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             object raw = getValue(historicalOrders, i);
             object entry = this.safeDict(raw, "order");
@@ -2233,8 +2242,8 @@ public partial class hyperliquid : PredictionExchange
             // push through a local and write the slice back — the go transpiler's
             // AppendToArray reassigns only a local copy of a map-stored array, so a
             // direct push on groupMap[parentSymbol] loses the element in go
-            object parentMarkets = this.safeValue(groupMap, parentSymbol);
-            ((IList<object>)parentMarkets).Add(mkt);
+            List<object> parentMarkets = this.safeList(groupMap, parentSymbol, new List<object>() {});
+            parentMarkets.Add(mkt);
             if ((parentSymbol != null))
             {
                 groupMap[(string)parentSymbol] = parentMarkets;
@@ -2365,9 +2374,9 @@ public partial class hyperliquid : PredictionExchange
         return this.decimalToPrecision(price, 1, decimals, 2, this.paddingMode);
     }
 
-    public virtual object hashMessage(object message)
+    public virtual string? hashMessage(object message)
     {
-        return ("0x" + (this.hash(message, keccak, "hex")));
+        return ((string?)((object)(("0x" + (this.hash(message, keccak, "hex"))))));
     }
 
     public virtual Dictionary<string, object> signHash(object hash, object privateKey)
@@ -2497,7 +2506,7 @@ public partial class hyperliquid : PredictionExchange
         Int64? nonce = this.incrementingNonce();
         bool? isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
         Dictionary<string, object> payload = new Dictionary<string, object>() {
-            { "hyperliquidChain", ((isSandboxMode == true)) ? "Testnet" : "Mainnet" },
+            { "hyperliquidChain", isSandboxMode == true ? "Testnet" : "Mainnet" },
             { "maxFeeRate", maxFeeRate },
             { "builder", builder },
             { "nonce", nonce },
@@ -2527,7 +2536,7 @@ public partial class hyperliquid : PredictionExchange
         // async for the PHP and typed transpilers, which mishandle an async body that never suspends
         await this.loadMarkets();
         bool? buildFee = this.safeBool(this.options, "builderFee", false);
-        if ((buildFee != true))
+        if (buildFee != true)
         {
             return null;
         }
@@ -2562,7 +2571,7 @@ public partial class hyperliquid : PredictionExchange
         {
             return new List<object>() {user, paramsAddress};
         }
-        if ((this.walletAddress != null) && !isEqual(this.walletAddress, ""))
+        if ((this.walletAddress != null) && !(this.walletAddress == ""))
         {
             return new List<object>() {this.walletAddress, paramsAddress};
         }
@@ -2654,11 +2663,11 @@ public partial class hyperliquid : PredictionExchange
     public override object calculateRateLimiterCost(object api, object method, object path, object parameters, object config = null)
     {
         config ??= new Dictionary<string, object>();
-        if ((((IDictionary<string, object>)config).ContainsKey("byType")) && (inOp(parameters, "type")))
+        if ((((IDictionary<string, object>)config).ContainsKey("byType")) && ((((object)(parameters)) switch { null => false, IList<object> c33a => c33a.Contains("type"), IList<string> c33t => c33t.Contains("type"), List<Int64> c33g => c33g.Contains((Int64)(object)"type"), IDictionary<string, object> c33d => c33d.ContainsKey("type"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("type"), _ => false })))
         {
             object type = getValue(parameters, "type");
             object byType = ((IDictionary<string,object>)config)["byType"];
-            if (inOp(byType, type))
+            if (((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))(byType, type))
             {
                 return getValue(byType, type);
             }

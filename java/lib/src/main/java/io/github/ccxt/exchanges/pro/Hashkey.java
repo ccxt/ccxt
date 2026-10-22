@@ -200,7 +200,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Map<String, Object> candle = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
-            Object parsed = this.parseWsOHLCV(candle, market);
+            List<Object> parsed = (List<Object>) this.parseWsOHLCV(candle, market);
             stored.append(parsed);
         }
         String messageHash = ((("ohlcv:" + symbol) + ":") + timeframe);
@@ -360,7 +360,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             Helpers.addElementToObject(this.trades, symbol, new ArrayCache(((Number)limit).intValue()));
         }
-        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) (symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol));
         List<Object> data = (List<Object>) this.safeList(message, "data", (Object) null);
         if (!java.util.Objects.equals(data, null))
         {
@@ -895,7 +895,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         }
         Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchBalance", (Object) null);
         Boolean snapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", true);
-        if (java.util.Objects.equals(snapshot, true))
+        if (Boolean.TRUE.equals(snapshot))
         {
             String messageHash = ((type + ":") + "fetchBalanceSnapshot");
             if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))
@@ -1020,7 +1020,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
                 {
                     throw new AuthenticationError((this.id + " authenticate() received an empty listenKey")) ;
                 }
-                Helpers.addElementToObject(this.options, "listenKey", listenKey);
+                { Map<Object, Object> j39v5 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v6 = "listenKey"; Object j39v7 = listenKey; if (j39v5 == null) { if (j39v6 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v5) { if (j39v7 == null && j39v5 instanceof java.util.concurrent.ConcurrentHashMap) { j39v5.remove(j39v6); } else { j39v5.put(j39v6, j39v7); } } }
                 Long listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 3600000);
                 this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", (String) (listenKey), parameters);
                 // settle the flight: client.resolve () wakes every waiter and
@@ -1060,7 +1060,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             {
                 String url = this.getPrivateUrl((String) (listenKey));
                 Client client = this.client(url);
-                Helpers.addElementToObject(this.options, "listenKey", null);
+                { Map<Object, Object> j39v8 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v9 = "listenKey"; Object j39v10 = null; if (j39v8 == null) { if (j39v9 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v8) { if (j39v10 == null && j39v8 instanceof java.util.concurrent.ConcurrentHashMap) { j39v8.remove(j39v9); } else { j39v8.put(j39v9, j39v10); } } }
                 client.reject(error);
                 ((Map<String,Object>)this.clients).remove((String)url);
             }

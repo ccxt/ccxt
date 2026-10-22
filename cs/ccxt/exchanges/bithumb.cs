@@ -684,7 +684,7 @@ public partial class bithumb : Exchange
                     bool active = true;
                     if (((market is IList<object>) || (market.GetType().IsGenericType && market.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
                     {
-                        int numElements = getArrayLength(market);
+                        int numElements = (((object)(market)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
                         if ((numElements == 0))
                         {
                             active = false;
@@ -790,7 +790,7 @@ public partial class bithumb : Exchange
             }
         } else
         {
-            for (int i = 0; i < getArrayLength(response); i++)
+            for (int i = 0; i < (((object)(response)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
             {
                 IDictionary<string, object> entry = this.safeDict(response, i);
                 Dictionary<string, object> account = this.account();
@@ -1119,18 +1119,15 @@ public partial class bithumb : Exchange
             List<object> marketIdsChunks = new List<object>() {};
             List<object> promises = new List<object>() {};
             // the exchange rejects more than 200 market ids per request
-            object maxMarketIdsPerRequest = this.safeInteger(this.options, "fetchTickersGeneration2MaxMarketIdsPerRequest", 200);
-            if (((maxMarketIdsPerRequest == null)) || (isLessThan(maxMarketIdsPerRequest, 1)))
-            {
-                maxMarketIdsPerRequest = 200;
-            }
+            Int64? maxMarketIdsOption = this.safeInteger(this.options, "fetchTickersGeneration2MaxMarketIdsPerRequest", 200);
+            Int64? maxMarketIdsPerRequest = this.parseToInt((((maxMarketIdsOption == null)) || (((maxMarketIdsOption == null || maxMarketIdsOption < 1)))) ? 200 : maxMarketIdsOption);
             List<object> marketIdsChunk = new List<object>() {};
             for (int i = 0; i < marketIdsLength; i++)
             {
                 marketIdsChunk.Add((marketIds != null && i < marketIds.Count ? marketIds[i] : null));
                 int marketIdsChunkLength = (marketIdsChunk?.Count ?? 0);
-                bool isLastMarketId = (isEqual(i, ((marketIdsLength - 1))));
-                if ((isGreaterThanOrEqual(marketIdsChunkLength, maxMarketIdsPerRequest)) || isLastMarketId)
+                bool isLastMarketId = ((i == ((marketIdsLength - 1))));
+                if (((maxMarketIdsPerRequest == null || marketIdsChunkLength >= maxMarketIdsPerRequest)) || isLastMarketId)
                 {
                     marketIdsChunks.Add(marketIdsChunk);
                     request["markets"] = String.Join(",", marketIdsChunk.ToArray());
@@ -1175,7 +1172,7 @@ public partial class bithumb : Exchange
             for (int i = 0; i < responsesLength; i++)
             {
                 object response = (responses != null && i < responses.Count ? responses[i] : null);
-                if (isTrue(this.isDictionary(response)) && (inOp(response, "data")) && (!isEqual(getValue(response, "data"), null)))
+                if ((((object)(this.isDictionary(response))) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }) && ((((object)(response)) switch { null => false, IList<object> c33a => c33a.Contains("data"), IList<string> c33t => c33t.Contains("data"), List<Int64> c33g => c33g.Contains((Int64)(object)"data"), IDictionary<string, object> c33d => c33d.ContainsKey("data"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("data"), _ => false })) && (!(getValue(response, "data") == null)))
                 {
                     response = getValue(response, "data");
                 }
@@ -1190,9 +1187,9 @@ public partial class bithumb : Exchange
                 if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
                 {
                     tickers = response;
-                } else if (isTrue(this.isDictionary(response)))
+                } else if ((((object)(this.isDictionary(response))) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
                 {
-                    if ((inOp(response, "market")) || (inOp(response, "trade_date")) || (inOp(response, "trade_timestamp")))
+                    if (((((object)(response)) switch { null => false, IList<object> c33a => c33a.Contains("market"), IList<string> c33t => c33t.Contains("market"), List<Int64> c33g => c33g.Contains((Int64)(object)"market"), IDictionary<string, object> c33d => c33d.ContainsKey("market"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("market"), _ => false })) || ((((object)(response)) switch { null => false, IList<object> c33a => c33a.Contains("trade_date"), IList<string> c33t => c33t.Contains("trade_date"), List<Int64> c33g => c33g.Contains((Int64)(object)"trade_date"), IDictionary<string, object> c33d => c33d.ContainsKey("trade_date"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("trade_date"), _ => false })) || ((((object)(response)) switch { null => false, IList<object> c33a => c33a.Contains("trade_timestamp"), IList<string> c33t => c33t.Contains("trade_timestamp"), List<Int64> c33g => c33g.Contains((Int64)(object)"trade_timestamp"), IDictionary<string, object> c33d => c33d.ContainsKey("trade_timestamp"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("trade_timestamp"), _ => false })))
                     {
                         tickers = new List<object>() {response};
                     } else
@@ -1210,7 +1207,7 @@ public partial class bithumb : Exchange
                         }
                     }
                 }
-                for (int j = 0; j < getArrayLength(tickers); j++)
+                for (int j = 0; j < (((object)(tickers)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); j++)
                 {
                     object entry = getValue(tickers, j);
                     string? marketId = this.safeString(entry, "market", expectedMarketId);
@@ -1271,7 +1268,7 @@ public partial class bithumb : Exchange
                     string? currencyId = ((string)currencyIds[j]);
                     object ticker = (currencyId != null && data.ContainsKey(currencyId) ? data[currencyId] : null);
                     string? bs = this.safeCurrencyCode(currencyId);
-                    if (((bs == null)) || ((quote == null)))
+                    if ((bs == null))
                     {
                         continue;
                     }
@@ -1600,8 +1597,9 @@ public partial class bithumb : Exchange
         //     }
         //
         // a workaround for their bug in date format, hours are not 0-padded
-        object timestamp = this.safeInteger(trade, "timestamp");
-        bool isGenerationTwo = (!(timestamp == null));
+        Int64? generationTwoTimestamp = this.safeInteger(trade, "timestamp");
+        object timestamp = generationTwoTimestamp;
+        bool isGenerationTwo = ((generationTwoTimestamp != null));
         string? transactionDatetime = this.safeString(trade, "transaction_date");
         if ((transactionDatetime != null))
         {
@@ -1610,20 +1608,27 @@ public partial class bithumb : Exchange
             if (numParts > 1)
             {
                 object transactionDate = (parts != null && 0 < parts.Count ? parts[0] : null);
-                string? transactionTime = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
-                if (transactionTime.Length < 8)
+                string? rawTransactionTime = this.safeString(parts, 1, "");
+                string? transactionTime = rawTransactionTime;
+                if (rawTransactionTime.Length < 8)
                 {
-                    transactionTime = ("0" + transactionTime);
+                    transactionTime = ("0" + rawTransactionTime);
                 }
-                timestamp = this.parse8601(add(add(transactionDate, " "), transactionTime));
+                Int64? kstTimestamp = this.parse8601(add(add(transactionDate, " "), transactionTime));
+                timestamp = kstTimestamp;
+                if (((kstTimestamp != null)) && (!isGenerationTwo))
+                {
+                    timestamp = (kstTimestamp - (9L * 3600000L)); // they report UTC + 9 hours, server in Korean timezone
+                }
             } else
             {
-                timestamp = this.safeIntegerProduct(trade, "transaction_date", 0.001);
+                Int64? productTimestamp = this.safeIntegerProduct(trade, "transaction_date", 0.001);
+                timestamp = productTimestamp;
+                if (((productTimestamp != null)) && (!isGenerationTwo))
+                {
+                    timestamp = (productTimestamp - (9L * 3600000L)); // they report UTC + 9 hours, server in Korean timezone
+                }
             }
-        }
-        if ((!(timestamp == null)) && (!isGenerationTwo))
-        {
-            timestamp = subtract(timestamp, (9L * 3600000L)); // they report UTC + 9 hours, server in Korean timezone
         }
         object type = null;
         string? side = this.safeStringLower2(trade, "ask_bid", "type");
@@ -1641,11 +1646,8 @@ public partial class bithumb : Exchange
         string? marketId = this.safeString(trade, "market");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? priceString = this.safeString2(trade, "price", "trade_price");
-        object amountString = this.safeString(trade, "trade_volume");
-        if ((amountString == null))
-        {
-            amountString = this.fixCommaNumber(this.safeString2(trade, "units_traded", "units"));
-        }
+        string? tradeVolume = this.safeString(trade, "trade_volume");
+        string? amountString = ((tradeVolume == null)) ? this.fixCommaNumber(this.safeString2(trade, "units_traded", "units")) : tradeVolume;
         string? costString = this.safeString(trade, "total");
         Dictionary<string, object> fee = null;
         string? feeCostString = this.safeString(trade, "fee");
@@ -1784,7 +1786,7 @@ public partial class bithumb : Exchange
             throw new ArgumentsRequired ((this.id + " createOrders() requires a non-empty orders array")) ;
         }
         List<object> ordersRequests = new List<object>() {};
-        IList<object> orderSymbols = new List<object>() {};
+        List<object> orderSymbols = new List<object>() {};
         for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
             IDictionary<string, object> rawOrder = this.safeDict(orders, i);
@@ -1810,8 +1812,8 @@ public partial class bithumb : Exchange
             Dictionary<string, object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
             ordersRequests.Add(orderRequest);
         }
-        orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
-        Dictionary<string, object> market = this.market((orderSymbols != null && 0 < orderSymbols.Count ? orderSymbols[0] : null));
+        IList<object> symbols = this.marketSymbols(orderSymbols, null, false, true, true);
+        Dictionary<string, object> market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "batch_orders", ordersRequests },
         };
@@ -1900,25 +1902,20 @@ public partial class bithumb : Exchange
             {
                 typeRequest = "price";
                 // for market buy it requires the amount of quote currency to spend
-                string? cost = this.safeString(paramsOrder, "cost");
+                string? costParam = this.safeString(paramsOrder, "cost");
                 (bool?, object) createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams(this.omit(paramsOrder, "cost"), "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 bool? createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.Item1;
                 object paramsRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.Item2;
                 paramsOrder = paramsRequiresPrice;
+                string? amountString = this.numberToString(amount);
+                string? cost = ((costParam == null)) ? amountString : costParam;
                 if ((createMarketBuyOrderRequiresPrice == true))
                 {
-                    if (((price == null)) && ((cost == null)))
+                    if (((price == null)) && ((costParam == null)))
                     {
                         throw new InvalidOrder ((this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
-                    } else
-                    {
-                        string? amountString = this.numberToString(amount);
-                        string? priceString = this.numberToString(price);
-                        cost = Precise.stringMul(amountString, priceString);
                     }
-                } else
-                {
-                    cost = ((cost == null)) ? this.numberToString(amount) : cost;
+                    cost = Precise.stringMul(amountString, this.numberToString(price));
                 }
                 request["price"] = this.priceToPrecision(symbol, cost);
             } else
@@ -2075,7 +2072,7 @@ public partial class bithumb : Exchange
             { "market", this.getGen2MarketId(market) },
             { "duration", durationSeconds },
         };
-        if (!isEqual(amount, null))
+        if (!(((object)(amount)) == null))
         {
             request["volume"] = this.amountToPrecision(symbol, amount); // required for sale
         }
@@ -2438,8 +2435,8 @@ public partial class bithumb : Exchange
                 type = "limit";
             }
         }
-        object amount = this.fixCommaNumber(this.safeStringN(order, new List<object>() {"order_qty", "units", "volume"}));
-        object remaining = this.fixCommaNumber(this.safeString2(order, "units_remaining", "remaining_volume"));
+        string? amount = this.fixCommaNumber(this.safeStringN(order, new List<object>() {"order_qty", "units", "volume"}));
+        string? remaining = this.fixCommaNumber(this.safeString2(order, "units_remaining", "remaining_volume"));
         if ((remaining == null))
         {
             if (status == "closed")
@@ -2815,7 +2812,7 @@ public partial class bithumb : Exchange
             {
                 throw new ArgumentsRequired ((this.id + " cancelOrder() requires a market with defined base and quote")) ;
             }
-            bool side_in_params = (inOp(paramsRequest, "side"));
+            bool side_in_params = ((paramsRequest is IDictionary<string, object> inOpDict0 && inOpDict0.ContainsKey("side")));
             if (!side_in_params)
             {
                 throw new ArgumentsRequired ((this.id + " cancelOrder() requires a `side` parameter (sell or buy)")) ;
@@ -3102,11 +3099,11 @@ public partial class bithumb : Exchange
         };
     }
 
-    public virtual object parseTransactionStatusByType(string? status, string? type = null)
+    public virtual string? parseTransactionStatusByType(string? status, string? type = null)
     {
         if ((type == null))
         {
-            return status;
+            return ((string?)((object)(status)));
         }
         Dictionary<string, object> statusesByType = new Dictionary<string, object>() {
             { "deposit", new Dictionary<string, object>() {
@@ -3127,7 +3124,7 @@ public partial class bithumb : Exchange
             } },
         };
         IDictionary<string, object> statuses = this.safeDict(statusesByType, type, new Dictionary<string, object>() {});
-        return this.safeString(statuses, status, status);
+        return ((string?)((object)(this.safeString(statuses, status, status))));
     }
 
     /**
@@ -3592,19 +3589,19 @@ public partial class bithumb : Exchange
         };
     }
 
-    public virtual object fixCommaNumber(string? numberStr)
+    public virtual string? fixCommaNumber(string? numberStr)
     {
         // some endpoints need this https://github.com/ccxt/ccxt/issues/11031
         if ((numberStr == null))
         {
-            return null;
+            return ((string?)((object)(null)));
         }
         object finalNumberStr = numberStr;
-        while (getIndexOf(finalNumberStr, ",") > -1)
+        while ((((object)(finalNumberStr)) switch { IList<object> c33a => c33a.IndexOf(","), IList<string> c33t => c33t.IndexOf((string)(object)","), string c33s => c33s.IndexOf((string)(object)","), _ => -1 }) > -1)
         {
             finalNumberStr = ((string)finalNumberStr).Replace(",", (string)"");
         }
-        return finalNumberStr;
+        return ((string?)((object)(finalNumberStr)));
     }
 
     public override Int64 nonce()
@@ -3623,7 +3620,7 @@ public partial class bithumb : Exchange
             if (((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
                 string encodedKey = (this.encodeURIComponent(key) + "[]");
-                for (int j = 0; j < getArrayLength(value); j++)
+                for (int j = 0; j < (((object)(value)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); j++)
                 {
                     object item = getValue(value, j);
                     string? valueString = this.safeString(value, j);
@@ -3633,20 +3630,20 @@ public partial class bithumb : Exchange
                     }
                     if (((string)result).Length > 0)
                     {
-                        result = add(result, "&");
+                        result = (result + ("&"));
                     }
-                    result = add(result, ((encodedKey + "=") + this.encodeURIComponent(valueString)));
+                    result = (result + (((encodedKey + "=") + this.encodeURIComponent(valueString))));
                 }
             } else
             {
                 if (((string)result).Length > 0)
                 {
-                    result = add(result, "&");
+                    result = (result + ("&"));
                 }
                 string encodedKey = this.encodeURIComponent(key);
                 string? valueString = this.safeString(query, key);
                 string encodedValue = this.encodeURIComponent(valueString);
-                result = add(result, ((encodedKey + "=") + encodedValue));
+                result = (result + (((encodedKey + "=") + encodedValue)));
             }
         }
         return ((string?)((object)(result)));
@@ -3719,11 +3716,11 @@ public partial class bithumb : Exchange
                 requestHeaders["Authorization"] = ("Bearer " + token);
             } else
             {
-                requestBody = this.urlencode(this.extend(new Dictionary<string, object>() {
+                string encodedBody = this.urlencode(this.extend(new Dictionary<string, object>() {
                     { "endpoint", endpoint },
                 }, query));
                 // bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
-                List<object> bodyParts = requestBody.Split(new [] {"%20"}, StringSplitOptions.None).ToList<object>();
+                List<object> bodyParts = encodedBody.Split(new [] {"%20"}, StringSplitOptions.None).ToList<object>();
                 requestBody = String.Join("+", bodyParts.ToArray());
                 string nonce = this.nonce().ToString();
                 string auth = ((((endpoint + "\\") + requestBody) + "\\") + nonce); // eslint-disable-line quotes
@@ -3775,7 +3772,7 @@ public partial class bithumb : Exchange
             }
             throw new ExchangeError (feedback) ;
         }
-        if (inOp(response, "status"))
+        if ((((object)(response)) switch { null => false, IList<object> c33a => c33a.Contains("status"), IList<string> c33t => c33t.Contains("status"), List<Int64> c33g => c33g.Contains((Int64)(object)"status"), IDictionary<string, object> c33d => c33d.ContainsKey("status"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("status"), _ => false }))
         {
             // generation 1:
             //

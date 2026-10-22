@@ -1100,9 +1100,10 @@ class poloniex(Exchange, ImplicitAPI):
         marketId = self.safe_string_2(ticker, 'symbol', 's')
         marketResolved = self.safe_market(marketId)
         baseVolume = self.safe_string_2(ticker, 'quantity', 'qty')
-        if (marketResolved['contract'] is True) and (marketResolved['contractSize'] is not None):
+        contractSize = self.safe_number(marketResolved, 'contractSize')
+        if (marketResolved['contract'] is True) and (contractSize is not None):
             # 'quantity' counts contracts, and a ticker reports base volume
-            baseVolume = Precise.string_mul(baseVolume, self.number_to_string(marketResolved['contractSize']))
+            baseVolume = Precise.string_mul(baseVolume, self.number_to_string(contractSize))
         relativeChange = self.safe_string_2(ticker, 'dailyChange', 'dc')
         percentage = Precise.string_mul(relativeChange, '100')
         return self.safe_ticker({
@@ -1627,10 +1628,9 @@ class poloniex(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        result = self.parse_trades(response, market, since, limit)
-        return result
+        return self.parse_trades(response, market, since, limit)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
@@ -1858,8 +1858,10 @@ class poloniex(Exchange, ImplicitAPI):
             request['symbol'] = market['id']
         marketType, paramsMarketType = self.handle_market_type_and_params('fetchOpenOrders', market, params)
         if limit is not None:
-            max = 2000 if (marketType == 'spot') else 100
-            request['limit'] = max(limit, max)
+            if marketType == 'spot':
+                request['limit'] = max(limit, 2000)
+            else:
+                request['limit'] = max(limit, 100)
         isTrigger = self.safe_bool_2(paramsMarketType, 'trigger', 'stop')
         paramsOmitted = self.omit(paramsMarketType, ['trigger', 'stop'])
         response = []
@@ -2076,10 +2078,12 @@ class poloniex(Exchange, ImplicitAPI):
             rawOrder = orders[i]
             symbol = rawOrder['symbol']
             marketInner = self.market(symbol)
+            marketInnerType = self.safe_string(marketInner, 'type')
+            marketType = self.safe_string(market, 'type')
             if market is None:
                 market = marketInner
                 isContract = (marketInner['contract'] is True)
-            elif market['type'] != marketInner['type']:
+            elif marketType != marketInnerType:
                 raise BadRequest(self.id + ' createOrders() requires all orders to be of the same market type, either spot or swap')
             type = rawOrder['type']
             side = rawOrder['side']
@@ -2290,7 +2294,7 @@ class poloniex(Exchange, ImplicitAPI):
             #    }
             #
             return self.parse_order(self.safe_dict(raw, 'data', {}))
-        clientOrderId = self.safe_value(params, 'clientOrderId')
+        clientOrderId = self.safe_string(params, 'clientOrderId')
         idValue = clientOrderId if (clientOrderId is not None) else id
         request['id'] = idValue
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop')
@@ -2498,7 +2502,9 @@ class poloniex(Exchange, ImplicitAPI):
         self.load_markets()
         orders = self.fetch_open_orders(symbol, None, None, params)
         indexed = self.index_by(orders, 'id')
-        return 'open' if (id in indexed) else 'closed'
+        statuses = {'true': 'open', 'false': 'closed'}
+        found = 'true' if (id in indexed) else 'false'
+        return self.safe_string(statuses, found)
 
     def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -2566,7 +2572,7 @@ class poloniex(Exchange, ImplicitAPI):
         # for spot
         for i in range(0, len(response)):
             account = self.safe_dict(response, i, {})
-            balances = self.safe_value(account, 'balances')
+            balances = self.safe_list(account, 'balances', [])
             for j in range(0, len(balances)):
                 balance = self.safe_dict(balances, j)
                 currencyId = self.safe_string(balance, 'currency')
@@ -2735,17 +2741,17 @@ class poloniex(Exchange, ImplicitAPI):
         #     }
         #
         timestamp = self.safe_integer(response, 'time')
-        asks = self.safe_value(response, 'asks')
-        bids = self.safe_value(response, 'bids')
+        asks = self.safe_list(response, 'asks', [])
+        bids = self.safe_list(response, 'bids', [])
         asksResult = []
         bidsResult = []
         for i in range(0, len(asks)):
-            if (i % 2) < 1:
+            if (i % 2) == 0:
                 price = self.safe_number(asks, i)
                 amount = self.safe_number(asks, self.sum(i, 1))
                 asksResult.append([price, amount])
         for i in range(0, len(bids)):
-            if (i % 2) < 1:
+            if (i % 2) == 0:
                 price = self.safe_number(bids, i)
                 amount = self.safe_number(bids, self.sum(i, 1))
                 bidsResult.append([price, amount])
@@ -3038,7 +3044,10 @@ class poloniex(Exchange, ImplicitAPI):
         self.load_markets()
         year = 31104000  # 60 * 60 * 24 * 30 * 12 = one year of history, why not
         now = self.seconds()
-        start = self.parse_to_int(since / 1000) if (since is not None) else now - 10 * year
+        start = now - 10 * year
+        if since is not None:
+            sinceMs = self.safe_integer({'since': since}, 'since', 0)
+            start = self.parse_to_int(sinceMs / 1000)
         request = {
             'start': start,  # UNIX timestamp, required
             'end': now,  # UNIX timestamp, required
@@ -3239,12 +3248,12 @@ class poloniex(Exchange, ImplicitAPI):
             if (code is not None) and ((codesValue is None) or (self.in_array(code, codesValue))):
                 currency = self.currency(code)
                 depositWithdrawFees[code] = self.parse_deposit_withdraw_fee(feeInfo, currency)
-                childChains = self.safe_value(feeInfo, 'childChains')
+                childChains = self.safe_list(feeInfo, 'childChains', [])
                 chainsLength = len(childChains)
                 if chainsLength > 0:
                     for j in range(0, len(childChains)):
-                        networkId = childChains[j]
-                        networkId = networkId.replace(code, '')
+                        rawNetworkId = self.safe_string(childChains, j, '')
+                        networkId = rawNetworkId.replace(code, '')
                         networkCode = self.network_id_to_code(networkId, self.safe_string(currency, 'code'))
                         networkInfo = self.safe_dict(response, networkId)
                         networkObject = {}
@@ -3307,7 +3316,7 @@ class poloniex(Exchange, ImplicitAPI):
         transactions = self.parse_transactions(deposits, currency, since, limit)
         return self.filter_by_currency_since_limit(transactions, code, since, limit)
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             'COMPLETE': 'ok',
             'COMPLETED': 'ok',
@@ -3704,7 +3713,7 @@ class poloniex(Exchange, ImplicitAPI):
             'takeProfitPrice': self.safe_number(position, 'tpTrgPx'),
         })
 
-    def modify_margin_helper(self, symbol: str, amount: object, type: str, params: dict = {}) -> MarginModification:
+    def modify_margin_helper(self, symbol: str, amount: Num, type: str, params: dict = {}) -> MarginModification:
         self.load_markets()
         market = self.market(symbol)
         amountResolved = self.amount_to_precision(symbol, amount)
@@ -3761,7 +3770,8 @@ class poloniex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
         """
-        return self.modify_margin_helper(symbol, -amount, 'reduce', params)
+        # modifyMarginHelper sends Precise.stringAbs (amountToPrecision (amount)), so the sign is irrelevant
+        return self.modify_margin_helper(symbol, amount, 'reduce', params)
 
     def add_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
         """

@@ -66,7 +66,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         }});
     }
 
-    public Object authenticate()
+    public Map<String, Object> authenticate()
     {
         this.checkRequiredCredentials(true);
         String path = "/users/self/verify";
@@ -330,7 +330,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             String symbolValue = this.symbol(symbol);
             String name = "user";
             String messageHash = "myTrades";
-            Object authentication = this.authenticate();
+            Map<String, Object> authentication = this.authenticate();
             List<Object> trades = (List<Object>) (this.subscribe(name, symbolValue, messageHash, this.extend(parameters, authentication))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
@@ -364,7 +364,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             }
             String name = "user";
             String messageHash = "myTrades";
-            Object authentication = this.authenticate();
+            Map<String, Object> authentication = this.authenticate();
             List<Object> trades = (List<Object>) (this.subscribeMultiple(name, symbolsNormalized, messageHash, this.extend(parameters, authentication))).join();
             Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
             String tradeSymbol = this.safeString(first, "symbol");
@@ -400,7 +400,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
             String name = "user";
             String messageHash = "orders";
-            Object authentication = this.authenticate();
+            Map<String, Object> authentication = this.authenticate();
             List<Object> orders = (List<Object>) (this.subscribeMultiple(name, symbolsNormalized, messageHash, this.extend(parameters, authentication))).join();
             Map<String, Object> first = (Map<String, Object>) this.safeDict(orders, 0, (Object) null);
             String tradeSymbol = this.safeString(first, "symbol");
@@ -440,7 +440,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             String symbolValue = this.symbol(symbol);
             String name = "user";
             String messageHash = "orders";
-            Object authentication = this.authenticate();
+            Map<String, Object> authentication = this.authenticate();
             List<Object> orders = (List<Object>) (this.subscribe(name, symbolValue, messageHash, this.extend(parameters, authentication))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
@@ -495,7 +495,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             subscription.put("symbols", symbolsNormalized);
             subscription.put("marketIds", marketIds);
             subscription.put("limit", limit);
-            Object authentication = this.authenticate();
+            Map<String, Object> authentication = this.authenticate();
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watchMultiple(url, messageHashes, this.extend(request, authentication), messageHashes, subscription)).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
@@ -536,7 +536,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                 put( "marketId", market.get("id") );
                 put( "limit", limit );
             }};
-            Object authentication = this.authenticate();
+            Map<String, Object> authentication = this.authenticate();
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, this.extend(request, authentication), messageHash, subscription)).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
@@ -840,11 +840,11 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                             previousOrder.put("trades", new ArrayList<Object>(Arrays.asList()));
                         }
                         ((List<Object>)previousOrder.get("trades")).add(trade);
-                        Helpers.addElementToObject(previousOrder, "lastTradeTimestamp", trade.get("timestamp"));
+                        { Map<Object, Object> j39v9 = (Map<Object, Object>) (Map<?, ?>) (previousOrder); Object j39v10 = "lastTradeTimestamp"; Object j39v11 = trade.get("timestamp"); if (j39v9 == null) { if (j39v10 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v9) { if (j39v11 == null && j39v9 instanceof java.util.concurrent.ConcurrentHashMap) { j39v9.remove(j39v10); } else { j39v9.put(j39v10, j39v11); } } }
                         String totalCost = "0";
                         String totalAmount = "0";
                         Object trades = previousOrder.get("trades");
-                        for (var i = 0; i < Helpers.getArrayLength(trades); i++)
+                        for (var i = 0; i < (switch ((Object)(trades)) { case null -> 0; case List<?> j39v6 -> j39v6.size(); case String j39v7 -> j39v7.length(); case Object j39v8 -> j39v8.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v8) : 0; }); i++)
                         {
                             Map<String, Object> tradeEntry = (Map<String, Object>) this.safeDict(trades, i, (Object) null);
                             totalCost = this.safeString(tradeEntry, "cost", "0");
@@ -892,7 +892,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                             if (!java.util.Objects.equals((order == null || key == null ? null : order.get(key)), null))
                             {
-                                Helpers.addElementToObject(previousOrder, key, (order == null || key == null ? null : order.get(key)));
+                                { Map<Object, Object> j39v1 = (Map<Object, Object>) (Map<?, ?>) (previousOrder); Object j39v2 = key; Object j39v3 = (order == null || key == null ? null : order.get(key)); if (j39v1 == null) { if (j39v2 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v1) { if (j39v3 == null && j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); } else { j39v1.put(j39v2, j39v3); } } }
                             }
                         }
                         // update the newUpdates count
@@ -1065,7 +1065,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
 
     public void handleDeltas(Object bookside, Object deltas)
     {
-        for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
+        for (var i = 0; i < (switch ((Object)(deltas)) { case null -> 0; case List<?> j39v13 -> j39v13.size(); case String j39v14 -> j39v14.length(); case Object j39v15 -> j39v15.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v15) : 0; }); i++)
         {
             this.handleDelta(bookside, Helpers.GetValue(deltas, i));
         }
@@ -1206,8 +1206,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             put( "done", "handleOrder");
             put( "error", "handleErrorMessage");
         }};
-        Long length = (((long) ((String)client.url).length()) - 0L);
-        Boolean authenticated = java.util.Objects.equals(Helpers.GetValue(client.url, (length - 1L)), "?");
+        Boolean authenticated = ((String)client.url).endsWith("?");
         Object method = this.safeValue(methods, type);
         if (java.util.Objects.equals(method, null))
         {

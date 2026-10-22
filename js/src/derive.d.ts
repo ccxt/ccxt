@@ -196,9 +196,9 @@ export default class derive extends Exchange {
      * @returns {string} a nanosecond-scale nonce as a decimal string
      */
     nonceString(): string;
-    hashMessage(message: any): string;
+    hashMessage(message: string): string;
     signHash(hash: string, privateKey: string): string;
-    signMessage(message: any, privateKey: string): string;
+    signMessage(message: string, privateKey: string): string;
     parseUnits(num: string, dec?: string): Str;
     /**
      * @method
@@ -332,7 +332,7 @@ export default class derive extends Exchange {
      */
     fetchCanceledOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     parseTimeInForce(timeInForce: Str): Str;
-    parseOrderStatus(status: Str): string | undefined;
+    parseOrderStatus(status: Str): Str;
     parseOrder(rawOrder: Dict, market?: Market): Order;
     /**
      * @method

@@ -877,7 +877,7 @@ class okx extends okx$1["default"] {
         const isTrigger = this.safeBool2(params, 'stop', 'trigger', false);
         const paramsOmitted = this.omit(params, ['stop', 'trigger']);
         let accessType = 'private';
-        if (isTrigger === true) {
+        if (isTrigger) {
             accessType = 'business';
         }
         await this.authenticate({ 'access': accessType });
@@ -1436,11 +1436,8 @@ class okx extends okx$1["default"] {
         const seqId = this.safeInteger(message, 'seqId');
         const prevSeqId = this.safeInteger(message, 'prevSeqId');
         const nonce = orderbook['nonce'];
-        let error = undefined;
         if (prevSeqId !== undefined && prevSeqId !== -1 && nonce !== prevSeqId) {
-            error = new errors.InvalidNonce(this.id + ' watchOrderBook received invalid nonce');
-        }
-        if (error !== undefined) {
+            const error = new errors.InvalidNonce(this.id + ' watchOrderBook received invalid nonce');
             delete client.subscriptions[messageHash];
             if (symbol !== undefined) {
                 delete this.orderbooks[symbol];
@@ -1805,12 +1802,12 @@ class okx extends okx$1["default"] {
             await this.loadMarkets();
         }
         let access = 'private';
-        if (isTrigger === true) {
+        if (isTrigger) {
             access = 'business';
         }
         await this.authenticate({ 'access': access });
         let channel = 'orders';
-        if (isTrigger === true) {
+        if (isTrigger) {
             channel = 'orders-algo';
         }
         let messageHash = channel + '::myTrades';
@@ -2009,7 +2006,7 @@ class okx extends okx$1["default"] {
             await this.loadMarkets();
         }
         let accessType = 'private';
-        if (isTrigger === true) {
+        if (isTrigger) {
             accessType = 'business';
         }
         await this.authenticate({ 'access': accessType });
@@ -2038,7 +2035,7 @@ class okx extends okx$1["default"] {
             'instType': uppercaseType,
         };
         let channel = 'orders';
-        if (isTrigger === true) {
+        if (isTrigger) {
             channel = 'orders-algo';
         }
         const orders = await this.subscribe('private', channel, channel, symbolResolved, this.extend(request, paramsMarginMode));

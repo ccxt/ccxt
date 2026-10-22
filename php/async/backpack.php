@@ -554,7 +554,9 @@ class backpack extends Exchange {
          * @param {boolean} [$params->stock] return tokenized $stock assets only
          * @return {array} an associative dictionary of $currencies
          */
-        list($stock, $query) = $this->handle_stock_params('fetchCurrencies', $params);
+        $selection = $this->handle_stock_params('fetchCurrencies', $params);
+        $stock = $this->safe_bool($selection, 0, false);
+        $query = $this->safe_dict($selection, 1, array());
         $response = Async\await($this->publicGetApiV1Assets($query));
         //
         //     [
@@ -582,7 +584,7 @@ class backpack extends Exchange {
         $currencies = array();
         for ($i = 0; $i < count($response); $i++) {
             $currency = $this->parse_currency($response[$i]);
-            if (($stock !== true) || ($currency['type'] === 'stock')) {
+            if (($stock !== true) || ($this->safe_string($currency, 'type') === 'stock')) {
                 $currencies[$currency['code']] = $currency;
             }
         }
@@ -676,7 +678,9 @@ class backpack extends Exchange {
         if ($this->safe_bool($this->options, 'adjustForTimeDifference', false)) {
             Async\await($this->load_time_difference());
         }
-        list($stock, $query) = $this->handle_stock_params('fetchMarkets', $params);
+        $selection = $this->handle_stock_params('fetchMarkets', $params);
+        $stock = $this->safe_bool($selection, 0, false);
+        $query = $this->safe_dict($selection, 1, array());
         $marketType = $this->safe_string($query, 'marketType');
         $defaultTypes = ($marketType === null) ? array( 'SPOT', 'PERP', 'RFQ' ) : array( $marketType );
         $requestedTypes = $this->safe_list($query, 'marketType', $defaultTypes);
@@ -1087,7 +1091,7 @@ class backpack extends Exchange {
         $quoteCode = ($fromIsStock) ? $toCode : $fromCode;
         $symbol = $stockCode . '.RFQ/' . $quoteCode;
         $market = $this->safe_dict($this->markets, $symbol);
-        if (($market === null) || ($market['executionModel'] !== 'rfq') || ($market['stock'] !== true)) {
+        if (($market === null) || ($this->safe_string($market, 'executionModel') !== 'rfq') || !$this->safe_bool($market, 'stock', false)) {
             throw new BadSymbol($this->id . ' conversion requires a listed stock RFQ market => ' . $symbol);
         }
         return $market;
@@ -1108,7 +1112,7 @@ class backpack extends Exchange {
             throw new ArgumentsRequired($this->id . ' parseConversion() requires source and destination currencies');
         }
         $market = $this->rfq_conversion_market($fromCode, $toCode);
-        $fromIsBase = $fromCode === $market['base'];
+        $fromIsBase = $fromCode === $this->safe_string($market, 'base');
         $filled = $this->safe_number($order, 'filled');
         $cost = $this->safe_number($order, 'cost');
         $fee = $this->safe_dict($order, 'fee');
@@ -1609,8 +1613,9 @@ class backpack extends Exchange {
             $supportedLimits = array( 5, 10, 20, 50, 100, 500 );
             $requestLimit = 500;
             for ($i = 0; $i < count($supportedLimits); $i++) {
-                if ($limit <= $supportedLimits[$i]) {
-                    $requestLimit = $supportedLimits[$i];
+                $supportedLimit = $this->safe_integer($supportedLimits, $i, 0);
+                if ($limit <= $supportedLimit) {
+                    $requestLimit = $supportedLimit;
                     break;
                 }
             }
@@ -1670,18 +1675,21 @@ class backpack extends Exchange {
         if (($since === null) && ($limit === null)) {
             $limitResolved = $defaultLimit;
         }
+        $windowLimit = ($limit === null) ? $defaultLimit : $limit;
+        $startTime = null;
         if ($since === null) {
-            $endTime = ($until !== null && $until !== null && $until !== 0) ? $this->parse_to_int($until / 1000) : $this->seconds();
-            $windowLimit = ($limit === null) ? $defaultLimit : $limit;
+            $endTime = $this->seconds();
+            if ($until !== null && $until !== null && $until !== 0) {
+                $endTime = $this->parse_to_int($until / 1000);
+            }
             $startTime = $endTime - ($windowLimit * $duration);
-            $request['startTime'] = $startTime;
         } else {
-            $request['startTime'] = $this->parse_to_int($since / 1000); // convert milliseconds to seconds
+            $startTime = $this->parse_to_int($since / 1000); // convert milliseconds to seconds
         }
+        $request['startTime'] = $startTime;
         if ($until === null) {
             $currentMs = $this->seconds(); // default to current time in seconds
-            $windowLimit = ($limit === null) ? $defaultLimit : $limit;
-            $windowEnd = $this->sum($request['startTime'], $windowLimit * $duration); // sum (): `+` on a dict value is string concatenation in php
+            $windowEnd = $this->sum($startTime, $windowLimit * $duration);
             $minTimestamp = min($currentMs, $windowEnd);
             $request['endTime'] = $this->parse_to_int($minTimestamp); // default to current time in seconds if until is not specified
         }
@@ -2476,7 +2484,7 @@ class backpack extends Exchange {
         );
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'cancelled' => 'cancelled',
             'confirmed' => 'ok',
@@ -3316,7 +3324,7 @@ class backpack extends Exchange {
         ), $marketResolved);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'New' => 'open',
             'Filled' => 'closed',
@@ -3329,7 +3337,7 @@ class backpack extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_side(?string $side) {
+    public function parse_order_side(?string $side): ?string {
         $sides = array(
             'Bid' => 'buy',
             'Ask' => 'sell',
@@ -3343,7 +3351,7 @@ class backpack extends Exchange {
 
     private function do_fetch_positions(?array $symbols = null, $params = array()) {
         /**
-         * fetches derivative $positions
+         * fetches derivative positions
          *
          * @see https://docs.backpack.exchange/#tag/Futures/operation/get_positions
          *
@@ -3355,12 +3363,11 @@ class backpack extends Exchange {
             Async\await($this->load_markets());
         }
         $response = Async\await($this->privateGetApiV1Position($params));
-        $positions = $this->parse_positions($response);
         if ($this->is_empty($symbols)) {
-            return $positions;
+            return $this->parse_positions($response);
         }
         $symbolsNormalized = $this->market_symbols($symbols);
-        return $this->filter_by_array_positions($positions, 'symbol', $symbolsNormalized);
+        return $this->parse_positions($response, $symbolsNormalized);
     }
 
     public function parse_position(array $position, ?array $market = null): array {
@@ -3525,7 +3532,6 @@ class backpack extends Exchange {
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
-        $url = $apiUrl;
         $requestParams = (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params))) ? $params : $this->omit($params, array( 'stock', 'defaultStock', 'rfq', 'callerMethodName' ));
         $sortedParams = (gettype($requestParams) === 'array' && array_keys($requestParams) === array_keys(array_keys($requestParams))) ? $requestParams : $this->keysort($requestParams);
         $headersSigned = null;
@@ -3568,7 +3574,7 @@ class backpack extends Exchange {
                 $endpoint .= '?' . $query;
             }
         }
-        $url .= $endpoint;
+        $url = $apiUrl . $endpoint;
         $headersResolved = ($apiName === 'private') ? $headersSigned : null;
         $bodyResolved = null;
         if (($apiName === 'private') && ($method !== 'GET')) {

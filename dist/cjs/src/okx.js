@@ -21,7 +21,7 @@ class okx extends okx$1["default"] {
             'name': 'OKX',
             'countries': ['CN', 'US'],
             'version': 'v5',
-            'rateLimit': 100 * 1.10, // 10% tolerance because of #26973
+            'rateLimit': 110, // 100 plus 10% tolerance because of #26973
             'pro': true,
             'certified': true,
             'has': {
@@ -1764,14 +1764,14 @@ class okx extends okx$1["default"] {
         else {
             types = this.safeList(this.options, 'fetchMarkets', types); // backward-support
         }
-        let promises = [];
+        const promises = [];
         let result = [];
         for (let i = 0; i < types.length; i++) {
             promises.push(this.fetchMarketsByType(types[i], params));
         }
-        promises = await Promise.all(promises);
-        for (let i = 0; i < promises.length; i++) {
-            result = this.arrayConcat(result, promises[i]);
+        const responses = await Promise.all(promises);
+        for (let i = 0; i < responses.length; i++) {
+            result = this.arrayConcat(result, responses[i]);
         }
         return result;
     }
@@ -2041,7 +2041,7 @@ class okx extends okx$1["default"] {
         // therefore we check the keys here
         // and fallback to generating the currencies from the markets
         const isSandboxMode = this.safeBool(this.options, 'sandboxMode', false);
-        if (!this.checkRequiredCredentials(false) || (isSandboxMode === true)) {
+        if (!this.checkRequiredCredentials(false) || (isSandboxMode)) {
             return {};
         }
         //
@@ -2186,10 +2186,9 @@ class okx extends okx$1["default"] {
         const requestedLimit = (limit === undefined) ? defaultLimit : limit;
         // the rpi book hard-errors with 51000 "Parameter sz error." above 400,
         // including the 5000 that publicGetMarketBooksFull defaults to
-        let limitResolved = requestedLimit;
-        if (rpi && (requestedLimit > 400)) {
-            limitResolved = 400;
-        }
+        const isFullBook = (method === 'publicGetMarketBooksFull');
+        const largeLimit = ((limit === undefined) && isFullBook) || ((limit !== undefined) && (limit > 400));
+        const limitResolved = (rpi && largeLimit) ? 400 : requestedLimit;
         if (limitResolved !== undefined) {
             request['sz'] = limitResolved; // max 400
         }
@@ -2197,7 +2196,7 @@ class okx extends okx$1["default"] {
         if (rpi) {
             response = await this.publicGetMarketBooksRpi(this.extend(request, paramsMethod));
         }
-        else if ((method === 'publicGetMarketBooksFull') || (limitResolved > 400)) {
+        else if (isFullBook || largeLimit) {
             response = await this.publicGetMarketBooksFull(this.extend(request, paramsMethod));
         }
         else {
@@ -2277,7 +2276,7 @@ class okx extends okx$1["default"] {
         const last = this.safeString(ticker, 'last');
         const open = this.safeString(ticker, 'open24h');
         const spot = this.safeBool(marketResolved, 'spot', false);
-        const quoteVolume = (spot === true) ? this.safeString(ticker, 'volCcy24h') : undefined;
+        const quoteVolume = (spot) ? this.safeString(ticker, 'volCcy24h') : undefined;
         const baseVolume = this.safeString(ticker, 'vol24h');
         const high = this.safeString(ticker, 'high24h');
         const low = this.safeString(ticker, 'low24h');
@@ -2740,13 +2739,12 @@ class okx extends okx$1["default"] {
             const now = this.milliseconds();
             const durationInMilliseconds = duration * 1000;
             // switch to history candles if since is past the cutoff for current candles
-            const historyBorder = now - ((1440 - 1) * durationInMilliseconds);
+            const historyBorder = now - (1439 * durationInMilliseconds);
             if (since < historyBorder) {
+                // limitResolved is already at most 100 for mark or index candles and 300 otherwise
                 defaultType = 'HistoryCandles';
-                const maxLimit = isMarkOrIndex ? 100 : 300;
-                limitResolved = Math.min(limitResolved, maxLimit);
             }
-            const startTime = Math.max(since - 1, 0);
+            const startTime = (since > 1) ? (since - 1) : 0;
             request['before'] = startTime;
             request['after'] = this.sum(since, durationInMilliseconds * limitResolved);
         }
@@ -3250,14 +3248,12 @@ class okx extends okx$1["default"] {
         const isReduceOnly = (this.safeBool(params, 'reduceOnly', false)) || (closeFraction !== undefined);
         const defaultMarginMode = this.safeString2(this.options, 'defaultMarginMode', 'marginMode', 'cross');
         let marginMode = this.safeString2(params, 'marginMode', 'tdMode'); // cross or isolated, tdMode not omitted so as to be extended into the request
-        let margin = false;
-        if ((marginMode !== undefined) && (marginMode !== 'cash')) {
-            margin = true;
-        }
-        else {
+        const marginModeIsExplicit = (marginMode !== undefined) && (marginMode !== 'cash');
+        if (!marginModeIsExplicit) {
             marginMode = defaultMarginMode;
-            margin = this.safeBool(params, 'margin', false);
         }
+        const marginParam = this.safeBool(params, 'margin', false);
+        const margin = marginModeIsExplicit || (marginParam === true);
         // position side / hedged options only apply to swap and future orders
         const isSwapOrFuture = (contract === true) && ((market['swap'] === true) || (market['future'] === true));
         const [positionSide, paramsPositionSide] = this.handleOptionStringAndParams(params, 'createOrder', 'positionSide');
@@ -3277,12 +3273,12 @@ class okx extends okx$1["default"] {
             paramsReduceOnly = this.omit(paramsHedged, 'reduceOnly');
         }
         if (spot === true) {
-            if (margin === true) {
+            if (margin) {
                 const defaultCurrency = (side === 'buy') ? market['quote'] : market['base'];
                 const currency = this.safeString(params, 'ccy', defaultCurrency);
                 request['ccy'] = this.safeCurrencyCode(currency);
             }
-            const tradeMode = (margin === true) ? marginMode : 'cash';
+            const tradeMode = (margin) ? marginMode : 'cash';
             request['tdMode'] = tradeMode;
         }
         else if (contract === true) {
@@ -3316,7 +3312,7 @@ class okx extends okx$1["default"] {
         const marketIOC = (isMarketOrder && ioc) || (type === 'optimal_limit_ioc');
         const defaultTgtCcy = this.safeString(this.options, 'tgtCcy', 'base_ccy');
         const tgtCcy = this.safeString(orderParams, 'tgtCcy', defaultTgtCcy);
-        if ((contract !== true) && (margin !== true)) {
+        if ((contract !== true) && (!margin)) {
             request['tgtCcy'] = tgtCcy;
         }
         if (isMarketOrder || marketIOC) {
@@ -3926,7 +3922,7 @@ class okx extends okx$1["default"] {
         const trigger = this.safeBool2(params, 'stop', 'trigger');
         const trailing = this.safeBool(params, 'trailing', false);
         const isTrigger = (trigger === true);
-        if (isTrigger || (trailing === true)) {
+        if (isTrigger || (trailing)) {
             const orderInner = await this.cancelOrders([id], symbol, params);
             const canceledInner = this.safeDict(orderInner, 0);
             return canceledInner;
@@ -3999,7 +3995,7 @@ class okx extends okx$1["default"] {
         const trigger = this.safeBool2(params, 'stop', 'trigger');
         const trailing = this.safeBool(params, 'trailing', false);
         const isTrigger = (trigger === true);
-        if (isTrigger || (trailing === true)) {
+        if (isTrigger || (trailing)) {
             method = 'privatePostTradeCancelAlgos';
         }
         if (clientOrderIds === undefined) {
@@ -4013,7 +4009,7 @@ class okx extends okx$1["default"] {
                 }
             }
             for (let i = 0; i < orderIds.length; i++) {
-                if ((trailing === true) || isTrigger) {
+                if ((trailing) || isTrigger) {
                     request.push({
                         'algoId': orderIds[i],
                         'instId': market['id'],
@@ -4029,7 +4025,7 @@ class okx extends okx$1["default"] {
         }
         else {
             for (let i = 0; i < clientOrderIds.length; i++) {
-                if ((trailing === true) || isTrigger) {
+                if ((trailing) || isTrigger) {
                     request.push({
                         'instId': market['id'],
                         'algoClOrdId': clientOrderIds[i],
@@ -4107,8 +4103,8 @@ class okx extends okx$1["default"] {
         let method = this.safeString(params, 'method', defaultMethod);
         const trigger = this.safeBool2(params, 'stop', 'trigger');
         const trailing = this.safeBool(params, 'trailing', false);
-        const isStopOrTrailing = (trigger === true) || (trailing === true);
-        if (isStopOrTrailing === true) {
+        const isStopOrTrailing = (trigger === true) || (trailing);
+        if (isStopOrTrailing) {
             method = 'privatePostTradeCancelAlgos';
         }
         for (let i = 0; i < orders.length; i++) {
@@ -4121,7 +4117,7 @@ class okx extends okx$1["default"] {
             }
             const market = this.market(symbol);
             let idKey = 'ordId';
-            if (isStopOrTrailing === true) {
+            if (isStopOrTrailing) {
                 idKey = 'algoId';
             }
             else if (clientOrderId !== undefined) {
@@ -4733,10 +4729,10 @@ class okx extends okx$1["default"] {
         const trigger = this.safeBool2(paramsPaginate, 'stop', 'trigger');
         const trailing = this.safeBool(paramsPaginate, 'trailing', false);
         const isTrigger = (trigger === true);
-        if ((trailing === true) || isTrigger || ((ordType !== undefined) && (ordType in algoOrderTypes))) {
+        if ((trailing) || isTrigger || ((ordType !== undefined) && (ordType in algoOrderTypes))) {
             method = 'privateGetTradeOrdersAlgoPending';
         }
-        if (trailing === true) {
+        if (trailing) {
             request['ordType'] = 'move_order_stop';
         }
         else if (isTrigger && (ordType === undefined)) {
@@ -4901,7 +4897,7 @@ class okx extends okx$1["default"] {
         const trigger = this.safeBool2(params, 'stop', 'trigger');
         const trailing = this.safeBool(params, 'trailing', false);
         const isTrigger = (trigger === true);
-        if (trailing === true) {
+        if (trailing) {
             method = 'privateGetTradeOrdersAlgoHistory';
             request['ordType'] = 'move_order_stop';
         }
@@ -5096,11 +5092,11 @@ class okx extends okx$1["default"] {
         const ordType = this.safeString(paramsPaginate, 'ordType');
         const trigger = this.safeBool2(paramsPaginate, 'stop', 'trigger');
         const trailing = this.safeBool(paramsPaginate, 'trailing', false);
-        if ((trailing === true) || (trigger === true) || ((ordType !== undefined) && (ordType in algoOrderTypes))) {
+        if ((trailing) || (trigger === true) || ((ordType !== undefined) && (ordType in algoOrderTypes))) {
             method = 'privateGetTradeOrdersAlgoHistory';
             request['state'] = 'effective';
         }
-        if (trailing === true) {
+        if (trailing) {
             request['ordType'] = 'move_order_stop';
         }
         else if (trigger === true) {
@@ -5365,7 +5361,10 @@ class okx extends okx$1["default"] {
         // 'limit': 100, // default 100, max 100
         };
         const [marginModeOption, paramsMarginMode] = this.handleMarginModeAndParams('fetchLedger', paramsOmitted);
-        const marginMode = (marginModeOption === undefined) ? this.safeString(paramsMarginMode, 'mgnMode') : marginModeOption;
+        let marginMode = marginModeOption;
+        if (marginMode === undefined) {
+            marginMode = this.safeString(paramsMarginMode, 'mgnMode');
+        }
         if (method !== 'privateGetAssetBills') {
             if (marginMode !== undefined) {
                 request['mgnMode'] = marginMode;
@@ -5700,7 +5699,7 @@ class okx extends okx$1["default"] {
         }
         const codeNetwork = this.networkIdToCode(codeValue, codeValue);
         if ((codeNetwork !== undefined) && (codeNetwork in response)) {
-            return response[codeNetwork];
+            return this.safeDict(response, codeNetwork);
         }
         // if the network is not specified, return the first address
         const keys = Object.keys(response);
@@ -8335,7 +8334,7 @@ class okx extends okx$1["default"] {
      */
     handleTradingStatisticsWindow(request, period, since = undefined, limit = undefined, params = {}) {
         const maxLimit = 100;
-        const effectiveLimit = (limit === undefined) ? maxLimit : Math.min(limit, maxLimit);
+        const effectiveLimit = ((limit === undefined) || (limit > 100)) ? 100 : limit;
         if (limit !== undefined) {
             request['limit'] = effectiveLimit;
         }
@@ -8799,7 +8798,7 @@ class okx extends okx$1["default"] {
         //     }
         //
         const underlyings = this.safeList(response, 'data', []);
-        return underlyings[0];
+        return this.toArray(this.safeList(underlyings, 0, []));
     }
     /**
      * @method
@@ -8879,10 +8878,7 @@ class okx extends okx$1["default"] {
         }
         const request = {};
         const symbolsNormalized = this.marketSymbols(symbols, undefined, true, true, true);
-        let symbolsLength = undefined;
-        if (symbolsNormalized !== undefined) {
-            symbolsLength = symbolsNormalized.length;
-        }
+        const symbolsLength = (symbolsNormalized === undefined) ? 0 : symbolsNormalized.length;
         if ((symbolsNormalized === undefined) || (symbolsLength !== 1)) {
             const uly = this.safeString(params, 'uly');
             if (uly !== undefined) {

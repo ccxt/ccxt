@@ -942,8 +942,8 @@ public partial class zaif : Exchange
     public virtual object customNonce()
     {
         string? num = this.numberToString(((double)this.milliseconds() / 1000));
-        object nonce = parseFloat(num);
-        return toFixed(nonce, 8);
+        object nonce = (((Func<object, object>)(static (object hx4pa) => { object hx4pv = null; try { hx4pv = (Convert.ToDouble(hx4pa, global::System.Globalization.CultureInfo.InvariantCulture.NumberFormat)); } catch (Exception) { } return hx4pv; }))(num));
+        return (((Func<object, object, object>)(static (object hx4pa, object hx4pb) => Math.Round((double)hx4pa, (int)hx4pb)))(nonce, 8));
     }
 
     public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
@@ -1021,7 +1021,7 @@ public partial class zaif : Exchange
             throw new ExchangeError (feedback) ;
         }
         bool? success = this.safeBool(response, "success", true);
-        if ((success != true))
+        if (success != true)
         {
             throw new ExchangeError (feedback) ;
         }

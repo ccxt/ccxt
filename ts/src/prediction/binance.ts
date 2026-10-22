@@ -3,7 +3,7 @@ import { Precise } from '../base/Precise.js';
 import { TRUNCATE, ROUND, DECIMAL_PLACES } from '../base/functions/number.js';
 import { sha256 } from '@noble/hashes/sha2.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InvalidNonce, PermissionDenied, RateLimitExceeded, InsufficientFunds, InvalidOrder, NotSupported, OrderNotFound } from '../base/errors.js';
-import type { OrderSide, OrderType, Int, int, Str, Dict, List, Strings, Num, Market, PredictionOrderBook, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, fetchEventsParams, Balances, PredictionPosition, PredictionTrade, Endpoint } from '../base/types.js';
+import type { OrderSide, OrderType, Int, int, Str, Dict, Bool, List, Strings, Num, Market, PredictionOrderBook, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, fetchEventsParams, Balances, PredictionPosition, PredictionTrade, Endpoint } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -200,20 +200,16 @@ export default class binance extends Exchange {
      * @returns {object[]} raw market topic objects
      */
     async fetchRawTopics (maxTopics: Int, rest: Dict = {}): Promise<any[]> {
-        const maxTopicsResolved: Int = (maxTopics === undefined) ? this.safeInteger (this.options, 'maxFetchMarketsLimit', 200) : maxTopics;
-        let pageLimit = this.safeInteger (this.options, 'marketsPageLimit', 100);
-        if (pageLimit > 100) {
-            pageLimit = 100;
-        }
+        const maxTopicsOption = this.safeInteger (this.options, 'maxFetchMarketsLimit', 200);
+        const maxTopicsResolved = (maxTopics !== undefined) ? maxTopics : maxTopicsOption;
+        const pageLimitOption = this.safeInteger (this.options, 'marketsPageLimit', 100);
+        const pageLimit = (pageLimitOption > 100) ? 100 : pageLimitOption;
         const collected: any[] = [];
-        let offset = 0;
+        let offset: int = 0;
         while (true) {
-            let reqLimit = pageLimit;
             const collectedLength = collected.length;
             const remaining = maxTopicsResolved - collectedLength;
-            if (remaining < reqLimit) {
-                reqLimit = remaining;
-            }
+            const reqLimit = (remaining < pageLimit) ? remaining : pageLimit;
             if (reqLimit <= 0) {
                 break;
             }
@@ -260,7 +256,7 @@ export default class binance extends Exchange {
                 collected.push (pageTopics[i]);
             }
             const hasMore = this.safeBool (response, 'hasMore', false);
-            if ((hasMore !== true) || (pageTopicsLength < reqLimit)) {
+            if ((!hasMore) || (pageTopicsLength < reqLimit)) {
                 break;
             }
             offset = this.sum (offset, pageTopicsLength);
@@ -340,7 +336,7 @@ export default class binance extends Exchange {
      */
     override async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
         const allowUnscopedFetchEvents = this.safeBool (this.options, 'allowUnscopedFetchEvents', false);
-        if (allowUnscopedFetchEvents !== true) {
+        if (!allowUnscopedFetchEvents) {
             this.requireEventQuery (params);
         }
         const queries = this.parseSearchQueries (params);
@@ -443,12 +439,8 @@ export default class binance extends Exchange {
         const seen: Dict = {};
         const collected: any[] = [];
         const queriesLength = queries.length;
-        let limitResolved: Int = limit;
-        if (limit === undefined) {
-            limitResolved = 20;
-        } else if (limit > 50) {
-            limitResolved = 50;
-        }
+        const limitValue = (limit === undefined) ? 20 : limit;
+        const limitResolved = (limitValue > 50) ? 50 : limitValue;
         for (let qi = 0; qi < queriesLength; qi++) {
             const request: Dict = {
                 'query': queries[qi],
@@ -482,7 +474,7 @@ export default class binance extends Exchange {
         }
         let capped = collected;
         const collectedLength = collected.length;
-        if ((limitResolved !== undefined) && (collectedLength > limitResolved)) {
+        if (collectedLength > limitResolved) {
             capped = this.arraySlice (collected, 0, limitResolved);
         }
         return await this.completeRawTopics (capped);
@@ -510,7 +502,7 @@ export default class binance extends Exchange {
      * @param {object} rawTopic the raw market topic object
      * @returns {object} an event structure
      */
-    parseEvent (rawTopic: Dict): any {
+    parseEvent (rawTopic: Dict): Dict {
         //
         //     {
         //         "marketTopicId": 4229564,
@@ -560,7 +552,7 @@ export default class binance extends Exchange {
         if (rawMarketsLength === 0) {
             active = (status === 'REGISTERED') || (status === 'OPEN');
         }
-        let resolved = undefined;
+        let resolved: Bool = undefined;
         if (status !== undefined) {
             resolved = (status === 'RESOLVED') || (status === 'SETTLED');
         }
@@ -649,8 +641,8 @@ export default class binance extends Exchange {
             const tokenId = this.safeString (rawOutcome, 'tokenId');
             const outcomeHandle = marketSymbol + ':' + label;
             const price = this.safeString (rawOutcome, 'price');
-            let winnerRaw = undefined;
-            let settleFractionRaw = undefined;
+            let winnerRaw: Bool = undefined;
+            let settleFractionRaw: Int = undefined;
             if (resolved && (price !== undefined)) {
                 winnerRaw = Precise.stringEq (price, '1');
                 settleFractionRaw = (winnerRaw) ? 1 : 0;
@@ -796,7 +788,7 @@ export default class binance extends Exchange {
             isMirrored = (label === 'NO') || (label === 'DOWN');
         }
         const lastString = this.safeString (raw, 'lastTradePrice');
-        let last = undefined;
+        let last: Num = undefined;
         if (lastString !== undefined) {
             if (isMirrored) {
                 last = this.parseNumber (Precise.stringSub ('1', lastString));
@@ -1292,10 +1284,10 @@ export default class binance extends Exchange {
         // }
         //
         const data = this.safeList (response, 'positions', []);
-        const positions = this.parsePredictionPositions (data);
         if (outcomes === undefined) {
-            return positions;
+            return this.parsePredictionPositions (data);
         }
+        const positions = this.parsePredictionPositions (data);
         const filtered: PredictionPosition[] = [];
         const positionsLength = positions.length;
         for (let i = 0; i < positionsLength; i++) {
@@ -1578,9 +1570,8 @@ export default class binance extends Exchange {
      * @returns {object} a wallet
      */
     async fetchWallet (methodName: string, params: Dict = {}): Promise<any> {
-        let cachedWallet = this.safeDict (this.options, 'wallet');
-        if (cachedWallet !== undefined) {
-            return cachedWallet;
+        if (this.safeDict (this.options, 'wallet') !== undefined) {
+            return this.safeDict (this.options, 'wallet');
         }
         const walletAddress = this.handleOptionStringAndParams (params, methodName, 'walletAddress', this.walletAddress)[0];
         const response = await this.sapiPrivateGetWalletList ();
@@ -1597,23 +1588,18 @@ export default class binance extends Exchange {
         //
         const wallets = this.safeList (response, 'wallets', []);
         if (walletAddress === undefined) {
-            cachedWallet = this.safeDict (wallets, 0);
-            this.options['wallet'] = cachedWallet;
-            return cachedWallet;
+            this.options['wallet'] = this.safeDict (wallets, 0);
+            return this.safeDict (this.options, 'wallet');
         }
         const walletLength = wallets.length;
         for (let i = 0; i < walletLength; i++) {
             const w = this.safeString (wallets[i], 'walletAddress', '');
             if (w === walletAddress) {
-                cachedWallet = wallets[i];
-                break;
+                this.options['wallet'] = wallets[i];
+                return this.safeDict (this.options, 'wallet');
             }
         }
-        if (cachedWallet === undefined) {
-            throw new NotSupported (this.id + 'fetchWallet could\'n find wallet ' + walletAddress);
-        }
-        this.options['wallet'] = cachedWallet;
-        return cachedWallet;
+        throw new NotSupported (this.id + 'fetchWallet could\'n find wallet ' + walletAddress);
     }
 
     /**

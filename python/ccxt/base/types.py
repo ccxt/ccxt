@@ -99,11 +99,16 @@ class DepositWithdrawFeeNetwork(TypedDict):
     percentage: NotRequired[Bool]
 
 
+class DepositWithdrawFeeNetworkEntry(TypedDict):
+    deposit: NotRequired[DepositWithdrawFeeNetwork]
+    withdraw: NotRequired[DepositWithdrawFeeNetwork]
+
+
 class DepositWithdrawFee(TypedDict):
     info: dict[str, Any]
     withdraw: NotRequired[DepositWithdrawFeeNetwork]
     deposit: NotRequired[DepositWithdrawFeeNetwork]
-    networks: NotRequired[dict[str, DepositWithdrawFeeNetwork]]
+    networks: NotRequired[dict[str, DepositWithdrawFeeNetworkEntry]]
 
 
 class Balance(TypedDict):

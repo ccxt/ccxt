@@ -5,7 +5,7 @@ import krakenRest from '../kraken.js';
 import { ExchangeError, BadSymbol, PermissionDenied, AccountSuspended, BadRequest, InsufficientFunds, InvalidOrder, OrderNotFound, NotSupported, RateLimitExceeded, ExchangeNotAvailable, ChecksumError, AuthenticationError, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
-import type { Int, Strings, OrderSide, OrderType, Str, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Num, Dict, Balances, Bool, List, Fee, Market } from '../base/types.js';
+import type { Int, int, Strings, OrderSide, OrderType, Str, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Num, Dict, Balances, Bool, List, Fee, Market } from '../base/types.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
@@ -130,7 +130,7 @@ export default class kraken extends krakenRest {
         }
         const isMarket = (type === 'market');
         const [ postOnly, paramsPostOnly ] = this.handlePostOnly (isMarket, false, params);
-        if (postOnly === true) {
+        if (postOnly) {
             request['params']['post_only'] = true;
         }
         const clientOrderId = this.safeString (paramsPostOnly, 'clientOrderId');
@@ -989,7 +989,7 @@ export default class kraken extends krakenRest {
             // the level count of this snapshot: a thin market's snapshot can
             // carry fewer levels than the subscription and must not cap the book
             const limit = this.safeInteger (subscription, 'limit', 10);
-            const asksLength = a.length;
+            const asksLength: int = a.length;
             const depth = (asksLength > limit) ? asksLength : limit;
             const depths = this.safeDict (this.options, 'wsOrderBookDepths', {}) as Dict;
             const storedDepth = this.safeInteger (depths, symbol);
@@ -1070,15 +1070,11 @@ export default class kraken extends krakenRest {
 
     formatNumber (data: string): string {
         const parts = data.split ('.');
-        const integer = this.safeString (parts, 0);
+        const integer = this.safeString (parts, 0, '');
         const decimals = this.safeString (parts, 1, '');
         let joinedResult = integer + decimals;
-        let i = 0;
-        while (joinedResult[i] === '0') {
-            i += 1;
-        }
-        if (i > 0) {
-            joinedResult = joinedResult.slice (i);
+        while ((joinedResult.length > 0) && (joinedResult[0] === '0')) {
+            joinedResult = joinedResult.slice (1);
         }
         return joinedResult;
     }
@@ -1119,9 +1115,10 @@ export default class kraken extends krakenRest {
         const authenticated = 'authenticated';
         let subscription = this.safeValue (client.subscriptions, authenticated);
         const now = this.seconds ();
-        const start = this.safeInteger (subscription, 'start') as number;
-        const expires = this.safeInteger (subscription, 'expires') as number;
-        if ((subscription === undefined) || ((subscription !== undefined) && (start + expires) <= now)) {
+        const start = this.safeInteger (subscription, 'start');
+        const expires = this.safeInteger (subscription, 'expires', -1);
+        const expired = (start !== undefined) && (expires >= 0) && (start <= (now - expires));
+        if ((subscription === undefined) || expired) {
             // single-flight leader election, see
             // https://github.com/ccxt/ccxt/issues/29393: the staleness gate
             // above is followed by an awaited privatePostGetWebSocketsToken (),
@@ -1411,8 +1408,9 @@ export default class kraken extends krakenRest {
                 if (length === limit && (previousOrder === undefined)) {
                     const first = stored[0];
                     const symbolsByOrderId = this.safeDict (this.options, 'symbolsByOrderId', {});
-                    if (first['id'] in symbolsByOrderId) {
-                        delete symbolsByOrderId[first['id']];
+                    const firstId = this.safeString (first, 'id');
+                    if ((firstId !== undefined) && (firstId in symbolsByOrderId)) {
+                        delete symbolsByOrderId[firstId];
                     }
                 }
                 stored.append (newOrder);

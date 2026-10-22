@@ -756,7 +756,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         let baseVolume = undefined;
         let quoteVolume = undefined;
         const isIndex = this.safeBool(marketResolved, 'index', false);
-        if (isIndex !== true) {
+        if (!isIndex) {
             if (marketResolved['linear'] === true) {
                 baseVolume = volume;
             }
@@ -926,22 +926,25 @@ class krakenfutures extends krakenfutures$1["default"] {
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
         };
         const paramsOmitted = this.omit(paramsPaginate, 'price');
-        const windowLimit = (limit === undefined) ? 2000 : Math.min(limit, 2000);
+        const windowLimit = ((limit === undefined) || (limit > 2000)) ? 2000 : limit;
+        const windowSize = this.parseToInt(windowLimit);
         let limitResolved = undefined;
         if ((since !== undefined) || (limit !== undefined)) {
-            limitResolved = windowLimit;
+            limitResolved = windowSize;
         }
         if (since !== undefined) {
             const duration = this.parseTimeframe(timeframe);
-            request['from'] = this.parseToInt(since / 1000);
-            const toTimestamp = this.sum(request['from'], windowLimit * duration - 1);
+            const fromTimestamp = this.parseToInt(since / 1000);
+            request['from'] = fromTimestamp;
+            const toTimestamp = this.parseToInt(this.sum(fromTimestamp, windowSize * duration - 1));
             const currentTimestamp = this.seconds();
-            request['to'] = Math.min(toTimestamp, currentTimestamp);
+            request['to'] = (toTimestamp < currentTimestamp) ? toTimestamp : currentTimestamp;
         }
         else if (limitResolved !== undefined) {
             const duration = this.parseTimeframe(timeframe);
-            request['to'] = this.seconds();
-            request['from'] = this.parseToInt(request['to'] - (duration * limitResolved));
+            const toTimestamp = this.seconds();
+            request['to'] = toTimestamp;
+            request['from'] = this.parseToInt(toTimestamp - (duration * windowSize));
         }
         const response = await this.chartsGetPriceTypeSymbolInterval(this.extend(request, paramsOmitted));
         //
@@ -1185,24 +1188,22 @@ class krakenfutures extends krakenfutures$1["default"] {
         let order = this.safeString(trade, 'order_id');
         let marketId = this.safeString(trade, 'symbol');
         let side = this.safeString(trade, 'side');
-        let type = undefined;
+        let rawType = undefined;
         const priorEdit = this.safeDict(trade, 'orderPriorEdit');
         const priorExecution = this.safeDict(trade, 'orderPriorExecution');
         if (priorExecution !== undefined) {
             order = this.safeString(priorExecution, 'orderId');
             marketId = this.safeString(priorExecution, 'symbol');
             side = this.safeString(priorExecution, 'side');
-            type = this.safeString(priorExecution, 'type');
+            rawType = this.safeString(priorExecution, 'type');
         }
         else if (priorEdit !== undefined) {
             order = this.safeString(priorEdit, 'orderId');
             marketId = this.safeString(priorEdit, 'symbol');
             side = this.safeString(priorEdit, 'type');
-            type = this.safeString(priorEdit, 'type');
+            rawType = this.safeString(priorEdit, 'type');
         }
-        if (type !== undefined) {
-            type = this.parseOrderType(type);
-        }
+        const type = this.parseOrderType(rawType); // undefined stays undefined
         const marketResolved = this.safeMarket(marketId, market);
         let cost = undefined;
         const linear = this.safeBool(marketResolved, 'linear');
@@ -1307,7 +1308,8 @@ class krakenfutures extends krakenfutures$1["default"] {
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
         const isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
         const triggerSignal = this.safeString(paramsPostOnly, 'triggerSignal', 'last');
-        let reduceOnly = this.safeBool(paramsPostOnly, 'reduceOnly');
+        const reduceOnlyParam = this.safeBool(paramsPostOnly, 'reduceOnly');
+        let reduceOnly = (reduceOnlyParam === true);
         if (isStopLossOrTakeProfitTrigger || isTriggerOrder) {
             request['triggerSignal'] = triggerSignal;
         }
@@ -1326,7 +1328,7 @@ class krakenfutures extends krakenfutures$1["default"] {
                 request['stopPrice'] = this.priceToPrecision(symbolValue, takeProfitTriggerPrice);
             }
         }
-        if (reduceOnly === true) {
+        if (reduceOnly) {
             request['reduceOnly'] = true;
         }
         request['orderType'] = typeValue;
@@ -1804,7 +1806,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
         let response;
         const paramsOmitted = this.omit(params, ['trigger', 'stop']);
-        if (isTrigger === true) {
+        if (isTrigger) {
             response = await this.historyGetTriggers(this.extend(request, paramsOmitted));
         }
         else {
@@ -1866,7 +1868,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         let response;
         const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
         const paramsOmitted = this.omit(params, ['trigger', 'stop']);
-        if (isTrigger === true) {
+        if (isTrigger) {
             response = await this.historyGetTriggers(this.extend(request, paramsOmitted));
         }
         else {
@@ -2435,8 +2437,9 @@ class krakenfutures extends krakenfutures$1["default"] {
             id = this.safeString2(details, 'orderId', 'uid');
         }
         const type = this.safeStringLower2(details, 'type', 'orderType');
+        const parsedType = this.parseOrderType(type);
         let timeInForce = 'gtc';
-        if (type === 'ioc' || this.parseOrderType(type) === 'market') {
+        if (type === 'ioc' || parsedType === 'market') {
             timeInForce = 'ioc';
         }
         const ts = this.safeInteger(details, 'timestamp', timestamp);
@@ -2454,7 +2457,7 @@ class krakenfutures extends krakenfutures$1["default"] {
             'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': this.safeInteger(details, 'lastUpdateTimestamp', lastUpdateTimestamp),
             'symbol': symbol,
-            'type': this.parseOrderType(type),
+            'type': parsedType,
             'timeInForce': timeInForce,
             'postOnly': type === 'post',
             'reduceOnly': this.safeBool2(details, 'reduceOnly', 'reduce_only'),
@@ -2909,7 +2912,7 @@ class krakenfutures extends krakenfutures$1["default"] {
                 type = symbol;
             }
         }
-        const accountName = this.parseAccount(type);
+        const accountName = this.parseKrakenAccountName(type);
         const accounts = this.safeDict(response, 'accounts');
         const account = this.safeDict(accounts, accountName);
         if (account === undefined) {
@@ -3166,7 +3169,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         //        ]
         //    }
         //
-        const rates = this.safeValue(response, 'rates');
+        const rates = this.safeList(response, 'rates', []);
         const result = [];
         for (let i = 0; i < rates.length; i++) {
             const item = this.safeDict(rates, i);
@@ -3586,7 +3589,7 @@ class krakenfutures extends krakenfutures$1["default"] {
             'status': this.safeString(transfer, 'result'),
         };
     }
-    parseAccount(account) {
+    parseKrakenAccountName(account) {
         const accountByType = {
             'main': 'cash',
             'funding': 'cash',
@@ -3653,15 +3656,15 @@ class krakenfutures extends krakenfutures$1["default"] {
         };
         let response;
         if (toAccount === 'spot') {
-            if (this.parseAccount(fromAccount) !== 'cash') {
+            if (this.parseKrakenAccountName(fromAccount) !== 'cash') {
                 throw new errors.BadRequest(this.id + ' transfer cannot transfer from ' + fromAccount + ' to ' + toAccount);
             }
             request['currency'] = currency['id'];
             response = await this.privatePostWithdrawal(this.extend(request, params));
         }
         else {
-            request['fromAccount'] = this.parseAccount(fromAccount);
-            request['toAccount'] = this.parseAccount(toAccount);
+            request['fromAccount'] = this.parseKrakenAccountName(fromAccount);
+            request['toAccount'] = this.parseKrakenAccountName(toAccount);
             request['unit'] = currency['id'];
             response = await this.privatePostTransfer(this.extend(request, params));
         }

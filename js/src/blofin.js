@@ -730,9 +730,7 @@ export default class blofin extends Exchange {
             'instId': market['id'],
         };
         const limitValue = (limit === undefined) ? 50 : limit;
-        if (limitValue !== undefined) {
-            request['size'] = limitValue; // max 100
-        }
+        request['size'] = limitValue; // max 100
         const response = await this.publicGetMarketBooks(this.extend(request, params));
         //
         //     {
@@ -787,7 +785,7 @@ export default class blofin extends Exchange {
         const last = this.safeString(ticker, 'last');
         const open = this.safeString(ticker, 'open24h');
         const spot = this.safeBool(marketResolved, 'spot', false);
-        const quoteVolume = (spot === true) ? this.safeString(ticker, 'volCurrency24h') : undefined;
+        const quoteVolume = (spot) ? this.safeString(ticker, 'volCurrency24h') : undefined;
         const baseVolume = this.safeString(ticker, 'vol24h');
         const high = this.safeString(ticker, 'high24h');
         const low = this.safeString(ticker, 'low24h');
@@ -854,7 +852,7 @@ export default class blofin extends Exchange {
         }
         const market = this.market(symbol);
         const request = {
-            'symbol': market['id'],
+            'instId': market['id'],
         };
         const response = await this.publicGetMarketMarkPrice(this.extend(request, params));
         const data = this.safeList(response, 'data', []);
@@ -1220,7 +1218,7 @@ export default class blofin extends Exchange {
     }
     parseBalanceByType(response) {
         const data = this.safeList(response, 'data');
-        if ((data !== undefined) && Array.isArray(data)) {
+        if (data !== undefined) {
             return this.parseFundingBalance(response);
         }
         else {
@@ -1377,7 +1375,7 @@ export default class blofin extends Exchange {
         const triggerPriceSlTp = this.safeString2(query, 'stopLossPrice', 'takeProfitPrice');
         const timeInForce = this.safeString(query, 'timeInForce', 'GTC');
         const isHedged = this.safeBool(query, 'hedged', false);
-        if (isHedged === true) {
+        if (isHedged) {
             request['positionSide'] = (side === 'buy') ? 'long' : 'short';
         }
         const isMarketOrder = type === 'market';
@@ -1636,7 +1634,7 @@ export default class blofin extends Exchange {
         const market = this.market(symbol);
         const hedged = this.safeBool(params, 'hedged', false);
         let positionSide = 'net';
-        if (hedged === true) {
+        if (hedged) {
             positionSide = (side === 'buy') ? 'short' : 'long';
         }
         const request = {
@@ -1723,23 +1721,23 @@ export default class blofin extends Exchange {
             request['clientOrderId'] = clientOrderId;
         }
         else {
-            if ((isTrigger !== true) && (isTpsl !== true)) {
+            if ((!isTrigger) && (!isTpsl)) {
                 request['orderId'] = id.toString();
             }
-            else if (isTpsl === true) {
+            else if (isTpsl) {
                 request['tpslId'] = id.toString();
             }
-            else if (isTrigger === true) {
+            else if (isTrigger) {
                 request['algoId'] = id.toString();
             }
         }
         const query = this.omit(params, ['orderId', 'clientOrderId', 'stop', 'trigger', 'tpsl']);
-        if (isTpsl === true) {
+        if (isTpsl) {
             const tpslResponse = await this.cancelOrders([id], symbol, params);
             const first = this.safeDict(tpslResponse, 0);
             return first;
         }
-        else if (isTrigger === true) {
+        else if (isTrigger) {
             const triggerResponse = await this.privatePostTradeCancelAlgo(this.extend(request, query));
             const triggerData = this.safeDict(triggerResponse, 'data');
             return this.parseOrder(triggerData, market);
@@ -1768,8 +1766,8 @@ export default class blofin extends Exchange {
             const marketId = this.safeString(rawOrder, 'symbol');
             const type = this.safeString(rawOrder, 'type');
             const side = this.safeString(rawOrder, 'side');
-            const amount = this.safeValue(rawOrder, 'amount');
-            const price = this.safeValue(rawOrder, 'price');
+            const amount = this.safeNumber(rawOrder, 'amount');
+            const price = this.safeNumber(rawOrder, 'price');
             const orderParams = this.safeDict(rawOrder, 'params', {});
             const extendedParams = this.extend(orderParams, params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             const orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
@@ -1816,10 +1814,10 @@ export default class blofin extends Exchange {
         const [method, paramsMethod] = this.handleOptionStringAndParams(paramsPaginate, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersPending');
         const query = this.omit(paramsMethod, ['method', 'stop', 'trigger', 'tpsl', 'TPSL']);
         let response;
-        if ((isTpSl === true) || (method === 'privateGetTradeOrdersTpslPending')) {
+        if ((isTpSl) || (method === 'privateGetTradeOrdersTpslPending')) {
             response = await this.privateGetTradeOrdersTpslPending(this.extend(request, query));
         }
-        else if ((isTrigger === true) || (method === 'privateGetTradeOrdersAlgoPending')) {
+        else if ((isTrigger) || (method === 'privateGetTradeOrdersAlgoPending')) {
             request['orderType'] = 'trigger';
             response = await this.privateGetTradeOrdersAlgoPending(this.extend(request, query));
         }
@@ -2156,9 +2154,9 @@ export default class blofin extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        let networkCode = undefined;
-        let query = undefined;
-        [networkCode, query] = this.handleNetworkCodeAndParams(params);
+        // same reads as handleNetworkCodeAndParams, kept as typed locals
+        let networkCode = this.safeString2(params, 'networkCode', 'network');
+        const query = this.omit(params, ['networkCode', 'network']);
         const chain = this.safeString(query, 'chain');
         if (chain === undefined) {
             if (networkCode === undefined) {
@@ -3215,7 +3213,8 @@ export default class blofin extends Exchange {
             request['clientOrderId'] = clientOrderId;
         }
         const response = await this.privatePostTradeClosePosition(this.extend(request, paramsMarginMode));
-        return this.safeDict(response, 'data');
+        const data = this.safeDict(response, 'data', {});
+        return this.parseOrder(data, market);
     }
     /**
      * @method
@@ -3255,7 +3254,7 @@ export default class blofin extends Exchange {
         const [method, paramsMethod] = this.handleOptionStringAndParams(paramsPaginate, 'fetchClosedOrders', 'method', 'privateGetTradeOrdersHistory');
         const query = this.omit(paramsMethod, ['method', 'stop', 'trigger', 'tpsl', 'TPSL']);
         let response;
-        if ((isTrigger === true) || (method === 'privateGetTradeOrdersTpslHistory')) {
+        if ((isTrigger) || (method === 'privateGetTradeOrdersTpslHistory')) {
             response = await this.privateGetTradeOrdersTpslHistory(this.extend(request, query));
         }
         else {

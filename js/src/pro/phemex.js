@@ -278,11 +278,11 @@ export default class phemex extends phemexRest {
         //
         const tickers = [];
         if ('market24h' in message) {
-            const ticker = this.safeValue(message, 'market24h');
+            const ticker = this.safeDict(message, 'market24h', {});
             tickers.push(this.parseSwapTicker(ticker));
         }
         else if ('spot_market24h' in message) {
-            const ticker = this.safeValue(message, 'spot_market24h');
+            const ticker = this.safeDict(message, 'spot_market24h', {});
             tickers.push(this.parseTicker(ticker));
         }
         else if ('data' in message) {
@@ -955,7 +955,8 @@ export default class phemex extends phemexRest {
             cachedTrades.append(parsed);
             const symbol = parsed['symbol'];
             if (type === undefined) {
-                type = (market['settle'] === 'USDT') ? 'perpetual' : market['type'];
+                const marketSettle = this.safeString(market, 'settle');
+                type = (marketSettle === 'USDT') ? 'perpetual' : market['type'];
             }
             if (symbol !== undefined) {
                 marketIds[symbol] = true;

@@ -506,7 +506,7 @@ public partial class bitflyer : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (int i = 0; i < getArrayLength(response); i++)
+        for (int i = 0; i < (((object)(response)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             IDictionary<string, object> balance = this.safeDict(response, i);
             string? currencyId = this.safeString(balance, "currency_code");
@@ -678,7 +678,7 @@ public partial class bitflyer : Exchange
         if ((side != null))
         {
             string idInner = (side + "_child_order_acceptance_id");
-            if (inOp(trade, idInner))
+            if (((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))(trade, idInner))
             {
                 order = this.safeString(trade, idInner);
             }
@@ -937,12 +937,11 @@ public partial class bitflyer : Exchange
             { "count", limitVar },
         };
         List<object> response = await this.privateGetGetchildorders(this.extend(request, parameters));
-        IList<object> orders = ccxt.BaseExchange.FromOrderList(this.parseOrders(response, market, since, limitVar));
         if ((symbol != null))
         {
-            orders = this.filterBy(orders, "symbol", symbol);
+            return ccxt.BaseExchange.ToOrderList(this.filterBy(ccxt.BaseExchange.FromOrderList(this.parseOrders(response, market, since, limitVar)), "symbol", symbol));
         }
-        return ccxt.BaseExchange.ToOrderList(orders);
+        return this.parseOrders(response, market, since, limitVar);
     }
 
     /**
@@ -1419,14 +1418,14 @@ public partial class bitflyer : Exchange
         object request = (("/" + this.version) + "/");
         if ((apiName is "private"))
         {
-            request = add(request, "me/");
+            request = (request + ("me/"));
         }
-        request = add(request, path);
+        request = (request + path);
         if ((method == "GET"))
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
-                request = add(request, ("?" + this.urlencode(parameters)));
+                request = (request + (("?" + this.urlencode(parameters))));
             }
         }
         string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest");
@@ -1446,8 +1445,9 @@ public partial class bitflyer : Exchange
             {
                 if ((method != "GET"))
                 {
-                    bodySigned = this.json(parameters);
-                    auth = auth + bodySigned;
+                    string body = this.json(parameters);
+                    bodySigned = body;
+                    auth = auth + body;
                 }
             }
             headersSigned = new Dictionary<string, object>() {

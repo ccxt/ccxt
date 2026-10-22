@@ -465,16 +465,16 @@ public partial class upbit : Exchange
         bool? walletLocked = this.safeBool(memberInfo, "wallet_locked");
         bool? locked = this.safeBool(memberInfo, "locked");
         bool active = true;
-        if (((canWithdraw != null)) && ((canWithdraw != true)))
+        if (((canWithdraw != null)) && (canWithdraw != true))
         {
             active = false;
         } else if (walletState != "working")
         {
             active = false;
-        } else if (((walletLocked != null)) && ((walletLocked == true)))
+        } else if (((walletLocked != null)) && (walletLocked == true))
         {
             active = false;
-        } else if (((locked != null)) && ((locked == true)))
+        } else if (((locked != null)) && (locked == true))
         {
             active = false;
         }
@@ -669,7 +669,7 @@ public partial class upbit : Exchange
             { "timestamp", null },
             { "datetime", null },
         };
-        for (int i = 0; i < getArrayLength(response); i++)
+        for (int i = 0; i < (((object)(response)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             IDictionary<string, object> balance = this.safeDict(response, i);
             string? currencyId = this.safeString(balance, "currency");
@@ -923,7 +923,7 @@ public partial class upbit : Exchange
             {
                 if (!(quoteCurrencies is ""))
                 {
-                    quoteCurrencies = add(quoteCurrencies, ",");
+                    quoteCurrencies = (quoteCurrencies + ",");
                 }
                 quoteCurrencies = add(quoteCurrencies, (sortedQuoteIds != null && i < sortedQuoteIds.Count ? sortedQuoteIds[i] : null));
             }
@@ -993,7 +993,7 @@ public partial class upbit : Exchange
                 idsString = (idsString + ",");
             }
             idsString = (idsString + id);
-            if (isGreaterThanOrEqual(idsString.Length, maxQueryLength))
+            if (((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } bool c32Int(object v) { Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } bool c32Eq(object x, object y) { if (x == null && y == null) return true; if (x == null || y == null) return false; try { if (x.GetType() != y.GetType() && (!Double.TryParse(x.ToString(), out _) || !Double.TryParse(y.ToString(), out _))) return false; if (c32Int(x) && c32Int(y)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(decimal) || y.GetType() == typeof(decimal)) return Convert.ToDecimal(x) == Convert.ToDecimal(y); if (x.GetType() == typeof(int)) return (int)x == (int)y; if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) == Convert.ToDouble(y); if (x.GetType() == typeof(Single) || y.GetType() == typeof(Single)) return Convert.ToSingle(x) == Convert.ToSingle(y); if (x.GetType() == typeof(string)) return ((string)x) == ((string)y); if (x.GetType() == typeof(bool)) return ((bool)x) == ((bool)y); return false; } catch { return false; } } return c32Gt(c32a, c32b) || c32Eq(c32a, c32b); }))(idsString.Length, maxQueryLength))
             {
                 queries.Add(idsString);
                 idsString = "";
@@ -1441,7 +1441,7 @@ public partial class upbit : Exchange
         };
         if ((type == "limit"))
         {
-            if ((price == null) || isEqual(amount, null))
+            if ((price == null) || (((object)(amount)) == null))
             {
                 throw new ArgumentsRequired ((this.id + " the limit type order in createOrder() is required price and amount.")) ;
             }
@@ -1457,7 +1457,7 @@ public partial class upbit : Exchange
                 request["price"] = orderPrice;
             } else
             {
-                if (isEqual(amount, null))
+                if ((((object)(amount)) == null))
                 {
                     throw new ArgumentsRequired ((this.id + " the market sell type order in createOrder() is required amount.")) ;
                 }
@@ -1478,7 +1478,7 @@ public partial class upbit : Exchange
                 request["price"] = orderPrice;
             } else
             {
-                if (isEqual(amount, null))
+                if ((((object)(amount)) == null))
                 {
                     throw new ArgumentsRequired ((this.id + " the best sell type order in createOrder() is required amount.")) ;
                 }
@@ -1623,7 +1623,7 @@ public partial class upbit : Exchange
         {
             throw new ExchangeError ((this.id + " editOrder() does not support post_only and selfTradePrevention simultaneously.")) ;
         }
-        object paramsOmitted = this.omit(parameters, "clientOrderId");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "clientOrderId"));
         if ((id != null))
         {
             request["prev_order_uuid"] = id;
@@ -1800,7 +1800,7 @@ public partial class upbit : Exchange
      * @param {string} [params.txid] withdrawal transaction id, the id argument is reserved for uuid
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async virtual Task<ccxt.Transaction> FetchDeposit(string id, string code = null, object parameters = null)
+    public async virtual Task<ccxt.Transaction> FetchDeposit(string id, string code = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1898,7 +1898,7 @@ public partial class upbit : Exchange
      * @param {string} [params.txid] withdrawal transaction id, the id argument is reserved for uuid
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async virtual Task<ccxt.Transaction> FetchWithdrawal(string id, string code = null, object parameters = null)
+    public async virtual Task<ccxt.Transaction> FetchWithdrawal(string id, string code = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2142,7 +2142,7 @@ public partial class upbit : Exchange
         if (numTrades > 0)
         {
             // the timestamp in fetchOrder trades is missing
-            lastTradeTimestamp = getValue(getValue(trades, (numTrades - 1)), "timestamp");
+            lastTradeTimestamp = getValue((trades != null && (numTrades - 1) < trades.Count ? trades[(numTrades - 1)] : null), "timestamp");
             bool getFeesFromTrades = false;
             if ((feeCost == null))
             {

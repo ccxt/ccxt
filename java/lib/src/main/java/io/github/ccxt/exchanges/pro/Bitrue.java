@@ -179,7 +179,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         client.resolve(this.balance, messageHash);
     }
 
-    public void parseWSBalances(Object balances)
+    public void parseWSBalances(List<Object> balances)
     {
         //
         //    [{
@@ -475,10 +475,12 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         {
             List<Object> rawAsks = (List<Object>) this.safeList(tick, "asks", new ArrayList<Object>(Arrays.asList()));
             List<Object> rawBuys = (List<Object>) this.safeList(tick, "buys", new ArrayList<Object>(Arrays.asList()));
-            parseable = Helpers.newMap(
-                "asks", this.parseContractBidsAsks(rawAsks, symbol),
-                "buys", this.parseContractBidsAsks(rawBuys, symbol)
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("asks", this.parseContractBidsAsks(rawAsks, symbol));
+                hx4NewMap0.put("buys", this.parseContractBidsAsks(rawBuys, symbol));
+                parseable = hx4NewMap0;
+            }
         }
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
@@ -546,7 +548,11 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             return rawQuantity;
         }
         Double contractSize = this.safeNumber(market, "contractSize", 1);
-        return Helpers.multiply(rawQuantity, contractSize);
+        if (java.util.Objects.equals(contractSize, null))
+        {
+            return rawQuantity;
+        }
+        return ((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a == null || j36b == null) return null; if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) * ((Long) j36b)); java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; double j36r = j36d.applyAsDouble(j36a) * j36d.applyAsDouble(j36b); if (new java.math.BigDecimal(String.valueOf(j36r)).stripTrailingZeros().scale() <= 0) return (Object) ((long) j36r); return (Object) j36r; }).apply(rawQuantity, contractSize);
     }
 
     /**
@@ -643,7 +649,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                 stored = new ArrayCache(((Number)limit).intValue());
                 Helpers.addElementToObject(this.trades, symbol, stored);
             }
-            Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))), Helpers.toMapArg(market));
+            Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))), ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })));
             stored.append(trade);
             appended = true;
         }
@@ -774,7 +780,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         {
             return;
         }
-        Object parsed = this.parseWsOHLCV(tick, Helpers.toMapArg(market));
+        List<Object> parsed = (List<Object>) this.parseWsOHLCV(tick, ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
         if (!((symbol != null && ((Map<?, ?>)this.ohlcvs).containsKey(symbol))))
         {
             Helpers.addElementToObject(this.ohlcvs, symbol, new HashMap<String, Object>() {{}});
@@ -895,7 +901,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         Object quoteVolume = this.convertFromRawQuantity(symbol, rawAmount);
         Double close = this.safeNumber(tick, "close", (Object) null);
         Double rose = this.safeNumber(tick, "rose", (Object) null);
-        Object percentage = (((java.util.Objects.equals(rose, null)))) ? null : Helpers.multiply(rose, 100);
+        Object percentage = (((java.util.Objects.equals(rose, null)))) ? null : ((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a == null || j36b == null) return null; if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) * ((Long) j36b)); java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; double j36r = j36d.applyAsDouble(j36a) * j36d.applyAsDouble(j36b); if (new java.math.BigDecimal(String.valueOf(j36r)).stripTrailingZeros().scale() <= 0) return (Object) ((long) j36r); return (Object) j36r; }).apply(rose, 100);
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "info", tick );
             put( "symbol", symbol );
@@ -917,7 +923,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             put( "average", null );
             put( "baseVolume", baseVolume );
             put( "quoteVolume", quoteVolume );
-        }}, Helpers.toMapArg(market));
+        }}, ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
     }
 
     public String parseWsOrderType(String typeId)
@@ -1050,13 +1056,13 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                     {
                         throw new AuthenticationError((this.id + " authenticate() received an empty listenKey")) ;
                     }
-                    Helpers.addElementToObject(this.options, "listenKey", key);
+                    { Map<Object, Object> j39v14 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v15 = "listenKey"; Object j39v16 = key; if (j39v14 == null) { if (j39v15 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v14) { if (j39v16 == null && j39v14 instanceof java.util.concurrent.ConcurrentHashMap) { j39v14.remove(j39v15); } else { j39v14.put(j39v15, j39v16); } } }
                     String wsUrl = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "private");
                     if (java.util.Objects.equals(wsUrl, null))
                     {
                         throw new ExchangeError((this.id + " authenticate() has no private websocket url")) ;
                     }
-                    Helpers.addElementToObject(this.options, "listenKeyUrl", ((wsUrl + "/stream?listenKey=") + key));
+                    { Map<Object, Object> j39v11 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v12 = "listenKeyUrl"; Object j39v13 = ((wsUrl + "/stream?listenKey=") + key); if (j39v11 == null) { if (j39v12 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v11) { if (j39v13 == null && j39v11 instanceof java.util.concurrent.ConcurrentHashMap) { j39v11.remove(j39v12); } else { j39v11.put(j39v12, j39v13); } } }
                     client.resolve(key, messageHash);
                 } catch(Exception e)
                 {
@@ -1097,8 +1103,8 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                 (this.openV1PrivatePutPoseidonApiV1ListenKeyListenKey(this.extend(request, parameters))).join();
             } catch(Exception error)
             {
-                Helpers.addElementToObject(this.options, "listenKey", null);
-                Helpers.addElementToObject(this.options, "listenKeyUrl", null);
+                { Map<Object, Object> j39v20 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v21 = "listenKey"; Object j39v22 = null; if (j39v20 == null) { if (j39v21 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v20) { if (j39v22 == null && j39v20 instanceof java.util.concurrent.ConcurrentHashMap) { j39v20.remove(j39v21); } else { j39v20.put(j39v21, j39v22); } } }
+                { Map<Object, Object> j39v17 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v18 = "listenKeyUrl"; Object j39v19 = null; if (j39v17 == null) { if (j39v18 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v17) { if (j39v19 == null && j39v17 instanceof java.util.concurrent.ConcurrentHashMap) { j39v17.remove(j39v18); } else { j39v17.put(j39v18, j39v19); } } }
                 return null;
             }
             Long refreshTimeout = this.safeInteger(this.options, "listenKeyRefreshRate", 1800000);

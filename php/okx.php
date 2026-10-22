@@ -15,7 +15,7 @@ class okx extends Exchange {
             'name' => 'OKX',
             'countries' => array( 'CN', 'US' ),
             'version' => 'v5',
-            'rateLimit' => 100 * 1.10, // 10% tolerance because of #26973
+            'rateLimit' => 110, // 100 plus 10% tolerance because of #26973
             'pro' => true,
             'certified' => true,
             'has' => array(
@@ -1501,7 +1501,7 @@ class okx extends Exchange {
         return parent::handle_market_type_and_params($methodName, $market, $paramsOmitted, $defaultValue);
     }
 
-    public function convert_to_instrument_type(mixed $type) {
+    public function convert_to_instrument_type(?string $type): ?string {
         $exchangeTypes = $this->safe_dict($this->options, 'exchangeType', array());
         return $this->safe_string($exchangeTypes, $type, $type);
     }
@@ -1767,9 +1767,9 @@ class okx extends Exchange {
         for ($i = 0; $i < count($types); $i++) {
             $promises[] = $this->fetch_markets_by_type($types[$i], $params);
         }
-        $promises = $promises;
-        for ($i = 0; $i < count($promises); $i++) {
-            $result = $this->array_concat($result, $promises[$i]);
+        $responses = $promises;
+        for ($i = 0; $i < count($responses); $i++) {
+            $result = $this->array_concat($result, $responses[$i]);
         }
         return $result;
     }
@@ -2041,7 +2041,7 @@ class okx extends Exchange {
         // therefore we check the keys here
         // and fallback to generating the currencies from the markets
         $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-        if (!$this->check_required_credentials(false) || ($isSandboxMode === true)) {
+        if (!$this->check_required_credentials(false) || ($isSandboxMode)) {
             return array();
         }
         //
@@ -2188,16 +2188,15 @@ class okx extends Exchange {
         $requestedLimit = ($limit === null) ? $defaultLimit : $limit;
         // the rpi book hard-errors with 51000 "Parameter sz error." above 400,
         // including the 5000 that publicGetMarketBooksFull defaults to
-        $limitResolved = $requestedLimit;
-        if ($rpi && ($requestedLimit > 400)) {
-            $limitResolved = 400;
-        }
+        $isFullBook = ($method === 'publicGetMarketBooksFull');
+        $largeLimit = (($limit === null) && $isFullBook) || (($limit !== null) && ($limit > 400));
+        $limitResolved = ($rpi && $largeLimit) ? 400 : $requestedLimit;
         if ($limitResolved !== null) {
             $request['sz'] = $limitResolved; // max 400
         }
         if ($rpi) {
             $response = $this->publicGetMarketBooksRpi($this->extend($request, $paramsMethod));
-        } elseif (($method === 'publicGetMarketBooksFull') || ($limitResolved > 400)) {
+        } elseif ($isFullBook || $largeLimit) {
             $response = $this->publicGetMarketBooksFull($this->extend($request, $paramsMethod));
         } else {
             $response = $this->publicGetMarketBooks($this->extend($request, $paramsMethod));
@@ -2277,7 +2276,7 @@ class okx extends Exchange {
         $last = $this->safe_string($ticker, 'last');
         $open = $this->safe_string($ticker, 'open24h');
         $spot = $this->safe_bool($marketResolved, 'spot', false);
-        $quoteVolume = ($spot === true) ? $this->safe_string($ticker, 'volCcy24h') : null;
+        $quoteVolume = ($spot) ? $this->safe_string($ticker, 'volCcy24h') : null;
         $baseVolume = $this->safe_string($ticker, 'vol24h');
         $high = $this->safe_string($ticker, 'high24h');
         $low = $this->safe_string($ticker, 'low24h');
@@ -2743,13 +2742,12 @@ class okx extends Exchange {
             $now = $this->milliseconds();
             $durationInMilliseconds = $duration * 1000;
             // switch to history candles if since is past the cutoff for current candles
-            $historyBorder = $now - ((1440 - 1) * $durationInMilliseconds);
+            $historyBorder = $now - (1439 * $durationInMilliseconds);
             if ($since < $historyBorder) {
+                // limitResolved is already at most 100 for mark or index candles and 300 otherwise
                 $defaultType = 'HistoryCandles';
-                $maxLimit = $isMarkOrIndex ? 100 : 300;
-                $limitResolved = min($limitResolved, $maxLimit);
             }
-            $startTime = max($since - 1, 0);
+            $startTime = ($since > 1) ? ($since - 1) : 0;
             $request['before'] = $startTime;
             $request['after'] = $this->sum($since, $durationInMilliseconds * $limitResolved);
         }
@@ -3252,13 +3250,12 @@ class okx extends Exchange {
         $isReduceOnly = ($this->safe_bool($params, 'reduceOnly', false)) || ($closeFraction !== null);
         $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'cross');
         $marginMode = $this->safe_string_2($params, 'marginMode', 'tdMode'); // cross or isolated, tdMode not omitted so as to be extended into the request
-        $margin = false;
-        if (($marginMode !== null) && ($marginMode !== 'cash')) {
-            $margin = true;
-        } else {
+        $marginModeIsExplicit = ($marginMode !== null) && ($marginMode !== 'cash');
+        if (!$marginModeIsExplicit) {
             $marginMode = $defaultMarginMode;
-            $margin = $this->safe_bool($params, 'margin', false);
         }
+        $marginParam = $this->safe_bool($params, 'margin', false);
+        $margin = $marginModeIsExplicit || ($marginParam === true);
         // position side / hedged options only apply to swap and future orders
         $isSwapOrFuture = ($contract === true) && (($market['swap'] === true) || ($market['future'] === true));
         list($positionSide, $paramsPositionSide) = $this->handle_option_string_and_params($params, 'createOrder', 'positionSide');
@@ -3278,12 +3275,12 @@ class okx extends Exchange {
             $paramsReduceOnly = $this->omit($paramsHedged, 'reduceOnly');
         }
         if ($spot === true) {
-            if ($margin === true) {
+            if ($margin) {
                 $defaultCurrency = ($side === 'buy') ? $market['quote'] : $market['base'];
                 $currency = $this->safe_string($params, 'ccy', $defaultCurrency);
                 $request['ccy'] = $this->safe_currency_code($currency);
             }
-            $tradeMode = ($margin === true) ? $marginMode : 'cash';
+            $tradeMode = ($margin) ? $marginMode : 'cash';
             $request['tdMode'] = $tradeMode;
         } elseif ($contract === true) {
             if (($market['swap'] === true) || ($market['future'] === true)) {
@@ -3314,7 +3311,7 @@ class okx extends Exchange {
         $marketIOC = ($isMarketOrder && $ioc) || ($type === 'optimal_limit_ioc');
         $defaultTgtCcy = $this->safe_string($this->options, 'tgtCcy', 'base_ccy');
         $tgtCcy = $this->safe_string($orderParams, 'tgtCcy', $defaultTgtCcy);
-        if (($contract !== true) && ($margin !== true)) {
+        if (($contract !== true) && (!$margin)) {
             $request['tgtCcy'] = $tgtCcy;
         }
         if ($isMarketOrder || $marketIOC) {
@@ -3902,7 +3899,7 @@ class okx extends Exchange {
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $trailing = $this->safe_bool($params, 'trailing', false);
         $isTrigger = ($trigger === true);
-        if ($isTrigger || ($trailing === true)) {
+        if ($isTrigger || ($trailing)) {
             $orderInner = $this->cancel_orders(array( $id ), $symbol, $params);
             $canceledInner = $this->safe_dict($orderInner, 0);
             return $canceledInner;
@@ -3973,7 +3970,7 @@ class okx extends Exchange {
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $trailing = $this->safe_bool($params, 'trailing', false);
         $isTrigger = ($trigger === true);
-        if ($isTrigger || ($trailing === true)) {
+        if ($isTrigger || ($trailing)) {
             $method = 'privatePostTradeCancelAlgos';
         }
         if ($clientOrderIds === null) {
@@ -3987,7 +3984,7 @@ class okx extends Exchange {
                 }
             }
             for ($i = 0; $i < count($orderIds); $i++) {
-                if (($trailing === true) || $isTrigger) {
+                if (($trailing) || $isTrigger) {
                     $request[] = array(
                         'algoId' => $orderIds[$i],
                         'instId' => $market['id'],
@@ -4001,7 +3998,7 @@ class okx extends Exchange {
             }
         } else {
             for ($i = 0; $i < count($clientOrderIds); $i++) {
-                if (($trailing === true) || $isTrigger) {
+                if (($trailing) || $isTrigger) {
                     $request[] = array(
                         'instId' => $market['id'],
                         'algoClOrdId' => $clientOrderIds[$i],
@@ -4077,8 +4074,8 @@ class okx extends Exchange {
         $method = $this->safe_string($params, 'method', $defaultMethod);
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $trailing = $this->safe_bool($params, 'trailing', false);
-        $isStopOrTrailing = ($trigger === true) || ($trailing === true);
-        if ($isStopOrTrailing === true) {
+        $isStopOrTrailing = ($trigger === true) || ($trailing);
+        if ($isStopOrTrailing) {
             $method = 'privatePostTradeCancelAlgos';
         }
         for ($i = 0; $i < count($orders); $i++) {
@@ -4091,7 +4088,7 @@ class okx extends Exchange {
             }
             $market = $this->market($symbol);
             $idKey = 'ordId';
-            if ($isStopOrTrailing === true) {
+            if ($isStopOrTrailing) {
                 $idKey = 'algoId';
             } elseif ($clientOrderId !== null) {
                 $idKey = 'clOrdId';
@@ -4176,7 +4173,7 @@ class okx extends Exchange {
         return $response;
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'canceled' => 'canceled',
             'order_failed' => 'canceled',
@@ -4696,10 +4693,10 @@ class okx extends Exchange {
         $trigger = $this->safe_bool_2($paramsPaginate, 'stop', 'trigger');
         $trailing = $this->safe_bool($paramsPaginate, 'trailing', false);
         $isTrigger = ($trigger === true);
-        if (($trailing === true) || $isTrigger || (($ordType !== null) && (is_array($algoOrderTypes) && array_key_exists($ordType ?? '', $algoOrderTypes)))) {
+        if (($trailing) || $isTrigger || (($ordType !== null) && (is_array($algoOrderTypes) && array_key_exists($ordType ?? '', $algoOrderTypes)))) {
             $method = 'privateGetTradeOrdersAlgoPending';
         }
-        if ($trailing === true) {
+        if ($trailing) {
             $request['ordType'] = 'move_order_stop';
         } elseif ($isTrigger && ($ordType === null)) {
             $request['ordType'] = 'trigger';
@@ -4861,7 +4858,7 @@ class okx extends Exchange {
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $trailing = $this->safe_bool($params, 'trailing', false);
         $isTrigger = ($trigger === true);
-        if ($trailing === true) {
+        if ($trailing) {
             $method = 'privateGetTradeOrdersAlgoHistory';
             $request['ordType'] = 'move_order_stop';
         } elseif ($isTrigger || (($ordType !== null) && (is_array($algoOrderTypes) && array_key_exists($ordType ?? '', $algoOrderTypes)))) {
@@ -5052,11 +5049,11 @@ class okx extends Exchange {
         $ordType = $this->safe_string($paramsPaginate, 'ordType');
         $trigger = $this->safe_bool_2($paramsPaginate, 'stop', 'trigger');
         $trailing = $this->safe_bool($paramsPaginate, 'trailing', false);
-        if (($trailing === true) || ($trigger === true) || (($ordType !== null) && (is_array($algoOrderTypes) && array_key_exists($ordType ?? '', $algoOrderTypes)))) {
+        if (($trailing) || ($trigger === true) || (($ordType !== null) && (is_array($algoOrderTypes) && array_key_exists($ordType ?? '', $algoOrderTypes)))) {
             $method = 'privateGetTradeOrdersAlgoHistory';
             $request['state'] = 'effective';
         }
-        if ($trailing === true) {
+        if ($trailing) {
             $request['ordType'] = 'move_order_stop';
         } elseif ($trigger === true) {
             if ($ordType === null) {
@@ -5319,7 +5316,10 @@ class okx extends Exchange {
             // 'limit': 100, // default 100, max 100
         );
         list($marginModeOption, $paramsMarginMode) = $this->handle_margin_mode_and_params('fetchLedger', $paramsOmitted);
-        $marginMode = ($marginModeOption === null) ? $this->safe_string($paramsMarginMode, 'mgnMode') : $marginModeOption;
+        $marginMode = $marginModeOption;
+        if ($marginMode === null) {
+            $marginMode = $this->safe_string($paramsMarginMode, 'mgnMode');
+        }
         if ($method !== 'privateGetAssetBills') {
             if ($marginMode !== null) {
                 $request['mgnMode'] = $marginMode;
@@ -5656,7 +5656,7 @@ class okx extends Exchange {
         }
         $codeNetwork = $this->network_id_to_code($codeValue, $codeValue);
         if (($codeNetwork !== null) && (is_array($response) && array_key_exists($codeNetwork ?? '', $response))) {
-            return $response[$codeNetwork];
+            return $this->safe_dict($response, $codeNetwork);
         }
         // if the network is not specified, return the first address
         $keys = is_array($response) ? array_keys($response) : array();
@@ -5971,7 +5971,7 @@ class okx extends Exchange {
         return $this->parse_transaction($withdrawal);
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         //
         // deposit statuses
         //
@@ -8310,7 +8310,7 @@ class okx extends Exchange {
          * @return {array[]} the $request and the remaining $params
          */
         $maxLimit = 100;
-        $effectiveLimit = ($limit === null) ? $maxLimit : min($limit, $maxLimit);
+        $effectiveLimit = (($limit === null) || ($limit > 100)) ? 100 : $limit;
         if ($limit !== null) {
             $request['limit'] = $effectiveLimit;
         }
@@ -8777,7 +8777,7 @@ class okx extends Exchange {
         //     }
         //
         $underlyings = $this->safe_list($response, 'data', array());
-        return $underlyings[0];
+        return $this->to_array($this->safe_list($underlyings, 0, array()));
     }
 
     public function fetch_greeks(string $symbol, $params = array()): array {
@@ -8859,10 +8859,7 @@ class okx extends Exchange {
         }
         $request = array();
         $symbolsNormalized = $this->market_symbols($symbols, null, true, true, true);
-        $symbolsLength = null;
-        if ($symbolsNormalized !== null) {
-            $symbolsLength = count($symbolsNormalized);
-        }
+        $symbolsLength = ($symbolsNormalized === null) ? 0 : count($symbolsNormalized);
         if (($symbolsNormalized === null) || ($symbolsLength !== 1)) {
             $uly = $this->safe_string($params, 'uly');
             if ($uly !== null) {

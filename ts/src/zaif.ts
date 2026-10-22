@@ -846,7 +846,7 @@ export default class zaif extends Exchange {
         } as Transaction;
     }
 
-    customNonce () {
+    customNonce (): string {
         const num = this.numberToString (this.milliseconds () / 1000);
         const nonce = parseFloat (num);
         return nonce.toFixed (8);
@@ -903,7 +903,7 @@ export default class zaif extends Exchange {
             throw new ExchangeError (feedback); // unknown message
         }
         const success = this.safeBool (response, 'success', true);
-        if (success !== true) {
+        if (!success) {
             throw new ExchangeError (feedback);
         }
         return undefined;

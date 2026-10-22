@@ -47,7 +47,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         });
     }
 
-    authenticate () {
+    authenticate (): Dict {
         this.checkRequiredCredentials ();
         const path = '/users/self/verify';
         const nonce = this.nonce ();
@@ -1035,8 +1035,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
             'done': this.handleOrder,
             'error': this.handleErrorMessage,
         };
-        const length = client.url.length - 0;
-        const authenticated = client.url[length - 1] === '?';
+        const authenticated = client.url.endsWith ('?');
         const method = this.safeValue (methods, type);
         if (method === undefined) {
             if (type === 'match') {

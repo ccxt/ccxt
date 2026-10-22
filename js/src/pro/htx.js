@@ -558,18 +558,18 @@ export default class htx extends htxRest {
             const snapshotOrderBook = this.orderBook(snapshot, snapshotLimit);
             client.resolve(snapshotOrderBook, id);
             if ((sequence === undefined) || (nonce < sequence)) {
-                const maxAttempts = this.handleOption('watchOrderBook', 'maxRetries', 3);
-                let numAttempts = this.safeInteger(subscription, 'numAttempts', 0);
+                const maxAttempts = this.parseToInt(this.handleOption('watchOrderBook', 'maxRetries', 3));
+                const numAttempts = this.safeInteger(subscription, 'numAttempts', 0);
                 // retry to synchronize if we have not reached maxAttempts yet
                 if (numAttempts < maxAttempts) {
                     // safety guard
                     if (messageHash in client.subscriptions) {
-                        numAttempts = this.sum(numAttempts, 1);
+                        const nextAttempts = this.sum(numAttempts, 1);
                         let delayTime = 1000;
                         if ((lastTimestamp !== undefined) && (snapshotTimestamp !== undefined)) {
                             delayTime = this.sum(1000, lastTimestamp - snapshotTimestamp);
                         }
-                        subscription['numAttempts'] = numAttempts;
+                        subscription['numAttempts'] = nextAttempts;
                         client.subscriptions[messageHash] = subscription;
                         this.delay(delayTime, this.watchOrderBookSnapshot, client, message, subscription);
                     }
@@ -734,7 +734,8 @@ export default class htx extends htxRest {
             orderbook.reset(snapshot);
             orderbook['nonce'] = version;
         }
-        if ((prevSeqNum !== undefined) && prevSeqNum > this.safeInteger(orderbook, 'nonce', 0)) {
+        const orderbookNonce = this.safeInteger(orderbook, 'nonce', 0);
+        if ((prevSeqNum !== undefined) && prevSeqNum > orderbookNonce) {
             const checksum = this.handleOption('watchOrderBook', 'checksum', true);
             if (checksum === true) {
                 throw new ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
@@ -742,12 +743,12 @@ export default class htx extends htxRest {
         }
         const spotConditon = (market['spot'] === true) && (prevSeqNum === orderbook['nonce']);
         const nonSpotCondition = (market['contract'] === true) && (version !== undefined) && (version - 1 === orderbook['nonce']);
-        if ((spotConditon === true) || (nonSpotCondition === true)) {
+        if ((spotConditon) || (nonSpotCondition)) {
             const asks = this.safeList(tick, 'asks', []);
             const bids = this.safeList(tick, 'bids', []);
             this.handleDeltas(orderbook['asks'], asks);
             this.handleDeltas(orderbook['bids'], bids);
-            orderbook['nonce'] = (spotConditon === true) ? seqNum : version;
+            orderbook['nonce'] = (spotConditon) ? seqNum : version;
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601(timestamp);
         }
@@ -1581,7 +1582,7 @@ export default class htx extends htxRest {
         const aggressor = this.safeBool(trade, 'aggressor');
         let takerOrMaker = undefined;
         if (aggressor !== undefined) {
-            takerOrMaker = (aggressor === true) ? 'taker' : 'maker';
+            takerOrMaker = (aggressor) ? 'taker' : 'maker';
         }
         return this.safeTrade({
             'info': trade,
@@ -1858,7 +1859,7 @@ export default class htx extends htxRest {
             let prefix = 'accounts';
             messageHash = prefix;
             if (subType === 'linear') {
-                if (isUnifiedAccount === true) {
+                if (isUnifiedAccount) {
                     // usdt contracts account
                     prefix = 'accounts_unify';
                     messageHash = prefix;
@@ -2821,7 +2822,7 @@ export default class htx extends htxRest {
         const aggressor = this.safeBool(trade, 'aggressor');
         let takerOrMaker = undefined;
         if (aggressor !== undefined) {
-            takerOrMaker = (aggressor === true) ? 'taker' : 'maker';
+            takerOrMaker = (aggressor) ? 'taker' : 'maker';
         }
         else {
             takerOrMaker = this.safeStringLower(trade, 'role');

@@ -261,9 +261,9 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
             Helpers.addElementToObject(this.tickers, symbol, this.parseWSTicker((Map<String, Object>) (ticker), (Map<String, Object>) null));
             Long timestamp = this.parse8601(datetime);
-            Helpers.addElementToObject(Helpers.GetValue(this.tickers, symbol), "timestamp", timestamp);
-            Helpers.addElementToObject(Helpers.GetValue(this.tickers, symbol), "datetime", this.iso8601(timestamp));
-            client.resolve(Helpers.GetValue(this.tickers, symbol), ("ticker." + symbol));
+            Helpers.addElementToObject((symbol == null || this.tickers == null ? null : ((Map<?, ?>)this.tickers).get(symbol)), "timestamp", timestamp);
+            Helpers.addElementToObject((symbol == null || this.tickers == null ? null : ((Map<?, ?>)this.tickers).get(symbol)), "datetime", this.iso8601(timestamp));
+            client.resolve((symbol == null || this.tickers == null ? null : ((Map<?, ?>)this.tickers).get(symbol)), ("ticker." + symbol));
         }
         client.resolve(this.tickers, "tickers");
     }
@@ -327,7 +327,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String messageHash = "myTrades";
-            Object symbolResolved = null;
+            String symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = this.market(symbol);
@@ -352,11 +352,11 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolResolved, limit);
             }
-            trades = this.filterBySymbolSinceLimit(trades, Helpers.toStringArg(symbolResolved), since, limitResolved, false);
-            Integer numTrades = Helpers.getArrayLength(trades);
+            trades = this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, false);
+            Integer numTrades = (switch ((Object)(trades)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; });
             if ((numTrades != null && numTrades == 0))
             {
-                return (this.watchMyTrades(Helpers.toStringArg(symbolResolved), since, limitResolved, parameters)).join();
+                return (this.watchMyTrades(symbolResolved, since, limitResolved, parameters)).join();
             }
             return trades;
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
@@ -492,7 +492,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         //       [ 'SELL', "0.053698", "0" ]
         //    ]
         //
-        for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
+        for (var i = 0; i < (switch ((Object)(deltas)) { case null -> 0; case List<?> j39v7 -> j39v7.size(); case String j39v8 -> j39v8.length(); case Object j39v9 -> j39v9.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v9) : 0; }); i++)
         {
             this.handleBookDelta(orderbook, Helpers.GetValue(deltas, i));
         }
@@ -520,7 +520,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String messageHash = "orders";
-            Object symbolResolved = null;
+            String symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = this.market(symbol);
@@ -545,11 +545,11 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
-            orders = this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, limitResolved, false);
-            Integer numOrders = Helpers.getArrayLength(orders);
+            orders = this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, false);
+            Integer numOrders = (switch ((Object)(orders)) { case null -> 0; case List<?> j39v10 -> j39v10.size(); case String j39v11 -> j39v11.length(); case Object j39v12 -> j39v12.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v12) : 0; });
             if ((numOrders != null && numOrders == 0))
             {
-                return (this.watchOrders(Helpers.toStringArg(symbolResolved), since, limitResolved, parameters)).join();
+                return (this.watchOrders(symbolResolved, since, limitResolved, parameters)).join();
             }
             return orders;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -1198,7 +1198,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
                 {
                     Map<String, Object> ohlcvMarket = (Map<String, Object>) this.safeDict(subscription, marketId, new HashMap<String, Object>() {{}});
                     Boolean marketSubscribed = (Boolean) this.safeBool(ohlcvMarket, java.util.Objects.requireNonNullElse(timeframe, "1m"), false);
-                    if (!java.util.Objects.equals(marketSubscribed, true))
+                    if (!Boolean.TRUE.equals(marketSubscribed))
                     {
                         type = "UPDATE_SUBSCRIPTION";
                         Helpers.addElementToObject(client.subscriptions, subscriptionHash, null);
@@ -1224,7 +1224,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             List<String> marketIds = new ArrayList<String>(((Map<String, Object>)subscription).keySet());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
-                List<Object> marketIdtimeframes = Helpers.objectKeys(Helpers.GetValue(subscription, (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i))));
+                List<Object> marketIdtimeframes = ((List<Object>) switch ((Object)(Helpers.GetValue(subscription, (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i))))) { case Map<?, ?> j39v13 -> { synchronized (j39v13) { yield new ArrayList<Object>(j39v13.keySet()); } } case null, default -> new ArrayList<Object>(); });
                 for (var ii = 0; ii < ((List<?>)marketIdtimeframes).size(); ii++)
                 {
                     Map<String, Object> marketTimeframeId = (Map<String, Object>) this.safeDict(timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), (Object) null);
@@ -1317,11 +1317,11 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         {
             throw new ArgumentsRequired((this.id + " findTimeframe() timeframes is required")) ;
         }
-        List<Object> keys = Helpers.objectKeys(timeframesResolved);
+        List<Object> keys = ((List<Object>) switch ((Object)(timeframesResolved)) { case Map<?, ?> j39v21 -> { synchronized (j39v21) { yield new ArrayList<Object>(j39v21.keySet()); } } case null, default -> new ArrayList<Object>(); });
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            if (Helpers.isEqual(Helpers.GetValue(Helpers.GetValue(timeframesResolved, key), "unit"), Helpers.GetValue(timeframe, "unit")) && Helpers.isEqual(Helpers.GetValue(Helpers.GetValue(timeframesResolved, key), "period"), Helpers.GetValue(timeframe, "period")))
+            if (((java.util.function.BiPredicate<Object, Object>) (hx4J40v1A, hx4J40v1B) -> { try { if (hx4J40v1A == null && hx4J40v1B == null) { return true; } if (hx4J40v1A == null || hx4J40v1B == null) { return false; } java.util.function.Predicate<Object> hx4J40v1N = hx4J40v1o -> { try { Double.parseDouble(String.valueOf(hx4J40v1o)); return true; } catch (Exception hx4J40v1e) { return false; } }; if (!hx4J40v1A.getClass().equals(hx4J40v1B.getClass()) && !(hx4J40v1N.test(hx4J40v1A) && hx4J40v1N.test(hx4J40v1B))) { return false; } java.util.function.Predicate<Object> hx4J40v1I = hx4J40v1o -> hx4J40v1o instanceof Byte || hx4J40v1o instanceof Short || hx4J40v1o instanceof Integer || hx4J40v1o instanceof Long || hx4J40v1o instanceof java.util.concurrent.atomic.AtomicInteger || hx4J40v1o instanceof java.util.concurrent.atomic.AtomicLong || ((hx4J40v1o instanceof Float || hx4J40v1o instanceof Double || hx4J40v1o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(hx4J40v1o)).stripTrailingZeros().scale() <= 0); java.util.function.ToDoubleFunction<Object> hx4J40v1D = hx4J40v1o -> { if (hx4J40v1o instanceof Double || hx4J40v1o instanceof Float || hx4J40v1o instanceof Long || hx4J40v1o instanceof Integer || hx4J40v1o instanceof java.math.BigDecimal) { return ((Number) hx4J40v1o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v1o)); } catch (NumberFormatException hx4J40v1e) { return 0.0; } }; if (hx4J40v1I.test(hx4J40v1A) && hx4J40v1I.test(hx4J40v1B)) { java.util.function.ToLongFunction<Object> hx4J40v1L = hx4J40v1o -> hx4J40v1o instanceof Long || hx4J40v1o instanceof Integer || hx4J40v1o instanceof Double || hx4J40v1o instanceof Float || hx4J40v1o instanceof java.math.BigDecimal ? ((Number) hx4J40v1o).longValue() : Long.parseLong(String.valueOf(hx4J40v1o)); return hx4J40v1L.applyAsLong(hx4J40v1A) == hx4J40v1L.applyAsLong(hx4J40v1B); } if (hx4J40v1A instanceof Double || hx4J40v1B instanceof Double) { return hx4J40v1D.applyAsDouble(hx4J40v1A) == hx4J40v1D.applyAsDouble(hx4J40v1B); } if (hx4J40v1A instanceof Float || hx4J40v1B instanceof Float) { java.util.function.Function<Object, Float> hx4J40v1F = hx4J40v1o -> hx4J40v1o instanceof Float || hx4J40v1o instanceof Double || hx4J40v1o instanceof Long || hx4J40v1o instanceof Integer || hx4J40v1o instanceof java.math.BigDecimal ? ((Number) hx4J40v1o).floatValue() : Float.parseFloat(String.valueOf(hx4J40v1o)); return hx4J40v1F.apply(hx4J40v1A).floatValue() == hx4J40v1F.apply(hx4J40v1B).floatValue(); } if (hx4J40v1A instanceof String && hx4J40v1B instanceof String) { return hx4J40v1A.equals(hx4J40v1B); } if (hx4J40v1A instanceof Boolean && hx4J40v1B instanceof Boolean) { return hx4J40v1A.equals(hx4J40v1B); } if (hx4J40v1N.test(hx4J40v1A) && hx4J40v1N.test(hx4J40v1B)) { return new java.math.BigDecimal(String.valueOf(hx4J40v1A)).compareTo(new java.math.BigDecimal(String.valueOf(hx4J40v1B))) == 0; } return false; } catch (Exception hx4J40v1e) { return false; } }).test(Helpers.GetValue(Helpers.GetValue(timeframesResolved, key), "unit"), Helpers.GetValue(timeframe, "unit")) && ((java.util.function.BiPredicate<Object, Object>) (hx4J40v0A, hx4J40v0B) -> { try { if (hx4J40v0A == null && hx4J40v0B == null) { return true; } if (hx4J40v0A == null || hx4J40v0B == null) { return false; } java.util.function.Predicate<Object> hx4J40v0N = hx4J40v0o -> { try { Double.parseDouble(String.valueOf(hx4J40v0o)); return true; } catch (Exception hx4J40v0e) { return false; } }; if (!hx4J40v0A.getClass().equals(hx4J40v0B.getClass()) && !(hx4J40v0N.test(hx4J40v0A) && hx4J40v0N.test(hx4J40v0B))) { return false; } java.util.function.Predicate<Object> hx4J40v0I = hx4J40v0o -> hx4J40v0o instanceof Byte || hx4J40v0o instanceof Short || hx4J40v0o instanceof Integer || hx4J40v0o instanceof Long || hx4J40v0o instanceof java.util.concurrent.atomic.AtomicInteger || hx4J40v0o instanceof java.util.concurrent.atomic.AtomicLong || ((hx4J40v0o instanceof Float || hx4J40v0o instanceof Double || hx4J40v0o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(hx4J40v0o)).stripTrailingZeros().scale() <= 0); java.util.function.ToDoubleFunction<Object> hx4J40v0D = hx4J40v0o -> { if (hx4J40v0o instanceof Double || hx4J40v0o instanceof Float || hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof java.math.BigDecimal) { return ((Number) hx4J40v0o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v0o)); } catch (NumberFormatException hx4J40v0e) { return 0.0; } }; if (hx4J40v0I.test(hx4J40v0A) && hx4J40v0I.test(hx4J40v0B)) { java.util.function.ToLongFunction<Object> hx4J40v0L = hx4J40v0o -> hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof Double || hx4J40v0o instanceof Float || hx4J40v0o instanceof java.math.BigDecimal ? ((Number) hx4J40v0o).longValue() : Long.parseLong(String.valueOf(hx4J40v0o)); return hx4J40v0L.applyAsLong(hx4J40v0A) == hx4J40v0L.applyAsLong(hx4J40v0B); } if (hx4J40v0A instanceof Double || hx4J40v0B instanceof Double) { return hx4J40v0D.applyAsDouble(hx4J40v0A) == hx4J40v0D.applyAsDouble(hx4J40v0B); } if (hx4J40v0A instanceof Float || hx4J40v0B instanceof Float) { java.util.function.Function<Object, Float> hx4J40v0F = hx4J40v0o -> hx4J40v0o instanceof Float || hx4J40v0o instanceof Double || hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof java.math.BigDecimal ? ((Number) hx4J40v0o).floatValue() : Float.parseFloat(String.valueOf(hx4J40v0o)); return hx4J40v0F.apply(hx4J40v0A).floatValue() == hx4J40v0F.apply(hx4J40v0B).floatValue(); } if (hx4J40v0A instanceof String && hx4J40v0B instanceof String) { return hx4J40v0A.equals(hx4J40v0B); } if (hx4J40v0A instanceof Boolean && hx4J40v0B instanceof Boolean) { return hx4J40v0A.equals(hx4J40v0B); } if (hx4J40v0N.test(hx4J40v0A) && hx4J40v0N.test(hx4J40v0B)) { return new java.math.BigDecimal(String.valueOf(hx4J40v0A)).compareTo(new java.math.BigDecimal(String.valueOf(hx4J40v0B))) == 0; } return false; } catch (Exception hx4J40v0e) { return false; } }).test(Helpers.GetValue(Helpers.GetValue(timeframesResolved, key), "period"), Helpers.GetValue(timeframe, "period")))
             {
                 return (String) (key);
             }
@@ -1477,7 +1477,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
                     {
                         Object marketId = (marketIds == null || i < 0 || i >= ((List<?>)marketIds).size() ? null : ((List<?>)marketIds).get(i));
                         Boolean marketSubscribed = (Boolean) this.safeBool(subscription, marketId, false);
-                        if (!java.util.Objects.equals(marketSubscribed, true))
+                        if (!Boolean.TRUE.equals(marketSubscribed))
                         {
                             type = "UPDATE_SUBSCRIPTION";
                             Helpers.addElementToObject(client.subscriptions, subscriptionHash, null);

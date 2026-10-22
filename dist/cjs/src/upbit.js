@@ -351,16 +351,16 @@ class upbit extends upbit$1["default"] {
         const walletLocked = this.safeBool(memberInfo, 'wallet_locked');
         const locked = this.safeBool(memberInfo, 'locked');
         let active = true;
-        if ((canWithdraw !== undefined) && (canWithdraw !== true)) {
+        if ((canWithdraw !== undefined) && (!canWithdraw)) {
             active = false;
         }
         else if (walletState !== 'working') {
             active = false;
         }
-        else if ((walletLocked !== undefined) && (walletLocked === true)) {
+        else if ((walletLocked !== undefined) && (walletLocked)) {
             active = false;
         }
-        else if ((locked !== undefined) && (locked === true)) {
+        else if ((locked !== undefined) && (locked)) {
             active = false;
         }
         const maxOnetimeWithdrawal = this.safeString(withdrawLimits, 'onetime');
@@ -1361,7 +1361,7 @@ class upbit extends upbit$1["default"] {
         }
         let response;
         const paramsRequest = this.omit(paramsOrdType, ['timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'cost', 'selfTradePrevention', 'smp_type', 'test']);
-        if (test === true) {
+        if (test) {
             response = await this.privatePostOrdersTest(this.extend(request, paramsRequest));
         }
         else {

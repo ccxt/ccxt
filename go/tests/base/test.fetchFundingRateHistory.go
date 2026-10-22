@@ -19,7 +19,10 @@ func testFetchFundingRateHistoryBody(ch chan ccxt.AsyncResult[any], exchange ccx
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	fundingRatesHistory := r.Value
+	var fundingRatesHistory any = nil
+	if r.Value != nil {
+		fundingRatesHistory = ccxt.FundingRateHistoriesToList(r.Value)
+	}
 	AssertNonEmtpyArray(exchange, skippedProperties, method, fundingRatesHistory, symbol)
 	for i := 0; i < GetArrayLength(fundingRatesHistory); i++ {
 		TestFundingRateHistory(exchange, skippedProperties, method, GetValue(fundingRatesHistory, i), symbol)

@@ -232,7 +232,7 @@ export default class poloniex extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     fetchOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
-    fetchOrderStatus(id: string, symbol?: Str, params?: Dict): Promise<"closed" | "open">;
+    fetchOrderStatus(id: string, symbol?: Str, params?: Dict): Promise<Str>;
     /**
      * @method
      * @name poloniex#fetchOrderTrades
@@ -459,7 +459,7 @@ export default class poloniex extends Exchange {
      */
     fetchPositions(symbols?: Strings, params?: Dict): Promise<Position[]>;
     parsePosition(position: Dict, market?: Market): Position;
-    modifyMarginHelper(symbol: string, amount: any, type: string, params?: Dict): Promise<MarginModification>;
+    modifyMarginHelper(symbol: string, amount: Num, type: string, params?: Dict): Promise<MarginModification>;
     parseMarginModification(data: Dict, market?: Market): MarginModification;
     /**
      * @method

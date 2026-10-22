@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
-from ccxt.base.types import Balances, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -666,7 +666,7 @@ class modetrade(ccxt.async_support.modetrade):
             await self.load_markets()
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
         topic = 'executionreport'
-        if trigger is True:
+        if trigger:
             topic = 'algoexecutionreport'
         paramsOmitted = self.omit(params, ['stop', 'trigger'])
         messageHash = topic
@@ -704,7 +704,7 @@ class modetrade(ccxt.async_support.modetrade):
             await self.load_markets()
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
         topic = 'executionreport'
-        if trigger is True:
+        if trigger:
             topic = 'algoexecutionreport'
         paramsOmitted = self.omit(params, 'stop')
         messageHash = 'myTrades'
@@ -1220,7 +1220,7 @@ class modetrade(ccxt.async_support.modetrade):
         self.balance = self.safe_balance(self.balance)
         client.resolve(self.balance, 'balance')
 
-    def handle_error_message(self, client: Client, message: dict) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> bool:
         #
         # {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
         #
@@ -1246,7 +1246,7 @@ class modetrade(ccxt.async_support.modetrade):
             return True
 
     def handle_message(self, client: Client, message: dict):
-        if self.handle_error_message(client, message) is True:
+        if self.handle_error_message(client, message):
             return
         methods = {
             'ping': self.handle_ping,

@@ -181,7 +181,7 @@ public partial class hitbtc : ccxt.hitbtc
         object messageHash = this.safeString(splitName, 0, "");
         if ((symbol != null))
         {
-            messageHash = add(add(messageHash, "::"), symbol);
+            messageHash = ((messageHash + "::") + symbol);
         }
         Int64? requestId = this.incrementingNonce();
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
@@ -244,7 +244,7 @@ public partial class hitbtc : ccxt.hitbtc
         string? name = this.safeString2(parameters, "method", "defaultMethod", defaultMethod);
         string? depthValue = this.safeString(parameters, "depth", "20"); // not named depth: the php transpiler would turn the '{depth}' literals into '{$depth}'
         string? speedValue = this.safeString(parameters, "speed", "100"); // not named speed: the php transpiler would turn the '{speed}' literals into '{$speed}'
-        object paramsOmitted = this.omit(parameters, new List<object>() {"method", "defaultMethod", "depth", "speed"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"method", "defaultMethod", "depth", "speed"}));
         if (name == "orderbook/{depth}/{speed}")
         {
             name = (((("orderbook/D" + depthValue) + "/") + speedValue) + "ms");
@@ -596,7 +596,7 @@ public partial class hitbtc : ccxt.hitbtc
         string? name = this.implodeParams(method, new Dictionary<string, object>() {
             { "speed", speedValue },
         });
-        object paramsOmitted = this.omit(parameters, new List<object>() {"method", "defaultMethod", "speed"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"method", "defaultMethod", "speed"}));
         IList<object> marketIds = this.marketIds(symbolsNormalized);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "params", new Dictionary<string, object>() {
@@ -1503,7 +1503,7 @@ public partial class hitbtc : ccxt.hitbtc
         if (((result is IList<object>) || (result.GetType().IsGenericType && result.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             List<object> parsedOrders = new List<object>() {};
-            for (int i = 0; i < getArrayLength(result); i++)
+            for (int i = 0; i < (((object)(result)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
             {
                 ccxt.Order parsedOrder = this.parseWsOrder(getValue(result, i));
                 parsedOrders.Add(ccxt.BaseExchange.FromOrder(parsedOrder));
@@ -1572,7 +1572,7 @@ public partial class hitbtc : ccxt.hitbtc
             {
                 // to do improve this, not very reliable right now
                 IDictionary<string, object> first = this.safeDict(result, 0, new Dictionary<string, object>() {});
-                int arrayLength = getArrayLength(result);
+                int arrayLength = (((object)(result)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
                 if (((arrayLength == 0)) || (first.ContainsKey("client_order_id")))
                 {
                     this.handleOrderRequest(client, message);
@@ -1654,7 +1654,7 @@ public partial class hitbtc : ccxt.hitbtc
                 for (int i = 0; i < subscriptionHashes.Count; i++)
                 {
                     string? subscriptionHash = ((string)subscriptionHashes[i]);
-                    string? subscriptionId = this.safeString(getValue(client.subscriptions, subscriptionHash), "id");
+                    string? subscriptionId = this.safeString((client.subscriptions != null && subscriptionHash != null && client.subscriptions.ContainsKey(subscriptionHash) ? client.subscriptions[subscriptionHash] : null), "id");
                     if (((subscriptionId != null)) && ((subscriptionId == id)))
                     {
                         client.reject(e, subscriptionHash);

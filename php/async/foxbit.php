@@ -1036,7 +1036,7 @@ class foxbit extends Exchange {
                 $request['time_in_force'] = $timeInForce;
             }
         }
-        if ($postOnly === true) {
+        if ($postOnly) {
             $request['post_only'] = true;
         }
         if ($triggerPrice !== null) {
@@ -1112,7 +1112,7 @@ class foxbit extends Exchange {
                 }
                 unset($orderParams['timeInForce']);
             }
-            if ($postOnly === true) {
+            if ($postOnly) {
                 $request['post_only'] = true;
                 unset($orderParams['postOnly']);
             }
@@ -1932,7 +1932,7 @@ class foxbit extends Exchange {
         ), $market);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'PARTIALLY_CANCELED' => 'open',
             'ACTIVE' => 'open',
@@ -2018,7 +2018,7 @@ class foxbit extends Exchange {
         );
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             // BOTH
             'SUBMITTING' => 'pending',
@@ -2131,18 +2131,16 @@ class foxbit extends Exchange {
         if ($amount === null) {
             throw new ArgumentsRequired($this->id . ' parseLedgerEntry() requires a amount argument');
         }
-        if ($amount < 0) {
-            $direction = 'out';
-            if ($amount === null) {
-                throw new ArgumentsRequired($this->id . ' parseLedgerEntry() requires a amount argument');
-            }
-            $realAmount = $amount * -1;
-        }
         if ($balance === null) {
             throw new ExchangeError($this->id . ' parseLedgerEntry() missing balance');
         }
-        if ($amount === null) {
-            throw new ArgumentsRequired($this->id . ' parseLedgerEntry() requires a amount argument');
+        $before = null;
+        if ($amount !== null && $balance !== null) {
+            $before = $balance - $amount;
+            if (0 > $amount) {
+                $direction = 'out';
+                $realAmount = -$amount;
+            }
         }
         return array(
             'id' => $id,
@@ -2156,7 +2154,7 @@ class foxbit extends Exchange {
             'type' => $type,
             'currency' => $currencySymbol,
             'amount' => $realAmount,
-            'before' => $balance - $amount,
+            'before' => $before,
             'after' => $balance,
             'status' => 'ok',
             'fee' => $fee,
@@ -2183,6 +2181,7 @@ class foxbit extends Exchange {
         if ($method === 'GET') {
             $paramKeys = is_array($paramsOmitted) ? array_keys($paramsOmitted) : array();
             $paramKeysLength = count($paramKeys);
+            $lastKeyIndex = $paramKeysLength - 1;
             if ($paramKeysLength > 0) {
                 $query = $this->urlencode($paramsOmitted);
                 $url .= '?' . $query;
@@ -2193,7 +2192,7 @@ class foxbit extends Exchange {
                 if ($value !== null) {
                     $signatureQuery .= $key . '=' . $value;
                 }
-                if ($i < $paramKeysLength - 1) {
+                if ($i < $lastKeyIndex) {
                     $signatureQuery .= '&';
                 }
             }

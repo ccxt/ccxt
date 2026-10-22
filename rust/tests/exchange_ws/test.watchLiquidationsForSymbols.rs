@@ -32,7 +32,7 @@ pub async fn testWatchLiquidationsForSymbols(mut exchange: Value, mut skippedPro
             now = date_now();
             let mut isArray: Value = Value::Bool(matches!(&response, Value::Arr(_)));
             assert!(ccxt::runtime::is_true(&(isArray.clone())));
-            let mut m3: Value = (Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" ".into())).into()), method).into()), Value::Str("() returned ".into())).into()), &Value::Int(response.len() as i64)), Value::Str(" liquidations".into())).into()));
+            let mut m3: Value = (Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" ".into())).into()), method).into()), Value::Str("() returned ".into())).into()), Value::Int(response.len() as i64)).into()), Value::Str(" liquidations".into())).into()));
             println_val(&m3);
             {
                                 let mut i: Value = Value::Int(0);

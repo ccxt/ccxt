@@ -8,7 +8,7 @@ export default class lighter extends Exchange {
     describe(): any;
     loadAccount(chainId: any, privateKey: Str, apiKeyIndex: string, accountIndex: string, params?: Dict): Promise<any>;
     initAuthObject(strAccountIndex: string, strApiKeyIndex: string): void;
-    getLighterPrivateKey(strAccountIndex: string, strApiKeyIndex: string): any;
+    getLighterPrivateKey(strAccountIndex: string, strApiKeyIndex: string): Str;
     /**
      * @method
      * @name lighter#preLoadLighterLibrary
@@ -21,10 +21,10 @@ export default class lighter extends Exchange {
     handleAccountIndex(params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue?: any): Promise<[Int, Dict]>;
     createSubAccount(name: string, params?: Dict): Promise<Dict>;
     createAuth(params?: Dict): Str;
-    pow(n: string, m: string): string | undefined;
+    pow(n: string, m: string): Str;
     hashMessage(message: string): string;
-    signHash(hash: any, privateKey: any): string;
-    signL1AndPrepareTxInfo(txInfo: any, message: any, privateKey: any): string;
+    signHash(hash: string, privateKey: string): string;
+    signL1AndPrepareTxInfo(txInfo: any, message: any, privateKey: string): string;
     handleBuilderFeeApproval(accountIndex: number, apiKeyIndex: number): Promise<boolean>;
     checkIfStandardTier(accountIndex: number): Promise<boolean>;
     approveBuilderFee(builder: number, takerFeeRate: number, makerFeeRate: number, accountIndex: number, apiKeyIndex: number, params?: Dict): Promise<Dict>;
@@ -245,7 +245,7 @@ export default class lighter extends Exchange {
     parseOrderType(type: Str): Str;
     parseOrderTypeInteger(typeInteger: Int): Str;
     parseOrderTimeInForce(tif: Str): Str;
-    parseOrderTimeInForceInteger(tifInteger: any): Str;
+    parseOrderTimeInForceInteger(tifInteger: number): Str;
     /**
      * @method
      * @name lighter#transfer

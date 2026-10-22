@@ -52,8 +52,8 @@ pub async fn testFetchCurrencies(mut exchange: Value, mut skippedProperties: Val
             let mut withdraw: Value = exchange.safe_bool(currency.clone(), Value::Str("withdraw".into()), &[]);
             let mut deposit: Value = exchange.safe_bool(currency.clone(), Value::Str("deposit".into()), &[]);
             let mut isMicaCompliant: Value = exchange.safe_bool(get_value(&exchange, &Value::Str("options".into())), Value::Str("mica".into()), &[Value::Bool(false)]);
-            let mut skipUsdtForMica: Value = Value::Bool((isMicaCompliant.as_bool() == Some(true)) && (code.as_str() == Some("USDT")));
-            if is_true(&exchange.in_array(code.clone(), requiredActiveCurrencies.clone())) && !skipMajorCurrencyCheck && (skipUsdtForMica.as_bool() != Some(true)) {
+            let mut skipUsdtForMica: bool = is_true(&(isMicaCompliant)) && (code.as_str() == Some("USDT"));
+            if is_true(&exchange.in_array(code.clone(), requiredActiveCurrencies.clone())) && !skipMajorCurrencyCheck && (!skipUsdtForMica) {
                 assert!(ccxt::runtime::is_true(&(((withdraw.as_bool() == Some(true)) && (deposit.as_bool() == Some(true))))));
             }
         }
@@ -84,7 +84,7 @@ fn detectCurrencyConflicts(mut exchange: Value, mut currencyValues: Value) -> Va
         if !(in_op(&ids, &code)) {
             if let Value::Dict(__d) = &mut ids { std::sync::Arc::make_mut(__d).insert(ccxt::runtime::stringify_param(&code), get_value(&currency, &Value::Str("id".into()))); }
         }  else {
-            let mut isDifferent: Value = Value::Bool(!is_equal(&get_value(&ids, &code), &get_value(&currency, &Value::Str("id".into()))));
+            let mut isDifferent: Value = Value::Bool(!is_equal(&ids.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &get_value(&currency, &Value::Str("id".into()))));
             assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&isDifferent)))));
         }
     }

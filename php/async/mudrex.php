@@ -230,7 +230,7 @@ class mudrex extends Exchange {
             return null;
         }
         $success = $this->safe_bool($response, 'success', true);
-        if ($success !== true) {
+        if (!$success) {
             $errors = $this->safe_list($response, 'errors', array());
             $first = $this->safe_dict($errors, 0, array());
             $text = $this->safe_string($first, 'text', $this->json($response));
@@ -304,28 +304,16 @@ class mudrex extends Exchange {
         );
         // the endpoint requires an explicit time window (in seconds)
         $duration = $this->parse_timeframe($timeframe);
-        $requestLimit = $limit;
-        if ($requestLimit === null) {
-            $requestLimit = 500;
-        }
+        $requestLimit = ($limit === null) ? 500 : $limit;
         $now = $this->seconds();
-        $startTime = null;
-        if ($since !== null) {
-            $startTime = $this->parse_to_int($since / 1000);
-        } else {
-            $startTime = $now - $duration * $requestLimit;
-        }
-        if ($startTime === null) {
-            throw new ExchangeError($this->id . ' fetchOHLCV() missing startTime');
-        }
-        $endTime = $startTime . $duration * $requestLimit;
+        $windowLength = $duration * $requestLimit;
+        $defaultStart = $now - $windowLength;
+        $startTime = $this->parse_to_int(($since !== null) ? ($since / 1000) : $defaultStart);
+        $windowEnd = $this->parse_to_int($startTime . $duration * $requestLimit);
         $until = $this->safe_integer($params, 'until');
         $paramsOmitted = $this->omit($params, array( 'price', 'until' ));
-        if ($until !== null) {
-            $endTime = $this->parse_to_int($until / 1000);
-        } elseif ($endTime > $now) {
-            $endTime = $now;
-        }
+        $cappedEnd = ($windowEnd > $now) ? $now : $windowEnd;
+        $endTime = $this->parse_to_int(($until !== null) ? ($until / 1000) : $cappedEnd);
         $request['start_time'] = $startTime;
         $request['end_time'] = $endTime;
         if ($priceType === 'mark') {
@@ -480,7 +468,7 @@ class mudrex extends Exchange {
         $offset = 0;
         $pageLimit = 100;
         $paging = true;
-        while ($paging === true) {
+        while ($paging) {
             $q = $this->extend(array( 'limit' => $pageLimit, 'offset' => $offset ), $params);
             $response = Async\await($this->privateGetFutures($q));
             $data = $this->safe_value($response, 'data', array());
@@ -1255,10 +1243,10 @@ class mudrex extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
+        $market = $this->market($symbol);
         $positionId = $this->safe_string($params, 'position_id');
         $amount = $this->safe_value($params, 'amount');
         if ($positionId === null) {
-            $market = $this->market($symbol);
             $positions = Async\await($this->fetch_positions(array( $symbol ), $params));
             for ($i = 0; $i < count($positions); $i++) {
                 $p = $positions[$i];
@@ -1287,11 +1275,13 @@ class mudrex extends Exchange {
             }
             $partialParams = $this->omit($params, array( 'order_type', 'limit_price', 'amount', 'position_id' ));
             $partialResponse = Async\await($this->privatePostFuturesPositionsPositionIdClosePartial($this->extend($request, $partialParams)));
-            return $partialResponse;
+            $partialData = $this->safe_dict($partialResponse, 'data', $partialResponse);
+            return $this->parse_order($partialData, $market);
         }
         $closeParams = $this->omit($params, array( 'position_id' ));
         $response = Async\await($this->privatePostFuturesPositionsPositionIdClose($this->extend($request, $closeParams)));
-        return $response;
+        $data = $this->safe_dict($response, 'data', $response);
+        return $this->parse_order($data, $market);
     }
 
     public function add_margin(string $symbol, float $amount, $params = array()): PromiseInterface {
@@ -1380,42 +1370,41 @@ class mudrex extends Exchange {
             $market = $this->market($symbol);
         }
         list($maxCalls, $paramsPaginationCalls) = $this->handle_option_integer_and_params($params, 'fetchMyTrades', 'paginationCalls', 10);
-        $pageSize = 0;
-        if ($limit !== null) {
-            // every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
-            $pageSize = $limit * 2;
-        }
+        // every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
+        $pageSize = ($limit === null) ? 0 : $limit * 2;
         $allRows = array();
         $transactionsCount = 0;
         $calls = 0;
         $offset = 0;
         $paging = true;
-        while ($paging === true) {
+        while ($paging) {
             $request = array();
-            if ($pageSize > 0) {
+            if (($limit !== null) && ($limit > 0)) {
                 $request['limit'] = $pageSize;
                 $request['offset'] = $offset;
             }
             $response = Async\await($this->privateGetFuturesFeeHistory($this->extend($request, $paramsPaginationCalls)));
             $data = $this->safe_list($response, 'data', array());
             $dataLength = count($data);
-            for ($i = 0; $i < $dataLength; $i++) {
+            for ($i = 0; $i < count($data); $i++) {
                 $entry = $data[$i];
                 $allRows[] = $entry;
                 if ($this->safe_string($entry, 'fee_type') === 'TRANSACTION') {
                     // count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
                     if (($market === null) || ($this->safe_string($entry, 'symbol') === $market['id'])) {
-                        $transactionsCount = $this->sum($transactionsCount, 1);
+                        $transactionsCount = $transactionsCount + 1;
                     }
                 }
             }
-            $calls = $this->sum($calls, 1);
+            $calls = $calls + 1;
             $paging = false;
             // the page cap bounds the walk when the requested symbol has few or no rows anywhere near the top of the history
-            if (($limit !== null) && ($dataLength === $pageSize) && ($transactionsCount < $limit) && ($calls < $maxCalls)) {
-                // this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
-                $offset = $this->sum($offset, $pageSize);
-                $paging = true;
+            if (($limit !== null) && ($dataLength === $pageSize)) {
+                if (($transactionsCount < $limit) && ($calls < $maxCalls)) {
+                    // this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
+                    $offset = $this->sum($offset, $pageSize);
+                    $paging = true;
+                }
             }
         }
         // a REBATE row is a partial refund of one fill's TRANSACTION fee, matched by symbol, time and notional - each rebate is consumed once, so equal fills sharing a key net exactly one refund apiece

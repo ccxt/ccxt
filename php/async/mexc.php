@@ -1838,13 +1838,13 @@ class mexc extends Exchange {
                 $isMaker = $this->safe_bool($trade, 'isMaker');
                 $buyerMaker = $this->safe_bool_2($trade, 'isBuyerMaker', 'm');
                 if ($isMaker !== null) {
-                    $takerOrMaker = ($isMaker === true) ? 'maker' : 'taker';
+                    $takerOrMaker = ($isMaker) ? 'maker' : 'taker';
                 }
                 if ($isBuyer !== null) {
-                    $side = ($isBuyer === true) ? 'buy' : 'sell';
+                    $side = ($isBuyer) ? 'buy' : 'sell';
                 }
                 if ($buyerMaker !== null) {
-                    $side = ($buyerMaker === true) ? 'sell' : 'buy';
+                    $side = ($buyerMaker) ? 'sell' : 'buy';
                     $takerOrMaker = 'taker';
                 }
                 $feeAsset = $this->safe_string($trade, 'commissionAsset');
@@ -1922,19 +1922,23 @@ class mexc extends Exchange {
         if ($omitUntil) {
             $paramsUntil = $this->omit($paramsPaginate, array( 'until' ));
         }
-        $start = $since;
-        if ($omitUntil) {
-            $usedLimit = ($limit !== null && $limit !== null && $limit !== 0) ? $limit : $maxLimit;
-            $start = $until - ($usedLimit * $duration);
-        }
         if ($market['spot'] === true) {
-            if ($start !== null) {
-                $request['startTime'] = $start;
-                if ($until === null) {
-                    // we have to calculate it assuming we can get at most 2000 entries per request
-                    $end = $this->sum($since, $maxLimit * $duration);
-                    $now = $this->milliseconds();
-                    $request['endTime'] = min($end, $now);
+            if ($since !== null) {
+                $request['startTime'] = $since;
+            }
+            if (($since !== null) && ($until === null)) {
+                // we have to calculate it assuming we can get at most 2000 entries per request
+                $spotWindow = 500 * $duration; // maxLimit is 500 for spot
+                $now = $this->milliseconds();
+                $latestStart = $now - $spotWindow;
+                $request['endTime'] = ($since < $latestStart) ? $this->sum($since, $spotWindow) : $now;
+            }
+            if ($omitUntil && ($until !== null)) {
+                if ($limit !== null && $limit !== null && $limit !== 0) {
+                    $request['startTime'] = $until - ($limit * $duration);
+                } else {
+                    $spotWindow = 500 * $duration; // maxLimit is 500 for spot
+                    $request['startTime'] = $until - $spotWindow;
                 }
             }
             if ($limit !== null) {
@@ -1966,7 +1970,12 @@ class mexc extends Exchange {
             if ($until !== null) {
                 $request['end'] = $this->parse_to_int($until / 1000);
                 if ($since === null) {
-                    $request['start'] = $this->parse_to_int($start / 1000);
+                    if ($limit !== null && $limit !== null && $limit !== 0) {
+                        $request['start'] = $this->parse_to_int(($until - ($limit * $duration)) / 1000);
+                    } else {
+                        $swapWindow = 2000 * $duration; // maxLimit is 2000 for swap
+                        $request['start'] = $this->parse_to_int(($until - $swapWindow) / 1000);
+                    }
                 }
             }
             $priceType = $this->safe_string($paramsUntil, 'price', 'default');
@@ -2513,7 +2522,7 @@ class mexc extends Exchange {
             }
         }
         list($postOnly, $paramsPostOnly) = $this->handle_post_only($type === 'market', $type === 'LIMIT_MAKER', $paramsWithoutClientOrderId);
-        if ($postOnly === true) {
+        if ($postOnly) {
             $request['type'] = 'LIMIT_MAKER';
         }
         $tif = $this->safe_string($paramsPostOnly, 'timeInForce');
@@ -2555,7 +2564,7 @@ class mexc extends Exchange {
         $test = $this->safe_bool($params, 'test', false);
         $paramsOmitted = $this->omit($params, 'test');
         $request = $this->create_spot_order_request($market, $type, $side, $amount, $price, $marginMode, $paramsOmitted);
-        if ($test === true) {
+        if ($test) {
             $response = Async\await($this->spotPrivatePostOrderTest($request));
         } else {
             $response = Async\await($this->spotPrivatePostOrder($request));
@@ -2626,24 +2635,22 @@ class mexc extends Exchange {
             Async\await($this->load_markets());
         }
         $symbol = $market['symbol'];
-        $openType = null;
+        $openType = $this->safe_integer($params, 'openType', 2); // defaulting to cross margin
         if ($marginMode !== null) {
             if ($marginMode === 'cross') {
-                $openType = 2;
+                $openType = $this->parse_to_int(2);
             } elseif ($marginMode === 'isolated') {
-                $openType = 1;
+                $openType = $this->parse_to_int(1);
             } else {
                 throw new ArgumentsRequired($this->id . ' createSwapOrder() marginMode parameter should be either "cross" or "isolated"');
             }
-        } else {
-            $openType = $this->safe_integer($params, 'openType', 2); // defaulting to cross margin
         }
         if (($type !== 'limit') && ($type !== 'market') && ($type !== 1) && ($type !== 2) && ($type !== 3) && ($type !== 4) && ($type !== 5) && ($type !== 6)) {
             throw new InvalidOrder($this->id . ' createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price');
         }
         list($postOnly, $paramsPostOnly) = $this->handle_post_only($type === 'market', $type === 2, $params);
         $orderType = null;
-        if ($postOnly === true) {
+        if ($postOnly) {
             $orderType = 2;
         } elseif ($type === 'limit') {
             $orderType = 1;
@@ -2689,22 +2696,22 @@ class mexc extends Exchange {
         $reduceOnly = $this->safe_bool($paramsPostOnly, 'reduceOnly', false);
         $hedged = $this->safe_bool($paramsPostOnly, 'hedged', false);
         $sideInteger = null;
-        if ($hedged === true) {
-            if ($reduceOnly === true) {
+        if ($hedged) {
+            if ($reduceOnly) {
                 $sideInteger = ($side === 'buy') ? 4 : 2;  // close short, close long
             } else {
                 $sideInteger = ($side === 'buy') ? 1 : 3;
             }
             $request['positionMode'] = 1;
         } else {
-            if ($reduceOnly === true) {
+            if ($reduceOnly) {
                 $sideInteger = ($side === 'buy') ? 2 : 4;
             } else {
                 $sideInteger = ($side === 'buy') ? 1 : 3;
             }
         }
         $request['side'] = $sideInteger;
-        $paramsReduceOnly = ($reduceOnly === true) ? $this->omit($paramsPostOnly, 'reduceOnly') : $paramsPostOnly; // hedged mode does not accept this parameter
+        $paramsReduceOnly = ($reduceOnly) ? $this->omit($paramsPostOnly, 'reduceOnly') : $paramsPostOnly; // hedged mode does not accept this parameter
         $clientOrderId = $this->safe_string_2($paramsReduceOnly, 'clientOrderId', 'externalOid');
         if ($clientOrderId !== null) {
             $request['externalOid'] = $clientOrderId;
@@ -3058,7 +3065,7 @@ class mexc extends Exchange {
                 if ($end === null) {
                     $request['end_time'] = $this->sum($since, $maxTimeTillEnd);
                 } else {
-                    if (($end - $since) > $maxTimeTillEnd) {
+                    if (($maxTimeTillEnd !== null) && (($end - $since) > $maxTimeTillEnd)) {
                         throw new BadRequest($this->id . ' end is invalid, i.e. exceeds allowed 90 days.');
                     } else {
                         $request['end_time'] = $until;
@@ -3069,7 +3076,7 @@ class mexc extends Exchange {
                 if ($maxTimeTillEnd === null) {
                     throw new ExchangeError($this->id . ' fetchOrders() requires a numeric options["maxTimeTillEnd"]');
                 }
-                $request['start_time'] = $this->sum($until, $maxTimeTillEnd * -1);
+                $request['start_time'] = $until - $maxTimeTillEnd;
                 $request['end_time'] = $until;
             }
             if ($limit !== null) {
@@ -3889,7 +3896,7 @@ class mexc extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'NEW' => 'open',
             'FILLED' => 'closed',
@@ -4223,7 +4230,7 @@ class mexc extends Exchange {
         $marginMode = $this->safe_string($paramsMarketType, 'marginMode');
         $isMargin = $this->safe_bool($paramsMarketType, 'margin', false);
         $paramsOmitted2 = $this->omit($paramsMarketType, array( 'margin', 'marginMode' ));
-        if (($marginMode !== null) || ($isMargin === true) || ($marketType === 'margin')) {
+        if (($marginMode !== null) || ($isMargin) || ($marketType === 'margin')) {
             $parsedSymbols = null;
             $symbol = $this->safe_string($paramsOmitted2, 'symbol');
             if ($symbol === null) {
@@ -5200,24 +5207,23 @@ class mexc extends Exchange {
          */
         $network = $this->safe_string($params, 'network');
         $addressStructures = Async\await($this->fetch_deposit_addresses_by_network($code, $params));
+        $key = null;
         if ($network !== null) {
-            $netCode = $this->network_id_to_code($network, $code);
-            $result = ($netCode === null) ? null : $this->safe_dict($addressStructures, $netCode);
+            $key = $this->network_id_to_code($network, $code);
         } else {
             $options = $this->safe_dict($this->options, 'defaultNetworks');
             $defaultNetworkForCurrency = $this->safe_string($options, $code);
             if ($defaultNetworkForCurrency !== null) {
-                $result = $this->safe_dict($addressStructures, $defaultNetworkForCurrency);
+                $key = $defaultNetworkForCurrency;
             } else {
                 $keys = is_array($addressStructures) ? array_keys($addressStructures) : array();
                 $key = $this->safe_string($keys, 0);
-                $result = $this->safe_dict($addressStructures, $key);
             }
         }
-        if ($result === null) {
+        if (($key === null) || ($this->safe_dict($addressStructures, $key) === null)) {
             throw new InvalidAddress($this->id . ' fetchDepositAddress() cannot find a deposit address for ' . $code . ', and network' . $network . 'consider creating one using .createDepositAddress() method or in MEXC website');
         }
-        return $result;
+        return $this->safe_dict($addressStructures, $key);
     }
 
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -6064,7 +6070,7 @@ class mexc extends Exchange {
         $currency = $this->currency($code);
         list($tagResolved, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
         $internal = $this->safe_bool($paramsWithdrawTag, 'internal', false);
-        if ($internal === true) {
+        if ($internal) {
             $paramsInternal = $this->omit($paramsWithdrawTag, 'internal');
             $requestForInternal = array(
                 'asset' => $currency['id'],
@@ -6463,7 +6469,7 @@ class mexc extends Exchange {
         $defaultType = $this->safe_string($this->options, 'defaultType');
         $isMargin = $this->safe_bool($params, 'margin', false);
         list($marginMode, $paramsMarginMode) = parent::handle_margin_mode_and_params($methodName, $params, $defaultValue);
-        if (($defaultType === 'margin') || ($isMargin === true)) {
+        if (($defaultType === 'margin') || ($isMargin)) {
             return array( 'isolated', $paramsMarginMode );
         }
         return array( $marginMode, $paramsMarginMode );
@@ -6654,7 +6660,9 @@ class mexc extends Exchange {
                 );
             }
             if (($method === 'POST') || ($method === 'PUT') || ($method === 'DELETE')) {
-                $requestHeaders = ($requestHeaders === null) ? array() : $requestHeaders;
+                if ($requestHeaders === null) {
+                    $requestHeaders = array();
+                }
                 $requestHeaders['Content-Type'] = 'application/json';
             }
         } elseif ($section === 'contract' || $section === 'spot2') {
@@ -6711,7 +6719,7 @@ class mexc extends Exchange {
         //     {"success":true, "code":0, "data":1634095541710}
         //
         $success = $this->safe_bool($response, 'success', false); // v1
-        if ($success === true) {
+        if ($success) {
             return null;
         }
         $responseCode = $this->safe_string($response, 'code');

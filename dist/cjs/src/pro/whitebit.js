@@ -465,7 +465,7 @@ class whitebit extends whitebit$1["default"] {
         //       "id": null
         //   }
         //
-        const trade = this.safeValue(message, 'params');
+        const trade = this.safeList(message, 'params', []);
         if (this.myTrades === undefined) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
             this.myTrades = new Cache.ArrayCache(limit);
@@ -919,7 +919,7 @@ class whitebit extends whitebit$1["default"] {
             const market = this.market(symbol);
             const marketId = market['id'];
             const isSubscribed = this.safeBool(subscription, marketId, false);
-            if (isSubscribed !== true) {
+            if (!isSubscribed) {
                 if (marketId !== undefined) {
                     subscription[marketId] = true;
                 }

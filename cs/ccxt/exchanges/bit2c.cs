@@ -351,7 +351,7 @@ public partial class bit2c : Exchange
             Dictionary<string, object> account = this.account();
             Dictionary<string, object> currency = this.currency(code);
             string uppercase = ((string)(currency.ContainsKey("id") ? currency["id"] : null)).ToUpper();
-            if (inOp(response, uppercase))
+            if (((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))(response, uppercase))
             {
                 account["free"] = this.safeString(response, ("AVAILABLE_" + uppercase));
                 account["total"] = this.safeString(response, uppercase);
@@ -1203,7 +1203,7 @@ public partial class bit2c : Exchange
         string url = ((apiUrl + "/") + this.implodeParams(path, parameters));
         string? requestBody = null;
         Dictionary<string, object> requestHeaders = null;
-        if (isEqual(getValue(api, 0), "public"))
+        if ((getValue(api, 0) is "public"))
         {
             url = url + ".json";
         } else

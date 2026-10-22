@@ -297,8 +297,8 @@ class bittrade extends bittrade$1["default"] {
         const market = this.market(symbol);
         const symbolValue = market['symbol'];
         // only supports a limit of 150 at this time
-        const limitValue = (limit === undefined) ? 150 : limit;
-        const messageHash = 'market.' + market['id'] + '.mbp.' + limitValue.toString();
+        const limitValue = 150;
+        const messageHash = 'market.' + market['id'] + '.mbp.150';
         const api = this.safeString(this.options, 'api', 'api');
         const hostname = { 'hostname': this.hostname };
         const url = this.implodeParams(this.urls['api']['ws'][api]['public'], hostname);
@@ -432,7 +432,8 @@ class bittrade extends bittrade$1["default"] {
         if ((prevSeqNum === undefined) || (seqNum === undefined)) {
             return orderbook;
         }
-        if ((prevSeqNum <= orderbook['nonce']) && (seqNum > orderbook['nonce'])) {
+        const nonce = this.safeInteger(orderbook, 'nonce');
+        if ((nonce !== undefined) && (prevSeqNum <= nonce) && (seqNum > nonce)) {
             const asks = this.safeList(tick, 'asks', []);
             const bids = this.safeList(tick, 'bids', []);
             this.handleDeltas(orderbook['asks'], asks);
@@ -468,7 +469,10 @@ class bittrade extends bittrade$1["default"] {
         //     }
         //
         const messageHash = this.safeString(message, 'ch');
-        const ch = this.safeValue(message, 'ch');
+        const ch = this.safeString(message, 'ch');
+        if (ch === undefined) {
+            return;
+        }
         const parts = ch.split('.');
         const marketId = this.safeString(parts, 1);
         const symbol = this.safeSymbol(marketId);
@@ -477,7 +481,7 @@ class bittrade extends bittrade$1["default"] {
             // no active subscription holds a book for this symbol, drop the delta
             return;
         }
-        if (orderbook['nonce'] === undefined) {
+        if (this.safeInteger(orderbook, 'nonce') === undefined) {
             orderbook.cache.push(message);
         }
         else {
@@ -561,7 +565,10 @@ class bittrade extends bittrade$1["default"] {
         //         }
         //     }
         //
-        const ch = this.safeValue(message, 'ch');
+        const ch = this.safeString(message, 'ch');
+        if (ch === undefined) {
+            return;
+        }
         const parts = ch.split('.');
         const type = this.safeString(parts, 0);
         if (type === 'market') {

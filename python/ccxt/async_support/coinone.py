@@ -929,7 +929,7 @@ class coinone(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'live': 'open',
             'partially_filled': 'open',
@@ -1220,7 +1220,7 @@ class coinone(Exchange, ImplicitAPI):
                 depositAddress['info'] = [address, value]
             if code is not None:
                 result[code] = depositAddress
-        return result
+        return self.to_array(result)
 
     def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         apiName = api[0]

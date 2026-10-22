@@ -1038,17 +1038,14 @@ public partial class derive : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         List<object> allInstruments = new List<object>() {};
-        object maxPages = 25;
-        object paramsOmitted = new Dictionary<string, object>() {};
-        IList<object> maxPagesparamsOmittedVariable = (IList<object>)this.handleOptionAndParams(parameters, "getMarketsPaginated", "maxMarketPages", maxPages);
-        maxPages = maxPagesparamsOmittedVariable[0];
-        paramsOmitted = maxPagesparamsOmittedVariable[1];
-        object pageSize = 1000;
-        IList<object> pageSizeparamsOmittedVariable = (IList<object>)this.handleOptionAndParams(paramsOmitted, "getMarketsPaginated", "maxMarketsPerPage", pageSize);
-        pageSize = pageSizeparamsOmittedVariable[0];
-        paramsOmitted = pageSizeparamsOmittedVariable[1];
+        (Int64?, object) maxPagesparamsMaxPagesVariable = this.handleOptionIntegerAndParams(parameters, "getMarketsPaginated", "maxMarketPages", 25);
+        Int64? maxPages = maxPagesparamsMaxPagesVariable.Item1;
+        IDictionary<string, object> paramsMaxPages = ((IDictionary<string, object>)maxPagesparamsMaxPagesVariable.Item2);
+        IList<object> pageSizeparamsOmittedVariable = (IList<object>)this.handleOptionAndParams(paramsMaxPages, "getMarketsPaginated", "maxMarketsPerPage", 1000);
+        var pageSize = pageSizeparamsOmittedVariable[0];
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)pageSizeparamsOmittedVariable[1]);
         object page = 1;
-        for (int i = 0; isLessThan(i, maxPages); i++)
+        for (int i = 0; (i < maxPages); i++)
         {
             Dictionary<string, object> requestExtension = new Dictionary<string, object>() {
                 { "page", page },
@@ -1306,7 +1303,7 @@ public partial class derive : Exchange
         string? markPrice = this.safeString(interest, "M");
         string? value = null;
         // for options the mark is the premium, a notional derived from it would be misleading, so only the contract amount is reported there
-        if (((market != null)) && (!isEqual((market != null && market.ContainsKey("option") ? market["option"] : null), true)))
+        if (((market != null)) && (!((market != null && market.ContainsKey("option") ? market["option"] : null) is true)))
         {
             value = Precise.stringMul(amount, markPrice);
         }
@@ -1736,14 +1733,10 @@ public partial class derive : Exchange
         {
             limitResolved = ((Int64?)1000);
         }
-        if (!(limitResolved == null))
+        if ((limit != null))
         {
             // the venue lists every match twice (a maker row and a taker row) and parseTrades drops the maker duplicates, so twice the limit is requested to return close to the asked amount
-            object pageSize = multiply(limitResolved, 2);
-            if (isGreaterThan(pageSize, 1000))
-            {
-                pageSize = 1000; // default 100, max 1000
-            }
+            Int64? pageSize = ((limit > 500)) ? 1000 : (limit * 2); // default 100, max 1000
             request["page_size"] = pageSize;
         }
         if ((since != null))
@@ -1871,7 +1864,7 @@ public partial class derive : Exchange
         for (int i = 0; i < (tradesArray?.Count ?? 0); i++)
         {
             object rawTrade = tradesArray[i];
-            bool isFetchTrades = !(inOp(rawTrade, "order_id"));
+            bool isFetchTrades = !((((object)(rawTrade)) switch { null => false, IList<object> c33a => c33a.Contains("order_id"), IList<string> c33t => c33t.Contains("order_id"), List<Int64> c33g => c33g.Contains((Int64)(object)"order_id"), IDictionary<string, object> c33d => c33d.ContainsKey("order_id"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("order_id"), _ => false }));
             string? liquidityRole = this.safeString(rawTrade, "liquidity_role");
             if (isFetchTrades && (liquidityRole == "maker"))
             {
@@ -1927,37 +1920,35 @@ public partial class derive : Exchange
         Int64? until = this.safeInteger(paramsPrice, "until");
         Dictionary<string, object> paramsOmitted = this.omit(paramsPrice, new List<object>() {"until"});
         int duration = this.parseTimeframe(timeframeVar);
-        object end = null;
+        Int64? untilSeconds = this.seconds();
         if ((until != null))
         {
-            end = this.parseToInt(((double?)until / 1000));
-        } else
-        {
-            end = this.seconds();
+            untilSeconds = this.parseToInt(((double?)until / 1000));
         }
-        object limitResolved = limit;
-        if ((limitResolved == null))
+        // the venue keeps only the latest 5000 buckets of the requested window
+        int defaultLimit = ((since == null)) ? 1000 : 5000;
+        Int64? limitResolved = this.parseToInt(defaultLimit);
+        if ((limit != null))
         {
-            limitResolved = ((since != null)) ? 5000 : 1000;
+            limitResolved = this.parseToInt(limit);
         }
-        if (isGreaterThan(limitResolved, 5000))
+        if ((limitResolved > 5000))
         {
-            limitResolved = 5000; // the venue keeps only the latest 5000 buckets of the requested window
+            limitResolved = this.parseToInt(5000);
         }
-        object start = null;
+        Int64? span = this.parseToInt((limitResolved * duration));
+        Int64? windowStart = this.parseToInt(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(untilSeconds, span));
+        Int64? start = windowStart;
+        object end = untilSeconds;
         if ((since != null))
         {
-            start = this.parseToInt(((double?)since / 1000));
+            Int64? sinceSeconds = this.parseToInt(((double?)since / 1000));
+            start = sinceSeconds;
             // the window is anchored at since: otherwise the venue clamp would silently drop the head of a wider range and deterministic pagination would collect the same tail on every page
-            object calculatedEnd = multiply(limitResolved, duration);
-            object maxEnd = this.sum(start, calculatedEnd);
-            if (isLessThan(maxEnd, end))
+            if ((windowStart != null && (sinceSeconds == null || sinceSeconds < windowStart)))
             {
-                end = maxEnd;
+                end = this.sum(sinceSeconds, span);
             }
-        } else
-        {
-            start = subtract(end, multiply(limitResolved, duration));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "period", period },
@@ -2087,7 +2078,7 @@ public partial class derive : Exchange
             request["start_timestamp"] = since;
         }
         Int64? until = this.safeInteger(parameters, "until");
-        object paramsOmitted = this.omit(parameters, new List<object>() {"until"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"until"}));
         if ((until != null))
         {
             request["end_timestamp"] = until; // the venue silently ignores the to_timestamp spelling other endpoints use
@@ -2221,7 +2212,7 @@ public partial class derive : Exchange
         };
     }
 
-    public virtual object hashOrderMessage(object order)
+    public virtual string? hashOrderMessage(object order)
     {
         byte[] accountHash = ((byte[])this.hash(this.ethAbiEncode(new List<object>() {"bytes32", "uint256", "uint256", "address", "bytes32", "uint256", "address", "address"}, order), keccak, "binary"));
         bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
@@ -2233,13 +2224,13 @@ public partial class derive : Exchange
         }
         byte[] binaryDomainSeparator = this.base16ToBinary(DOMAIN_SEPARATOR);
         byte[] prefix = this.base16ToBinary("1901");
-        return this.hash(this.binaryConcat(prefix, binaryDomainSeparator, accountHash), keccak, "hex");
+        return ((string?)((object)(this.hash(this.binaryConcat(prefix, binaryDomainSeparator, accountHash), keccak, "hex"))));
     }
 
     public virtual string? signOrder(object order, object privateKey)
     {
-        object hashOrder = this.hashOrderMessage(order);
-        return ((string?)((object)(this.signHash(((hashOrder == null) ? null : ((string)hashOrder).Substring(Math.Max(((string)hashOrder).Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0)))))));
+        string? hashOrder = this.hashOrderMessage(order);
+        return ((string?)((object)(this.signHash(((hashOrder == null) ? null : hashOrder.Substring(Math.Max(hashOrder.Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0)))))));
     }
 
     /**
@@ -2261,14 +2252,14 @@ public partial class derive : Exchange
         return add(milliseconds, padded);
     }
 
-    public virtual object hashMessage(object message)
+    public virtual string? hashMessage(object message)
     {
         string? binaryMessage = this.encode(message);
         object binaryMessageLength = this.binaryLength(binaryMessage);
         byte[] x19 = this.base16ToBinary("19");
         byte[] newline = this.base16ToBinary("0a");
         byte[] prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
-        return ("0x" + (this.hash(this.binaryConcat(prefix, binaryMessage), keccak, "hex")));
+        return ((string?)((object)(("0x" + (this.hash(this.binaryConcat(prefix, binaryMessage), keccak, "hex"))))));
     }
 
     public virtual string signHash(object hash, object privateKey)
@@ -2982,7 +2973,7 @@ public partial class derive : Exchange
             await this.loadMarkets();
         }
         bool? isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
-        object paramsOmitted = this.omit(parameters, new List<object>() {"trigger", "stop"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"trigger", "stop"}));
         IList<object> subaccountIdparamsDeriveSubaccountIdVariable = (IList<object>)this.handleDeriveSubaccountId("fetchOpenOrders", paramsOmitted);
         var subaccountId = subaccountIdparamsDeriveSubaccountIdVariable[0];
         IDictionary<string, object> paramsDeriveSubaccountId = ((IDictionary<string, object>)subaccountIdparamsDeriveSubaccountIdVariable[1]);
@@ -3761,7 +3752,7 @@ public partial class derive : Exchange
             Dictionary<string, object> subaccountRequest = new Dictionary<string, object>() {
                 { "subaccount_id", subaccountId },
             };
-            object subaccountParams = this.omit(parameters, "subaccount_id");
+            IDictionary<string, object> subaccountParams = ((IDictionary<string, object>)this.omit(parameters, "subaccount_id"));
             Dictionary<string, object> subaccountResponse = await this.privatePostGetSubaccount(this.extend(subaccountRequest, subaccountParams));
             // the result is a single portfolio object shaped exactly like one element of the get_all_portfolios sample below
             IDictionary<string, object> subaccountResult = this.safeDict(subaccountResponse, "result", new Dictionary<string, object>() {});
@@ -4033,7 +4024,7 @@ public partial class derive : Exchange
         };
         // margin requirements come as negative subaccount-level contributions in usd terms (initial_margin = collaterals_initial_margin + positions_initial_margin, verified on live data), so they are attributed to the usdc settlement currency and clamped by the usdc cash below; other collaterals stay total-only because the shared margin pool cannot be split per currency
         string? usedUsd = "0";
-        for (int i = 0; i < getArrayLength(response); i++)
+        for (int i = 0; i < (((object)(response)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             IDictionary<string, object> subaccount = this.safeDict(response, i);
             string? positionsMargin = this.safeString(subaccount, "positions_initial_margin", "0");
@@ -4052,7 +4043,7 @@ public partial class derive : Exchange
                 } else
                 {
                     string? amount = this.safeString(balance, "amount");
-                    account["total"] = Precise.stringAdd(GetValue(account, "total"), amount);
+                    account["total"] = Precise.stringAdd((account != null && account.ContainsKey("total") ? account["total"] : null), amount);
                 }
                 if ((code != null))
                 {
@@ -4108,7 +4099,7 @@ public partial class derive : Exchange
         }
         Int64? fromId = this.parseToInt(fromAccount);
         // the destination is optional on the subaccount-creation path, an undefined must not reach the int conversion
-        Int64? toId = ((toAccount == null)) ? 0 : this.parseToInt(toAccount);
+        Int64? toId = this.parseToInt(((toAccount == null)) ? 0 : toAccount);
         string? amountString = this.numberToString(amount);
         string? maxFeeUsd = this.safeString(parameters, "max_fee_usd", "0");
         Int64? newSubaccountManager = this.safeInteger(parameters, "new_subaccount_manager", 0);
@@ -4120,7 +4111,7 @@ public partial class derive : Exchange
         {
             throw new ArgumentsRequired ((this.id + " transfer() creating a subaccount charges a fee, set params.max_fee_usd to cover it")) ;
         }
-        object paramsOmitted = this.omit(parameters, new List<object>() {"max_fee_usd", "new_subaccount_manager"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"max_fee_usd", "new_subaccount_manager"}));
         object nonce = this.nonceString();
         Int64? signatureExpiry = this.safeInteger(paramsOmitted, "signature_expiry_sec", (this.seconds() + 7776000));
         byte[] ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
@@ -4764,7 +4755,7 @@ public partial class derive : Exchange
             return new List<object>() {optionsWallet, paramsDeriveWalletAddress};
         }
         // v3 abolished the separate derive wallet: the owner wallet is the user's own EOA, so the walletAddress credential is the default; set deriveWalletAddress explicitly only when signing with a session key registered to another owner wallet
-        if (((this.walletAddress != null)) && (!isEqual(this.walletAddress, "")))
+        if (((this.walletAddress != null)) && (!(this.walletAddress == "")))
         {
             return new List<object>() {this.walletAddress, paramsDeriveWalletAddress};
         }
@@ -4816,11 +4807,9 @@ public partial class derive : Exchange
             {
                 string? now = this.numberToString(this.nonce());
                 string signature = this.signMessage(now, this.privateKey);
-                string? deriveWalletAddress = this.safeString(this.options, "deriveWalletAddress");
-                if (((deriveWalletAddress == null)) || (deriveWalletAddress == ""))
-                {
-                    deriveWalletAddress = this.walletAddress; // v3: the owner wallet is the user's own EOA
-                }
+                string? configuredWalletAddress = this.safeString(this.options, "deriveWalletAddress");
+                // v3: the owner wallet is the user's own EOA
+                string? deriveWalletAddress = (((configuredWalletAddress == null)) || (configuredWalletAddress == "")) ? this.walletAddress : configuredWalletAddress;
                 postHeaders["X-DeriveWallet"] = deriveWalletAddress;
                 postHeaders["X-DeriveTimestamp"] = now;
                 postHeaders["X-DeriveSignature"] = signature;

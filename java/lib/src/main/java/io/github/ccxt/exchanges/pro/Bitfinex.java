@@ -92,10 +92,11 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 put( "checksum", false );
             }})).join();
             Boolean checksum = (Boolean) this.safeBool(this.options, "checksum", true);
-            if ((java.util.Objects.equals(checksum, true)) && (java.util.Objects.equals(channel, "book")))
+            if (Boolean.TRUE.equals(checksum) && (java.util.Objects.equals(channel, "book")))
             {
                 Object sub = Helpers.GetValue(client.subscriptions, messageHash);
-                if ((!java.util.Objects.equals(sub, null)) && (!java.util.Objects.equals(Helpers.GetValue(sub, "checksum"), true)))
+                Boolean subChecksum = (Boolean) this.safeBool(sub, "checksum", (Object) null);
+                if ((!java.util.Objects.equals(sub, null)) && (!java.util.Objects.equals(subChecksum, true)))
                 {
                     Helpers.addElementToObject(Helpers.GetValue(client.subscriptions, messageHash), "checksum", true);
                     (client.send(new HashMap<String, Object>() {{
@@ -313,8 +314,8 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         List<Object> keyParts = new ArrayList<Object>(Arrays.asList(((String)key).split(java.util.regex.Pattern.quote(":"))));
         String interval = this.safeString(keyParts, 1);
         String marketId = key;
-        marketId = Helpers.replace(marketId, (String)"trade:", (String)"");
-        marketId = Helpers.replace(marketId, (String)(interval + ":"), (String)"");
+        marketId = (marketId == null ? null : ((String)marketId).replaceFirst("trade:", ""));
+        marketId = ((java.util.function.Function<Object, java.util.function.BiFunction<Object, Object, String>>) hx4J43a0 -> (hx4J43b0, hx4J43c0) -> { if (hx4J43a0 == null) { return null; } String hx4J43a0s = String.valueOf(hx4J43a0); String hx4J43a0f = (hx4J43b0 == null) ? "" : String.valueOf(hx4J43b0); String hx4J43a0r = (hx4J43c0 == null) ? "" : String.valueOf(hx4J43c0); return hx4J43a0s.replaceFirst(java.util.regex.Pattern.quote(hx4J43a0f), java.util.regex.Matcher.quoteReplacement(hx4J43a0r)); }).apply(marketId).apply((String)(interval + ":"), (String)"");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         Object timeframe = this.findTimeframe(interval, (Object) null);
         String symbol = (String) market.get("symbol");
@@ -376,7 +377,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.unSubscribe("trades", "trades", symbol, Helpers.toMapArg(parameters))).join();
+            return (this.unSubscribe("trades", "trades", symbol, ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })))).join();
         });
 
     }
@@ -452,7 +453,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.unSubscribe("ticker", "ticker", symbol, Helpers.toMapArg(parameters))).join();
+            return (this.unSubscribe("ticker", "ticker", symbol, ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })))).join();
         });
 
     }
@@ -639,7 +640,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         {
             marketId = this.safeString(trade, 1);
         }
-        Map<String, Object> marketResolved = this.safeMarket(Helpers.toStringArg(marketId), market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(java.util.Objects.toString(marketId, null), market, (String) null, (String) null);
         Integer createdKey = ((Boolean.TRUE.equals(isPublic))) ? 1 : 2;
         Integer priceKey = ((Boolean.TRUE.equals(isPublic))) ? 3 : 5;
         Integer amountKey = ((Boolean.TRUE.equals(isPublic))) ? 2 : 4;
@@ -677,10 +678,12 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         {
             String currencyId = this.safeString(trade, 10);
             String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
-            fee = Helpers.newMap(
-                "cost", feeValue,
-                "currency", code
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("cost", feeValue);
+                hx4NewMap0.put("currency", code);
+                fee = hx4NewMap0;
+            }
         }
         Long maker = this.safeInteger(trade, 8);
         String takerOrMaker = null;
@@ -724,7 +727,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         //     ]
         //  ]
         //
-        Object ticker = this.safeValue(message, 1);
+        List<Object> ticker = (List<Object>) this.safeList(message, 1, (Object) null);
         String marketId = this.safeString(subscription, "symbol");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
@@ -868,13 +871,13 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             if (Boolean.TRUE.equals(isRaw))
             {
                 Object deltas = (message == null || 1 >= ((List<?>)message).size() ? null : ((List<?>)message).get(1));
-                for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
+                for (var i = 0; i < (switch ((Object)(deltas)) { case null -> 0; case List<?> j39v12 -> j39v12.size(); case String j39v13 -> j39v13.length(); case Object j39v14 -> j39v14.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v14) : 0; }); i++)
                 {
                     Object delta = Helpers.GetValue(deltas, i);
-                    Object delta2 = Helpers.GetValue(delta, 2);
-                    Object size = (((Helpers.isLessThan(delta2, 0)))) ? Helpers.opNeg(delta2) : delta2;
-                    String side = (((Helpers.isLessThan(delta2, 0)))) ? "asks" : "bids";
-                    io.github.ccxt.ws.OrderBookSide bookside = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, side);
+                    Double delta2 = this.safeNumber(delta, 2, (Object) null);
+                    Object size = (((!java.util.Objects.equals(delta2, null) && (delta2 == null || !(delta2 >= 0))))) ? ((Object) (delta2 == null ? null : -delta2)) : delta2;
+                    String side = (((!java.util.Objects.equals(delta2, null) && (delta2 == null || !(delta2 >= 0))))) ? "asks" : "bids";
+                    io.github.ccxt.ws.OrderBookSide bookside = (io.github.ccxt.ws.OrderBookSide) (orderbook == null || side == null || !orderbook.containsKey(side) ? null : orderbook.get(side));
                     String idString = this.safeString(delta, 0);
                     Double price = this.safeFloat(delta, 1);
                     bookside.storeArray(new ArrayList<Object>(Arrays.asList(price, size, idString)));
@@ -882,19 +885,19 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             } else
             {
                 Object deltas = (message == null || 1 >= ((List<?>)message).size() ? null : ((List<?>)message).get(1));
-                for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
+                for (var i = 0; i < (switch ((Object)(deltas)) { case null -> 0; case List<?> j39v8 -> j39v8.size(); case String j39v9 -> j39v9.length(); case Object j39v10 -> j39v10.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v10) : 0; }); i++)
                 {
                     List<Object> delta = (List<Object>) this.safeList(deltas, i, (Object) null);
-                    Double amount = this.safeNumber(delta, 2, (Object) null);
-                    if (java.util.Objects.equals(amount, null))
+                    Double deltaAmount = this.safeNumber(delta, 2, (Object) null);
+                    if (java.util.Objects.equals(deltaAmount, null))
                     {
                         continue;
                     }
                     Double counter = this.safeNumber(delta, 1, (Object) null);
                     Double price = this.safeNumber(delta, 0, (Object) null);
-                    Object size = (((Helpers.isLessThan(amount, 0)))) ? Helpers.opNeg(amount) : amount;
-                    String side = (((Helpers.isLessThan(amount, 0)))) ? "asks" : "bids";
-                    io.github.ccxt.ws.OrderBookSide bookside = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, side);
+                    Object size = ((((deltaAmount == null || !(deltaAmount >= 0))))) ? ((Object) (deltaAmount == null ? null : -deltaAmount)) : deltaAmount;
+                    String side = ((((deltaAmount == null || !(deltaAmount >= 0))))) ? "asks" : "bids";
+                    io.github.ccxt.ws.OrderBookSide bookside = (io.github.ccxt.ws.OrderBookSide) (orderbook == null || side == null || !orderbook.containsKey(side) ? null : orderbook.get(side));
                     bookside.storeArray(new ArrayList<Object>(Arrays.asList(price, size, counter)));
                 }
             }
@@ -908,10 +911,10 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             if (Boolean.TRUE.equals(isRaw))
             {
                 String price = this.safeString(deltas, 1);
-                Object deltas2 = Helpers.GetValue(deltas, 2);
-                Object size = (((Helpers.isLessThan(deltas2, 0)))) ? Helpers.opNeg(deltas2) : deltas2;
-                String side = (((Helpers.isLessThan(deltas2, 0)))) ? "asks" : "bids";
-                io.github.ccxt.ws.OrderBookSide bookside = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbookItem, side);
+                Double deltas2 = this.safeNumber(deltas, 2, (Object) null);
+                Object size = (((!java.util.Objects.equals(deltas2, null) && (deltas2 == null || !(deltas2 >= 0))))) ? ((Object) (deltas2 == null ? null : -deltas2)) : deltas2;
+                String side = (((!java.util.Objects.equals(deltas2, null) && (deltas2 == null || !(deltas2 >= 0))))) ? "asks" : "bids";
+                io.github.ccxt.ws.OrderBookSide bookside = (io.github.ccxt.ws.OrderBookSide) (orderbookItem == null || side == null || !orderbookItem.containsKey(side) ? null : orderbookItem.get(side));
                 // price = 0 means that you have to remove the order from your book
                 Object amount = ((Precise.stringGt(price, "0"))) ? size : "0";
                 String idString = this.safeString(deltas, 0);
@@ -923,7 +926,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 String price = this.safeString(deltas, 0);
                 Object size = ((Precise.stringLt(amount, "0"))) ? Precise.stringNeg(amount) : amount;
                 String side = ((Precise.stringLt(amount, "0"))) ? "asks" : "bids";
-                io.github.ccxt.ws.OrderBookSide bookside = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbookItem, side);
+                io.github.ccxt.ws.OrderBookSide bookside = (io.github.ccxt.ws.OrderBookSide) (orderbookItem == null || side == null || !orderbookItem.containsKey(side) ? null : orderbookItem.get(side));
                 bookside.storeArray(new ArrayList<Object>(Arrays.asList(this.parseNumber(price), this.parseNumber(size), this.parseNumber(counter))));
             }
             client.resolve(orderbook, messageHash);
@@ -964,14 +967,17 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             if (!java.util.Objects.equals(ask, null))
             {
                 stringArray.add(this.numberToString(Helpers.GetValue(Helpers.GetValue(asks, i), idToCheck)));
-                Object aski1 = Helpers.GetValue(Helpers.GetValue(asks, i), 1);
-                stringArray.add(this.numberToString(Helpers.opNeg(aski1)));
+                Double aski1 = this.safeNumber(ask, 1, (Object) null);
+                if (!java.util.Objects.equals(aski1, null))
+                {
+                    stringArray.add(this.numberToString((-aski1)));
+                }
             }
         }
         String payload = String.join(":", (List<String>)stringArray);
         Object localChecksum = this.crc32(payload, true);
         Long responseChecksum = this.safeInteger(message, 2);
-        if (!Helpers.isEqual(responseChecksum, localChecksum))
+        if (!((java.util.function.BiPredicate<Object, Object>) (hx4J40v0A, hx4J40v0B) -> { try { if (hx4J40v0A == null && hx4J40v0B == null) { return true; } if (hx4J40v0A == null || hx4J40v0B == null) { return false; } java.util.function.Predicate<Object> hx4J40v0N = hx4J40v0o -> { try { Double.parseDouble(String.valueOf(hx4J40v0o)); return true; } catch (Exception hx4J40v0e) { return false; } }; if (!hx4J40v0A.getClass().equals(hx4J40v0B.getClass()) && !(hx4J40v0N.test(hx4J40v0A) && hx4J40v0N.test(hx4J40v0B))) { return false; } java.util.function.Predicate<Object> hx4J40v0I = hx4J40v0o -> hx4J40v0o instanceof Byte || hx4J40v0o instanceof Short || hx4J40v0o instanceof Integer || hx4J40v0o instanceof Long || hx4J40v0o instanceof java.util.concurrent.atomic.AtomicInteger || hx4J40v0o instanceof java.util.concurrent.atomic.AtomicLong || ((hx4J40v0o instanceof Float || hx4J40v0o instanceof Double || hx4J40v0o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(hx4J40v0o)).stripTrailingZeros().scale() <= 0); java.util.function.ToDoubleFunction<Object> hx4J40v0D = hx4J40v0o -> { if (hx4J40v0o instanceof Double || hx4J40v0o instanceof Float || hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof java.math.BigDecimal) { return ((Number) hx4J40v0o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v0o)); } catch (NumberFormatException hx4J40v0e) { return 0.0; } }; if (hx4J40v0I.test(hx4J40v0A) && hx4J40v0I.test(hx4J40v0B)) { java.util.function.ToLongFunction<Object> hx4J40v0L = hx4J40v0o -> hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof Double || hx4J40v0o instanceof Float || hx4J40v0o instanceof java.math.BigDecimal ? ((Number) hx4J40v0o).longValue() : Long.parseLong(String.valueOf(hx4J40v0o)); return hx4J40v0L.applyAsLong(hx4J40v0A) == hx4J40v0L.applyAsLong(hx4J40v0B); } if (hx4J40v0A instanceof Double || hx4J40v0B instanceof Double) { return hx4J40v0D.applyAsDouble(hx4J40v0A) == hx4J40v0D.applyAsDouble(hx4J40v0B); } if (hx4J40v0A instanceof Float || hx4J40v0B instanceof Float) { java.util.function.Function<Object, Float> hx4J40v0F = hx4J40v0o -> hx4J40v0o instanceof Float || hx4J40v0o instanceof Double || hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof java.math.BigDecimal ? ((Number) hx4J40v0o).floatValue() : Float.parseFloat(String.valueOf(hx4J40v0o)); return hx4J40v0F.apply(hx4J40v0A).floatValue() == hx4J40v0F.apply(hx4J40v0B).floatValue(); } if (hx4J40v0A instanceof String && hx4J40v0B instanceof String) { return hx4J40v0A.equals(hx4J40v0B); } if (hx4J40v0A instanceof Boolean && hx4J40v0B instanceof Boolean) { return hx4J40v0A.equals(hx4J40v0B); } if (hx4J40v0N.test(hx4J40v0A) && hx4J40v0N.test(hx4J40v0B)) { return new java.math.BigDecimal(String.valueOf(hx4J40v0A)).compareTo(new java.math.BigDecimal(String.valueOf(hx4J40v0B))) == 0; } return false; } catch (Exception hx4J40v0e) { return false; } }).test(responseChecksum, localChecksum))
         {
             ((Map<String,Object>)client.subscriptions).remove((String)messageHash);
             ((Map<String,Object>)this.orderbooks).remove((String)symbol);
@@ -1073,18 +1079,18 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         //   ]
         //
         String updateType = this.safeString(message, 1);
-        Object data = new ArrayList<Object>(Arrays.asList());
+        List<Object> data = new ArrayList<Object>(Arrays.asList());
         if (java.util.Objects.equals(updateType, "ws"))
         {
-            data = this.safeList(message, 2, (Object) null);
+            data = (List<Object>) this.safeList(message, 2, (Object) null);
         } else
         {
-            data = new ArrayList<Object>(Arrays.asList(this.safeValue(message, 2)));
+            data = new ArrayList<Object>(Arrays.asList(this.safeList(message, 2, (Object) null)));
         }
         Map<String, Object> updatedTypes = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object rawBalance = (data == null || i < 0 || i >= ((List<?>)data).size() ? null : ((List<?>)data).get(i));
+            Object rawBalance = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             String currencyId = this.safeString(rawBalance, 1);
             String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
             Object balance = this.parseWsBalance(rawBalance);
@@ -1526,7 +1532,8 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         //
         if ((message instanceof List))
         {
-            if (java.util.Objects.equals((message == null || 1 >= ((List<?>)message).size() ? null : ((List<?>)message).get(1)), "hb"))
+            String heartbeat = this.safeString(message, 1);
+            if (java.util.Objects.equals(heartbeat, "hb"))
             {
                 return;  // skip heartbeats within subscription channels for now
             }

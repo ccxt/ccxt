@@ -1409,7 +1409,8 @@ export default class deribit extends Exchange {
         if (symbolsNormalized !== undefined) {
             for (let i = 0; i < symbolsNormalized.length; i++) {
                 const market = this.market (symbolsNormalized[i]);
-                if (code !== undefined && code !== market['base']) {
+                const marketBase = this.safeString (market, 'base');
+                if (code !== undefined && code !== marketBase) {
                     throw new BadRequest (this.id + ' fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/#public-get_book_summary_by_currency');
                 }
                 if (code === undefined) {
@@ -1511,8 +1512,9 @@ export default class deribit extends Exchange {
         const duration = this.parseTimeframe (timeframe);
         const now = this.milliseconds ();
         // at max, it provides 5000 bars, but we set generous default here
-        const windowLimit = (limit === undefined) ? 1000 : limit;
-        const limitResolved = (since === undefined) ? windowLimit : limit;
+        const defaultLimit = 1000;
+        const windowLimit: int = (limit === undefined) ? defaultLimit : limit;
+        const limitResolved = ((since === undefined) && (limit === undefined)) ? defaultLimit : limit;
         const sinceResolved: Int = (since === undefined) ? undefined : Math.max (since - 1, 0);
         if (since === undefined) {
             request['start_timestamp'] = now - (windowLimit - 1) * duration * 1000;
@@ -1904,7 +1906,7 @@ export default class deribit extends Exchange {
         return orderbook;
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'open': 'open',
             'cancelled': 'canceled',
@@ -1915,7 +1917,7 @@ export default class deribit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTimeInForce (timeInForce: Str) {
+    parseTimeInForce (timeInForce: Str): Str {
         const timeInForces: Dict = {
             'good_til_cancelled': 'GTC',
             'fill_or_kill': 'FOK',
@@ -2125,9 +2127,9 @@ export default class deribit extends Exchange {
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
         // only stop loss sell orders are allowed when price crossed from above
-        const stopLossPrice = this.safeValue (params, 'stopLossPrice');
+        const stopLossPrice = this.safeString (params, 'stopLossPrice');
         // only take profit buy orders are allowed when price crossed from below
-        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
+        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
         const trailingAmount = this.safeString2 (params, 'trailingAmount', 'trigger_offset');
         const isTrailingAmountOrder = trailingAmount !== undefined;
         const isStopLimit = type === 'stop_limit';
@@ -2691,7 +2693,7 @@ export default class deribit extends Exchange {
         return this.parseTransactions (data, currency, since, limit, params);
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             'completed': 'ok',
             'unconfirmed': 'pending',
@@ -3334,19 +3336,17 @@ export default class deribit extends Exchange {
         const duration = this.parseTimeframe (eachItemDuration) * 1000;
         const now = this.milliseconds ();
         const month = 30 * 24 * 60 * 60 * 1000;
-        const sinceResolved: Int = (since === undefined) ? now - month : since;
-        const time = (since === undefined) ? now : since + month;
+        const defaultSince = now - month;
+        const sinceResolved: int = (since === undefined) ? defaultSince : since;
+        const time: int = (since === undefined) ? now : since + month;
         const request: Dict = {
             'instrument_name': market['id'],
             'start_timestamp': sinceResolved - 1,
         };
         const until = this.safeInteger2 (paramsPaginate, 'until', 'end_timestamp');
         const paramsUntil: Dict = (until !== undefined) ? this.omit (paramsPaginate, [ 'until' ]) : paramsPaginate;
-        if (until !== undefined) {
-            request['end_timestamp'] = until;
-        } else {
-            request['end_timestamp'] = time;
-        }
+        const endTimestamp: int = (until !== undefined) ? until : time;
+        request['end_timestamp'] = endTimestamp;
         const isPaginationCall = ('isDeribitPaginationCall' in paramsUntil);
         let paramsOmitted: Dict = paramsUntil;
         if (isPaginationCall) {
@@ -3356,8 +3356,8 @@ export default class deribit extends Exchange {
             if (limit === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a limit argument');
             }
-            const maxUntil = this.sum (sinceResolved, limit * duration);
-            request['end_timestamp'] = Math.min (request['end_timestamp'], maxUntil);
+            const maxUntil: int = this.parseToInt (this.sum (sinceResolved, limit * duration));
+            request['end_timestamp'] = (endTimestamp < maxUntil) ? endTimestamp : maxUntil;
         }
         const response = await this.publicGetGetFundingRateHistory (this.extend (request, paramsOmitted));
         //

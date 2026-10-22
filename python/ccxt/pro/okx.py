@@ -820,7 +820,7 @@ class okx(ccxt.async_support.okx):
         isTrigger = self.safe_bool_2(params, 'stop', 'trigger', False)
         paramsOmitted = self.omit(params, ['stop', 'trigger'])
         accessType = 'private'
-        if isTrigger is True:
+        if isTrigger:
             accessType = 'business'
         await self.authenticate({'access': accessType})
         symbolsNormalized = self.market_symbols(symbols, None, True, True)
@@ -1340,10 +1340,8 @@ class okx(ccxt.async_support.okx):
         seqId = self.safe_integer(message, 'seqId')
         prevSeqId = self.safe_integer(message, 'prevSeqId')
         nonce = orderbook['nonce']
-        error = None
         if prevSeqId is not None and prevSeqId != -1 and nonce != prevSeqId:
             error = InvalidNonce(self.id + ' watchOrderBook received invalid nonce')
-        if error is not None:
             del client.subscriptions[messageHash]
             if symbol is not None:
                 del self.orderbooks[symbol]
@@ -1690,11 +1688,11 @@ class okx(ccxt.async_support.okx):
         if self.markets is None:
             await self.load_markets()
         access = 'private'
-        if isTrigger is True:
+        if isTrigger:
             access = 'business'
         await self.authenticate({'access': access})
         channel = 'orders'
-        if isTrigger is True:
+        if isTrigger:
             channel = 'orders-algo'
         messageHash = channel + '::myTrades'
         market = None
@@ -1877,7 +1875,7 @@ class okx(ccxt.async_support.okx):
         if self.markets is None:
             await self.load_markets()
         accessType = 'private'
-        if isTrigger is True:
+        if isTrigger:
             accessType = 'business'
         await self.authenticate({'access': accessType})
         market = None
@@ -1900,7 +1898,7 @@ class okx(ccxt.async_support.okx):
             'instType': uppercaseType,
         }
         channel = 'orders'
-        if isTrigger is True:
+        if isTrigger:
             channel = 'orders-algo'
         orders = await self.subscribe('private', channel, channel, symbolResolved, self.extend(request, paramsMarginMode))
         limitResolved = limit

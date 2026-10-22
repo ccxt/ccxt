@@ -488,9 +488,6 @@ class blofin extends blofin$1["default"] {
         //     }
         //
         const marketType = 'swap'; // for now
-        if (!(marketType in this.balance)) {
-            this.balance[marketType] = {};
-        }
         this.balance[marketType] = this.parseWsBalance(message);
         const messageHash = marketType + ':balance';
         client.resolve(this.balance[marketType], messageHash);

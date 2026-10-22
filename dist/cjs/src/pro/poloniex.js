@@ -169,8 +169,7 @@ class poloniex extends poloniex$1["default"] {
             if (symbols === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' subscribe() symbols is required');
             }
-            const ids = this.marketIds(symbols);
-            marketIds = (ids === undefined) ? [] : ids;
+            marketIds = this.marketIds(symbols);
         }
         const symbolsSuffix = (symbols === undefined) ? '' : symbols.join(',');
         let symbolsHash = undefined;
@@ -581,7 +580,7 @@ class poloniex extends poloniex$1["default"] {
         const options = this.safeDict(this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool(options, 'fetchBalanceSnapshot', false);
         const awaitBalanceSnapshot = this.safeBool(options, 'awaitBalanceSnapshot', true);
-        if ((fetchBalanceSnapshot === true) && (awaitBalanceSnapshot === true)) {
+        if ((fetchBalanceSnapshot) && (awaitBalanceSnapshot)) {
             await client.future(name + ':fetchBalanceSnapshot');
         }
         return await this.subscribe(name, name, true, undefined, params);
@@ -592,7 +591,7 @@ class poloniex extends poloniex$1["default"] {
         }
         const options = this.safeDict(this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool(options, 'fetchBalanceSnapshot', false);
-        if (fetchBalanceSnapshot === true) {
+        if (fetchBalanceSnapshot) {
             const messageHash = type + ':fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future(messageHash);
@@ -676,8 +675,8 @@ class poloniex extends poloniex$1["default"] {
         //        ]
         //    }
         //
-        let data = this.safeValue(message, 'data');
-        data = this.safeValue(data, 0);
+        const dataList = this.safeList(message, 'data');
+        const data = this.safeDict(dataList, 0);
         const channel = this.safeString(message, 'channel');
         const marketId = this.safeString(data, 'symbol');
         const symbol = this.safeSymbol(marketId);

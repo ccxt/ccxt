@@ -457,6 +457,9 @@ class bitrue extends bitrue$1["default"] {
             return rawQuantity;
         }
         const contractSize = this.safeNumber(market, 'contractSize', 1);
+        if (contractSize === undefined) {
+            return rawQuantity;
+        }
         return rawQuantity * contractSize;
     }
     /**

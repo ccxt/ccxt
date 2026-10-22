@@ -858,7 +858,7 @@ class bingx extends Exchange {
             return array();
         }
         $isSandbox = $this->safe_bool($this->options, 'sandboxMode', false);
-        if ($isSandbox === true) {
+        if ($isSandbox) {
             return array();
         }
         $response = $this->walletsV1PrivateGetCapitalConfigGetall($params);
@@ -1188,7 +1188,7 @@ class bingx extends Exchange {
          */
         $requests = array( $this->fetch_swap_markets($params) );
         $isSandbox = $this->safe_bool($this->options, 'sandboxMode', false);
-        if ($isSandbox !== true) {
+        if (!$isSandbox) {
             $requests[] = $this->fetch_inverse_swap_markets($params);
             $requests[] = $this->fetch_spot_markets($params); // sandbox is swap only
         }
@@ -1387,8 +1387,8 @@ class bingx extends Exchange {
             'symbol' => $market['id'],
         );
         list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('fetchTrades', $market, $params);
+        $maxLimit = ($marketType === 'spot') ? 500 : 1000;
         if ($limit !== null) {
-            $maxLimit = ($marketType === 'spot') ? 500 : 1000;
             $request['limit'] = min($limit, $maxLimit);
         }
         if ($marketType === 'spot') {
@@ -2102,7 +2102,7 @@ class bingx extends Exchange {
         $symbol = $this->safe_symbol($id, $market, '-', 'swap');
         $openInterest = $this->safe_number($interest, 'openInterest');
         $inverse = $this->safe_bool($market, 'inverse', false);
-        $isInverse = ($inverse === true);
+        $isInverse = ($inverse);
         $openInterestAmount = $isInverse ? $openInterest : null;
         $openInterestValue = $isInverse ? null : $openInterest;
         return $this->safe_open_interest(array(
@@ -3231,7 +3231,7 @@ class bingx extends Exchange {
         }
         $timeInForce = $this->safe_string_upper($paramsMarketType, 'timeInForce');
         list($postOnly, $paramsPostOnly) = $this->handle_post_only($isMarketOrder, $timeInForce === 'PostOnly', $paramsMarketType);
-        if (($postOnly === true) || ($timeInForce === 'PostOnly')) {
+        if (($postOnly) || ($timeInForce === 'PostOnly')) {
             $request['timeInForce'] = 'PostOnly';
         } elseif ($timeInForce === 'IOC') {
             $request['timeInForce'] = 'IOC';
@@ -3325,7 +3325,9 @@ class bingx extends Exchange {
             if ((($typeValue === 'LIMIT') || ($typeValue === 'TRIGGER_LIMIT') || ($typeValue === 'STOP') || ($typeValue === 'TAKE_PROFIT')) && !$isTrailing) {
                 $request['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $price));
             }
-            $reduceOnly = $this->safe_bool($paramsTakeProfit, 'reduceOnly', false);
+            $reduceOnlyParam = $this->safe_bool($paramsTakeProfit, 'reduceOnly', false);
+            // stop loss / take profit price orders are always reduce only
+            $reduceOnly = ($reduceOnlyParam === true) || (!$isTriggerOrder && ($isStopLossPriceOrder || $isTakeProfitPriceOrder));
             if ($isTriggerOrder) {
                 $request['stopPrice'] = $this->parse_to_numeric($this->price_to_precision($symbol, $triggerPrice));
                 if ($isMarketOrder || ($typeValue === 'TRIGGER_MARKET')) {
@@ -3335,7 +3337,6 @@ class bingx extends Exchange {
                 }
             } elseif ($isStopLossPriceOrder || $isTakeProfitPriceOrder) {
                 // This can be used to set the stop loss and take profit, but the position needs to be opened first
-                $reduceOnly = true;
                 if ($isStopLossPriceOrder) {
                     $request['stopPrice'] = $this->parse_to_numeric($this->price_to_precision($symbol, $stopLossPrice));
                     if ($isMarketOrder || ($typeValue === 'STOP_MARKET')) {
@@ -3413,9 +3414,9 @@ class bingx extends Exchange {
             }
             $positionSide = null;
             $hedged = $this->safe_bool($paramsTakeProfit, 'hedged', false);
-            $paramsOrder = ($hedged === true) ? $this->omit($paramsTakeProfit, 'reduceOnly') : $paramsTakeProfit;
-            if ($hedged === true) {
-                if ($reduceOnly === true) {
+            $paramsOrder = ($hedged) ? $this->omit($paramsTakeProfit, 'reduceOnly') : $paramsTakeProfit;
+            if ($hedged) {
+                if ($reduceOnly) {
                     $positionSide = ($side === 'buy') ? 'SHORT' : 'LONG';
                 } else {
                     $positionSide = ($side === 'buy') ? 'LONG' : 'SHORT';
@@ -3427,7 +3428,7 @@ class bingx extends Exchange {
             $closePosition = $this->safe_bool($paramsOrder, 'closePosition', false);
             if ($cost !== null) {
                 $request['quoteOrderQty'] = $this->parse_to_numeric($this->cost_to_precision($symbol, $cost));
-            } elseif ($closePosition !== true) {
+            } elseif (!$closePosition) {
                 $amountReq = $amount;
                 if ($market['inverse'] !== true) {
                     $amountReq = $this->parse_to_numeric($this->amount_to_precision($symbol, $amount));
@@ -3487,7 +3488,7 @@ class bingx extends Exchange {
         $paramsOmitted = $this->omit($params, 'test');
         $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $paramsOmitted);
         if ($market['swap'] === true) {
-            if ($test === true) {
+            if ($test) {
                 $response = $this->swapV2PrivatePostTradeOrderTest($request);
             } elseif ($market['inverse'] === true) {
                 $response = $this->cswapV1PrivatePostTradeOrder($request);
@@ -3641,7 +3642,7 @@ class bingx extends Exchange {
             $response = $this->swapV2PrivatePostTradeBatchOrders($request);
         } else {
             $sync = $this->safe_bool($params, 'sync', false);
-            if ($sync === true) {
+            if ($sync) {
                 $request['sync'] = true;
             }
             $request['data'] = $this->json($ordersRequests);
@@ -3717,7 +3718,7 @@ class bingx extends Exchange {
         return $this->safe_string($sides, $side, $side);
     }
 
-    public function parse_order_type(?string $type) {
+    public function parse_order_type(?string $type): ?string {
         $types = array(
             'trigger_market' => 'market',
             'trigger_limit' => 'limit',
@@ -4041,12 +4042,13 @@ class bingx extends Exchange {
         if (($feeCurrencyCode === null)) {
             if ($marketResolved['spot'] === true) {
                 if ($side === 'buy') {
-                    $feeCurrencyCode = $marketResolved['base'];
+                    $feeCurrencyCode = $this->safe_string($marketResolved, 'base');
                 } else {
-                    $feeCurrencyCode = $marketResolved['quote'];
+                    $feeCurrencyCode = $this->safe_string($marketResolved, 'quote');
                 }
             } else {
-                $feeCurrencyCode = ($marketResolved['inverse'] === true) ? $marketResolved['settle'] : $marketResolved['quote'];
+                $feeKey = ($marketResolved['inverse'] === true) ? 'settle' : 'quote';
+                $feeCurrencyCode = $this->safe_string($marketResolved, $feeKey);
             }
         }
         $stopLoss = $this->safe_value($orderData, 'stopLoss');
@@ -4121,7 +4123,7 @@ class bingx extends Exchange {
         ), $marketResolved);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'NEW' => 'open',
             'PENDING' => 'open',
@@ -4156,7 +4158,7 @@ class bingx extends Exchange {
         $isTwapOrder = $this->safe_bool($params, 'twap', false);
         $paramsOmitted = $this->omit($params, 'twap');
         $market = null;
-        if ($isTwapOrder === true) {
+        if ($isTwapOrder) {
             $twapRequest = array(
                 'mainOrderId' => $id,
             );
@@ -4645,7 +4647,7 @@ class bingx extends Exchange {
         $paramsOmitted = $this->omit($params, 'twap');
         $response = null;
         $market = null;
-        if ($isTwapOrder === true) {
+        if ($isTwapOrder) {
             $twapRequest = array(
                 'mainOrderId' => $id,
             );
@@ -4925,7 +4927,7 @@ class bingx extends Exchange {
         } else {
             $isTwapOrder = $this->safe_bool($paramsSubType, 'twap', false);
             $paramsOmitted = $this->omit($paramsSubType, 'twap');
-            if ($isTwapOrder === true) {
+            if ($isTwapOrder) {
                 $response = $this->swapV1PrivateGetTwapOpenOrders($this->extend($request, $paramsOmitted));
             } elseif ($subType === 'inverse') {
                 $response = $this->cswapV1PrivateGetTradeOpenOrders($this->extend($request, $paramsOmitted));
@@ -5198,7 +5200,7 @@ class bingx extends Exchange {
         } else {
             $isTwapOrder = $this->safe_bool($paramsStandard, 'twap', false);
             $paramsOmitted = $this->omit($paramsStandard, 'twap');
-            if ($isTwapOrder === true) {
+            if ($isTwapOrder) {
                 $request['pageIndex'] = 1;
                 $request['pageSize'] = ($limit === null) ? 100 : $limit;
                 $request['startTime'] = ($since === null) ? 1 : $since;
@@ -5588,16 +5590,17 @@ class bingx extends Exchange {
         $currencyId = $this->safe_string($depositAddress, 'coin');
         $currencyResolved = $this->safe_currency($currencyId, $currency);
         $code = $currencyResolved['code'];
-        $address = $this->safe_string_2($depositAddress, 'addressWithPrefix', 'address');
+        $rawAddress = $this->safe_string_2($depositAddress, 'addressWithPrefix', 'address');
         $networkId = $this->safe_string($depositAddress, 'network');
         $networkCode = $this->network_id_to_code($networkId, $code);
         // despite its name the addressWithPrefix field sometimes arrives without
         // the 0x prefix on the evm networks, see https://github.com/ccxt/ccxt/issues/24331
-        if ($address !== null) {
-            $isPrefixed = str_starts_with($address, '0x') || str_starts_with($address, '0X');
+        $address = $rawAddress;
+        if ($rawAddress !== null) {
+            $isPrefixed = str_starts_with($rawAddress, '0x') || str_starts_with($rawAddress, '0X');
             $evmNetworks = array( 'BEP20', 'ERC20', 'HECO', 'MATIC', 'POLYGON', 'ARBITRUM', 'OPTIMISM', 'AVAXC', 'BASE', 'FTM', 'LINEA', 'ZKSYNC', 'OPBNB' );
             if (!$isPrefixed && $this->in_array($networkCode, $evmNetworks)) {
-                $address = '0x' . $address;
+                $address = '0x' . $rawAddress;
             }
         }
         $this->check_address($address);
@@ -5819,7 +5822,7 @@ class bingx extends Exchange {
         );
     }
 
-    public function parse_transaction_status(?string $status, ?string $type = null) {
+    public function parse_transaction_status(?string $status, ?string $type = null): ?string {
         $statusesByType = array(
             'deposit' => array(
                 '0' => 'pending',
@@ -7203,7 +7206,7 @@ class bingx extends Exchange {
         $access = $section[2];
         $isSandbox = $this->safe_bool($this->options, 'sandboxMode', false);
         $url = $this->implode_hostname($this->urls['api'][$type]);
-        if (($isSandbox === true) && $url === null) {
+        if (($isSandbox) && $url === null) {
             throw new NotSupported($this->id . ' does not have a testnet/sandbox URL for ' . $type . ' endpoints');
         }
         $pathValue = $this->implode_params($path, $params);

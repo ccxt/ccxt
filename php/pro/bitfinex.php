@@ -74,9 +74,10 @@ class bitfinex extends \ccxt\async\bitfinex {
         );
         $result = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash, array( 'checksum' => false )));
         $checksum = $this->safe_bool($this->options, 'checksum', true);
-        if (($checksum === true) && ($channel === 'book')) {
+        if (($checksum) && ($channel === 'book')) {
             $sub = $client->subscriptions[$messageHash];
-            if (($sub !== null) && ($sub['checksum'] !== true)) {
+            $subChecksum = $this->safe_bool($sub, 'checksum');
+            if (($sub !== null) && ($subChecksum !== true)) {
                 $client->subscriptions[$messageHash]['checksum'] = true;
                 Async\await($client->send(array(
                     'event' => 'conf',
@@ -119,11 +120,11 @@ class bitfinex extends \ccxt\async\bitfinex {
         return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash, $subscription));
     }
 
-    public function subscribe_private(mixed $messageHash) {
+    public function subscribe_private(string $messageHash) {
         return Async\async(self::do_subscribe_private(...))($messageHash);
     }
 
-    private function do_subscribe_private(mixed $messageHash) {
+    private function do_subscribe_private(string $messageHash) {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -612,7 +613,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         //     ]
         //  ]
         //
-        $ticker = $this->safe_value($message, 1);
+        $ticker = $this->safe_list($message, 1);
         $marketId = $this->safe_string($subscription, 'symbol');
         $market = $this->safe_market($marketId);
         $symbol = $this->safe_symbol($marketId);
@@ -623,7 +624,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         $client->resolve($parsed, $messageHash);
     }
 
-    public function parse_ws_ticker(array $ticker, ?array $market = null): array {
+    public function parse_ws_ticker(?array $ticker, ?array $market = null): array {
         //
         //     [
         //         236.62,        // 1 BID float Price of last highest bid
@@ -745,9 +746,9 @@ class bitfinex extends \ccxt\async\bitfinex {
                 $deltas = $message[1];
                 for ($i = 0; $i < count($deltas); $i++) {
                     $delta = $deltas[$i];
-                    $delta2 = $delta[2];
-                    $size = ($delta2 < 0) ? -$delta2 : $delta2;
-                    $side = ($delta2 < 0) ? 'asks' : 'bids';
+                    $delta2 = $this->safe_number($delta, 2);
+                    $size = ($delta2 !== null && $delta2 < 0) ? -$delta2 : $delta2;
+                    $side = ($delta2 !== null && $delta2 < 0) ? 'asks' : 'bids';
                     $bookside = $orderbook[$side];
                     $idString = $this->safe_string($delta, 0);
                     $price = $this->safe_float($delta, 1);
@@ -757,14 +758,14 @@ class bitfinex extends \ccxt\async\bitfinex {
                 $deltas = $message[1];
                 for ($i = 0; $i < count($deltas); $i++) {
                     $delta = $this->safe_list($deltas, $i);
-                    $amount = $this->safe_number($delta, 2);
-                    if ($amount === null) {
+                    $deltaAmount = $this->safe_number($delta, 2);
+                    if ($deltaAmount === null) {
                         continue;
                     }
                     $counter = $this->safe_number($delta, 1);
                     $price = $this->safe_number($delta, 0);
-                    $size = ($amount < 0) ? -$amount : $amount;
-                    $side = ($amount < 0) ? 'asks' : 'bids';
+                    $size = ($deltaAmount < 0) ? -$deltaAmount : $deltaAmount;
+                    $side = ($deltaAmount < 0) ? 'asks' : 'bids';
                     $bookside = $orderbook[$side];
                     $bookside->storeArray(array( $price, $size, $counter ));
                 }
@@ -777,9 +778,9 @@ class bitfinex extends \ccxt\async\bitfinex {
             $orderbookItem = $this->orderbooks[$symbol];
             if ($isRaw) {
                 $price = $this->safe_string($deltas, 1);
-                $deltas2 = $deltas[2];
-                $size = ($deltas2 < 0) ? -$deltas2 : $deltas2;
-                $side = ($deltas2 < 0) ? 'asks' : 'bids';
+                $deltas2 = $this->safe_number($deltas, 2);
+                $size = ($deltas2 !== null && $deltas2 < 0) ? -$deltas2 : $deltas2;
+                $side = ($deltas2 !== null && $deltas2 < 0) ? 'asks' : 'bids';
                 $bookside = $orderbookItem[$side];
                 // price = 0 means that you have to remove the order from your book
                 $amount = Precise::string_gt($price, '0') ? $size : '0';
@@ -827,8 +828,10 @@ class bitfinex extends \ccxt\async\bitfinex {
             }
             if ($ask !== null) {
                 $stringArray[] = $this->number_to_string($asks[$i][$idToCheck]);
-                $aski1 = $asks[$i][1];
-                $stringArray[] = $this->number_to_string(-$aski1);
+                $aski1 = $this->safe_number($ask, 1);
+                if ($aski1 !== null) {
+                    $stringArray[] = $this->number_to_string(-$aski1);
+                }
             }
         }
         $payload = implode(':', $stringArray);
@@ -932,7 +935,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         if ($updateType === 'ws') {
             $data = $this->safe_list($message, 2);
         } else {
-            $data = array( $this->safe_value($message, 2) );
+            $data = array( $this->safe_list($message, 2) );
         }
         $updatedTypes = array();
         for ($i = 0; $i < count($data); $i++) {
@@ -957,7 +960,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         }
     }
 
-    public function parse_ws_balance(mixed $balance) {
+    public function parse_ws_balance(array $balance) {
         //
         //     [
         //         "exchange",
@@ -1339,7 +1342,8 @@ class bitfinex extends \ccxt\async\bitfinex {
         //    }
         //
         if ((gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message)))) {
-            if ($message[1] === 'hb') {
+            $heartbeat = $this->safe_string($message, 1);
+            if ($heartbeat === 'hb') {
                 return; // skip heartbeats within subscription channels for now
             }
             $subscription = $this->safe_dict($client->subscriptions, $channelId, array());

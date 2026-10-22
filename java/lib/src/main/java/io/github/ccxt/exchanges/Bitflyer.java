@@ -442,7 +442,7 @@ public class Bitflyer extends BitflyerApi
                         String currencyIds = this.safeString(splitAlias, 0);
                         baseId = (currencyIds == null ? null : ((String)currencyIds).substring(0, Math.max(((String)currencyIds).length() - 3, 0)));
                         quoteId = (currencyIds == null ? null : ((String)currencyIds).substring(Math.max(((String)currencyIds).length() - 3, 0)));
-                        List<Object> splitId = (List<Object>) Helpers.split(id, currencyIds);
+                        List<Object> splitId = (List<Object>) ((java.util.function.BiFunction<Object, Object, Object>) (hx4J43a0, hx4J43b0) -> { if (hx4J43a0 == null || hx4J43b0 == null) { return java.util.Collections.emptyList(); } return Arrays.asList(String.valueOf(hx4J43a0).split(java.util.regex.Pattern.quote(String.valueOf(hx4J43b0)))); }).apply(id, currencyIds);
                         String expiryDate = this.safeString(splitId, 1);
                         if (java.util.Objects.equals(expiryDate, null))
                         {
@@ -463,8 +463,8 @@ public class Bitflyer extends BitflyerApi
                     continue;
                 }
                 String symbol = ((base + "/") + quote);
-                Object taker = Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "taker");
-                Object maker = Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "maker");
+                Object taker = Helpers.GetValue((this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), "taker");
+                Object maker = Helpers.GetValue((this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), "maker");
                 Boolean contract = Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(future);
                 if (Boolean.TRUE.equals(contract))
                 {
@@ -477,37 +477,37 @@ public class Bitflyer extends BitflyerApi
                         symbol = ((symbol + "-") + this.yymmdd(expiry));
                     }
                 }
-                ((List<Object>)result).add(Helpers.newMap(
-                    "id", id,
-                    "symbol", symbol,
-                    "base", base,
-                    "quote", quote,
-                    "settle", settle,
-                    "baseId", baseId,
-                    "quoteId", quoteId,
-                    "settleId", null,
-                    "type", type,
-                    "spot", spot,
-                    "margin", false,
-                    "swap", swap,
-                    "future", future,
-                    "option", false,
-                    "active", true,
-                    "contract", contract,
-                    "linear", ((Boolean.TRUE.equals(spot))) ? null : true,
-                    "inverse", ((Boolean.TRUE.equals(spot))) ? null : false,
-                    "taker", taker,
-                    "maker", maker,
-                    "contractSize", null,
-                    "expiry", expiry,
-                    "expiryDatetime", this.iso8601(expiry),
-                    "strike", null,
-                    "optionType", null,
-                    "precision", new HashMap<String, Object>() {{
+                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                    j39v1.put("id", id);
+                    j39v1.put("symbol", symbol);
+                    j39v1.put("base", base);
+                    j39v1.put("quote", quote);
+                    j39v1.put("settle", settle);
+                    j39v1.put("baseId", baseId);
+                    j39v1.put("quoteId", quoteId);
+                    j39v1.put("settleId", null);
+                    j39v1.put("type", type);
+                    j39v1.put("spot", spot);
+                    j39v1.put("margin", false);
+                    j39v1.put("swap", swap);
+                    j39v1.put("future", future);
+                    j39v1.put("option", false);
+                    j39v1.put("active", true);
+                    j39v1.put("contract", contract);
+                    j39v1.put("linear", ((Boolean.TRUE.equals(spot))) ? null : true);
+                    j39v1.put("inverse", ((Boolean.TRUE.equals(spot))) ? null : false);
+                    j39v1.put("taker", taker);
+                    j39v1.put("maker", maker);
+                    j39v1.put("contractSize", null);
+                    j39v1.put("expiry", expiry);
+                    j39v1.put("expiryDatetime", this.iso8601(expiry));
+                    j39v1.put("strike", null);
+                    j39v1.put("optionType", null);
+                    j39v1.put("precision", new HashMap<String, Object>() {{
                         put( "amount", null );
                         put( "price", null );
-                    }},
-                    "limits", new HashMap<String, Object>() {{
+                    }});
+                    j39v1.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -524,10 +524,10 @@ public class Bitflyer extends BitflyerApi
                             put( "min", null );
                             put( "max", null );
                         }} );
-                    }},
-                    "created", null,
-                    "info", market
-                ));
+                    }});
+                    j39v1.put("created", null);
+                    j39v1.put("info", market);
+                    yield j39v1; } }));
             }
             return result;
         });
@@ -539,7 +539,7 @@ public class Bitflyer extends BitflyerApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        for (var i = 0; i < Helpers.getArrayLength(response); i++)
+        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v4 -> j39v4.size(); case String j39v5 -> j39v5.length(); case Object j39v6 -> j39v6.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v6) : 0; }); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, (Object) null);
             String currencyId = this.safeString(balance, "currency_code");
@@ -947,11 +947,13 @@ public class Bitflyer extends BitflyerApi
         Double feeCost = this.safeNumber(order, "total_commission", (Object) null);
         if (!java.util.Objects.equals(feeCost, null))
         {
-            fee = Helpers.newMap(
-                "cost", feeCost,
-                "currency", null,
-                "rate", null
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("cost", feeCost);
+                hx4NewMap0.put("currency", null);
+                hx4NewMap0.put("rate", null);
+                fee = hx4NewMap0;
+            }
         }
         String id = this.safeString(order, "child_order_acceptance_id");
         HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
@@ -1009,12 +1011,11 @@ public class Bitflyer extends BitflyerApi
                 put( "count", java.util.Objects.requireNonNullElse(limit, 100L) );
             }};
             List<Object> response = (this.privateGetGetchildorders(this.extend(request, parameters))).join();
-            Object orders = this.parseOrders(response, market, since, java.util.Objects.requireNonNullElse(limit, 100L), new HashMap<String, Object>() {{}});
             if (!java.util.Objects.equals(symbol, null))
             {
-                orders = this.filterBy(orders, "symbol", symbol);
+                return this.filterBy(this.parseOrders(response, market, since, java.util.Objects.requireNonNullElse(limit, 100L), new HashMap<String, Object>() {{}}), "symbol", symbol);
             }
-            return orders;
+            return this.parseOrders(response, market, since, java.util.Objects.requireNonNullElse(limit, 100L), new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -1550,16 +1551,19 @@ public class Bitflyer extends BitflyerApi
             {
                 if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
                 {
-                    bodySigned = this.json(parameters);
-                    auth = (auth + bodySigned);
+                    String body = this.json(parameters);
+                    bodySigned = body;
+                    auth = (auth + body);
                 }
             }
-            headersSigned = Helpers.newMap(
-                "ACCESS-KEY", this.apiKey,
-                "ACCESS-TIMESTAMP", nonce,
-                "ACCESS-SIGN", this.hmac(this.encode(auth), this.encode(this.secret), sha256()),
-                "Content-Type", "application/json"
-            );
+            {
+                HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
+                hx4NewMap1.put("ACCESS-KEY", this.apiKey);
+                hx4NewMap1.put("ACCESS-TIMESTAMP", nonce);
+                hx4NewMap1.put("ACCESS-SIGN", this.hmac(this.encode(auth), this.encode(this.secret), sha256()));
+                hx4NewMap1.put("Content-Type", "application/json");
+                headersSigned = hx4NewMap1;
+            }
         }
         Map<String, Object> headersResolved = headersSigned;
         String bodyResolved = bodySigned;

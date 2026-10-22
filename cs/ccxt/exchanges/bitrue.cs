@@ -2317,7 +2317,7 @@ public partial class bitrue : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         string? origClientOrderId = this.safeString2(parameters, "origClientOrderId", "clientOrderId");
-        object paramsOmitted = this.omit(parameters, new List<object>() {"origClientOrderId", "clientOrderId"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"origClientOrderId", "clientOrderId"}));
         Dictionary<string, object> response = null;
         IDictionary<string, object> data = new Dictionary<string, object>() {};
         Dictionary<string, object> request = new Dictionary<string, object>() {};
@@ -2586,7 +2586,7 @@ public partial class bitrue : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         string? origClientOrderId = this.safeString2(parameters, "origClientOrderId", "clientOrderId");
-        object paramsOmitted = this.omit(parameters, new List<object>() {"origClientOrderId", "clientOrderId"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"origClientOrderId", "clientOrderId"}));
         Dictionary<string, object> response = null;
         IDictionary<string, object> data = new Dictionary<string, object>() {};
         Dictionary<string, object> request = new Dictionary<string, object>() {};
@@ -2727,9 +2727,10 @@ public partial class bitrue : Exchange
         {
             request["startTime"] = since;
         }
-        object limitResolved = ((limit == null)) ? null : mathMin(limit, 1000);
-        if (!(limitResolved == null))
+        Int64? limitResolved = null;
+        if ((limit != null))
         {
+            limitResolved = ((limit > 1000)) ? 1000 : limit;
             request["limit"] = limitResolved;
         }
         if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
@@ -2939,7 +2940,7 @@ public partial class bitrue : Exchange
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(data, currency));
     }
 
-    public virtual object parseTransactionStatusByType(string? status, string? type = null)
+    public virtual string? parseTransactionStatusByType(string? status, string? type = null)
     {
         Dictionary<string, object> statusesByType = new Dictionary<string, object>() {
             { "deposit", new Dictionary<string, object>() {
@@ -2953,7 +2954,7 @@ public partial class bitrue : Exchange
             } },
         };
         IDictionary<string, object> statuses = this.safeDict(statusesByType, type, new Dictionary<string, object>() {});
-        return this.safeString(statuses, status, status);
+        return ((string?)((object)(this.safeString(statuses, status, status))));
     }
 
     public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
@@ -3049,7 +3050,7 @@ public partial class bitrue : Exchange
         {
             type = "withdrawal";
         }
-        object status = this.parseTransactionStatusByType(this.safeString(transaction, "status"), type);
+        string? status = this.parseTransactionStatusByType(this.safeString(transaction, "status"), type);
         double? amount = this.safeNumber(transaction, "amount");
         string? network = null;
         string? currencyId = this.safeString2(transaction, "symbol", "coin");
@@ -3308,9 +3309,10 @@ public partial class bitrue : Exchange
         {
             request["beginTime"] = since;
         }
-        object limitResolved = ((limit == null)) ? null : mathMin(limit, 200);
-        if (!(limitResolved == null))
+        Int64? limitResolved = null;
+        if ((limit != null))
         {
+            limitResolved = ((limit > 200)) ? 200 : limit;
             request["limit"] = limitResolved;
         }
         Int64? until = this.safeInteger(parameters, "until");
@@ -3558,7 +3560,7 @@ public partial class bitrue : Exchange
                     int keysLength = keys.Count;
                     if (keysLength > 0)
                     {
-                        signMessage = add(signMessage, ("?" + this.urlencode(paramsOmitted)));
+                        signMessage = (signMessage + (("?" + this.urlencode(paramsOmitted))));
                     }
                     string signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha256);
                     requestHeaders = new Dictionary<string, object>() {
@@ -3573,7 +3575,7 @@ public partial class bitrue : Exchange
                         { "recvWindow", recvWindow },
                     }, paramsOmitted);
                     requestBody = this.json(query);
-                    signMessage = add(signMessage, requestBody);
+                    signMessage = (signMessage + (requestBody));
                     string signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha256);
                     requestHeaders = new Dictionary<string, object>() {
                         { "Content-Type", "application/json" },
@@ -3602,14 +3604,15 @@ public partial class bitrue : Exchange
 
     public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
-        if ((isEqual(code, 418)) || (isEqual(code, 429)))
+        if (((((object)(code)) switch { Int64 c33l => c33l == 418, int c33i => c33i == 418, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 418, decimal c33m => c33m == 418, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 418, uint c33u => (Int64)c33u == 418, short c33h => (Int64)c33h == 418, ushort c33v => (Int64)c33v == 418, byte c33y => (Int64)c33y == 418, sbyte c33e => (Int64)c33e == 418, ulong c33z => c33z == 418UL, _ => false })) || ((((object)(code)) switch { Int64 c33l => c33l == 429, int c33i => c33i == 429, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 429, decimal c33m => c33m == 429, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 429, uint c33u => (Int64)c33u == 429, short c33h => (Int64)c33h == 429, ushort c33v => (Int64)c33v == 429, byte c33y => (Int64)c33y == 429, sbyte c33e => (Int64)c33e == 429, ulong c33z => c33z == 429UL, _ => false })))
         {
             throw new DDoSProtection ((string)((((((this.id + " ") + code.ToString()) + " ") + reason) + " ") + (body))) ;
         }
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block contains legacy checks against message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
-        if (isGreaterThanOrEqual(code, 400))
+        Int64? statusCode = this.parseToInt(code);
+        if ((statusCode >= 400))
         {
             if (((string)body).IndexOf("Price * QTY is zero or less", StringComparison.Ordinal) >= 0)
             {
@@ -3632,7 +3635,7 @@ public partial class bitrue : Exchange
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         bool? success = this.safeBool(response, "success", true);
         object parsedMessage = null;
-        if ((success != true))
+        if (success != true)
         {
             string? messageInner = this.safeString(response, "msg");
             if ((messageInner != null))
@@ -3675,7 +3678,7 @@ public partial class bitrue : Exchange
             this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), error, feedback);
             throw new ExchangeError (feedback) ;
         }
-        if ((success != true))
+        if (success != true)
         {
             throw new ExchangeError ((string)((this.id + " ") + (body))) ;
         }
@@ -3685,17 +3688,18 @@ public partial class bitrue : Exchange
     public override object calculateRateLimiterCost(object api, object method, object path, object parameters, object config = null)
     {
         config ??= new Dictionary<string, object>();
-        if ((((IDictionary<string, object>)config).ContainsKey("noSymbol")) && !(inOp(parameters, "symbol")))
+        if ((((IDictionary<string, object>)config).ContainsKey("noSymbol")) && !((((object)(parameters)) switch { null => false, IList<object> c33a => c33a.Contains("symbol"), IList<string> c33t => c33t.Contains("symbol"), List<Int64> c33g => c33g.Contains((Int64)(object)"symbol"), IDictionary<string, object> c33d => c33d.ContainsKey("symbol"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("symbol"), _ => false })))
         {
             return ((IDictionary<string,object>)config)["noSymbol"];
-        } else if ((((IDictionary<string, object>)config).ContainsKey("byLimit")) && (inOp(parameters, "limit")))
+        } else if ((((IDictionary<string, object>)config).ContainsKey("byLimit")) && ((((object)(parameters)) switch { null => false, IList<object> c33a => c33a.Contains("limit"), IList<string> c33t => c33t.Contains("limit"), List<Int64> c33g => c33g.Contains((Int64)(object)"limit"), IDictionary<string, object> c33d => c33d.ContainsKey("limit"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("limit"), _ => false })))
         {
-            object limit = getValue(parameters, "limit");
+            Int64? limit = this.safeInteger(parameters, "limit");
             List<object> byLimit = this.safeList(config, "byLimit", new List<object>() {});
             for (int i = 0; i < byLimit.Count; i++)
             {
                 object entry = byLimit[i];
-                if (isLessThanOrEqual(limit, getValue(entry, 0)))
+                Int64? threshold = this.safeInteger(entry, 0);
+                if ((limit != null) && (threshold != null) && (limit == null || limit <= threshold))
                 {
                     return getValue(entry, 1);
                 }

@@ -845,7 +845,6 @@ class paradex extends Exchange {
             'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             'symbol' => $market['id'],
         );
-        $maxLimit = 1000; // exchange has undocumented limit slightly above, but this is reliable limit
         $duration = $this->parse_timeframe($timeframe);
         $price = $this->safe_string($params, 'price');
         if ($price !== null) {
@@ -854,17 +853,20 @@ class paradex extends Exchange {
         list($requestUntil, $paramsUntil) = $this->handle_until_option('end_at', $request, $params);
         $hasEnd = (is_array($request) && array_key_exists('end_at' ?? '', $request));
         $paramsOmitted = $this->omit($paramsUntil, array( 'price' ));
-        $limitResolved = ($limit === null) ? $maxLimit : min($limit, $maxLimit);
+        // exchange has undocumented limit slightly above, but 1000 is reliable limit
+        $limitResolved = (($limit === null) || ($limit > 1000)) ? 1000 : $limit;
+        $windowLength = $this->parse_to_int($duration * ($this->parse_to_int($limitResolved) + 1) * 1000);
         if ($since !== null) {
             $requestUntil['start_at'] = $since;
             if (!$hasEnd) {
-                $requestUntil['end_at'] = $since . $duration * ($limitResolved + 1) * 1000 - 1;
+                $sinceInt = $this->parse_to_int($since);
+                $requestUntil['end_at'] = $sinceInt . $windowLength - 1;
             }
         } else {
-            if (!$hasEnd) {
-                $requestUntil['end_at'] = $this->milliseconds();
-            }
-            $requestUntil['start_at'] = $requestUntil['end_at'] - $duration * ($limitResolved + 1) * 1000 + 1;
+            $endAtRaw = $hasEnd ? $this->safe_integer($requestUntil, 'end_at', 0) : $this->milliseconds();
+            $endAt = $this->parse_to_int($endAtRaw);
+            $requestUntil['end_at'] = $endAt;
+            $requestUntil['start_at'] = $endAt - $windowLength + 1;
         }
         $response = $this->publicGetMarketsKlines($this->extend($requestUntil, $paramsOmitted));
         //
@@ -1405,7 +1407,7 @@ class paradex extends Exchange {
         ), $marketResolved);
     }
 
-    public function hash_message(mixed $message) {
+    public function hash_message(mixed $message): string {
         $hashed = $this->hash($message, 'keccak', 'hex');
         return '0x' . $hashed;
     }
@@ -1423,46 +1425,16 @@ class paradex extends Exchange {
     }
 
     public function get_system_config(): array {
-        $cachedConfig = $this->safe_dict($this->options, 'systemConfig');
-        if ($cachedConfig !== null) {
-            return $cachedConfig;
+        if ($this->safe_dict($this->options, 'systemConfig') === null) {
+            $response = $this->publicGetSystemConfig();
+            $this->options['systemConfig'] = $response;
         }
-        $response = $this->publicGetSystemConfig();
-        //
-        // {
-        //     "starknet_gateway_url": "https://potc-testnet-sepolia.starknet.io",
-        //     "starknet_fullnode_rpc_url": "https://pathfinder.api.testnet.paradex.trade/rpc/v0_7",
-        //     "starknet_chain_id": "PRIVATE_SN_POTC_SEPOLIA",
-        //     "block_explorer_url": "https://voyager.testnet.paradex.trade/",
-        //     "paraclear_address": "0x286003f7c7bfc3f94e8f0af48b48302e7aee2fb13c23b141479ba00832ef2c6",
-        //     "paraclear_decimals": 8,
-        //     "paraclear_account_proxy_hash": "0x3530cc4759d78042f1b543bf797f5f3d647cde0388c33734cf91b7f7b9314a9",
-        //     "paraclear_account_hash": "0x41cb0280ebadaa75f996d8d92c6f265f6d040bb3ba442e5f86a554f1765244e",
-        //     "oracle_address": "0x2c6a867917ef858d6b193a0ff9e62b46d0dc760366920d631715d58baeaca1f",
-        //     "bridged_tokens": [
-        //         {
-        //             "name": "TEST USDC",
-        //             "symbol": "USDC",
-        //             "decimals": 6,
-        //             "l1_token_address": "0x29A873159D5e14AcBd63913D4A7E2df04570c666",
-        //             "l1_bridge_address": "0x8586e05adc0C35aa11609023d4Ae6075Cb813b4C",
-        //             "l2_token_address": "0x6f373b346561036d98ea10fb3e60d2f459c872b1933b50b21fe6ef4fda3b75e",
-        //             "l2_bridge_address": "0x46e9237f5408b5f899e72125dd69bd55485a287aaf24663d3ebe00d237fc7ef"
-        //         }
-        //     ],
-        //     "l1_core_contract_address": "0x582CC5d9b509391232cd544cDF9da036e55833Af",
-        //     "l1_operator_address": "0x11bACdFbBcd3Febe5e8CEAa75E0Ef6444d9B45FB",
-        //     "l1_chain_id": "11155111",
-        //     "liquidation_fee": "0.2"
-        // }
-        //
-        $this->options['systemConfig'] = $response;
         return $this->safe_dict($this->options, 'systemConfig', array());
     }
 
     public function prepare_paradex_domain(bool $l1 = false): array {
         $systemConfig = $this->get_system_config();
-        if ($l1 === true) {
+        if ($l1) {
             $l1D = array(
                 'name' => 'Paradex',
                 'chainId' => $systemConfig['l1_chain_id'],
@@ -1479,30 +1451,28 @@ class paradex extends Exchange {
     }
 
     public function retrieve_account(): array {
-        $cachedAccount = $this->safe_dict($this->options, 'paradexAccount');
-        if ($cachedAccount !== null) {
-            return $cachedAccount;
+        if ($this->safe_dict($this->options, 'paradexAccount') === null) {
+            $this->check_required_credentials();
+            $systemConfig = $this->get_system_config();
+            $domain = $this->prepare_paradex_domain(true);
+            $messageTypes = array(
+                'Constant' => array(
+                    array( 'name' => 'action', 'type' => 'string' ),
+                ),
+            );
+            $message = array(
+                'action' => 'STARK Key',
+            );
+            $msg = $this->eth_encode_structured_data($domain, $messageTypes, $message);
+            $signature = $this->sign_message($msg, $this->privateKey);
+            $account = $this->retrieve_stark_account(
+                $signature,
+                $systemConfig['paraclear_account_hash'],
+                $systemConfig['paraclear_account_proxy_hash']
+            );
+            $this->options['paradexAccount'] = $account;
         }
-        $this->check_required_credentials();
-        $systemConfig = $this->get_system_config();
-        $domain = $this->prepare_paradex_domain(true);
-        $messageTypes = array(
-            'Constant' => array(
-                array( 'name' => 'action', 'type' => 'string' ),
-            ),
-        );
-        $message = array(
-            'action' => 'STARK Key',
-        );
-        $msg = $this->eth_encode_structured_data($domain, $messageTypes, $message);
-        $signature = $this->sign_message($msg, $this->privateKey);
-        $account = $this->retrieve_stark_account(
-            $signature,
-            $systemConfig['paraclear_account_hash'],
-            $systemConfig['paraclear_account_proxy_hash']
-        );
-        $this->options['paradexAccount'] = $account;
-        return $account;
+        return $this->safe_dict($this->options, 'paradexAccount', array());
     }
 
     public function onboarding($params = array()) {
@@ -1527,7 +1497,7 @@ class paradex extends Exchange {
 
     public function authenticate_rest($params = array()): ?string {
         $cachedToken = $this->safe_string($this->options, 'authToken');
-        $now = $this->nonce();
+        $now = $this->parse_to_int($this->nonce());
         if ($cachedToken !== null) {
             $cachedExpires = $this->safe_integer($this->options, 'expires');
             if ($cachedExpires === null) {
@@ -1668,7 +1638,7 @@ class paradex extends Exchange {
         ), $marketResolved);
     }
 
-    public function parse_time_in_force(?string $timeInForce) {
+    public function parse_time_in_force(?string $timeInForce): ?string {
         $timeInForces = array(
             'IOC' => 'IOC',
             'GTC' => 'GTC',
@@ -1677,7 +1647,7 @@ class paradex extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         if ($status !== null) {
             $statuses = array(
                 'NEW' => 'open',
@@ -1690,7 +1660,7 @@ class paradex extends Exchange {
         return null;
     }
 
-    public function parse_order_type(?string $type) {
+    public function parse_order_type(?string $type): ?string {
         $types = array(
             'LIMIT' => 'limit',
             'MARKET' => 'market',
@@ -1700,7 +1670,7 @@ class paradex extends Exchange {
         return $this->safe_string_lower($types, $type, $type);
     }
 
-    public function scale_number(string $num) {
+    public function scale_number(string $num): ?string {
         return Precise::string_mul($num, '100000000');
     }
 
@@ -1795,7 +1765,7 @@ class paradex extends Exchange {
 
     public function sign_order_request(array $request, bool $modify = false): array {
         $account = $this->retrieve_account();
-        $now = $this->nonce();
+        $now = $this->parse_to_int($this->nonce());
         $orderType = $this->safe_string($request, 'type');
         if ($orderType === null) {
             throw new ExchangeError($this->id . ' signOrderRequest() missing orderType');
@@ -1832,9 +1802,11 @@ class paradex extends Exchange {
         $domain = $this->prepare_paradex_domain();
         $msg = $this->starknet_encode_structured_data($domain, $messageTypes, $orderReq, $account['address']);
         $signature = $this->starknet_sign($msg, $account['privateKey']);
-        $request['signature'] = $signature;
-        $request['signature_timestamp'] = $orderReq['timestamp'];
-        return $request;
+        $signedRequest = $this->extend($request, array(
+            'signature' => $signature,
+            'signature_timestamp' => $orderReq['timestamp'],
+        ));
+        return $signedRequest;
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
@@ -2023,14 +1995,15 @@ class paradex extends Exchange {
         $responseOrders = $this->safe_list($response, 'orders', array());
         $parsedOrders = $this->parse_orders($responseOrders);
         $errors = $this->safe_list($response, 'errors', array());
+        $rejected = array();
         for ($i = 0; $i < count($errors); $i++) {
             $error = $errors[$i];
-            $parsedOrders[] = $this->safe_order(array(
+            $rejected[] = $this->safe_order(array(
                 'info' => $error,
                 'status' => 'rejected',
             ));
         }
-        return $parsedOrders;
+        return $this->array_concat($parsedOrders, $rejected);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
@@ -2955,7 +2928,7 @@ class paradex extends Exchange {
         );
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'PENDING' => 'pending',
             'AVAILABLE' => 'pending',

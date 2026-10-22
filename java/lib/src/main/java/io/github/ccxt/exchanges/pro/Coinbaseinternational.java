@@ -129,7 +129,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
     public Object requestId()
     {
         Object requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
-        Helpers.addElementToObject(this.options, "requestId", requestId);
+        { Map<Object, Object> j39v1 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v2 = "requestId"; Object j39v3 = requestId; if (j39v1 == null) { if (j39v2 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v1) { if (j39v3 == null && j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); } else { j39v1.put(j39v2, j39v3); } } }
         return requestId;
     }
 
@@ -139,7 +139,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         {
             return "wss://www.deribit.com/ws/api/v2";
         }
-        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(isPrivate, false)))
+        if ((switch ((Object) (java.util.Objects.requireNonNullElse(isPrivate, false))) { case null -> false; case Boolean hx4J40v57 -> hx4J40v57.booleanValue(); case Long hx4J40v57 -> hx4J40v57 != 0L; case Integer hx4J40v57 -> hx4J40v57 != 0; case Double hx4J40v57 -> hx4J40v57 != 0.0; case String hx4J40v57 -> !hx4J40v57.isEmpty(); case List<?> hx4J40v57 -> !hx4J40v57.isEmpty(); case Map<?, ?> hx4J40v57 -> true; default -> false; }))
         {
             return ((Map<String, Object>)this.urls.get("api")).get("wsPrivate");
         }
@@ -150,13 +150,13 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
     {
         Long refreshAt = this.safeInteger(this.options, "wsAuthRefreshAt");
         Boolean isPrivateClient = (java.util.Objects.equals(client.url, this.getWsUrl(true)));
-        if (Boolean.TRUE.equals(isPrivateClient) && (!java.util.Objects.equals(refreshAt, null)) && (Helpers.isGreaterThanOrEqual(this.milliseconds(), refreshAt)))
+        if (Boolean.TRUE.equals(isPrivateClient) && (!java.util.Objects.equals(refreshAt, null)) && ((refreshAt == null || (this.milliseconds()) >= refreshAt)))
         {
             // re-authenticate in-band before the session expires, also while no watch call is pending
             // retry in 60s if this attempt fails; a successful reply reschedules via handleAuthenticationMessage
-            Helpers.addElementToObject(this.options, "wsAuthRefreshAt", this.sum(this.milliseconds(), 60000));
+            { Map<Object, Object> j39v7 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v8 = "wsAuthRefreshAt"; Object j39v9 = this.sum(this.milliseconds(), 60000); if (j39v7 == null) { if (j39v8 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v7) { if (j39v9 == null && j39v7 instanceof java.util.concurrent.ConcurrentHashMap) { j39v7.remove(j39v8); } else { j39v7.put(j39v8, j39v9); } } }
             Object requestId = this.requestId();
-            Helpers.addElementToObject(this.options, "wsAuthRequestId", requestId);
+            { Map<Object, Object> j39v4 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v5 = "wsAuthRequestId"; Object j39v6 = requestId; if (j39v4 == null) { if (j39v5 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v4) { if (j39v6 == null && j39v4 instanceof java.util.concurrent.ConcurrentHashMap) { j39v4.remove(j39v5); } else { j39v4.put(j39v5, j39v6); } } }
             Map<String, Object> parameters = new HashMap<String, Object>() {{
                 put( "grant_type", "client_credentials" );
                 put( "client_id", Coinbaseinternational.this.apiKey );
@@ -206,10 +206,10 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("subscribe", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("subscribe", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v56 -> (Map<String, Object>) hx4J40v56; case Object hx4J40v56 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v56.getClass().getName()); })));
             Object url = this.getWsUrl(false);
             String method = "public/subscribe";
-            if (Helpers.isTrue(java.util.Objects.requireNonNullElse(isPrivate, false)))
+            if ((switch ((Object) (java.util.Objects.requireNonNullElse(isPrivate, false))) { case null -> false; case Boolean hx4J40v55 -> hx4J40v55.booleanValue(); case Long hx4J40v55 -> hx4J40v55 != 0L; case Integer hx4J40v55 -> hx4J40v55 != 0; case Double hx4J40v55 -> hx4J40v55 != 0.0; case String hx4J40v55 -> !hx4J40v55.isEmpty(); case List<?> hx4J40v55 -> !hx4J40v55.isEmpty(); case Map<?, ?> hx4J40v55 -> true; default -> false; }))
             {
                 url = this.getWsUrl(true);
                 method = "private/subscribe";
@@ -255,10 +255,10 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("unSubscribe", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("unSubscribe", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v54 -> (Map<String, Object>) hx4J40v54; case Object hx4J40v54 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v54.getClass().getName()); })));
             Object url = this.getWsUrl(false);
             String method = "public/unsubscribe";
-            if (Helpers.isTrue(java.util.Objects.requireNonNullElse(isPrivate, false)))
+            if ((switch ((Object) (java.util.Objects.requireNonNullElse(isPrivate, false))) { case null -> false; case Boolean hx4J40v53 -> hx4J40v53.booleanValue(); case Long hx4J40v53 -> hx4J40v53 != 0L; case Integer hx4J40v53 -> hx4J40v53 != 0; case Double hx4J40v53 -> hx4J40v53 != 0.0; case String hx4J40v53 -> !hx4J40v53.isEmpty(); case List<?> hx4J40v53 -> !hx4J40v53.isEmpty(); case Map<?, ?> hx4J40v53 -> true; default -> false; }))
             {
                 url = this.getWsUrl(true);
                 method = "private/unsubscribe";
@@ -304,7 +304,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("watchBalance", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("watchBalance", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v52 -> (Map<String, Object>) hx4J40v52; case Object hx4J40v52 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v52.getClass().getName()); })));
             List<Object> currencyparamsCurrencyVariable = (List<Object>) this.handleOptionAndParams(paramsResolved, "watchBalance", "currency", "any");
             var currency = ((List<Object>) currencyparamsCurrencyVariable).get(0);
             var paramsCurrency = ((List<Object>) currencyparamsCurrencyVariable).get(1);
@@ -346,7 +346,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("watchMyTrades", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("watchMyTrades", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v51 -> (Map<String, Object>) hx4J40v51; case Object hx4J40v51 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v51.getClass().getName()); })));
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -363,7 +363,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                 channel = ((("user.trades." + market.get("id")) + ".") + interval);
             }
             List<Object> trades = (List<Object>) (this.subscribe(new ArrayList<Object>(Arrays.asList(channel)), new ArrayList<Object>(Arrays.asList(channel)), true, paramsInterval)).join();
-            return this.filterBySymbolSinceLimit(trades, Helpers.toStringArg(symbolResolved), since, limit, true);
+            return this.filterBySymbolSinceLimit(trades, java.util.Objects.toString(symbolResolved, null), since, limit, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -388,7 +388,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("unWatchMyTrades", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("unWatchMyTrades", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v49 -> (Map<String, Object>) hx4J40v49; case Object hx4J40v49 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v49.getClass().getName()); })));
             List<Object> intervalparamsIntervalVariable = (List<Object>) this.handleOptionAndParams(paramsResolved, "watchMyTrades", "interval", "raw");
             var interval = ((List<Object>) intervalparamsIntervalVariable).get(0);
             var paramsInterval = ((List<Object>) intervalparamsIntervalVariable).get(1);
@@ -448,7 +448,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("watchOrders", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("watchOrders", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v48 -> (Map<String, Object>) hx4J40v48; case Object hx4J40v48 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v48.getClass().getName()); })));
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -470,7 +470,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
+            return this.filterBySymbolSinceLimit(orders, java.util.Objects.toString(symbolResolved, null), since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -497,7 +497,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("watchOrdersForSymbols", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("watchOrdersForSymbols", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v46 -> (Map<String, Object>) hx4J40v46; case Object hx4J40v46 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v46.getClass().getName()); })));
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -544,7 +544,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("unWatchOrders", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("unWatchOrders", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v45 -> (Map<String, Object>) hx4J40v45; case Object hx4J40v45 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v45.getClass().getName()); })));
             List<Object> intervalparamsIntervalVariable = (List<Object>) this.handleOptionAndParams(paramsResolved, "watchOrders", "interval", "raw");
             var interval = ((List<Object>) intervalparamsIntervalVariable).get(0);
             var paramsInterval = ((List<Object>) intervalparamsIntervalVariable).get(1);
@@ -576,7 +576,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         String channel = this.safeString(parameters, "channel");
         Object data = this.safeValue(parameters, "data", new HashMap<String, Object>() {{}});
-        Object orders = new ArrayList<Object>(Arrays.asList());
+        List<Object> orders = new ArrayList<Object>(Arrays.asList());
         if ((data instanceof List))
         {
             orders = this.parseOrders(data, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
@@ -587,7 +587,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         Integer ordersLength = ((List<?>)orders).size();
         for (var i = 0; (ordersLength != null && i < ordersLength); i++)
         {
-            ((io.github.ccxt.ws.ArrayCache) this.orders).append((orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i)));
+            ((io.github.ccxt.ws.ArrayCache) this.orders).append((orders == null || i < 0 || i >= orders.size() ? null : orders.get(i)));
         }
         client.resolve(this.orders, channel);
     }
@@ -611,7 +611,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("watchPositions", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("watchPositions", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v44 -> (Map<String, Object>) hx4J40v44; case Object hx4J40v44 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v44.getClass().getName()); })));
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -666,7 +666,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("unWatchPositions", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("unWatchPositions", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v43 -> (Map<String, Object>) hx4J40v43; case Object hx4J40v43 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v43.getClass().getName()); })));
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -735,9 +735,9 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("watchFundingRate", Helpers.toMapArg(parameters));
-            Ticker ticker = (this.watchTicker(symbol, Helpers.toMapArg(paramsResolved))).join();
-            return this.parseFundingRate(((Map<String, Object>)ticker).get("info"), Helpers.toMapArg(this.market(symbol)));
+            Object paramsResolved = this.handleRouteAndParams("watchFundingRate", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v42 -> (Map<String, Object>) hx4J40v42; case Object hx4J40v42 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v42.getClass().getName()); })));
+            Ticker ticker = (this.watchTicker(symbol, ((Map<String, Object>) (switch ((Object) (paramsResolved)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v41 -> (Map<String, Object>) hx4J40v41; case Object hx4J40v41 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v41.getClass().getName()); })))).join();
+            return this.parseFundingRate(((Map<String, Object>)ticker).get("info"), this.market(symbol));
         }).thenApply(FundingRate::new);
 
     }
@@ -771,7 +771,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Tickers tickers = (this.watchTickers(symbols, Helpers.toMapArg(paramsResolved))).join();
+            Tickers tickers = (this.watchTickers(symbols, ((Map<String, Object>) (switch ((Object) (paramsResolved)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v40 -> (Map<String, Object>) hx4J40v40; case Object hx4J40v40 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v40.getClass().getName()); })))).join();
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             List<String> tickerSymbols = new ArrayList<String>(((Map<String, Object>)tickers).keySet());
             Integer tickerSymbolsLength = ((List<?>)tickerSymbols).size();
@@ -779,7 +779,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             {
                 String symbol = (tickerSymbols == null || i < 0 || i >= tickerSymbols.size() ? null : tickerSymbols.get(i));
                 Object ticker = (tickers == null || symbol == null ? null : tickers.get(symbol));
-                result.put(symbol, this.parseFundingRate(((Map<String, Object>)ticker).get("info"), Helpers.toMapArg(this.market(symbol))));
+                result.put(symbol, this.parseFundingRate(((Map<String, Object>)ticker).get("info"), this.market(symbol)));
             }
             return result;
         }).thenApply(FundingRates::new);
@@ -802,7 +802,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("unWatchFundingRate", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("unWatchFundingRate", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v39 -> (Map<String, Object>) hx4J40v39; case Object hx4J40v39 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v39.getClass().getName()); })));
             return (this.unWatchTicker(symbol, paramsResolved)).join();
         });
 
@@ -828,7 +828,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("unWatchFundingRates", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("unWatchFundingRates", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v38 -> (Map<String, Object>) hx4J40v38; case Object hx4J40v38 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v38.getClass().getName()); })));
             return (this.unWatchTickers(symbols, paramsResolved)).join();
         });
 
@@ -887,7 +887,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("unWatchTicker", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("unWatchTicker", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v37 -> (Map<String, Object>) hx4J40v37; case Object hx4J40v37 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v37.getClass().getName()); })));
             return (this.unWatchTickers(new ArrayList<String>(Arrays.asList(symbol)), paramsResolved)).join();
         });
 
@@ -963,7 +963,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("unWatchTickers", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("unWatchTickers", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v36 -> (Map<String, Object>) hx4J40v36; case Object hx4J40v36 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v36.getClass().getName()); })));
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -1005,7 +1005,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         return BaseExchange.supplyAsync(() -> {
 
             Object paramsResolved = this.handleRouteAndParams("watchMarkPrice", parameters);
-            return (this.watchTicker(symbol, Helpers.toMapArg(paramsResolved))).join();
+            return (this.watchTicker(symbol, ((Map<String, Object>) (switch ((Object) (paramsResolved)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v35 -> (Map<String, Object>) hx4J40v35; case Object hx4J40v35 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v35.getClass().getName()); })))).join();
         }).thenApply(Ticker::new);
 
     }
@@ -1028,7 +1028,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         return BaseExchange.supplyAsync(() -> {
 
             Object paramsResolved = this.handleRouteAndParams("watchMarkPrices", parameters);
-            return (this.watchTickers(symbols, Helpers.toMapArg(paramsResolved))).join();
+            return (this.watchTickers(symbols, ((Map<String, Object>) (switch ((Object) (paramsResolved)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v34 -> (Map<String, Object>) hx4J40v34; case Object hx4J40v34 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v34.getClass().getName()); })))).join();
         }).thenApply(Tickers::new);
 
     }
@@ -1093,7 +1093,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("watchBidsAsks", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("watchBidsAsks", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v33 -> (Map<String, Object>) hx4J40v33; case Object hx4J40v33 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v33.getClass().getName()); })));
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -1110,7 +1110,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
-                Helpers.addElementToObject(result, Helpers.GetValue(ticker, "symbol"), ticker);
+                { Map<Object, Object> j39v11 = (Map<Object, Object>) (Map<?, ?>) (result); Object j39v12 = Helpers.GetValue(ticker, "symbol"); Object j39v13 = ticker; if (j39v11 == null) { if (j39v12 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v11) { if (j39v13 == null && j39v11 instanceof java.util.concurrent.ConcurrentHashMap) { j39v11.remove(j39v12); } else { j39v11.put(j39v12, j39v13); } } }
                 return result;
             }
             return this.filterByArray(this.bidsasks, "symbol", symbolsResolved, true);
@@ -1138,7 +1138,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("unWatchBidsAsks", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("unWatchBidsAsks", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v32 -> (Map<String, Object>) hx4J40v32; case Object hx4J40v32 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v32.getClass().getName()); })));
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -1174,8 +1174,8 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
     {
         Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
-        Object ticker = this.parseWsBidAsk(data, (Map<String, Object>) null);
-        Object symbol = ((Map<String, Object>)ticker).get("symbol");
+        Map<String, Object> ticker = (Map<String, Object>) this.parseWsBidAsk(data, (Map<String, Object>) null);
+        Object symbol = ticker.get("symbol");
         Helpers.addElementToObject(this.bidsasks, ((String)symbol), ticker);
         String channel = this.safeString(parameters, "channel");
         client.resolve(ticker, channel);
@@ -1247,7 +1247,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("watchOHLCVForSymbols", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("watchOHLCVForSymbols", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v31 -> (Map<String, Object>) hx4J40v31; case Object hx4J40v31 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v31.getClass().getName()); })));
             Integer symbolsAndTimeframesLength = ((List<?>)symbolsAndTimeframes).size();
             if (java.util.Objects.equals(symbolsAndTimeframesLength, 0) || !((symbolsAndTimeframes == null || 0 >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(0)) instanceof List))
             {
@@ -1302,7 +1302,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("unWatchOHLCV", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("unWatchOHLCV", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v30 -> (Map<String, Object>) hx4J40v30; case Object hx4J40v30 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v30.getClass().getName()); })));
             return (this.unWatchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), paramsResolved)).join();
         });
 
@@ -1328,7 +1328,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("unWatchOHLCVForSymbols", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("unWatchOHLCVForSymbols", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v29 -> (Map<String, Object>) hx4J40v29; case Object hx4J40v29 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v29.getClass().getName()); })));
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -1372,7 +1372,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe));
         Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
-        Object parsed = this.parseWsOHLCV(data, market);
+        List<Object> parsed = (List<Object>) this.parseWsOHLCV(data, market);
         stored.append(parsed);
         List<Object> resolved = new ArrayList<Object>(Arrays.asList(symbol, timeframe, stored));
         client.resolve(resolved, messageHash);
@@ -1402,7 +1402,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         return BaseExchange.supplyAsync(() -> {
 
             Object paramsResolved = this.handleRouteAndParams("watchTrades", parameters);
-            return (this.watchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), since, limit, Helpers.toMapArg(paramsResolved))).join();
+            return (this.watchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), since, limit, ((Map<String, Object>) (switch ((Object) (paramsResolved)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v28 -> (Map<String, Object>) hx4J40v28; case Object hx4J40v28 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v28.getClass().getName()); })))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1471,7 +1471,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("unWatchTrades", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("unWatchTrades", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v27 -> (Map<String, Object>) hx4J40v27; case Object hx4J40v27 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v27.getClass().getName()); })));
             return (this.unWatchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), paramsResolved)).join();
         });
 
@@ -1497,7 +1497,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("unWatchTradesForSymbols", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("unWatchTradesForSymbols", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v26 -> (Map<String, Object>) hx4J40v26; case Object hx4J40v26 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v26.getClass().getName()); })));
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -1590,7 +1590,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("watchOrderBookForSymbols", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("watchOrderBookForSymbols", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v25 -> (Map<String, Object>) hx4J40v25; case Object hx4J40v25 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v25.getClass().getName()); })));
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -1604,7 +1604,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             Map<String, Object> paramsDepthEndpoint = (Map<String, Object>) ((List<Object>) useDepthEndpointparamsDepthEndpointVariable).get(1);
             Object paramsChannel = paramsDepthEndpoint;
             Object descriptor = ((String)interval);
-            if (Helpers.isTrue(useDepthEndpoint))
+            if ((switch ((Object) (useDepthEndpoint)) { case null -> false; case Boolean hx4J40v24 -> hx4J40v24.booleanValue(); case Long hx4J40v24 -> hx4J40v24 != 0L; case Integer hx4J40v24 -> hx4J40v24 != 0; case Double hx4J40v24 -> hx4J40v24 != 0.0; case String hx4J40v24 -> !hx4J40v24.isEmpty(); case List<?> hx4J40v24 -> !hx4J40v24.isEmpty(); case Map<?, ?> hx4J40v24 -> true; default -> false; }))
             {
                 List<Object> depthparamsDepthVariable = (List<Object>) this.handleOptionAndParams(paramsDepthEndpoint, "watchOrderBookForSymbols", "depth", "20");
                 var depth = ((List<Object>) depthparamsDepthVariable).get(0);
@@ -1648,7 +1648,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("unWatchOrderBook", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("unWatchOrderBook", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v23 -> (Map<String, Object>) hx4J40v23; case Object hx4J40v23 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v23.getClass().getName()); })));
             return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), paramsResolved)).join();
         });
 
@@ -1674,7 +1674,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("unWatchOrderBookForSymbols", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("unWatchOrderBookForSymbols", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v22 -> (Map<String, Object>) hx4J40v22; case Object hx4J40v22 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v22.getClass().getName()); })));
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -1687,7 +1687,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             Map<String, Object> paramsDepthEndpoint = (Map<String, Object>) ((List<Object>) useDepthEndpointparamsDepthEndpointVariable).get(1);
             Object paramsChannel = paramsDepthEndpoint;
             Object descriptor = ((String)interval);
-            if (Helpers.isTrue(useDepthEndpoint))
+            if ((switch ((Object) (useDepthEndpoint)) { case null -> false; case Boolean hx4J40v21 -> hx4J40v21.booleanValue(); case Long hx4J40v21 -> hx4J40v21 != 0L; case Integer hx4J40v21 -> hx4J40v21 != 0; case Double hx4J40v21 -> hx4J40v21 != 0.0; case String hx4J40v21 -> !hx4J40v21.isEmpty(); case List<?> hx4J40v21 -> !hx4J40v21.isEmpty(); case Map<?, ?> hx4J40v21 -> true; default -> false; }))
             {
                 List<Object> depthparamsDepthVariable = (List<Object>) this.handleOptionAndParams(paramsDepthEndpoint, "watchOrderBookForSymbols", "depth", "20");
                 var depth = ((List<Object>) depthparamsDepthVariable).get(0);
@@ -1742,7 +1742,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         } else
         {
             Long previousChangeId = this.safeInteger(data, "prev_change_id");
-            if ((!java.util.Objects.equals(type, "snapshot")) && (!java.util.Objects.equals((orderbook == null ? null : orderbook.get("nonce")), null)) && (!Helpers.isEqual(previousChangeId, (orderbook == null ? null : orderbook.get("nonce")))))
+            if ((!java.util.Objects.equals(type, "snapshot")) && (!java.util.Objects.equals((orderbook == null ? null : orderbook.get("nonce")), null)) && (!((java.util.function.BiPredicate<Object, Object>) (hx4J40v20A, hx4J40v20B) -> { try { if (hx4J40v20A == null && hx4J40v20B == null) { return true; } if (hx4J40v20A == null || hx4J40v20B == null) { return false; } java.util.function.Predicate<Object> hx4J40v20N = hx4J40v20o -> { try { Double.parseDouble(String.valueOf(hx4J40v20o)); return true; } catch (Exception hx4J40v20e) { return false; } }; if (!hx4J40v20A.getClass().equals(hx4J40v20B.getClass()) && !(hx4J40v20N.test(hx4J40v20A) && hx4J40v20N.test(hx4J40v20B))) { return false; } java.util.function.Predicate<Object> hx4J40v20I = hx4J40v20o -> hx4J40v20o instanceof Byte || hx4J40v20o instanceof Short || hx4J40v20o instanceof Integer || hx4J40v20o instanceof Long || hx4J40v20o instanceof java.util.concurrent.atomic.AtomicInteger || hx4J40v20o instanceof java.util.concurrent.atomic.AtomicLong || ((hx4J40v20o instanceof Float || hx4J40v20o instanceof Double || hx4J40v20o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(hx4J40v20o)).stripTrailingZeros().scale() <= 0); java.util.function.ToDoubleFunction<Object> hx4J40v20D = hx4J40v20o -> { if (hx4J40v20o instanceof Double || hx4J40v20o instanceof Float || hx4J40v20o instanceof Long || hx4J40v20o instanceof Integer || hx4J40v20o instanceof java.math.BigDecimal) { return ((Number) hx4J40v20o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v20o)); } catch (NumberFormatException hx4J40v20e) { return 0.0; } }; if (hx4J40v20I.test(hx4J40v20A) && hx4J40v20I.test(hx4J40v20B)) { java.util.function.ToLongFunction<Object> hx4J40v20L = hx4J40v20o -> hx4J40v20o instanceof Long || hx4J40v20o instanceof Integer || hx4J40v20o instanceof Double || hx4J40v20o instanceof Float || hx4J40v20o instanceof java.math.BigDecimal ? ((Number) hx4J40v20o).longValue() : Long.parseLong(String.valueOf(hx4J40v20o)); return hx4J40v20L.applyAsLong(hx4J40v20A) == hx4J40v20L.applyAsLong(hx4J40v20B); } if (hx4J40v20A instanceof Double || hx4J40v20B instanceof Double) { return hx4J40v20D.applyAsDouble(hx4J40v20A) == hx4J40v20D.applyAsDouble(hx4J40v20B); } if (hx4J40v20A instanceof Float || hx4J40v20B instanceof Float) { java.util.function.Function<Object, Float> hx4J40v20F = hx4J40v20o -> hx4J40v20o instanceof Float || hx4J40v20o instanceof Double || hx4J40v20o instanceof Long || hx4J40v20o instanceof Integer || hx4J40v20o instanceof java.math.BigDecimal ? ((Number) hx4J40v20o).floatValue() : Float.parseFloat(String.valueOf(hx4J40v20o)); return hx4J40v20F.apply(hx4J40v20A).floatValue() == hx4J40v20F.apply(hx4J40v20B).floatValue(); } if (hx4J40v20A instanceof String && hx4J40v20B instanceof String) { return hx4J40v20A.equals(hx4J40v20B); } if (hx4J40v20A instanceof Boolean && hx4J40v20B instanceof Boolean) { return hx4J40v20A.equals(hx4J40v20B); } if (hx4J40v20N.test(hx4J40v20A) && hx4J40v20N.test(hx4J40v20B)) { return new java.math.BigDecimal(String.valueOf(hx4J40v20A)).compareTo(new java.math.BigDecimal(String.valueOf(hx4J40v20B))) == 0; } return false; } catch (Exception hx4J40v20e) { return false; } }).test(previousChangeId, (orderbook == null ? null : orderbook.get("nonce")))))
             {
                 // drop the stale book and reject only this channels future
                 ((Map<String,Object>)this.orderbooks).remove((String)symbol);
@@ -1816,7 +1816,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
     public void handleDeltas(Object bookside, Object deltas)
     {
-        Integer deltasLength = Helpers.getArrayLength(deltas);
+        Integer deltasLength = (switch ((Object)(deltas)) { case null -> 0; case List<?> j39v18 -> j39v18.size(); case String j39v19 -> j39v19.length(); case Object j39v20 -> j39v20.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v20) : 0; });
         for (var i = 0; (deltasLength != null && i < deltasLength); i++)
         {
             this.handleDelta(bookside, Helpers.GetValue(deltas, i));
@@ -1842,7 +1842,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         {
             String requestId = this.safeString(message, "id");
             String authRequestId = this.safeString(this.options, "wsAuthRequestId");
-            Object messageHash = (((java.util.Objects.equals(requestId, authRequestId)))) ? "authenticated" : requestId;
+            String messageHash = (((java.util.Objects.equals(requestId, authRequestId)))) ? "authenticated" : requestId;
             if ((java.util.Objects.equals(messageHash, "authenticated")) && (((Map<?, ?>)client.subscriptions).containsKey(messageHash)))
             {
                 // allow the next authenticate () call to retry
@@ -1953,7 +1953,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         Double ratio = this.safeNumber(this.options, "wsAuthRefreshRatio", (Object) null);
         Object refreshRatio = (((java.util.Objects.equals(ratio, null)))) ? 0.8 : ratio;
         Long now = this.milliseconds();
-        Helpers.addElementToObject(this.options, "wsAuthRefreshAt", this.sum(now, this.parseToInt(Helpers.multiply((expiresIn * 1000L), refreshRatio))));
+        { Map<Object, Object> j39v21 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v22 = "wsAuthRefreshAt"; Object j39v23 = this.sum(now, this.parseToInt(((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a == null || j36b == null) return null; if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) * ((Long) j36b)); java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; double j36r = j36d.applyAsDouble(j36a) * j36d.applyAsDouble(j36b); if (new java.math.BigDecimal(String.valueOf(j36r)).stripTrailingZeros().scale() <= 0) return (Object) ((long) j36r); return (Object) j36r; }).apply((expiresIn * 1000L), refreshRatio))); if (j39v21 == null) { if (j39v22 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v21) { if (j39v23 == null && j39v21 instanceof java.util.concurrent.ConcurrentHashMap) { j39v21.remove(j39v22); } else { j39v21.put(j39v22, j39v23); } } }
         client.lastPong = ((Number)now).longValue();
         client.resolve(result, "authenticated");
     }
@@ -1974,7 +1974,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("authenticate", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("authenticate", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v19 -> (Map<String, Object>) hx4J40v19; case Object hx4J40v19 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v19.getClass().getName()); })));
             Object url = this.getWsUrl(true);
             Client client = this.client(url);
             String messageHash = "authenticated";
@@ -1982,7 +1982,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             if (!java.util.Objects.equals(future, null))
             {
                 Long refreshAt = this.safeInteger(this.options, "wsAuthRefreshAt");
-                if ((!java.util.Objects.equals(refreshAt, null)) && (Helpers.isGreaterThanOrEqual(this.milliseconds(), refreshAt)) && !(((Map<?, ?>)client.futures).containsKey(messageHash)))
+                if ((!java.util.Objects.equals(refreshAt, null)) && ((refreshAt == null || (this.milliseconds()) >= refreshAt)) && !(((Map<?, ?>)client.futures).containsKey(messageHash)))
                 {
                     ((Map<String,Object>)client.subscriptions).remove(messageHash);
                     future = null;
@@ -1992,7 +1992,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             {
                 this.checkRequiredCredentials(true);
                 Object requestId = this.requestId();
-                Helpers.addElementToObject(this.options, "wsAuthRequestId", requestId);
+                { Map<Object, Object> j39v24 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v25 = "wsAuthRequestId"; Object j39v26 = requestId; if (j39v24 == null) { if (j39v25 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v24) { if (j39v26 == null && j39v24 instanceof java.util.concurrent.ConcurrentHashMap) { j39v24.remove(j39v25); } else { j39v24.put(j39v25, j39v26); } } }
                 Map<String, Object> paramsAuth = new HashMap<String, Object>() {{
                     put( "grant_type", "client_credentials" );
                     put( "client_id", Coinbaseinternational.this.apiKey );
@@ -2035,9 +2035,9 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("requestWs", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("requestWs", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v18 -> (Map<String, Object>) hx4J40v18; case Object hx4J40v18 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v18.getClass().getName()); })));
             Object url = this.getWsUrl(true);
-            if (Helpers.isTrue(java.util.Objects.requireNonNullElse(isPrivate, false)))
+            if ((switch ((Object) (java.util.Objects.requireNonNullElse(isPrivate, false))) { case null -> false; case Boolean hx4J40v17 -> hx4J40v17.booleanValue(); case Long hx4J40v17 -> hx4J40v17 != 0L; case Integer hx4J40v17 -> hx4J40v17 != 0; case Double hx4J40v17 -> hx4J40v17 != 0.0; case String hx4J40v17 -> !hx4J40v17.isEmpty(); case List<?> hx4J40v17 -> !hx4J40v17.isEmpty(); case Map<?, ?> hx4J40v17 -> true; default -> false; }))
             {
                 (this.authenticate(new HashMap<String, Object>() {{}})).join();
             }
@@ -2076,7 +2076,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("createOrderWs", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("createOrderWs", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v16 -> (Map<String, Object>) hx4J40v16; case Object hx4J40v16 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v16.getClass().getName()); })));
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -2175,7 +2175,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("editOrderWs", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("editOrderWs", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v15 -> (Map<String, Object>) hx4J40v15; case Object hx4J40v15 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v15.getClass().getName()); })));
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -2227,7 +2227,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("cancelOrderWs", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("cancelOrderWs", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v14 -> (Map<String, Object>) hx4J40v14; case Object hx4J40v14 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v14.getClass().getName()); })));
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -2267,7 +2267,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("cancelAllOrdersWs", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("cancelAllOrdersWs", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v13 -> (Map<String, Object>) hx4J40v13; case Object hx4J40v13 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v13.getClass().getName()); })));
             String method = "private/cancel_all";
             Object paramsRequest = paramsResolved;
             if (!java.util.Objects.equals(symbol, null))
@@ -2311,7 +2311,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("fetchOrderWs", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("fetchOrderWs", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v12 -> (Map<String, Object>) hx4J40v12; case Object hx4J40v12 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v12.getClass().getName()); })));
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -2351,7 +2351,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("fetchOpenOrdersWs", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("fetchOpenOrdersWs", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v11 -> (Map<String, Object>) hx4J40v11; case Object hx4J40v11 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v11.getClass().getName()); })));
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchOpenOrdersWs() requires a symbol argument")) ;
@@ -2396,7 +2396,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("fetchOrdersWs", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("fetchOrdersWs", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v10 -> (Map<String, Object>) hx4J40v10; case Object hx4J40v10 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v10.getClass().getName()); })));
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchOrdersWs() requires a symbol argument")) ;
@@ -2440,7 +2440,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("fetchBalanceWs", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("fetchBalanceWs", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v9 -> (Map<String, Object>) hx4J40v9; case Object hx4J40v9 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v9.getClass().getName()); })));
             Object result = (this.requestWs("private/get_account_summaries", paramsResolved, true)).join();
             List<Object> summaries = (List<Object>) this.safeList(result, "summaries", new ArrayList<Object>(Arrays.asList()));
             Object balance = new HashMap<String, Object>() {{
@@ -2479,7 +2479,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("fetchMyTradesWs", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("fetchMyTradesWs", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v8 -> (Map<String, Object>) hx4J40v8; case Object hx4J40v8 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v8.getClass().getName()); })));
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchMyTradesWs() requires a symbol argument")) ;
@@ -2524,7 +2524,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("fetchPositionsWs", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("fetchPositionsWs", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v7 -> (Map<String, Object>) hx4J40v7; case Object hx4J40v7 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v7.getClass().getName()); })));
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -2558,7 +2558,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("setHeartbeat", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("setHeartbeat", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v6 -> (Map<String, Object>) hx4J40v6; case Object hx4J40v6 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v6.getClass().getName()); })));
             Map<String, Object> request = this.extend(new HashMap<String, Object>() {{
                 put( "interval", java.util.Objects.requireNonNullElse(interval, 30L) );
             }}, paramsResolved);
@@ -2583,7 +2583,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("disableHeartbeat", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("disableHeartbeat", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v5 -> (Map<String, Object>) hx4J40v5; case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v5.getClass().getName()); })));
             return (this.requestWs("public/disable_heartbeat", paramsResolved, false)).join();
         });
 
@@ -2609,7 +2609,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("setCancelOnDisconnect", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("setCancelOnDisconnect", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); })));
             String method = (((java.util.Objects.equals(enabled, true)))) ? "private/enable_cancel_on_disconnect" : "private/disable_cancel_on_disconnect";
             return (this.requestWs(method, paramsResolved, true)).join();
         });
@@ -2633,7 +2633,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("getCancelOnDisconnect", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("getCancelOnDisconnect", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })));
             return (this.requestWs("private/get_cancel_on_disconnect", paramsResolved, true)).join();
         });
 
@@ -2658,8 +2658,8 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("unsubscribeAllWs", Helpers.toMapArg(parameters));
-            String method = ((Helpers.isTrue(java.util.Objects.requireNonNullElse(isPrivate, false)))) ? "private/unsubscribe_all" : "public/unsubscribe_all";
+            Object paramsResolved = this.handleRouteAndParams("unsubscribeAllWs", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })));
+            String method = (((switch ((Object) (java.util.Objects.requireNonNullElse(isPrivate, false))) { case null -> false; case Boolean hx4J40v1 -> hx4J40v1.booleanValue(); case Long hx4J40v1 -> hx4J40v1 != 0L; case Integer hx4J40v1 -> hx4J40v1 != 0; case Double hx4J40v1 -> hx4J40v1 != 0.0; case String hx4J40v1 -> !hx4J40v1.isEmpty(); case List<?> hx4J40v1 -> !hx4J40v1.isEmpty(); case Map<?, ?> hx4J40v1 -> true; default -> false; }))) ? "private/unsubscribe_all" : "public/unsubscribe_all";
             return (this.requestWs(method, paramsResolved, java.util.Objects.requireNonNullElse(isPrivate, false))).join();
         });
 
@@ -2682,7 +2682,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object paramsResolved = this.handleRouteAndParams("logoutWs", Helpers.toMapArg(parameters));
+            Object paramsResolved = this.handleRouteAndParams("logoutWs", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
             Object url = this.getWsUrl(true);
             Client client = this.client(url);

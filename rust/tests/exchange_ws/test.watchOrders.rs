@@ -30,7 +30,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // continue;
             success = Value::Bool(false);
         }
-        if (success.as_bool() == Some(true)) {
+        if is_true(&success) {
             if (response == Value::Null) {
                 panic!("{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" watch returned undefined response".into())).into()));
             }

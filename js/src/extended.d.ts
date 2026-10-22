@@ -1,5 +1,5 @@
 import Exchange from './abstract/extended.js';
-import type { Account, Balances, Currencies, Currency, CurrencyInterface, Dict, FundingHistory, FundingRateHistory, Int, int, LedgerEntry, Leverage, Market, Num, OHLCV, OpenInterest, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, CurrencyInterface, Dict, FundingHistory, FundingRateHistory, Int, int, LedgerEntry, Leverage, Market, Num, OHLCV, OpenInterest, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, NullableDict } from './base/types.js';
 /**
  * @class extended
  * @augments Exchange
@@ -7,7 +7,7 @@ import type { Account, Balances, Currencies, Currency, CurrencyInterface, Dict, 
 export default class extended extends Exchange {
     describe(): any;
     loadMarkets(reload?: boolean, params?: Dict): Promise<import("./base/types.js").Dictionary<Market>>;
-    indexByStringifiedNumericId(input: Dict): Dict | undefined;
+    indexByStringifiedNumericId(input: Dict): NullableDict;
     /**
      * @method
      * @name extended#fetchMarkets
@@ -361,7 +361,7 @@ export default class extended extends Exchange {
     fetchPositionsHistory(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
     parsePosition(position: Dict, market?: Market): Position;
     getExtendedStarkAmount(amount: string, resolution: Int, roundUp?: boolean): string;
-    fetchExtendedAccount(params?: {}): Promise<any>;
+    fetchExtendedAccount(params?: Dict): Promise<Dict>;
     createOrderSettlementData(isBuy: boolean, amountString: string, priceString: string, params?: Dict): Dict;
     createWithdrawalSettlementData(address: string, amountString: string, currency: Currency, account: Dict, params?: Dict): Dict;
     createTransferSettlementData(amountString: string, currency: Currency, account: Dict, toVault: string, toL2Key: string, params?: Dict): Dict;

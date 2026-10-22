@@ -805,7 +805,7 @@ class zaif(Exchange, ImplicitAPI):
             'info': transaction,
         }
 
-    def custom_nonce(self):
+    def custom_nonce(self) -> str:
         num = self.number_to_string(self.milliseconds() / 1000)
         nonce = float(num)
         return format(nonce, '.8f')
@@ -855,6 +855,6 @@ class zaif(Exchange, ImplicitAPI):
             self.throw_broadly_matched_exception(self.exceptions['broad'], error, feedback)
             raise ExchangeError(feedback)  # unknown message
         success = self.safe_bool(response, 'success', True)
-        if success is not True:
+        if not success:
             raise ExchangeError(feedback)
         return None

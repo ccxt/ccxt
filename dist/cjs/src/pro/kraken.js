@@ -128,7 +128,7 @@ class kraken extends kraken$1["default"] {
         }
         const isMarket = (type === 'market');
         const [postOnly, paramsPostOnly] = this.handlePostOnly(isMarket, false, params);
-        if (postOnly === true) {
+        if (postOnly) {
             request['params']['post_only'] = true;
         }
         const clientOrderId = this.safeString(paramsPostOnly, 'clientOrderId');
@@ -1059,15 +1059,11 @@ class kraken extends kraken$1["default"] {
     }
     formatNumber(data) {
         const parts = data.split('.');
-        const integer = this.safeString(parts, 0);
+        const integer = this.safeString(parts, 0, '');
         const decimals = this.safeString(parts, 1, '');
         let joinedResult = integer + decimals;
-        let i = 0;
-        while (joinedResult[i] === '0') {
-            i += 1;
-        }
-        if (i > 0) {
-            joinedResult = joinedResult.slice(i);
+        while ((joinedResult.length > 0) && (joinedResult[0] === '0')) {
+            joinedResult = joinedResult.slice(1);
         }
         return joinedResult;
     }
@@ -1107,8 +1103,9 @@ class kraken extends kraken$1["default"] {
         let subscription = this.safeValue(client.subscriptions, authenticated);
         const now = this.seconds();
         const start = this.safeInteger(subscription, 'start');
-        const expires = this.safeInteger(subscription, 'expires');
-        if ((subscription === undefined) || ((subscription !== undefined) && (start + expires) <= now)) {
+        const expires = this.safeInteger(subscription, 'expires', -1);
+        const expired = (start !== undefined) && (expires >= 0) && (start <= (now - expires));
+        if ((subscription === undefined) || expired) {
             // single-flight leader election, see
             // https://github.com/ccxt/ccxt/issues/29393: the staleness gate
             // above is followed by an awaited privatePostGetWebSocketsToken (),
@@ -1393,8 +1390,9 @@ class kraken extends kraken$1["default"] {
                 if (length === limit && (previousOrder === undefined)) {
                     const first = stored[0];
                     const symbolsByOrderId = this.safeDict(this.options, 'symbolsByOrderId', {});
-                    if (first['id'] in symbolsByOrderId) {
-                        delete symbolsByOrderId[first['id']];
+                    const firstId = this.safeString(first, 'id');
+                    if ((firstId !== undefined) && (firstId in symbolsByOrderId)) {
+                        delete symbolsByOrderId[firstId];
                     }
                 }
                 stored.append(newOrder);

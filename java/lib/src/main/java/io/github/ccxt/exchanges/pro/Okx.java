@@ -215,7 +215,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = this.market(symbol);
-                messageHashResolved = Helpers.add(messageHashResolved, (":" + market.get("id")));
+                messageHashResolved = ((Object) (switch ((Object) (messageHashResolved)) { case null -> (Object) ("null" + ((":" + market.get("id")))); case Double hx4J40v7 -> (Object) (hx4J40v7 + 0.0); case Object hx4J40v7 -> (Object) (String.valueOf(hx4J40v7) + ((":" + market.get("id")))); }));
                 firstArgument.put("instId", market.get("id"));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -379,7 +379,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.unWatchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), Helpers.toMapArg(parameters))).join();
+            return (this.unWatchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v6 -> (Map<String, Object>) hx4J40v6; case Object hx4J40v6 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v6.getClass().getName()); })))).join();
         });
 
     }
@@ -609,7 +609,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.unWatchTickers(new ArrayList<String>(Arrays.asList(symbol)), Helpers.toMapArg(parameters))).join();
+            return (this.unWatchTickers(new ArrayList<String>(Arrays.asList(symbol)), ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v5 -> (Map<String, Object>) hx4J40v5; case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v5.getClass().getName()); })))).join();
         });
 
     }
@@ -916,8 +916,8 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> ticker = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-        Object parsedTicker = this.parseWsBidAsk((Map<String, Object>) (ticker), market);
-        String symbol = (String) ((Map<String, Object>)parsedTicker).get("symbol");
+        Map<String, Object> parsedTicker = (Map<String, Object>) this.parseWsBidAsk((Map<String, Object>) (ticker), market);
+        String symbol = (String) parsedTicker.get("symbol");
         if (!java.util.Objects.equals(symbol, null))
         {
             Helpers.addElementToObject(this.bidsasks, symbol, parsedTicker);
@@ -1063,7 +1063,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         for (var i = 0; i < ((List<?>)rawLiquidations).size(); i++)
         {
             Object rawLiquidation = (rawLiquidations == null || i < 0 || i >= rawLiquidations.size() ? null : rawLiquidations.get(i));
-            Object liquidation = this.parseWsLiquidation((Map<String, Object>) (rawLiquidation), (Map<String, Object>) null);
+            Map<String, Object> liquidation = (Map<String, Object>) this.parseWsLiquidation((Map<String, Object>) (rawLiquidation), (Map<String, Object>) null);
             String symbol = this.safeString(liquidation, "symbol");
             if (java.util.Objects.equals(this.liquidations, null))
             {
@@ -1100,7 +1100,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             Boolean isTrigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             String accessType = "private";
-            if (java.util.Objects.equals(isTrigger, true))
+            if (Boolean.TRUE.equals(isTrigger))
             {
                 accessType = "business";
             }
@@ -1184,7 +1184,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 return;
             }
-            Object liquidation = this.parseWsMyLiquidation((Map<String, Object>) (rawLiquidation), (Map<String, Object>) null);
+            Map<String, Object> liquidation = (Map<String, Object>) this.parseWsMyLiquidation((Map<String, Object>) (rawLiquidation), (Map<String, Object>) null);
             String symbol = this.safeString(liquidation, "symbol");
             if (java.util.Objects.equals(this.liquidations, null))
             {
@@ -1337,7 +1337,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.unWatchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), Helpers.toMapArg(parameters))).join();
+            return (this.unWatchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); })))).join();
         });
 
     }
@@ -1716,7 +1716,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), Helpers.toMapArg(parameters))).join();
+            return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })))).join();
         });
 
     }
@@ -1742,7 +1742,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
 
     public void handleDeltas(Object bookside, Object deltas)
     {
-        for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
+        for (var i = 0; i < (switch ((Object)(deltas)) { case null -> 0; case List<?> j39v2 -> j39v2.size(); case String j39v3 -> j39v3.length(); case Object j39v4 -> j39v4.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v4) : 0; }); i++)
         {
             this.handleDelta(bookside, Helpers.GetValue(deltas, i));
         }
@@ -1780,13 +1780,9 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         Long seqId = this.safeInteger(message, "seqId");
         Long prevSeqId = this.safeInteger(message, "prevSeqId");
         Object nonce = Helpers.GetValue(orderbook, "nonce");
-        Object error = null;
-        if (!java.util.Objects.equals(prevSeqId, null) && (prevSeqId == null || prevSeqId != -1) && !Helpers.isEqual(nonce, prevSeqId))
+        if (!java.util.Objects.equals(prevSeqId, null) && (prevSeqId == null || prevSeqId != -1) && !((java.util.function.BiPredicate<Object, Object>) (hx4J40v2A, hx4J40v2B) -> { try { if (hx4J40v2A == null && hx4J40v2B == null) { return true; } if (hx4J40v2A == null || hx4J40v2B == null) { return false; } java.util.function.Predicate<Object> hx4J40v2N = hx4J40v2o -> { try { Double.parseDouble(String.valueOf(hx4J40v2o)); return true; } catch (Exception hx4J40v2e) { return false; } }; if (!hx4J40v2A.getClass().equals(hx4J40v2B.getClass()) && !(hx4J40v2N.test(hx4J40v2A) && hx4J40v2N.test(hx4J40v2B))) { return false; } java.util.function.Predicate<Object> hx4J40v2I = hx4J40v2o -> hx4J40v2o instanceof Byte || hx4J40v2o instanceof Short || hx4J40v2o instanceof Integer || hx4J40v2o instanceof Long || hx4J40v2o instanceof java.util.concurrent.atomic.AtomicInteger || hx4J40v2o instanceof java.util.concurrent.atomic.AtomicLong || ((hx4J40v2o instanceof Float || hx4J40v2o instanceof Double || hx4J40v2o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(hx4J40v2o)).stripTrailingZeros().scale() <= 0); java.util.function.ToDoubleFunction<Object> hx4J40v2D = hx4J40v2o -> { if (hx4J40v2o instanceof Double || hx4J40v2o instanceof Float || hx4J40v2o instanceof Long || hx4J40v2o instanceof Integer || hx4J40v2o instanceof java.math.BigDecimal) { return ((Number) hx4J40v2o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v2o)); } catch (NumberFormatException hx4J40v2e) { return 0.0; } }; if (hx4J40v2I.test(hx4J40v2A) && hx4J40v2I.test(hx4J40v2B)) { java.util.function.ToLongFunction<Object> hx4J40v2L = hx4J40v2o -> hx4J40v2o instanceof Long || hx4J40v2o instanceof Integer || hx4J40v2o instanceof Double || hx4J40v2o instanceof Float || hx4J40v2o instanceof java.math.BigDecimal ? ((Number) hx4J40v2o).longValue() : Long.parseLong(String.valueOf(hx4J40v2o)); return hx4J40v2L.applyAsLong(hx4J40v2A) == hx4J40v2L.applyAsLong(hx4J40v2B); } if (hx4J40v2A instanceof Double || hx4J40v2B instanceof Double) { return hx4J40v2D.applyAsDouble(hx4J40v2A) == hx4J40v2D.applyAsDouble(hx4J40v2B); } if (hx4J40v2A instanceof Float || hx4J40v2B instanceof Float) { java.util.function.Function<Object, Float> hx4J40v2F = hx4J40v2o -> hx4J40v2o instanceof Float || hx4J40v2o instanceof Double || hx4J40v2o instanceof Long || hx4J40v2o instanceof Integer || hx4J40v2o instanceof java.math.BigDecimal ? ((Number) hx4J40v2o).floatValue() : Float.parseFloat(String.valueOf(hx4J40v2o)); return hx4J40v2F.apply(hx4J40v2A).floatValue() == hx4J40v2F.apply(hx4J40v2B).floatValue(); } if (hx4J40v2A instanceof String && hx4J40v2B instanceof String) { return hx4J40v2A.equals(hx4J40v2B); } if (hx4J40v2A instanceof Boolean && hx4J40v2B instanceof Boolean) { return hx4J40v2A.equals(hx4J40v2B); } if (hx4J40v2N.test(hx4J40v2A) && hx4J40v2N.test(hx4J40v2B)) { return new java.math.BigDecimal(String.valueOf(hx4J40v2A)).compareTo(new java.math.BigDecimal(String.valueOf(hx4J40v2B))) == 0; } return false; } catch (Exception hx4J40v2e) { return false; } }).test(nonce, prevSeqId))
         {
-            error = new InvalidNonce((this.id + " watchOrderBook received invalid nonce"));
-        }
-        if (!java.util.Objects.equals(error, null))
-        {
+            var error = new InvalidNonce((this.id + " watchOrderBook received invalid nonce"));
             ((Map<String,Object>)client.subscriptions).remove((String)messageHash);
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -2192,7 +2188,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String access = "private";
-            if (java.util.Objects.equals(isTrigger, true))
+            if (Boolean.TRUE.equals(isTrigger))
             {
                 access = "business";
             }
@@ -2200,7 +2196,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             mapLiteral6.put("access", access);
             (this.authenticate(mapLiteral6)).join();
             String channel = "orders";
-            if (java.util.Objects.equals(isTrigger, true))
+            if (Boolean.TRUE.equals(isTrigger))
             {
                 channel = "orders-algo";
             }
@@ -2242,7 +2238,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
+            return this.filterBySymbolSinceLimit(orders, java.util.Objects.toString(symbolResolved, null), since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -2384,7 +2380,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         {
             Object rawPosition = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (rawPosition), (Map<String, Object>) null);
-            if (Helpers.isEqual(position.get("contracts"), 0) && java.util.Objects.equals(this.safeString(rawPosition, "posSide"), "net"))
+            if ((switch ((Object) (position.get("contracts"))) { case null -> false; case Long hx4J40v0 -> hx4J40v0 == 0L; case Integer hx4J40v0 -> hx4J40v0 == 0L; case Double hx4J40v0 -> hx4J40v0 == 0L; case Float hx4J40v0 -> hx4J40v0.doubleValue() == 0L; case java.math.BigDecimal hx4J40v0 -> hx4J40v0.stripTrailingZeros().scale() <= 0 && hx4J40v0.longValue() == 0L; case Object hx4J40v0 -> { try { String hx4J40v0t = String.valueOf(hx4J40v0); Double.parseDouble(hx4J40v0t); yield new java.math.BigDecimal(hx4J40v0t).compareTo(java.math.BigDecimal.valueOf(0L)) == 0; } catch (NumberFormatException hx4J40v0x) { yield false; } } }) && java.util.Objects.equals(this.safeString(rawPosition, "posSide"), "net"))
             {
                 position.put("side", "long");
                 Object shortPosition = this.clone(position);
@@ -2433,7 +2429,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String accessType = "private";
-            if (java.util.Objects.equals(isTrigger, true))
+            if (Boolean.TRUE.equals(isTrigger))
             {
                 accessType = "business";
             }
@@ -2471,7 +2467,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("instType", uppercaseType);
             String channel = "orders";
-            if (java.util.Objects.equals(isTrigger, true))
+            if (Boolean.TRUE.equals(isTrigger))
             {
                 channel = "orders-algo";
             }
@@ -2922,9 +2918,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             }};
             for (var i = 0; (idsLength != null && i < idsLength); i++)
             {
-                Map<String, Object> arg = this.extend(instParams, Helpers.newMap(
-                    "ordId", (ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i))
-                ));
+                Map<String, Object> arg = this.extend(instParams, (switch (0) { default -> { HashMap<String, Object> j39v8 = new HashMap<String, Object>(); j39v8.put("ordId", (ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i))); yield j39v8; } }));
                 ((List<Object>)args).add(arg);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3274,7 +3268,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
 
     public void handleUnsubscriptionOHLCV(Client client, String symbol, Object channel)
     {
-        String tf = Helpers.replace(((String)channel), "candle", "");
+        String tf = (channel == null ? null : ((String)channel).replaceFirst("candle", ""));
         String timeframe = this.findTimeframe(tf, (Object) null);
         if (java.util.Objects.equals(timeframe, null))
         {

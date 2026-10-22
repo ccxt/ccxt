@@ -30,7 +30,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             success = Value::Bool(false);
         }
         now = exchange.milliseconds();
-        if (success.as_bool() == Some(true)) && (response != Value::Null) {
+        if is_true(&(success)) && (response != Value::Null) {
             assert!(ccxt::runtime::is_true(&((matches!(&response, Value::Arr(_))))));
             {
                                 let mut i: Value = Value::Int(0);

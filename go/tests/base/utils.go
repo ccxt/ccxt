@@ -370,8 +370,8 @@ func CallMethod(testFiles2 any, methodName2 any, exchange any, skippedProperties
 				if !ok {
 					break // result channel is closed
 				}
-				if outcome, isOutcome := val.Interface().(ccxt.AsyncOutcome); isOutcome {
-					ch <- ccxt.AsyncResult[any]{Value: outcome.Boxed(), Err: outcome.Failure()}
+				if outcome, isOutcome := val.Interface().(ccxt.UntypedOutcome); isOutcome {
+					ch <- ccxt.AsyncResult[any]{Value: VacantAsNil(outcome.Untyped()), Err: outcome.Failure()}
 				} else {
 					ch <- ccxt.AsyncResult[any]{Value: val.Interface()}
 				}
@@ -465,6 +465,62 @@ func CallExchangeMethodDynamically(exchange any, methodName2 any, args2 any) <-c
 // unified structs a core may return instead of a map (grows with each struct-typed family)
 var detypedStructs = map[reflect.Type]bool{
 	reflect.TypeOf(ccxt.Ticker{}): true,
+	reflect.TypeOf(ccxt.Order{}):  true,
+	reflect.TypeOf(ccxt.Trade{}):  true,
+	reflect.TypeOf(ccxt.Fee{}):    true,
+}
+
+// VacantAsNil reads an absent typed result (zero struct, nil or empty typed map/slice) as nil,
+// matching the undefined the static fixtures store.
+func VacantAsNil(value any) any {
+	rv := reflect.ValueOf(value)
+	switch rv.Kind() {
+	case reflect.Invalid:
+		return nil
+	case reflect.Struct:
+		if rv.IsZero() {
+			return nil
+		}
+	case reflect.Ptr, reflect.Map, reflect.Slice:
+		if rv.IsNil() {
+			return nil
+		}
+		if _, isOhlcvs := value.(map[string]map[string][]ccxt.OHLCV); isOhlcvs && rv.Len() == 0 {
+			return nil
+		}
+	}
+	return value
+}
+
+// detypedLists: list-of-struct results onto the []any of maps the fixtures store.
+var detypedLists = map[reflect.Type]func(any) any{
+	reflect.TypeOf([]ccxt.Trade(nil)):                func(v any) any { return ccxt.TradesToList(v.([]ccxt.Trade)) },
+	reflect.TypeOf([]ccxt.Order(nil)):                func(v any) any { return ccxt.OrdersToList(v.([]ccxt.Order)) },
+	reflect.TypeOf([]ccxt.OHLCV(nil)):                func(v any) any { return ccxt.OHLCVsToList(v.([]ccxt.OHLCV)) },
+	reflect.TypeOf([]ccxt.Position(nil)):             func(v any) any { return ccxt.PositionsToList(v.([]ccxt.Position)) },
+	reflect.TypeOf([]ccxt.Transaction(nil)):          func(v any) any { return ccxt.TransactionsToList(v.([]ccxt.Transaction)) },
+	reflect.TypeOf([]ccxt.LedgerEntry(nil)):          func(v any) any { return ccxt.LedgerEntriesToList(v.([]ccxt.LedgerEntry)) },
+	reflect.TypeOf([]ccxt.DepositAddress(nil)):       func(v any) any { return ccxt.DepositAddressesToList(v.([]ccxt.DepositAddress)) },
+	reflect.TypeOf([]ccxt.TransferEntry(nil)):        func(v any) any { return ccxt.TransferEntriesToList(v.([]ccxt.TransferEntry)) },
+	reflect.TypeOf([]ccxt.OpenInterest(nil)):         func(v any) any { return ccxt.OpenInterestsToList(v.([]ccxt.OpenInterest)) },
+	reflect.TypeOf([]ccxt.Conversion(nil)):           func(v any) any { return ccxt.ConversionsToList(v.([]ccxt.Conversion)) },
+	reflect.TypeOf([]ccxt.Liquidation(nil)):          func(v any) any { return ccxt.LiquidationsToList(v.([]ccxt.Liquidation)) },
+	reflect.TypeOf([]ccxt.BorrowInterest(nil)):       func(v any) any { return ccxt.BorrowInterestsToList(v.([]ccxt.BorrowInterest)) },
+	reflect.TypeOf([]ccxt.FundingHistory(nil)):       func(v any) any { return ccxt.FundingHistoriesToList(v.([]ccxt.FundingHistory)) },
+	reflect.TypeOf([]ccxt.FundingRateHistory(nil)):   func(v any) any { return ccxt.FundingRateHistoriesToList(v.([]ccxt.FundingRateHistory)) },
+	reflect.TypeOf([]ccxt.LeverageTier(nil)):         func(v any) any { return ccxt.LeverageTiersToList(v.([]ccxt.LeverageTier)) },
+	reflect.TypeOf([]ccxt.MarginModification(nil)):   func(v any) any { return ccxt.MarginModificationsToList(v.([]ccxt.MarginModification)) },
+	reflect.TypeOf([]ccxt.LongShortRatio(nil)):       func(v any) any { return ccxt.LongShortRatiosToList(v.([]ccxt.LongShortRatio)) },
+	reflect.TypeOf([]ccxt.ADL(nil)):                  func(v any) any { return ccxt.ADLsToList(v.([]ccxt.ADL)) },
+	reflect.TypeOf([]ccxt.Account(nil)):              func(v any) any { return ccxt.AccountsToList(v.([]ccxt.Account)) },
+	reflect.TypeOf([]ccxt.PredictionOrder(nil)):      func(v any) any { return ccxt.PredictionOrdersToList(v.([]ccxt.PredictionOrder)) },
+	reflect.TypeOf([]ccxt.PredictionTrade(nil)):      func(v any) any { return ccxt.PredictionTradesToList(v.([]ccxt.PredictionTrade)) },
+	reflect.TypeOf([]ccxt.PredictionPosition(nil)):   func(v any) any { return ccxt.PredictionPositionsToList(v.([]ccxt.PredictionPosition)) },
+	reflect.TypeOf([]ccxt.PredictionEvent(nil)):      func(v any) any { return ccxt.PredictionEventsToList(v.([]ccxt.PredictionEvent)) },
+	reflect.TypeOf([]ccxt.PredictionSettlement(nil)): func(v any) any { return ccxt.PredictionSettlementsToList(v.([]ccxt.PredictionSettlement)) },
+	reflect.TypeOf([]ccxt.MarketInterface(nil)):      func(v any) any { return ccxt.MarketInterfacesToList(v.([]ccxt.MarketInterface)) },
+	reflect.TypeOf([]map[string]any(nil)):            func(v any) any { return ccxt.MapSliceToList(v.([]map[string]any)) },
+	reflect.TypeOf([]string(nil)):                    func(v any) any { return ccxt.StringSliceToList(v.([]string)) },
 }
 
 // DetypeForComparison projects unified Go structs (Ticker, ...) and containers of them onto
@@ -473,7 +529,40 @@ func DetypeForComparison(value any) any {
 	if value == nil {
 		return nil
 	}
+	if ob, isOb := value.(ccxt.OrderBook); isOb {
+		return ccxt.OrderBookToMap(ob)
+	}
+	if ob3, isOb3 := value.(ccxt.OrderBookL3); isOb3 {
+		return ccxt.OrderBookL3ToMap(ob3)
+	}
+	if dwf, isDwf := value.(ccxt.DepositWithdrawFee); isDwf {
+		return ccxt.DepositWithdrawFeeToMap(dwf)
+	}
+	if bals, isBals := value.(ccxt.Balances); isBals {
+		return ccxt.BalancesToMap(bals)
+	}
+	if lt, isLt := value.(ccxt.LeverageTiers); isLt {
+		return ccxt.LeverageTiersToMap(lt)
+	}
+	if pob, isPob := value.(ccxt.PredictionOrderBook); isPob {
+		return ccxt.PredictionOrderBookToMap(pob)
+	}
+	if mi, isMi := value.(ccxt.MarketInterface); isMi {
+		return ccxt.MarketInterfaceToMap(mi)
+	}
+	if cur, isCur := value.(ccxt.Currency); isCur {
+		return ccxt.CurrencyToMap(cur)
+	}
+	if curs, isCurs := value.(ccxt.Currencies); isCurs {
+		return ccxt.CurrenciesToMap(curs)
+	}
+	if ohlcvs, isOhlcvs := value.(map[string]map[string][]ccxt.OHLCV); isOhlcvs {
+		return ccxt.OHLCVForSymbolsMapToMap(ohlcvs)
+	}
 	rv := reflect.ValueOf(value)
+	if toList, isList := detypedLists[rv.Type()]; isList && !rv.IsNil() {
+		return toList(value)
+	}
 	switch rv.Kind() {
 	case reflect.Struct:
 		if !detypedStructs[rv.Type()] {
@@ -495,7 +584,36 @@ func DetypeForComparison(value any) any {
 			if fv.Kind() == reflect.Ptr {
 				fv = fv.Elem()
 			}
-			out[strings.ToLower(field.Name[:1])+field.Name[1:]] = DetypeForComparison(fv.Interface())
+			detyped := DetypeForComparison(fv.Interface())
+			if fv.Kind() == reflect.Struct && fv.Type() == reflect.TypeOf(ccxt.Fee{}) {
+				if m, isMap := detyped.(map[string]any); isMap {
+					vacant := true
+					for _, mv := range m {
+						if mv != nil {
+							vacant = false
+							break
+						}
+					}
+					if vacant {
+						detyped = nil
+					}
+				}
+			}
+			out[strings.ToLower(field.Name[:1])+field.Name[1:]] = detyped
+		}
+		if _, isTx := value.(ccxt.Transaction); isTx {
+			out["txid"] = out["txId"]
+			delete(out, "txId")
+		}
+		if l, isLimits := value.(ccxt.Limits); isLimits && l.Market == nil {
+			delete(out, "market")
+		}
+		if _, isPos := value.(ccxt.Position); isPos {
+			for _, k := range []string{"timestamp", "lastUpdateTimestamp"} {
+				if f, isFloat := out[k].(float64); isFloat && f == float64(int64(f)) {
+					out[k] = int64(f)
+				}
+			}
 		}
 		return out
 	case reflect.Map:
@@ -508,7 +626,7 @@ func DetypeForComparison(value any) any {
 		}
 		return out
 	case reflect.Slice:
-		if k := rv.Type().Elem().Kind(); rv.IsNil() || (k != reflect.Struct && k != reflect.Interface && k != reflect.Map) {
+		if k := rv.Type().Elem().Kind(); rv.IsNil() || (k != reflect.Struct && k != reflect.Interface && k != reflect.Map && k != reflect.String) {
 			return value
 		}
 		out := make([]any, rv.Len())

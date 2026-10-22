@@ -1,5 +1,5 @@
 import cryptocomRest from '../cryptocom.js';
-import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, OHLCV, Position, Balances, Num, Dict, Tickers, Market, Bool } from '../base/types.js';
+import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, OHLCV, Position, Balances, Num, Dict, Tickers, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class cryptocom extends cryptocomRest {
     describe(): any;
@@ -290,7 +290,7 @@ export default class cryptocom extends cryptocomRest {
     unWatchPublicMultiple(topic: string, symbols: string[], messageHashes: string[], subMessageHashes: string[], topics: string[], params?: Dict, subExtend?: Dict): Promise<any>;
     watchPrivateRequest(nonce: number, params?: Dict): Promise<any>;
     watchPrivateSubscribe(messageHash: Str, params?: Dict): Promise<any>;
-    handleErrorMessage(client: Client, message: Dict): Bool;
+    handleErrorMessage(client: Client, message: Dict): boolean;
     handleSubscribe(client: Client, message: Dict): void;
     handleMessage(client: Client, message: Dict): void;
     authenticate(params?: Dict): Promise<any>;

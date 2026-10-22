@@ -163,7 +163,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         Object requestId;
         synchronized (this) {
         requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
-        Helpers.addElementToObject(this.options, "requestId", requestId);
+        { Map<Object, Object> j39v1 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v2 = "requestId"; Object j39v3 = requestId; if (j39v1 == null) { if (j39v2 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v1) { if (j39v3 == null && j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); } else { j39v1.put(j39v2, j39v3); } } }
         }
         return (String) (String.valueOf(requestId));
     }
@@ -680,27 +680,27 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             }
             snapshot.put("nonce", nonce);
             Long snapshotTimestamp = this.safeInteger(message, "ts");
-            Helpers.addElementToObject(subscription, "lastTimestamp", snapshotTimestamp);
+            { Map<Object, Object> j39v4 = (Map<Object, Object>) (Map<?, ?>) (subscription); Object j39v5 = "lastTimestamp"; Object j39v6 = snapshotTimestamp; if (j39v4 == null) { if (j39v5 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v4) { if (j39v6 == null && j39v4 instanceof java.util.concurrent.ConcurrentHashMap) { j39v4.remove(j39v5); } else { j39v4.put(j39v5, j39v6); } } }
             Long snapshotLimit = this.safeInteger(subscription, "limit");
             io.github.ccxt.ws.WsOrderBook snapshotOrderBook = this.orderBook(snapshot, snapshotLimit);
             client.resolve(snapshotOrderBook, id);
             if ((java.util.Objects.equals(sequence, null)) || ((sequence != null && (nonce == null || nonce < sequence))))
             {
-                Object maxAttempts = this.handleOption("watchOrderBook", "maxRetries", 3);
-                Object numAttempts = this.safeInteger(subscription, "numAttempts", 0);
+                Long maxAttempts = this.parseToInt(this.handleOption("watchOrderBook", "maxRetries", 3));
+                Long numAttempts = this.safeInteger(subscription, "numAttempts", 0);
                 // retry to synchronize if we have not reached maxAttempts yet
-                if (Helpers.isLessThan(numAttempts, maxAttempts))
+                if ((maxAttempts != null && (numAttempts == null || numAttempts < maxAttempts)))
                 {
                     // safety guard
                     if (((Map<?, ?>)client.subscriptions).containsKey(messageHash))
                     {
-                        numAttempts = this.sum(numAttempts, 1);
+                        Object nextAttempts = this.sum(numAttempts, 1);
                         Object delayTime = 1000;
                         if ((!java.util.Objects.equals(lastTimestamp, null)) && (!java.util.Objects.equals(snapshotTimestamp, null)))
                         {
                             delayTime = this.sum(1000, (lastTimestamp - snapshotTimestamp));
                         }
-                        subscription.put("numAttempts", numAttempts);
+                        subscription.put("numAttempts", nextAttempts);
                         ((Map)client.subscriptions).put(messageHash, subscription);
                         this.scheduleCallback(delayTime, "watchOrderBookSnapshot", client, message, subscription);
                     }
@@ -716,7 +716,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 {
                     this.handleOrderBookMessage(client, (Map<String, Object>) ((messages == null || i < 0 || i >= messages.size() ? null : messages.get(i))));
                 }
-                Helpers.addElementToObject(orderbook, "cache", new ArrayList<Object>(Arrays.asList()));
+                orderbook.put("cache", new ArrayList<Object>(Arrays.asList()));
                 if (!java.util.Objects.equals(symbol, null))
                 {
                     Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
@@ -791,7 +791,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
 
     public void handleDeltas(Object bookside, Object deltas)
     {
-        for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
+        for (var i = 0; i < (switch ((Object)(deltas)) { case null -> 0; case List<?> j39v8 -> j39v8.size(); case String j39v9 -> j39v9.length(); case Object j39v10 -> j39v10.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v10) : 0; }); i++)
         {
             this.handleDelta(bookside, Helpers.GetValue(deltas, i));
         }
@@ -866,7 +866,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         //     }
         //
         Object ch = this.safeValue(message, "ch");
-        List<Object> parts = (List<Object>) Helpers.split(ch, ".");
+        List<Object> parts = (List<Object>) ((java.util.function.BiFunction<Object, Object, Object>) (hx4J43a5, hx4J43b5) -> { if (hx4J43a5 == null || hx4J43b5 == null) { return java.util.Collections.emptyList(); } return Arrays.asList(String.valueOf(hx4J43a5).split(java.util.regex.Pattern.quote(String.valueOf(hx4J43b5)))); }).apply(ch, ".");
         String marketId = this.safeString(parts, 1);
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) market.get("symbol");
@@ -883,7 +883,8 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             orderbook.reset(snapshot);
             orderbook.put("nonce", version);
         }
-        if ((!java.util.Objects.equals(prevSeqNum, null)) && Helpers.isGreaterThan(prevSeqNum, this.safeInteger(orderbook, "nonce", 0)))
+        Long orderbookNonce = this.safeInteger(orderbook, "nonce", 0);
+        if ((!java.util.Objects.equals(prevSeqNum, null)) && (prevSeqNum != null && (orderbookNonce == null || prevSeqNum > orderbookNonce)))
         {
             Object checksum = this.handleOption("watchOrderBook", "checksum", true);
             if (java.util.Objects.equals(checksum, true))
@@ -891,15 +892,15 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 throw new ChecksumError(((this.id + " ") + this.orderbookChecksumMessage(symbol))) ;
             }
         }
-        Boolean spotConditon = (java.util.Objects.equals(market.get("spot"), true)) && (Helpers.isEqual(prevSeqNum, (orderbook == null ? null : orderbook.get("nonce"))));
-        Boolean nonSpotCondition = (java.util.Objects.equals(market.get("contract"), true)) && (!java.util.Objects.equals(version, null)) && (Helpers.isEqual((version - 1L), (orderbook == null ? null : orderbook.get("nonce"))));
-        if ((java.util.Objects.equals(spotConditon, true)) || (java.util.Objects.equals(nonSpotCondition, true)))
+        Boolean spotConditon = (java.util.Objects.equals(market.get("spot"), true)) && (((java.util.function.BiPredicate<Object, Object>) (hx4J40v7A, hx4J40v7B) -> { try { if (hx4J40v7A == null && hx4J40v7B == null) { return true; } if (hx4J40v7A == null || hx4J40v7B == null) { return false; } java.util.function.Predicate<Object> hx4J40v7N = hx4J40v7o -> { try { Double.parseDouble(String.valueOf(hx4J40v7o)); return true; } catch (Exception hx4J40v7e) { return false; } }; if (!hx4J40v7A.getClass().equals(hx4J40v7B.getClass()) && !(hx4J40v7N.test(hx4J40v7A) && hx4J40v7N.test(hx4J40v7B))) { return false; } java.util.function.Predicate<Object> hx4J40v7I = hx4J40v7o -> hx4J40v7o instanceof Byte || hx4J40v7o instanceof Short || hx4J40v7o instanceof Integer || hx4J40v7o instanceof Long || hx4J40v7o instanceof java.util.concurrent.atomic.AtomicInteger || hx4J40v7o instanceof java.util.concurrent.atomic.AtomicLong || ((hx4J40v7o instanceof Float || hx4J40v7o instanceof Double || hx4J40v7o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(hx4J40v7o)).stripTrailingZeros().scale() <= 0); java.util.function.ToDoubleFunction<Object> hx4J40v7D = hx4J40v7o -> { if (hx4J40v7o instanceof Double || hx4J40v7o instanceof Float || hx4J40v7o instanceof Long || hx4J40v7o instanceof Integer || hx4J40v7o instanceof java.math.BigDecimal) { return ((Number) hx4J40v7o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v7o)); } catch (NumberFormatException hx4J40v7e) { return 0.0; } }; if (hx4J40v7I.test(hx4J40v7A) && hx4J40v7I.test(hx4J40v7B)) { java.util.function.ToLongFunction<Object> hx4J40v7L = hx4J40v7o -> hx4J40v7o instanceof Long || hx4J40v7o instanceof Integer || hx4J40v7o instanceof Double || hx4J40v7o instanceof Float || hx4J40v7o instanceof java.math.BigDecimal ? ((Number) hx4J40v7o).longValue() : Long.parseLong(String.valueOf(hx4J40v7o)); return hx4J40v7L.applyAsLong(hx4J40v7A) == hx4J40v7L.applyAsLong(hx4J40v7B); } if (hx4J40v7A instanceof Double || hx4J40v7B instanceof Double) { return hx4J40v7D.applyAsDouble(hx4J40v7A) == hx4J40v7D.applyAsDouble(hx4J40v7B); } if (hx4J40v7A instanceof Float || hx4J40v7B instanceof Float) { java.util.function.Function<Object, Float> hx4J40v7F = hx4J40v7o -> hx4J40v7o instanceof Float || hx4J40v7o instanceof Double || hx4J40v7o instanceof Long || hx4J40v7o instanceof Integer || hx4J40v7o instanceof java.math.BigDecimal ? ((Number) hx4J40v7o).floatValue() : Float.parseFloat(String.valueOf(hx4J40v7o)); return hx4J40v7F.apply(hx4J40v7A).floatValue() == hx4J40v7F.apply(hx4J40v7B).floatValue(); } if (hx4J40v7A instanceof String && hx4J40v7B instanceof String) { return hx4J40v7A.equals(hx4J40v7B); } if (hx4J40v7A instanceof Boolean && hx4J40v7B instanceof Boolean) { return hx4J40v7A.equals(hx4J40v7B); } if (hx4J40v7N.test(hx4J40v7A) && hx4J40v7N.test(hx4J40v7B)) { return new java.math.BigDecimal(String.valueOf(hx4J40v7A)).compareTo(new java.math.BigDecimal(String.valueOf(hx4J40v7B))) == 0; } return false; } catch (Exception hx4J40v7e) { return false; } }).test(prevSeqNum, (orderbook == null ? null : orderbook.get("nonce"))));
+        Boolean nonSpotCondition = (java.util.Objects.equals(market.get("contract"), true)) && (!java.util.Objects.equals(version, null)) && (((java.util.function.BiPredicate<Object, Object>) (hx4J40v6A, hx4J40v6B) -> { try { if (hx4J40v6A == null && hx4J40v6B == null) { return true; } if (hx4J40v6A == null || hx4J40v6B == null) { return false; } java.util.function.Predicate<Object> hx4J40v6N = hx4J40v6o -> { try { Double.parseDouble(String.valueOf(hx4J40v6o)); return true; } catch (Exception hx4J40v6e) { return false; } }; if (!hx4J40v6A.getClass().equals(hx4J40v6B.getClass()) && !(hx4J40v6N.test(hx4J40v6A) && hx4J40v6N.test(hx4J40v6B))) { return false; } java.util.function.Predicate<Object> hx4J40v6I = hx4J40v6o -> hx4J40v6o instanceof Byte || hx4J40v6o instanceof Short || hx4J40v6o instanceof Integer || hx4J40v6o instanceof Long || hx4J40v6o instanceof java.util.concurrent.atomic.AtomicInteger || hx4J40v6o instanceof java.util.concurrent.atomic.AtomicLong || ((hx4J40v6o instanceof Float || hx4J40v6o instanceof Double || hx4J40v6o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(hx4J40v6o)).stripTrailingZeros().scale() <= 0); java.util.function.ToDoubleFunction<Object> hx4J40v6D = hx4J40v6o -> { if (hx4J40v6o instanceof Double || hx4J40v6o instanceof Float || hx4J40v6o instanceof Long || hx4J40v6o instanceof Integer || hx4J40v6o instanceof java.math.BigDecimal) { return ((Number) hx4J40v6o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v6o)); } catch (NumberFormatException hx4J40v6e) { return 0.0; } }; if (hx4J40v6I.test(hx4J40v6A) && hx4J40v6I.test(hx4J40v6B)) { java.util.function.ToLongFunction<Object> hx4J40v6L = hx4J40v6o -> hx4J40v6o instanceof Long || hx4J40v6o instanceof Integer || hx4J40v6o instanceof Double || hx4J40v6o instanceof Float || hx4J40v6o instanceof java.math.BigDecimal ? ((Number) hx4J40v6o).longValue() : Long.parseLong(String.valueOf(hx4J40v6o)); return hx4J40v6L.applyAsLong(hx4J40v6A) == hx4J40v6L.applyAsLong(hx4J40v6B); } if (hx4J40v6A instanceof Double || hx4J40v6B instanceof Double) { return hx4J40v6D.applyAsDouble(hx4J40v6A) == hx4J40v6D.applyAsDouble(hx4J40v6B); } if (hx4J40v6A instanceof Float || hx4J40v6B instanceof Float) { java.util.function.Function<Object, Float> hx4J40v6F = hx4J40v6o -> hx4J40v6o instanceof Float || hx4J40v6o instanceof Double || hx4J40v6o instanceof Long || hx4J40v6o instanceof Integer || hx4J40v6o instanceof java.math.BigDecimal ? ((Number) hx4J40v6o).floatValue() : Float.parseFloat(String.valueOf(hx4J40v6o)); return hx4J40v6F.apply(hx4J40v6A).floatValue() == hx4J40v6F.apply(hx4J40v6B).floatValue(); } if (hx4J40v6A instanceof String && hx4J40v6B instanceof String) { return hx4J40v6A.equals(hx4J40v6B); } if (hx4J40v6A instanceof Boolean && hx4J40v6B instanceof Boolean) { return hx4J40v6A.equals(hx4J40v6B); } if (hx4J40v6N.test(hx4J40v6A) && hx4J40v6N.test(hx4J40v6B)) { return new java.math.BigDecimal(String.valueOf(hx4J40v6A)).compareTo(new java.math.BigDecimal(String.valueOf(hx4J40v6B))) == 0; } return false; } catch (Exception hx4J40v6e) { return false; } }).test((version - 1L), (orderbook == null ? null : orderbook.get("nonce"))));
+        if (Boolean.TRUE.equals(spotConditon) || Boolean.TRUE.equals(nonSpotCondition))
         {
             List<Object> asks = (List<Object>) this.safeList(tick, "asks", new ArrayList<Object>(Arrays.asList()));
             List<Object> bids = (List<Object>) this.safeList(tick, "bids", new ArrayList<Object>(Arrays.asList()));
             this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), asks);
             this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), bids);
-            orderbook.put("nonce", (((java.util.Objects.equals(spotConditon, true)))) ? seqNum : version);
+            orderbook.put("nonce", ((Boolean.TRUE.equals(spotConditon))) ? seqNum : version);
             orderbook.put("timestamp", timestamp);
             orderbook.put("datetime", this.iso8601(timestamp));
         }
@@ -998,7 +999,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             }
             io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
             orderbook.put("nonce", null);
-            Helpers.addElementToObject(orderbook, "cache", new ArrayList<Object>(Arrays.asList()));
+            orderbook.put("cache", new ArrayList<Object>(Arrays.asList()));
         }
         if (java.util.Objects.equals(market.get("spot"), true))
         {
@@ -1067,13 +1068,13 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 channel = messageHash;
             } else if (Boolean.TRUE.equals(isV5Linear))
             {
-                Object channelAndMessageHashAndParams = this.getV5LinearChannelAndMessageHash("trade", market, paramsRequest);
+                List<Object> channelAndMessageHashAndParams = (List<Object>) this.getV5LinearChannelAndMessageHash("trade", market, paramsRequest);
                 channel = this.safeString(channelAndMessageHashAndParams, 0);
                 messageHash = this.safeString(channelAndMessageHashAndParams, 1);
                 paramsRequest = (Map<String, Object>) this.safeDict(channelAndMessageHashAndParams, 2, new HashMap<String, Object>() {{}});
             } else
             {
-                Object channelAndMessageHash = this.getOrderChannelAndMessageHash((String) (type), (String) (subType), market, paramsRequest);
+                List<Object> channelAndMessageHash = (List<Object>) this.getOrderChannelAndMessageHash((String) (type), (String) (subType), market, paramsRequest);
                 channel = this.safeString(channelAndMessageHash, 0);
                 String orderMessageHash = this.safeString(channelAndMessageHash, 1);
                 // we will take advantage of the order messageHash because already handles stuff
@@ -1239,13 +1240,13 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 channel = messageHash;
             } else if (Boolean.TRUE.equals(isV5Linear))
             {
-                Object channelAndMessageHashAndParams = this.getV5LinearChannelAndMessageHash("orders", market, paramsRequest);
+                List<Object> channelAndMessageHashAndParams = (List<Object>) this.getV5LinearChannelAndMessageHash("orders", market, paramsRequest);
                 channel = this.safeString(channelAndMessageHashAndParams, 0);
                 messageHash = this.safeString(channelAndMessageHashAndParams, 1);
                 paramsRequest = (Map<String, Object>) this.safeDict(channelAndMessageHashAndParams, 2, new HashMap<String, Object>() {{}});
             } else
             {
-                Object channelAndMessageHash = this.getOrderChannelAndMessageHash((String) (type), (String) (subType), market, paramsRequest);
+                List<Object> channelAndMessageHash = (List<Object>) this.getOrderChannelAndMessageHash((String) (type), (String) (subType), market, paramsRequest);
                 channel = this.safeString(channelAndMessageHash, 0);
                 messageHash = this.safeString(channelAndMessageHash, 1);
             }
@@ -1519,9 +1520,9 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         {
             return;
         }
-        String genericMessageHash = Helpers.replace(messageHash, (String)("." + market.get("lowercaseId")), (String)"");
+        String genericMessageHash = ((java.util.function.Function<Object, java.util.function.BiFunction<Object, Object, String>>) hx4J43a4 -> (hx4J43b4, hx4J43c4) -> { if (hx4J43a4 == null) { return null; } String hx4J43a4s = String.valueOf(hx4J43a4); String hx4J43a4f = (hx4J43b4 == null) ? "" : String.valueOf(hx4J43b4); String hx4J43a4r = (hx4J43c4 == null) ? "" : String.valueOf(hx4J43c4); return hx4J43a4s.replaceFirst(java.util.regex.Pattern.quote(hx4J43a4f), java.util.regex.Matcher.quoteReplacement(hx4J43a4r)); }).apply(messageHash).apply((String)("." + market.get("lowercaseId")), (String)"");
         String lowerCaseBaseId = this.safeStringLower(market, "baseId");
-        genericMessageHash = Helpers.replace(genericMessageHash, (String)("." + lowerCaseBaseId), (String)"");
+        genericMessageHash = ((java.util.function.Function<Object, java.util.function.BiFunction<Object, Object, String>>) hx4J43a3 -> (hx4J43b3, hx4J43c3) -> { if (hx4J43a3 == null) { return null; } String hx4J43a3s = String.valueOf(hx4J43a3); String hx4J43a3f = (hx4J43b3 == null) ? "" : String.valueOf(hx4J43b3); String hx4J43a3r = (hx4J43c3 == null) ? "" : String.valueOf(hx4J43c3); return hx4J43a3s.replaceFirst(java.util.regex.Pattern.quote(hx4J43a3f), java.util.regex.Matcher.quoteReplacement(hx4J43a3r)); }).apply(genericMessageHash).apply((String)("." + lowerCaseBaseId), (String)"");
         client.resolve(this.orders, genericMessageHash);
     }
 
@@ -1699,10 +1700,12 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         if (!java.util.Objects.equals(feeCost, null))
         {
             String feeCurrencyId = this.safeString2(order, "fee_asset", "fee_currency");
-            fee = Helpers.newMap(
-                "cost", feeCost,
-                "currency", this.safeCurrencyCode((String) (feeCurrencyId), (Map<String, Object>) null)
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("cost", feeCost);
+                hx4NewMap0.put("currency", this.safeCurrencyCode((String) (feeCurrencyId), (Map<String, Object>) null));
+                fee = hx4NewMap0;
+            }
         }
         String avgPrice = this.safeString(order, "trade_avg_price");
         Object rawTrades = this.safeValue(order, "trade");
@@ -1800,7 +1803,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         String takerOrMaker = null;
         if (!java.util.Objects.equals(aggressor, null))
         {
-            takerOrMaker = (((java.util.Objects.equals(aggressor, true)))) ? "taker" : "maker";
+            takerOrMaker = ((Boolean.TRUE.equals(aggressor))) ? "taker" : "maker";
         }
         HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
         mapLiteral3.put("info", trade);
@@ -1861,16 +1864,16 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 String marketType = marketTypeparamsMarketTypeVariable.first();
                 Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
                 type = (((java.util.Objects.equals(marketType, "spot")))) ? "future" : marketType;
-                Pair<String, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsMarketType), "watchPositions", "subType", Helpers.toStringArg(subType));
+                Pair<String, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsMarketType), "watchPositions", "subType", java.util.Objects.toString(subType, null));
                 subType = subTypeparamsSubTypeVariable.first();
                 paramsSubType = subTypeparamsSubTypeVariable.second();
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             Object paramsPositions = (((!java.util.Objects.equals(market, null)))) ? parameters : paramsSubType;
-            Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("watchPositions", Helpers.toMapArg(paramsPositions), "cross");
+            Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("watchPositions", ((Map<String, Object>) (switch ((Object) (paramsPositions)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); })), "cross");
             String marginMode = marginModeparamsMarginModeVariable.first();
             Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
-            Object paramsRequest = paramsMarginMode;
+            Map<String, Object> paramsRequest = paramsMarginMode;
             Boolean linear = (java.util.Objects.equals(subType, "linear"));
             Boolean swap = (java.util.Objects.equals(type, "swap"));
             Boolean future = (java.util.Objects.equals(type, "future"));
@@ -1890,14 +1893,14 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 {
                     v5Market = market;
                 }
-                Object channelAndMessageHashAndParams = this.getV5LinearChannelAndMessageHash("positions", v5Market, Helpers.toMapArg(paramsRequest));
+                List<Object> channelAndMessageHashAndParams = (List<Object>) this.getV5LinearChannelAndMessageHash("positions", v5Market, paramsRequest);
                 channel = this.safeString(channelAndMessageHashAndParams, 0);
-                paramsRequest = this.safeDict(channelAndMessageHashAndParams, 2, new HashMap<String, Object>() {{}});
+                paramsRequest = (Map<String, Object>) this.safeDict(channelAndMessageHashAndParams, 2, new HashMap<String, Object>() {{}});
             }
             Map<String, Object> subscriptionParams = new HashMap<String, Object>();
             subscriptionParams.put("isV5", isV5Linear);
             subscriptionParams.put("margin", marginMode);
-            List<Object> newPositions = (List<Object>) (this.subscribePrivate(channel, messageHash, (String) (type), (String) (subType), Helpers.toMapArg(paramsRequest), subscriptionParams)).join();
+            List<Object> newPositions = (List<Object>) (this.subscribePrivate(channel, messageHash, (String) (type), (String) (subType), paramsRequest, subscriptionParams)).join();
             if (this.newUpdates)
             {
                 return newPositions;
@@ -2122,7 +2125,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 messageHash = prefix;
                 if (java.util.Objects.equals(subType, "linear"))
                 {
-                    if (java.util.Objects.equals(isUnifiedAccount, true))
+                    if (Boolean.TRUE.equals(isUnifiedAccount))
                     {
                         // usdt contracts account
                         prefix = "accounts_unify";
@@ -2138,7 +2141,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                             // isolated margin only allows filtering by symbol3
                             if ((!java.util.Objects.equals(symbol, null)) && (!java.util.Objects.equals(market, null)))
                             {
-                                messageHash = Helpers.add(messageHash, ("." + market.get("id")));
+                                messageHash = ((java.util.function.BinaryOperator<Object>) (hx4J40v3A, hx4J40v3B) -> { Object hx4J40v3P = hx4J40v3A instanceof Integer hx4J40v3i ? (Object) Long.valueOf(hx4J40v3i.longValue()) : hx4J40v3A; Object hx4J40v3Q = hx4J40v3B instanceof Integer hx4J40v3i ? (Object) Long.valueOf(hx4J40v3i.longValue()) : hx4J40v3B; if (hx4J40v3P instanceof Long hx4J40v3l && hx4J40v3Q instanceof Long hx4J40v3r) { return hx4J40v3l + hx4J40v3r; } if (hx4J40v3P instanceof Double || hx4J40v3Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v3D = hx4J40v3o -> { if (hx4J40v3o instanceof Double || hx4J40v3o instanceof Float || hx4J40v3o instanceof Long || hx4J40v3o instanceof Integer || hx4J40v3o instanceof java.math.BigDecimal) { return ((Number) hx4J40v3o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v3o)); } catch (NumberFormatException hx4J40v3e) { return 0.0; } }; return hx4J40v3D.applyAsDouble(hx4J40v3P) + hx4J40v3D.applyAsDouble(hx4J40v3Q); } if (hx4J40v3P instanceof String || hx4J40v3Q instanceof String) { return String.valueOf(hx4J40v3P) + String.valueOf(hx4J40v3Q); } return null; }).apply(messageHash, ("." + market.get("id")));
                                 channel = messageHash;
                             } else
                             {
@@ -2176,7 +2179,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                     // inverse swaps account
                     if (!java.util.Objects.equals(market, null))
                     {
-                        messageHash = Helpers.add(messageHash, ("." + market.get("id")));
+                        messageHash = ((java.util.function.BinaryOperator<Object>) (hx4J40v2A, hx4J40v2B) -> { Object hx4J40v2P = hx4J40v2A instanceof Integer hx4J40v2i ? (Object) Long.valueOf(hx4J40v2i.longValue()) : hx4J40v2A; Object hx4J40v2Q = hx4J40v2B instanceof Integer hx4J40v2i ? (Object) Long.valueOf(hx4J40v2i.longValue()) : hx4J40v2B; if (hx4J40v2P instanceof Long hx4J40v2l && hx4J40v2Q instanceof Long hx4J40v2r) { return hx4J40v2l + hx4J40v2r; } if (hx4J40v2P instanceof Double || hx4J40v2Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v2D = hx4J40v2o -> { if (hx4J40v2o instanceof Double || hx4J40v2o instanceof Float || hx4J40v2o instanceof Long || hx4J40v2o instanceof Integer || hx4J40v2o instanceof java.math.BigDecimal) { return ((Number) hx4J40v2o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v2o)); } catch (NumberFormatException hx4J40v2e) { return 0.0; } }; return hx4J40v2D.applyAsDouble(hx4J40v2P) + hx4J40v2D.applyAsDouble(hx4J40v2Q); } if (hx4J40v2P instanceof String || hx4J40v2Q instanceof String) { return String.valueOf(hx4J40v2P) + String.valueOf(hx4J40v2Q); } return null; }).apply(messageHash, ("." + market.get("id")));
                         channel = messageHash;
                     } else
                     {
@@ -2856,7 +2859,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 throw new ExchangeError(feedback) ;
             } catch(Exception e)
             {
-                if (Helpers.isInstance(e, AuthenticationError.class))
+                if ((e instanceof AuthenticationError))
                 {
                     client.reject(e, "auth");
                     String method = "auth";
@@ -3130,9 +3133,9 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 // however it is returned with the specific order update symbol: ch = orders_cross.btc-usd
                 // since this is a global sub, our messageHash does not specify any symbol (ex: orders_cross:trade)
                 // so we must remove it
-                String genericOrderHash = Helpers.replace(messageHash, (String)("." + market.get("lowercaseId")), (String)"");
+                String genericOrderHash = ((java.util.function.Function<Object, java.util.function.BiFunction<Object, Object, String>>) hx4J43a2 -> (hx4J43b2, hx4J43c2) -> { if (hx4J43a2 == null) { return null; } String hx4J43a2s = String.valueOf(hx4J43a2); String hx4J43a2f = (hx4J43b2 == null) ? "" : String.valueOf(hx4J43b2); String hx4J43a2r = (hx4J43c2 == null) ? "" : String.valueOf(hx4J43c2); return hx4J43a2s.replaceFirst(java.util.regex.Pattern.quote(hx4J43a2f), java.util.regex.Matcher.quoteReplacement(hx4J43a2r)); }).apply(messageHash).apply((String)("." + market.get("lowercaseId")), (String)"");
                 String lowerCaseBaseId = this.safeStringLower(market, "baseId");
-                genericOrderHash = Helpers.replace(genericOrderHash, (String)("." + lowerCaseBaseId), (String)"");
+                genericOrderHash = ((java.util.function.Function<Object, java.util.function.BiFunction<Object, Object, String>>) hx4J43a1 -> (hx4J43b1, hx4J43c1) -> { if (hx4J43a1 == null) { return null; } String hx4J43a1s = String.valueOf(hx4J43a1); String hx4J43a1f = (hx4J43b1 == null) ? "" : String.valueOf(hx4J43b1); String hx4J43a1r = (hx4J43c1 == null) ? "" : String.valueOf(hx4J43c1); return hx4J43a1s.replaceFirst(java.util.regex.Pattern.quote(hx4J43a1f), java.util.regex.Matcher.quoteReplacement(hx4J43a1r)); }).apply(genericOrderHash).apply((String)("." + lowerCaseBaseId), (String)"");
                 String genericTradesHash = ((genericOrderHash + ":") + "trade");
                 client.resolve(this.myTrades, genericTradesHash);
             }
@@ -3198,7 +3201,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         String takerOrMaker = null;
         if (!java.util.Objects.equals(aggressor, null))
         {
-            takerOrMaker = (((java.util.Objects.equals(aggressor, true)))) ? "taker" : "maker";
+            takerOrMaker = ((Boolean.TRUE.equals(aggressor))) ? "taker" : "maker";
         } else
         {
             takerOrMaker = this.safeStringLower(trade, "role");
@@ -3214,10 +3217,12 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         String feeCurrency = this.safeCurrencyCode(this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("feeCurrency", "fee_currency", "fee_asset"))), (Map<String, Object>) null);
         if (!java.util.Objects.equals(feeCurrency, null))
         {
-            fee = Helpers.newMap(
-                "cost", this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("transactFee", "fee", "trade_fee"))),
-                "currency", feeCurrency
-            );
+            {
+                HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
+                hx4NewMap1.put("cost", this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("transactFee", "fee", "trade_fee"))));
+                hx4NewMap1.put("currency", feeCurrency);
+                fee = hx4NewMap1;
+            }
         }
         HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
         mapLiteral5.put("info", trade);
@@ -3236,7 +3241,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         return this.safeTrade(mapLiteral5, marketResolved);
     }
 
-    public Object getUrlByMarketType(Object type, Object isLinear, Object isPrivate, Object isFeed, Object isV5)
+    public Object getUrlByMarketType(Object type, Object isLinear, Boolean isPrivate, Boolean isFeed, Boolean isV5)
     {
         String api = this.safeString(this.options, "api", "api");
         Map<String, Object> hostname = new HashMap<String, Object>() {{
@@ -3246,12 +3251,12 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         Object url = null;
         if (java.util.Objects.equals(type, "spot"))
         {
-            if (Helpers.isTrue(java.util.Objects.requireNonNullElse(isPrivate, false)))
+            if (java.util.Objects.requireNonNullElse(isPrivate, false))
             {
                 hostnameURL = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), api), "spot"), "private");
             } else
             {
-                if (Helpers.isTrue(java.util.Objects.requireNonNullElse(isFeed, false)))
+                if (java.util.Objects.requireNonNullElse(isFeed, false))
                 {
                     hostnameURL = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), api), "spot"), "feed");
                 } else
@@ -3263,10 +3268,10 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         } else
         {
             Object baseUrl = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), api), type);
-            Object subTypeUrl = ((Helpers.isTrue(java.util.Objects.requireNonNullElse(isLinear, true)))) ? Helpers.GetValue(baseUrl, "linear") : Helpers.GetValue(baseUrl, "inverse");
-            if (Helpers.isTrue(java.util.Objects.requireNonNullElse(isPrivate, false)))
+            Object subTypeUrl = (((switch ((Object) (java.util.Objects.requireNonNullElse(isLinear, true))) { case null -> false; case Boolean hx4J40v1 -> hx4J40v1.booleanValue(); case Long hx4J40v1 -> hx4J40v1 != 0L; case Integer hx4J40v1 -> hx4J40v1 != 0; case Double hx4J40v1 -> hx4J40v1 != 0.0; case String hx4J40v1 -> !hx4J40v1.isEmpty(); case List<?> hx4J40v1 -> !hx4J40v1.isEmpty(); case Map<?, ?> hx4J40v1 -> true; default -> false; }))) ? Helpers.GetValue(baseUrl, "linear") : Helpers.GetValue(baseUrl, "inverse");
+            if (java.util.Objects.requireNonNullElse(isPrivate, false))
             {
-                if (Helpers.isTrue(java.util.Objects.requireNonNullElse(isV5, false)) && Helpers.isTrue(java.util.Objects.requireNonNullElse(isLinear, true)))
+                if (java.util.Objects.requireNonNullElse(isV5, false) && (switch ((Object) (java.util.Objects.requireNonNullElse(isLinear, true))) { case null -> false; case Boolean hx4J40v0 -> hx4J40v0.booleanValue(); case Long hx4J40v0 -> hx4J40v0 != 0L; case Integer hx4J40v0 -> hx4J40v0 != 0; case Double hx4J40v0 -> hx4J40v0 != 0.0; case String hx4J40v0 -> !hx4J40v0.isEmpty(); case List<?> hx4J40v0 -> !hx4J40v0.isEmpty(); case Map<?, ?> hx4J40v0 -> true; default -> false; }))
                 {
                     url = this.safeString(subTypeUrl, "privateV5", Helpers.GetValue(subTypeUrl, "private"));
                 } else
@@ -3396,7 +3401,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             }
             this.checkRequiredCredentials(true);
             String messageHash = "auth";
-            String relativePath = Helpers.replace(url, (String)("wss://" + hostname), (String)"");
+            String relativePath = ((java.util.function.Function<Object, java.util.function.BiFunction<Object, Object, String>>) hx4J43a0 -> (hx4J43b0, hx4J43c0) -> { if (hx4J43a0 == null) { return null; } String hx4J43a0s = String.valueOf(hx4J43a0); String hx4J43a0f = (hx4J43b0 == null) ? "" : String.valueOf(hx4J43b0); String hx4J43a0r = (hx4J43c0 == null) ? "" : String.valueOf(hx4J43c0); return hx4J43a0s.replaceFirst(java.util.regex.Pattern.quote(hx4J43a0f), java.util.regex.Matcher.quoteReplacement(hx4J43a0r)); }).apply(url).apply((String)("wss://" + hostname), (String)"");
             Client client = this.client(url);
             io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
             Object authenticated = this.safeValue(client.subscriptions, messageHash);

@@ -441,7 +441,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_time(self, params={}) -> Int:
+    def fetch_time(self, params: dict = {}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -467,7 +467,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(response, 'result')
         return timestamp
 
-    def fetch_markets(self, params={}) -> list[Market]:
+    def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for coinbaseinternational
 
@@ -570,8 +570,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         #     }
         #
         instruments = self.safe_list(response, 'result', [])
-        parsedMarkets = self.parse_markets(instruments)
-        return parsedMarkets
+        return self.parse_markets(instruments)
 
     def parse_market(self, market: dict) -> Market:
         instrumentName = self.safe_string(market, 'instrument_name')
@@ -677,7 +676,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         parsedMarket = self.safe_market_structure(marketStructure)
         return parsedMarket
 
-    def fetch_currencies(self, params={}) -> Currencies:
+    def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
         fetches all available currencies on an exchange
 
@@ -1010,7 +1009,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             'previousFundingDatetime': None,
         }
 
-    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
@@ -1035,9 +1034,9 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                 continue
             ticker = self.fetch_ticker(symbol, paramsResolved)
             tickers[symbol] = ticker
-        return self.filter_by_array(tickers, 'symbol', symbolsResolved, True)
+        return self.filter_by_array_tickers(tickers, 'symbol', symbolsResolved)
 
-    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -1149,7 +1148,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             'indexPrice': self.safe_number(ticker, 'index_price'),
         })
 
-    def fetch_order_book(self, symbol: str, limit: Int = None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}):
         """
         fetches a market order book
 
@@ -1230,7 +1229,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(result, 'timestamp')
         return self.parse_order_book(result, market['symbol'], timestamp)
 
-    def fetch_balance(self, params={}) -> Balances:
+    def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -1529,7 +1528,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                 result[currencyCode] = account
         return self.safe_balance(result)
 
-    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[TransferEntry]:
+    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
 
@@ -1835,13 +1834,12 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_list(response, 'result', [])
-        positions = self.parse_positions(result)
         if self.is_empty(symbols):
-            return positions
+            return self.parse_positions(result)
         symbolsNormalized = self.market_symbols(symbols)
-        return self.filter_by_array_positions(positions, 'symbol', symbolsNormalized)
+        return self.parse_positions(result, symbolsNormalized)
 
-    def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch history of deposits and withdrawals
 
@@ -2357,7 +2355,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         }
         return self.safe_string(timeInForces, timeInForce, timeInForce)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'open': 'open',
             'cancelled': 'canceled',
@@ -2367,7 +2365,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type(self, type: Str):
+    def parse_order_type(self, type: Str) -> Str:
         types = {
             'stop_limit': 'limit',
             'take_limit': 'limit',
@@ -3028,7 +3026,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             return self.jwt(request, seed, 'sha256', False, {'kid': self.apiKey, 'nonce': nonce, 'alg': 'EdDSA'})
         return self.jwt(request, self.encode(self.secret), 'sha256', False, {'kid': self.apiKey, 'nonce': nonce, 'alg': 'ES256'})
 
-    def authenticate_v2(self, params={}) -> Str:
+    def authenticate_v2(self, params: dict = {}) -> Str:
         """
  @ignore
         exchanges a CDP JWT for a Deribit gateway access token
@@ -3097,7 +3095,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         rpcMethod = access + '/' + path
         requestParams = self.handle_route_and_params('sign', params)
         isNativeDeribit = self.is_native_deribit_credentials()
-        baseApiUrl = self.urls['api']['rest']
+        baseApiUrl = self.safe_string(self.urls['api'], 'rest', '')
         if isNativeDeribit:
             baseApiUrl = 'https://www.deribit.com/api/v2'
         url = baseApiUrl + '/' + rpcMethod

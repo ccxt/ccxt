@@ -69,7 +69,7 @@ fn fetchTickersAmountsTest(mut exchange: Value, mut skippedProperties: Value, mu
         let mut notInactiveSymbolsLength: Value = get_array_length(&nonInactiveMarkets);
         let mut obtainedTickersLength: Value = Value::Int(tickersValues.len() as i64);
         let mut minRatio: Value = Value::Float(0.99); // 1.0 - 0.01 = 0.99, hardcoded to avoid C# transpiler type casting issues
-        assert!(ccxt::runtime::is_true(&((obtainedTickersLength.as_f64().unwrap_or(f64::NAN) >= multiply(&notInactiveSymbolsLength, &minRatio).as_f64().unwrap_or(f64::NAN)))));
+        assert!(ccxt::runtime::is_true(&((obtainedTickersLength.as_f64().unwrap_or(f64::NAN) >= (match (&(notInactiveSymbolsLength), &(minRatio)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }).as_f64().unwrap_or(f64::NAN)))));
         //
         // ensure tickers length is less than markets length
         //

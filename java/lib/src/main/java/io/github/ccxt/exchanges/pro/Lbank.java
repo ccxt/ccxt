@@ -79,16 +79,16 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
 
     public Long requestId()
     {
-        Object newValue;
+        Long newValue;
         synchronized (this) {
         Long previousValue = this.safeInteger(this.options, "requestId", 0);
-        newValue = this.sum(previousValue, 1);
-        Helpers.addElementToObject(this.options, "requestId", newValue);
+        newValue = (Long) this.sum(previousValue, 1);
+        { Map<Object, Object> j39v1 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v2 = "requestId"; Object j39v3 = newValue; if (j39v1 == null) { if (j39v2 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v1) { if (j39v3 == null && j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); } else { j39v1.put(j39v2, j39v3); } } }
         }
-        return Helpers.toLongOrNull(newValue);
+        return newValue;
     }
 
-    public void checkContractMarket(Map<String, Object> market, Object methodName)
+    public void checkContractMarket(Map<String, Object> market, String methodName)
     {
         // the spot ws rejects futures ids and lbank's contract ws protocol is not published,
         // see https://github.com/ccxt/ccxt/issues/26864
@@ -134,7 +134,8 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             }};
             if (!java.util.Objects.equals(since, null))
             {
-                message.put("start", this.parseToInt((Math.floor(Double.parseDouble(String.valueOf((((double) since) / ((double) 1000))))))));
+                Long sinceInt = this.parseToInt(since);
+                message.put("start", this.parseToInt((((double) sinceInt) / ((double) 1000))));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -559,14 +560,14 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         for (var i = 0; i < ((List<?>)rawTrades).size(); i++)
         {
             Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) ((rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i))), market);
-            Helpers.addElementToObject(trade, "symbol", symbol);
+            { Map<Object, Object> j39v4 = (Map<Object, Object>) (Map<?, ?>) (trade); Object j39v5 = "symbol"; Object j39v6 = symbol; if (j39v4 == null) { if (j39v5 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v4) { if (j39v6 == null && j39v4 instanceof java.util.concurrent.ConcurrentHashMap) { j39v4.remove(j39v5); } else { j39v4.put(j39v5, j39v6); } } }
             stored.append(trade);
         }
         Helpers.addElementToObject(this.trades, symbol, stored);
         String messageHash = ("trades:" + symbol);
-        client.resolve(Helpers.GetValue(this.trades, symbol), messageHash);
+        client.resolve((symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol)), messageHash);
         messageHash = ("fetchTrades:" + symbol);
-        client.resolve(Helpers.GetValue(this.trades, symbol), messageHash);
+        client.resolve((symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol)), messageHash);
     }
 
     public Trade parseWsTrade(Map<String, Object> trade, Map<String, Object> market)

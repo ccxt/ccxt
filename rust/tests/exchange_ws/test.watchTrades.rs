@@ -29,7 +29,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             success = Value::Bool(false);
         }
         now = exchange.milliseconds();
-        if (success.as_bool() == Some(true)) {
+        if is_true(&success) {
             crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), response.clone()]);
             {
                                 let mut i: Value = Value::Int(0);

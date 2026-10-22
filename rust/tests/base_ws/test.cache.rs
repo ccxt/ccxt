@@ -172,7 +172,7 @@ pub fn testWsCache() {
         cacheSymbolId5.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
-                m.insert("id".to_string(), to_string_val(&i));
+                m.insert("id".to_string(), Value::Str(format!("{}", i).into()));
                 m.insert("i".to_string(), i.clone());
             m
         }));
@@ -216,7 +216,7 @@ pub fn testWsCache() {
         cacheSymbolId5.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
-                m.insert("id".to_string(), to_string_val(&i));
+                m.insert("id".to_string(), Value::Str(format!("{}", i).into()));
                 m.insert("i".to_string(), (match (&(i), &(Value::Int(10))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
             m
         }));
@@ -338,7 +338,7 @@ pub fn testWsCache() {
         cacheSymbolId5.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
-                m.insert("id".to_string(), to_string_val(&i));
+                m.insert("id".to_string(), Value::Str(format!("{}", i).into()));
                 m.insert("i".to_string(), (match (&(i), &(Value::Int(10))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
             m
         }));
@@ -465,7 +465,7 @@ pub fn testWsCache() {
         cacheSymbolId2.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
-                m.insert("id".to_string(), to_string_val(&i));
+                m.insert("id".to_string(), Value::Str(format!("{}", i).into()));
                 m.insert("i".to_string(), i.clone());
             m
         }));
@@ -483,7 +483,7 @@ pub fn testWsCache() {
         cacheSymbolId3.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
-                m.insert("id".to_string(), to_string_val(&i));
+                m.insert("id".to_string(), Value::Str(format!("{}", i).into()));
                 m.insert("i".to_string(), i.clone());
             m
         }));
@@ -507,7 +507,7 @@ pub fn testWsCache() {
         cacheSymbolId4.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
-                m.insert("id".to_string(), to_string_val(&i));
+                m.insert("id".to_string(), Value::Str(format!("{}", i).into()));
                 m.insert("i".to_string(), i.clone());
             m
         }));
@@ -525,7 +525,7 @@ pub fn testWsCache() {
         cacheSymbolId6.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
-                m.insert("id".to_string(), to_string_val(&i));
+                m.insert("id".to_string(), Value::Str(format!("{}", i).into()));
                 m.insert("i".to_string(), i.clone());
             m
         }));
@@ -1150,7 +1150,7 @@ pub fn testWsCache() {
         while { if !__for_first_1534 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1534 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(10).as_f64().unwrap_or(f64::NAN) } {
         cacheEvictBuckets.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("S".into()), to_string_val(&i)).into()), Value::Str("/USDT".into())).into()));
+                m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("S".into()), Value::Str(format!("{}", i).into())).into()), Value::Str("/USDT".into())).into()));
                 m.insert("id".to_string(), Value::Str("x".into()));
                 m.insert("i".to_string(), i.clone());
             m

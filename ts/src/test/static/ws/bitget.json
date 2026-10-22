@@ -138,6 +138,227 @@
         ],
         "watchOHLCV": [
             {
+                "description": "tokenized stock watch OHLCV",
+                "input": [
+                    "RGOOGL/USDT"
+                ],
+                "url": "wss://ws.bitget.com/v3/ws/public",
+                "messages": [
+                    {
+                        "event": "subscribe",
+                        "arg": {
+                            "instType": "spot",
+                            "topic": "kline",
+                            "symbol": "RGOOGLUSDT",
+                            "interval": "1m"
+                        },
+                        "connId": "0ac601fffe2331d1-00009998-00e47cc5-79d77b39ac6144c9-36b400d0"
+                    },
+                    {
+                        "action": "update",
+                        "arg": {
+                            "instType": "spot",
+                            "topic": "kline",
+                            "symbol": "RGOOGLUSDT",
+                            "interval": "1m"
+                        },
+                        "data": [
+                            {
+                                "start": "1787644800000",
+                                "open": "347.876",
+                                "close": "347.875",
+                                "high": "347.876",
+                                "low": "347.875",
+                                "volume": "0",
+                                "turnover": "0"
+                            }
+                        ],
+                        "ts": 1787644805636
+                    },
+                    {
+                        "action": "update",
+                        "arg": {
+                            "instType": "spot",
+                            "topic": "kline",
+                            "symbol": "RGOOGLUSDT",
+                            "interval": "1m"
+                        },
+                        "data": [
+                            {
+                                "start": "1787644800000",
+                                "open": "347.876",
+                                "close": "347.875",
+                                "high": "347.876",
+                                "low": "347.875",
+                                "volume": "0",
+                                "turnover": "0"
+                            }
+                        ],
+                        "ts": 1787644806678
+                    },
+                    {
+                        "action": "update",
+                        "arg": {
+                            "instType": "spot",
+                            "topic": "kline",
+                            "symbol": "RGOOGLUSDT",
+                            "interval": "1m"
+                        },
+                        "data": [
+                            {
+                                "start": "1787644800000",
+                                "open": "347.876",
+                                "close": "347.875",
+                                "high": "347.876",
+                                "low": "347.875",
+                                "volume": "0",
+                                "turnover": "0"
+                            }
+                        ],
+                        "ts": 1787644807594
+                    },
+                    {
+                        "action": "update",
+                        "arg": {
+                            "instType": "spot",
+                            "topic": "kline",
+                            "symbol": "RGOOGLUSDT",
+                            "interval": "1m"
+                        },
+                        "data": [
+                            {
+                                "start": "1787644800000",
+                                "open": "347.876",
+                                "close": "347.875",
+                                "high": "347.876",
+                                "low": "347.875",
+                                "volume": "0",
+                                "turnover": "0"
+                            }
+                        ],
+                        "ts": 1787644808583
+                    },
+                    {
+                        "action": "update",
+                        "arg": {
+                            "instType": "spot",
+                            "topic": "kline",
+                            "symbol": "RGOOGLUSDT",
+                            "interval": "1m"
+                        },
+                        "data": [
+                            {
+                                "start": "1787644800000",
+                                "open": "347.876",
+                                "close": "347.875",
+                                "high": "347.876",
+                                "low": "347.875",
+                                "volume": "0",
+                                "turnover": "0"
+                            }
+                        ],
+                        "ts": 1787644809556
+                    },
+                    {
+                        "action": "update",
+                        "arg": {
+                            "instType": "spot",
+                            "topic": "kline",
+                            "symbol": "RGOOGLUSDT",
+                            "interval": "1m"
+                        },
+                        "data": [
+                            {
+                                "start": "1787644800000",
+                                "open": "347.876",
+                                "close": "347.875",
+                                "high": "347.876",
+                                "low": "347.875",
+                                "volume": "0",
+                                "turnover": "0"
+                            }
+                        ],
+                        "ts": 1787644810644
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "subscribe",
+                        "args": [
+                            {
+                                "instType": "spot",
+                                "topic": "kline",
+                                "symbol": "RGOOGLUSDT",
+                                "interval": "1m"
+                            }
+                        ],
+                        "uta": true
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        [
+                            1787644800000,
+                            347.876,
+                            347.876,
+                            347.875,
+                            347.875,
+                            0
+                        ]
+                    ],
+                    [
+                        [
+                            1787644800000,
+                            347.876,
+                            347.876,
+                            347.875,
+                            347.875,
+                            0
+                        ]
+                    ],
+                    [
+                        [
+                            1787644800000,
+                            347.876,
+                            347.876,
+                            347.875,
+                            347.875,
+                            0
+                        ]
+                    ],
+                    [
+                        [
+                            1787644800000,
+                            347.876,
+                            347.876,
+                            347.875,
+                            347.875,
+                            0
+                        ]
+                    ],
+                    [
+                        [
+                            1787644800000,
+                            347.876,
+                            347.876,
+                            347.875,
+                            347.875,
+                            0
+                        ]
+                    ],
+                    [
+                        [
+                            1787644800000,
+                            347.876,
+                            347.876,
+                            347.875,
+                            347.875,
+                            0
+                        ]
+                    ]
+                ]
+            },
+            {
                 "description": "linear swap ohlcv 1m",
                 "input": [
                     "BTC/USDT:USDT",
@@ -1160,6 +1381,142 @@
             }
         ],
         "watchOrderBook": [
+            {
+                "description": "tokenized stock watch order book",
+                "input": [
+                    "RGOOGL/USDT"
+                ],
+                "url": "wss://ws.bitget.com/v3/ws/public",
+                "messages": [
+                    {
+                        "event": "subscribe",
+                        "arg": {
+                            "instType": "spot",
+                            "topic": "books",
+                            "symbol": "RGOOGLUSDT"
+                        },
+                        "connId": "062756fffe158831-000005b8-01572204-c7332a055c3bebd8-730c57bf"
+                    },
+                    {
+                        "action": "snapshot",
+                        "arg": {
+                            "instType": "spot",
+                            "topic": "books",
+                            "symbol": "RGOOGLUSDT"
+                        },
+                        "data": [
+                            {
+                                "a": [
+                                    [
+                                        "346.98",
+                                        "19.872"
+                                    ],
+                                    [
+                                        "347.08",
+                                        "23.544"
+                                    ],
+                                    [
+                                        "347.15",
+                                        "17.928"
+                                    ]
+                                ],
+                                "b": [
+                                    [
+                                        "346.62",
+                                        "0.0388"
+                                    ],
+                                    [
+                                        "346.53",
+                                        "0.0346"
+                                    ],
+                                    [
+                                        "346.45",
+                                        "0.0506"
+                                    ]
+                                ],
+                                "seq": 55230071217,
+                                "pseq": 0,
+                                "ts": "1787727614175",
+                                "maxdepth": "1000"
+                            }
+                        ],
+                        "ts": 1787727615058
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "subscribe",
+                        "args": [
+                            {
+                                "instType": "spot",
+                                "topic": "books",
+                                "symbol": "RGOOGLUSDT"
+                            }
+                        ],
+                        "uta": true
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "bids": [
+                            [
+                                346.62,
+                                0.0388,
+                                [
+                                    "346.62",
+                                    "0.0388"
+                                ]
+                            ],
+                            [
+                                346.53,
+                                0.0346,
+                                [
+                                    "346.53",
+                                    "0.0346"
+                                ]
+                            ],
+                            [
+                                346.45,
+                                0.0506,
+                                [
+                                    "346.45",
+                                    "0.0506"
+                                ]
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                346.98,
+                                19.872,
+                                [
+                                    "346.98",
+                                    "19.872"
+                                ]
+                            ],
+                            [
+                                347.08,
+                                23.544,
+                                [
+                                    "347.08",
+                                    "23.544"
+                                ]
+                            ],
+                            [
+                                347.15,
+                                17.928,
+                                [
+                                    "347.15",
+                                    "17.928"
+                                ]
+                            ]
+                        ],
+                        "timestamp": 1787727614175,
+                        "datetime": "2026-08-26T07:00:14.175Z",
+                        "nonce": null,
+                        "symbol": "RGOOGL/USDT"
+                    }
+                ]
+            },
             {
                 "description": "linear swap orderbook depth 5",
                 "input": [

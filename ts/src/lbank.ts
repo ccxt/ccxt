@@ -1212,11 +1212,17 @@ export default class lbank extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const limitResolved = (limit === undefined) ? 100 : Math.min (limit, 2000);
+        const limitResolved = this.parseToInt ((limit === undefined) ? 100 : Math.min (limit, 2000));
         const duration = this.parseTimeframe (timeframe);
-        const sinceResolved = (since === undefined) ? (this.milliseconds () - (duration * 1000 * limitResolved)) : since;
-        const parsedSince = this.parseToInt (sinceResolved / 1000);
-        const parsedLimit = Math.min (limitResolved + 1, 2000); // max 2000;
+        const now = this.milliseconds ();
+        const defaultSince = now - (duration * 1000 * limitResolved);
+        let sinceResolved: Int = defaultSince;
+        let parsedSince = this.parseToInt (defaultSince / 1000);
+        if (since !== undefined) {
+            sinceResolved = since;
+            parsedSince = this.parseToInt (since / 1000);
+        }
+        const parsedLimit: int = Math.min (limitResolved + 1, 2000); // max 2000;
         const request: Dict = {
             'symbol': market['id'],
             'type': this.safeString (this.timeframes, timeframe, timeframe),
@@ -1335,7 +1341,7 @@ export default class lbank extends Exchange {
         };
         const data = this.safeDict (response, 'data');
         // from spotPrivatePostUserInfo
-        const toBtc = this.safeValue (data, 'toBtc');
+        const toBtc = this.safeDict (data, 'toBtc');
         if (toBtc !== undefined) {
             const used = this.safeDict (data, 'freeze', {});
             const free = this.safeDict (data, 'free', {});
@@ -1370,7 +1376,7 @@ export default class lbank extends Exchange {
         }
         // from spotPrivatePostSupplementUserInfo
         const isArray = Array.isArray (data);
-        if (isArray === true) {
+        if (isArray) {
             for (let i = 0; i < data.length; i++) {
                 const item = this.safeDict (data, i);
                 const currencyId = this.safeString (item, 'coin');
@@ -1673,7 +1679,7 @@ export default class lbank extends Exchange {
         };
         const ioc = (timeInForce === 'IOC');
         const fok = (timeInForce === 'FOK');
-        const maker = ((postOnly === true) || (timeInForce === 'PO'));
+        const maker = ((postOnly) || (timeInForce === 'PO'));
         if ((type === 'market') && (ioc || fok || maker)) {
             throw new InvalidOrder (this.id + ' createOrder () does not allow market FOK, IOC, or postOnly orders. Only limit IOC, FOK, and postOnly orders are allowed');
         }
@@ -1748,7 +1754,7 @@ export default class lbank extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             '-1': 'canceled', // canceled
             '0': 'open', // not traded
@@ -2706,21 +2712,17 @@ export default class lbank extends Exchange {
             await this.loadMarkets ();
         }
         const isAuthorized = this.checkRequiredCredentials (false);
-        let result: Dict;
-        if (isAuthorized === true) {
+        if (isAuthorized) {
             const options = this.safeDict (this.options, 'fetchTransactionFees', {});
             const defaultMethod = this.safeString (options, 'method', 'fetchPrivateTransactionFees');
             const method = this.safeString (params, 'method', defaultMethod);
             const paramsOmitted: Dict = this.omit (params, 'method');
             if (method === 'fetchPublicTransactionFees') {
-                result = await this.fetchPublicTransactionFees (paramsOmitted);
-            } else {
-                result = await this.fetchPrivateTransactionFees (paramsOmitted);
+                return await this.fetchPublicTransactionFees (paramsOmitted);
             }
-        } else {
-            result = await this.fetchPublicTransactionFees (params);
+            return await this.fetchPrivateTransactionFees (paramsOmitted);
         }
-        return result;
+        return await this.fetchPublicTransactionFees (params);
     }
 
     async fetchPrivateTransactionFees (params: Dict = {}): Promise<Dict> {
@@ -2870,21 +2872,17 @@ export default class lbank extends Exchange {
             await this.loadMarkets ();
         }
         const isAuthorized = this.checkRequiredCredentials (false);
-        let response: Dict;
-        if (isAuthorized === true) {
+        if (isAuthorized) {
             const options = this.safeDict (this.options, 'fetchDepositWithdrawFees', {});
             const defaultMethod = this.safeString (options, 'method', 'fetchPrivateDepositWithdrawFees');
             const method = this.safeString (params, 'method', defaultMethod);
             const paramsOmitted: Dict = this.omit (params, 'method');
             if (method === 'fetchPublicDepositWithdrawFees') {
-                response = await this.fetchPublicDepositWithdrawFees (codes, paramsOmitted);
-            } else {
-                response = await this.fetchPrivateDepositWithdrawFees (codes, paramsOmitted);
+                return await this.fetchPublicDepositWithdrawFees (codes, paramsOmitted);
             }
-        } else {
-            response = await this.fetchPublicDepositWithdrawFees (codes, params);
+            return await this.fetchPrivateDepositWithdrawFees (codes, paramsOmitted);
         }
-        return response;
+        return await this.fetchPublicDepositWithdrawFees (codes, params);
     }
 
     async fetchPrivateDepositWithdrawFees (codes: Strings = undefined, params: Dict = {}): Promise<DepositWithdrawFees> {
@@ -3126,11 +3124,13 @@ export default class lbank extends Exchange {
             if (signatureMethod === 'RSA') {
                 const cacheSecretAsPem = this.safeBool (this.options, 'cacheSecretAsPem', true);
                 let pem: Str = undefined;
-                if (cacheSecretAsPem === true) {
-                    pem = this.safeString (this.options, 'pem');
-                    if (pem === undefined) {
+                if (cacheSecretAsPem) {
+                    const cachedPem = this.safeString (this.options, 'pem');
+                    if (cachedPem === undefined) {
                         pem = this.convertSecretToPem (this.encode (this.secret));
                         this.options['pem'] = pem;
+                    } else {
+                        pem = cachedPem;
                     }
                 } else {
                     pem = this.convertSecretToPem (this.encode (this.secret));
@@ -3152,15 +3152,13 @@ export default class lbank extends Exchange {
         return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 
-    convertSecretToPem (secret: any) {
-        const lineLength = 64;
+    convertSecretToPem (secret: any): string {
         const secretLength = secret.length - 0;
-        let numLines = this.parseToInt (secretLength / lineLength);
-        numLines = this.sum (numLines, 1);
+        const fullLines = this.parseToInt (secretLength / 64);
         let pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
-        for (let i = 0; i < numLines; i++) {
-            const start = i * lineLength;
-            const end = this.sum (start, lineLength);
+        for (let i = 0; i <= fullLines; i++) {
+            const start = i * 64;
+            const end = this.sum (start, 64);
             pem += this.secret.slice (start, end) + "\n"; // eslint-disable-line
         }
         return pem + '-----END PRIVATE KEY-----';

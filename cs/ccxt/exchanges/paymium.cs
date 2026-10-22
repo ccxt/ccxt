@@ -217,7 +217,7 @@ public partial class paymium : Exchange
             Dictionary<string, object> currency = this.currency(code);
             string? currencyId = ((string)(currency.ContainsKey("id") ? currency["id"] : null));
             string free = ("balance_" + currencyId);
-            if (inOp(response, free))
+            if (((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))(response, free))
             {
                 Dictionary<string, object> account = this.account();
                 string used = ("locked_" + currencyId);
@@ -731,7 +731,7 @@ public partial class paymium : Exchange
         string baseUrl = baseApiUrl;
         string url = ((((baseUrl + "/") + this.version) + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
-        if (isEqual(getValue(api, 0), "public"))
+        if ((getValue(api, 0) is "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {

@@ -126,7 +126,7 @@ pub fn testMicroseconds() {
         m
     }));
     let mut value: Value = exchange.microseconds();
-    let mut valueString: Value = to_string_val(&value);
+    let mut valueString: Value = Value::Str(format!("{}", value).into());
     assert!(ccxt::runtime::is_true(&(Value::Bool(value.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(Value::Int(valueString.len() as i64).as_f64() == Some(16.0)))));
 }
@@ -137,7 +137,7 @@ pub fn testMilliseconds() {
         m
     }));
     let mut value: Value = exchange.milliseconds();
-    let mut valueString: Value = to_string_val(&value);
+    let mut valueString: Value = Value::Str(format!("{}", value).into());
     assert!(ccxt::runtime::is_true(&(Value::Bool(value.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(Value::Int(valueString.len() as i64).as_f64() == Some(13.0)))));
 }
@@ -148,7 +148,7 @@ pub fn testSeconds() {
         m
     }));
     let mut value: Value = exchange.seconds();
-    let mut valueString: Value = to_string_val(&value);
+    let mut valueString: Value = Value::Str(format!("{}", value).into());
     assert!(ccxt::runtime::is_true(&(Value::Bool(value.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(Value::Int(valueString.len() as i64).as_f64() == Some(10.0)))));
 }
@@ -194,7 +194,7 @@ pub fn testYyyymmdd() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(value.as_str() == Some("2025_06_17")))));
     let mut value2: Value = exchange.yyyymmdd(exchange.milliseconds(), &[]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(Value::Int(value2.len() as i64).as_f64() == Some(10.0)))));
-    let mut intNum: Value = exchange.parse_to_int(replace_str(&(replace_str(&value2, &Value::Str("-".into()), &Value::Str("".into()))), &Value::Str("-".into()), &Value::Str("".into())));
+    let mut intNum: Value = exchange.parse_to_int(((value2.as_str().map(|__s| Value::Str(__s.replace("-", "").into())).unwrap_or_else(|| value2.clone()))).as_str().map(|__s| Value::Str(__s.replace("-", "").into())).unwrap_or_else(|| ((value2.as_str().map(|__s| Value::Str(__s.replace("-", "").into())).unwrap_or_else(|| value2.clone()))).clone()));
     assert!(ccxt::runtime::is_true(&(intNum.as_f64().unwrap_or(f64::NAN) > Value::Int(20260000).as_f64().unwrap_or(f64::NAN) && intNum.as_f64().unwrap_or(f64::NAN) < Value::Int(20360000).as_f64().unwrap_or(f64::NAN)))); // date between 2026 and 2036
 }
 pub fn testYmd() {

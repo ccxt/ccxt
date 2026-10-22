@@ -2,7 +2,7 @@
 
 import xtRest from '../xt.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import { Balances, Bool, Dict, FundingRate, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import { Balances, Dict, FundingRate, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
@@ -405,11 +405,7 @@ export default class xt extends xtRest {
             throw new NotSupported (this.id + ' unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only');
         }
         const messageHash = 'unsubscribe::' + name;
-        const tickers = await this.unSubscribe (messageHash, name, 'public', 'unWatchTickers', 'ticker', undefined, symbols, params);
-        if (this.newUpdates) {
-            return tickers;
-        }
-        return this.filterByArray (this.tickers, 'symbol', symbols);
+        return await this.unSubscribe (messageHash, name, 'public', 'unWatchTickers', 'ticker', undefined, symbols, params);
     }
 
     /**
@@ -763,7 +759,7 @@ export default class xt extends xtRest {
         }
     }
 
-    async loadPositionsSnapshot (client: Client, messageHash: any) {
+    async loadPositionsSnapshot (client: Client, messageHash: string) {
         const positions = await this.fetchPositions ();
         this.positions = new ArrayCacheBySymbolBySide ();
         const cache: ArrayCacheBySymbolBySide = this.positions;
@@ -1636,11 +1632,10 @@ export default class xt extends xtRest {
         //
         const id = this.safeString (message, 'id');
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-        let unsubscribe: Bool = false;
         if (id !== undefined) {
             const subscription = this.safeDict (subscriptionsById, id, {});
-            unsubscribe = this.safeBool (subscription, 'unsubscribe', false);
-            if (unsubscribe === true) {
+            const unsubscribe = this.safeBool (subscription, 'unsubscribe', false);
+            if (unsubscribe) {
                 this.handleUnSubscription (client, subscription);
             }
         }

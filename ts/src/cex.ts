@@ -1160,7 +1160,8 @@ export default class cex extends Exchange {
             'orderId': parseInt (id),
         };
         const result = await this.fetchOpenOrders (symbol, undefined, undefined, this.extend (request, params));
-        return result[0];
+        const order = this.safeDict (result, 0);
+        return order as Order;
     }
 
     /**
@@ -1181,10 +1182,11 @@ export default class cex extends Exchange {
             'orderId': parseInt (id),
         };
         const result = await this.fetchClosedOrders (symbol, undefined, undefined, this.extend (request, params));
-        return result[0];
+        const order = this.safeDict (result, 0);
+        return order as Order;
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'PENDING_NEW': 'open',
             'NEW': 'open',
@@ -1623,7 +1625,7 @@ export default class cex extends Exchange {
         };
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             'rejected': 'rejected',
             'pending': 'pending',

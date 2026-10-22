@@ -936,7 +936,7 @@ class deribit extends deribit$1["default"] {
             'id': this.requestId(),
         };
         const extendedRequest = this.deepExtend(request, params);
-        const maxMessageByteLimit = 32768 - 1; // 'Message Too Big: limit 32768B'
+        const maxMessageByteLimit = 32767; // 'Message Too Big: limit 32768B'
         const jsonedText = this.json(extendedRequest);
         if (jsonedText.length >= maxMessageByteLimit) {
             throw new errors.ExchangeError(this.id + ' requested subscription length over limit, try to reduce symbols amount');

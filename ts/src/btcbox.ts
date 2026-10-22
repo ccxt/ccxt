@@ -638,7 +638,7 @@ export default class btcbox extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             // TODO: complete list
             'part': 'open', // partially or not at all executed
@@ -772,15 +772,13 @@ export default class btcbox extends Exchange {
         //      },
         // ]
         //
-        const orders = this.parseOrders (response, market, since, limit);
         // status (open/closed/canceled) is undefined
         // btcbox does not return status, but we know it's 'open' as we queried for open orders
+        const extra: Dict = {};
         if (type === 'open') {
-            for (let i = 0; i < orders.length; i++) {
-                orders[i]['status'] = 'open';
-            }
+            extra['status'] = 'open';
         }
-        return orders;
+        return this.parseOrders (response, market, since, limit, extra);
     }
 
     /**
@@ -858,7 +856,7 @@ export default class btcbox extends Exchange {
             return undefined; // resort to defaultErrorHandler
         }
         const result = this.safeBool (response, 'result');
-        if (result === undefined || result === true) {
+        if (result === undefined || result) {
             return undefined; // either public API (no error codes expected) or success
         }
         const code = this.safeString (response, 'code');

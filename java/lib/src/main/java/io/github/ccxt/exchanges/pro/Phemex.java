@@ -111,12 +111,12 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
 
     public Long requestId()
     {
-        Object requestId;
+        Long requestId;
         synchronized (this) {
-        requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
-        Helpers.addElementToObject(this.options, "requestId", requestId);
+        requestId = (Long) this.sum(this.safeInteger(this.options, "requestId", 0), 1);
+        { Map<Object, Object> j39v1 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v2 = "requestId"; Object j39v3 = requestId; if (j39v1 == null) { if (j39v2 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v1) { if (j39v3 == null && j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); } else { j39v1.put(j39v2, j39v3); } } }
         }
-        return Helpers.toLongOrNull(requestId);
+        return requestId;
     }
 
     public Object parseSwapTicker(Map<String, Object> ticker, Map<String, Object> market)
@@ -324,11 +324,11 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         List<Object> tickers = new ArrayList<Object>(Arrays.asList());
         if (message.containsKey("market24h"))
         {
-            Object ticker = this.safeValue(message, "market24h");
+            Map<String, Object> ticker = (Map<String, Object>) this.safeDict(message, "market24h", new HashMap<String, Object>() {{}});
             ((List<Object>)tickers).add(this.parseSwapTicker((Map<String, Object>) (ticker), (Map<String, Object>) null));
         } else if (message.containsKey("spot_market24h"))
         {
-            Object ticker = this.safeValue(message, "spot_market24h");
+            Map<String, Object> ticker = (Map<String, Object>) this.safeDict(message, "spot_market24h", new HashMap<String, Object>() {{}});
             ((List<Object>)tickers).add(this.parseTicker(ticker, (Map<String, Object>) null));
         } else if (message.containsKey("data"))
         {
@@ -837,7 +837,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
 
     public void customHandleDelta(Object bookside, Object delta, Map<String, Object> market)
     {
-        Object bidAsk = this.customParseBidAsk(delta, 0, 1, market);
+        List<Object> bidAsk = (List<Object>) this.customParseBidAsk(delta, 0, 1, market);
         ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(bidAsk);
     }
 
@@ -1103,7 +1103,8 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             String symbol = (String) parsed.get("symbol");
             if (java.util.Objects.equals(type, null))
             {
-                type = (((java.util.Objects.equals(market.get("settle"), "USDT")))) ? "perpetual" : market.get("type");
+                String marketSettle = this.safeString(market, "settle");
+                type = (((java.util.Objects.equals(marketSettle, "USDT")))) ? "perpetual" : market.get("type");
             }
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -1338,7 +1339,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         //
         List<Object> trades = new ArrayList<Object>(Arrays.asList());
         List<Object> parsedOrders = new ArrayList<Object>(Arrays.asList());
-        if ((Helpers.inOp(message, "closed")) || (Helpers.inOp(message, "fills")) || (Helpers.inOp(message, "open")))
+        if (((switch ((Object)(message)) { case List<?> j39v17 -> j39v17.contains("closed"); case Map<?, ?> j39v16 -> j39v16.containsKey("closed"); case null, default -> false; })) || ((switch ((Object)(message)) { case List<?> j39v15 -> j39v15.contains("fills"); case Map<?, ?> j39v14 -> j39v14.containsKey("fills"); case null, default -> false; })) || ((switch ((Object)(message)) { case List<?> j39v13 -> j39v13.contains("open"); case Map<?, ?> j39v12 -> j39v12.containsKey("open"); case null, default -> false; })))
         {
             List<Object> closed = (List<Object>) this.safeList(message, "closed", new ArrayList<Object>(Arrays.asList()));
             List<Object> open = (List<Object>) this.safeList(message, "open", new ArrayList<Object>(Arrays.asList()));
@@ -1357,12 +1358,12 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             }
         } else
         {
-            Integer messageLength = Helpers.getArrayLength(message);
+            Integer messageLength = (switch ((Object)(message)) { case null -> 0; case List<?> j39v9 -> j39v9.size(); case String j39v10 -> j39v10.length(); case Object j39v11 -> j39v11.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v11) : 0; });
             if ((messageLength != null && messageLength == 0))
             {
                 return;
             }
-            for (var i = 0; i < Helpers.getArrayLength(message); i++)
+            for (var i = 0; i < (switch ((Object)(message)) { case null -> 0; case List<?> j39v6 -> j39v6.size(); case String j39v7 -> j39v7.length(); case Object j39v8 -> j39v8.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v8) : 0; }); i++)
             {
                 Object update = Helpers.GetValue(message, i);
                 String action = this.safeString(update, "action");
@@ -1395,7 +1396,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 Boolean isUsdt = java.util.Objects.equals(market.get("settle"), "USDT");
                 type = ((Boolean.TRUE.equals(isUsdt))) ? "perpetual" : market.get("type");
             }
-            Helpers.addElementToObject(marketIds, symbol, true);
+            ((Map<Object, Object>) (Map<?, ?>) marketIds).put(symbol, true);
         }
         List<Object> keys = new ArrayList<Object>(marketIds.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
@@ -1807,7 +1808,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             if (java.util.Objects.equals(future, null))
             {
                 Long expiryDelta = this.safeInteger(this.options, "expires", 120);
-                Object expiration = (this.seconds() + expiryDelta);
+                Long expiration = (Long) (this.seconds() + expiryDelta);
                 String payload = (this.apiKey + String.valueOf(expiration));
                 String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256());
                 String method = "user.auth";

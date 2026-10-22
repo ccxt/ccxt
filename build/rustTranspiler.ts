@@ -8982,6 +8982,11 @@ impl std::ops::DerefMut for ${coreName} {
                 // locals make the remaining `is_true` sites native.
                 rustContent = this.dropNativeCallIsTrue(rustContent);
                 rustContent = this.dropOptionShadowIsTrue(rustContent);
+                rustContent = this.hx4R24BoolParamIsTrue(rustContent);
+                rustContent = this.hx4R03DropBoolBoxedIsTrue(rustContent);
+                rustContent = this.hx4R19NativeBoolEquals(rustContent);
+                rustContent = this.hx4R19NativeBoolIsTrue(rustContent);
+                rustContent = this.hx4R25InlineLiteralIsEqual(rustContent);
                 // Last: drop `.clone()` on the value arg of
                 // extend/omit/market/parse_number when the local is dead
                 // afterwards (those callees take the Value by value).
@@ -9004,6 +9009,10 @@ impl std::ops::DerefMut for ${coreName} {
                 // And `while (true)` → `loop {` (rustc's `while_true` lint is
                 // an error under the CI clippy lane's `-D warnings`).
                 rustContent = this.whileTrueToLoop(rustContent);
+                rustContent = this.r28Truth(rustContent); // hx4 R28
+                rustContent = this.hx4R29InlineCollectionHelpers(rustContent);
+                rustContent = this.r31Str(rustContent); // hx4 R31
+                rustContent = this.r32Native(rustContent); // hx4 R32
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
                 throw new Error(
@@ -9714,6 +9723,11 @@ impl std::ops::DerefMut for ${coreName} {
         // D-32: bool/`Option<bool>` callees and `Option`-typed shadow locals.
         finalFile = this.dropNativeCallIsTrue(finalFile);
         finalFile = this.dropOptionShadowIsTrue(finalFile);
+        finalFile = this.hx4R24BoolParamIsTrue(finalFile);
+        finalFile = this.hx4R03DropBoolBoxedIsTrue(finalFile);
+        finalFile = this.hx4R19NativeBoolEquals(finalFile);
+        finalFile = this.hx4R19NativeBoolIsTrue(finalFile);
+        finalFile = this.hx4R25InlineLiteralIsEqual(finalFile);
         finalFile = this.nativeRequestDictInserts(finalFile);
         finalFile = this.nativePayloadAccessorDrops(finalFile);
         finalFile = this.typeSafeListLocals(finalFile);
@@ -9723,6 +9737,10 @@ impl std::ops::DerefMut for ${coreName} {
         // And `while (true)` → `loop {` (rustc's `while_true` lint is an error
         // under the CI clippy lane's `-D warnings`).
         finalFile = this.whileTrueToLoop(finalFile);
+        finalFile = this.r28Truth(finalFile); // hx4 R28
+        finalFile = this.hx4R29InlineCollectionHelpers(finalFile);
+        finalFile = this.r31Str(finalFile); // hx4 R31
+        finalFile = this.r32Native(finalFile); // hx4 R32
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
         //   `export class BaseExchange { ... }`  (holds the transpile marker)
@@ -11678,6 +11696,1049 @@ impl std::ops::DerefMut for ${coreName} {
                 unexpected.map(t => `${t.kind}:${t.name}`).join(', '),
             );
         }
+    }
+
+    // hx4 R03 — `is_true(&X)` -> `X.as_bool() == Some(true)` when X can only hold
+    // `Value::Bool(..)` / `Value::Null` (exact: `is_truthy` reads Bool by payload, Null false).
+
+    /** Every return path is a `Value::Bool(..)` box or `Value::Null`: explicit
+     *  `return`s plus the fn's tail expression (after the last top-level `;`/`}`). */
+    hx4R03BodyReturnsBoolNullOnly(body: string): boolean {
+        const masked = this.maskStringsAndComments(body);
+        const inner = masked.slice(1, masked.lastIndexOf('}'));
+        if (/\?\s*[;)}\n]/.test(inner)) return false;
+        for (const r of inner.matchAll(/\breturn\b\s*([^;]*);/g)) {
+            const t = r[1].trim();
+            if (!(t === 'Value::Null' || t === 'crate::Value::Null' ||
+                (/^(?:crate::)?Value::Bool\(/.test(t) && this.closeParenAt(t, t.indexOf('(')) === t.length - 1))) return false;
+        }
+        let depth = 0; let last = -1;
+        for (let i = 0; i < inner.length; i++) {
+            const c = inner[i];
+            if (c === '(' || c === '[' || c === '{') depth += 1;
+            else if (c === ')' || c === ']') depth -= 1;
+            else if (c === '}') { depth -= 1; if (depth === 0) last = i; }
+            else if (c === ';' && depth === 0) last = i;
+        }
+        const tail = inner.slice(last + 1).trim();
+        // An empty tail may be a value-producing `if`/`match` block: keep the helper.
+        if (tail === 'Value::Null' || tail === 'crate::Value::Null') return true;
+        return /^(?:crate::)?Value::Bool\(/.test(tail) && this.closeParenAt(tail, tail.indexOf('(')) === tail.length - 1;
+    }
+
+    /** Hand-written base fields whose every write in the runtime is a `Value::Bool(..)` box. */
+    hx4R03BoolFields(): Set<string> {
+        const cache = this as any;
+        if (cache._hx4R03BoolFields !== undefined) return cache._hx4R03BoolFields;
+        const out = new Set<string>();
+        let srcs: string[] = [];
+        try {
+            const core = fs.readdirSync(RUST_CORE).filter(f => f.endsWith('.rs') && f !== 'exchange.rs').map(f => `${RUST_CORE}/${f}`);
+            srcs = [`${RUST_CORE}/exchange.rs`, ...core].map(f => this.maskStringsAndComments(fs.readFileSync(f, 'utf8')));
+        } catch {
+            cache._hx4R03BoolFields = out;
+            return out;
+        }
+        const decl = srcs[0];
+        for (const m of decl.matchAll(/^\s*pub ([A-Za-z_][A-Za-z0-9_]*)\s*:\s*Value\s*,/gm)) {
+            const name = m[1];
+            let ok = true; let inits = 0;
+            for (const src of srcs) {
+                // struct-literal init `name: <rhs>,` and assignments `.name = <rhs>;`
+                const re = new RegExp(`(?:^\\s*${name}\\s*:(?!:)|\\.${name}\\s*=(?!=))\\s*([^\\n]*)`, 'gm');
+                for (const w of src.matchAll(re)) {
+                    if (/^\s*pub\s/.test(w[0])) continue;
+                    if (!/^(?:crate::)?Value::Bool\((?:true|false)\)\s*[,;]/.test(w[1].trim())) { ok = false; break; }
+                    inits += 1;
+                }
+                // `&mut self.name` / `get_value_mut(&mut self.name` style writers.
+                if (new RegExp(`&mut\\s+self\\.${name}\\b`).test(src)) ok = false;
+                if (!ok) break;
+            }
+            if (ok && inits > 0 && !this.hx4R03TsWritesField(name)) out.add(name);
+        }
+        cache._hx4R03BoolFields = out;
+        return out;
+    }
+
+    /** A venue source (ts/src, ts/src/pro, ts/src/prediction) assigns `this.<field>`. */
+    hx4R03TsWritesField(field: string): boolean {
+        const re = new RegExp(`\\bthis\\.${field}\\s*=(?!=)`);
+        for (const dir of ['./ts/src', './ts/src/pro', './ts/src/prediction']) {
+            let files: string[] = [];
+            try { files = fs.readdirSync(dir).filter(f => f.endsWith('.ts')); } catch { continue; }
+            for (const f of files) if (re.test(fs.readFileSync(`${dir}/${f}`, 'utf8'))) return true;
+        }
+        return false;
+    }
+
+    /** `crate::precise::Precise::stringX` comparators returning only `Bool(false)` / `vbool(..)`. */
+    hx4R03PreciseBoolFns(): Set<string> {
+        const cache = this as any;
+        if (cache._hx4R03PreciseBoolFns !== undefined) return cache._hx4R03PreciseBoolFns;
+        const out = new Set<string>();
+        try {
+            const src = fs.readFileSync(`${RUST_CORE}/precise.rs`, 'utf8');
+            for (const m of src.matchAll(/pub fn (string[A-Z][A-Za-z]*)\(a: &crate::Value, b: &crate::Value\)\s*-> crate::Value \{([^\n]*)\}\s*$/gm)) {
+                const body = m[2].trim();
+                if (/^if Self::any_null\(a, b\) \{ return crate::Value::Bool\(false\); \} Self::vbool\([^;{}]*\)$/.test(body)) out.add(m[1]);
+            }
+            for (const m of src.matchAll(/pub fn (string[A-Z][A-Za-z]*)\(a: &crate::Value, b: &crate::Value\)\s*-> crate::Value \{ Self::(string[A-Z][A-Za-z]*)\(a, b\) \}/g)) {
+                if (out.has(m[2])) out.add(m[1]);
+            }
+        } catch { /* precise.rs absent: keep the helper */ }
+        cache._hx4R03PreciseBoolFns = out;
+        return out;
+    }
+
+    /** True when the printed expression can only be a `Value::Bool(..)` / Null box. */
+    hx4R03IsBoolBoxedExpr(raw: string, content: string, own: Set<string>, memo: Map<string, boolean>): boolean {
+        const e = this.stripOuterParens(raw.trim());
+        if (this.isBoolValuedRhs(e)) return true;
+        if (this.hx4X03IsBoolTupleHead(e, content, own, memo)) return true;
+        const field = /^self\.([A-Za-z_][A-Za-z0-9_]*)(?:\.clone\(\))?$/.exec(e);
+        if (field !== null) return this.hx4R03BoolFields().has(field[1]) && this.hx4R03FieldWritesBoxed(content, field[1]);
+        const precise = /^crate::precise::Precise::([A-Za-z]+)\(/.exec(e);
+        if (precise !== null) {
+            return this.closeParenAt(e, precise[0].length - 1) === e.length - 1 && this.hx4R03PreciseBoolFns().has(precise[1]);
+        }
+        const call = /^self\.([a-z_][a-z0-9_]*)\(/.exec(e);
+        if (call === null || this.closeParenAt(e, call[0].length - 1) !== e.length - 1) return false;
+        const name = call[1];
+        if (memo.has(name)) return memo.get(name) as boolean;
+        let ok = false;
+        if (!(name in this.traitMethodSignatures())) {
+            const srcs = own.has(name) ? [content] : (this._rustBoolReturnMethods?.src ?? []);
+            const sigRe = new RegExp(`\\b(async\\s+)?fn\\s+${name}\\s*\\(`, 'g');
+            // Every declaration must be sync and print `-> Value` (a native `bool` has no `.as_bool()`).
+            const asyncDecl = srcs.some(s => [...s.matchAll(sigRe)].some(m => m[1] !== undefined ||
+                !/->\s*(?:crate::)?Value\s*$/.test(s.slice(m.index, m.index + 400).split('{')[0].trim())));
+            const bodies = srcs.flatMap(s => this.rustFnBodies(s, name));
+            ok = !asyncDecl && bodies.length > 0 && bodies.every(b => this.hx4R03BodyReturnsBoolNullOnly(b));
+        }
+        memo.set(name, ok);
+        return ok;
+    }
+
+    /** No write in this file can put a non-bool box in `self.<field>`. */
+    hx4R03FieldWritesBoxed(content: string, field: string): boolean {
+        const masked = this.maskStringsAndComments(content);
+        if (new RegExp(`&mut\\s+self\\.${field}\\b`).test(masked)) return false;
+        for (const w of masked.matchAll(new RegExp(`\\.${field}\\s*=(?!=)\\s*`, 'g'))) {
+            const end = this.endOfRustStatement(masked, w.index + w[0].length);
+            if (end < 0 || !this.isBoolValuedRhs(masked.slice(w.index + w[0].length, end))) return false;
+        }
+        return true;
+    }
+
+    /** Rewrites `is_true(&X)` in a proven bool slot when X is bool-boxed (call/field/local). */
+    hx4R03DropBoolBoxedIsTrue(content: string): string {
+        if (!content.includes('is_true(&')) return content;
+        // Prime the base-source cache shared with the D-32 call fold.
+        this.rustEmittedBoolReturnMethods(content, []);
+        const masked = this.maskStringsAndComments(content);
+        const own = new Set<string>();
+        for (const om of masked.matchAll(/\bfn\s+([a-z_][a-z0-9_]*)\s*(?:<[^>{}()]*>)?\s*\(/g)) own.add(om[1]);
+        const memo = new Map<string, boolean>();
+        const headers: number[] = [];
+        for (const hm of masked.matchAll(/\n[ \t]*(?:pub )?(?:async )?fn /g)) headers.push((hm.index as number) + 1);
+        headers.unshift(0);
+        headers.push(content.length);
+        const rewrites: Array<{ start: number, end: number, text: string }> = [];
+        for (let h = 0; h + 1 < headers.length; h++) {
+            const from = headers[h];
+            const region = masked.slice(from, headers[h + 1]);
+            const localOk = new Map<string, boolean>();
+            const provenLocal = (name: string): boolean => {
+                if (localOk.has(name)) return localOk.get(name) as boolean;
+                let ok = false;
+                const decls = [...region.matchAll(new RegExp(`let (?:mut )?${name}\\b(\\s*:\\s*Value)?\\s*=\\s*`, 'g'))];
+                if (decls.length === 1 && decls[0][1] !== undefined &&
+                    !new RegExp(`\\|\\s*(?:[A-Za-z_][A-Za-z0-9_]*\\s*,\\s*)*${name}\\s*[,|]`).test(region) &&
+                    !new RegExp(`(?:for|if let|while let)\\s+${name}\\s+(?:in|=)`).test(region) &&
+                    !new RegExp(`&mut\\s+${name}\\b`).test(region) &&
+                    !new RegExp(`(?<![A-Za-z0-9_.])${name}\\s*(?:[-+*/%|&^]|<<|>>)=`).test(region) &&
+                    // Pattern bindings (`Some(x) =>`) and in-place methods can swap the variant.
+                    !new RegExp(`\\b${name}\\s*\\)\\s*(?:=>|if\\b)`).test(region) &&
+                    !new RegExp(`(?<![A-Za-z0-9_.])${name}\\.(?!clone\\(|as_[a-z0-9]+\\(|is_[a-z_]+\\()[a-z_]+\\(`).test(region)) {
+                    const initAt = (decls[0].index as number) + decls[0][0].length;
+                    const initEnd = this.endOfRustStatement(region, initAt);
+                    ok = initEnd >= 0 && this.hx4R03IsBoolBoxedExpr(content.slice(from + initAt, from + initEnd), content, own, memo);
+                    for (const w of ok ? region.matchAll(new RegExp(`(?<![A-Za-z0-9_.])${name}\\s*=(?!=)\\s*`, 'g')) : []) {
+                        const rhsAt = (w.index as number) + w[0].length;
+                        const end = this.endOfRustStatement(region, rhsAt);
+                        const rhs = end < 0 ? '' : content.slice(from + rhsAt, from + end);
+                        if (end < 0 || !this.hx4R03IsBoolBoxedExpr(rhs, content, own, memo)) { ok = false; break; }
+                    }
+                }
+                localOk.set(name, ok);
+                return ok;
+            };
+            for (const sm of region.matchAll(/(?<![A-Za-z0-9_:])is_true\(&/g)) {
+                const start = from + (sm.index as number);
+                const open = start + 'is_true('.length - 1;
+                const close = this.closeParenAt(content, open);
+                if (close < 0 || close >= headers[h + 1]) continue;
+                const end = close + 1;
+                if (/^\s*\./.test(content.slice(end, end + 4))) continue;
+                // A compare after the site would chain with the emitted `==`.
+                if (/^\s*(?:==|!=|<|>|as\b)/.test(content.slice(end, end + 6))) continue;
+                // A left operand of `&&`/`||` is a bool slot too.
+                const lead = content.slice(Math.max(0, start - 12), start);
+                const slot = this.rustIsTrueBoolSlot(content, start, end) ??
+                    (/^\s*(?:&&|\|\|)/.test(content.slice(end, end + 4)) &&
+                     /(?:[({;,]|(?:^|[^\w])(?:if|while|return)|[^=!<>]=)\s*$/.test(lead) ? 'bool' : undefined);
+                if (slot === undefined) continue;
+                const inner = this.stripOuterParens(content.slice(open + 2, close).trim());
+                const ident = /^[A-Za-z_][A-Za-z0-9_]*$/.test(inner);
+                // A read before the sole `let` names a parameter / outer binding.
+                const declAt = ident ? region.search(new RegExp(`let (?:mut )?${inner}\\b`)) : -1;
+                if (ident && (declAt < 0 || declAt > (sm.index as number))) continue;
+                if (ident ? !provenLocal(inner) : !this.hx4R03IsBoolBoxedExpr(inner, content, own, memo)) continue;
+                const cmp = `${inner}.as_bool() == Some(true)`;
+                rewrites.push({ start, end, text: slot === 'negated' ? `(${cmp})` : cmp });
+            }
+        }
+        if (rewrites.length === 0) return content;
+        let out = ''; let at = 0;
+        for (const r of rewrites) {
+            if (r.start < at) continue;
+            out += content.slice(at, r.start) + r.text;
+            at = r.end;
+        }
+        return out + content.slice(at);
+    }
+
+    // hx4 X03 — element 0 of a tuple returned by a sync `self.m(..)` whose every
+    // return is `Value::from(vec![<bool-boxed head>, ..])` or Null (handleOptionBoolAndParams[2]).
+
+    /** `R.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)` with R a proven tuple call or tuple local. */
+    hx4X03IsBoolTupleHead(e: string, content: string, own: Set<string>, memo: Map<string, boolean>): boolean {
+        const suffix = '.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)';
+        if (!e.endsWith(suffix)) return false;
+        const recv = e.slice(0, e.length - suffix.length).trim();
+        if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(recv)) {
+            // Every `let` of the tuple local in this file binds a proven call; no other write.
+            const masked = this.maskStringsAndComments(content);
+            if (new RegExp(`&mut\\s+${recv}\\b|(?<![A-Za-z0-9_.])(?<!let (?:mut )?)${recv}\\s*=(?!=)|\\|[^|\\n]*\\b${recv}\\b[^|\\n]*\\||(?:for|if let|while let)\\s+${recv}\\s`).test(masked)) return false;
+            const decls = [...masked.matchAll(new RegExp(`let (?:mut )?${recv}(?:\\s*:\\s*Value)?\\s*=\\s*`, 'g'))];
+            if (decls.length === 0) return false;
+            for (const d of decls) {
+                const at = (d.index as number) + d[0].length;
+                const end = this.endOfRustStatement(masked, at);
+                if (end < 0 || !this.hx4X03IsBoolTupleCall(content.slice(at, end).trim(), content, own, memo)) return false;
+            }
+            return true;
+        }
+        return this.hx4X03IsBoolTupleCall(recv, content, own, memo);
+    }
+
+    /** `self.m(..)` (whole expression) where m is sync, prints `-> Value`, and only returns bool-headed tuples / Null. */
+    hx4X03IsBoolTupleCall(e: string, content: string, own: Set<string>, memo: Map<string, boolean>): boolean {
+        const call = /^self\.([a-z_][a-z0-9_]*)\(/.exec(e);
+        if (call === null || this.closeParenAt(e, call[0].length - 1) !== e.length - 1) return false;
+        const key = `tuple:${call[1]}`;
+        if (memo.has(key)) return memo.get(key) as boolean;
+        memo.set(key, false);
+        let ok = false;
+        if (!(call[1] in this.traitMethodSignatures())) {
+            const srcs = own.has(call[1]) ? [content] : (this._rustBoolReturnMethods?.src ?? []);
+            const sigRe = new RegExp(`\\b(async\\s+)?fn\\s+${call[1]}\\s*\\(`, 'g');
+            const badDecl = srcs.some(s => [...s.matchAll(sigRe)].some(m => m[1] !== undefined ||
+                !/->\s*(?:crate::)?Value\s*$/.test(s.slice(m.index, m.index + 400).split('{')[0].trim())));
+            const bodies = srcs.flatMap(s => this.rustFnBodies(s, call[1]));
+            ok = !badDecl && bodies.length > 0 && bodies.every(b => this.hx4X03BodyReturnsBoolTuples(b, content, own, memo));
+        }
+        memo.set(key, ok);
+        return ok;
+    }
+
+    /** Every explicit return is `Value::from(vec![H, ..])` (H bool-boxed) or Null; the tail is Null. */
+    hx4X03BodyReturnsBoolTuples(body: string, content: string, own: Set<string>, memo: Map<string, boolean>): boolean {
+        const masked = this.maskStringsAndComments(body);
+        const inner = masked.slice(1, masked.lastIndexOf('}'));
+        if (/\?\s*[;)}\n]/.test(inner)) return false;
+        let returns = 0;
+        for (const r of inner.matchAll(/\breturn\b\s*([^;]*);/g)) {
+            const at = (r.index as number) + r[0].length - r[1].length - 1;
+            const t = body.slice(1 + at, 1 + at + r[1].length).trim();
+            if (t === 'Value::Null' || t === 'crate::Value::Null') continue;
+            const head = /^(?:crate::)?Value::from\(vec!\[/.exec(t);
+            if (head === null || !t.endsWith('])')) return false;
+            const parts = this.splitTopLevelCommas(t.slice(head[0].length, t.length - 2));
+            if (parts.length < 2 || !this.hx4R03IsBoolBoxedExpr(parts[0], content, own, memo)) return false;
+            returns += 1;
+        }
+        const lastStmt = Math.max(inner.lastIndexOf(';'), inner.lastIndexOf('}'));
+        const tail = inner.slice(lastStmt + 1).trim();
+        return returns > 0 && (tail === 'Value::Null' || tail === 'crate::Value::Null');
+    }
+
+    // hx4 R19 — `is_equal(&X, &Value::Bool(b))` -> `X.as_bool() == Some(b)` when X can only hold
+    // `Value::Bool(..)` / `Value::Null` (R03 proof): Bool compares by payload, Null never equals a Bool.
+
+    /** R03's local proof for `name` inside one fn region (single typed `let`, every write bool-boxed). */
+    hx4R19BoolBoxedLocal(name: string, region: string, from: number, content: string, own: Set<string>, memo: Map<string, boolean>): boolean {
+        const decls = [...region.matchAll(new RegExp(`let (?:mut )?${name}\\b(\\s*:\\s*Value)?\\s*=\\s*`, 'g'))];
+        if (decls.length !== 1 || decls[0][1] === undefined) return false;
+        const vetoes = [
+            `\\|\\s*(?:[A-Za-z_][A-Za-z0-9_]*\\s*,\\s*)*${name}\\s*[,|]`,
+            `(?:for|if let|while let)\\s+${name}\\s+(?:in|=)`,
+            `&mut\\s+${name}\\b`,
+            `(?<![A-Za-z0-9_.])${name}\\s*(?:[-+*/%|&^]|<<|>>)=`,
+            `\\b${name}\\s*\\)\\s*(?:=>|if\\b)`,
+            `(?<![A-Za-z0-9_.])${name}\\.(?!clone\\(|as_[a-z0-9]+\\(|is_[a-z_]+\\()[a-z_]+\\(`,
+        ];
+        if (vetoes.some(v => new RegExp(v).test(region))) return false;
+        const initAt = (decls[0].index as number) + decls[0][0].length;
+        const initEnd = this.endOfRustStatement(region, initAt);
+        if (initEnd < 0 || !this.hx4R03IsBoolBoxedExpr(content.slice(from + initAt, from + initEnd), content, own, memo)) return false;
+        for (const w of region.matchAll(new RegExp(`(?<![A-Za-z0-9_.])${name}\\s*=(?!=)\\s*`, 'g'))) {
+            const rhsAt = (w.index as number) + w[0].length;
+            const end = this.endOfRustStatement(region, rhsAt);
+            const rhs = end < 0 ? '' : content.slice(from + rhsAt, from + end);
+            if (end < 0 || !(this.hx4R03IsBoolBoxedExpr(rhs, content, own, memo) ||
+                this.hx4R19DestrTmpBoolHead(rhs, region.slice(0, w.index as number), from, content, own, memo))) return false;
+        }
+        return true;
+    }
+
+    /** `__destr_tmp.as_array()..get(0)..` whose nearest preceding `let __destr_tmp = C;` binds a proven bool-tuple call C. */
+    hx4R19DestrTmpBoolHead(rhs: string, before: string, from: number, content: string, own: Set<string>, memo: Map<string, boolean>): boolean {
+        const m = /^(__destr_tmp[A-Za-z0-9_]*)\.as_array\(\)\.and_then\(\|__arr\| __arr\.get\(0\)\)\.cloned\(\)\.unwrap_or\(Value::Null\)$/.exec(rhs.trim());
+        if (m === null) return false;
+        const decls = [...before.matchAll(new RegExp(`let (?:mut )?${m[1]}\\s*=\\s*`, 'g'))];
+        if (decls.length === 0) return false;
+        const d = decls[decls.length - 1];
+        const at = (d.index as number) + d[0].length;
+        const end = this.endOfRustStatement(before, at);
+        if (end < 0 || new RegExp(`(?<![A-Za-z0-9_.])${m[1]}\\s*=(?!=)`).test(before.slice(end))) return false;
+        return this.hx4X03IsBoolTupleCall(content.slice(from + at, from + end).trim(), content, own, memo);
+    }
+
+    /** Rewrites `is_equal(&X, &Value::Bool(b))` in a proven bool slot when X is bool-boxed. */
+    hx4R19NativeBoolEquals(content: string): string {
+        if (!content.includes('is_equal(&') && !content.includes('is_true(&')) return content;
+        this.rustEmittedBoolReturnMethods(content, []);
+        const masked = this.maskStringsAndComments(content);
+        const own = new Set<string>();
+        for (const om of masked.matchAll(/\bfn\s+([a-z_][a-z0-9_]*)\s*(?:<[^>{}()]*>)?\s*\(/g)) own.add(om[1]);
+        const memo = new Map<string, boolean>();
+        const headers: number[] = [0];
+        for (const hm of masked.matchAll(/\n[ \t]*(?:pub )?(?:async )?fn /g)) headers.push((hm.index as number) + 1);
+        headers.push(content.length);
+        const rewrites: Array<{ start: number, end: number, text: string }> = [];
+        for (let h = 0; h + 1 < headers.length; h++) {
+            const from = headers[h];
+            const region = masked.slice(from, headers[h + 1]);
+            const localOk = new Map<string, boolean>();
+            for (const sm of region.matchAll(/(?<![A-Za-z0-9_:])is_(?:equal|true)\(&/g)) {
+                const start = from + (sm.index as number);
+                const isTrue = sm[0].startsWith('is_true');
+                const open = start + (isTrue ? 'is_true(' : 'is_equal(').length - 1;
+                const close = this.closeParenAt(content, open);
+                if (close < 0 || close >= headers[h + 1]) continue;
+                const end = close + 1;
+                if (/^\s*(?:\.|==|!=|<|>|as\b)/.test(content.slice(end, end + 6))) continue;
+                const args = isTrue ? [content.slice(open + 1, close), '&Value::Bool(true)'] : this.splitTopLevelCommas(content.slice(open + 1, close));
+                if (args.length !== 2) continue;
+                const lit = /^&(?:crate::)?Value::Bool\((true|false)\)$/.exec(args[1].trim());
+                if (lit === null || !args[0].trim().startsWith('&')) continue;
+                // `is_true` sites over non-locals stay with R03 (already rewritten when proven).
+                if (isTrue && !/^[A-Za-z_][A-Za-z0-9_]*$/.test(this.stripOuterParens(args[0].trim().slice(1).trim()))) continue;
+                const lead = content.slice(Math.max(0, start - 12), start);
+                const slot = this.rustIsTrueBoolSlot(content, start, end) ??
+                    (/^\s*(?:&&|\|\|)/.test(content.slice(end, end + 4)) &&
+                     /(?:[({;,]|(?:^|[^\w])(?:if|while|return)|[^=!<>]=)\s*$/.test(lead) ? 'bool' : undefined);
+                if (slot === undefined) continue;
+                const inner = this.stripOuterParens(args[0].trim().slice(1).trim());
+                if (inner.includes('is_equal(')) continue;
+                if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(inner)) {
+                    const declAt = region.search(new RegExp(`let (?:mut )?${inner}\\b`));
+                    if (declAt < 0 || declAt > (sm.index as number)) continue;
+                    if (!localOk.has(inner)) localOk.set(inner, this.hx4R19BoolBoxedLocal(inner, region, from, content, own, memo));
+                    if (!localOk.get(inner)) continue;
+                } else if (!this.hx4R03IsBoolBoxedExpr(inner, content, own, memo)) continue;
+                const recv = /^[A-Za-z_][A-Za-z0-9_.]*$/.test(inner) ? inner : `(${inner})`;
+                const cmp = `${recv}.as_bool() == Some(${lit[1]})`;
+                rewrites.push({ start, end, text: slot === 'negated' ? `(${cmp})` : cmp });
+            }
+        }
+        if (rewrites.length === 0) return content;
+        let out = ''; let at = 0;
+        for (const r of rewrites) {
+            if (r.start < at) continue;
+            out += content.slice(at, r.start) + r.text;
+            at = r.end;
+        }
+        return out + content.slice(at);
+    }
+
+    /** A printed expression that is a native Rust `bool`: `&&`/`||`/`!` over `X.as_str().is_some_and(|__s| __s.starts_with|ends_with("lit"))`
+     *  and `X.as_bool() == Some(b)` atoms (`is_true` on a `bool` is the identity). */
+    hx4R19IsNativeBoolExpr(raw: string, depth = 0): boolean {
+        const e = this.stripOuterParens(raw.trim());
+        if (depth > 6 || e === '') return false;
+        if (/^[A-Za-z_][A-Za-z0-9_]*\.as_str\(\)\.is_some_and\(\|__s\| __s\.(?:starts_with|ends_with)\("(?:[^"\\]|\\.)*"\)\)$/.test(e)) return true;
+        if (/^[A-Za-z_][A-Za-z0-9_]*\.as_bool\(\) == Some\((?:true|false)\)$/.test(e)) return true;
+        const parts: string[] = [];
+        let d = 0; let startAt = 0;
+        for (let i = 0; i < e.length; i++) {
+            const c = e[i];
+            if (c === '"') { i = this.endOfRustStringLiteral(e, i) - 1; continue; }
+            if (c === '(' || c === '[' || c === '{') d += 1;
+            else if (c === ')' || c === ']' || c === '}') d -= 1;
+            else if (d === 0 && (e.startsWith('||', i) || e.startsWith('&&', i)) && e[i - 1] === ' ') {
+                parts.push(e.slice(startAt, i)); startAt = i + 2; i += 1;
+            }
+        }
+        parts.push(e.slice(startAt));
+        if (parts.length > 1) return parts.every(pt => this.hx4R19IsNativeBoolExpr(pt, depth + 1));
+        if (e.startsWith('!') && e[1] === '(') return this.hx4R19IsNativeBoolExpr(e.slice(1), depth + 1);
+        return false;
+    }
+
+    /** `is_true(&(E))` with E a native bool expression in a proven bool slot -> `(E)`. */
+    hx4R19NativeBoolIsTrue(content: string): string {
+        if (!content.includes('is_true(&(')) return content;
+        const masked = this.maskStringsAndComments(content);
+        const rewrites: Array<{ start: number, end: number, text: string }> = [];
+        for (const sm of masked.matchAll(/(?<![A-Za-z0-9_:])is_true\(&\(/g)) {
+            const start = sm.index as number;
+            const open = start + 'is_true('.length - 1;
+            const close = this.closeParenAt(content, open);
+            if (close < 0) continue;
+            const end = close + 1;
+            if (/^\s*(?:\.|==|!=|<|>|as\b)/.test(content.slice(end, end + 6))) continue;
+            const lead = content.slice(Math.max(0, start - 12), start);
+            const slot = this.rustIsTrueBoolSlot(content, start, end) ??
+                (/^\s*(?:&&|\|\|)/.test(content.slice(end, end + 4)) &&
+                 /(?:[({;,]|(?:^|[^\w])(?:if|while|return)|[^=!<>]=)\s*$/.test(lead) ? 'bool' : undefined);
+            if (slot === undefined) continue;
+            const inner = content.slice(open + 2, close).trim();
+            if (!inner.startsWith('(') || !this.hx4R19IsNativeBoolExpr(inner)) continue;
+            rewrites.push({ start, end, text: `(${this.stripOuterParens(inner)})` });
+        }
+        if (rewrites.length === 0) return content;
+        let out = ''; let at = 0;
+        for (const r of rewrites) {
+            if (r.start < at) continue;
+            out += content.slice(at, r.start) + r.text;
+            at = r.end;
+        }
+        return out + content.slice(at);
+    }
+
+    // hx4 R24 — `is_true(&p)` -> `p.as_bool() == Some(true)` for a never-reassigned parameter
+    // whose every TS caller passes `true`/`false`/`undefined`/omits it (or forwards a parameter
+    // proven the same way), so its Value is only ever `Bool(..)` or Null.
+
+    private hx4R24Ts: { files: string[], heads: Array<{ file: number, at: number, end: number, name: string, params: Array<[string, string | undefined]> }> } | undefined;
+
+    /** Method headers of every ts/src source (venues, pro, prediction, base, tests). */
+    hx4R24TsIndex() {
+        if (this.hx4R24Ts !== undefined) return this.hx4R24Ts;
+        const files: string[] = [];
+        const walk = (dir: string) => {
+            let entries: fs.Dirent[] = [];
+            try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
+            for (const e of entries) {
+                if (e.isDirectory()) walk(`${dir}/${e.name}`);
+                else if (e.name.endsWith('.ts')) files.push(fs.readFileSync(`${dir}/${e.name}`, 'utf8'));
+            }
+        };
+        walk('./ts/src');
+        const heads: any[] = [];
+        const re = /\n[ \t]+(?:(?:override|async|public|private|protected|static)\s+)*([A-Za-z_]\w*)\s*\(([^()]*)\)\s*(?::[^{;]*)?\{/g;
+        files.forEach((text, file) => {
+            const own: any[] = [];
+            for (const m of text.matchAll(re)) {
+                if (/^(?:if|for|while|switch|catch|function|return)$/.test(m[1])) continue;
+                const params: Array<[string, string | undefined]> = [];
+                for (const raw of m[2].split(',')) {
+                    const p = /^\s*(\w+)\s*\??\s*(?::[^=]*)?(?:=\s*(.*?))?\s*$/s.exec(raw);
+                    if (p !== null) params.push([p[1], p[2]]);
+                }
+                own.push({ file, at: m.index as number, end: text.length, name: m[1], params });
+            }
+            for (let i = 0; i + 1 < own.length; i++) own[i].end = own[i + 1].at;
+            heads.push(...own);
+        });
+        this.hx4R24Ts = { files, heads };
+        return this.hx4R24Ts;
+    }
+
+    /** Top-level comma-split argument list starting after a `(`; undefined when unbalanced. */
+    hx4R24Args(text: string, from: number): string[] | undefined {
+        const out: string[] = []; let depth = 0; let cur = '';
+        for (let i = from; i < text.length; i++) {
+            const c = text[i];
+            if (c === '(' || c === '[' || c === '{') depth += 1;
+            else if (c === ')' || c === ']' || c === '}') {
+                if (depth === 0) { if (cur.trim() !== '') out.push(cur.trim()); return out; }
+                depth -= 1;
+            }
+            if (c === ',' && depth === 0) { out.push(cur.trim()); cur = ''; } else cur += c;
+        }
+        return undefined;
+    }
+
+    private hx4R24Memo = new Map<string, boolean>();
+
+    /** Every value the TS parameter `param` of every `method` declaration can receive is a bool or nullish. */
+    hx4R24BoolOnlyParam(method: string, param: string, stack: Set<string> = new Set()): boolean {
+        const key = `${method}:${param}`;
+        if (this.hx4R24Memo.has(key)) return this.hx4R24Memo.get(key) as boolean;
+        if (stack.has(key)) return true; // a self-forward adds no new value
+        stack.add(key);
+        const { files, heads } = this.hx4R24TsIndex();
+        let ok = true;
+        const slots = new Set<number>();
+        for (const h of heads) {
+            if (h.name !== method) continue;
+            const i = h.params.findIndex(p => p[0] === param);
+            if (i < 0) { ok = false; break; }
+            slots.add(i);
+            const d = h.params[i][1];
+            if (d !== undefined && !/^(?:true|false|undefined)$/.test(d.trim())) { ok = false; break; }
+        }
+        if (slots.size !== 1) ok = false;
+        const slot = [...slots][0];
+        if (ok && !this.hx4R27StaticInputsBool(method, slot)) ok = false;
+        for (let f = 0; ok && f < files.length; f++) {
+            const text = files[f];
+            // Dynamic dispatch (`this[name]`, option-named methods) and unbound references.
+            if (!this.hx4R27MentionsSafe(method, f) || new RegExp(`\\.${method}\\b(?!\\s*\\()`).test(text)) { ok = false; break; }
+            for (const c of text.matchAll(new RegExp(`\\.${method}\\s*\\(`, 'g'))) {
+                const args = this.hx4R24Args(text, (c.index as number) + c[0].length);
+                if (args === undefined || args.some(a => a.startsWith('...'))) { ok = false; break; }
+                if (args.length <= slot) continue;
+                const arg = args[slot];
+                if (/^(?:true|false|undefined)$/.test(arg)) continue;
+                const encl = heads.filter(h => h.file === f && h.at < (c.index as number)).pop();
+                const body = encl === undefined ? '' : text.slice(encl.at, encl.end);
+                if (encl !== undefined && /^\w+$/.test(arg) && encl.params.some(p => p[0] === arg)
+                    && !new RegExp(`(?<![\\w.])${arg}\\s*(?:[-+*/%|&^]|\\?\\?|\\|\\||&&)?=(?!=)`).test(body.slice(body.indexOf('{')))
+                    && this.hx4R24BoolOnlyParam(encl.name, arg, stack)) continue;
+                ok = false; break;
+            }
+        }
+        stack.delete(key);
+        this.hx4R24Memo.set(key, ok);
+        return ok;
+    }
+
+    // hx4 R27 — a quoted method name only vetoes the R24 proof when it can reach dynamic dispatch:
+    // object keys, non-call indexes and args of non-dispatching `this.f(` calls are inert.
+    // Static request/response/ws fixtures call methods by name, so their inputs must be bool/null.
+    private hx4R27Dispatchers: Set<string> | undefined;
+
+    hx4R27MentionsSafe(method: string, file: number): boolean {
+        const { files, heads } = this.hx4R24TsIndex();
+        if (this.hx4R27Dispatchers === undefined) {
+            const disp = new Set<string>();
+            const fwd: Array<{ name: string, callees: string[] }> = [];
+            for (const h of heads) {
+                const body = files[h.file].slice(h.at, h.end).replace(/\/\/[^\n]*/g, '');
+                if (/(?:this|exchange)\s*\[\s*\w+\s*\]\s*\(/.test(body)) disp.add(h.name);
+                const callees: string[] = [];
+                for (const c of body.matchAll(/this\.(\w+)\s*\(/g)) {
+                    const args = this.hx4R24Args(body, (c.index as number) + c[0].length) ?? [];
+                    if (args.some(a => h.params.some(p => p[0] === a))) callees.push(c[1]);
+                }
+                if (callees.length > 0) fwd.push({ name: h.name, callees });
+            }
+            // a method forwarding one of its own parameters into a dispatcher dispatches too
+            for (let grew = true; grew;) {
+                grew = false;
+                for (const f of fwd) {
+                    if (!disp.has(f.name) && f.callees.some(c => disp.has(c))) { disp.add(f.name); grew = true; }
+                }
+            }
+            this.hx4R27Dispatchers = disp;
+        }
+        const text = files[file];
+        for (const m of text.matchAll(new RegExp(`['"\`]${method}['"\`]`, 'g'))) {
+            const at = m.index as number;
+            const after = text.slice(at + m[0].length, at + m[0].length + 8);
+            const before = text.slice(Math.max(0, at - 160), at);
+            const lineStart = before.lastIndexOf('\n');
+            if (/^\s*\/\//.test(before.slice(lineStart + 1))) continue;
+            if (/^\s*:/.test(after) && !/\?\s*$/.test(before)) continue;
+            if (/\[\s*$/.test(before) && /^\s*\](?!\s*\()/.test(after)) continue;
+            const call = /this\.(\w+)\s*\(([^()]|\([^()]*\))*$/.exec(before);
+            if (call !== null && !this.hx4R27Dispatchers.has(call[1]) && /^\s*[,)]/.test(after)) continue;
+            return false;
+        }
+        return true;
+    }
+
+    private hx4R27Static: any[] | undefined;
+
+    hx4R27StaticInputsBool(method: string, slot: number): boolean {
+        if (this.hx4R27Static === undefined) {
+            this.hx4R27Static = [];
+            for (const kind of ['request', 'response', 'ws']) {
+                const dir = `./ts/src/test/static/${kind}`;
+                let names: string[] = [];
+                try { names = fs.readdirSync(dir).filter(n => n.endsWith('.json')); } catch { continue; }
+                for (const n of names) {
+                    try { this.hx4R27Static.push(JSON.parse(fs.readFileSync(`${dir}/${n}`, 'utf8'))); } catch { this.hx4R27Static.push(undefined); }
+                }
+            }
+        }
+        for (const d of this.hx4R27Static) {
+            if (d === undefined) return false; // unreadable fixture: assume the worst
+            const cases = d?.methods?.[method];
+            if (cases === undefined) continue;
+            for (const c of cases) {
+                const input = c?.input;
+                if (input === undefined || input === null) continue;
+                if (!Array.isArray(input)) return false;
+                const v = input[slot];
+                if (v !== undefined && v !== null && typeof v !== 'boolean') return false;
+            }
+        }
+        return true;
+    }
+
+    /** Snake-case fns the hand-written runtime calls (their callers are outside ts/src). */
+    private hx4R24Hand: string | undefined;
+
+    hx4R24BoolParamIsTrue(content: string): string {
+        if (!content.includes('is_true(&')) return content;
+        if (this.hx4R24Hand === undefined) {
+            const parts: string[] = [];
+            const walk = (dir: string) => {
+                let entries: fs.Dirent[] = [];
+                try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
+                for (const e of entries) {
+                    if (e.isDirectory()) walk(`${dir}/${e.name}`);
+                    else if (e.name.endsWith('.rs') && !e.name.includes('generated')) parts.push(fs.readFileSync(`${dir}/${e.name}`, 'utf8'));
+                }
+            };
+            walk(RUST_CORE);
+            this.hx4R24Hand = parts.join('\n');
+        }
+        const hand = this.hx4R24Hand;
+        const masked = this.maskStringsAndComments(content);
+        const headers: number[] = [];
+        for (const hm of masked.matchAll(/\n[ \t]*(?:pub )?(?:async )?fn /g)) headers.push((hm.index as number) + 1);
+        headers.push(content.length);
+        const rewrites: Array<{ start: number, end: number, text: string }> = [];
+        for (let h = 0; h + 1 < headers.length; h++) {
+            const from = headers[h];
+            const region = masked.slice(from, headers[h + 1]);
+            const fm = /fn ([a-z_][a-z0-9_]*)\s*\(/.exec(region);
+            const brace = region.indexOf('{');
+            if (fm === null || brace < 0) continue;
+            const snake = fm[1];
+            const header = region.slice(0, brace);
+            const body = region.slice(brace);
+            if (new RegExp(`\\b${snake}\\s*\\(`).test(hand)) continue;
+            const method = snake.replace(/_([a-z0-9])/g, (_m, c) => c.toUpperCase());
+            const proven = new Map<string, boolean>();
+            const isParam = (name: string): boolean => {
+                if (proven.has(name)) return proven.get(name) as boolean;
+                const declared = new RegExp(`\\bmut ${name}: Value\\b`).test(header)
+                    || new RegExp(`let mut ${name} = get_arg\\(optional_args, \\d+, Value::(?:Bool\\((?:true|false)\\)|Null)\\);`).test(body);
+                const ok = declared
+                    && (body.match(new RegExp(`\\blet (?:mut )?${name}\\b`, 'g')) ?? []).length <= 1
+                    && !new RegExp(`(?<![A-Za-z0-9_.])${name}\\s*(?:[-+*/%|&^]|<<|>>)?=(?!=)`).test(body.replace(/let mut \w+ = get_arg\(/g, ''))
+                    && !new RegExp(`&mut\\s+${name}\\b`).test(body)
+                    && !new RegExp(`\\|\\s*(?:[A-Za-z_][A-Za-z0-9_]*\\s*,\\s*)*${name}\\s*[,|]`).test(body)
+                    && !new RegExp(`(?:for|if let|while let)\\s+[^=]*\\b${name}\\b[^=]*\\s+(?:in|=)`).test(body)
+                    && !new RegExp(`(?<![A-Za-z0-9_.])${name}\\.(?!clone\\(|as_[a-z0-9]+\\(|is_[a-z_]+\\()[a-z_]+\\(`).test(body)
+                    && this.hx4R24BoolOnlyParam(method, name);
+                proven.set(name, ok);
+                return ok;
+            };
+            for (const sm of region.matchAll(/(?<![A-Za-z0-9_:])is_true\(&([A-Za-z_][A-Za-z0-9_]*)\)/g)) {
+                const start = from + (sm.index as number);
+                const end = start + sm[0].length;
+                if (/^\s*(?:\.|==|!=|<|>|as\b)/.test(content.slice(end, end + 6))) continue;
+                const lead = content.slice(Math.max(0, start - 12), start);
+                const slot = this.rustIsTrueBoolSlot(content, start, end) ??
+                    (/^\s*(?:&&|\|\|)/.test(content.slice(end, end + 4)) &&
+                     /(?:[({;,]|(?:^|[^\w])(?:if|while|return)|[^=!<>]=)\s*$/.test(lead) ? 'bool' : undefined);
+                if (slot === undefined || !isParam(sm[1])) continue;
+                const cmp = `${sm[1]}.as_bool() == Some(true)`;
+                rewrites.push({ start, end, text: slot === 'negated' ? `(${cmp})` : cmp });
+            }
+        }
+        if (rewrites.length === 0) return content;
+        let out = ''; let at = 0;
+        for (const r of rewrites) {
+            if (r.start < at) continue;
+            out += content.slice(at, r.start) + r.text;
+            at = r.end;
+        }
+        return out + content.slice(at);
+    }
+
+    // hx4 R25 — `is_equal(&X, &Value::Bool|Int(lit))` / `&Value::Str("<number>")` prints the helper's
+    // dispatch inline: same-variant payload compare, else the f64 coercion (Int/Float, Str parse, Bool 1/0).
+    hx4R25InlineLiteralIsEqual(content: string): string {
+        if (!content.includes('is_equal(&')) return content;
+        const masked = this.maskStringsAndComments(content);
+        const loose = '(match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })';
+        const rewrites: Array<{ start: number, end: number, text: string }> = [];
+        for (const sm of masked.matchAll(/(?<![A-Za-z0-9_:])is_equal\(&/g)) {
+            const start = sm.index as number;
+            const open = start + 'is_equal'.length;
+            const close = this.closeParenAt(content, open);
+            if (close < 0) continue;
+            const args = this.splitTopLevelCommas(content.slice(open + 1, close));
+            if (args.length !== 2 || !args[0].trim().startsWith('&')) continue;
+            const x = args[0].trim().slice(1).trim();
+            if (x.includes('is_equal(') || x.includes('\n')) continue;
+            const lit = args[1].trim();
+            let same: string | undefined;
+            let f64: string | undefined;
+            const b = /^&(?:crate::)?Value::Bool\((true|false)\)$/.exec(lit);
+            const n = /^&(?:crate::)?Value::Int\((-?[0-9]{1,15})\)$/.exec(lit);
+            const t = /^&(?:crate::)?Value::Str\("(-?[0-9]{1,15})"\.into\(\)\)$/.exec(lit);
+            if (b !== null) { same = `Value::Bool(__x) => *__x == ${b[1]}`; f64 = b[1] === 'true' ? '1.0' : '0.0'; }
+            else if (n !== null) { same = `Value::Int(__x) => *__x == ${n[1]}`; f64 = `${n[1]}.0`; }
+            else if (t !== null) { same = `Value::Str(__x) => __x == "${t[1]}"`; f64 = `${t[1]}.0`; }
+            if (same === undefined) continue;
+            rewrites.push({ start, end: close + 1, text: `(match &(${x}) { ${same}, __v => matches!(${loose}, Some(__y) if __y == ${f64}) })` });
+        }
+        if (rewrites.length === 0) return content;
+        let out = ''; let at = 0;
+        for (const r of rewrites) {
+            if (r.start < at) continue;
+            out += content.slice(at, r.start) + r.text;
+            at = r.end;
+        }
+        return out + content.slice(at);
+    }
+
+    // hx4 R28 — last pass: `is_equal(&A, &B)` prints `runtime::is_equal`'s own match inline; `is_true(&E)`
+    // becomes `E.is_truthy()` when E is proven `Value` (typed local/param, base field, `-> Value` callee),
+    // `(E)` when E is a top-level bool expression, a `: bool` local or a `-> bool` callee; else the helper stays.
+    private _r28Rets: Map<string, Set<string>> | null = null;
+    private r28Rets(content: string): Map<string, Set<string>> {
+        const scan = (src: string, into: Map<string, Set<string>>) => {
+            for (const m of src.matchAll(/\bfn ([a-z_][a-z0-9_]*)\s*(?:<[^>]*>)?\(([^)]*)\)\s*(?:->\s*([A-Za-z_][A-Za-z0-9_:<>]*))?/g)) {
+                const set = into.get(m[1]) ?? new Set<string>();
+                set.add(m[3] ?? '()');
+                into.set(m[1], set);
+            }
+        };
+        if (this._r28Rets === null) {
+            const base = new Map<string, Set<string>>();
+            const dirs = [`${RUST_BASE}/exchanges`, `${RUST_BASE}/prediction`, './rust/ccxt-common/src', './rust/ccxt-pro/src/pro', './rust/ccxt-pro/src'];
+            for (const d of dirs) {
+                if (!fs.existsSync(d)) continue;
+                for (const f of fs.readdirSync(d)) if (f.endsWith('.rs')) scan(fs.readFileSync(`${d}/${f}`, 'utf8'), base);
+            }
+            this._r28Rets = base;
+        }
+        const out = new Map<string, Set<string>>();
+        for (const [k, v] of this._r28Rets) out.set(k, new Set(v));
+        scan(content, out);
+        return out;
+    }
+
+    private _r28Fields: Set<string> | null = null;
+    private r28Fields(): Set<string> {
+        if (this._r28Fields === null) {
+            const f = './rust/ccxt-common/src/exchange.rs';
+            const src = fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '';
+            const at = src.indexOf('pub struct Exchange {');
+            const body = at < 0 ? '' : src.slice(at, src.indexOf('\n}', at));
+            this._r28Fields = new Set([...body.matchAll(/^\s*pub ([A-Za-z_][A-Za-z0-9_]*):\s*Value,/gm)].map(m => m[1]));
+        }
+        return this._r28Fields;
+    }
+
+    private r28BoolExpr(e: string): boolean {
+        let depth = 0;
+        for (let i = 0; i < e.length; i++) {
+            const c = e[i];
+            if (c === '"') { i = this.endOfRustStringLiteral(e, i) - 1; continue; }
+            if (c === '(' || c === '[' || c === '{') depth++;
+            else if (c === ')' || c === ']' || c === '}') depth--;
+            else if (depth === 0) {
+                const two = e.slice(i, i + 2);
+                if (two === '&&' || two === '||' || two === '==' || two === '!=' || two === '>=' || two === '<=') return true;
+                if ((c === '<' || c === '>') && e[i - 1] === ' ' && e[i + 1] === ' ') return true;
+            }
+        }
+        return false;
+    }
+
+    r28Truth(content: string): string {
+        if (!content.includes('is_true(&') && !content.includes('is_equal(&')) return content;
+        const masked = this.maskStringsAndComments(content);
+        const headers: number[] = [0];
+        for (const hm of masked.matchAll(/\n[ \t]*(?:pub )?(?:async )?fn /g)) headers.push((hm.index as number) + 1);
+        headers.push(content.length);
+        const regionOf = (pos: number): [number, number] => {
+            let lo = 0;
+            for (let h = 0; h + 1 < headers.length; h++) if (headers[h] <= pos) lo = h;
+            return [headers[lo], headers[lo + 1]];
+        };
+        const identType = (name: string, pos: number): 'Value' | 'bool' | undefined => {
+            const [from, to] = regionOf(pos);
+            const region = masked.slice(from, to);
+            const types = new Set<string>();
+            const header = region.slice(0, Math.max(0, region.indexOf('{')));
+            const pm = new RegExp(`\\b(?:mut )?${name}:\\s*([A-Za-z_][A-Za-z0-9_<>]*)`).exec(header);
+            if (pm !== null) types.add(pm[1]);
+            for (const m of region.matchAll(new RegExp(`\\blet (?:mut )?${name}\\b\\s*(:\\s*([A-Za-z_][A-Za-z0-9_<>]*))?\\s*=\\s*(get_arg\\()?`, 'g'))) {
+                if (m[2] !== undefined) types.add(m[2]);
+                else if (m[3] !== undefined) types.add('Value');
+                else types.add('?');
+            }
+            const rebind = new RegExp(`(?<!\\|)\\|(?!\\|)[^|\\n]*\\b${name}\\b[^|\\n]*(?<!\\|)\\|(?!\\|)|\\bfor [^\\n]*\\b${name}\\b[^\\n]* in |Some\\((?:mut )?${name}\\)|Err\\((?:mut )?${name}\\)|\\blet \\([^)]*\\b${name}\\b`);
+            if (rebind.test(region) || types.size !== 1) return undefined;
+            const t = [...types][0];
+            return t === 'Value' ? 'Value' : t === 'bool' ? 'bool' : undefined;
+        };
+        let fnReturns: Map<string, Set<string>> | null = null;
+        const fields = this.r28Fields();
+        const loose = (v: string) => `(match ${v} { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })`;
+        const helperRe = /(?<![A-Za-z0-9_:.])is_(?:equal|true)\(/;
+        const rewrites: Array<{ start: number, end: number, text: string }> = [];
+        for (const sm of masked.matchAll(/(?<![A-Za-z0-9_:.])(is_true|is_equal)\(&/g)) {
+            const start = sm.index as number;
+            const open = start + sm[1].length;
+            const close = this.closeParenAt(content, open);
+            if (close < 0) continue;
+            const inner = content.slice(open + 1, close);
+            if (sm[1] === 'is_equal') {
+                const args = this.splitTopLevelCommas(inner);
+                if (args.length !== 2) continue;
+                const a = args[0].trim(); const b = args[1].trim();
+                if (!a.startsWith('&') || !b.startsWith('&') || helperRe.test(a + b)) continue;
+                rewrites.push({ start, end: close + 1, text:
+                    `(match (${a}, ${b}) { (Value::Null, Value::Null) => true, (Value::Bool(__x), Value::Bool(__y)) => __x == __y, ` +
+                    `(Value::Str(__x), Value::Str(__y)) => __x == __y, (Value::Int(__x), Value::Int(__y)) => __x == __y, ` +
+                    `(Value::Float(__x), Value::Float(__y)) => __x == __y, (__a, __b) => matches!((${loose('__a')}, ${loose('__b')}), (Some(__x), Some(__y)) if __x == __y) })` });
+                continue;
+            }
+            const e0 = inner.slice(1).trim();
+            if (helperRe.test(e0)) continue;
+            const e = this.stripOuterParens(e0).trim();
+            let text: string | undefined;
+            if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(e)) {
+                const t = identType(e, start);
+                if (t === 'Value') text = `${e}.is_truthy()`;
+                else if (t === 'bool') text = e;
+            } else if (/^self\.[A-Za-z_][A-Za-z0-9_]*$/.test(e)) {
+                if (fields.has(e.slice(5)) && !new RegExp(`\\bpub ${e.slice(5)}:`).test(masked)) text = `${e}.is_truthy()`;
+            } else if (this.r28BoolExpr(e)) {
+                text = `(${e})`;
+            } else {
+                const cm = /^(?:self\.(?:parent\.)?)?([a-z_][a-z0-9_]*)\(/.exec(e);
+                if (cm !== null && this.closeParenAt(e, cm[0].length - 1) === e.length - 1) {
+                    fnReturns ??= this.r28Rets(content);
+                    const rets = fnReturns.get(cm[1]);
+                    if (rets !== undefined && rets.size === 1 && rets.has('Value')) text = `${e}.is_truthy()`;
+                    else if (rets !== undefined && rets.size === 1 && rets.has('bool')) text = `(${e})`;
+                }
+            }
+            if (text !== undefined) rewrites.push({ start, end: close + 1, text });
+        }
+        if (rewrites.length === 0) return content;
+        let out = ''; let at = 0;
+        for (const r of rewrites) {
+            if (r.start < at) continue;
+            out += content.slice(at, r.start) + r.text;
+            at = r.end;
+        }
+        return out + content.slice(at);
+    }
+
+    // hx4 R29 — `in_op` / `object_keys` / `get_array_length` / `remove` print the runtime fn's own
+    // dispatch inline (public `Value::len`, `value::side_entries_as_value`, `ws_client::value_subs_remove`).
+    // Not for rust/tests (no `crate::value`); innermost-first so nested calls rewrite too.
+    hx4R29InlineCollectionHelpers(content: string): string {
+        const names = [ 'in_op', 'object_keys', 'get_array_length', 'remove' ];
+        if (!names.some(n => content.includes(n + '('))) return content;
+        const loose = (v: string) => `(match ${v} { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })`;
+        const eq = `(match (__r29e, __r29v) { (Value::Null, Value::Null) => true, (Value::Bool(__p), Value::Bool(__q)) => __p == __q, (Value::Str(__p), Value::Str(__q)) => __p == __q, (Value::Int(__p), Value::Int(__q)) => __p == __q, (Value::Float(__p), Value::Float(__q)) => __p == __q, (__p, __q) => matches!((${loose('__p')}, ${loose('__q')}), (Some(__x), Some(__y)) if __x == __y) })`;
+        const build = (name: string, args: string[]): string | undefined => {
+            const a = args.map(s => s.trim());
+            if (name === 'in_op' && a.length === 2) {
+                return `({ let __r29o: &Value = ${a[0]}; let __r29k: &Value = ${a[1]}; match (__r29o, __r29k) { (Value::Dict(__m), Value::Str(__k)) => __m.contains_key(&**__k), (Value::Arr(__a), __r29v) => __a.iter().any(|__r29e| ${eq}), _ => false } })`;
+            }
+            if (name === 'object_keys' && a.length === 1) {
+                return `({ let __r29o: &Value = ${a[0]}; match __r29o { Value::Dict(__m) => Value::List(__m.keys().filter(|__k| __k.as_str() != "__ws_subs_url" && __k.as_str() != "__ws_sub_ref").map(|__k| Value::Str(__k.clone().into())).collect()), _ => Value::List(vec![]) } })`;
+            }
+            if (name === 'get_array_length' && a.length === 1) {
+                return `({ let __r29o: &Value = ${a[0]}; match __r29o { Value::Dict(__d) if __d.contains_key("__sideKind") && !__d.contains_key("__cacheKind") && !matches!(__d.get("__book_cache_id"), Some(Value::Int(_))) => Value::Int(crate::value::side_entries_as_value(__r29o).map(|__s| __s.len()).unwrap_or(0) as i64), _ => Value::Int(__r29o.len() as i64) } })`;
+            }
+            if (name === 'remove' && a.length === 2 && a[0].startsWith('&mut ')) {
+                return `{ let __r29o: &mut Value = ${a[0]}; let __r29k: &Value = ${a[1]}; match (__r29o, __r29k) { (Value::Dict(__m), Value::Str(__k)) => { if let Some(Value::Str(__u)) = __m.get("__ws_subs_url") { crate::pro::ws_client::value_subs_remove(__u, __k); } std::sync::Arc::make_mut(__m).shift_remove(&**__k); } (Value::Arr(__a), Value::Int(__i)) => { let __i = *__i as usize; let __a = std::sync::Arc::make_mut(__a); if __i < __a.len() { __a.remove(__i); } } _ => {} } }`;
+            }
+            return undefined;
+        };
+        const re = /(?<![A-Za-z0-9_:.])(in_op|object_keys|get_array_length|remove)\(/g;
+        // Repeat until no rewrite applies: each round replaces calls whose args hold no further helper call.
+        for (let round = 0; round < 8; round++) {
+            const masked = this.maskStringsAndComments(content);
+            const rewrites: Array<{ start: number, end: number, text: string }> = [];
+            for (const m of masked.matchAll(re)) {
+                const start = m.index as number;
+                const name = m[1];
+                // `fn remove(` declarations / `.remove(` methods never match (lookbehind + `fn ` check).
+                if (/\bfn\s+$/.test(masked.slice(Math.max(0, start - 8), start))) continue;
+                const open = start + name.length;
+                const close = this.closeParenAt(content, open);
+                if (close < 0) continue;
+                const inner = content.slice(open + 1, close);
+                if (/(?<![A-Za-z0-9_:.])(in_op|object_keys|get_array_length|remove)\(/.test(this.maskStringsAndComments(inner))) continue;
+                const text = build(name, this.splitTopLevelCommas(inner));
+                if (text === undefined) continue;
+                if (name === 'remove' && !/^\s*;/.test(content.slice(close + 1, close + 8))) continue;
+                rewrites.push({ start, end: close + 1, text });
+            }
+            if (rewrites.length === 0) break;
+            let out = ''; let at = 0;
+            for (const r of rewrites) {
+                if (r.start < at) continue;
+                out += content.slice(at, r.start) + r.text;
+                at = r.end;
+            }
+            content = out + content.slice(at);
+        }
+        return content;
+    }
+
+    // hx4 R31 — string helpers print `runtime.rs`'s own body inline (each arg bound once, innermost-first).
+    // `stringify_simple` is private: scalars inline, the `__precise` dict goes through the public
+    // `runtime::stringify_param` alias, other containers through `Display` exactly like the helper.
+    r31Str(content: string): string {
+        const names = [ 'to_string_val', 'join', 'split', 'replace_str', 'ends_with', 'starts_with', 'pad_end', 'pad_start', 'to_fixed' ];
+        if (!names.some(n => content.includes(n + '('))) return content;
+        const str = (v: string) => `(match ${v} { Value::Str(__s) => __s.to_string(), Value::Int(__n) => __n.to_string(), Value::Float(__f) => __f.to_string(), Value::Bool(__b) => __b.to_string(), Value::Null => "null".to_string(), Value::Dict(__m) if __m.contains_key("__precise") => crate::runtime::stringify_param(${v}), __o => format!("{}", __o) })`;
+        const i64v = (v: string) => `(match ${v} { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1i64 } else { 0i64 }), _ => None })`;
+        const pad = (a: string[], start: boolean) => `({ let __r31s: &Value = ${a[0]}; let __r31l: &Value = ${a[1]}; let __r31p: &Value = ${a[2]}; let __t: usize = match ${i64v('__r31l')} { Some(__v) => __v as usize, None => 0 }; let __p: String = match __r31p { Value::Str(__x) => __x.to_string(), _ => " ".to_string() }; match __r31s { Value::Str(__sv) => { if __sv.chars().count() >= __t { Value::Str(__sv.clone()) } else { let __need = __t - __sv.chars().count(); let __fill = __p.repeat((__need / __p.chars().count().max(1)).max(1)); Value::Str(${start ? 'format!("{}{}", __fill, __sv)' : 'format!("{}{}", __sv, __fill)'}.into()) } } _ => Value::Null } })`;
+        const build = (name: string, args: string[]): string | undefined => {
+            const a = args.map(s => s.trim());
+            if (name === 'to_string_val' && a.length === 1) {
+                return `({ let __r31v: &Value = ${a[0]}; Value::Str(${str('__r31v')}.into()) })`;
+            }
+            if (name === 'join' && a.length === 2) {
+                return `({ let __r31a: &Value = ${a[0]}; let __r31d: &Value = ${a[1]}; let __r31j: String = ${str('__r31d')}; match __r31a { Value::Arr(__a) => Value::Str(__a.iter().map(|__r31e| ${str('__r31e')}).collect::<Vec<String>>().join(&__r31j).into()), _ => Value::Str(String::new().into()) } })`;
+            }
+            if (name === 'split' && a.length === 2) {
+                return `({ let __r31a: &Value = ${a[0]}; let __r31d: &Value = ${a[1]}; match (__r31a, __r31d) { (Value::Str(__s), Value::Str(__d)) => Value::Array(__s.split(__d.as_ref()).map(|__x| Value::Str(__x.to_string().into())).collect()), _ => Value::Array(vec![]) } })`;
+            }
+            if (name === 'replace_str' && a.length === 3) {
+                return `({ let __r31a: &Value = ${a[0]}; let __r31o: &Value = ${a[1]}; let __r31n: &Value = ${a[2]}; match (__r31a, __r31o, __r31n) { (Value::Str(__s), Value::Str(__o), Value::Str(__n)) => Value::Str(__s.replace(__o.as_ref(), __n.as_ref()).into()), _ => __r31a.clone() } })`;
+            }
+            if ((name === 'starts_with' || name === 'ends_with') && a.length === 2) {
+                return `({ let __r31a: &Value = ${a[0]}; let __r31b: &Value = ${a[1]}; match (__r31a, __r31b) { (Value::Str(__h), Value::Str(__x)) => __h.${name}(__x.as_ref()), _ => false } })`;
+            }
+            if ((name === 'pad_start' || name === 'pad_end') && a.length === 3) return pad(a, name === 'pad_start');
+            if (name === 'to_fixed' && a.length === 2) {
+                return `({ let __r31x: &Value = ${a[0]}; let __r31g: &Value = ${a[1]}; let __d: usize = match ${i64v('__r31g')} { Some(__v) => __v.max(0) as usize, None => 0 }; let __n: f64 = match __r31x { Value::Int(__i) => *__i as f64, Value::Float(__f) => *__f, Value::Str(__s) => __s.trim().parse::<f64>().unwrap_or(0.0), _ => 0.0 }; Value::Str(format!("{:.*}", __d, __n).into()) })`;
+            }
+            return undefined;
+        };
+        const re = /(?<![A-Za-z0-9_:.])(to_string_val|join|split|replace_str|ends_with|starts_with|pad_end|pad_start|to_fixed)\(/g;
+        for (let round = 0; round < 8; round++) {
+            const masked = this.maskStringsAndComments(content);
+            const rewrites: Array<{ start: number, end: number, text: string }> = [];
+            for (const m of masked.matchAll(re)) {
+                const start = m.index as number;
+                const name = m[1];
+                if (/\bfn\s+$/.test(masked.slice(Math.max(0, start - 8), start))) continue;
+                const open = start + name.length;
+                const close = this.closeParenAt(content, open);
+                if (close < 0) continue;
+                const inner = content.slice(open + 1, close);
+                if (new RegExp(re.source).test(this.maskStringsAndComments(inner))) continue;
+                const text = build(name, this.splitTopLevelCommas(inner));
+                if (text === undefined) continue;
+                rewrites.push({ start, end: close + 1, text });
+            }
+            if (rewrites.length === 0) break;
+            let out = ''; let at = 0;
+            for (const r of rewrites) {
+                if (r.start < at) continue;
+                out += content.slice(at, r.start) + r.text;
+                at = r.end;
+            }
+            content = out + content.slice(at);
+        }
+        return content;
+    }
+
+    // hx4 R32 — `is_instance` / `is_function` / `object_values` / `shift` print runtime.rs's own body inline:
+    // is_instance = `[cls]` containment OR leading `[Kind]` in cls's errorHierarchy subtree; is_function is
+    // always false; object_values filters the ws tags; shift pops a clone (by-value arg, as the helper).
+    r32Native(content: string): string {
+        const names = [ 'is_instance', 'is_function', 'object_values', 'shift' ];
+        if (!names.some(n => content.includes(n + '('))) return content;
+        const subtree = (cls: string): string[] | undefined => {
+            const find = (node: any): any => {
+                for (const k of Object.keys(node)) {
+                    if (k === cls) return node[k];
+                    const r = find(node[k]);
+                    if (r !== undefined) return r;
+                }
+                return undefined;
+            };
+            const root = find(errorHierarchy);
+            if (root === undefined) return undefined;
+            const out: string[] = [];
+            const walk = (node: any) => { for (const k of Object.keys(node)) { out.push(k); walk(node[k]); } };
+            walk(root);
+            return out;
+        };
+        const build = (name: string, args: string[]): string | undefined => {
+            const a = args.map(s => s.trim());
+            if (name === 'is_function' && a.length === 1 && a[0].startsWith('&')) {
+                return `({ let _: &Value = ${a[0]}; false })`;
+            }
+            if (name === 'object_values' && a.length === 1 && a[0].startsWith('&')) {
+                return `({ let __r32o: &Value = ${a[0]}; match __r32o { Value::Dict(__m) => Value::List(__m.iter().filter(|(__k, _)| __k.as_str() != "__ws_subs_url" && __k.as_str() != "__ws_sub_ref").map(|(_, __v)| __v.clone()).collect()), _ => Value::List(vec![]) } })`;
+            }
+            if (name === 'shift' && a.length === 1) {
+                return `({ let mut __r32a: Value = ${a[0]}; match &mut __r32a { Value::Arr(__a) if !__a.is_empty() => std::sync::Arc::make_mut(__a).remove(0), _ => Value::Null } })`;
+            }
+            if (name === 'is_instance' && a.length === 2 && a[0].startsWith('&')) {
+                const m = /^&Value::Str\("([A-Za-z0-9_]+)"\.(?:into|to_string)\(\)\)$/.exec(a[1]);
+                if (m === null) return undefined;
+                const cls = m[1];
+                const subs = subtree(cls) ?? [];
+                const walk = subs.length === 0 ? '' : ` || matches!(__s.find('[').and_then(|__a| __s[__a + 1..].find(']').map(|__b| &__s[__a + 1..__a + 1 + __b])), Some(${subs.map(x => `"${x}"`).join(' | ')}))`;
+                return `({ let __r32v: &Value = ${a[0]}; matches!(__r32v, Value::Str(__s) if __s.contains("[${cls}]")${walk}) })`;
+            }
+            return undefined;
+        };
+        const re = /(?<![A-Za-z0-9_:.])(is_instance|is_function|object_values|shift)\(/g;
+        for (let round = 0; round < 8; round++) {
+            const masked = this.maskStringsAndComments(content);
+            const rewrites: Array<{ start: number, end: number, text: string }> = [];
+            for (const m of masked.matchAll(re)) {
+                const start = m.index as number;
+                const name = m[1];
+                if (/\bfn\s+$/.test(masked.slice(Math.max(0, start - 8), start))) continue;
+                const open = start + name.length;
+                const close = this.closeParenAt(content, open);
+                if (close < 0) continue;
+                const inner = content.slice(open + 1, close);
+                if (/(?<![A-Za-z0-9_:.])(is_instance|is_function|object_values|shift)\(/.test(this.maskStringsAndComments(inner))) continue;
+                const text = build(name, this.splitTopLevelCommas(inner));
+                if (text === undefined) continue;
+                rewrites.push({ start, end: close + 1, text });
+            }
+            if (rewrites.length === 0) break;
+            let out = ''; let at = 0;
+            for (const r of rewrites) {
+                if (r.start < at) continue;
+                out += content.slice(at, r.start) + r.text;
+                at = r.end;
+            }
+            content = out + content.slice(at);
+        }
+        return content;
     }
 }
 

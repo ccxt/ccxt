@@ -830,7 +830,8 @@ public partial class bitvavo : ccxt.bitvavo
         //     }
         //
         Int64? nonce = this.safeInteger(message, "nonce");
-        if (isGreaterThan(nonce, getValue(orderbook, "nonce")))
+        Int64? currentNonce = this.safeInteger(orderbook, "nonce");
+        if (((nonce != null)) && ((currentNonce != null)) && ((nonce != null && (currentNonce == null || nonce > currentNonce))))
         {
             this.handleDeltas(getValue(orderbook, "asks"), this.safeList(message, "asks", new List<object>() {}));
             this.handleDeltas(getValue(orderbook, "bids"), this.safeList(message, "bids", new List<object>() {}));
@@ -864,7 +865,7 @@ public partial class bitvavo : ccxt.bitvavo
         {
             return;
         }
-        if (isEqual(getValue(orderbook, "nonce"), null))
+        if ((((object)((orderbook != null && orderbook.ContainsKey("nonce") ? orderbook["nonce"] : null))) == null))
         {
             object subscription = this.safeValue(client.subscriptions, messageHash, new Dictionary<string, object>() {});
             // multi-symbol watches share one subscription object, so the
@@ -1057,7 +1058,7 @@ public partial class bitvavo : ccxt.bitvavo
             {
                 continue;
             }
-            object subscription = getValue(client.subscriptions, key);
+            object subscription = (client.subscriptions != null && key != null && client.subscriptions.ContainsKey(key) ? client.subscriptions[key] : null);
             string subHash = key.Replace("unsubscribe:", (string)"");
             this.cleanCache(subscription);
             this.cleanUnsubscription(client, subHash, key);
@@ -1065,7 +1066,7 @@ public partial class bitvavo : ccxt.bitvavo
             // unsubscribe time the sub future is usually already gone and cleanUnsubscription
             // stashes the error in ((WebSocketClient)client).rejections instead - that stale entry
             // would immediately reject the next subscribe's fresh future, so clear it here
-            if (inOp(client.rejections, subHash))
+            if (((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))(client.rejections, subHash))
             {
                 ((IDictionary<string,object>)client.rejections).Remove(subHash);
             }
@@ -1367,7 +1368,7 @@ public partial class bitvavo : ccxt.bitvavo
         string ts = this.milliseconds().ToString();
         int randomNumber = this.randNumber(4);
         string randomPart = randomNumber.ToString();
-        return parseInt((ts + randomPart));
+        return (((Func<object, Int64?>)(static (object hx4pa) => { try { return Convert.ToInt64(Math.Floor(Convert.ToDouble(hx4pa))); } catch (Exception) { return null; } }))((ts + randomPart)));
     }
 
     public async virtual Task<object> watchRequest(string? action, object request)

@@ -364,12 +364,12 @@ class cex extends cex$1["default"] {
             return;
         }
         this.tickers[symbol] = ticker;
-        let messageHash = 'ticker:' + symbol;
+        const messageHash = 'ticker:' + symbol;
         client.resolve(ticker, messageHash);
         client.resolve(ticker, 'tickers');
-        messageHash = this.safeString(message, 'oid');
-        if (messageHash !== undefined) {
-            client.resolve(ticker, messageHash);
+        const oid = this.safeString(message, 'oid');
+        if (oid !== undefined) {
+            client.resolve(ticker, oid);
         }
     }
     parseWsTicker(ticker, market = undefined) {
@@ -411,10 +411,7 @@ class cex extends cex$1["default"] {
         if ((base !== undefined) && (quote !== undefined)) {
             symbol = base + '/' + quote;
         }
-        let timestamp = this.safeInteger(ticker, 'timestamp');
-        if (timestamp !== undefined) {
-            timestamp = timestamp * 1000;
-        }
+        const timestamp = this.safeTimestamp(ticker, 'timestamp');
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -768,7 +765,7 @@ class cex extends cex$1["default"] {
         }
         order['remaining'] = remains;
         const canceled = this.safeBool(data, 'cancel', false);
-        if (canceled === true) {
+        if (canceled) {
             order['status'] = 'canceled';
         }
         if (isTransaction) {
@@ -864,7 +861,7 @@ class cex extends cex$1["default"] {
         }
         const canceled = this.safeBool(order, 'cancel', false);
         let status = 'open';
-        if (canceled === true) {
+        if (canceled) {
             status = 'canceled';
         }
         else if (isTransaction) {

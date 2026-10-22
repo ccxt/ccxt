@@ -2174,8 +2174,15 @@ class BaseExchange(object):
         return value
 
     def check_option_bool(self, methodName, optionName, value):
-        # the statically typed ports throw on a present non-boolean value; here it passes through unchanged
-        return value
+        # "true"/"false" strings and 1/0 numbers read as booleans; any other present non-boolean throws BadRequest
+        if value is None or isinstance(value, bool):
+            return value
+        if value == 'true' or (isinstance(value, (int, float)) and value == 1):
+            return True
+        if value == 'false' or (isinstance(value, (int, float)) and value == 0):
+            return False
+        label = 'exchange-wide' if methodName is None else methodName + '()'
+        raise BadRequest(self.id + ' ' + label + ' option ' + str(optionName) + ' must be a boolean')
 
     def check_option_integer(self, methodName, optionName, value):
         # the statically typed ports throw on a present value that is not an integral number; here it passes through unchanged
@@ -3431,10 +3438,10 @@ class BaseExchange(object):
             if arrayLength > 0:
                 ascending = True
                 if (key in array[0]):
-                    first = array[0][key]
-                    last = array[arrayLength - 1][key]
+                    first = self.safe_float(array[0], key)
+                    last = self.safe_float(array[arrayLength - 1], key)
                     if first is not None and last is not None:
-                        ascending = first <= last  # true if array is sorted in ascending order based on 'timestamp'
+                        ascending = last >= first  # true if array is sorted in ascending order based on 'timestamp'
                 if fromStart:
                     limitResolved = arrayLength if (limit > arrayLength) else limit
                     if ascending:
@@ -3455,8 +3462,8 @@ class BaseExchange(object):
             result = []
             for i in range(0, len(parsedArray)):
                 entry = parsedArray[i]
-                value = self.safe_value(entry, key)
-                if (value is not None) and (value is not None) and (value != 0) and (value >= since):
+                value = self.safe_integer(entry, key)
+                if (value is not None) and (value != 0) and (value >= since):
                     result.append(entry)
         if tail and limit is not None:
             return self.array_slice(result, -limit)
@@ -3479,8 +3486,8 @@ class BaseExchange(object):
                 # KeyError in python/php — prediction structures key on outcome, not symbol
                 entryFiledEqualValue = self.safe_value(entry, field) == value
                 firstCondition = entryFiledEqualValue if valueIsDefined else True
-                entryKeyValue = self.safe_value(entry, key)
-                entryKeyGESince = (entryKeyValue is not None) and (entryKeyValue is not None) and (entryKeyValue != 0) and (since is not None) and (entryKeyValue >= since)
+                entryKeyValue = self.safe_integer(entry, key)
+                entryKeyGESince = (entryKeyValue is not None) and (entryKeyValue != 0) and (since is not None) and (entryKeyValue >= since)
                 secondCondition = entryKeyGESince if sinceIsDefined else True
                 if firstCondition and secondCondition:
                     result.append(entry)
@@ -3836,7 +3843,7 @@ class BaseExchange(object):
         self.init_rest_rate_limiter()
         # sanbox mode
         isSandbox = self.safe_bool_2(self.options, 'sandbox', 'testnet', False)
-        if isSandbox is True:
+        if isSandbox:
             self.set_sandbox_mode(isSandbox)
         # compatibility for sandbox/testnet options in userConfig
         if (self.safe_bool(userConfig, 'sandbox', False)) or (self.safe_bool(userConfig, 'testnet', False)):
@@ -4336,7 +4343,7 @@ class BaseExchange(object):
                     if (currentPrecision is None) or (highestPrecision is None):
                         continue
                     if self.precisionMode == TICK_SIZE:
-                        if currentPrecision < highestPrecision:
+                        if highestPrecision > currentPrecision:
                             highestPrecisionCurrency = currentCurrency
                     elif currentPrecision > highestPrecision:
                         highestPrecisionCurrency = currentCurrency
@@ -4550,7 +4557,7 @@ class BaseExchange(object):
         if average is None:
             if (filled is not None) and (cost is not None) and Precise.string_gt(filled, '0'):
                 filledTimesContractSize = Precise.string_mul(filled, contractSize)
-                if inverse is True:
+                if inverse:
                     average = Precise.string_div(filledTimesContractSize, cost)
                 else:
                     average = Precise.string_div(cost, filledTimesContractSize)
@@ -4569,7 +4576,7 @@ class BaseExchange(object):
                 multiplyPrice = average
             # contract trading
             filledTimesContractSize = Precise.string_mul(filled, contractSize)
-            if inverse is True:
+            if inverse:
                 cost = Precise.string_div(filledTimesContractSize, multiplyPrice)
             else:
                 cost = Precise.string_mul(filledTimesContractSize, multiplyPrice)
@@ -4764,7 +4771,7 @@ class BaseExchange(object):
             multiplyPrice = price
             if contractSize is not None:
                 inverse = self.safe_bool(market, 'inverse', False)
-                if inverse is True:
+                if inverse:
                     multiplyPrice = Precise.string_div('1', price)
                 multiplyPrice = Precise.string_mul(multiplyPrice, contractSize)
             cost = Precise.string_mul(multiplyPrice, amount)
@@ -5153,7 +5160,7 @@ class BaseExchange(object):
                 return content
         except Exception as e:
             errorMessage = self.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.'
-        if muteOnFailure is True:
+        if muteOnFailure:
             return None
         else:
             raise BadResponse(errorMessage)
@@ -5446,7 +5453,7 @@ class BaseExchange(object):
                 market = self.safe_market(id, None, None, 'swap')
                 symbol = market['symbol']
                 contract = self.safe_bool(market, 'contract', False)
-                if (contract is True) and (noSymbols or ((symbolsNormalized is not None) and self.in_array(symbol, symbolsNormalized))):
+                if (contract) and (noSymbols or ((symbolsNormalized is not None) and self.in_array(symbol, symbolsNormalized))):
                     tiers[symbol] = self.parse_market_leverage_tiers(item, market)
         else:
             keys = list(response.keys())
@@ -5456,7 +5463,7 @@ class BaseExchange(object):
                 market = self.safe_market(marketId, None, None, 'swap')
                 symbol = market['symbol']
                 contract = self.safe_bool(market, 'contract', False)
-                if (contract is True) and (noSymbols or ((symbolsNormalized is not None) and self.in_array(symbol, symbolsNormalized))):
+                if (contract) and (noSymbols or ((symbolsNormalized is not None) and self.in_array(symbol, symbolsNormalized))):
                     tiers[symbol] = self.parse_market_leverage_tiers(item, market)
         return tiers
 
@@ -5553,7 +5560,9 @@ class BaseExchange(object):
                     position['initialMargin'] = self.parse_number(derivedEntryMargin)
                     marginString = derivedEntryMargin
                     position['positionMargin'] = self.parse_number(derivedEntryMargin)
-                    derivedCollateral = Precise.string_add(derivedEntryMargin, unrealizedPnlString) if (unrealizedPnlString is not None) else derivedEntryMargin
+                    derivedCollateral = derivedEntryMargin
+                    if unrealizedPnlString is not None:
+                        derivedCollateral = Precise.string_add(derivedEntryMargin, unrealizedPnlString)
                     if Precise.string_gt(derivedCollateral, '0'):
                         collateralString = derivedCollateral
                         position['collateral'] = self.parse_number(derivedCollateral)
@@ -5562,14 +5571,17 @@ class BaseExchange(object):
                 totalSize = Precise.string_mul(contractsString, contractSizeString)
                 if Precise.string_gt(marginBuffer, '0') and Precise.string_gt(totalSize, '0'):
                     bufferPerUnit = Precise.string_div(marginBuffer, totalSize)
-                    derivedLp = None
+                    derivedLp = Precise.string_add(entryPriceString, bufferPerUnit)
+                    if side == 'long':
+                        derivedLp = Precise.string_sub(entryPriceString, bufferPerUnit)
                     if isInverse:
                         invEntry = Precise.string_div('1', entryPriceString)
-                        invLp = Precise.string_add(invEntry, bufferPerUnit) if (side == 'long') else Precise.string_sub(invEntry, bufferPerUnit)
-                        if Precise.string_gt(invLp, '0'):
-                            derivedLp = Precise.string_div('1', invLp)
-                    else:
-                        derivedLp = Precise.string_sub(entryPriceString, bufferPerUnit) if (side == 'long') else Precise.string_add(entryPriceString, bufferPerUnit)
+                        invDerivedLp = Precise.string_sub(invEntry, bufferPerUnit)
+                        if side == 'long':
+                            invDerivedLp = Precise.string_add(invEntry, bufferPerUnit)
+                        # 1 / invDerivedLp keeps its sign (undefined at 0), so the > 0 guard below
+                        # rejects exactly the values a separate invDerivedLp > 0 check would
+                        derivedLp = Precise.string_div('1', invDerivedLp)
                     if (derivedLp is not None) and Precise.string_gt(derivedLp, '0'):
                         liquidationPriceString = derivedLp
                         position['liquidationPrice'] = self.parse_number(derivedLp)
@@ -5578,14 +5590,17 @@ class BaseExchange(object):
                 totalSize = Precise.string_mul(contractsString, contractSizeString)
                 if Precise.string_gt(marginBuffer, '0') and Precise.string_gt(totalSize, '0'):
                     bufferPerUnit = Precise.string_div(marginBuffer, totalSize)
-                    derivedEp = None
+                    derivedEp = Precise.string_sub(liquidationPriceString, bufferPerUnit)
+                    if side == 'long':
+                        derivedEp = Precise.string_add(liquidationPriceString, bufferPerUnit)
                     if isInverse:
                         invLp = Precise.string_div('1', liquidationPriceString)
-                        invEp = Precise.string_sub(invLp, bufferPerUnit) if (side == 'long') else Precise.string_add(invLp, bufferPerUnit)
-                        if Precise.string_gt(invEp, '0'):
-                            derivedEp = Precise.string_div('1', invEp)
-                    else:
-                        derivedEp = Precise.string_add(liquidationPriceString, bufferPerUnit) if (side == 'long') else Precise.string_sub(liquidationPriceString, bufferPerUnit)
+                        invEp = Precise.string_add(invLp, bufferPerUnit)
+                        if side == 'long':
+                            invEp = Precise.string_sub(invLp, bufferPerUnit)
+                        # 1 / invEp keeps its sign (undefined at 0), so the > 0 guard below
+                        # rejects exactly the values a separate invEp > 0 check would
+                        derivedEp = Precise.string_div('1', invEp)
                     if (derivedEp is not None) and Precise.string_gt(derivedEp, '0'):
                         entryPriceString = derivedEp
                         position['entryPrice'] = self.parse_number(derivedEp)
@@ -5620,26 +5635,34 @@ class BaseExchange(object):
             # 1. notional <-> markPrice / contracts / contractSize
             if (notionalString is None) and hasMarkPrice and hasContracts and hasContractSize:
                 totalSize = Precise.string_mul(contractsString, contractSizeString)
-                derivedNotional = Precise.string_div(totalSize, markPriceString) if isInverse else Precise.string_mul(totalSize, markPriceString)
+                derivedNotional = Precise.string_mul(totalSize, markPriceString)
+                if isInverse:
+                    derivedNotional = Precise.string_div(totalSize, markPriceString)
                 if Precise.string_gt(derivedNotional, '0'):
                     notionalString = derivedNotional
                     position['notional'] = self.parse_number(derivedNotional)
             elif (markPriceString is None) and (entryPriceString is None) and (lastPriceString is None) and hasNotional and hasContracts and hasContractSize:
                 totalSize = Precise.string_mul(contractsString, contractSizeString)
-                derivedMark = Precise.string_div(totalSize, notionalString) if isInverse else Precise.string_div(notionalString, totalSize)
+                derivedMark = Precise.string_div(notionalString, totalSize)
+                if isInverse:
+                    derivedMark = Precise.string_div(totalSize, notionalString)
                 if Precise.string_gt(derivedMark, '0'):
                     markPriceString = derivedMark
                     position['markPrice'] = self.parse_number(derivedMark)
             elif (contractsString is None) and hasNotional and hasMarkPrice and hasContractSize:
-                derivedContracts = Precise.string_div(Precise.string_mul(notionalString, markPriceString), contractSizeString) if isInverse else Precise.string_div(notionalString, Precise.string_mul(markPriceString, contractSizeString))
-                if Precise.string_gt(derivedContracts, '0'):
-                    contractsString = derivedContracts
-                    position['contracts'] = self.parse_number(derivedContracts)
+                notionalContracts = Precise.string_div(notionalString, Precise.string_mul(markPriceString, contractSizeString))
+                if isInverse:
+                    notionalContracts = Precise.string_div(Precise.string_mul(notionalString, markPriceString), contractSizeString)
+                if Precise.string_gt(notionalContracts, '0'):
+                    contractsString = notionalContracts
+                    position['contracts'] = self.parse_number(notionalContracts)
             elif (contractSizeString is None) and hasNotional and hasMarkPrice and hasContracts:
-                derivedContractSize = Precise.string_div(Precise.string_mul(notionalString, markPriceString), contractsString) if isInverse else Precise.string_div(notionalString, Precise.string_mul(markPriceString, contractsString))
-                if Precise.string_gt(derivedContractSize, '0'):
-                    contractSizeString = derivedContractSize
-                    position['contractSize'] = self.parse_number(derivedContractSize)
+                notionalContractSize = Precise.string_div(notionalString, Precise.string_mul(markPriceString, contractsString))
+                if isInverse:
+                    notionalContractSize = Precise.string_div(Precise.string_mul(notionalString, markPriceString), contractsString)
+                if Precise.string_gt(notionalContractSize, '0'):
+                    contractSizeString = notionalContractSize
+                    position['contractSize'] = self.parse_number(notionalContractSize)
             # 2. unrealizedPnl from entryPrice, markPrice, contracts, contractSize, side
             if (unrealizedPnlString is None) and (entryPriceString is not None) and (markPriceString is not None) and (contractsString is not None) and (contractSizeString is not None):
                 if Precise.string_gt(entryPriceString, '0') and Precise.string_gt(markPriceString, '0') and Precise.string_gt(contractsString, '0') and Precise.string_gt(contractSizeString, '0'):
@@ -6019,7 +6042,7 @@ class BaseExchange(object):
         skipZeroPrices = self.safe_bool(options, 'skipZeroPrices', True)
         for i in range(0, oldest):
             trade = trades[i]
-            ts = trade['timestamp']
+            ts = self.safe_integer(trade, 'timestamp')
             price = trade['price']
             if (ts is None) or (price is None):
                 continue
@@ -6034,7 +6057,7 @@ class BaseExchange(object):
             candle = ohlcv_length - 1
             if price is None:
                 raise ArgumentsRequired(self.id + ' buildOHLCVC() requires a price argument')
-            if (skipZeroPrices is True) and not (price > 0) and not (price < 0):
+            if (skipZeroPrices) and not (price > 0) and not (price < 0):
                 continue
             isNewCandle = candle == -1
             if not isNewCandle:
@@ -6228,7 +6251,7 @@ class BaseExchange(object):
         if self.has['fetchDepositWithdrawFees'] is None or self.has['fetchDepositWithdrawFees'] is False:
             raise NotSupported(self.id + ' fetchDepositWithdrawFee() is not supported yet')
         fees = self.fetch_deposit_withdraw_fees([code], params)
-        return self.safe_value(fees, code)
+        return self.safe_dict(fees, code)
 
     def get_supported_mapping(self, key: Str, mapping: dict = {}):
         if key is None:
@@ -6310,7 +6333,7 @@ class BaseExchange(object):
         return [self.check_option_string(methodName, optionName1, value), newParams]
 
     def handle_option_bool_and_params(self, params: dict, methodName: Str, optionName: str, defaultValue: Bool = None):
-        # handleOptionAndParams read as a boolean; the statically typed ports throw on another type
+        # handleOptionAndParams read as a boolean (see checkOptionBool)
         value, newParams = self.handle_option_and_params(params, methodName, optionName, defaultValue)
         return [self.check_option_bool(methodName, optionName, value), newParams]
 
@@ -6591,12 +6614,11 @@ class BaseExchange(object):
 
     def fetch_deposit_address(self, code: str, params: dict = {}):
         if self.has['fetchDepositAddresses'] is not None and self.has['fetchDepositAddresses'] is not False:
-            depositAddresses = self.fetch_deposit_addresses([code], params)
-            depositAddress = self.safe_value(depositAddresses, code)
-            if depositAddress is None:
+            depositAddressesList = self.fetch_deposit_addresses([code], params)
+            depositAddresses = self.index_by(depositAddressesList, 'currency')
+            if self.safe_dict(depositAddresses, code) is None:
                 raise InvalidAddress(self.id + ' fetchDepositAddress() could not find a deposit address for ' + code + ', make sure you have created a corresponding deposit address in your wallet on the exchange website')
-            else:
-                return depositAddress
+            return self.safe_dict(depositAddresses, code)
         elif self.has['fetchDepositAddressesByNetwork'] is not None and self.has['fetchDepositAddressesByNetwork'] is not False:
             network = self.safe_string(params, 'network')
             paramsOmitted = self.omit(params, 'network')
@@ -6795,7 +6817,7 @@ class BaseExchange(object):
             return parsedPrecision + '1'
         else:
             parsedPrecision = '1'
-            for i in range(0, precisionNumber * -1 - 1):
+            for i in range(0, -1 - precisionNumber):
                 parsedPrecision = parsedPrecision + '0'
             return parsedPrecision + '0'
 
@@ -6826,7 +6848,7 @@ class BaseExchange(object):
         if serverTime is None:
             raise ExchangeError(self.id + ' loadTimeDifference() missing serverTime')
         self.options['timeDifference'] = after - serverTime
-        return self.options['timeDifference']
+        return self.parse_to_int(self.options['timeDifference'])
 
     def implode_hostname(self, url: str):
         return self.implode_params(url, {'hostname': self.hostname})
@@ -6837,7 +6859,8 @@ class BaseExchange(object):
             if market['contract'] is not True:
                 raise BadSymbol(self.id + ' fetchMarketLeverageTiers() supports contract markets only')
             tiers = self.fetch_leverage_tiers([symbol])
-            return self.safe_value(tiers, symbol)
+            marketTiers = self.safe_list(tiers, symbol)
+            return marketTiers
         else:
             raise NotSupported(self.id + ' fetchMarketLeverageTiers() is not supported yet')
 
@@ -6891,7 +6914,7 @@ class BaseExchange(object):
                 priceData = self.extend(self.parse_last_price(pricesData[marketId], market), params)
                 results.append(priceData)
         symbolsNormalized = self.market_symbols(symbols)
-        return self.filter_by_array(results, 'symbol', symbolsNormalized)
+        return self.index_by(self.filter_by_array(results, 'symbol', symbolsNormalized, False), 'symbol')
 
     def parse_tickers(self, tickers: object, symbols: Strings = None, params: dict = {}):
         #
@@ -6939,9 +6962,9 @@ class BaseExchange(object):
             address = self.extend(self.parse_deposit_address(addresses[i]), params)
             result.append(address)
         if codes is not None:
-            result = self.filter_by_array(result, 'currency', codes, False)
+            result = self.to_array(self.filter_by_array(result, 'currency', codes, False))
         if indexed:
-            result = self.filter_by_array(result, 'currency', None, indexed)
+            result = self.to_array(self.filter_by_array(result, 'currency', None, indexed))
         return result
 
     def parse_borrow_interests(self, response: object, market: Market = None):
@@ -7079,11 +7102,11 @@ class BaseExchange(object):
         ioc = timeInForce == 'IOC'
         fok = timeInForce == 'FOK'
         timeInForcePostOnly = timeInForce == 'PO'
-        if postOnly is not True:
+        if not postOnly:
             postOnly = timeInForcePostOnly
-        if postOnly is not True:
+        if not postOnly:
             postOnly = exchangeSpecificParam
-        if postOnly is True:
+        if postOnly:
             if ioc or fok:
                 raise InvalidOrder(self.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce)
             elif isMarketOrder:
@@ -7106,11 +7129,11 @@ class BaseExchange(object):
         ioc = timeInForce == 'IOC'
         fok = timeInForce == 'FOK'
         po = timeInForce == 'PO'
-        if postOnly is not True:
+        if not postOnly:
             postOnly = po
-        if postOnly is not True:
+        if not postOnly:
             postOnly = exchangeSpecificPostOnlyOption
-        if postOnly is True:
+        if postOnly:
             if ioc or fok:
                 raise InvalidOrder(self.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce)
             elif isMarketOrder:
@@ -7147,7 +7170,7 @@ class BaseExchange(object):
             parsed = self.parse_open_interest(entry)
             if parsed['symbol'] is not None:
                 result[parsed['symbol']] = parsed
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.index_by(self.filter_by_array(result, 'symbol', symbols, False), 'symbol')
 
     def parse_open_interests_history(self, response: object, market: Market = None, since: Int = None, limit: Int = None):
         interests = []
@@ -7449,7 +7472,7 @@ class BaseExchange(object):
  @ignore
         Typed wrapper for filterByArray that returns a list of ADL Ranks
         """
-        return self.filter_by_array(objects, key, values, indexed)
+        return self.to_array(self.filter_by_array(objects, key, values, indexed))
 
     def create_ohlcv_object(self, symbol: str, timeframe: str, data: object):
         res = {}
@@ -7576,7 +7599,7 @@ class BaseExchange(object):
         tasks = []
         time = self.parse_timeframe(timeframe) * 1000
         maxEntriesPerRequestValue = self.require_value(maxEntriesPerRequestOption, 'fetchPaginatedCallDeterministic() maxEntriesPerRequest is required')
-        step = time * maxEntriesPerRequestValue
+        step = time * self.parse_to_int(maxEntriesPerRequestValue)
         until = self.safe_integer_2(paramsOmitted, 'until', 'till')  # do not omit it here
         currentSince = current - (maxCallsPaginationCalls * step) - 1
         if since is not None:
@@ -7602,7 +7625,8 @@ class BaseExchange(object):
             if currentSince >= current:
                 break
             tasks.append(self.safe_deterministic_call(method, symbol, currentSince, maxEntriesPerRequestValue, timeframe, paramsOmitted))
-            currentSince = currentSince + step - 1
+            # this.sum keeps it numeric in PHP, where the regex transpiler turns `a + b` into string concatenation
+            currentSince = self.sum(currentSince, step) - 1
         results = tasks
         result = []
         for i in range(0, len(results)):
@@ -7628,7 +7652,7 @@ class BaseExchange(object):
             try:
                 if cursorValue is not None:
                     if cursorIncrement is not None:
-                        cursorValue = self.parse_to_int(cursorValue) + cursorIncrement
+                        cursorValue = self.sum(self.parse_to_int(cursorValue), cursorIncrement)
                     paramsOmitted[cursorSent] = cursorValue
                 response = None
                 if method == 'fetchAccounts':
@@ -7705,8 +7729,8 @@ class BaseExchange(object):
                 errors = 0
                 responseLength = len(response)
                 if self.verbose:
-                    iteration = (i + str(1))
-                    incrementalMessage = 'Incremental pagination call ' + iteration + ' method ' + method + ' response length ' + str(responseLength)
+                    iteration = (i + 1)
+                    incrementalMessage = 'Incremental pagination call ' + str(iteration) + ' method ' + method + ' response length ' + str(responseLength)
                     self.log(incrementalMessage)
                 if responseLength == 0:
                     shouldBreak = True
@@ -7849,7 +7873,7 @@ class BaseExchange(object):
                 greek = self.extend(parsed, params)
                 results.append(greek)
         symbolsNormalized = self.market_symbols(symbols)
-        return self.filter_by_array(results, 'symbol', symbolsNormalized)
+        return self.index_by(self.filter_by_array(results, 'symbol', symbolsNormalized, False), 'symbol')
 
     def parse_option(self, chain: dict, currency: Currency = None, market: Market = None):
         raise NotSupported(self.id + ' parseOption () is not supported yet')
@@ -8178,23 +8202,24 @@ class BaseExchange(object):
                         del self.bidsasks[bidsaskSymbol]
 
     def timeframe_from_milliseconds(self, ms: float):
-        if ms <= 0:
+        msInt = self.parse_to_int(ms)
+        if msInt <= 0:
             return ''
         second = 1000
         minute = 60 * second
         hour = 60 * minute
         day = 24 * hour
         week = 7 * day
-        if ms % week == 0:
-            return(ms / week) + 'w'
-        if ms % day == 0:
-            return(ms / day) + 'd'
-        if ms % hour == 0:
-            return(ms / hour) + 'h'
-        if ms % minute == 0:
-            return(ms / minute) + 'm'
-        if ms % second == 0:
-            return(ms / second) + 's'
+        if msInt % week == 0:
+            return self.parse_to_int(msInt / str(week)) + 'w'
+        if msInt % day == 0:
+            return self.parse_to_int(msInt / str(day)) + 'd'
+        if msInt % hour == 0:
+            return self.parse_to_int(msInt / str(hour)) + 'h'
+        if msInt % minute == 0:
+            return self.parse_to_int(msInt / str(minute)) + 'm'
+        if msInt % 1000 == 0:
+            return self.parse_to_int(msInt / str(1000)) + 's'
         return ''
 
     def is_uta_enabled(self, params: dict = {}):
@@ -8225,8 +8250,7 @@ class Exchange(BaseExchange):
         :returns dict[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
         """
         if self.has['fetchPositionsHistory'] is not None and self.has['fetchPositionsHistory'] is not False:
-            positions = self.fetchPositionsHistory([symbol], since, limit, params)
-            return positions
+            return self.fetchPositionsHistory([symbol], since, limit, params)
         else:
             raise NotSupported(self.id + ' fetchPositionHistory () is not supported yet')
 
@@ -8694,7 +8718,7 @@ class Exchange(BaseExchange):
         # TODO: TypeScript: change method signature by replacing
         # Promise<string> with Promise<Order['status']>.
         order = self.fetchOrder(id, symbol, params)
-        return order['status']
+        return self.safe_string(order, 'status')
 
     def fetch_unified_order(self, order: object, params: dict = {}):
         return self.fetchOrder(self.safe_string(order, 'id'), self.safe_string(order, 'symbol'), params)

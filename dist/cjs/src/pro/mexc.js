@@ -512,7 +512,7 @@ class mexc extends mexc$1["default"] {
         const paramsOmitted = this.omit(params, ['unsubscribed']);
         const url = this.urls['api']['ws']['spot'];
         let method = 'SUBSCRIPTION';
-        if (unsubscribed === true) {
+        if (unsubscribed) {
             method = 'UNSUBSCRIPTION';
         }
         const request = {
@@ -821,7 +821,7 @@ class mexc extends mexc$1["default"] {
         if ((nonce === undefined) || (firstDeltaNonce === undefined)) {
             return -1;
         }
-        if (nonce < firstDeltaNonce - 1) {
+        if ((nonce !== undefined) && (firstDeltaNonce !== undefined) && (nonce < firstDeltaNonce - 1)) {
             return -1;
         }
         for (let i = 0; i < cache.length; i++) {
@@ -2040,7 +2040,7 @@ class mexc extends mexc$1["default"] {
         const client = this.client(this.urls['api']['ws']['spot']);
         const messageHash = 'authenticate:listenKey';
         const isFetching = this.safeBool(this.options, 'listenKeyFetching', false);
-        if (isFetching === true) {
+        if (isFetching) {
             await client.future(messageHash);
             return this.safeString(this.options, 'listenKey');
         }

@@ -569,8 +569,7 @@ export default class coinbaseinternational extends Exchange {
         //     }
         //
         const instruments = this.safeList(response, 'result', []);
-        const parsedMarkets = this.parseMarkets(instruments);
-        return parsedMarkets;
+        return this.parseMarkets(instruments);
     }
     parseMarket(market) {
         const instrumentName = this.safeString(market, 'instrument_name');
@@ -1066,7 +1065,7 @@ export default class coinbaseinternational extends Exchange {
             const ticker = await this.fetchTicker(symbol, paramsResolved);
             tickers[symbol] = ticker;
         }
-        return this.filterByArray(tickers, 'symbol', symbolsResolved, true);
+        return this.filterByArrayTickers(tickers, 'symbol', symbolsResolved);
     }
     /**
      * @method
@@ -1899,12 +1898,11 @@ export default class coinbaseinternational extends Exchange {
         //     }
         //
         const result = this.safeList(response, 'result', []);
-        const positions = this.parsePositions(result);
         if (this.isEmpty(symbols)) {
-            return positions;
+            return this.parsePositions(result);
         }
         const symbolsNormalized = this.marketSymbols(symbols);
-        return this.filterByArrayPositions(positions, 'symbol', symbolsNormalized);
+        return this.parsePositions(result, symbolsNormalized);
     }
     /**
      * @method
@@ -3255,7 +3253,7 @@ export default class coinbaseinternational extends Exchange {
         const rpcMethod = access + '/' + path;
         let requestParams = this.handleRouteAndParams('sign', params);
         const isNativeDeribit = this.isNativeDeribitCredentials();
-        let baseApiUrl = this.urls['api']['rest'];
+        let baseApiUrl = this.safeString(this.urls['api'], 'rest', '');
         if (isNativeDeribit) {
             baseApiUrl = 'https://www.deribit.com/api/v2';
         }

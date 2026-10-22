@@ -1636,7 +1636,7 @@ class woo extends woo$1["default"] {
         }
         const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
         const paramsOmitted = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent', 'trigger', 'stop']);
-        const isConditional = (isTrigger === true) || isTrailing || (triggerPrice !== undefined) || (this.safeValue(paramsOmitted, 'childOrders') !== undefined);
+        const isConditional = (isTrigger) || isTrailing || (triggerPrice !== undefined) || (this.safeValue(paramsOmitted, 'childOrders') !== undefined);
         let response = undefined;
         if (isConditional) {
             if (isByClientOrder) {
@@ -1690,7 +1690,7 @@ class woo extends woo$1["default"] {
     async cancelOrder(id, symbol = undefined, params = {}) {
         const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
         const paramsOmitted = this.omit(params, ['trigger', 'stop']);
-        if ((isTrigger !== true) && (symbol === undefined)) {
+        if ((!isTrigger) && (symbol === undefined)) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
         if (this.markets === undefined) {
@@ -1706,7 +1706,7 @@ class woo extends woo$1["default"] {
         const paramsOmitted2 = this.omit(paramsOmitted, ['clOrdID', 'clientOrderId', 'client_order_id']);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
         let response = undefined;
-        if (isTrigger === true) {
+        if (isTrigger) {
             if (isByClientOrder) {
                 request['clientAlgoOrderId'] = clientOrderIdExchangeSpecific;
             }
@@ -1799,8 +1799,12 @@ class woo extends woo$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
+        let triggerAfter = 0;
+        if ((timeout !== undefined) && (timeout > 0)) {
+            triggerAfter = (timeout > 900000) ? 900000 : timeout;
+        }
         const request = {
-            'triggerAfter': (timeout > 0) ? Math.min(timeout, 900000) : 0,
+            'triggerAfter': triggerAfter,
         };
         const response = await this.v3PrivatePostTradeCancelAllAfter(this.extend(request, params));
         //
@@ -3223,7 +3227,7 @@ class woo extends woo$1["default"] {
         const transfer = this.parseTransfer(data, currency);
         const transferOptions = this.safeDict(this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest === true) {
+        if (fillResponseFromRequest) {
             transfer['amount'] = amount;
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
@@ -3489,7 +3493,7 @@ class woo extends woo$1["default"] {
             this.checkRequiredCredentials();
             if (method === 'POST' && (path === 'trade/algoOrder' || path === 'trade/order')) {
                 const isSandboxMode = this.safeBool(this.options, 'sandboxMode', false);
-                if (isSandboxMode !== true) {
+                if (!isSandboxMode) {
                     const applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
                     const brokerId = this.safeString(this.options, 'brokerId', applicationId);
                     const isTrigger = path.indexOf('algo') > -1;

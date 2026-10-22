@@ -814,7 +814,7 @@ class coinbase extends coinbase$1["default"] {
             await this.loadAccounts();
             for (let i = 0; i < this.accounts.length; i++) {
                 const account = this.accounts[i];
-                if (account['code'] === code && account['type'] === 'wallet') {
+                if ((this.safeString(account, 'code') === code) && (this.safeString(account, 'type') === 'wallet')) {
                     accountId = this.safeString(account, 'id');
                     break;
                 }
@@ -954,7 +954,7 @@ class coinbase extends coinbase$1["default"] {
         const [currencyType, paramsCurrencyType] = this.handleOptionStringAndParams(params, 'fetchWithdrawals', 'currencyType');
         if (currencyType === 'crypto') {
             const results = await this.fetchTransactionsWithMethod('v2PrivateGetAccountsAccountIdTransactions', code, since, limit, paramsCurrencyType);
-            return this.filterByArray(results, 'type', 'withdrawal', false);
+            return this.toArray(this.filterByArray(results, 'type', 'withdrawal', false));
         }
         return await this.fetchTransactionsWithMethod('v2PrivateGetAccountsAccountIdWithdrawals', code, since, limit, paramsCurrencyType);
     }
@@ -975,7 +975,7 @@ class coinbase extends coinbase$1["default"] {
         const [currencyType, paramsCurrencyType] = this.handleOptionStringAndParams(params, 'fetchDeposits', 'currencyType');
         if (currencyType === 'crypto') {
             const results = await this.fetchTransactionsWithMethod('v2PrivateGetAccountsAccountIdTransactions', code, since, limit, paramsCurrencyType);
-            return this.filterByArray(results, 'type', 'deposit', false);
+            return this.toArray(this.filterByArray(results, 'type', 'deposit', false));
         }
         return await this.fetchTransactionsWithMethod('v2PrivateGetAccountsAccountIdDeposits', code, since, limit, paramsCurrencyType);
     }
@@ -995,7 +995,7 @@ class coinbase extends coinbase$1["default"] {
             await this.loadMarkets();
         }
         const results = await this.fetchTransactionsWithMethod('v2PrivateGetAccountsAccountIdTransactions', code, since, limit, params);
-        return this.filterByArray(results, 'type', ['deposit', 'withdrawal'], false);
+        return this.toArray(this.filterByArray(results, 'type', ['deposit', 'withdrawal'], false));
     }
     parseTransactionStatus(status) {
         const statuses = {
@@ -1899,7 +1899,7 @@ class coinbase extends coinbase$1["default"] {
             'swap': isSwap,
             'future': !isSwap,
             'option': false,
-            'active': tradingDisabled !== true,
+            'active': !tradingDisabled,
             'contract': true,
             'linear': true,
             'inverse': false,
@@ -2553,7 +2553,7 @@ class coinbase extends coinbase$1["default"] {
         if ((marketType === 'future') || (marketType === 'swap')) {
             response = await this.v3PrivateGetBrokerageCfmBalanceSummary(this.extend(request, paramsMarketType));
         }
-        else if ((isV3 === true) || (method === 'v3PrivateGetBrokerageAccounts')) {
+        else if ((isV3) || (method === 'v3PrivateGetBrokerageAccounts')) {
             request['limit'] = 250;
             response = await this.v3PrivateGetBrokerageAccounts(this.extend(request, paramsMarketType));
             // an explicit params.cursor means the caller pages manually
@@ -2683,18 +2683,17 @@ class coinbase extends coinbase$1["default"] {
         const data = this.safeList(response, 'data', []);
         const ledger = this.parseLedger(data, currency, since, limit);
         const length = ledger.length;
-        if (length === 0) {
-            return ledger;
+        if (length > 0) {
+            const lastIndex = length - 1;
+            const last = this.safeDict(ledger, lastIndex);
+            const pagination = this.safeDict(response, 'pagination', {});
+            const cursor = this.safeString(pagination, 'next_starting_after');
+            if ((cursor !== undefined) && (cursor !== '')) {
+                last['info']['next_starting_after'] = cursor;
+                ledger[lastIndex] = last;
+            }
         }
-        const lastIndex = length - 1;
-        const last = this.safeDict(ledger, lastIndex);
-        const pagination = this.safeDict(response, 'pagination', {});
-        const cursor = this.safeString(pagination, 'next_starting_after');
-        if ((cursor !== undefined) && (cursor !== '')) {
-            last['info']['next_starting_after'] = cursor;
-            ledger[lastIndex] = last;
-        }
-        return ledger;
+        return this.toArray(ledger);
     }
     parseLedgerEntryStatus(status) {
         const types = {
@@ -3033,8 +3032,8 @@ class coinbase extends coinbase$1["default"] {
         await this.loadAccounts(false, params);
         for (let i = 0; i < this.accounts.length; i++) {
             const account = this.accounts[i];
-            if (account['code'] === code) {
-                return account['id'];
+            if (this.safeString(account, 'code') === code) {
+                return this.safeString(account, 'id');
             }
         }
         return undefined;
@@ -3303,7 +3302,7 @@ class coinbase extends coinbase$1["default"] {
         const paramsOmitted = this.omit(paramsBase, ['timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'stop_price', 'stopDirection', 'stop_direction', 'clientOrderId', 'postOnly', 'post_only', 'end_time', 'marginMode']);
         const preview = this.safeBool2(paramsOmitted, 'preview', 'test', false);
         let response = undefined;
-        if (preview === true) {
+        if (preview) {
             request = this.omit(request, 'client_order_id');
             response = await this.v3PrivatePostBrokerageOrdersPreview(this.extend(request, this.omit(paramsOmitted, ['preview', 'test'])));
         }
@@ -3622,7 +3621,7 @@ class coinbase extends coinbase$1["default"] {
         }
         const preview = this.safeBool2(params, 'preview', 'test', false);
         let response = undefined;
-        if (preview === true) {
+        if (preview) {
             response = await this.v3PrivatePostBrokerageOrdersEditPreview(this.extend(request, this.omit(params, ['preview', 'test'])));
         }
         else {
@@ -3952,10 +3951,13 @@ class coinbase extends coinbase$1["default"] {
             await this.loadMarkets();
         }
         const maxLimit = 300;
-        const limitValue = (limit === undefined) ? maxLimit : Math.min(limit, maxLimit);
+        let limitValue = this.parseToInt(maxLimit);
+        if ((limit !== undefined) && (limit < maxLimit)) {
+            limitValue = this.parseToInt(limit);
+        }
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limitValue, timeframe, paramsPaginate, maxLimit - 1);
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limitValue, timeframe, paramsPaginate, 299);
         }
         const market = this.market(symbol);
         const request = {
@@ -5166,7 +5168,10 @@ class coinbase extends coinbase$1["default"] {
             const availableBalance = this.parseNumber(availableBalanceStr);
             const totalBalanceFiatStr = this.safeString(position, 'total_balance_fiat', '0');
             const totalBalanceFiat = this.parseNumber(totalBalanceFiatStr);
-            const holdAmount = totalBalanceFiat - availableBalance;
+            let holdAmount = 0;
+            if ((totalBalanceFiat !== undefined) && (availableBalance !== undefined) && (totalBalanceFiat > availableBalance)) {
+                holdAmount = totalBalanceFiat - availableBalance;
+            }
             const costBasisDict = this.safeDict(position, 'cost_basis', {});
             const costBasisStr = this.safeString(costBasisDict, 'value', '0');
             const averageEntryPriceDict = this.safeDict(position, 'average_entry_price', {});
@@ -5174,7 +5179,7 @@ class coinbase extends coinbase$1["default"] {
             const positionData = {
                 'currency': currencyCode,
                 'available_balance': availableBalance,
-                'hold_amount': holdAmount > 0 ? holdAmount : 0,
+                'hold_amount': holdAmount,
                 'wallet_name': portfolioName,
                 'account_id': portfolioUuid,
                 'account_uuid': this.safeString(position, 'account_uuid', ''),
@@ -5338,7 +5343,7 @@ class coinbase extends coinbase$1["default"] {
                     authorizationString = 'Bearer ' + token;
                 }
                 else {
-                    const nonce = this.nonce();
+                    const nonce = this.parseToInt(this.nonce());
                     const timestamp = this.parseToInt(nonce / 1000);
                     const timestampString = timestamp.toString();
                     const auth = timestampString + method + savedPath + payload;

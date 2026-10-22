@@ -457,7 +457,7 @@ export default class bitrue extends bitrueRest {
         return result;
     }
 
-    convertFromRawQuantity (symbol: string, rawQuantity: Num) {
+    convertFromRawQuantity (symbol: string, rawQuantity: Num): Num {
         if (rawQuantity === undefined) {
             return undefined;
         }
@@ -466,7 +466,10 @@ export default class bitrue extends bitrueRest {
             return rawQuantity;
         }
         const contractSize = this.safeNumber (market, 'contractSize', 1);
-        return rawQuantity * (contractSize as number);
+        if (contractSize === undefined) {
+            return rawQuantity;
+        }
+        return rawQuantity * contractSize;
     }
 
     /**

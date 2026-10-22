@@ -738,8 +738,7 @@ class blofin(Exchange, ImplicitAPI):
             'instId': market['id'],
         }
         limitValue = 50 if (limit is None) else limit
-        if limitValue is not None:
-            request['size'] = limitValue  # max 100
+        request['size'] = limitValue  # max 100
         response = await self.publicGetMarketBooks(self.extend(request, params))
         #
         #     {
@@ -794,7 +793,7 @@ class blofin(Exchange, ImplicitAPI):
         last = self.safe_string(ticker, 'last')
         open = self.safe_string(ticker, 'open24h')
         spot = self.safe_bool(marketResolved, 'spot', False)
-        quoteVolume = self.safe_string(ticker, 'volCurrency24h') if (spot is True) else None
+        quoteVolume = self.safe_string(ticker, 'volCurrency24h') if (spot) else None
         baseVolume = self.safe_string(ticker, 'vol24h')
         high = self.safe_string(ticker, 'high24h')
         low = self.safe_string(ticker, 'low24h')
@@ -859,7 +858,7 @@ class blofin(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         request = {
-            'symbol': market['id'],
+            'instId': market['id'],
         }
         response = await self.publicGetMarketMarkPrice(self.extend(request, params))
         data = self.safe_list(response, 'data', [])
@@ -1202,7 +1201,7 @@ class blofin(Exchange, ImplicitAPI):
 
     def parse_balance_by_type(self, response: dict) -> Balances:
         data = self.safe_list(response, 'data')
-        if (data is not None) and isinstance(data, list):
+        if data is not None:
             return self.parse_funding_balance(response)
         else:
             return self.parse_balance(response)
@@ -1349,7 +1348,7 @@ class blofin(Exchange, ImplicitAPI):
         triggerPriceSlTp = self.safe_string_2(query, 'stopLossPrice', 'takeProfitPrice')
         timeInForce = self.safe_string(query, 'timeInForce', 'GTC')
         isHedged = self.safe_bool(query, 'hedged', False)
-        if isHedged is True:
+        if isHedged:
             request['positionSide'] = 'long' if (side == 'buy') else 'short'
         isMarketOrder = type == 'market'
         query = self.omit(query, ['timeInForce'])
@@ -1392,7 +1391,7 @@ class blofin(Exchange, ImplicitAPI):
             query = self.omit(query, ['stopLossPrice', 'takeProfitPrice', 'triggerPrice'])
         return self.extend(request, query)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'canceled': 'canceled',
             'order_failed': 'canceled',
@@ -1584,7 +1583,7 @@ class blofin(Exchange, ImplicitAPI):
         market = self.market(symbol)
         hedged = self.safe_bool(params, 'hedged', False)
         positionSide = 'net'
-        if hedged is True:
+        if hedged:
             positionSide = 'short' if (side == 'buy') else 'long'
         request = {
             'instId': market['id'],
@@ -1655,18 +1654,18 @@ class blofin(Exchange, ImplicitAPI):
         if clientOrderId is not None:
             request['clientOrderId'] = clientOrderId
         else:
-            if (isTrigger is not True) and (isTpsl is not True):
+            if (not isTrigger) and (not isTpsl):
                 request['orderId'] = str(id)
-            elif isTpsl is True:
+            elif isTpsl:
                 request['tpslId'] = str(id)
-            elif isTrigger is True:
+            elif isTrigger:
                 request['algoId'] = str(id)
         query = self.omit(params, ['orderId', 'clientOrderId', 'stop', 'trigger', 'tpsl'])
-        if isTpsl is True:
+        if isTpsl:
             tpslResponse = await self.cancel_orders([id], symbol, params)
             first = self.safe_dict(tpslResponse, 0)
             return first
-        elif isTrigger is True:
+        elif isTrigger:
             triggerResponse = await self.privatePostTradeCancelAlgo(self.extend(request, query))
             triggerData = self.safe_dict(triggerResponse, 'data')
             return self.parse_order(triggerData, market)
@@ -1693,8 +1692,8 @@ class blofin(Exchange, ImplicitAPI):
             marketId = self.safe_string(rawOrder, 'symbol')
             type = self.safe_string(rawOrder, 'type')
             side = self.safe_string(rawOrder, 'side')
-            amount = self.safe_value(rawOrder, 'amount')
-            price = self.safe_value(rawOrder, 'price')
+            amount = self.safe_number(rawOrder, 'amount')
+            price = self.safe_number(rawOrder, 'price')
             orderParams = self.safe_dict(rawOrder, 'params', {})
             extendedParams = self.extend(orderParams, params)  # the request does not accept extra params since it's a list, so we're extending each order with the common params
             orderRequest = self.create_order_request(marketId, type, side, amount, price, extendedParams)
@@ -1737,9 +1736,9 @@ class blofin(Exchange, ImplicitAPI):
         method, paramsMethod = self.handle_option_string_and_params(paramsPaginate, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersPending')
         query = self.omit(paramsMethod, ['method', 'stop', 'trigger', 'tpsl', 'TPSL'])
         response: dict
-        if (isTpSl is True) or (method == 'privateGetTradeOrdersTpslPending'):
+        if (isTpSl) or (method == 'privateGetTradeOrdersTpslPending'):
             response = await self.privateGetTradeOrdersTpslPending(self.extend(request, query))
-        elif (isTrigger is True) or (method == 'privateGetTradeOrdersAlgoPending'):
+        elif (isTrigger) or (method == 'privateGetTradeOrdersAlgoPending'):
             request['orderType'] = 'trigger'
             response = await self.privateGetTradeOrdersAlgoPending(self.extend(request, query))
         else:
@@ -2050,9 +2049,9 @@ class blofin(Exchange, ImplicitAPI):
         request = {
             'currency': currency['id'],
         }
-        networkCode = None
-        query = None
-        networkCode, query = self.handle_network_code_and_params(params)
+        # same reads as handleNetworkCodeAndParams, kept as typed locals
+        networkCode = self.safe_string_2(params, 'networkCode', 'network')
+        query = self.omit(params, ['networkCode', 'network'])
         chain = self.safe_string(query, 'chain')
         if chain is None:
             if networkCode is None:
@@ -2429,7 +2428,7 @@ class blofin(Exchange, ImplicitAPI):
             },
         }
 
-    def parse_transaction_withdrawal_status(self, status: Str):
+    def parse_transaction_withdrawal_status(self, status: Str) -> Str:
         statuses = {
             '0': 'pending',
             '2': 'failed',
@@ -2440,7 +2439,7 @@ class blofin(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction_deposit_status(self, status: Str):
+    def parse_transaction_deposit_status(self, status: Str) -> Str:
         statuses = {
             '0': 'pending',
             '1': 'ok',
@@ -3022,7 +3021,8 @@ class blofin(Exchange, ImplicitAPI):
         if clientOrderId is not None:
             request['clientOrderId'] = clientOrderId
         response = await self.privatePostTradeClosePosition(self.extend(request, paramsMarginMode))
-        return self.safe_dict(response, 'data')
+        data = self.safe_dict(response, 'data', {})
+        return self.parse_order(data, market)
 
     async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -3058,7 +3058,7 @@ class blofin(Exchange, ImplicitAPI):
         method, paramsMethod = self.handle_option_string_and_params(paramsPaginate, 'fetchClosedOrders', 'method', 'privateGetTradeOrdersHistory')
         query = self.omit(paramsMethod, ['method', 'stop', 'trigger', 'tpsl', 'TPSL'])
         response: dict
-        if (isTrigger is True) or (method == 'privateGetTradeOrdersTpslHistory'):
+        if (isTrigger) or (method == 'privateGetTradeOrdersTpslHistory'):
             response = await self.privateGetTradeOrdersTpslHistory(self.extend(request, query))
         else:
             response = await self.privateGetTradeOrdersHistory(self.extend(request, query))

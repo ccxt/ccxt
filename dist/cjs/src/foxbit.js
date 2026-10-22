@@ -964,7 +964,7 @@ class foxbit extends foxbit$1["default"] {
                 request['time_in_force'] = timeInForce;
             }
         }
-        if (postOnly === true) {
+        if (postOnly) {
             request['post_only'] = true;
         }
         if (triggerPrice !== undefined) {
@@ -1037,7 +1037,7 @@ class foxbit extends foxbit$1["default"] {
                 }
                 delete orderParams['timeInForce'];
             }
-            if (postOnly === true) {
+            if (postOnly) {
                 request['post_only'] = true;
                 delete orderParams['postOnly'];
             }
@@ -1980,18 +1980,16 @@ class foxbit extends foxbit$1["default"] {
         if (amount === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' parseLedgerEntry() requires a amount argument');
         }
-        if (amount < 0) {
-            direction = 'out';
-            if (amount === undefined) {
-                throw new errors.ArgumentsRequired(this.id + ' parseLedgerEntry() requires a amount argument');
-            }
-            realAmount = amount * -1;
-        }
         if (balance === undefined) {
             throw new errors.ExchangeError(this.id + ' parseLedgerEntry() missing balance');
         }
-        if (amount === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' parseLedgerEntry() requires a amount argument');
+        let before = undefined;
+        if (amount !== undefined && balance !== undefined) {
+            before = balance - amount;
+            if (0 > amount) {
+                direction = 'out';
+                realAmount = -amount;
+            }
         }
         return {
             'id': id,
@@ -2005,7 +2003,7 @@ class foxbit extends foxbit$1["default"] {
             'type': type,
             'currency': currencySymbol,
             'amount': realAmount,
-            'before': balance - amount,
+            'before': before,
             'after': balance,
             'status': 'ok',
             'fee': fee,
@@ -2031,6 +2029,7 @@ class foxbit extends foxbit$1["default"] {
         if (method === 'GET') {
             const paramKeys = Object.keys(paramsOmitted);
             const paramKeysLength = paramKeys.length;
+            const lastKeyIndex = paramKeysLength - 1;
             if (paramKeysLength > 0) {
                 query = this.urlencode(paramsOmitted);
                 url += '?' + query;
@@ -2041,7 +2040,7 @@ class foxbit extends foxbit$1["default"] {
                 if (value !== undefined) {
                     signatureQuery += key + '=' + value;
                 }
-                if (i < paramKeysLength - 1) {
+                if (i < lastKeyIndex) {
                     signatureQuery += '&';
                 }
             }

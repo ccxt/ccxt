@@ -379,12 +379,12 @@ export default class cex extends cexRest {
             return;
         }
         this.tickers[symbol] = ticker;
-        let messageHash: Str = 'ticker:' + symbol;
+        const messageHash = 'ticker:' + symbol;
         client.resolve (ticker, messageHash);
         client.resolve (ticker, 'tickers');
-        messageHash = this.safeString (message, 'oid');
-        if (messageHash !== undefined) {
-            client.resolve (ticker, messageHash);
+        const oid = this.safeString (message, 'oid');
+        if (oid !== undefined) {
+            client.resolve (ticker, oid);
         }
     }
 
@@ -427,10 +427,7 @@ export default class cex extends cexRest {
         if ((base !== undefined) && (quote !== undefined)) {
             symbol = base + '/' + quote;
         }
-        let timestamp = this.safeInteger (ticker, 'timestamp');
-        if (timestamp !== undefined) {
-            timestamp = timestamp * 1000;
-        }
+        const timestamp = this.safeTimestamp (ticker, 'timestamp');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -791,7 +788,7 @@ export default class cex extends cexRest {
         }
         order['remaining'] = remains;
         const canceled = this.safeBool (data, 'cancel', false);
-        if (canceled === true) {
+        if (canceled) {
             order['status'] = 'canceled';
         }
         if (isTransaction) {
@@ -888,7 +885,7 @@ export default class cex extends cexRest {
         }
         const canceled = this.safeBool (order, 'cancel', false);
         let status = 'open';
-        if (canceled === true) {
+        if (canceled) {
             status = 'canceled';
         } else if (isTransaction) {
             status = 'closed';
@@ -927,7 +924,7 @@ export default class cex extends cexRest {
         return this.safeOrder (parsedOrder, marketResolved);
     }
 
-    fromPrecision (amount: any, scale: any) {
+    fromPrecision (amount: any, scale: any): Str {
         if (amount === undefined) {
             return undefined;
         }
@@ -937,7 +934,7 @@ export default class cex extends cexRest {
         return precise.toString ();
     }
 
-    currencyFromPrecision (currency: any, amount: any) {
+    currencyFromPrecision (currency: string, amount: any): Str {
         const scale = this.safeInteger (this.currencies[currency], 'precision', 0);
         return this.fromPrecision (amount, scale);
     }

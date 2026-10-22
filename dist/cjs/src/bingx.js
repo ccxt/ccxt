@@ -862,7 +862,7 @@ class bingx extends bingx$1["default"] {
             return {};
         }
         const isSandbox = this.safeBool(this.options, 'sandboxMode', false);
-        if (isSandbox === true) {
+        if (isSandbox) {
             return {};
         }
         const response = await this.walletsV1PrivateGetCapitalConfigGetall(params);
@@ -1188,7 +1188,7 @@ class bingx extends bingx$1["default"] {
     async fetchMarkets(params = {}) {
         const requests = [this.fetchSwapMarkets(params)];
         const isSandbox = this.safeBool(this.options, 'sandboxMode', false);
-        if (isSandbox !== true) {
+        if (!isSandbox) {
             requests.push(this.fetchInverseSwapMarkets(params));
             requests.push(this.fetchSpotMarkets(params)); // sandbox is swap only
         }
@@ -1390,8 +1390,8 @@ class bingx extends bingx$1["default"] {
         };
         let response;
         const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('fetchTrades', market, params);
+        const maxLimit = (marketType === 'spot') ? 500 : 1000;
         if (limit !== undefined) {
-            const maxLimit = (marketType === 'spot') ? 500 : 1000;
             request['limit'] = Math.min(limit, maxLimit);
         }
         if (marketType === 'spot') {
@@ -2108,7 +2108,7 @@ class bingx extends bingx$1["default"] {
         const symbol = this.safeSymbol(id, market, '-', 'swap');
         const openInterest = this.safeNumber(interest, 'openInterest');
         const inverse = this.safeBool(market, 'inverse', false);
-        const isInverse = (inverse === true);
+        const isInverse = (inverse);
         const openInterestAmount = isInverse ? openInterest : undefined;
         const openInterestValue = isInverse ? undefined : openInterest;
         return this.safeOpenInterest({
@@ -3253,7 +3253,7 @@ class bingx extends bingx$1["default"] {
         }
         const timeInForce = this.safeStringUpper(paramsMarketType, 'timeInForce');
         const [postOnly, paramsPostOnly] = this.handlePostOnly(isMarketOrder, timeInForce === 'PostOnly', paramsMarketType);
-        if ((postOnly === true) || (timeInForce === 'PostOnly')) {
+        if ((postOnly) || (timeInForce === 'PostOnly')) {
             request['timeInForce'] = 'PostOnly';
         }
         else if (timeInForce === 'IOC') {
@@ -3355,7 +3355,9 @@ class bingx extends bingx$1["default"] {
             if (((typeValue === 'LIMIT') || (typeValue === 'TRIGGER_LIMIT') || (typeValue === 'STOP') || (typeValue === 'TAKE_PROFIT')) && !isTrailing) {
                 request['price'] = this.parseToNumeric(this.priceToPrecision(symbol, price));
             }
-            let reduceOnly = this.safeBool(paramsTakeProfit, 'reduceOnly', false);
+            const reduceOnlyParam = this.safeBool(paramsTakeProfit, 'reduceOnly', false);
+            // stop loss / take profit price orders are always reduce only
+            const reduceOnly = (reduceOnlyParam === true) || (!isTriggerOrder && (isStopLossPriceOrder || isTakeProfitPriceOrder));
             if (isTriggerOrder) {
                 request['stopPrice'] = this.parseToNumeric(this.priceToPrecision(symbol, triggerPrice));
                 if (isMarketOrder || (typeValue === 'TRIGGER_MARKET')) {
@@ -3367,7 +3369,6 @@ class bingx extends bingx$1["default"] {
             }
             else if (isStopLossPriceOrder || isTakeProfitPriceOrder) {
                 // This can be used to set the stop loss and take profit, but the position needs to be opened first
-                reduceOnly = true;
                 if (isStopLossPriceOrder) {
                     request['stopPrice'] = this.parseToNumeric(this.priceToPrecision(symbol, stopLossPrice));
                     if (isMarketOrder || (typeValue === 'STOP_MARKET')) {
@@ -3450,9 +3451,9 @@ class bingx extends bingx$1["default"] {
             }
             let positionSide = undefined;
             const hedged = this.safeBool(paramsTakeProfit, 'hedged', false);
-            paramsOrder = (hedged === true) ? this.omit(paramsTakeProfit, 'reduceOnly') : paramsTakeProfit;
-            if (hedged === true) {
-                if (reduceOnly === true) {
+            paramsOrder = (hedged) ? this.omit(paramsTakeProfit, 'reduceOnly') : paramsTakeProfit;
+            if (hedged) {
+                if (reduceOnly) {
                     positionSide = (side === 'buy') ? 'SHORT' : 'LONG';
                 }
                 else {
@@ -3467,7 +3468,7 @@ class bingx extends bingx$1["default"] {
             if (cost !== undefined) {
                 request['quoteOrderQty'] = this.parseToNumeric(this.costToPrecision(symbol, cost));
             }
-            else if (closePosition !== true) {
+            else if (!closePosition) {
                 let amountReq = amount;
                 if (market['inverse'] !== true) {
                     amountReq = this.parseToNumeric(this.amountToPrecision(symbol, amount));
@@ -3527,7 +3528,7 @@ class bingx extends bingx$1["default"] {
         const request = this.createOrderRequest(symbol, type, side, amount, price, paramsOmitted);
         let response;
         if (market['swap'] === true) {
-            if (test === true) {
+            if (test) {
                 response = await this.swapV2PrivatePostTradeOrderTest(request);
             }
             else if (market['inverse'] === true) {
@@ -3688,7 +3689,7 @@ class bingx extends bingx$1["default"] {
         }
         else {
             const sync = this.safeBool(params, 'sync', false);
-            if (sync === true) {
+            if (sync) {
                 request['sync'] = true;
             }
             request['data'] = this.json(ordersRequests);
@@ -4085,14 +4086,15 @@ class bingx extends bingx$1["default"] {
         if ((feeCurrencyCode === undefined)) {
             if (marketResolved['spot'] === true) {
                 if (side === 'buy') {
-                    feeCurrencyCode = marketResolved['base'];
+                    feeCurrencyCode = this.safeString(marketResolved, 'base');
                 }
                 else {
-                    feeCurrencyCode = marketResolved['quote'];
+                    feeCurrencyCode = this.safeString(marketResolved, 'quote');
                 }
             }
             else {
-                feeCurrencyCode = (marketResolved['inverse'] === true) ? marketResolved['settle'] : marketResolved['quote'];
+                const feeKey = (marketResolved['inverse'] === true) ? 'settle' : 'quote';
+                feeCurrencyCode = this.safeString(marketResolved, feeKey);
             }
         }
         let stopLoss = this.safeValue(orderData, 'stopLoss');
@@ -4201,7 +4203,7 @@ class bingx extends bingx$1["default"] {
         const paramsOmitted = this.omit(params, 'twap');
         let response;
         let market = undefined;
-        if (isTwapOrder === true) {
+        if (isTwapOrder) {
             const twapRequest = {
                 'mainOrderId': id,
             };
@@ -4700,7 +4702,7 @@ class bingx extends bingx$1["default"] {
         const paramsOmitted = this.omit(params, 'twap');
         let response = undefined;
         let market = undefined;
-        if (isTwapOrder === true) {
+        if (isTwapOrder) {
             const twapRequest = {
                 'mainOrderId': id,
             };
@@ -4983,7 +4985,7 @@ class bingx extends bingx$1["default"] {
         else {
             const isTwapOrder = this.safeBool(paramsSubType, 'twap', false);
             const paramsOmitted = this.omit(paramsSubType, 'twap');
-            if (isTwapOrder === true) {
+            if (isTwapOrder) {
                 response = await this.swapV1PrivateGetTwapOpenOrders(this.extend(request, paramsOmitted));
             }
             else if (subType === 'inverse') {
@@ -5258,7 +5260,7 @@ class bingx extends bingx$1["default"] {
         else {
             const isTwapOrder = this.safeBool(paramsStandard, 'twap', false);
             const paramsOmitted = this.omit(paramsStandard, 'twap');
-            if (isTwapOrder === true) {
+            if (isTwapOrder) {
                 request['pageIndex'] = 1;
                 request['pageSize'] = (limit === undefined) ? 100 : limit;
                 request['startTime'] = (since === undefined) ? 1 : since;
@@ -5647,16 +5649,17 @@ class bingx extends bingx$1["default"] {
         const currencyId = this.safeString(depositAddress, 'coin');
         const currencyResolved = this.safeCurrency(currencyId, currency);
         const code = currencyResolved['code'];
-        let address = this.safeString2(depositAddress, 'addressWithPrefix', 'address');
+        const rawAddress = this.safeString2(depositAddress, 'addressWithPrefix', 'address');
         const networkId = this.safeString(depositAddress, 'network');
         const networkCode = this.networkIdToCode(networkId, code);
         // despite its name the addressWithPrefix field sometimes arrives without
         // the 0x prefix on the evm networks, see https://github.com/ccxt/ccxt/issues/24331
-        if (address !== undefined) {
-            const isPrefixed = address.startsWith('0x') || address.startsWith('0X');
+        let address = rawAddress;
+        if (rawAddress !== undefined) {
+            const isPrefixed = rawAddress.startsWith('0x') || rawAddress.startsWith('0X');
             const evmNetworks = ['BEP20', 'ERC20', 'HECO', 'MATIC', 'POLYGON', 'ARBITRUM', 'OPTIMISM', 'AVAXC', 'BASE', 'FTM', 'LINEA', 'ZKSYNC', 'OPBNB'];
             if (!isPrefixed && this.inArray(networkCode, evmNetworks)) {
-                address = '0x' + address;
+                address = '0x' + rawAddress;
             }
         }
         this.checkAddress(address);
@@ -7256,7 +7259,7 @@ class bingx extends bingx$1["default"] {
         let access = section[2];
         const isSandbox = this.safeBool(this.options, 'sandboxMode', false);
         let url = this.implodeHostname(this.urls['api'][type]);
-        if ((isSandbox === true) && url === undefined) {
+        if ((isSandbox) && url === undefined) {
             throw new errors.NotSupported(this.id + ' does not have a testnet/sandbox URL for ' + type + ' endpoints');
         }
         const pathValue = this.implodeParams(path, params);

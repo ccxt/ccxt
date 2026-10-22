@@ -239,9 +239,9 @@ public class Opinion extends OpinionApi
             // so the cache gets the base indexing (id + handle + slug) instead of a raw assignment
             Map<String, Object> seenEvents = new HashMap<String, Object>() {{}};
             List<Object> eventsList = new ArrayList<Object>(Arrays.asList());
-            Object page = 1;
-            Object fetchedRawCount = 0;
-            while (true)
+            // every raw (unflattened) row fetched so far, so its length is the raw fetched count
+            List<Object> fetchedRawRows = new ArrayList<Object>(Arrays.asList());
+            for (var page = 1; ((maxPages != null && page <= maxPages)); page++)
             {
                 Map<String, Object> request = new HashMap<String, Object>();
                 request.put("marketType", 2);
@@ -251,7 +251,6 @@ public class Opinion extends OpinionApi
                 Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
                 List<Object> rawMarkets = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
                 Integer rawMarketsLength = ((List<?>)rawMarkets).size();
-                fetchedRawCount = this.sum(fetchedRawCount, rawMarketsLength);
                 // categorical parents expand into several flatMarkets entries each, so the raw,
                 // unflattened row count in 'total' must be compared against fetchedRawCount, not
                 // flatMarkets.length - otherwise expansion makes the comparison meaningless
@@ -259,15 +258,16 @@ public class Opinion extends OpinionApi
                 for (var i = 0; (rawMarketsLength != null && i < rawMarketsLength); i++)
                 {
                     Object raw = (rawMarkets == null || i < 0 || i >= rawMarkets.size() ? null : rawMarkets.get(i));
+                    ((List<Object>)fetchedRawRows).add(raw);
                     Long marketType = this.safeInteger(raw, "marketType");
                     if ((marketType != null && marketType == 1))
                     {
-                        Object eventVar = this.parseEvent((Map<String, Object>) (raw));
-                        Object childMarkets = Helpers.GetValue(eventVar, "markets");
-                        Integer childMarketsLength = Helpers.getArrayLength(childMarkets);
+                        Map<String, Object> eventVar = (Map<String, Object>) this.parseEvent((Map<String, Object>) (raw));
+                        List<Object> childMarkets = (List<Object>) this.safeList(eventVar, "markets", new ArrayList<Object>(Arrays.asList()));
+                        Integer childMarketsLength = ((List<?>)childMarkets).size();
                         for (var ci = 0; (childMarketsLength != null && ci < childMarketsLength); ci++)
                         {
-                            ((List<Object>)flatMarkets).add(Helpers.GetValue(childMarkets, ci));
+                            ((List<Object>)flatMarkets).add((childMarkets == null || ci < 0 || ci >= childMarkets.size() ? null : childMarkets.get(ci)));
                         }
                         String eventKey = this.safeString(eventVar, "event");
                         if ((!java.util.Objects.equals(eventKey, null)) && (!java.util.Objects.equals(eventKey, "")) && !(seenEvents.containsKey(eventKey)))
@@ -281,11 +281,11 @@ public class Opinion extends OpinionApi
                     }
                 }
                 Integer collectedLength = ((List<?>)flatMarkets).size();
-                if (((pageLimit != null && (rawMarketsLength == null || rawMarketsLength < pageLimit))) || (Helpers.isGreaterThanOrEqual(page, maxPages)) || ((!java.util.Objects.equals(total, null)) && (Helpers.isGreaterThanOrEqual(fetchedRawCount, total))) || ((!java.util.Objects.equals(userLimit, null)) && ((userLimit == null || (collectedLength != null && collectedLength >= userLimit)))))
+                Integer fetchedRawCount = ((List<?>)fetchedRawRows).size();
+                if (((pageLimit != null && (rawMarketsLength == null || rawMarketsLength < pageLimit))) || ((maxPages == null || page >= maxPages)) || ((!java.util.Objects.equals(total, null)) && ((total == null || (fetchedRawCount != null && fetchedRawCount >= total)))) || ((!java.util.Objects.equals(userLimit, null)) && ((userLimit == null || (collectedLength != null && collectedLength >= userLimit)))))
                 {
                     break;
                 }
-                page = this.sum(page, 1);
             }
             this.setEvents(eventsList);
             Integer flatMarketsLength = ((List<?>)flatMarkets).size();
@@ -446,8 +446,8 @@ public class Opinion extends OpinionApi
             h2kMap0.put("expiryDatetime", this.iso8601(expiryTimestamp));
             h2kMap0.put("strike", null);
             h2kMap0.put("optionType", null);
-            h2kMap0.put("taker", Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "taker"));
-            h2kMap0.put("maker", Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "maker"));
+            h2kMap0.put("taker", Helpers.GetValue((this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), "taker"));
+            h2kMap0.put("maker", Helpers.GetValue((this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), "maker"));
             h2kMap0.put("percentage", true);
             h2kMap0.put("tierBased", false);
             h2kMap0.put("feeSide", "get");
@@ -495,8 +495,8 @@ public class Opinion extends OpinionApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            this.requireEventQuery(Helpers.toMapArg(parameters));
-            List<Object> queries = this.parseSearchQueries(Helpers.toMapArg(parameters));
+            this.requireEventQuery(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v11 -> (Map<String, Object>) hx4J40v11; case Object hx4J40v11 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v11.getClass().getName()); })));
+            List<Object> queries = this.parseSearchQueries(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v10 -> (Map<String, Object>) hx4J40v10; case Object hx4J40v10 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v10.getClass().getName()); })));
             String eventId = this.safeString(parameters, "eventId");
             String slug = this.safeString(parameters, "slug");
             if ((!java.util.Objects.equals(eventId, null)) || (!java.util.Objects.equals(slug, null)))
@@ -516,34 +516,24 @@ public class Opinion extends OpinionApi
                 }
                 Map<String, Object> singleResult = (Map<String, Object>) this.safeDict(singleResponse, "result", new HashMap<String, Object>() {{}});
                 Map<String, Object> singleData = (Map<String, Object>) this.safeDict(singleResult, "data", new HashMap<String, Object>() {{}});
-                Object single = this.parseEvent((Map<String, Object>) (singleData));
+                Map<String, Object> single = (Map<String, Object>) this.parseEvent((Map<String, Object>) (singleData));
                 this.indexEventOutcomes(single);
-                return this.applyEventFetchParams(new ArrayList<Object>(Arrays.asList(single)), Helpers.toMapArg(parameters), queries);
+                return this.applyEventFetchParams(new ArrayList<Object>(Arrays.asList(single)), ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v9 -> (Map<String, Object>) hx4J40v9; case Object hx4J40v9 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v9.getClass().getName()); })), queries);
             }
             Object rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "tags", "status", "sort", "searchIn", "limit")));
-            Long pageLimit = this.safeInteger(this.options, "defaultFetchEventsLimit", 20);
-            Long userLimit = this.safeInteger(parameters, "limit");
+            Long pageLimit = this.parseToInt(this.safeInteger(this.options, "defaultFetchEventsLimit", 20));
             // bound how many events are actually FETCHED: the user limit when given, otherwise
             // options.maxFetchEventsResults - the scope filters keep the listing narrow, but a broad
             // label can still hold more than one page
-            Long fetchCap = this.safeInteger(this.options, "maxFetchEventsResults", 100);
-            if (!java.util.Objects.equals(userLimit, null))
-            {
-                fetchCap = userLimit;
-            }
+            Long fetchCap = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "maxFetchEventsResults", 100));
             Long maxPages = this.safeInteger(this.options, "maxEventsPages", 50);
             List<Object> rawEvents = new ArrayList<Object>(Arrays.asList());
-            Object page = 1;
-            Object fetchedRawCount = 0;
-            while (true)
+            for (var page = 1; ((maxPages != null && page <= maxPages)); page++)
             {
-                Object reqLimit = pageLimit;
-                Object remaining = Helpers.subtract(fetchCap, fetchedRawCount);
-                if (Helpers.isLessThan(remaining, reqLimit))
-                {
-                    reqLimit = remaining;
-                }
-                if (Helpers.isLessThanOrEqual(reqLimit, 0))
+                Integer fetchedSoFar = ((List<?>)rawEvents).size();
+                Long remaining = this.parseToInt((fetchCap - ((long) fetchedSoFar)));
+                Long reqLimit = ((((pageLimit != null && (remaining == null || remaining < pageLimit))))) ? remaining : pageLimit;
+                if ((reqLimit == null || reqLimit <= 0))
                 {
                     break;
                 }
@@ -555,17 +545,17 @@ public class Opinion extends OpinionApi
                 Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
                 List<Object> pageEvents = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
                 Integer pageEventsLength = ((List<?>)pageEvents).size();
-                fetchedRawCount = this.sum(fetchedRawCount, pageEventsLength);
                 for (var i = 0; (pageEventsLength != null && i < pageEventsLength); i++)
                 {
                     ((List<Object>)rawEvents).add((pageEvents == null || i < 0 || i >= pageEvents.size() ? null : pageEvents.get(i)));
                 }
+                // rawEvents holds every row fetched so far, so its length is the raw fetched count
+                Integer fetchedRawCount = ((List<?>)rawEvents).size();
                 Long total = this.safeInteger(result, "total");
-                if ((Helpers.isLessThan(pageEventsLength, reqLimit)) || (Helpers.isGreaterThanOrEqual(page, maxPages)) || ((!java.util.Objects.equals(total, null)) && (Helpers.isGreaterThanOrEqual(fetchedRawCount, total))) || (Helpers.isGreaterThanOrEqual(fetchedRawCount, fetchCap)))
+                if (((reqLimit != null && (pageEventsLength == null || pageEventsLength < reqLimit))) || ((maxPages == null || page >= maxPages)) || ((!java.util.Objects.equals(total, null)) && ((total == null || (fetchedRawCount != null && fetchedRawCount >= total)))) || ((fetchCap == null || (fetchedRawCount != null && fetchedRawCount >= fetchCap))))
                 {
                     break;
                 }
-                page = this.sum(page, 1);
             }
             Integer rawEventsLength = ((List<?>)rawEvents).size();
             List<Object> parsedEvents = new ArrayList<Object>(Arrays.asList());
@@ -575,7 +565,7 @@ public class Opinion extends OpinionApi
             }
             for (var i = 0; (rawEventsLength != null && i < rawEventsLength); i++)
             {
-                Object eventVar = this.parseEvent((Map<String, Object>) ((rawEvents == null || i < 0 || i >= rawEvents.size() ? null : rawEvents.get(i))));
+                Map<String, Object> eventVar = (Map<String, Object>) this.parseEvent((Map<String, Object>) ((rawEvents == null || i < 0 || i >= rawEvents.size() ? null : rawEvents.get(i))));
                 ((List<Object>)parsedEvents).add(eventVar);
                 // register the parsed markets so populateOutcomes can index their outcomes
                 List<Object> eventMarkets = (List<Object>) this.safeList(eventVar, "markets", new ArrayList<Object>(Arrays.asList()));
@@ -587,7 +577,7 @@ public class Opinion extends OpinionApi
                 }
             }
             this.populateOutcomes();
-            return this.applyEventFetchParams(parsedEvents, Helpers.toMapArg(parameters), queries);
+            return this.applyEventFetchParams(parsedEvents, ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v8 -> (Map<String, Object>) hx4J40v8; case Object hx4J40v8 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v8.getClass().getName()); })), queries);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionEvent::new).collect(Collectors.toList()));
 
     }
@@ -621,7 +611,7 @@ public class Opinion extends OpinionApi
             }
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Map<String, Object> data = (Map<String, Object>) this.safeDict(result, "data", new HashMap<String, Object>() {{}});
-            Object eventVar = this.parseEvent((Map<String, Object>) (data));
+            Map<String, Object> eventVar = (Map<String, Object>) this.parseEvent((Map<String, Object>) (data));
             this.indexEventOutcomes(eventVar);
             return eventVar;
         }).thenApply(PredictionEvent::new);
@@ -789,7 +779,7 @@ public class Opinion extends OpinionApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
+            Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
             Object tokenId = ((String)((Map<String, Object>)outcomeObj).get("outcomeId"));
             List<Object> promises = new ArrayList<Object>(Arrays.asList(this.opinionPublicGetTokenLatestPrice(this.extend(new HashMap<String, Object>() {{
         put( "token_id", tokenId );
@@ -803,7 +793,7 @@ public class Opinion extends OpinionApi
                 put( "price", priceResponse );
                 put( "book", bookResponse );
             }};
-            return this.parsePredictionTicker((Map<String, Object>) (response), Helpers.toMapArg(((Object)outcomeObj)));
+            return this.parsePredictionTicker((Map<String, Object>) (response), outcomeObj);
         }).thenApply(PredictionTicker::new);
 
     }
@@ -848,29 +838,29 @@ public class Opinion extends OpinionApi
         {
             timestamp = null; // the venue reports timestamp 0 for outcomes that have not traded yet
         }
-        return (Map<String, Object>) (this.safePredictionTicker(Helpers.newMap(
-            "outcome", this.safeString(marketAny, "outcome"),
-            "outcomeId", this.safeString2(marketAny, "outcomeId", "id"),
-            "label", this.safeString(marketAny, "label"),
-            "market", this.safeString2(marketAny, "market", "outcome"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "high", null,
-            "low", null,
-            "bid", this.safeNumber(bestBid, "price", (Object) null),
-            "bidVolume", this.safeNumber(bestBid, "size", (Object) null),
-            "ask", this.safeNumber(bestAsk, "price", (Object) null),
-            "askVolume", this.safeNumber(bestAsk, "size", (Object) null),
-            "open", null,
-            "close", last,
-            "last", last,
-            "change", null,
-            "percentage", null,
-            "average", null,
-            "baseVolume", null,
-            "quoteVolume", null,
-            "info", ticker
-        ), market));
+        return (Map<String, Object>) (this.safePredictionTicker((switch (0) { default -> { HashMap<String, Object> j39v4 = new HashMap<String, Object>();
+            j39v4.put("outcome", this.safeString(marketAny, "outcome"));
+            j39v4.put("outcomeId", this.safeString2(marketAny, "outcomeId", "id"));
+            j39v4.put("label", this.safeString(marketAny, "label"));
+            j39v4.put("market", this.safeString2(marketAny, "market", "outcome"));
+            j39v4.put("timestamp", timestamp);
+            j39v4.put("datetime", this.iso8601(timestamp));
+            j39v4.put("high", null);
+            j39v4.put("low", null);
+            j39v4.put("bid", this.safeNumber(bestBid, "price", (Object) null));
+            j39v4.put("bidVolume", this.safeNumber(bestBid, "size", (Object) null));
+            j39v4.put("ask", this.safeNumber(bestAsk, "price", (Object) null));
+            j39v4.put("askVolume", this.safeNumber(bestAsk, "size", (Object) null));
+            j39v4.put("open", null);
+            j39v4.put("close", last);
+            j39v4.put("last", last);
+            j39v4.put("change", null);
+            j39v4.put("percentage", null);
+            j39v4.put("average", null);
+            j39v4.put("baseVolume", null);
+            j39v4.put("quoteVolume", null);
+            j39v4.put("info", ticker);
+            yield j39v4; } }), market));
     }
 
     /**
@@ -917,7 +907,7 @@ public class Opinion extends OpinionApi
                     put( "price", priceResponse );
                     put( "book", bookResponse );
                 }};
-                Map<String, Object> ticker = this.parsePredictionTicker((Map<String, Object>) (response), Helpers.toMapArg(((Object)outcomeObj)));
+                Map<String, Object> ticker = this.parsePredictionTicker((Map<String, Object>) (response), ((Map<String, Object>) (switch ((Object) (((Object)outcomeObj))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v7 -> (Map<String, Object>) hx4J40v7; case Object hx4J40v7 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v7.getClass().getName()); })));
                 String symbolKey = this.safeString(ticker, "outcome");
                 if (!java.util.Objects.equals(symbolKey, null))
                 {
@@ -992,7 +982,7 @@ public class Opinion extends OpinionApi
 
             if (!(((Map<?, ?>)this.timeframes).containsKey(java.util.Objects.requireNonNullElse(timeframe, "1d"))))
             {
-                Object supportedKeys = Helpers.objectKeys(this.timeframes);
+                Object supportedKeys = ((List<Object>) switch ((Object)(this.timeframes)) { case Map<?, ?> j39v6 -> { synchronized (j39v6) { yield new ArrayList<Object>(j39v6.keySet()); } } case null, default -> new ArrayList<Object>(); });
                 throw new BadRequest(((((this.id + " fetchOHLCV() unsupported timeframe ") + java.util.Objects.requireNonNullElse(timeframe, "1d")) + ", supported timeframes are ") + String.join(", ", (List<String>)supportedKeys))) ;
             }
             Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
@@ -1089,7 +1079,7 @@ public class Opinion extends OpinionApi
                     quoteTokens.put(address, entry);
                 }
             }
-            Helpers.addElementToObject(this.options, "quoteTokens", quoteTokens);
+            { Map<Object, Object> j39v7 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v8 = "quoteTokens"; Object j39v9 = quoteTokens; if (j39v7 == null) { if (j39v8 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v7) { if (j39v9 == null && j39v7 instanceof java.util.concurrent.ConcurrentHashMap) { j39v7.remove(j39v8); } else { j39v7.put(j39v8, j39v9); } } }
             Map<String, Object> quoteToken = (Map<String, Object>) this.safeDict(quoteTokens, cacheKey, (Object) null);
             if (java.util.Objects.equals(quoteToken, null))
             {
@@ -1121,7 +1111,7 @@ public class Opinion extends OpinionApi
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Map<String, Object> walletUsers = (Map<String, Object>) this.safeDict(result, "walletUsers", new HashMap<String, Object>() {{}});
             String multiSignAddress = this.safeString(walletUsers, "56", this.walletAddress);
-            Helpers.addElementToObject(this.options, "multiSignAddress", multiSignAddress);
+            { Map<Object, Object> j39v10 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v11 = "multiSignAddress"; Object j39v12 = multiSignAddress; if (j39v10 == null) { if (j39v11 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v10) { if (j39v12 == null && j39v10 instanceof java.util.concurrent.ConcurrentHashMap) { j39v10.remove(j39v11); } else { j39v10.put(j39v11, j39v12); } } }
             return multiSignAddress;
         }).thenApply(res -> (String) res);
 
@@ -1182,9 +1172,13 @@ public class Opinion extends OpinionApi
     public Map<String, Object> opinionOrderRawAmounts(Boolean isMarket, Object side, Object amount, Object price, Object decimals)
     {
         String decimalsStr = "1";
-        for (var i = 0; Helpers.isLessThan(i, decimals); i++)
+        if (!java.util.Objects.equals(decimals, null))
         {
-            decimalsStr = (decimalsStr + "0");
+            Long decimalsCount = this.parseToInt(decimals);
+            for (var i = 0; (decimalsCount != null && i < decimalsCount); i++)
+            {
+                decimalsStr = (decimalsStr + "0");
+            }
         }
         String amountStr = this.numberToString(amount);
         if (Boolean.TRUE.equals(isMarket) && (java.util.Objects.equals(side, "BUY")))
@@ -1200,7 +1194,7 @@ public class Opinion extends OpinionApi
         String priceInt = this.safeString(priceParts, 0, "0");
         String priceFrac = this.safeString(priceParts, 1, "");
         String priceDenom = "1000000";
-        String priceNum = Precise.stringAdd(Precise.stringMul(priceInt, priceDenom), Helpers.padEnd(priceFrac, ((Number)6).intValue(), ((String)"0").charAt(0)));
+        String priceNum = Precise.stringAdd(Precise.stringMul(priceInt, priceDenom), ((java.util.function.Function<Object, java.util.function.BiFunction<Object, Object, String>>) hx4J43a0 -> (hx4J43b0, hx4J43c0) -> { int hx4J43a0n = (hx4J43b0 instanceof Integer ? (Integer) hx4J43b0 : hx4J43b0 instanceof Long ? ((Long) hx4J43b0).intValue() : hx4J43b0 instanceof Double ? ((Double) hx4J43b0).intValue() : hx4J43b0 instanceof Float ? ((Float) hx4J43b0).intValue() : hx4J43b0 instanceof java.math.BigDecimal ? ((java.math.BigDecimal) hx4J43b0).intValue() : hx4J43b0 instanceof String ? Integer.parseInt((String) hx4J43b0) : Integer.parseInt(String.valueOf(hx4J43b0))); String hx4J43a0s = (hx4J43a0 == null) ? null : hx4J43a0.toString(); String hx4J43a0p = (hx4J43c0 == null) ? null : hx4J43c0.toString(); if (hx4J43a0p.isEmpty()) { throw new IllegalArgumentException("padStr must not be empty"); } while (hx4J43a0s.length() < hx4J43a0n) { hx4J43a0s += hx4J43a0p; } return hx4J43a0s.substring(0, hx4J43a0n); }).apply(priceFrac).apply(((Number)6).intValue(), ((String)"0").charAt(0)));
         if (java.util.Objects.equals(priceNum, "0"))
         {
             throw new InvalidOrder(((this.id + " createOrder() invalid price ") + priceStr)) ;
@@ -1253,7 +1247,7 @@ public class Opinion extends OpinionApi
 
             (this.loadApiKey()).join();
             this.checkRequiredCredentials(true);
-            Object outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
+            Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
             Object tokenId = ((String)((Map<String, Object>)outcomeObj).get("outcomeId"));
             Boolean isMarket = (java.util.Objects.equals(type, "market"));
             String sideStr = ((String)((String)side)).toUpperCase();
@@ -1337,7 +1331,7 @@ public class Opinion extends OpinionApi
             Map<String, Object> response = (this.opinionPrivatePostOrder(orderBody)).join();
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Map<String, Object> orderData = (Map<String, Object>) this.safeDict(result, "orderData", new HashMap<String, Object>() {{}});
-            return this.parsePredictionOrder((Map<String, Object>) (orderData), Helpers.toMapArg(((Object)outcomeObj)));
+            return this.parsePredictionOrder((Map<String, Object>) (orderData), outcomeObj);
         }).thenApply(PredictionOrder::new);
 
     }
@@ -1367,7 +1361,7 @@ public class Opinion extends OpinionApi
             // a false result does NOT mean the order is still open — it may already be filled,
             // already cancelled, or unknown; don't invent a status the venue didn't report.
             // error responses with an errno never reach this line, handleErrors throws on them
-            String status = (((java.util.Objects.equals(canceled, true)))) ? "canceled" : null;
+            String status = ((Boolean.TRUE.equals(canceled))) ? "canceled" : null;
             return this.safePredictionOrder(new HashMap<String, Object>() {{
                 put( "id", id );
                 put( "status", status );
@@ -1668,7 +1662,7 @@ public class Opinion extends OpinionApi
             Helpers.addElementToObject(this.markets, marketHandle, market);
             this.indexMarketOutcomes(market);
             cached.put(idStr, market);
-            Helpers.addElementToObject(this.options, cacheKey, cached);
+            { Map<Object, Object> j39v13 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v14 = cacheKey; Object j39v15 = cached; if (j39v13 == null) { if (j39v14 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v13) { if (j39v15 == null && j39v13 instanceof java.util.concurrent.ConcurrentHashMap) { j39v13.remove(j39v14); } else { j39v13.put(j39v14, j39v15); } } }
             return market;
         });
 
@@ -1800,11 +1794,11 @@ public class Opinion extends OpinionApi
             Map<String, Object> response = (this.opinionPrivateGetPositionsUserWalletAddress(this.extend(request, parameters))).join();
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> positions = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
-            Object parsed = this.parsePredictionPositions(positions, new HashMap<String, Object>() {{}});
             if (java.util.Objects.equals(outcomesLength, 0))
             {
-                return parsed;
+                return this.parsePredictionPositions(positions, new HashMap<String, Object>() {{}});
             }
+            Object parsed = this.parsePredictionPositions(positions, new HashMap<String, Object>() {{}});
             Map<String, Object> wantedTokenIds = new HashMap<String, Object>() {{}};
             // copy to a plain list so the strict null checks see one shape
             Object outcomesList = (((java.util.Objects.equals(outcomes, null)))) ? new ArrayList<Object>(Arrays.asList()) : outcomes;
@@ -1971,7 +1965,7 @@ public class Opinion extends OpinionApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> response = (this.opinionPrivateDeleteAuthApiKey(parameters)).join();
-            Helpers.addElementToObject(this.options, "apiKey", null);
+            { Map<Object, Object> j39v16 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v17 = "apiKey"; Object j39v18 = null; if (j39v16 == null) { if (j39v17 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v16) { if (j39v18 == null && j39v16 instanceof java.util.concurrent.ConcurrentHashMap) { j39v16.remove(j39v17); } else { j39v16.put(j39v17, j39v18); } } }
             // sign() prefers this.apiKey over options['apiKey'] - clear it too, or a directly-set
             // exchange.apiKey would keep being used for private calls after the key is revoked.
             // an empty string, not undefined: the strict base types the credential as string, and
@@ -2034,7 +2028,7 @@ public class Opinion extends OpinionApi
             put( "apiKey", Opinion.this.safeString(response, "apiKey") );
             put( "walletAddress", Opinion.this.safeString(response, "walletAddress") );
         }};
-        Helpers.addElementToObject(this.options, "apiKey", creds.get("apiKey"));
+        { Map<Object, Object> j39v19 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v20 = "apiKey"; Object j39v21 = creds.get("apiKey"); if (j39v19 == null) { if (j39v20 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v19) { if (j39v21 == null && j39v19 instanceof java.util.concurrent.ConcurrentHashMap) { j39v19.remove(j39v20); } else { j39v19.put(j39v20, j39v21); } } }
         // checkRequiredCredentials() (called by createOrder()) checks this.apiKey, not
         // options['apiKey'] - keep both in sync, same as deleteApiKey() clearing both
         this.apiKey = ((String)creds.get("apiKey"));
@@ -2051,7 +2045,7 @@ public class Opinion extends OpinionApi
     public String opinionWsUrl()
     {
         Boolean hasDirectApiKey = !this.isEmptyString(this.apiKey);
-        Object apiKey = ((Boolean.TRUE.equals(hasDirectApiKey))) ? this.apiKey : this.safeString(this.options, "apiKey");
+        String apiKey = ((Boolean.TRUE.equals(hasDirectApiKey))) ? this.apiKey : this.safeString(this.options, "apiKey");
         if (java.util.Objects.equals(apiKey, null))
         {
             throw new AuthenticationError((this.id + " websocket requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first")) ;
@@ -2137,16 +2131,16 @@ public class Opinion extends OpinionApi
         {
             return null;
         }
-        List<Object> marketKeys = Helpers.objectKeys(this.markets);
+        List<Object> marketKeys = ((List<Object>) switch ((Object)(this.markets)) { case Map<?, ?> j39v22 -> { synchronized (j39v22) { yield new ArrayList<Object>(j39v22.keySet()); } } case null, default -> new ArrayList<Object>(); });
         Integer marketKeysLength = ((List<?>)marketKeys).size();
         for (var i = 0; (marketKeysLength != null && i < marketKeysLength); i++)
         {
             Map<String, Object> market = (Map<String, Object>) this.safeDict(this.markets, (marketKeys == null || i < 0 || i >= marketKeys.size() ? null : marketKeys.get(i)), (Object) null);
             Map<String, Object> info = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
-            if (Helpers.isEqual(this.safeInteger(info, "marketId"), marketId))
+            if (((java.util.function.BiPredicate<Object, Object>) (hx4J40v6A, hx4J40v6B) -> { try { if (hx4J40v6A == null && hx4J40v6B == null) { return true; } if (hx4J40v6A == null || hx4J40v6B == null) { return false; } java.util.function.Predicate<Object> hx4J40v6N = hx4J40v6o -> { try { Double.parseDouble(String.valueOf(hx4J40v6o)); return true; } catch (Exception hx4J40v6e) { return false; } }; if (!hx4J40v6A.getClass().equals(hx4J40v6B.getClass()) && !(hx4J40v6N.test(hx4J40v6A) && hx4J40v6N.test(hx4J40v6B))) { return false; } java.util.function.Predicate<Object> hx4J40v6I = hx4J40v6o -> hx4J40v6o instanceof Byte || hx4J40v6o instanceof Short || hx4J40v6o instanceof Integer || hx4J40v6o instanceof Long || hx4J40v6o instanceof java.util.concurrent.atomic.AtomicInteger || hx4J40v6o instanceof java.util.concurrent.atomic.AtomicLong || ((hx4J40v6o instanceof Float || hx4J40v6o instanceof Double || hx4J40v6o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(hx4J40v6o)).stripTrailingZeros().scale() <= 0); java.util.function.ToDoubleFunction<Object> hx4J40v6D = hx4J40v6o -> { if (hx4J40v6o instanceof Double || hx4J40v6o instanceof Float || hx4J40v6o instanceof Long || hx4J40v6o instanceof Integer || hx4J40v6o instanceof java.math.BigDecimal) { return ((Number) hx4J40v6o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v6o)); } catch (NumberFormatException hx4J40v6e) { return 0.0; } }; if (hx4J40v6I.test(hx4J40v6A) && hx4J40v6I.test(hx4J40v6B)) { java.util.function.ToLongFunction<Object> hx4J40v6L = hx4J40v6o -> hx4J40v6o instanceof Long || hx4J40v6o instanceof Integer || hx4J40v6o instanceof Double || hx4J40v6o instanceof Float || hx4J40v6o instanceof java.math.BigDecimal ? ((Number) hx4J40v6o).longValue() : Long.parseLong(String.valueOf(hx4J40v6o)); return hx4J40v6L.applyAsLong(hx4J40v6A) == hx4J40v6L.applyAsLong(hx4J40v6B); } if (hx4J40v6A instanceof Double || hx4J40v6B instanceof Double) { return hx4J40v6D.applyAsDouble(hx4J40v6A) == hx4J40v6D.applyAsDouble(hx4J40v6B); } if (hx4J40v6A instanceof Float || hx4J40v6B instanceof Float) { java.util.function.Function<Object, Float> hx4J40v6F = hx4J40v6o -> hx4J40v6o instanceof Float || hx4J40v6o instanceof Double || hx4J40v6o instanceof Long || hx4J40v6o instanceof Integer || hx4J40v6o instanceof java.math.BigDecimal ? ((Number) hx4J40v6o).floatValue() : Float.parseFloat(String.valueOf(hx4J40v6o)); return hx4J40v6F.apply(hx4J40v6A).floatValue() == hx4J40v6F.apply(hx4J40v6B).floatValue(); } if (hx4J40v6A instanceof String && hx4J40v6B instanceof String) { return hx4J40v6A.equals(hx4J40v6B); } if (hx4J40v6A instanceof Boolean && hx4J40v6B instanceof Boolean) { return hx4J40v6A.equals(hx4J40v6B); } if (hx4J40v6N.test(hx4J40v6A) && hx4J40v6N.test(hx4J40v6B)) { return new java.math.BigDecimal(String.valueOf(hx4J40v6A)).compareTo(new java.math.BigDecimal(String.valueOf(hx4J40v6B))) == 0; } return false; } catch (Exception hx4J40v6e) { return false; } }).test(this.safeInteger(info, "marketId"), marketId))
             {
                 List<Object> outcomes = (List<Object>) this.safeList(market, "outcomes", new ArrayList<Object>(Arrays.asList()));
-                Integer index = (((Helpers.isEqual(outcomeSide, 2)))) ? 1 : 0;
+                Integer index = ((((switch ((Object) (outcomeSide)) { case null -> false; case Long hx4J40v5 -> hx4J40v5 == 2L; case Integer hx4J40v5 -> hx4J40v5 == 2L; case Double hx4J40v5 -> hx4J40v5 == 2L; case Float hx4J40v5 -> hx4J40v5.doubleValue() == 2L; case java.math.BigDecimal hx4J40v5 -> hx4J40v5.stripTrailingZeros().scale() <= 0 && hx4J40v5.longValue() == 2L; case Object hx4J40v5 -> { try { String hx4J40v5t = String.valueOf(hx4J40v5); Double.parseDouble(hx4J40v5t); yield new java.math.BigDecimal(hx4J40v5t).compareTo(java.math.BigDecimal.valueOf(2L)) == 0; } catch (NumberFormatException hx4J40v5x) { yield false; } } })))) ? 1 : 0;
                 return this.safeDict(outcomes, index, (Object) null);
             }
         }
@@ -2383,7 +2377,7 @@ public class Opinion extends OpinionApi
             Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
             Helpers.addElementToObject(this.trades, sym, new ArrayCache(((Number)tradesLimit).intValue()));
         }
-        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, sym);
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) (sym == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(sym));
         stored.append(trade);
         client.resolve(stored, ("trades::" + sym));
     }
@@ -2430,23 +2424,23 @@ public class Opinion extends OpinionApi
     public String parseWsOrderStatus(Object status)
     {
         // per the venue docs: 1 pending, 2 finished, 3 canceled, 4 expired, 5 failed
-        if (Helpers.isEqual(status, 1))
+        if ((switch ((Object) (status)) { case null -> false; case Long hx4J40v4 -> hx4J40v4 == 1L; case Integer hx4J40v4 -> hx4J40v4 == 1L; case Double hx4J40v4 -> hx4J40v4 == 1L; case Float hx4J40v4 -> hx4J40v4.doubleValue() == 1L; case java.math.BigDecimal hx4J40v4 -> hx4J40v4.stripTrailingZeros().scale() <= 0 && hx4J40v4.longValue() == 1L; case Object hx4J40v4 -> { try { String hx4J40v4t = String.valueOf(hx4J40v4); Double.parseDouble(hx4J40v4t); yield new java.math.BigDecimal(hx4J40v4t).compareTo(java.math.BigDecimal.valueOf(1L)) == 0; } catch (NumberFormatException hx4J40v4x) { yield false; } } }))
         {
             return "open";
         }
-        if (Helpers.isEqual(status, 2))
+        if ((switch ((Object) (status)) { case null -> false; case Long hx4J40v3 -> hx4J40v3 == 2L; case Integer hx4J40v3 -> hx4J40v3 == 2L; case Double hx4J40v3 -> hx4J40v3 == 2L; case Float hx4J40v3 -> hx4J40v3.doubleValue() == 2L; case java.math.BigDecimal hx4J40v3 -> hx4J40v3.stripTrailingZeros().scale() <= 0 && hx4J40v3.longValue() == 2L; case Object hx4J40v3 -> { try { String hx4J40v3t = String.valueOf(hx4J40v3); Double.parseDouble(hx4J40v3t); yield new java.math.BigDecimal(hx4J40v3t).compareTo(java.math.BigDecimal.valueOf(2L)) == 0; } catch (NumberFormatException hx4J40v3x) { yield false; } } }))
         {
             return "closed";
         }
-        if (Helpers.isEqual(status, 3))
+        if ((switch ((Object) (status)) { case null -> false; case Long hx4J40v2 -> hx4J40v2 == 3L; case Integer hx4J40v2 -> hx4J40v2 == 3L; case Double hx4J40v2 -> hx4J40v2 == 3L; case Float hx4J40v2 -> hx4J40v2.doubleValue() == 3L; case java.math.BigDecimal hx4J40v2 -> hx4J40v2.stripTrailingZeros().scale() <= 0 && hx4J40v2.longValue() == 3L; case Object hx4J40v2 -> { try { String hx4J40v2t = String.valueOf(hx4J40v2); Double.parseDouble(hx4J40v2t); yield new java.math.BigDecimal(hx4J40v2t).compareTo(java.math.BigDecimal.valueOf(3L)) == 0; } catch (NumberFormatException hx4J40v2x) { yield false; } } }))
         {
             return "canceled";
         }
-        if (Helpers.isEqual(status, 4))
+        if ((switch ((Object) (status)) { case null -> false; case Long hx4J40v1 -> hx4J40v1 == 4L; case Integer hx4J40v1 -> hx4J40v1 == 4L; case Double hx4J40v1 -> hx4J40v1 == 4L; case Float hx4J40v1 -> hx4J40v1.doubleValue() == 4L; case java.math.BigDecimal hx4J40v1 -> hx4J40v1.stripTrailingZeros().scale() <= 0 && hx4J40v1.longValue() == 4L; case Object hx4J40v1 -> { try { String hx4J40v1t = String.valueOf(hx4J40v1); Double.parseDouble(hx4J40v1t); yield new java.math.BigDecimal(hx4J40v1t).compareTo(java.math.BigDecimal.valueOf(4L)) == 0; } catch (NumberFormatException hx4J40v1x) { yield false; } } }))
         {
             return "expired";
         }
-        if (Helpers.isEqual(status, 5))
+        if ((switch ((Object) (status)) { case null -> false; case Long hx4J40v0 -> hx4J40v0 == 5L; case Integer hx4J40v0 -> hx4J40v0 == 5L; case Double hx4J40v0 -> hx4J40v0 == 5L; case Float hx4J40v0 -> hx4J40v0.doubleValue() == 5L; case java.math.BigDecimal hx4J40v0 -> hx4J40v0.stripTrailingZeros().scale() <= 0 && hx4J40v0.longValue() == 5L; case Object hx4J40v0 -> { try { String hx4J40v0t = String.valueOf(hx4J40v0); Double.parseDouble(hx4J40v0t); yield new java.math.BigDecimal(hx4J40v0t).compareTo(java.math.BigDecimal.valueOf(5L)) == 0; } catch (NumberFormatException hx4J40v0x) { yield false; } } }))
         {
             return "rejected";
         }
@@ -2682,7 +2676,7 @@ public class Opinion extends OpinionApi
                 // an empty this.apiKey counts as absent - deleteApiKey clears it to '' (the
                 // strict base types the credential as string, undefined can not be assigned)
                 Boolean hasDirectApiKey = !this.isEmptyString(this.apiKey);
-                Object apiKey = ((Boolean.TRUE.equals(hasDirectApiKey))) ? this.apiKey : this.safeString(this.options, "apiKey");
+                String apiKey = ((Boolean.TRUE.equals(hasDirectApiKey))) ? this.apiKey : this.safeString(this.options, "apiKey");
                 if (java.util.Objects.equals(apiKey, null))
                 {
                     throw new AuthenticationError((((this.id + " ") + path) + " requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first")) ;
@@ -2693,7 +2687,7 @@ public class Opinion extends OpinionApi
         String bodyValue = null;
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
-            if (Helpers.objectKeys(query).size() > 0)
+            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v23 -> { synchronized (j39v23) { yield new ArrayList<Object>(j39v23.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }

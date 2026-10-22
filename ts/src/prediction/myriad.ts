@@ -270,8 +270,7 @@ export default class myriad extends Exchange {
                 'limit': limit,
             }, rest));
             const responseIsArray = Array.isArray (response);
-            const foundList = (responseIsArray) ? response : this.safeList (response, 'data', []);
-            const found = (foundList !== undefined) ? foundList : [];
+            const found = (responseIsArray) ? response : this.safeList (response, 'data', []);
             for (let j = 0; j < found.length; j++) {
                 const raw = found[j];
                 const networkId = this.safeString (raw, 'networkId');
@@ -308,7 +307,7 @@ export default class myriad extends Exchange {
         const allRawMarkets: any[] = [];
         // track the running count with an explicit counter (avoids inline array .length / .slice,
         // which the regex transpiler otherwise mistakes for string strlen()/mb_substr())
-        let collected = 0;
+        let collected: Int = 0;
         let page = 1;
         while (true) {
             const response = await this.myriadPublicGetMarkets (this.extend ({
@@ -318,8 +317,7 @@ export default class myriad extends Exchange {
                 'trading_model': tradingModel,
             }, rest));
             const responseIsArray = Array.isArray (response);
-            const rawMarketsList = (responseIsArray) ? response : this.safeList (response, 'data', []);
-            const rawMarkets = (rawMarketsList !== undefined) ? rawMarketsList : [];
+            const rawMarkets = (responseIsArray) ? response : this.safeList (response, 'data', []);
             const rawMarketsLength = rawMarkets.length;
             if (rawMarketsLength === 0) {
                 break;
@@ -327,7 +325,7 @@ export default class myriad extends Exchange {
             for (let i = 0; i < rawMarketsLength; i++) {
                 if (collected < maxMarkets) {
                     allRawMarkets.push (rawMarkets[i]);
-                    collected = this.sum (collected, 1);
+                    collected = allRawMarkets.length;
                 }
             }
             page = this.sum (page, 1);
@@ -448,8 +446,7 @@ export default class myriad extends Exchange {
                 'limit': limit,
             }, rest));
             const responseIsArray = Array.isArray (response);
-            const foundList = (responseIsArray) ? response : this.safeList (response, 'data', []);
-            const found = (foundList !== undefined) ? foundList : [];
+            const found = (responseIsArray) ? response : this.safeList (response, 'data', []);
             for (let j = 0; j < found.length; j++) {
                 const raw = found[j];
                 const questionId = this.safeString (raw, 'id');
@@ -478,7 +475,7 @@ export default class myriad extends Exchange {
         const rest = this.omit (params, [ 'state', 'status', 'limit', 'tradingModel', 'trading_model' ]);
         const allRawQuestions: any[] = [];
         const seen: Dict = {};
-        let collected = 0;
+        let collected: Int = 0;
         let page = 1;
         while (true) {
             const request: Dict = {
@@ -490,8 +487,7 @@ export default class myriad extends Exchange {
             }
             const response = await this.myriadPublicGetQuestions (this.extend (request, rest));
             const responseIsArray = Array.isArray (response);
-            const rawQuestionsList = (responseIsArray) ? response : this.safeList (response, 'data', []);
-            const rawQuestions = (rawQuestionsList !== undefined) ? rawQuestionsList : [];
+            const rawQuestions = (responseIsArray) ? response : this.safeList (response, 'data', []);
             const rawQuestionsLength = rawQuestions.length;
             if (rawQuestionsLength === 0) {
                 break;
@@ -507,7 +503,7 @@ export default class myriad extends Exchange {
                 }
                 if (collected < maxQuestions) {
                     allRawQuestions.push (rawQuestion);
-                    collected = this.sum (collected, 1);
+                    collected = allRawQuestions.length;
                 }
             }
             page = this.sum (page, 1);
@@ -583,9 +579,12 @@ export default class myriad extends Exchange {
         const data = this.safeList (response, 'data', []);
         const result: PredictionPosition[] = [];
         for (let i = 0; i < data.length; i++) {
-            result.push (this.parsePredictionPosition (data[i]));
+            const position = this.parsePredictionPosition (data[i]);
+            if ((outcomes === undefined) || this.inArray (position['outcome'], outcomes)) {
+                result.push (position);
+            }
         }
-        return this.filterByArray (result, 'outcome', outcomes, false) as PredictionPosition[];
+        return result;
     }
 
     /**
@@ -833,7 +832,7 @@ export default class myriad extends Exchange {
         // the on-chain AMM path requires native gas and has not been verified end to end; keep it behind
         // an explicit opt-in so callers do not silently hit an untested signing/broadcast path
         const enableAmm = this.safeBool2 (params, 'enableAmm', 'enableAmmOrders', this.safeBool (this.options, 'enableAmmOrders', false));
-        if (enableAmm !== true) {
+        if (!enableAmm) {
             throw new NotSupported (this.id + ' createOrder() only supports the gasless order book; this market uses the on-chain AMM (needs native gas and is unverified) — pass params.enableAmm=true to opt in');
         }
         return await this.createAmmOrder (outcome, type, side, amount, price, this.omit (rest, [ 'enableAmm', 'enableAmmOrders' ]));
@@ -930,14 +929,11 @@ export default class myriad extends Exchange {
             defaultTif = 'FOK';
         }
         const timeInForce = this.safeStringUpper (params, 'timeInForce', defaultTif);
-        let priceValue = price;
-        if (priceValue === undefined) {
-            if (isMarket) {
-                priceValue = (sideInt === 0) ? 1 : 0;
-            } else {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires a price for limit orders');
-            }
+        if ((price === undefined) && !isMarket) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a price for limit orders');
         }
+        const marketPrice = (sideInt === 0) ? 1 : 0;
+        const priceValue = (price !== undefined) ? price : marketPrice;
         let priceWei = this.toOrderbookWei (priceValue);
         if (Precise.stringLt (priceWei, '1')) {
             priceWei = '1';
@@ -1057,7 +1053,7 @@ export default class myriad extends Exchange {
         // plain createOrder buy on the AMM is rejected so it can't misinterpret shares as collateral
         const sideLower = (side !== undefined) ? (side as string).toLowerCase () : undefined;
         const isCostDenominated = this.safeBool (params, 'costDenominated', false);
-        if ((sideLower === 'buy') && (isCostDenominated !== true)) {
+        if ((sideLower === 'buy') && (!isCostDenominated)) {
             throw new NotSupported (this.id + ' createOrder() market buy on the AMM sizes by collateral, not shares — use createMarketBuyOrderWithCost(outcome, collateral) for a dollar buy, or the default order book (omit enableAmm) for a share-denominated order');
         }
         if (this.privateKey === undefined) {
@@ -1090,7 +1086,7 @@ export default class myriad extends Exchange {
         const txHashParam = this.safeString2 (params, 'transactionHash', 'txHash');
         const hasPreBroadcastTxHash = (txHashParam !== undefined);
         const skipAllowance = this.safeBool (params, 'skipAllowance', hasPreBroadcastTxHash);
-        if ((sideStr === 'buy') && (tokenAddress !== undefined) && (skipAllowance !== true)) {
+        if ((sideStr === 'buy') && (tokenAddress !== undefined) && (!skipAllowance)) {
             await this.ensureErc20Allowance (rpcUrl, networkId, tokenAddress, fromAddress, predictionMarket);
         }
         const skipWaitForReceipt = this.safeBool (params, 'skipWaitForReceipt', hasPreBroadcastTxHash);
@@ -1098,7 +1094,7 @@ export default class myriad extends Exchange {
         if (txHash === undefined) {
             txHash = await this.sendEvmTransaction (rpcUrl, this.parseToInt (networkId), fromAddress, predictionMarket, '0x0', calldata, gasLimit);
         }
-        if (skipWaitForReceipt !== true) {
+        if (!skipWaitForReceipt) {
             await this.waitForTransactionReceipt (rpcUrl, txHash);
         }
         return this.parseTradeTx (txHash, quote, outcomeObj as any, sideStr);
@@ -1227,7 +1223,7 @@ export default class myriad extends Exchange {
      * @description extracts an optional pre-fetched order response from params for static tests and higher-level callers that already resolved the original order
      * @returns {object} the fetchOrder-style response wrapper or a raw-order wrapper
      */
-    getOrderResponseFromParams (id: Str, params: Dict = {}): any {
+    getOrderResponseFromParams (id: Str, params: Dict = {}): NullableDict {
         const orderResponse = this.safeDict (params, 'orderResponse');
         if (orderResponse !== undefined) {
             return orderResponse;
@@ -1276,7 +1272,7 @@ export default class myriad extends Exchange {
         if (scaled === undefined) {
             throw new ExchangeError (this.id + ' toOrderbookWei() missing scaled');
         }
-        const dotIndex = scaled.indexOf ('.');
+        const dotIndex: number = scaled.indexOf ('.');
         if (scaled === undefined) {
             throw new ExchangeError (this.id + ' toOrderbookWei() missing scaled');
         }
@@ -1386,14 +1382,10 @@ export default class myriad extends Exchange {
         const outcomeObj = this.safeOutcome (composite, market);
         const marketSlug = this.safeString (trade, 'marketSlug', marketId);
         const outcomeTitle = this.safeString (trade, 'outcomeTitle', rawOutcomeId);
-        let outcome = this.safeString (outcomeObj, 'outcome');
-        if (outcome === undefined) {
-            outcome = this.slugToOutcomeSymbol (marketSlug, marketSlug, outcomeTitle);
-        }
-        let marketSymbol = this.safeString (outcomeObj, 'market');
-        if (marketSymbol === undefined) {
-            marketSymbol = this.slugToMarketSymbol (marketSlug, marketSlug);
-        }
+        const outcomeValue = this.safeString (outcomeObj, 'outcome');
+        const outcome = (outcomeValue !== undefined) ? outcomeValue : this.slugToOutcomeSymbol (marketSlug, marketSlug, outcomeTitle);
+        const marketSymbolValue = this.safeString (outcomeObj, 'market');
+        const marketSymbol = (marketSymbolValue !== undefined) ? marketSymbolValue : this.slugToMarketSymbol (marketSlug, marketSlug);
         let label = this.safeString (outcomeObj, 'label');
         if (label === undefined) {
             label = outcomeTitle;
@@ -1452,10 +1444,8 @@ export default class myriad extends Exchange {
         if ((requestedStatus === 'open') || (requestedStatus === 'cancelled') || (requestedStatus === 'canceled') || (requestedStatus === 'expired')) {
             return [];
         }
-        let trader = this.safeString2 (params, 'trader', 'address');
-        if (trader === undefined) {
-            trader = this.walletAddressOrUndefined ();
-        }
+        const traderParam = this.safeString2 (params, 'trader', 'address');
+        const trader = (traderParam !== undefined) ? traderParam : this.walletAddressOrUndefined ();
         if (trader === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() for AMM history requires a trader address or wallet/privateKey');
         }
@@ -2018,7 +2008,8 @@ export default class myriad extends Exchange {
         if (decimals === undefined) {
             throw new ExchangeError (this.id + ' fromWeiWithDecimals() missing decimals');
         }
-        for (let i = 0; i < decimals; i++) {
+        const decimalsCount = this.parseToInt (decimals);
+        for (let i = 0; i < decimalsCount; i++) {
             scale = scale + '0';
         }
         return Precise.stringDiv (decimalString, scale);
@@ -2052,7 +2043,7 @@ export default class myriad extends Exchange {
      * @param {object} market the parsed ccxt market
      * @returns {object} an event structure
      */
-    parseMarketToEvent (raw: Dict, market: any): any {
+    parseMarketToEvent (raw: Dict, market: any): PredictionEvent {
         const slug = this.safeString (raw, 'slug', this.safeString (raw, 'id'));
         const state = this.safeString (raw, 'state', 'open');
         const endDate = this.safeString (raw, 'expiresAt');
@@ -2136,7 +2127,7 @@ export default class myriad extends Exchange {
                 if (winnerRaw) {
                     resolvedOutcome = outcomeHandle;
                 }
-            } else if (voided === true) {
+            } else if (voided) {
                 winnerRaw = false;
             }
             // effectively-final copies for the object literal below (Java cannot capture a
@@ -2455,25 +2446,24 @@ export default class myriad extends Exchange {
         const outcomes: Dict[] = this.safeList (raw, 'outcomes', []);
         let price: Num = undefined;
         let change: Num = undefined;
+        // priceChange24h is an ABSOLUTE price delta; derive the previous close and the TRUE percentage from it
+        let previousClose: Num = undefined;
+        let percentage: Num = undefined;
         for (let i = 0; i < outcomes.length; i++) {
             const o = this.safeDict (outcomes, i);
             if (this.safeString (o, 'outcomeId', this.safeString (o, 'id')) === outcomeId) {
-                price = this.safeNumber (o, 'price');
-                change = this.safeNumber (o, 'priceChange24h');
+                const priceValue = this.safeNumber (o, 'price');
+                const changeValue = this.safeNumber (o, 'priceChange24h');
+                price = priceValue;
+                change = changeValue;
+                if ((priceValue !== undefined) && (changeValue !== undefined)) {
+                    const previousCloseValue = priceValue - changeValue;
+                    previousClose = previousCloseValue;
+                    if (previousCloseValue !== 0) {
+                        percentage = changeValue / previousCloseValue * 100;
+                    }
+                }
                 break;
-            }
-        }
-        // priceChange24h is an ABSOLUTE price delta; derive the previous close and the TRUE
-        // percentage from it — setting percentage = the absolute change (as before) was wrong
-        let previousClose: Num = undefined;
-        let percentage: Num = undefined;
-        if ((price !== undefined) && (change !== undefined)) {
-            previousClose = price - change;
-            if (previousClose === undefined) {
-                throw new ExchangeError (this.id + ' method() missing previousClose');
-            }
-            if (previousClose !== 0) {
-                percentage = change / previousClose * 100;
             }
         }
         return this.safePredictionTicker ({
@@ -2616,23 +2606,22 @@ export default class myriad extends Exchange {
         //     }
         //
         const outcomes: Dict[] = this.safeList (response, 'outcomes', []);
-        let price: Num = undefined;
-        for (let i = 0; i < outcomes.length; i++) {
-            const o = this.safeDict (outcomes, i);
-            if (this.safeString (o, 'outcomeId', this.safeString (o, 'id')) === outcomeId) {
-                price = this.safeNumber (o, 'price');
-                break;
-            }
-        }
         // AMM: synthesize a single bid/ask pair around the current implied price, clamped into the valid (0, 1) range
         let bid: Num = undefined;
         let ask: Num = undefined;
-        if (price !== undefined) {
-            if (price > 0.001) {
-                bid = this.parseNumber (Precise.stringSub (this.numberToString (price), '0.001'));
-            }
-            if (price < 0.999) {
-                ask = this.parseNumber (Precise.stringAdd (this.numberToString (price), '0.001'));
+        for (let i = 0; i < outcomes.length; i++) {
+            const o = this.safeDict (outcomes, i);
+            if (this.safeString (o, 'outcomeId', this.safeString (o, 'id')) === outcomeId) {
+                const price = this.safeNumber (o, 'price');
+                if (price !== undefined) {
+                    if (price > 0.001) {
+                        bid = this.parseNumber (Precise.stringSub (this.numberToString (price), '0.001'));
+                    }
+                    if (0.999 > price) {
+                        ask = this.parseNumber (Precise.stringAdd (this.numberToString (price), '0.001'));
+                    }
+                }
+                break;
             }
         }
         // the synthetic size must be a parsed float, an int literal breaks the typed go wrapper conversion
@@ -2787,7 +2776,7 @@ export default class myriad extends Exchange {
         const pointsLength = points.length;
         if (pointsLength === 0) {
             const priceCharts = this.safeDict (response, 'price_charts', {});
-            const bucket = this.safeValue (priceCharts, bucketKey, {});
+            const bucket = this.safeDict (priceCharts, bucketKey, {});
             points = this.safeList (bucket, outcomeId, this.safeList (bucket, 'data', [])) as any[];
         }
         const usablePoints: Dict[] = [];
@@ -2948,8 +2937,7 @@ export default class myriad extends Exchange {
         //     }
         //
         const responseIsArray = Array.isArray (response);
-        const rowsList = (responseIsArray) ? response : this.safeList (response, 'data', []);
-        const rows = (rowsList !== undefined) ? rowsList : [];
+        const rows = (responseIsArray) ? response : this.safeList (response, 'data', []);
         const trades: any[] = [];
         for (let i = 0; i < rows.length; i++) {
             const row = this.safeDict (rows, i);
@@ -3019,7 +3007,7 @@ export default class myriad extends Exchange {
      */
     override async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
         const allowUnscopedFetchEvents = this.safeBool (this.options, 'allowUnscopedFetchEvents', false);
-        if (allowUnscopedFetchEvents !== true) {
+        if (!allowUnscopedFetchEvents) {
             this.requireEventQuery (params);
         }
         const queries = this.parseSearchQueries (params);
@@ -3143,7 +3131,7 @@ export default class myriad extends Exchange {
      * @param {object} rawEvent the raw myriad question object
      * @returns {object} an event structure
      */
-    parseEvent (rawEvent: Dict): any {
+    parseEvent (rawEvent: Dict): PredictionEvent {
         const questionSlug = this.safeString (rawEvent, 'slug', this.safeString (rawEvent, 'id'));
         const rawMarkets = this.safeList (rawEvent, 'markets', []) as any[];
         const marketsList: Market[] = [];
@@ -3348,7 +3336,7 @@ export default class myriad extends Exchange {
         this.orderbooks[sym as string] = orderbook;
     }
 
-    handleOrderBook (client: any, data: Dict) {
+    handleOrderBook (client: Client, data: Dict) {
         const networkId = this.safeString (data, 'networkId');
         const marketId = this.safeString (data, 'marketId');
         const ts = this.safeInteger (data, 'ts');
@@ -3444,7 +3432,7 @@ export default class myriad extends Exchange {
         return undefined;
     }
 
-    handleTrades (client: any, data: Dict) {
+    handleTrades (client: Client, data: Dict) {
         const networkId = this.safeString (data, 'networkId');
         const marketId = this.safeString (data, 'marketId');
         const ts = this.safeInteger (data, 'ts');
@@ -3595,7 +3583,7 @@ export default class myriad extends Exchange {
             const marketId = this.safeString (info, 'marketId');
             const channel = 'prices:' + networkId + ':' + marketId;
             resolvedSymbols.push (this.safeOutcomeSymbol (outcomes[i], outcomeObj));
-            if (this.safeValue (seenChannels, channel) === undefined) {
+            if (!(channel in seenChannels)) {
                 seenChannels[channel] = true;
                 const requestId = this.requestId (url);
                 const subscribeMsg: Dict = { 'subscribe': { 'channel': channel }, 'id': requestId };
@@ -3631,7 +3619,7 @@ export default class myriad extends Exchange {
         return this.filterBySinceLimit (result, since, limit, 0, true);
     }
 
-    handleTicker (client: any, data: Dict) {
+    handleTicker (client: Client, data: Dict) {
         const networkId = this.safeString (data, 'networkId');
         const marketId = this.safeString (data, 'marketId');
         const ts = this.safeInteger (data, 'ts');
@@ -3708,7 +3696,7 @@ export default class myriad extends Exchange {
         return this.filterByValueSinceLimit (orders, 'outcome', outcomeResolved, since, limit, 'timestamp', true) as PredictionOrder[];
     }
 
-    handleOrder (client: any, data: Dict) {
+    handleOrder (client: Client, data: Dict) {
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheByOutcomeById (limit);
@@ -3807,7 +3795,7 @@ export default class myriad extends Exchange {
         this.options['positionBalances'] = balances;
     }
 
-    handlePosition (client: any, data: Dict) {
+    handlePosition (client: Client, data: Dict) {
         if (this.positions === undefined) {
             const limit = this.safeInteger (this.options, 'positionsLimit', 1000);
             this.positions = new ArrayCacheByOutcomeById (limit);

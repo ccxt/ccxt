@@ -428,11 +428,11 @@ class polymarket extends polymarket$1["default"] {
             const firstEventsLength = firstEvents.length;
             const pagination = this.safeDict(first, 'pagination', {});
             const totalResults = this.safeInteger(pagination, 'totalResults', firstEventsLength);
-            let totalPages = Math.ceil(totalResults / pageSize);
+            let totalPages = this.parseToInt(Math.ceil(totalResults / pageSize));
             // only page as far as `limit` needs (applyEventFetchParams slices to it afterwards);
             // with no limit, cap the fan-out at options.maxSearchPages so a broad query stays bounded
             if (resultLimit !== undefined) {
-                const limitPages = Math.ceil(resultLimit / pageSize);
+                const limitPages = this.parseToInt(Math.ceil(resultLimit / pageSize));
                 if (limitPages < totalPages) {
                     totalPages = limitPages;
                 }
@@ -591,7 +591,7 @@ class polymarket extends polymarket$1["default"] {
         }
         if (firstPageLength >= pageSize) {
             const offsets = [];
-            for (let p = 1; p < maxPages; p++) {
+            for (let p = 1; maxPages > p; p++) {
                 offsets.push(p * pageSize);
             }
             const restPromises = [];
@@ -602,7 +602,7 @@ class polymarket extends polymarket$1["default"] {
             }
             const restPages = await Promise.all(restPromises);
             for (let ri = 0; ri < restPages.length; ri++) {
-                const page = (restPages[ri] !== undefined) ? restPages[ri] : [];
+                const page = this.safeList(restPages, ri, []);
                 const pageLength = page.length;
                 for (let pi = 0; pi < pageLength; pi++) {
                     allRawEvents.push(page[pi]);
@@ -713,7 +713,7 @@ class polymarket extends polymarket$1["default"] {
             const active = this.safeBool(market, 'active', false);
             const closed = this.safeBool(market, 'closed', false);
             // resolution: a closed/uma-resolved market settles each outcome price to 0 or 1
-            const marketResolved = (closed === true) || (this.safeStringLower(market, 'umaResolutionStatus') === 'resolved');
+            const marketResolved = (closed) || (this.safeStringLower(market, 'umaResolutionStatus') === 'resolved');
             let resolvedOutcome = undefined;
             // gamma exposes the order-book tick as orderPriceMinTickSize; minimumTickSize is the clob alias
             const tickSize = this.safeNumber2(market, 'orderPriceMinTickSize', 'minimumTickSize', 0.01);
@@ -779,7 +779,7 @@ class polymarket extends polymarket$1["default"] {
                         settleFractionRaw = 1;
                         resolvedOutcome = outcomeHandle;
                     }
-                    else if (outcomePrice <= 0.01) {
+                    else if (0.01 >= outcomePrice) {
                         winnerRaw = false;
                         settleFractionRaw = 0;
                     }
@@ -794,7 +794,7 @@ class polymarket extends polymarket$1["default"] {
                     'market': marketSymbol,
                     'label': outcomeLabel,
                     'price': outcomePrice,
-                    'active': (active === true) && (closed !== true),
+                    'active': (active) && (!closed),
                     'winner': winner,
                     'settleFraction': settleFraction,
                     // carry the order precision so createOrder needs no extra request
@@ -829,7 +829,7 @@ class polymarket extends polymarket$1["default"] {
                 'future': false,
                 'option': false,
                 'prediction': true,
-                'active': (active === true) && (closed !== true),
+                'active': (active) && (!closed),
                 'resolved': marketResolved,
                 'resolvedOutcome': marketResolvedOutcome,
                 'contract': false,
@@ -898,9 +898,8 @@ class polymarket extends polymarket$1["default"] {
                     this.markets[mkt['market']] = mkt;
                 }
                 this.populateOutcomes();
-                const byId = this.safeValue(this.outcomes_by_id, outcomeSymbol);
-                if (byId !== undefined) {
-                    return byId;
+                if (this.safeDict(this.outcomes_by_id, outcomeSymbol) !== undefined) {
+                    return this.safeDict(this.outcomes_by_id, outcomeSymbol);
                 }
             }
         }
@@ -1320,7 +1319,7 @@ class polymarket extends polymarket$1["default"] {
                 continue;
             }
             const rawMs = t * 1000;
-            const snappedMs = Math.floor(rawMs / resolutionMs) * resolutionMs;
+            const snappedMs = this.parseToInt(rawMs / resolutionMs) * resolutionMs;
             // the venue supplies no candle volume ({t, p} ticks only) — leave it undefined
             // rather than fabricating a 0, probing s/v in case the field ever appears
             let vol = this.safeNumber(item, 's');
@@ -1564,7 +1563,8 @@ class polymarket extends polymarket$1["default"] {
             let belongs = (this.safeString(trade, 'order') === id) || (this.safeString(info, 'taker_order_id') === id);
             const makerOrders = this.safeList(info, 'maker_orders', []);
             for (let j = 0; j < makerOrders.length; j++) {
-                if (this.safeString(makerOrders[j], 'order_id') === id) {
+                const makerOrder = this.safeDict(makerOrders, j);
+                if (this.safeString(makerOrder, 'order_id') === id) {
                     belongs = true;
                 }
             }
@@ -1710,10 +1710,10 @@ class polymarket extends polymarket$1["default"] {
         const positions = this.safeList(response, 'data', []);
         // parse without the base outcome filter (it resolves standard markets, not outcome tokens),
         // then filter by the requested outcomes' token ids ourselves
-        const parsed = this.parsePredictionPositions(positions);
         if (outcomesLength === 0) {
-            return parsed;
+            return this.parsePredictionPositions(positions);
         }
+        const parsed = this.parsePredictionPositions(positions);
         const wantedIds = {};
         if (outcomes === undefined) {
             throw new errors.ExchangeError(this.id + ' fetchPositions() missing outcomes');
@@ -2091,23 +2091,23 @@ class polymarket extends polymarket$1["default"] {
         const builderRaw = this.safeStringLower2(params, 'builder', 'builderCode', this.safeStringLower(this.options, 'builder'));
         let builderBytes32 = bytes32Zero;
         if (builderRaw !== undefined) {
-            let builderHex = this.remove0xPrefix(builderRaw);
+            const builderHex = this.remove0xPrefix(builderRaw);
             if (builderHex.length <= 40) {
                 const builderFeeEnabled = this.safeBool(this.options, 'builderFee', true);
                 let feeRate = 0;
-                if (builderFeeEnabled === true) {
+                if (builderFeeEnabled) {
                     feeRate = this.safeInteger(this.options, 'feeRate', 0);
                 }
                 let feeHex = this.intToBase16(feeRate);
                 feeHex = feeHex.padStart(24, '0');
-                let addressHex = builderHex;
-                addressHex = addressHex.padStart(40, '0');
-                builderHex = feeHex + addressHex;
+                const addressHex = builderHex.padStart(40, '0');
+                const packedHex = feeHex + addressHex;
+                builderBytes32 = '0x' + packedHex;
             }
             else {
-                builderHex = builderHex.padStart(64, '0');
+                const paddedHex = builderHex.padStart(64, '0');
+                builderBytes32 = '0x' + paddedHex;
             }
-            builderBytes32 = '0x' + builderHex;
         }
         // POLY_1271 (type 3): the order signer is the deposit wallet itself — the exchange calls
         // wallet.isValidSignature and the inner ERC-7739 domain's verifyingContract is the wallet (the EOA
@@ -2133,7 +2133,7 @@ class polymarket extends polymarket$1["default"] {
         const exchangeV2 = this.safeString(this.options, 'exchangeAddress', '0xE111180000d2663C0091e4f400237545B87B996B');
         const negRiskExchangeV2 = this.safeString(this.options, 'negRiskExchangeAddress', '0xe2222d279d744050d28e00520010520000310F59');
         let exchangeAddress = exchangeV2;
-        if (negRisk === true) {
+        if (negRisk) {
             exchangeAddress = negRiskExchangeV2;
         }
         const domainVersion = this.safeString(this.options, 'ctfExchangeVersion', '2');
@@ -2596,7 +2596,7 @@ class polymarket extends polymarket$1["default"] {
         const closed = this.safeBool(rawEvent, 'closed', false);
         let active = undefined;
         if (rawActive !== undefined) {
-            active = (rawActive === true) && (closed !== true);
+            active = (rawActive) && (!closed);
         }
         // surface gamma's tag objects as a top-level string[] so the unified `tags` filter
         // — filterEventsByTags reads event['tags'], not event.info.tags — can actually match.
@@ -2786,9 +2786,8 @@ class polymarket extends polymarket$1["default"] {
                 // the L2 api secret is base64url-encoded; decode it to raw bytes for the HMAC key.
                 // unchained replaceAll: the php transpiler only converts the outermost .replaceAll
                 // in a chain, leaving the inner call as an (invalid) method call
-                let normalizedSecret = secret;
-                normalizedSecret = normalizedSecret.replaceAll('-', '+');
-                normalizedSecret = normalizedSecret.replaceAll('_', '/');
+                const plusSecret = secret.replaceAll('-', '+');
+                const normalizedSecret = plusSecret.replaceAll('_', '/');
                 const secretBytes = this.base64ToBinary(normalizedSecret);
                 let signature = this.hmac(this.encode(auth), secretBytes, sha2_js.sha256, 'base64');
                 // url-safe base64, preserving '=' padding (matches the reference client)
@@ -2819,7 +2818,8 @@ class polymarket extends polymarket$1["default"] {
         let result = '';
         for (let i = 0; i < addrChars.length; i++) {
             const ch = addrChars[i];
-            if (upperNibbles.indexOf(hashChars[i]) >= 0) {
+            const hashCh = hashChars[i];
+            if (upperNibbles.indexOf(hashCh) >= 0) {
                 result = result + ch.toUpperCase();
             }
             else {

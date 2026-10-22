@@ -51,7 +51,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if is_true(&shouldReturn) {
             return Value::Bool(false);
         }
-        if (success.as_bool() == Some(true)) {
+        if is_true(&success) {
             assert!(ccxt::runtime::is_true(&(exchange.is_dictionary(response.clone()))));
             let mut values: Value = object_values(&response);
             let mut checkedSymbol: Value = Value::Null;

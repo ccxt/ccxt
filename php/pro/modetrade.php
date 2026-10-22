@@ -763,7 +763,7 @@ class modetrade extends \ccxt\async\modetrade {
         }
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
         $topic = 'executionreport';
-        if ($trigger === true) {
+        if ($trigger) {
             $topic = 'algoexecutionreport';
         }
         $paramsOmitted = $this->omit($params, array( 'stop', 'trigger' ));
@@ -810,7 +810,7 @@ class modetrade extends \ccxt\async\modetrade {
         }
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
         $topic = 'executionreport';
-        if ($trigger === true) {
+        if ($trigger) {
             $topic = 'algoexecutionreport';
         }
         $paramsOmitted = $this->omit($params, 'stop');
@@ -1383,7 +1383,7 @@ class modetrade extends \ccxt\async\modetrade {
         $client->resolve($this->balance, 'balance');
     }
 
-    public function handle_error_message(Client $client, array $message): ?bool {
+    public function handle_error_message(Client $client, array $message): bool {
         //
         // {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
         //
@@ -1416,7 +1416,7 @@ class modetrade extends \ccxt\async\modetrade {
     }
 
     public function handle_message(Client $client, array $message) {
-        if ($this->handle_error_message($client, $message) === true) {
+        if ($this->handle_error_message($client, $message)) {
             return;
         }
         $methods = array(
