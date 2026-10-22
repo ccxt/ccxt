@@ -12612,7 +12612,8 @@ impl std::ops::DerefMut for ${coreName} {
     // `stringify_simple` is private: scalars inline, the `__precise` dict goes through the public
     // `runtime::stringify_param` alias, other containers through `Display` exactly like the helper.
     r31Str(content: string): string {
-        const names = [ 'to_string_val', 'join', 'split', 'replace_str', 'ends_with', 'starts_with', 'pad_end', 'pad_start', 'to_fixed' ];
+        content = this.x39Affix(content); // hx5 X39
+        const names = [ 'to_string_val', 'join', 'split', 'replace_str', 'pad_end', 'pad_start', 'to_fixed' ];
         if (!names.some(n => content.includes(n + '('))) return content;
         const str = (v: string) => `(match ${v} { Value::Str(__s) => __s.to_string(), Value::Int(__n) => __n.to_string(), Value::Float(__f) => __f.to_string(), Value::Bool(__b) => __b.to_string(), Value::Null => "null".to_string(), Value::Dict(__m) if __m.contains_key("__precise") => crate::runtime::stringify_param(${v}), __o => format!("{}", __o) })`;
         const i64v = (v: string) => `(match ${v} { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1i64 } else { 0i64 }), _ => None })`;
@@ -12631,16 +12632,13 @@ impl std::ops::DerefMut for ${coreName} {
             if (name === 'replace_str' && a.length === 3) {
                 return `({ let __r31a: &Value = ${a[0]}; let __r31o: &Value = ${a[1]}; let __r31n: &Value = ${a[2]}; match (__r31a, __r31o, __r31n) { (Value::Str(__s), Value::Str(__o), Value::Str(__n)) => Value::Str(__s.replace(__o.as_ref(), __n.as_ref()).into()), _ => __r31a.clone() } })`;
             }
-            if ((name === 'starts_with' || name === 'ends_with') && a.length === 2) {
-                return `({ let __r31a: &Value = ${a[0]}; let __r31b: &Value = ${a[1]}; match (__r31a, __r31b) { (Value::Str(__h), Value::Str(__x)) => __h.${name}(__x.as_ref()), _ => false } })`;
-            }
             if ((name === 'pad_start' || name === 'pad_end') && a.length === 3) return pad(a, name === 'pad_start');
             if (name === 'to_fixed' && a.length === 2) {
                 return `({ let __r31x: &Value = ${a[0]}; let __r31g: &Value = ${a[1]}; let __d: usize = match ${i64v('__r31g')} { Some(__v) => __v.max(0) as usize, None => 0 }; let __n: f64 = match __r31x { Value::Int(__i) => *__i as f64, Value::Float(__f) => *__f, Value::Str(__s) => __s.trim().parse::<f64>().unwrap_or(0.0), _ => 0.0 }; Value::Str(format!("{:.*}", __d, __n).into()) })`;
             }
             return undefined;
         };
-        const re = /(?<![A-Za-z0-9_:.])(to_string_val|join|split|replace_str|ends_with|starts_with|pad_end|pad_start|to_fixed)\(/g;
+        const re = /(?<![A-Za-z0-9_:.])(to_string_val|join|split|replace_str|pad_end|pad_start|to_fixed)\(/g;
         for (let round = 0; round < 8; round++) {
             const masked = this.maskStringsAndComments(content);
             const rewrites: Array<{ start: number, end: number, text: string }> = [];
@@ -12739,6 +12737,45 @@ impl std::ops::DerefMut for ${coreName} {
             content = out + content.slice(at);
         }
         return content;
+    }
+    // hx5 X39 — case/affix helpers: `starts_with`/`ends_with` go native ONLY when both
+    // args are a proven `&Value::Str(E.into())` box (E is then a &str/String, evaluated once,
+    // and the helper's `(Str, Str)` arm is exactly `h.starts_with(p)`); every other site keeps
+    // the plain `runtime` helper call. `to_upper`/`to_lower` are never inlined here: a native
+    // `to_uppercase()` needs a proven `&str` receiver, and no such site reaches this pass.
+    x39Affix(content: string): string {
+        if (!content.includes('starts_with(') && !content.includes('ends_with(')) return content;
+        const strBox = (arg: string): string | undefined => {
+            const t = arg.trim();
+            if (!t.startsWith('&Value::Str(')) return undefined;
+            const open = t.indexOf('(');
+            const close = this.closeParenAt(t, open);
+            if (close !== t.length - 1) return undefined;
+            const m = /^([\s\S]+)\.(?:into|to_string)\(\)$/.exec(t.slice(open + 1, close).trim());
+            if (m === null) return undefined;
+            const e = m[1].trim();
+            if (/^"(?:[^"\\]|\\.)*"$/.test(e)) return e;
+            if (/^format!\(/.test(e) && this.closeParenAt(e, e.indexOf('(')) === e.length - 1) return e;
+            return undefined;
+        };
+        const re = /(?<![A-Za-z0-9_:.])(starts_with|ends_with)\(/g;
+        const masked = this.maskStringsAndComments(content);
+        let out = ''; let at = 0;
+        for (const m of masked.matchAll(re)) {
+            const start = m.index as number;
+            if (start < at) continue;
+            if (/\bfn\s+$/.test(masked.slice(Math.max(0, start - 8), start))) continue;
+            const open = start + m[1].length;
+            const close = this.closeParenAt(content, open);
+            if (close < 0) continue;
+            const args = this.splitTopLevelCommas(content.slice(open + 1, close));
+            if (args.length !== 2) continue;
+            const h = strBox(args[0]); const n = strBox(args[1]);
+            if (h === undefined || n === undefined) continue;
+            out += content.slice(at, start) + `(${h}).${m[1]}(&*${n})`;
+            at = close + 1;
+        }
+        return out + content.slice(at);
     }
 }
 
