@@ -13467,7 +13467,7 @@ function hx4C36SnippetChecks (): string[] {
 // call exactly as master emitted it. Never an inlined helper body.
 //   divide(a, b), a and b non-null int/Int64/double  -> ((double)a / b)   == the double twins' body
 //   divide(a, b), a and b int/Int64/int?/Int64? (one nullable) -> ((double?)a / b) == divide(Int64?, Int64?)
-//   mathMin/mathMax(a, b), both int or both Int64    -> ((object)Math.Min(a, b)) (same box type, same object static type)
+//   mathMin/mathMax(a, b), both int -> ((object)Math.Min(a, b)) (same box; Int64 stays the helper: its double compare can pick the larger above 2^53)
 //   prefixUnaryNeg(ref x), x declared int/Int64/double -> (x = -x)        == the typed overloads' body
 export function hx5X07NativeMath (content: string): string {
     if (!/(?<![\w.])(?:divide|mathMin|mathMax|prefixUnaryNeg)\(/.test (content) || /^namespace Tests\b/m.test (content)) {
@@ -13573,7 +13573,7 @@ export function hx5X07NativeMath (content: string): string {
                     } else if (m[1] === 'divide' && [ a, b ].every ((t) => integral (t) || nullableInt (t))) {
                         native = '((double?)' + primary (A) + ' / ' + primary (B) + ')';
                         emitted.set (hx4C05StripParens (native), 'double?');
-                    } else if ((m[1] === 'mathMin' || m[1] === 'mathMax') && (a === b) && integral (a)) {
+                    } else if ((m[1] === 'mathMin' || m[1] === 'mathMax') && (a === 'int') && (b === 'int')) { // Int64 excluded: the helper's double compare collapses values > 2^53
                         native = '((object)Math.' + m[1].slice (4) + '(' + A + ', ' + B + '))';
                         emitted.set (hx4C05StripParens (native), 'object');
                     }
@@ -13617,11 +13617,11 @@ function hx5X07SnippetChecks (): string[] {
         [ 'divide Int64? twin', '        Int64? a = this.safeInteger(o, "a");\n        object r = divide(a, 1000);', 'object r = ((double?)a / 1000);' ],
         [ 'nested divide', '        Int64 a = this.milliseconds();\n        double d = divide(divide(a, 1000), 60);', 'double d = ((double)((double)a / 1000) / 60);' ],
         [ 'divide of milliseconds', '        object r = divide(this.milliseconds(), 1000);', 'object r = ((double)(this.milliseconds()) / 1000);' ],
-        [ 'mathMin Int64 pair', '        Int64 a = 1;\n        Int64 b = 2;\n        object r = mathMin(a, b);', 'object r = ((object)Math.Min(a, b));' ],
         [ 'mathMax int pair', '        int a = 1;\n        object r = mathMax(a, 0);', 'object r = ((object)Math.Max(a, 0));' ],
         [ 'neg typed local', '        Int64 x = 1;\n        Int64 s = prefixUnaryNeg(ref x);', 'Int64 s = (x = -x);' ],
     ];
     const keeps: [string, string][] = [
+        [ 'mathMin Int64 pair (double compare > 2^53)', '        Int64 a = 1;\n        Int64 b = 2;\n        object r = mathMin(a, b);' ],
         [ 'mathMin nullable', '        object r = mathMin(limit, 1000);' ],
         [ 'mathMax object', '        object r = mathMax(o, 0);' ],
         [ 'mathMin mixed int/Int64 (box type)', '        Int64 a = 1;\n        object r = mathMin(a, 1000);' ],
