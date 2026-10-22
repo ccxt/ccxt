@@ -9761,10 +9761,10 @@ export function csharpHx4SelfTest (): string[] {
             if (!out.includes (expected)) problems.push (`hx4 C15: ${name}\n${out}`);
         };
         check ('double field > literal', '        if (isGreaterThan(this.rateLimit, 0))\n        {\n        }', 'if ((this.rateLimit > 0))');
-        check ('double field >= keeps helper', '        bool b = isGreaterThanOrEqual(this.rateLimit, 0);', '}))(this.rateLimit, 0);'); // C32 inlines the helper
+        check ('double field >= keeps helper', '        bool b = isGreaterThanOrEqual(this.rateLimit, 0);', 'bool b = isGreaterThanOrEqual(this.rateLimit, 0);'); // hx5 X08: C32 keeps the helper
         check ('Int64 compound > Int64', '        Int64 a = this.milliseconds();\n        Int64 b = 5;\n        bool x = isGreaterThan((a - b), b);', 'bool x = ((a - b) > b);');
         check ('nullable compound keeps helper', '        Int64 a = this.milliseconds();\n        Int64? b = limit;\n        bool x = isGreaterThan((a - b), 1);', 'bool x = ((a - b) > 1);'); // C27 tail: null left is false in both
-        check ('object operand keeps helper', '        object a = 1;\n        bool x = isLessThan(this.milliseconds(), a);', '}))(this.milliseconds(), a);'); // C32 inlines the helper
+        check ('object operand keeps helper', '        object a = 1;\n        bool x = isLessThan(this.milliseconds(), a);', 'bool x = isLessThan(this.milliseconds(), a);'); // hx5 X08: C32 keeps the helper
         check ('guarded Int64? request field', '        IDictionary<string, object> request = new Dictionary<string, object>() {};\n        if ((since != null))\n        {\n            request["before"] = mathMax((since - 1), 0);\n        }', 'request["before"] = Math.Max((since.Value - 1), 0);');
         check ('unguarded Int64? request field keeps helper', '        IDictionary<string, object> request = new Dictionary<string, object>() {};\n        request["before"] = mathMax((since - 1), 0);', 'mathMax((since - 1), 0)');
         check ('ternary-guarded box-neutral local', '        int maxLimit = 300;\n        IDictionary<string, object> request = new Dictionary<string, object>() {};\n        object v = ((limit == null)) ? maxLimit : mathMin(limit, maxLimit);\n        request["limit"] = v;\n        object d = multiply(v, 2);', 'object v = ((limit == null)) ? maxLimit : Math.Min(limit.Value, maxLimit);');
@@ -11797,9 +11797,9 @@ function hx4C23SelfTest (): string[] {
     const keeps: [string, string, string, string?][] = [
         [ 'safeInteger no default', '        Int64 now = this.milliseconds();\n        Int64? last = this.safeInteger(o, "t");\n        if (isGreaterThan((now - last), 5)) { }', '((now - last) > 5)' ], // C27: a null left reads false in both
         [ 'safeInteger default rewritten', '        Int64 now = this.milliseconds();\n        Int64? last = this.safeInteger(o, "t", 0);\n        last = this.safeInteger(o, "u");\n        if (isGreaterThan((now - last), 5)) { }', '((now - last) > 5)' ], // C27: a null left reads false in both
-        [ 'handleErrors code reassigned', '        code = this.safeString(o, "c");\n        if (isGreaterThanOrEqual(code, 400)) { }', '}))(code, 400)', handle ], // C32 inlines the helper
-        [ 'handleErrors code vs zero', '        if (isGreaterThan(code, 0)) { }', '}))(code, 0)', handle ], // C32 inlines the helper
-        [ 'Int64 counter vs double', '        double n = 3.5;\n        for (Int64 i = 0; isLessThan(i, n); i++) { }', '}))(i, n); i++)' ], // C32 inlines the helper
+        [ 'handleErrors code reassigned', '        code = this.safeString(o, "c");\n        if (isGreaterThanOrEqual(code, 400)) { }', 'isGreaterThanOrEqual(code, 400)', handle ], // hx5 X08: C32 keeps the helper
+        [ 'handleErrors code vs zero', '        if (isGreaterThan(code, 0)) { }', 'isGreaterThan(code, 0)', handle ], // hx5 X08: C32 keeps the helper
+        [ 'Int64 counter vs double', '        double n = 3.5;\n        for (Int64 i = 0; isLessThan(i, n); i++) { }', 'isLessThan(i, n); i++)' ], // hx5 X08: C32 keeps the helper
     ];
     for (const [ name, body, expected, sig ] of cases) {
         const out = nativeDeclaredHelperCalls (wrap (body, sig));
@@ -13000,7 +13000,7 @@ function hx4C31SelfTest (): string[] {
 
 // hx4 C32 — final-text tail after C29: every remaining isLessThan / isGreaterThan / isLessThanOrEqual /
 // isGreaterThanOrEqual (final pass only: earlier passes still type these). Two non-null integer operands -> the native operator (the helper widens both to
-// Int64); any other operand pair -> the helper bodies inlined as a static lambda over the same boxes.
+// Int64); any other operand pair keeps the helper call (hx5 X08: the inlined-lambda fallback is deleted).
 export function hx4C32NativeCompare (finalPass: boolean, content: string): string {
     if (!finalPass || !/(?<![\w.])(?:isLessThan|isGreaterThan|isLessThanOrEqual|isGreaterThanOrEqual)\(/.test (content) || /^namespace Tests\b/m.test (content)) {
         return content;
@@ -13059,7 +13059,9 @@ function c32Line (region, original: string, line: number): string | undefined {
             if ((comma === undefined) || (csharpHelperTopLevelComma (masked, comma, close) !== undefined)) continue;
             const a = out.substring (open + 1, comma).trim ();
             const b = out.substring (comma + 1, close).trim ();
-            out = out.substring (0, m.index) + (c32TypedComparison (region, m[1], a, b, line) ?? c32InlineComparison (m[1], a, b)) + out.substring (close + 1);
+            const native = c32TypedComparison (region, m[1], a, b, line);
+            if (native === undefined) continue; // hx5 X08: unproven -> helper call stays
+            out = out.substring (0, m.index) + native + out.substring (close + 1);
             done = false;
             break;
         }
@@ -13074,28 +13076,15 @@ function c32TypedComparison (region, helper: string, a: string, b: string, line:
     const operand = (text: string) => {
         const bare = hx4C05StripParens (text);
         if (/^-?\d{1,15}$/.test (bare)) return bare.startsWith ('-') ? '(' + bare + ')' : bare;
-        if (!/^[\w ()+*-]+$/.test (bare) || /\w[ ]*\(/.test (bare) || /\d[A-Za-z_]/.test (bare)) return undefined;
+        if (!c32ProvenShape (bare)) return undefined; // hx5 X08
         const typed = hx4C05OperandType (text, (name: string) => c23NameType (region, name, line), new Map ());
+        // integers only: isLessThan is !gt && !eq, which answers true on a NaN double where `<` answers false
         if ((typed === undefined) || ![ 'int', 'Int64' ].includes (typed.type)) return undefined;
-        return /^[A-Za-z_]\w*$/.test (bare) ? bare : '(' + bare + ')';
+        return /^[A-Za-z_][\w.]*(?:\(\))?$/.test (bare) ? bare : '(' + bare + ')';
     };
     const L = operand (a);
     const R = operand (b);
     return ((L === undefined) || (R === undefined)) ? undefined : '(' + L + ' ' + token + ' ' + R + ')';
-}
-
-// Exchange.TranspileHelpers.cs isGreaterThan / isEqual (with normalizeIntIfNeeded, IsInteger, isNumber) verbatim
-function c32InlineComparison (helper: string, a: string, b: string): string {
-    const isInt = 'bool c32Int(object v) { Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; }';
-    const eq = 'bool c32Eq(object x, object y) { if (x == null && y == null) return true; if (x == null || y == null) return false; try { if (x.GetType() != y.GetType() && (!Double.TryParse(x.ToString(), out _) || !Double.TryParse(y.ToString(), out _))) return false; if (c32Int(x) && c32Int(y)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(decimal) || y.GetType() == typeof(decimal)) return Convert.ToDecimal(x) == Convert.ToDecimal(y); if (x.GetType() == typeof(int)) return (int)x == (int)y; if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) == Convert.ToDouble(y); if (x.GetType() == typeof(Single) || y.GetType() == typeof(Single)) return Convert.ToSingle(x) == Convert.ToSingle(y); if (x.GetType() == typeof(string)) return ((string)x) == ((string)y); if (x.GetType() == typeof(bool)) return ((bool)x) == ((bool)y); return false; } catch { return false; } }';
-    const gt = 'bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; }';
-    const body = {
-        isGreaterThan: gt + ' return c32Gt(c32a, c32b);',
-        isLessThan: gt + ' ' + isInt + ' ' + eq + ' return !c32Gt(c32a, c32b) && !c32Eq(c32a, c32b);',
-        isGreaterThanOrEqual: gt + ' ' + isInt + ' ' + eq + ' return c32Gt(c32a, c32b) || c32Eq(c32a, c32b);',
-        isLessThanOrEqual: gt + ' ' + isInt + ' ' + eq + ' return !c32Gt(c32a, c32b) || c32Eq(c32a, c32b);',
-    }[helper];
-    return '((Func<object, object, bool>)(static (c32a, c32b) => { ' + body + ' }))(' + a + ', ' + b + ')';
 }
 
 // hx4 C32 snippet checks (run from csharpHx4SelfTest)
@@ -13104,15 +13093,24 @@ function hx4C32SnippetChecks (): string[] {
     const wrap = (body: string) => 'namespace ccxt;\npublic partial class t : Exchange\n{\n    public virtual object f(object o, string s, object lim = null, Int64? since = null)\n    {\n' + body + '\n    }\n}\n';
     const check = (name: string, body: string, expected: string) => {
         const out = hx4C32NativeCompare (true, wrap (body));
-        if (!out.includes (expected) || /(?<![\w.])(?:isLessThan|isGreaterThan|isLessThanOrEqual|isGreaterThanOrEqual)\(/.test (out.split ('\n').map (csharpHelperMaskLine).join ('\n'))) problems.push (`hx4 C32 ${name}: ${out.slice (-600)}`);
+        if (!out.includes (expected) || /Func<object, object, bool>|c32Gt/.test (out)) problems.push (`hx4 C32 ${name}: ${out.slice (-600)}`);
         if (hx4C32NativeCompare (true, out) !== out) problems.push (`hx4 C32 ${name}: not idempotent`);
     };
     check ('int vs Int64', '        Int64 n = this.milliseconds();\n        for (int i = 0; isLessThan(i, n); i++)\n        {\n        }', 'for (int i = 0; (i < n); i++)');
-    check ('object vs literal inlined', '        bool x = isGreaterThan(lim, 100);', 'bool x = ((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(');
-    check ('Int64? vs Int64? inlined', '        Int64? a = this.safeInteger(o, "a");\n        bool x = isLessThanOrEqual(a, since);', 'return !c32Gt(c32a, c32b) || c32Eq(c32a, c32b); }))(a, since);');
-    check ('nested call operands', '        bool x = isGreaterThanOrEqual(add(lim, 1), this.sum(lim, 2));', '}))(add(lim, 1), this.sum(lim, 2));');
-    check ('two calls on one line', '        bool x = (isLessThan(lim, 0)) || (isGreaterThan(lim, 4));', 'return !c32Gt(c32a, c32b) && !c32Eq(c32a, c32b); }))(lim, 0)) || (((Func<object, object, bool>)');
-    check ('string literal untouched', '        string m = "isLessThan(a, b)";\n        bool x = isLessThan(s, lim);', 'string m = "isLessThan(a, b)";');
+    // hx5 X08: unproven operands keep the plain helper call, never an inlined body
+    const keep = (name: string, body: string) => {
+        const out = hx4C32NativeCompare (true, wrap (body));
+        if (out !== wrap (body)) problems.push (`hx5 X08 C32 keeps ${name}: ${out.slice (-600)}`);
+    };
+    keep ('object vs literal', '        bool x = isGreaterThan(lim, 100);');
+    keep ('Int64? vs Int64?', '        Int64? a = this.safeInteger(o, "a");\n        bool x = isLessThanOrEqual(a, since);');
+    keep ('nested call operands', '        bool x = isGreaterThanOrEqual(add(lim, 1), this.sum(lim, 2));');
+    keep ('two calls on one line', '        bool x = (isLessThan(lim, 0)) || (isGreaterThan(lim, 4));');
+    keep ('string literal untouched', '        string m = "isLessThan(a, b)";\n        bool x = isLessThan(s, lim);');
+    keep ('double local', '        double d = 1.5;\n        bool x = isLessThan(d, 2);');
+    check ('milliseconds call', '        Int64 start = this.milliseconds();\n        bool x = isGreaterThan(this.milliseconds() - start, 5000);', 'bool x = ((this.milliseconds() - start) > 5000);');
+    check ('string Length', '        string h = "ab";\n        bool x = isLessThan(h.Length, 64);', 'bool x = (h.Length < 64);');
+    check ('mixed native + kept', '        Int64 n = 3;\n        bool x = isLessThan(n, 4) && isLessThan(lim, n);', 'bool x = (n < 4) && isLessThan(lim, n);');
     const tests = 'namespace Tests;\n' + wrap ('        bool x = isLessThan(lim, 1);').split ('\n').slice (1).join ('\n');
     if (hx4C32NativeCompare (true, tests) !== tests) problems.push ('hx4 C32 tests namespace changed');
     const early = wrap ('        bool x = isLessThan(lim, 1);');
@@ -13720,4 +13718,13 @@ function hx5X07SnippetChecks (): string[] {
     const tests = wrap ('        Int64 a = 1;\n        object r = divide(a, 2);', 'Tests');
     if (hx5X07NativeMath (tests) !== tests) problems.push ('hx5 X07 tests namespace changed');
     return problems;
+}
+
+// hx5 X08
+// hx5 X08 — operand shapes C32 may hand to hx4C05OperandType: identifiers / integer arithmetic, plus the call and member atoms
+// that function types as non-null int / Int64 (this.milliseconds(), this.seconds(), getArrayLength(x), this.parseTimeframe(x),
+// x.Length on a string, x.Count on a List<object>). Anything else stays a helper call.
+function c32ProvenShape (bare: string): boolean {
+    const atoms = bare.replace (/\bthis\.(?:milliseconds|seconds)\(\)|(?<![\w.])getArrayLength\([A-Za-z_]\w*\)|\bthis\.parseTimeframe\([A-Za-z_]\w*\)|(?<![\w.])[A-Za-z_]\w*\.(?:Length|Count)\b/g, 'cxatom');
+    return /^[\w ()+*-]+$/.test (atoms) && !/\w[ ]*\(/.test (atoms) && !/\d[A-Za-z_]/.test (atoms);
 }
