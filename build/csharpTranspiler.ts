@@ -13467,36 +13467,58 @@ function hx4C35SnippetChecks (): string[] {
     return problems;
 }
 
-// hx4 C36 — final-text tail: every `slice(s, a, b)` call (string helper, any operand box) becomes the
-// helper body of Exchange.TranspileHelpers.cs `Slice` inlined as a static lambda (renamed locals, each
-// argument evaluated once, left to right). Final pass only; the tests namespace keeps the helper.
+// hx5 X10 — C36 slice: the hx4 inline `Slice` lambda is deleted. A `slice(s, a, b)` call becomes native
+// `Substring` only when the receiver is provably a non-null string of KNOWN length (a C# string literal, or a
+// local whose only assignment in the file is `string n = "literal";`) and both bounds are non-negative integer
+// literals (or `null` end) inside [0, length]. Then the helper's negative/clamp branches cannot fire and
+// `Substring` cannot throw. Every other site keeps the plain helper call exactly as master emitted. Final pass
+// only; the tests namespace is untouched. Idempotent (a rewritten site no longer contains `slice(`).
 export function hx4C36NativeSlice (finalPass: boolean, content: string): string {
     const call = /(?<![\w.])slice\(/g;
     if (!finalPass || !/(?<![\w.])slice\(/.test (content) || /^namespace Tests\b/m.test (content)) {
         return content;
     }
-    const body = '((Func<object, object, object, string>)(static (s36s, s36a, s36b) => { if (s36s == null) { return null; } var s36str = (string)s36s; var s36start = s36a != null ? Convert.ToInt32(s36a) : -1; if (s36b == null) { if (s36start < 0) { var s36inner = s36str.Length + s36start; s36inner = s36inner < 0 ? 0 : s36inner; return s36str[(s36inner)..]; } else { return s36str[s36start..]; } } else { var s36end = Convert.ToInt32(s36b); if (s36start < 0) { s36start = s36str.Length + s36start; } if (s36end < 0) { s36end = s36str.Length + s36end; } if (s36end > s36str.Length) { s36end = s36str.Length; } return s36str[s36start..s36end]; } }))';
+    const strLit = /^"((?:[^"\\]|\\.)*)"$/;
+    const literalLength = (lit: string): number | undefined => {
+        const m = strLit.exec (lit);
+        if (m === null || m[1].includes ('\\')) return undefined; // escapes: skip, length not obvious
+        return m[1].length;
+    };
+    const knownLength = (recv: string): number | undefined => {
+        const direct = literalLength (recv);
+        if (direct !== undefined) return direct;
+        if (!/^[A-Za-z_]\w*$/.test (recv)) return undefined;
+        const decl = new RegExp ('(?<![\\w.])string\\s+' + recv + '\\s*=\\s*("(?:[^"\\\\]|\\\\.)*")\\s*;', 'g');
+        const decls = Array.from (content.matchAll (decl));
+        if (decls.length !== 1) return undefined;
+        const assigns = content.match (new RegExp ('(?<![\\w.])' + recv + '\\s*(?:[-+*/?]?=(?!=)|\\+\\+|--)', 'g')) || [];
+        const outs = content.match (new RegExp ('\\b(?:ref|out)\\s+' + recv + '\\b', 'g')) || [];
+        if (assigns.length !== 1 || outs.length !== 0) return undefined;
+        return literalLength (decls[0][1]);
+    };
+    const intLit = (t: string): number | undefined => (/^\d{1,9}L?$/.test (t) ? parseInt (t, 10) : undefined);
     const lines = content.split ('\n');
     let changed = false;
     for (let i = 0; i < lines.length; i++) {
         let out = lines[i];
-        for (let guard = 0; guard < 64; guard++) {
-            const masked = csharpHelperMaskLine (out);
-            const all = Array.from (masked.matchAll (call));
-            let done = true;
-            for (let k = all.length - 1; k >= 0; k--) {
-                const m = all[k];
-                const open = m.index + m[0].length - 1;
-                const close = csharpHelperCallEnd (masked, open);
-                if (close === undefined) continue;
-                const c1 = csharpHelperTopLevelComma (masked, open, close);
-                const c2 = (c1 === undefined) ? undefined : csharpHelperTopLevelComma (masked, c1, close);
-                if ((c2 === undefined) || (csharpHelperTopLevelComma (masked, c2, close) !== undefined)) continue;
-                out = out.substring (0, m.index) + body + out.substring (open, close + 1) + out.substring (close + 1);
-                done = false;
-                break;
-            }
-            if (done) break;
+        const masked = csharpHelperMaskLine (out);
+        const all = Array.from (masked.matchAll (call));
+        for (let k = all.length - 1; k >= 0; k--) {
+            const m = all[k];
+            const open = m.index + m[0].length - 1;
+            const close = csharpHelperCallEnd (masked, open);
+            if (close === undefined) continue;
+            const c1 = csharpHelperTopLevelComma (masked, open, close);
+            const c2 = (c1 === undefined) ? undefined : csharpHelperTopLevelComma (masked, c1, close);
+            if ((c2 === undefined) || (csharpHelperTopLevelComma (masked, c2, close) !== undefined)) continue;
+            const recv = out.substring (open + 1, c1).trim ();
+            const len = knownLength (recv);
+            const a = intLit (out.substring (c1 + 1, c2).trim ());
+            const bText = out.substring (c2 + 1, close).trim ();
+            const b = (bText === 'null') ? undefined : intLit (bText);
+            if (len === undefined || a === undefined || a > len || (bText !== 'null' && (b === undefined || b < a || b > len))) continue;
+            const native = (b === undefined) ? `${recv}.Substring(${a})` : `${recv}.Substring(${a}, ${b - a})`;
+            out = out.substring (0, m.index) + native + out.substring (close + 1);
         }
         if (out !== lines[i]) {
             lines[i] = out;
@@ -13506,27 +13528,38 @@ export function hx4C36NativeSlice (finalPass: boolean, content: string): string 
     return changed ? lines.join ('\n') : content;
 }
 
-// hx4 C36 snippet checks (run from csharpHx4SelfTest)
+// hx5 X10 — C36 snippet checks (run from csharpHx4SelfTest)
 function hx4C36SnippetChecks (): string[] {
     const problems: string[] = [];
     const wrap = (body: string, ns = 'ccxt') => `namespace ${ns};\npublic partial class t : Exchange\n{\n    public virtual object f(object x, object y)\n    {\n${body}\n    }\n}\n`;
     const cases: [string, string, string][] = [
-        [ 'two bounds', '        string s = slice(x, 0, y);', '=> { if (s36s == null) { return null; }' ],
-        [ 'null end', '        string s = slice(x, -64, null);', '}))(x, -64, null);' ],
-        [ 'nested', '        string s = slice(slice(x, 1, null), 0, y);', '}))(((Func<object, object, object, string>)(static' ],
-        [ 'in concat', '        string s = (slice(x, 0, 2) + \"-\") + slice(x, 2, null);', '}))(x, 2, null);' ],
+        [ 'literal receiver', '        string s = slice("abcdef", 1, 3);', 'string s = "abcdef".Substring(1, 2);' ],
+        [ 'literal null end', '        string s = slice("abcdef", 2, null);', 'string s = "abcdef".Substring(2);' ],
+        [ 'single-assignment local', '        string p = "0x";\n        string s = slice(p, 0, 2);', 'string s = p.Substring(0, 2);' ],
     ];
     for (const [ name, body, expected ] of cases) {
         const out = hx4C36NativeSlice (true, wrap (body));
-        if (!out.includes (expected) || /(?<![\w.])slice\(/.test (csharpHelperMaskLine (out.split ('\n')[5]))) problems.push (`hx4 C36 ${name}: ${out.slice (-400)}`);
-        if (hx4C36NativeSlice (true, out) !== out) problems.push (`hx4 C36 ${name}: not idempotent`);
+        if (!out.includes (expected) || /(?<![\w.])slice\(/.test (out)) problems.push (`hx5 X10 ${name}: ${out.slice (-300)}`);
+        if (hx4C36NativeSlice (true, out) !== out) problems.push (`hx5 X10 ${name}: not idempotent`);
     }
-    const keeps = [ '        string s = x.slice(0, 2);', '        string s = \"slice(x, 0, 1)\";', '        // slice(x, 0, 1)', '        object s = this.slice(x, 0, 1);' ];
+    const keeps = [
+        '        string s = slice(x, 0, y);',             // unproven receiver and end
+        '        string s = slice(x, -64, null);',        // negative start
+        '        string s = slice(slice(x, 1, null), 0, y);',
+        '        string s = (slice(x, 0, 2) + \"-\") + slice(x, 2, null);',
+        '        string s = slice("abc", 0, 5);',         // end past length: helper clamps
+        '        string s = slice("abc", 4, null);',      // start past length
+        '        string s = slice("abc", -1, null);',
+        '        string p = "0x";\n        p = y.ToString();\n        string s = slice(p, 0, 2);', // reassigned
+        '        string s = x.slice(0, 2);', '        string s = \"slice(x, 0, 1)\";', '        // slice(x, 0, 1)', '        object s = this.slice(x, 0, 1);',
+    ];
     for (const body of keeps) {
-        if (hx4C36NativeSlice (true, wrap (body)) !== wrap (body)) problems.push (`hx4 C36 keeps ${body}`);
+        const out = hx4C36NativeSlice (true, wrap (body));
+        if (out !== wrap (body)) problems.push (`hx5 X10 keeps ${body}`);
+        if (/s36s|Func<object, object, object, string>/.test (out)) problems.push (`hx5 X10 inlined ${body}`);
     }
-    if (hx4C36NativeSlice (false, wrap ('        string s = slice(x, 0, y);')) !== wrap ('        string s = slice(x, 0, y);')) problems.push ('hx4 C36 non-final pass changed');
-    if (hx4C36NativeSlice (true, wrap ('        string s = slice(x, 0, y);', 'Tests')) !== wrap ('        string s = slice(x, 0, y);', 'Tests')) problems.push ('hx4 C36 tests namespace changed');
+    if (hx4C36NativeSlice (false, wrap ('        string s = slice("ab", 0, 1);')) !== wrap ('        string s = slice("ab", 0, 1);')) problems.push ('hx5 X10 non-final pass changed');
+    if (hx4C36NativeSlice (true, wrap ('        string s = slice("ab", 0, 1);', 'Tests')) !== wrap ('        string s = slice("ab", 0, 1);', 'Tests')) problems.push ('hx5 X10 tests namespace changed');
     return problems;
 }
 
