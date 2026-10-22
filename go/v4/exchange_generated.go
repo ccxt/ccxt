@@ -8439,7 +8439,8 @@ func (this *BaseExchange) fetchPaginatedCallDeterministicBody(ch chan AsyncResul
 			break
 		}
 		tasks = append(tasks, this.SafeDeterministicCallAsync(method, symbol, currentSince, maxEntriesPerRequestValue, timeframe, paramsOmitted))
-		currentSince = Subtract(Add(currentSince, step), 1)
+		// this.sum keeps it numeric in PHP, where the regex transpiler turns `a + b` into string concatenation
+		currentSince = Subtract(this.Sum(currentSince, step), 1)
 	}
 
 	r := <-promiseAll(tasks)
@@ -8529,7 +8530,7 @@ func (this *BaseExchange) fetchPaginatedCallCursorBody(ch chan AsyncResult[any],
 				// try block:
 				if !IsEqual(cursorValue, nil) {
 					if cursorIncrement != nil {
-						cursorValue = Add(this.ParseToInt(cursorValue), cursorIncrement)
+						cursorValue = this.Sum(this.ParseToInt(cursorValue), cursorIncrement)
 					}
 					AddElementToObject(paramsOmitted, cursorSent, cursorValue)
 				}
@@ -8706,8 +8707,8 @@ func (this *BaseExchange) fetchPaginatedCallIncrementalBody(ch chan AsyncResult[
 				errors = 0
 				var responseLength int = GetArrayLength(response)
 				if this.Verbose {
-					var iteration string = ToString((Add(i, 1)))
-					var incrementalMessage *string = SafeStringPtr(Add(Add(Add("Incremental pagination call "+iteration+" method ", method), " response length "), ToString(responseLength)))
+					var iteration any = (Add(i, 1))
+					var incrementalMessage *string = SafeStringPtr(Add(Add(Add("Incremental pagination call "+ToString(iteration)+" method ", method), " response length "), ToString(responseLength)))
 					this.Log(incrementalMessage)
 				}
 				if responseLength == 0 {
@@ -11838,12 +11839,12 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan EndpointResult[
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv11359, _ := r.Value.([]any)
-	var retRes1045215 []any = listRecv11359
-	if retRes1045215 == nil {
+	listRecv11360, _ := r.Value.([]any)
+	var retRes1045315 []any = listRecv11360
+	if retRes1045315 == nil {
 		ch <- EndpointResult[[]any]{}
 	} else {
-		ch <- EndpointResult[[]any]{Value: retRes1045215, Raw: retRes1045215}
+		ch <- EndpointResult[[]any]{Value: retRes1045315, Raw: retRes1045315}
 	}
 	return nil
 }
