@@ -136,9 +136,10 @@ export default class interactivebrokers extends Exchange {
             'api': {
                 'webapi': {
                     'get': {
+                        // 'iserver' endpoints do not work on free-trial accounts
                         'v1/api/iserver/account/pnl/partitioned': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/api/acesws/:accountId/signatures-and-owners': { 'cost': 1 } as Endpoint<Dict>,
-                        'v1/api/iserver/accounts': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/api/iserver/accounts': { 'cost': 1 } as Endpoint<Dict>, // must be called before modifying an order or querying open orders
                         'v1/api/iserver/account/search/:searchPattern': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/api/iserver/account/:accountId/summary/balances': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/api/iserver/account/:accountId/summary/margins': { 'cost': 1 } as Endpoint<Dict>,
@@ -233,6 +234,9 @@ export default class interactivebrokers extends Exchange {
                         'gw/api/v1/tax-vouchers/years': { 'cost': 1 } as Endpoint<Dict>,
                         'gw/api/v1/tax-vouchers/:requestId/state': { 'cost': 1 } as Endpoint<Dict>,
                         'gw/api/v1/echo/https': { 'cost': 1 } as Endpoint<Dict>,
+                        // from 1.0
+                        'v1/api/md/regsnapshot': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/api/contract/trading-schedule': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
                         'v1/api/oauth/request_token': { 'cost': 1 } as Endpoint<Dict>,
@@ -334,117 +338,6 @@ export default class interactivebrokers extends Exchange {
                         'gw/api/v1/accounts/:accountId/status': { 'cost': 1 } as Endpoint<Dict>,
                         'gw/api/v1/accounts/:accountId/tasks': { 'cost': 1 } as Endpoint<Dict>,
                         'gw/api/v1/requests/:requestId/status': { 'cost': 1 } as Endpoint<Dict>,
-                    },
-                },
-                'private': {
-                    'get': {
-                        'oauth/request_token': { 'cost': 1 } as Endpoint<Dict>,
-                        // informational
-                        'trsrv/secdef/schedule': { 'cost': 1 } as Endpoint<List>, // trading schedule up to a month for the requested contract
-                        'trsrv/futures': { 'cost': 1 } as Endpoint<Dict>, // non-expired future contracts (conid) for given symbol(s)
-                        'trsrv/stocks': { 'cost': 1 } as Endpoint<Dict>, // stock contracts (conid) for given symbol(s)
-                        'trsrv/all-conids': { 'cost': 1 } as Endpoint<List>, // all tradable contracts on an exchange
-                        'trsrv/secdef': { 'cost': 1 } as Endpoint<Dict>, // contract definitions for given conids
-                        'iserver/currency/pairs': { 'cost': 1 } as Endpoint<Dict>, // fx pairs for a currency
-                        'iserver/exchangerate': { 'cost': 1 } as Endpoint<Dict>,
-                        // iserver
-                        'iserver/account/trades': { 'cost': 1 } as Endpoint<List>,
-                        'iserver/account/{accountId}/alerts': { 'cost': 1 } as Endpoint<List>,
-                        'iserver/account/alert/{id}': { 'cost': 1 } as Endpoint<Dict>,
-                        'iserver/account/mta': { 'cost': 1 } as Endpoint<Dict>,
-                        'iserver/account/orders': { 'cost': 1 } as Endpoint<Dict>,
-                        'iserver/account/order/status/{orderId}': { 'cost': 1 } as Endpoint<Dict>,
-                        'iserver/account/pnl/partitioned': { 'cost': 1 } as Endpoint<Dict>,
-                        // must be called before modifying an order or querying open orders
-                        // 'iserver' endpoints do not work on free-trial accounts
-                        'iserver/accounts': { 'cost': 1 } as Endpoint<Dict>,
-                        'iserver/marketdata/snapshot': { 'cost': 1 } as Endpoint<List>, // requires conids
-                        'iserver/marketdata/{conid}/unsubscribe': { 'cost': 1 } as Endpoint<Dict>,
-                        'iserver/marketdata/unsubscribeall': { 'cost': 1 } as Endpoint<Dict>,
-                        'iserver/marketdata/history': { 'cost': 1 } as Endpoint<Dict>, // requires conid
-                        'iserver/contract/{conid}/info': { 'cost': 1 } as Endpoint<Dict>,
-                        'iserver/secdef/strikes': { 'cost': 1 } as Endpoint<Dict>,
-                        'iserver/secdef/info': { 'cost': 1 } as Endpoint<List>,
-                        'iserver/contract/{conid}/algos': { 'cost': 1 } as Endpoint<Dict>,
-                        'iserver/contract/{conid}/info-and-rules': { 'cost': 1 } as Endpoint<Dict>,
-                        'iserver/scanner/params': { 'cost': 1 } as Endpoint<Dict>,
-                        // portfolio
-                        // in non-tiered account structures, portfolio/accounts must be called prior to other /portfolio endpoints
-                        'portfolio/accounts': { 'cost': 1 } as Endpoint<List>,
-                        'portfolio/subaccounts': { 'cost': 1 } as Endpoint<List>,
-                        'portfolio/{accountId}/meta': { 'cost': 1 } as Endpoint<Dict>,
-                        'portfolio/{accountId}/allocation': { 'cost': 1 } as Endpoint<Dict>,
-                        'portfolio/{accountId}/positions/{pageId}': { 'cost': 1 } as Endpoint<List>,
-                        'portfolio/{accountId}/position/{conid}': { 'cost': 1 } as Endpoint<List>,
-                        'portfolio/{accountId}/summary': { 'cost': 1 } as Endpoint<Dict>,
-                        'portfolio/{accountId}/ledger': { 'cost': 1 } as Endpoint<Dict>,
-                        'portfolio/positions/{conid}': { 'cost': 1 } as Endpoint<Dict>,
-                        'portfolio2/{accountId}/positions': { 'cost': 1 } as Endpoint<List>, // real-time, uncached positions
-                        'iserver/account/{accountId}/summary/available_funds': { 'cost': 1 } as Endpoint<Dict>,
-                        // fyi
-                        'fyi/unreadnumber': { 'cost': 1 } as Endpoint<Dict>,
-                        'fyi/settings': { 'cost': 1 } as Endpoint<List>,
-                        'fyi/disclaimer/{typecode}': { 'cost': 1 } as Endpoint<Dict>,
-                        'fyi/deliveryoptions': { 'cost': 1 } as Endpoint<Dict>,
-                        'fyi/notifications': { 'cost': 1 } as Endpoint<List>,
-                        'fyi/notifications/more': { 'cost': 1 } as Endpoint<List>,
-                        // others
-                        'ibcust/entity/info': { 'cost': 1 } as Endpoint<Dict>,
-                        'portal/sso/validate': { 'cost': 1 } as Endpoint<Dict>, // extends active session
-                        'sso/Dispatcher': { 'cost': 1 } as Endpoint<Dict>, // undocumented: validates the login
-                    },
-                    'post': {
-                        'oauth/access_token': { 'cost': 1 } as Endpoint<Dict>,
-                        'oauth/live_session_token': { 'cost': 1 } as Endpoint<Dict>,
-                        // iserver
-                        'iserver/auth/ssodh/init': { 'cost': 1 } as Endpoint<Dict>, // opens the brokerage session
-                        'iserver/auth/status': { 'cost': 1 } as Endpoint<Dict>,
-                        'iserver/reauthenticate': { 'cost': 1 } as Endpoint<Dict>,
-                        'iserver/account': { 'cost': 1 } as Endpoint<Dict>, // switch account
-                        'iserver/account/{accountId}/alert': { 'cost': 1 } as Endpoint<Dict>,
-                        'iserver/account/{accountId}/alert/activate': { 'cost': 1 } as Endpoint<Dict>,
-                        'iserver/account/{accountId}/orders': { 'cost': 1 } as Endpoint<List>,
-                        'iserver/account/orders/{faGroup}': { 'cost': 1 } as Endpoint<List>, // financial advisor orders
-                        'iserver/reply/{replyid}': { 'cost': 1 } as Endpoint<List>, // order reply confirmation
-                        'iserver/account/{accountId}/orders/whatif': { 'cost': 1 } as Endpoint<Dict>, // order preview with commission info
-                        'iserver/account/{accountId}/order/{orderId}': { 'cost': 1 } as Endpoint<List>, // modify order
-                        'iserver/secdef/search': { 'cost': 1 } as Endpoint<List>, // search by symbol or company name
-                        'iserver/contract/rules': { 'cost': 1 } as Endpoint<Dict>,
-                        'iserver/questions/suppress': { 'cost': 1 } as Endpoint<Dict>,
-                        'iserver/scanner/run': { 'cost': 1 } as Endpoint<Dict>,
-                        // portfolio
-                        'portfolio/allocation': { 'cost': 1 } as Endpoint<Dict>, // consolidated view of all accounts returned by /portfolio/accounts
-                        'portfolio/{accountId}/positions/invalidate': { 'cost': 1 } as Endpoint<Dict>,
-                        // fyi
-                        'fyi/settings/{typecode}': { 'cost': 1 } as Endpoint<Dict>,
-                        'fyi/deliveryoptions/device': { 'cost': 1 } as Endpoint<Dict>,
-                        // others
-                        'pa/performance': { 'cost': 1 } as Endpoint<Dict>,
-                        'pa/summary': { 'cost': 1 } as Endpoint<Dict>,
-                        'pa/transactions': { 'cost': 1 } as Endpoint<Dict>,
-                        'ws': { 'cost': 1 } as Endpoint<Dict>,
-                        'tickle': { 'cost': 1 } as Endpoint<Dict>, // validates the session
-                        'logout': { 'cost': 1 } as Endpoint<Dict>,
-                        'trsrv/secdef': { 'cost': 1 } as Endpoint<Dict>, // requires conids
-                    },
-                    'put': {
-                        'fyi/disclaimer/{typecode}': { 'cost': 1 } as Endpoint<Dict>,
-                        'fyi/deliveryoptions/email': { 'cost': 1 } as Endpoint<Dict>,
-                        'fyi/notifications/{notificationId}': { 'cost': 1 } as Endpoint<Dict>,
-                    },
-                    'delete': {
-                        'fyi/deliveryoptions/{deviceId}': { 'cost': 1 } as Endpoint<Dict>,
-                        'iserver/account/{accountId}/alert/{alertId}': { 'cost': 1 } as Endpoint<Dict>,
-                        'iserver/account/{accountId}/order/{orderId}': { 'cost': 1 } as Endpoint<Dict>, // cancel order
-                    },
-                },
-                'gwPrivate': {
-                    'get': {
-                        'accounts/{accountId}/details': { 'cost': 1 } as Endpoint<Dict>,
-                    },
-                    'post': {
-                        'accounts/{accountId}/tasks': { 'cost': 1 } as Endpoint<Dict>,
-                        'accounts': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },
