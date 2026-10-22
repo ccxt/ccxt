@@ -165,7 +165,7 @@ export default class polymarket extends polymarketRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    handleOrderBook (client: Client, message: any) {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //     {
         //         "ch": "book::1",
@@ -279,7 +279,7 @@ export default class polymarket extends polymarketRest {
         return this.filterByArray (this.tickers, 'symbol', symbolsNormalized);
     }
 
-    handleTicker (client: Client, message: any) {
+    handleTicker (client: Client, message: Dict) {
         //
         //     {
         //         "ch": "tickers::1",
@@ -348,7 +348,7 @@ export default class polymarket extends polymarketRest {
         return this.filterByArray (this.bidsasks, 'symbol', symbolsNormalized);
     }
 
-    handleBidAsk (client: Client, message: any) {
+    handleBidAsk (client: Client, message: Dict) {
         //
         //     {
         //         "ch": "bbo::1",
@@ -435,7 +435,7 @@ export default class polymarket extends polymarketRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    handleTrades (client: Client, message: any) {
+    handleTrades (client: Client, message: Dict) {
         //
         //     {
         //         "ch": "trades::1",
@@ -586,7 +586,7 @@ export default class polymarket extends polymarketRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    handleOHLCV (client: Client, message: any) {
+    handleOHLCV (client: Client, message: Dict) {
         //
         //     {
         //         "ch": "klines::1::1h",
@@ -703,7 +703,7 @@ export default class polymarket extends polymarketRest {
         return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
-    handleOrder (client: Client, message: any) {
+    handleOrder (client: Client, message: Dict) {
         //
         //     {
         //         "ch": "orders",
@@ -792,7 +792,7 @@ export default class polymarket extends polymarketRest {
         return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
     }
 
-    handleMyTrades (client: Client, message: any) {
+    handleMyTrades (client: Client, message: Dict) {
         //
         //     {
         //         "ch": "fills",
@@ -974,7 +974,7 @@ export default class polymarket extends polymarketRest {
         client.resolve (this.balance, 'balance');
     }
 
-    handlePortfolio (client: Client, message: any) {
+    handlePortfolio (client: Client, message: Dict) {
         //
         //     {
         //         "ch": "portfolio",

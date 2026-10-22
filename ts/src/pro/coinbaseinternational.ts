@@ -253,7 +253,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return await this.subscribe ([ channel ], [ 'balance' ], true, paramsCurrency);
     }
 
-    handleBalance (client: Client, message: any) {
+    handleBalance (client: Client, message: Dict) {
         const params = this.safeDict (message, 'params', {});
         const data = this.safeDict (params, 'data', {});
         const parsed = this.parseBalance (data);
@@ -316,7 +316,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return await this.unSubscribe ([ channel ], true, paramsInterval);
     }
 
-    handleMyTrades (client: Client, message: any) {
+    handleMyTrades (client: Client, message: Dict) {
         const params = this.safeDict (message, 'params', {});
         const channel = this.safeString (params, 'channel');
         const data = this.safeList (params, 'data', []);
@@ -425,7 +425,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return await this.unSubscribe ([ channel ], true, paramsInterval);
     }
 
-    handleOrders (client: Client, message: any) {
+    handleOrders (client: Client, message: Dict) {
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
@@ -519,7 +519,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return await this.unSubscribe (channels, true, paramsInterval);
     }
 
-    handlePositions (client: Client, message: any) {
+    handlePositions (client: Client, message: Dict) {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
@@ -842,7 +842,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return await this.unSubscribe (channels, false, paramsResolved);
     }
 
-    handleTicker (client: Client, message: any) {
+    handleTicker (client: Client, message: Dict) {
         const params = this.safeDict (message, 'params', {});
         const data = this.safeDict (params, 'data', {});
         const ticker = this.parseTicker (data);
@@ -852,7 +852,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         client.resolve (ticker, channel);
     }
 
-    handleBidAsk (client: Client, message: any) {
+    handleBidAsk (client: Client, message: Dict) {
         const params = this.safeDict (message, 'params', {});
         const data = this.safeDict (params, 'data', {});
         const ticker = this.parseWsBidAsk (data);
@@ -989,7 +989,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return await this.unSubscribe (channels, false, paramsResolved);
     }
 
-    handleOHLCV (client: Client, message: any) {
+    handleOHLCV (client: Client, message: Dict) {
         const params = this.safeDict (message, 'params', {});
         const messageHash = this.safeString (params, 'channel', '');
         const parts = messageHash.split ('.');
@@ -1121,7 +1121,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return await this.unSubscribe (channels, interval === 'raw', paramsInterval);
     }
 
-    handleTrades (client: Client, message: any) {
+    handleTrades (client: Client, message: Dict) {
         const params = this.safeDict (message, 'params', {});
         const channel = this.safeString (params, 'channel', '');
         const data = this.safeList (params, 'data', []);
@@ -1252,7 +1252,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return await this.unSubscribe (channels, interval === 'raw', paramsChannel);
     }
 
-    handleOrderBook (client: any, message: any) {
+    handleOrderBook (client: Client, message: Dict) {
         const params = this.safeDict (message, 'params', {});
         const data = this.safeDict (params, 'data', {});
         const type = this.safeString (data, 'type', 'snapshot');
@@ -1366,7 +1366,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return true;
     }
 
-    async handleHeartbeat (client: Client, message: any) {
+    async handleHeartbeat (client: Client, message: Dict) {
         const params = this.safeDict (message, 'params', {});
         const data = this.safeString (params, 'data');
         if (data === 'test_request') {
@@ -1431,7 +1431,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         }
     }
 
-    handleAuthenticationMessage (client: Client, message: any) {
+    handleAuthenticationMessage (client: Client, message: Dict) {
         //
         //     {
         //         "jsonrpc": "2.0",
