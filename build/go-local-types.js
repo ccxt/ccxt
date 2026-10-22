@@ -7510,7 +7510,7 @@ function ccxtGoTupleStringReadIsSafe (goTranspiler, node) {
         return (goTranspiler.goEnclosingFunction (target) === goTranspiler.goEnclosingFunction (node))
             && ccxtGoTupleStringCopyTargetIsSafe (goTranspiler, target, node);
     }
-    return (current === node) && nilDeclaredReadIsSafe (goTranspiler, node);
+    return (current === node) && (nilDeclaredReadIsSafe (goTranspiler, node) || ccxtGoH4DominatedProducerArg (goTranspiler, node)); // hx7 H4
 }
 
 // callee -> exact argument indices bound through GetArg (derefs a pointer, folds a nil one to the default)
@@ -7596,7 +7596,7 @@ function ccxtGoTupleStringJoinTypeUncached (goTranspiler, declaration) {
     };
     scope?.forEachChild (visit);
     const bound = ((declaration.kind === ts.SyntaxKind.BindingElement) || ccxtGoTupleStringIsCopyDeclaration (declaration)) ? 1 : 0;
-    if (!ok || (producers + bound + writes === 0)) {
+    if (!ok || (producers + bound + writes === 0) || (ccxtGoH4LiteralDeclared (declaration) && (producers === 0))) {
         return undefined;
     }
     // write-only locals the definitely-assigned `string` join already types stay with it
@@ -7638,7 +7638,7 @@ function ccxtGoTupleStringJoinType (goTranspiler, declaration) {
         && ccxtGoTupleStringBindingIsProducer (goTranspiler, declaration);
     const copied = ccxtGoTupleStringIsCopyDeclaration (declaration)
         && (ccxtGoTupleStringDeclarationOf (goTranspiler, declaration.initializer) !== undefined);
-    if (!nilDeclared && !bound && !copied) {
+    if (!nilDeclared && !bound && !copied && !ccxtGoH4LiteralDeclared (declaration)) {
         return undefined;
     }
     if (CCXT_GO_TUPLE_STRING_CACHE.has (declaration)) {
@@ -7690,6 +7690,9 @@ function installCcxtGoTupleStringJoin (goTranspiler) {
         }
         const head = this.getIden (identation) + 'var ' + this.printNode (declaration.name, 0) + ' ';
         const value = isNilDeclaredInitializer (declaration.initializer) ? this.UNDEFINED_TOKEN : this.printNode (declaration.initializer, 0);
+        if (ccxtGoH4LiteralDeclared (declaration)) {
+            return (printed === head + 'any = ' + value) ? (head + '*string = SafeStringPtr(' + value + ')') : printed; // hx7 H4
+        }
         return (printed === head + 'any = ' + value) ? (head + '*string = ' + value) : printed;
     };
     // the direct form `a := GetValue(h, i)` of a destructuring declaration
@@ -10905,4 +10908,59 @@ function installHx5X32StringPtrParams (goTranspiler) {
             return wrap[i] ? ('SafeStringPtr(' + text + ')') : text;
         }).join (', ');
     };
+}
+
+// hx7 H4
+// `let x = 'lit'; [ x, p ] = this.handle*AndParams (..)`: a string-literal-declared local whose element-0 producer
+// returns Go (*string, map[string]any) joins the tuple-string family (declared `*string = SafeStringPtr("lit")`),
+// under the same write/read proof as a nil-declared one; it needs at least one producer write. The typed local
+// then lets the tuple-result join print `x, p = this.Handle..(..)` instead of TupleSlice/GetValue(h, 0).
+function ccxtGoH4LiteralDeclared (declaration) {
+    return (declaration?.kind === ts.SyntaxKind.VariableDeclaration) && ts.isIdentifier (declaration.name)
+        && ((declaration.initializer?.kind === ts.SyntaxKind.StringLiteral) || (declaration.initializer?.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral))
+        && (declaration.type === undefined)
+        && (declaration.parent?.parent?.kind === ts.SyntaxKind.VariableStatement)
+        && ((declaration.parent.flags & ts.NodeFlags.Const) === 0)
+        && (declaration.parent.declarations.length === 1);
+}
+// a family *string passed as the default of these producers binds GetArgStringPtr (a *string, nil
+// folds to the absent default), exactly like the literal the TS source passes in its place
+Object.assign (CCXT_GO_TUPLE_STRING_SAFE_ARG_INDEX, {
+    'this.HandleOptionStringAndParams': [ 3 ],
+    'this.HandleOptionStringAndParams2': [ 4 ],
+    'this.HandleMarginModeAndParams': [ 1 ],
+});
+
+// A family local read as a plain argument of a `this.<venue>(..)` call held, before this family, the
+// element-0 box GetValue(h, 0) read off the same producer: the *string itself. When the producer
+// write is an unconditional statement of the declaration's own block, placed before the read, the
+// argument passes that same box, so the callee observes no change.
+function ccxtGoH4DominatedProducerArg (goTranspiler, node) {
+    const call = node.parent;
+    if ((call?.kind !== ts.SyntaxKind.CallExpression) || (call.expression === node)
+        || (call.expression?.kind !== ts.SyntaxKind.PropertyAccessExpression)
+        || (call.expression.expression?.kind !== ts.SyntaxKind.ThisKeyword)) {
+        return false;
+    }
+    const printed = (goTranspiler.printNode (call, 0) ?? '').trim ();
+    if (!/^this\.[A-Z]\w*\(/.test (printed) || !printed.includes (node.text)) {
+        return false;
+    }
+    const declaration = ccxtGoParamDeclarationOf (goTranspiler, node);
+    const statement = declaration?.parent?.parent;
+    const block = statement?.parent;
+    if ((declaration?.kind !== ts.SyntaxKind.VariableDeclaration) || (statement?.kind !== ts.SyntaxKind.VariableStatement)
+        || (block === undefined) || !Array.isArray (block.statements)) {
+        return false;
+    }
+    const at = block.statements.indexOf (statement);
+    return block.statements.some ((s, i) => {
+        if ((i <= at) || (s.end > node.pos) || (s.kind !== ts.SyntaxKind.ExpressionStatement)) {
+            return false;
+        }
+        const e = s.expression;
+        return (e?.kind === ts.SyntaxKind.BinaryExpression) && (e.operatorToken.kind === ts.SyntaxKind.EqualsToken)
+            && (e.left?.kind === ts.SyntaxKind.ArrayLiteralExpression) && isIdentifierNamed (e.left.elements[0], node.text)
+            && ccxtGoTupleStringIsProducerElement (goTranspiler, e.left.elements[0]);
+    });
 }

@@ -5774,7 +5774,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), h2kJ02SelfTest(), j10CounterSelfTest(), j11MapLocalsSelfTest(), j04ArithmeticSelfTest(), j12ParamTypesSelfTest(), j13ListLocalsSelfTest(), j14ScalarLocalsSelfTest(), j15SelfTest(), j17ReturnsSelfTest(), j19CompareSelfTest(), j20ParamCompareSelfTest(), j22CoreArgsSelfTest(), j23ArithmeticSelfTest(), j24ArithmeticSelfTest(), j25CompareSelfTest(), j26MapLocalsSelfTest(), j27ArithmeticSelfTest(), j28CompareSelfTest(), j29ContainersSelfTest(), j30SelfTest(), j31ArithmeticSelfTest(), j36SelfTest(), j32DivModNegSelfTest(), j37SelfTest(), j38SelfTest(), j39SelfTest(), j40SelfTest(), j40X15SelfTest(), j41SelfTest(), j42SelfTest(), j43SelfTest(), j44SelfTest(), x21SelfTest(), x22SelfTest(), h1SelfTest());
+    return problems.concat(mapLocalsSelfTest(), h2kJ02SelfTest(), j10CounterSelfTest(), j11MapLocalsSelfTest(), j04ArithmeticSelfTest(), j12ParamTypesSelfTest(), j13ListLocalsSelfTest(), j14ScalarLocalsSelfTest(), j15SelfTest(), j17ReturnsSelfTest(), j19CompareSelfTest(), j20ParamCompareSelfTest(), j22CoreArgsSelfTest(), j23ArithmeticSelfTest(), j24ArithmeticSelfTest(), j25CompareSelfTest(), j26MapLocalsSelfTest(), j27ArithmeticSelfTest(), j28CompareSelfTest(), j29ContainersSelfTest(), j30SelfTest(), j31ArithmeticSelfTest(), j36SelfTest(), j32DivModNegSelfTest(), j37SelfTest(), j38SelfTest(), j39SelfTest(), j40SelfTest(), j40X15SelfTest(), j41SelfTest(), j42SelfTest(), j43SelfTest(), j44SelfTest(), x21SelfTest(), x22SelfTest(), h1SelfTest(), hx7H4SelfTest());
 }
 
 // section 50 is fail-closed: a nested, closure or Object-returning (safeDict / safeValue) write keeps `Object`
@@ -10401,6 +10401,36 @@ function h1SelfTest (): string[] {
         const out = nativeJavaH1LongLocals (src);
         const ok = expect === undefined ? out === src : out.includes (expect) && nativeJavaH1LongLocals (out) === out;
         if (!ok) problems.push (`hx7 H1 local: ${name}\n${out}`);
+    }
+    return problems;
+}
+
+// hx7 H4: a pro-file handle* Pair slot-0 local passed to an inherited async call whose typed core
+// slot is that element type prints the typed first() read (the call arg already cast to it); a
+// slot printed Object keeps the guard (overload choice could change) and the Object read
+function hx7H4SelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', 'pro', `zzhx7h4selftest${process.pid}.ts`);
+    const body = [
+        "import binanceRest from '../binance.js';",
+        "import type { Dict, Str } from '../base/types.js';",
+        'export default class zzhx7h4selftest extends binanceRest {',
+        "    async helperTyped (name: Str, params: Dict = {}) { return [ name, params ]; }",
+        "    async helperLoose (name, params: Dict = {}) { return [ name, params ]; }",
+        "    async typedSlot (params = {}) { const [ chan, rest ] = this.handleOptionStringAndParams (params, 'w', 'chan', 'a'); return await this.helperTyped (chan, rest); }",
+        "    async looseSlot (params = {}) { const [ chan2, rest2 ] = this.handleOptionStringAndParams (params, 'w', 'chan', 'a'); return await this.helperLoose (chan2, rest2); }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/String chan = \w+\.first\(\);/.test(out)) problems.push('hx7 H4: typed core slot must print `String chan = h.first()`');
+        if (!/this\.helperTyped\(chan, /.test(out)) problems.push('hx7 H4: typed slot argument must print bare `chan`');
+        if (!/var chan2 = \(\((?:java\.util\.)?List<Object>\) \w+\)\.get\(0\);/.test(out)) problems.push('hx7 H4: Object core slot must keep the Object read for chan2');
+    } catch (e: any) {
+        problems.push(`hx7 H4 self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
     }
     return problems;
 }
