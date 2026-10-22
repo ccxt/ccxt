@@ -12568,10 +12568,10 @@ impl std::ops::DerefMut for ${coreName} {
             // concrete map (`Arc<IndexMap<String, Value>>` / `IndexMap<String, Value>`) with a literal
             // string key; every other site keeps the `in_op(..)` helper call (Null / non-map / array).
             if (name === 'in_op') return hx5X33InOp(a, content);
-
-            if (name === 'object_keys' && a.length === 1) {
-                return `({ let __r29o: &Value = ${a[0]}; match __r29o { Value::Dict(__m) => Value::List(__m.keys().filter(|__k| __k.as_str() != "__ws_subs_url" && __k.as_str() != "__ws_sub_ref").map(|__k| Value::Str(__k.clone().into())).collect()), _ => Value::List(vec![]) } })`;
-            }
+            // hx5 X34 — no inline `match` for `object_keys`: every generated receiver is a `Value` (no
+            // typed map binding exists), and the runtime fn also drops the `__ws_subs_url`/`__ws_sub_ref`
+            // tags, so no site is proven; `runtime::object_keys(..)` stays exactly as master emitted it.
+            if (name === 'object_keys') return undefined;
             if (name === 'get_array_length' && a.length === 1) {
                 return `({ let __r29o: &Value = ${a[0]}; match __r29o { Value::Dict(__d) if __d.contains_key("__sideKind") && !__d.contains_key("__cacheKind") && !matches!(__d.get("__book_cache_id"), Some(Value::Int(_))) => Value::Int(crate::value::side_entries_as_value(__r29o).map(|__s| __s.len()).unwrap_or(0) as i64), _ => Value::Int(__r29o.len() as i64) } })`;
             }
