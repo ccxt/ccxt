@@ -280,7 +280,7 @@ export default class hibachi extends Exchange {
         });
     }
 
-    getAccountId () {
+    getAccountId (): number {
         this.checkRequiredCredentials ();
         const id = this.parseToInt (this.accountId);
         return id;
@@ -328,7 +328,7 @@ export default class hibachi extends Exchange {
             'optionType': undefined,
             'precision': {
                 'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'underlyingDecimals'))),
-                'price': this.parseNumber (this.safeValue (this.safeList (market, 'orderbookGranularities', []), 0)) / 10000.0,
+                'price': this.parseNumber (Precise.stringDiv (this.safeString (this.safeList (market, 'orderbookGranularities', []), 0), '10000')),
             },
             'limits': {
                 'leverage': {
@@ -901,7 +901,7 @@ export default class hibachi extends Exchange {
         const makerFee = this.safeNumber (market, 'maker', this.safeNumber (this.options, 'defaultMakerFee', 0.00015));
         const takerFeeValue = (takerFee === undefined) ? 0 : takerFee;
         const makerFeeValue = (makerFee === undefined) ? 0 : makerFee;
-        const feeRate = Math.max (takerFeeValue, makerFeeValue);
+        const feeRate = this.parseNumber (Precise.stringMax (this.numberToString (takerFeeValue), this.numberToString (makerFeeValue)));
         let sideInternal = '';
         if (side === 'sell') {
             sideInternal = 'ASK';
@@ -1034,7 +1034,7 @@ export default class hibachi extends Exchange {
         const makerFee = this.safeNumber (market, 'maker', 0);
         const takerFeeValue = (takerFee === undefined) ? 0 : takerFee;
         const makerFeeValue = (makerFee === undefined) ? 0 : makerFee;
-        const feeRate = Math.max (takerFeeValue, makerFeeValue);
+        const feeRate = this.parseNumber (Precise.stringMax (this.numberToString (takerFeeValue), this.numberToString (makerFeeValue)));
         const message = this.orderMessage (market, nonce, feeRate, type, side, amount, price);
         const signature = this.signMessage (message, this.privateKey);
         const request: Dict = {
@@ -1129,7 +1129,7 @@ export default class hibachi extends Exchange {
         return ret;
     }
 
-    cancelOrderRequest (id: string) {
+    cancelOrderRequest (id: string): Dict {
         const bigid = this.convertToBigInt (id);
         const idbase16 = this.intToBase16 (bigid);
         const idPadded = idbase16.padStart (16, '0');
@@ -1877,7 +1877,7 @@ export default class hibachi extends Exchange {
         return this.safeString (types, (type as string), type);
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             'pending': 'pending',
             'claimable': 'pending',

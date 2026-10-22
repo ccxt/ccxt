@@ -630,18 +630,23 @@ export default class bydfi extends Exchange {
     }
 
     getClosestLimit (limit: Int): Int {
-        const limits = [ 5, 10, 20, 50, 100, 500, 1000 ];
-        let result = 1000;
-        for (let i = 0; i < limits.length; i++) {
-            if (limit === undefined) {
-                throw new ArgumentsRequired (this.id + ' getClosestLimit() requires a limit argument');
-            }
-            if (limit <= limits[i]) {
-                result = limits[i];
-                break;
-            }
+        if (limit === undefined) {
+            throw new ArgumentsRequired (this.id + ' getClosestLimit() requires a limit argument');
         }
-        return result;
+        if (limit <= 5) {
+            return 5;
+        } else if (limit <= 10) {
+            return 10;
+        } else if (limit <= 20) {
+            return 20;
+        } else if (limit <= 50) {
+            return 50;
+        } else if (limit <= 100) {
+            return 100;
+        } else if (limit <= 500) {
+            return 500;
+        }
+        return 1000;
     }
 
     /**
@@ -862,30 +867,31 @@ export default class bydfi extends Exchange {
             'symbol': market['id'],
             'interval': interval,
         };
-        let startTime = since;
-        let numberOfCandles: number = maxLimit;
+        let numberOfCandles: Int = maxLimit;
         if (limit !== undefined && limit !== null && limit !== 0) {
-            numberOfCandles = limit;
+            numberOfCandles = this.parseToInt (limit);
         }
-        let until: Int = undefined;
-        let paramsUntil = undefined;
-        [ until, paramsUntil ] = this.handleOptionIntegerAndParams (paramsPaginate, 'fetchOHLCV', 'until');
+        const [ untilParam, paramsUntil ] = this.handleOptionIntegerAndParams (paramsPaginate, 'fetchOHLCV', 'until');
         const now = this.milliseconds ();
         const duration = this.parseTimeframe (timeframe) * 1000;
         const timeDelta = duration * numberOfCandles;
-        if (startTime === undefined && until === undefined) {
+        let startTime: Int = since;
+        let until: Int = untilParam;
+        if (since === undefined && untilParam === undefined) {
             startTime = now - timeDelta;
             until = now;
-        } else if (until === undefined) {
-            if (startTime === undefined) {
+        } else if (untilParam !== undefined) {
+            if (since === undefined) {
+                const untilInt = this.parseToInt (untilParam);
+                startTime = untilInt - timeDelta;
+            }
+        } else {
+            if (since === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a since or until argument');
             }
-            until = startTime + timeDelta;
-            if (until > now) {
-                until = now;
-            }
-        } else if (startTime === undefined) {
-            startTime = until - timeDelta;
+            const sinceInt = this.parseToInt (since);
+            const sinceEnd = sinceInt + timeDelta;
+            until = (sinceEnd > now) ? now : sinceEnd;
         }
         request['startTime'] = startTime;
         request['endTime'] = until;
@@ -1777,26 +1783,26 @@ export default class bydfi extends Exchange {
     }
 
     handleSinceAndUntil (methodName: string, since: Int = undefined, params: Dict = {}): Dict {
-        let until: Int = undefined;
-        let paramsUntil = undefined;
-        [ until, paramsUntil ] = this.handleOptionIntegerAndParams2 (params, methodName, 'until', 'endTime');
+        const [ untilParam, paramsUntil ] = this.handleOptionIntegerAndParams2 (params, methodName, 'until', 'endTime');
         const now = this.milliseconds ();
         const sevenDays = 7 * 24 * 60 * 60 * 1000; // the maximum range is 7 days
-        let startTime = since;
-        if (startTime === undefined) {
-            if (until === undefined) {
+        let startTime: Int = since;
+        let until: Int = untilParam;
+        if (since === undefined) {
+            if (untilParam !== undefined) {
+                // since is undefined but until is defined
+                startTime = untilParam - sevenDays;
+            } else {
                 // both since and until are undefined
                 startTime = now - sevenDays;
                 until = now;
-            } else {
-                // since is undefined but until is defined
-                startTime = until - sevenDays;
             }
-        } else if (until === undefined) {
+        } else if (untilParam === undefined) {
             // until is undefined but since is defined
-            const delta = now - startTime;
+            const sinceInt = this.parseToInt (since);
+            const delta = now - sinceInt;
             if (delta > sevenDays) {
-                until = startTime + sevenDays;
+                until = sinceInt + sevenDays;
             } else {
                 until = now;
             }
@@ -2827,7 +2833,7 @@ export default class bydfi extends Exchange {
         return this.toArray (transactions);
     }
 
-    async fetchTransactionsHelper (type: string, code: Str, since: Int, limit: Int, params: any): Promise<Transaction[]> {
+    async fetchTransactionsHelper (type: string, code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         let methodName: Str = 'fetchWithdrawals';
         if (type === 'deposit') {
             methodName = 'fetchDeposits';
@@ -2849,26 +2855,26 @@ export default class bydfi extends Exchange {
         const request: Dict = {
             'asset': currency['id'],
         };
-        let until: Int = undefined;
-        let paramsUntil = undefined;
-        [ until, paramsUntil ] = this.handleOptionIntegerAndParams2 (params, 'fetchTransfers', 'until', 'endTime');
+        const [ untilParam, paramsUntil ] = this.handleOptionIntegerAndParams2 (params, 'fetchTransfers', 'until', 'endTime');
         const now = this.milliseconds ();
         const sevenDays = 7 * 24 * 60 * 60 * 1000; // the maximum range is 7 days
-        let startTime = since;
-        if (startTime === undefined) {
-            if (until === undefined) {
+        let startTime: Int = since;
+        let until: Int = untilParam;
+        if (since === undefined) {
+            if (untilParam !== undefined) {
+                // since is undefined but until is defined
+                startTime = untilParam - sevenDays;
+            } else {
                 // both since and until are undefined
                 startTime = now - sevenDays;
                 until = now;
-            } else {
-                // since is undefined but until is defined
-                startTime = until - sevenDays;
             }
-        } else if (until === undefined) {
+        } else if (untilParam === undefined) {
             // until is undefined but since is defined
-            const delta = now - startTime;
+            const sinceInt = this.parseToInt (since);
+            const delta = now - sinceInt;
             if (delta > sevenDays) {
-                until = startTime + sevenDays;
+                until = sinceInt + sevenDays;
             } else {
                 until = now;
             }

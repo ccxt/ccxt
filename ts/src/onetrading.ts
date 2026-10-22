@@ -1093,7 +1093,8 @@ export default class onetrading extends Exchange {
         if (timestamp === undefined) {
             throw new ExchangeError (this.id + ' parseOHLCV() missing timestamp');
         }
-        const alignedTimestamp = duration * this.parseToInt (timestamp / duration);
+        const periods = this.parseToInt (timestamp / duration);
+        const alignedTimestamp = duration * periods;
         const options = this.safeDict (this.options, 'fetchOHLCV', {});
         const volumeField = this.safeString (options, 'volume', 'total_amount');
         return [
@@ -1289,7 +1290,7 @@ export default class onetrading extends Exchange {
         return this.parseBalance (response);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'OPEN': 'open',
             'BOOKED': 'open',
@@ -1413,7 +1414,7 @@ export default class onetrading extends Exchange {
         }, market);
     }
 
-    parseTimeInForce (timeInForce: Str) {
+    parseTimeInForce (timeInForce: Str): Str {
         const timeInForces: Dict = {
             'GOOD_TILL_CANCELLED': 'GTC',
             'GOOD_TILL_TIME': 'GTT',

@@ -2174,8 +2174,15 @@ class BaseExchange(object):
         return value
 
     def check_option_bool(self, methodName, optionName, value):
-        # the statically typed ports throw on a present non-boolean value; here it passes through unchanged
-        return value
+        # "true"/"false" strings and 1/0 numbers read as booleans; any other present non-boolean throws BadRequest
+        if value is None or isinstance(value, bool):
+            return value
+        if value == 'true' or (isinstance(value, (int, float)) and value == 1):
+            return True
+        if value == 'false' or (isinstance(value, (int, float)) and value == 0):
+            return False
+        label = 'exchange-wide' if methodName is None else methodName + '()'
+        raise BadRequest(self.id + ' ' + label + ' option ' + str(optionName) + ' must be a boolean')
 
     def check_option_integer(self, methodName, optionName, value):
         # the statically typed ports throw on a present value that is not an integral number; here it passes through unchanged

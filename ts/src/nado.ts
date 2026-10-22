@@ -564,8 +564,9 @@ export default class nado extends Exchange {
             };
             placeOrder['trigger'] = trigger;
         }
-        let appendix = this.safeString (paramsRecvWindow, 'appendix');
-        if (appendix === undefined) {
+        const rawAppendix = this.safeString (paramsRecvWindow, 'appendix');
+        let appendix = rawAppendix;
+        if (rawAppendix === undefined) {
             appendix = this.createOrderAppendix (isTriggerOrder, paramsRecvWindow);
         }
         order['appendix'] = appendix;
@@ -669,8 +670,9 @@ export default class nado extends Exchange {
         const [ recvWindow, paramsRecvWindow ] = this.handleOptionIntegerAndParams (paramsExpiration, 'editOrder', 'recvWindow', 5000);
         const cancelNonce = this.createOrderNonce (recvWindow);
         const orderNonce = Precise.stringAdd (cancelNonce, '1');
-        let appendix = this.safeString (paramsRecvWindow, 'appendix');
-        if (appendix === undefined) {
+        const rawAppendix = this.safeString (paramsRecvWindow, 'appendix');
+        let appendix = rawAppendix;
+        if (rawAppendix === undefined) {
             appendix = this.createOrderAppendix (false, paramsRecvWindow);
         }
         const requestId = this.safeInteger (paramsRecvWindow, 'id');
@@ -1468,6 +1470,12 @@ export default class nado extends Exchange {
             currency = this.currency (code);
         }
         const [ subaccount, paramsSubaccount ] = this.handleOptionStringAndParams (params, methodName, 'subaccount', 'default');
+        const limitRequest: Dict = {
+            'raw': 100,
+        };
+        if (limit !== undefined) {
+            limitRequest['raw'] = Math.min (limit, 500);
+        }
         const eventsRequest: Dict = {
             'subaccounts': [
                 this.createSubaccount (this.walletAddress, subaccount),
@@ -1475,9 +1483,7 @@ export default class nado extends Exchange {
             'event_types': [
                 eventType,
             ],
-            'limit': {
-                'raw': (limit === undefined) ? 100 : Math.min (limit, 500),
-            },
+            'limit': limitRequest,
         };
         if (currency !== undefined) {
             eventsRequest['product_ids'] = [
@@ -1759,7 +1765,7 @@ export default class nado extends Exchange {
             const quoteId = this.safeString (quoteAsset, 'product_id', rawQuoteId);
             const settleId = contract ? quoteId : undefined;
             const settle = contract ? quote : undefined;
-            let symbol = base + '/' + quote;
+            let symbol: string = base + '/' + quote;
             if (contract) {
                 symbol += ':' + settle;
             }
@@ -1986,14 +1992,18 @@ export default class nado extends Exchange {
             throw new BadSymbol (this.id + ' fetchFundingHistory() supports swap contracts only');
         }
         const [ subaccount, paramsSubaccount ] = this.handleOptionStringAndParams (params, 'fetchFundingHistory', 'subaccount', 'default');
+        const fundingRequest: Dict = {
+            'subaccount': this.createSubaccount (this.walletAddress, subaccount),
+            'product_ids': [
+                this.parseToInt (market['id']),
+            ],
+            'limit': 100,
+        };
+        if (limit !== undefined) {
+            fundingRequest['limit'] = Math.min (limit, 100);
+        }
         const request: Dict = {
-            'interest_and_funding': {
-                'subaccount': this.createSubaccount (this.walletAddress, subaccount),
-                'product_ids': [
-                    this.parseToInt (market['id']),
-                ],
-                'limit': (limit === undefined) ? 100 : Math.min (limit, 100),
-            },
+            'interest_and_funding': fundingRequest,
         };
         const response = await this.archivePost (this.deepExtend (request, paramsSubaccount));
         //
@@ -2360,10 +2370,13 @@ export default class nado extends Exchange {
                 side = 'buy';
             }
         }
-        let price: Str = this.safeString (trade, 'price');
-        if (price === undefined) {
-            const parsedPrice = this.parseX18 (this.safeString (order, 'priceX18'));
-            price = (parsedPrice === undefined) ? undefined : this.numberToString (parsedPrice);
+        const tradePrice = this.safeString (trade, 'price');
+        let price: Str = tradePrice;
+        if (tradePrice === undefined) {
+            const orderPriceX18 = this.safeString (order, 'priceX18');
+            if (orderPriceX18 !== undefined) {
+                price = this.numberToString (this.parseX18 (orderPriceX18));
+            }
         }
         let takerOrMaker: Str = undefined;
         const isTaker = this.safeBool (trade, 'is_taker');
@@ -2945,8 +2958,9 @@ export default class nado extends Exchange {
                     status = 'canceled';
                 }
             } else {
-                status = this.safeString (order, 'status', 'rejected');
-                if ((status === 'success') || (status.indexOf ('waiting') >= 0)) {
+                const rawStatus = this.safeString (order, 'status', 'rejected');
+                status = rawStatus;
+                if ((rawStatus === 'success') || (rawStatus.indexOf ('waiting') >= 0)) {
                     status = 'open';
                 }
             }
@@ -2979,7 +2993,7 @@ export default class nado extends Exchange {
         }, marketResolved);
     }
 
-    parseOrderTimeInForce (timeInForce: Str) {
+    parseOrderTimeInForce (timeInForce: Str): Str {
         const timeInForces: Dict = {
             'default': 'GTC',
             'ioc': 'IOC',
@@ -3050,7 +3064,7 @@ export default class nado extends Exchange {
         return appendix;
     }
 
-    createSubaccount (walletAddress: Str, subaccount: Str = 'default') {
+    createSubaccount (walletAddress: Str, subaccount: Str = 'default'): string {
         if (walletAddress === undefined) {
             throw new ArgumentsRequired (this.id + ' createSubaccount() requires walletAddress');
         }
@@ -3077,7 +3091,7 @@ export default class nado extends Exchange {
         return this.safeDict (this.options, 'gatewayContracts', {});
     }
 
-    orderVerifyingContract (productId: Int) {
+    orderVerifyingContract (productId: Int): string {
         return '0x' + this.padHex (this.intToBase16 (productId), 40);
     }
 
@@ -3086,17 +3100,13 @@ export default class nado extends Exchange {
             throw new ArgumentsRequired (this.id + ' padHex() requires length');
         }
         const zeros = '00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
-        let padded: Str = undefined;
         if (left) {
-            padded = (zeros + value);
-        } else {
-            padded = (value + zeros);
+            const paddedLeft = zeros + value;
+            const start = paddedLeft.length - this.parseToInt (length);
+            return paddedLeft.slice (start, paddedLeft.length);
         }
-        if (left) {
-            const start = padded.length - length;
-            return padded.slice (start, padded.length);
-        }
-        return padded.slice (0, length);
+        const paddedRight = value + zeros;
+        return paddedRight.slice (0, length);
     }
 
     signOrder (order: Dict, productId: Int, chainId: Str): string {
@@ -3178,7 +3188,7 @@ export default class nado extends Exchange {
         return this.signHash (hash, this.privateKey);
     }
 
-    signHash (hash: string, privateKey: Str) {
+    signHash (hash: string, privateKey: Str): string {
         if (privateKey === undefined) {
             throw new ArgumentsRequired (this.id + ' signHash() requires privateKey');
         }
@@ -3189,7 +3199,7 @@ export default class nado extends Exchange {
         return '0x' + this.padHex (r, 64) + this.padHex (s, 64) + v;
     }
 
-    removeMarketSuffix (marketId: Str) {
+    removeMarketSuffix (marketId: Str): Str {
         if (marketId === undefined) {
             return undefined;
         }
@@ -3206,10 +3216,8 @@ export default class nado extends Exchange {
         if (baseApiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
-        let url = baseApiUrl;
-        if (path !== '') {
-            url += '/' + this.implodeParams (path, params);
-        }
+        const pathSuffix = (path !== '') ? ('/' + this.implodeParams (path, params)) : '';
+        let url = baseApiUrl + pathSuffix;
         const query = this.omit (params, this.extractParams (path));
         const headersValue: NullableDict = {};
         if ((endpoint === 'gateway') || (endpoint === 'archive')) {

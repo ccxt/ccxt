@@ -1388,16 +1388,16 @@ export default class bigone extends Exchange {
             'period': this.safeString (this.timeframes, timeframe, timeframe),
             'limit': limitResolved,
         };
-        if (sinceIsDefined) {
+        if (since !== undefined) {
             // const start = this.parseToInt (since / 1000);
             const duration = this.parseTimeframe (timeframe);
-            const endByLimit = this.sum (since, limitResolved * duration * 1000);
-            if (untilIsDefined) {
+            const endByLimit = this.parseToInt (this.sum (since, limitResolved * duration * 1000));
+            if (until !== undefined) {
                 request['time'] = this.iso8601 (Math.min (endByLimit, until + 1));
             } else {
                 request['time'] = this.iso8601 (endByLimit);
             }
-        } else if (untilIsDefined) {
+        } else if (until !== undefined) {
             request['time'] = this.iso8601 (until + 1);
         }
         const paramsOmitted: Dict = this.omit (params, 'until');
@@ -1484,7 +1484,7 @@ export default class bigone extends Exchange {
         return this.parseBalance (response);
     }
 
-    parseType (type: Str) {
+    parseType (type: Str): Str {
         const types: Dict = {
             'STOP_LIMIT': 'limit',
             'STOP_MARKET': 'market',
@@ -1931,7 +1931,7 @@ export default class bigone extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'PENDING': 'open',
             'FILLED': 'closed',
@@ -1977,7 +1977,8 @@ export default class bigone extends Exchange {
     }
 
     override nonce (): number {
-        const exchangeTimeCorrection = this.safeInteger (this.options, 'exchangeMillisecondsCorrection', 0) * 1000000;
+        const exchangeMillisecondsCorrection = this.safeInteger (this.options, 'exchangeMillisecondsCorrection', 0);
+        const exchangeTimeCorrection = exchangeMillisecondsCorrection * 1000000;
         return this.sum (this.microseconds () * 1000, exchangeTimeCorrection);
     }
 
@@ -2077,7 +2078,7 @@ export default class bigone extends Exchange {
         } as DepositAddress;
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             // what are other statuses here?
             'WITHHOLD': 'ok', // deposits

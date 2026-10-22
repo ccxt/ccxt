@@ -687,8 +687,8 @@ export default class ndax extends Exchange {
     }
 
     override parseOrderBook (orderbook: any, symbol: any, timestamp: Int = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey:IndexType = 6, amountKey:IndexType = 8, countOrIdKey: IndexType = 2) {
-        let nonce: Int = undefined;
-        let latestTimestamp: Int = timestamp;
+        let nonce = this.safeInteger (this.safeList (orderbook, 0), 0);
+        let latestTimestamp = this.safeInteger ([ timestamp ], 0);
         const result: Dict = {
             'symbol': symbol,
             'bids': [],
@@ -699,21 +699,13 @@ export default class ndax extends Exchange {
         };
         for (let i = 0; i < orderbook.length; i++) {
             const level = orderbook[i];
-            if (latestTimestamp === undefined) {
-                latestTimestamp = this.safeInteger (level, 2);
-            } else {
-                const newTimestamp = this.safeInteger (level, 2);
-                if (newTimestamp !== undefined) {
-                    latestTimestamp = Math.max (latestTimestamp, newTimestamp);
-                }
+            const newTimestamp = this.safeInteger (level, 2);
+            if ((newTimestamp !== undefined) && ((latestTimestamp === undefined) || (newTimestamp > latestTimestamp))) {
+                latestTimestamp = newTimestamp;
             }
-            if (nonce === undefined) {
-                nonce = this.safeInteger (level, 0);
-            } else {
-                const newNonce = this.safeInteger (level, 0);
-                if (newNonce !== undefined) {
-                    nonce = Math.max (nonce, newNonce);
-                }
+            const newNonce = this.safeInteger (level, 0);
+            if ((newNonce !== undefined) && ((nonce === undefined) || (newNonce > nonce))) {
+                nonce = newNonce;
             }
             const bidask = this.parseOrderBookBidAsk (level, priceKey, amountKey);
             const levelSide = this.safeInteger (level, 9);
@@ -1476,7 +1468,7 @@ export default class ndax extends Exchange {
         return this.parseLedger (response, currency, since, limit);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'Accepted': 'open',
             'Rejected': 'rejected',
@@ -1636,7 +1628,7 @@ export default class ndax extends Exchange {
             // 'OrderIdOCO': 0, // The order ID if One Cancels the Other.
             // 'UseDisplayQuantity': false, // If you enter a Limit order with a reserve, you must set UseDisplayQuantity to true
             'Side': orderSide, // 0 Buy, 1 Sell, 2 Short, 3 unknown an error condition
-            'Quantity': (amountString === undefined) ? undefined : parseFloat (amountString),
+            'Quantity': (amountString === undefined) ? undefined : this.parseNumber (amountString),
             'OrderType': orderType, // 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
             // 'PegPriceType': 3, // 1 Last, 2 Bid, 3 Ask, 4 Midpoint
             // 'LimitPrice': parseFloat (this.priceToPrecision (symbol, price)),
@@ -1647,7 +1639,7 @@ export default class ndax extends Exchange {
             if (limitPriceString === undefined) {
                 limitPriceString = '0';
             }
-            request['LimitPrice'] = parseFloat (limitPriceString);
+            request['LimitPrice'] = this.parseNumber (limitPriceString);
         }
         if (clientOrderId !== undefined) {
             request['ClientOrderId'] = clientOrderId;
@@ -1694,7 +1686,7 @@ export default class ndax extends Exchange {
         const orderSide = (side === 'buy') ? 0 : 1;
         const amountString = this.amountToPrecision (symbol, amount);
         const request: Dict = {
-            'OrderIdToReplace': parseInt (id),
+            'OrderIdToReplace': this.parseToInt (id),
             'InstrumentId': this.parseToInt (market['id']),
             'omsId': omsId,
             'AccountId': accountId,
@@ -1707,7 +1699,7 @@ export default class ndax extends Exchange {
             // 'OrderIdOCO': 0, // The order ID if One Cancels the Other.
             // 'UseDisplayQuantity': false, // If you enter a Limit order with a reserve, you must set UseDisplayQuantity to true
             'Side': orderSide, // 0 Buy, 1 Sell, 2 Short, 3 unknown an error condition
-            'Quantity': (amountString === undefined) ? undefined : parseFloat (amountString),
+            'Quantity': (amountString === undefined) ? undefined : this.parseNumber (amountString),
             'OrderType': this.safeInteger (this.options['orderTypes'], this.capitalize (type)), // 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
             // 'PegPriceType': 3, // 1 Last, 2 Bid, 3 Ask, 4 Midpoint
             // 'LimitPrice': parseFloat (this.priceToPrecision (symbol, price)),
@@ -1718,7 +1710,7 @@ export default class ndax extends Exchange {
             if (limitPriceString === undefined) {
                 limitPriceString = '0';
             }
-            request['LimitPrice'] = parseFloat (limitPriceString);
+            request['LimitPrice'] = this.parseNumber (limitPriceString);
         }
         if (clientOrderId !== undefined) {
             request['ClientOrderId'] = clientOrderId;
@@ -1900,7 +1892,7 @@ export default class ndax extends Exchange {
         if (clientOrderId !== undefined) {
             request['ClOrderId'] = clientOrderId;
         } else {
-            request['OrderId'] = parseInt (id);
+            request['OrderId'] = this.parseToInt (id);
         }
         const paramsOmitted: Dict = this.omit (params, [ 'clientOrderId', 'ClOrderId' ]);
         const response = await this.privatePostCancelOrder (this.extend (request, paramsOmitted));
@@ -2117,7 +2109,7 @@ export default class ndax extends Exchange {
         const request: Dict = {
             'omsId': omsId,
             'AccountId': accountId,
-            'OrderId': parseInt (id),
+            'OrderId': this.parseToInt (id),
         };
         const response = await this.privateGetGetOrderStatus (this.extend (request, paramsOmitted));
         //
@@ -2199,7 +2191,7 @@ export default class ndax extends Exchange {
         const request: Dict = {
             'OMSId': this.parseToInt (omsId),
             // 'AccountId': accountId,
-            'OrderId': parseInt (id),
+            'OrderId': this.parseToInt (id),
         };
         const response = await this.privatePostGetOrderHistoryByOrderId (this.extend (request, params));
         //
@@ -2467,7 +2459,7 @@ export default class ndax extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    parseTransactionStatusByType (status: Str = undefined, type: Str = undefined) {
+    parseTransactionStatusByType (status: Str = undefined, type: Str = undefined): Str {
         const statusesByType: Dict = {
             'deposit': {
                 'New': 'pending', // new ticket awaiting operator review

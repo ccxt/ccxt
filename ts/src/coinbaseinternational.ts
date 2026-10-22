@@ -2481,7 +2481,7 @@ export default class coinbaseinternational extends Exchange {
         return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'open': 'open',
             'cancelled': 'canceled',
@@ -2492,7 +2492,7 @@ export default class coinbaseinternational extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderType (type: Str) {
+    parseOrderType (type: Str): Str {
         const types: Dict = {
             'stop_limit': 'limit',
             'take_limit': 'limit',
@@ -3282,7 +3282,7 @@ export default class coinbaseinternational extends Exchange {
         const rpcMethod = access + '/' + path;
         let requestParams: Dict = this.handleRouteAndParams ('sign', params);
         const isNativeDeribit = this.isNativeDeribitCredentials ();
-        let baseApiUrl = this.urls['api']['rest'];
+        let baseApiUrl = this.safeString (this.urls['api'], 'rest', '');
         if (isNativeDeribit) {
             baseApiUrl = 'https://www.deribit.com/api/v2';
         }

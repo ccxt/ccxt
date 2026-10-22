@@ -21,7 +21,7 @@ export default class okx extends Exchange {
             'name': 'OKX',
             'countries': [ 'CN', 'US' ],
             'version': 'v5',
-            'rateLimit': 100 * 1.10, // 10% tolerance because of #26973
+            'rateLimit': 110, // 100 plus 10% tolerance because of #26973
             'pro': true,
             'certified': true,
             'has': {
@@ -1507,7 +1507,7 @@ export default class okx extends Exchange {
         return super.handleMarketTypeAndParams (methodName, market, paramsOmitted, defaultValue);
     }
 
-    convertToInstrumentType (type: any) {
+    convertToInstrumentType (type: Str): Str {
         const exchangeTypes = this.safeDict (this.options, 'exchangeType', {});
         return this.safeString (exchangeTypes, (type as string), type);
     }
@@ -1768,14 +1768,14 @@ export default class okx extends Exchange {
         } else {
             types = this.safeList (this.options, 'fetchMarkets', types); // backward-support
         }
-        let promises: List = [];
+        const promises: List = [];
         let result: List = [];
         for (let i = 0; i < types.length; i++) {
             promises.push (this.fetchMarketsByType (types[i], params));
         }
-        promises = await Promise.all (promises);
-        for (let i = 0; i < promises.length; i++) {
-            result = this.arrayConcat (result, promises[i]);
+        const responses = await Promise.all (promises);
+        for (let i = 0; i < responses.length; i++) {
+            result = this.arrayConcat (result, responses[i]);
         }
         return result;
     }
@@ -1868,7 +1868,7 @@ export default class okx extends Exchange {
         if ((base === undefined) || (quote === undefined)) {
             return undefined;
         }
-        let symbol = base + '/' + quote;
+        let symbol: string = base + '/' + quote;
         // handle preopen empty markets
         if (base === '' || quote === '') {
             symbol = id;
@@ -2194,17 +2194,16 @@ export default class okx extends Exchange {
         const requestedLimit = (limit === undefined) ? defaultLimit : limit;
         // the rpi book hard-errors with 51000 "Parameter sz error." above 400,
         // including the 5000 that publicGetMarketBooksFull defaults to
-        let limitResolved = requestedLimit;
-        if (rpi && (requestedLimit > 400)) {
-            limitResolved = 400;
-        }
+        const isFullBook = (method === 'publicGetMarketBooksFull');
+        const largeLimit = ((limit === undefined) && isFullBook) || ((limit !== undefined) && (limit > 400));
+        const limitResolved = (rpi && largeLimit) ? 400 : requestedLimit;
         if (limitResolved !== undefined) {
             request['sz'] = limitResolved; // max 400
         }
         let response: Dict;
         if (rpi) {
             response = await this.publicGetMarketBooksRpi (this.extend (request, paramsMethod));
-        } else if ((method === 'publicGetMarketBooksFull') || (limitResolved > 400)) {
+        } else if (isFullBook || largeLimit) {
             response = await this.publicGetMarketBooksFull (this.extend (request, paramsMethod));
         } else {
             response = await this.publicGetMarketBooks (this.extend (request, paramsMethod));
@@ -2750,13 +2749,12 @@ export default class okx extends Exchange {
             const now = this.milliseconds ();
             const durationInMilliseconds = duration * 1000;
             // switch to history candles if since is past the cutoff for current candles
-            const historyBorder = now - ((1440 - 1) * durationInMilliseconds);
+            const historyBorder = now - (1439 * durationInMilliseconds);
             if (since < historyBorder) {
+                // limitResolved is already at most 100 for mark or index candles and 300 otherwise
                 defaultType = 'HistoryCandles';
-                const maxLimit = isMarkOrIndex ? 100 : 300;
-                limitResolved = Math.min (limitResolved, maxLimit);
             }
-            const startTime = Math.max (since - 1, 0);
+            const startTime = (since > 1) ? (since - 1) : 0;
             request['before'] = startTime;
             request['after'] = this.sum (since, durationInMilliseconds * limitResolved);
         }
@@ -3260,13 +3258,12 @@ export default class okx extends Exchange {
         const isReduceOnly = (this.safeBool (params, 'reduceOnly', false)) || (closeFraction !== undefined);
         const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
         let marginMode = this.safeString2 (params, 'marginMode', 'tdMode'); // cross or isolated, tdMode not omitted so as to be extended into the request
-        let margin: Bool = false;
-        if ((marginMode !== undefined) && (marginMode !== 'cash')) {
-            margin = true;
-        } else {
+        const marginModeIsExplicit = (marginMode !== undefined) && (marginMode !== 'cash');
+        if (!marginModeIsExplicit) {
             marginMode = defaultMarginMode;
-            margin = this.safeBool (params, 'margin', false);
         }
+        const marginParam = this.safeBool (params, 'margin', false);
+        const margin = marginModeIsExplicit || (marginParam === true);
         // position side / hedged options only apply to swap and future orders
         const isSwapOrFuture = (contract === true) && ((market['swap'] === true) || (market['future'] === true));
         const [ positionSide, paramsPositionSide ] = this.handleOptionStringAndParams (params, 'createOrder', 'positionSide');
@@ -4190,7 +4187,7 @@ export default class okx extends Exchange {
         return response;
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'canceled': 'canceled',
             'order_failed': 'canceled',
@@ -5339,7 +5336,10 @@ export default class okx extends Exchange {
             // 'limit': 100, // default 100, max 100
         };
         const [ marginModeOption, paramsMarginMode ] = this.handleMarginModeAndParams ('fetchLedger', paramsOmitted);
-        const marginMode: Str = (marginModeOption === undefined) ? this.safeString (paramsMarginMode, 'mgnMode') : marginModeOption;
+        let marginMode: Str = marginModeOption;
+        if (marginMode === undefined) {
+            marginMode = this.safeString (paramsMarginMode, 'mgnMode');
+        }
         if (method !== 'privateGetAssetBills') {
             if (marginMode !== undefined) {
                 request['mgnMode'] = marginMode;
@@ -5992,7 +5992,7 @@ export default class okx extends Exchange {
         return this.parseTransaction (withdrawal);
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         //
         // deposit statuses
         //
@@ -8337,7 +8337,7 @@ export default class okx extends Exchange {
      */
     handleTradingStatisticsWindow (request: Dict, period: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Dict[] {
         const maxLimit = 100;
-        const effectiveLimit = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
+        const effectiveLimit = ((limit === undefined) || (limit > 100)) ? 100 : limit;
         if (limit !== undefined) {
             request['limit'] = effectiveLimit;
         }
@@ -8886,10 +8886,7 @@ export default class okx extends Exchange {
         }
         const request: Dict = {};
         const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, true, true, true);
-        let symbolsLength: Int = undefined;
-        if (symbolsNormalized !== undefined) {
-            symbolsLength = symbolsNormalized.length;
-        }
+        const symbolsLength = (symbolsNormalized === undefined) ? 0 : symbolsNormalized.length;
         if ((symbolsNormalized === undefined) || (symbolsLength !== 1)) {
             const uly = this.safeString (params, 'uly');
             if (uly !== undefined) {

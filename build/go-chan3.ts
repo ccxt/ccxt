@@ -232,7 +232,8 @@ function goChan3WsSend (expr: string, fnMasked: string, want: string | undefined
 }
 
 // a balance local: one `var X any|map[string]any = map[string]any{` declaration, every later write keeps that map
-// (`X = this.MergeBalanceAccount(X, ..)` / `X = this.SafeBalance(X)` return their first argument)
+// (`X = this.MergeBalanceAccount(X, ..)` / `X = this.SafeBalance(X)` return their first argument, bare or
+// inside the printer's `MapTyped(..)` box cast)
 export function goChan3BalanceLocal (fnMasked: string, name: string): boolean {
     if ((fnMasked.match (new RegExp ('(?<![\\w.])var ' + name + '\\b', 'g')) || []).length !== 1) {
         return false;
@@ -244,7 +245,7 @@ export function goChan3BalanceLocal (fnMasked: string, name: string): boolean {
         return false;
     }
     const writes = fnMasked.match (new RegExp ('(?<![\\w.])' + name + '\\s*[-+*/:]?=(?!=)[^\\n]*', 'g')) || [];
-    const keeps = new RegExp ('^' + name + ' = this\\.(?:MergeBalanceAccount\\(' + name + ', |SafeBalance\\(' + name + '\\)$)');
+    const keeps = new RegExp ('^' + name + ' = (?:MapTyped\\()?this\\.(?:MergeBalanceAccount\\(' + name + ', |SafeBalance\\(' + name + '\\)\\)?$)');
     return writes.every ((w) => keeps.test (w));
 }
 

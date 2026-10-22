@@ -16858,3 +16858,2712 @@ export function installJavaNativePadStartFirst (transpiler) {
         return native ?? upstream (node, identation, name, parsedArg, parsedArg2);
     };
 }
+
+// hx4 J04
+// ===== hx4 J04: Helpers.add/subtract/multiply/divide/mod/opNeg on proven typed operands print native =====
+// The helpers widen Integer to Long and return null for a null operand: over non-null int/long operands
+// `+ - *` is the same long box, `/ %` the same double; opNeg negates the exact box; a static String left
+// operand already binds Helpers.add(String, ..) = `a + b`. Proofs: literals, declared types, non-null writes, null guards.
+function j04Ind (l) {
+    return /^\s*/.exec (l)[0].length;
+}
+
+// top-level ` + ` / ` - ` / ` * ` operands of a printed expression, strings masked; undefined when not a chain
+function j04Operands (e) {
+    const mask = longMultiplyMask (e);
+    const out = [];
+    let depth = 0;
+    let last = 0;
+    for (let k = 0; k < mask.length; k++) {
+        const ch = mask[k];
+        if (ch === '(') depth++;
+        else if (ch === ')') depth--;
+        else if (depth === 0 && /^ [-+*] /.test (mask.slice (k, k + 3))) {
+            out.push (e.slice (last, k));
+            last = k + 3;
+            k += 2;
+        }
+    }
+    out.push (e.slice (last));
+    return out.length > 1 ? out : undefined;
+}
+
+// 'intlit' | 'int' | 'long' | 'double' for a printed operand that is never null; undefined when unproven
+function j04Kind (ctx, text, nn) {
+    const e = longLimitStrip (text);
+    if (LONG_LIMIT_INT.test (e)) return 'intlit';
+    if (/^-?\d+L$/.test (e)) return 'long';
+    // BaseExchange declares `Long milliseconds()/seconds()` (never null) and `int parseTimeframe (Object)`
+    if (/^this\.(?:milliseconds|seconds)\(\)$/.test (e)) return 'long';
+    if (/^this\.parseTimeframe\((?:[A-Za-z_]\w*|java\.util\.Objects\.requireNonNullElse\([A-Za-z_]\w*, "\w+"\))\)$/.test (e)) return 'int';
+    // Helpers declares `int getArrayLength (Object)`
+    if (/^Helpers\.getArrayLength\([A-Za-z_]\w*\)$/.test (e)) return 'int';
+    const cast = /^\(long\) (.*)$/.exec (e);
+    if (cast !== null) {
+        const k = j04Kind (ctx, cast[1], nn);
+        return (k !== undefined && k !== 'double') ? 'long' : undefined;
+    }
+    if (/^[A-Za-z_]\w*$/.test (e)) {
+        const t = ctx.declType (e);
+        if (t === 'int' || t === 'long') return t;
+        if (t === 'Long' || t === 'Integer' || t === 'Double') return nn (e) ? { Long: 'long', Integer: 'int', Double: 'double' }[t] : undefined;
+        return undefined;
+    }
+    const ops = j04Operands (e);
+    if (ops !== undefined) {
+        const ks = ops.map ((o) => j04Kind (ctx, o, nn));
+        if (ks.includes (undefined) || ks.includes ('double')) return undefined;
+        return ks.includes ('long') ? 'long' : 'int';
+    }
+    return undefined;
+}
+
+// a printed value that is never null (the local it initialises can be read unguarded)
+function j04NonNullValue (ctx, value, nn) {
+    const e = longLimitStrip (value);
+    const k = j04Kind (ctx, e, nn);
+    if (k !== undefined && k !== 'double') return true;
+    // Math.min/max return a primitive (a null box throws before the write)
+    for (const callee of [ 'Math.min', 'Math.max' ]) {
+        if (longLimitCallArgs (longMultiplyMask (e), callee) !== undefined) return true;
+    }
+    // SafeIntegerN answers its converted default for every miss: an integer-literal default is never null
+    const safe = /^this\.(safeInteger|safeInteger2|safeIntegerN)\(/.exec (e);
+    if (safe !== null) {
+        const args = longLimitCallArgs (e, 'this.' + safe[1]);
+        const min = safe[1] === 'safeInteger2' ? 4 : 3;
+        if (args !== undefined && args.length === min && /^-?\d+L?$/.test (args[min - 1])) return true;
+    }
+    const t = longLimitSplitTernary (e);
+    if (t !== undefined) {
+        const g = /^(!?)java\.util\.Objects\.equals\(([A-Za-z_]\w*), null\)$/.exec (longLimitStrip (t.cond));
+        const arm = (a, isTrue) => (g !== null && longLimitStrip (a) === g[2] && (g[1] === '!') === isTrue
+            && [ 'Long', 'Integer' ].includes (ctx.declType (g[2]))) || j04NonNullValue (ctx, a, nn);
+        return arm (t.whenTrue, true) && arm (t.whenFalse, false);
+    }
+    return false;
+}
+
+// names a `!Objects.equals(x, null)` conjunction (positive) or `Objects.equals(x, null)` disjunction (negated) proves
+function j04GuardNames (cond, negated) {
+    const c = longLimitStrip (cond);
+    if (/[?:]/.test (longMultiplyMask (c)) || (negated ? / && /.test (c) : / \|\| /.test (c))) return [];
+    const re = negated ? /^java\.util\.Objects\.equals\(([A-Za-z_]\w*), null\)$/ : /^!java\.util\.Objects\.equals\(([A-Za-z_]\w*), null\)$/;
+    const out = [];
+    for (const p of c.split (negated ? ' || ' : ' && ')) {
+        const x = re.exec (longLimitStrip (p));
+        if (x !== null) out.push (x[1]);
+    }
+    return out;
+}
+
+function j04MemberCtx (lines, from, to) {
+    const declCache = new Map ();
+    const ctx = {
+        declType: (name) => {
+            if (!declCache.has (name)) {
+                const d = longLimitDeclarations (lines, from, to, name);
+                declCache.set (name, d.length === 1 ? d[0].type.replace (/^final\s+/, '') : undefined);
+            }
+            return declCache.get (name);
+        },
+    };
+    // the lines writing `name` (declaration initialiser included); undefined when a write is compound or unparsed
+    const writeCache = new Map ();
+    const writes = (name) => {
+        if (writeCache.has (name)) return writeCache.get (name);
+        const decl = new RegExp (`^\\s*(?:final\\s+)?[A-Za-z_][\\w.<>, ]*? ${name} = (.*?);(\\s*//.*)?$`);
+        const plain = new RegExp (`^\\s*${name} = (.*?);(\\s*//.*)?$`);
+        const other = new RegExp (`(?<![\\w$.])${name}\\s*(?:\\+\\+|--|[-+*/%]=)|(?:\\+\\+|--)${name}\\b`);
+        const any = new RegExp (`(?<![\\w$.])${name}\\s*=(?!=)`);
+        let out = [];
+        for (let w = from + 1; w < to && out !== undefined; w++) {
+            const code = longLimitCodeOnly (lines[w]);
+            if (!new RegExp (`(?<![\\w$.])${name}\\b`).test (code)) continue;
+            if (other.test (code)) { out = undefined; break; }
+            const m = decl.exec (lines[w]) ?? plain.exec (lines[w]);
+            if (m !== null) out.push ({ line: w, value: m[1].trim () });
+            else if (any.test (code)) out = undefined;
+        }
+        writeCache.set (name, out);
+        return out;
+    };
+    // the guard at line g holds at line j: every write precedes it, no lambda between, and a guard
+    // inside a loop needs a single-assignment local (a later write cannot reach the next iteration)
+    const guardHolds = (name, g, j) => {
+        const ws = writes (name);
+        if (ws === undefined || ws.some ((w) => w.line >= g) || lines.slice (g, j + 1).some ((l) => /->/.test (l))) return false;
+        if (ws.length > 1) {
+            for (let k = g - 1; k > from; k--) {
+                if (!/^\s*(?:for|while|do)\b/.test (lines[k]) || j04Ind (lines[k]) >= j04Ind (lines[g])) continue;
+                let open = true;
+                for (let x = k + 2; x < g; x++) if (lines[x].trim () !== '' && j04Ind (lines[x]) <= j04Ind (lines[k])) { open = false; break; }
+                if (open) return false;
+            }
+        }
+        return true;
+    };
+    const guardCache = new Map ();
+    const guardedAt = (j) => {
+        if (guardCache.has (j)) return guardCache.get (j);
+        const out = new Set ();
+        const ij = j04Ind (lines[j]);
+        for (let g = j - 1; g > from; g--) {
+            const m = /^(\s*)(?:} else )?if \((.*)\)$/.exec (lines[g]);
+            if (m === null || lines[g + 1]?.trim () !== '{' || j04Ind (lines[g + 1]) !== m[1].length) continue;
+            const ig = m[1].length;
+            if (ig < ij) {
+                // `if (!Objects.equals(x, null) && ..)` whose then-block is still open at j
+                let open = true;
+                for (let k = g + 2; k < j; k++) if (lines[k].trim () !== '' && j04Ind (lines[k]) <= ig) { open = false; break; }
+                if (open) for (const x of j04GuardNames (m[2], false)) if (guardHolds (x, g, j)) out.add (x);
+            }
+            // `if (Objects.equals(x, null) || ..) { return|throw ..; }` earlier in an enclosing block
+            const body = lines[g + 2]?.trim () ?? '';
+            if (ig > ij || g + 3 >= j || !/^(?:return|throw)\b.*;$/.test (body) || lines[g + 3]?.trim () !== '}' || j04Ind (lines[g + 3]) !== ig) continue;
+            if (/^\s*else\b/.test (lines[g + 4] ?? '')) continue;
+            let scoped = true;
+            for (let k = g + 4; k < j; k++) if (lines[k].trim () !== '' && j04Ind (lines[k]) < ig) { scoped = false; break; }
+            if (scoped) for (const x of j04GuardNames (m[2], true)) if (guardHolds (x, g, j)) out.add (x);
+        }
+        guardCache.set (j, out);
+        return out;
+    };
+    const memo = new Map ();
+    // a declared local whose every write is a non-null value
+    const writesNonNull = (name, seen) => {
+        if (memo.has (name)) return memo.get (name);
+        if (seen.has (name)) return false;
+        seen.add (name);
+        const ws = writes (name);
+        const ok = ws !== undefined && ws.length > 0 && [ 'Long', 'Integer' ].includes (ctx.declType (name))
+            && new RegExp (`^\\s*(?:final\\s+)?(?:Long|Integer) ${name} = `).test (lines[ws[0].line])
+            && ws.every ((w) => j04NonNullValue (ctx, w.value, (n) => guardedAt (w.line).has (n) || writesNonNull (n, seen)));
+        seen.delete (name);
+        memo.set (name, ok);
+        return ok;
+    };
+    const nonNullAt = (name, j) => guardedAt (j).has (name) || ([ 'Long', 'Integer' ].includes (ctx.declType (name)) && writesNonNull (name, new Set ()));
+    return { ctx, nonNullAt };
+}
+
+// names the true arm of an enclosing `(!Objects.equals(x, null) && ..) ? <arm> : ..` proves at `start`
+function j04TernaryGuarded (mask, line, start) {
+    const out = new Set ();
+    for (let q = start - 1; q > 1; q--) {
+        if (mask[q] !== '?' || mask[q - 1] !== ' ' || mask[q + 1] !== ' ') continue;
+        let depth = 0;
+        let inArm = true;
+        for (let k = q + 1; k < start && inArm; k++) {
+            if (mask[k] === '(') depth++;
+            else if (mask[k] === ')') { depth--; if (depth < 0) inArm = false; }
+            else if (mask[k] === ':' && depth === 0) inArm = false;
+        }
+        if (!inArm || mask[q - 2] !== ')') continue;
+        let k = q - 2;
+        for (let d = 0; k >= 0; k--) {
+            if (mask[k] === ')') d++;
+            else if (mask[k] === '(' && --d === 0) break;
+        }
+        // the parenthesised group must be the whole condition
+        const head = mask.slice (0, k).trimEnd ();
+        if (k < 0 || !(/[(,]$/.test (head) || /(?<![=!<>])=$/.test (head) || /\breturn$/.test (head))) continue;
+        for (const x of j04GuardNames (line.slice (k, q - 1), false)) out.add (x);
+    }
+    return out;
+}
+
+// a position where the primitive reads exactly like the helper's box: a call argument, assignment or return value
+// (not a statement, cast, ternary arm, reference compare, receiver)
+function j04PlainValuePosition (mask, start, close) {
+    const before = mask.slice (0, start).trimEnd ();
+    const after = mask.slice (close + 1);
+    if (before === '' || /[;{})]$/.test (before) || /[?:][\s(]*$/.test (before) || /^[\s)]*[?:]/.test (after)) return false;
+    if (/[=!]=[\s(]*$/.test (before) || /^[\s)]*(?:[=!]=|instanceof\b)/.test (after) || /^\s*[.[]/.test (after)) return false;
+    return true;
+}
+
+function j04Member (lines, from, to) {
+    let state;
+    let changed = false;
+    const helpers = [ [ 'Helpers.add(', '+' ], [ 'Helpers.subtract(', '-' ], [ 'Helpers.multiply(', '*' ],
+        [ 'Helpers.divide(', '/' ], [ 'Helpers.mod(', '%' ], [ 'Helpers.opNeg(', 'neg' ] ];
+    const atom = (e) => (/^[\w.]+(\(\))?$/.test (e) || /^"(?:[^"\\]|\\.)*"$/.test (e) ? e : `(${e})`);
+    for (let j = from + 1; j < to; j++) {
+        if (!helpers.some (([ h ]) => lines[j].includes (h))) continue;
+        state = state ?? j04MemberCtx (lines, from, to);
+        let line = lines[j];
+        const mask0 = longMultiplyMask (line);
+        const starts = [];
+        for (const [ h, op ] of helpers) {
+            for (let k = mask0.indexOf (h); k !== -1; k = mask0.indexOf (h, k + 1)) {
+                if (k === 0 || !/[\w.]/.test (mask0[k - 1])) starts.push ([ k, h, op ]);
+            }
+        }
+        // innermost (rightmost) first, so an outer call sees the native inner value
+        starts.sort ((a, b) => b[0] - a[0]);
+        for (const [ start, h, op ] of starts) {
+            const mask = longMultiplyMask (line);
+            const call = longMultiplyArgSpans (mask, start + h.length - 1);
+            if (call === undefined || call.spans.length !== (op === 'neg' ? 1 : 2)) continue;
+            const args = call.spans.map (([ x, y ]) => longLimitStrip (line.slice (x, y)));
+            const before = mask.slice (0, start).trimEnd ();
+            let text;
+            if (op === '+' && (/^"(?:[^"\\]|\\.)*"$/.test (args[0]) || (/^[A-Za-z_]\w*$/.test (args[0]) && state.ctx.declType (args[0]) === 'String'))) {
+                // a static String left operand binds add(String, String|Object): `a + String.valueOf(b)` is `a + b`
+                if (before === '' || /[;{}]$/.test (before)) continue;
+                text = `(${atom (args[0])} + ${atom (args[1])})`;
+            } else {
+                if (!j04PlainValuePosition (mask, start, call.close)) continue;
+                const ternary = j04TernaryGuarded (mask, line, start);
+                const nn = (n) => ternary.has (n) || state.nonNullAt (n, j);
+                const kinds = args.map ((a) => j04Kind (state.ctx, a, nn));
+                if (kinds.includes (undefined)) continue;
+                if (op === 'neg') {
+                    // opNeg negates the exact box: no widening, a literal keeps its own type
+                    text = `(-${atom (args[0])})`;
+                } else if (kinds.includes ('double')) {
+                    continue;
+                } else if (op === '/' || op === '%') {
+                    text = `(((double) ${atom (args[0])}) ${op} ((double) ${atom (args[1])}))`;
+                } else {
+                    const show = (a, k) => (k === 'intlit' ? a + 'L' : atom (a));
+                    // an all-int value is computed in long: the helper widens Integer to Long first
+                    const allInt = kinds.every ((k) => k === 'int');
+                    text = `(${allInt ? `((long) ${atom (args[0])})` : show (args[0], kinds[0])} ${op} ${show (args[1], kinds[1])})`;
+                }
+            }
+            line = line.slice (0, start) + text + line.slice (call.close + 1);
+        }
+        if (line !== lines[j]) { lines[j] = line; changed = true; }
+    }
+    return changed;
+}
+
+export function nativeJavaJ04Arithmetic (content) {
+    if (!/Helpers\.(?:add|subtract|multiply|divide|mod|opNeg)\(/.test (content)) return content;
+    const lines = content.split ('\n');
+    const starts = [];
+    for (let i = 0; i < lines.length; i++) if (LONG_LIMIT_MEMBER_START.test (lines[i])) starts.push (i);
+    let changed = false;
+    for (let s = 0; s < starts.length; s++) {
+        if (j04Member (lines, starts[s], s + 1 < starts.length ? starts[s + 1] : lines.length)) changed = true;
+    }
+    return changed ? lines.join ('\n') : content;
+}
+
+// hx4 J08: Helpers.replace(r, "a", "b") with literal args on a string-typed identifier / this.x
+// receiver -> (r == null ? null : ((String)r).replaceFirst(...)); Pattern.quote / quoteReplacement
+// keep literal first-occurrence semantics when the literal holds regex or `$`/`\` characters.
+function j08ReplaceReceiverNode (node) {
+    let receiver = node?.expression?.expression;
+    while (receiver !== undefined && (ts.isParenthesizedExpression (receiver)
+        || ((ts.isAsExpression (receiver) || ts.isTypeAssertion (receiver)) && receiver.type?.kind === ts.SyntaxKind.StringKeyword))) {
+        receiver = receiver.expression;
+    }
+    return receiver;
+}
+
+function j08ReplaceReceiverIsPlain (node) {
+    if (node === undefined) {
+        return false;
+    }
+    if (ts.isIdentifier (node)) {
+        return true;
+    }
+    return ts.isPropertyAccessExpression (node) && ts.isIdentifier (node.name)
+        && (node.expression.kind === ts.SyntaxKind.ThisKeyword || j08ReplaceReceiverIsPlain (node.expression))
+        && node.expression.kind !== ts.SyntaxKind.Identifier;
+}
+
+function j08ReplaceStringTyped (printer, node) {
+    const type = printer.getChecker ().getTypeAtLocation (node);
+    if (type === undefined) {
+        return false;
+    }
+    const members = (type.flags & ts.TypeFlags.Union) !== 0 ? (type.types ?? []) : [ type ];
+    let sawString = false;
+    for (const member of members) {
+        if ((member.flags & (ts.TypeFlags.String | ts.TypeFlags.StringLiteral)) !== 0) {
+            sawString = true;
+        } else if ((member.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)) === 0) {
+            return false;
+        }
+    }
+    return sawString;
+}
+
+function j08NativeReplaceText (printer, node, out) {
+    const args = node?.arguments;
+    if (typeof out !== 'string' || args === undefined || args.length !== 2
+        || !ts.isStringLiteral (args[0]) || !ts.isStringLiteral (args[1]) || args[0].text === '') {
+        return out;
+    }
+    const shape = /^Helpers\.replace\((?:\(\(String\)([\w$]+(?:\.[\w$]+)*)\)|\(String\)([\w$]+(?:\.[\w$]+)*)|([\w$]+(?:\.[\w$]+)*)), (?:\(String\))?("[^"\\]*"), (?:\(String\))?("[^"\\]*")\)$/;
+    const m = shape.exec (out);
+    if (m === null) {
+        return out;
+    }
+    const receiver = j08ReplaceReceiverNode (node);
+    if (!j08ReplaceReceiverIsPlain (receiver) || !j08ReplaceStringTyped (printer, receiver)) {
+        return out;
+    }
+    const recv = m[1] ?? m[2] ?? m[3];
+    // the printed literal must be the TS literal verbatim (no escapes were needed)
+    if (m[4] !== JSON.stringify (args[0].text) || m[5] !== JSON.stringify (args[1].text)) {
+        return out;
+    }
+    const pattern = JAVA_REPLACE_REGEX_CHARS.test (args[0].text) ? `java.util.regex.Pattern.quote(${m[4]})` : m[4];
+    const replacement = /[$\\]/.test (args[1].text) ? `java.util.regex.Matcher.quoteReplacement(${m[5]})` : m[5];
+    return `(${recv} == null ? null : ((String)${recv}).replaceFirst(${pattern}, ${replacement}))`;
+}
+
+export function installJ08NativeReplace (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printReplaceCall !== 'function' || printer._j08NativeReplacePatched) {
+        return;
+    }
+    printer._j08NativeReplacePatched = true;
+    // the guarded native print is a String too: keep `String x = ` local typing on it
+    const entry = RECEIVER_METHOD_LOCAL_ENTRIES.replace;
+    const previous = entry.match;
+    const guarded = /^\(([\w$.]+) == null \? null : \(\(String\)\1\)\.replaceFirst\(/;
+    entry.match = { test: (text) => previous.test (text) || guarded.test (text) };
+    const upstream = printer.printReplaceCall.bind (printer);
+    printer.printReplaceCall = function (node, identation, name, parsedArg, parsedArg2) {
+        const out = upstream (node, identation, name, parsedArg, parsedArg2);
+        try {
+            return j08NativeReplaceText (this, node, out);
+        } catch (e) {
+            return out;
+        }
+    };
+}
+
+// hx4 J10
+// ===== hx4 J10 (A): venue defaulted boolean parameters print `Boolean` =====
+// Per venue file (method -> positions): every declaration defaults to a boolean literal, is never written,
+// and every call passes a literal, nothing, null or a Boolean/boolean-declared value. Same proof as section 43,
+// scoped to one file so a same-named method in another venue keeps its own signature.
+function j10BooleanParamTable () {
+    return {
+        'extended.ts': { getExtendedStarkAmount: [ 2 ] },
+        'hyperliquid.ts': { constructPhantomAgent: [ 1 ], isUnifiedEnabled: [ 2 ] },
+        'kucoin.ts': { handleTradeType: [ 2 ] },
+        'binance.ts': { parseBalanceCustom: [ 3 ] },
+        'cex.ts': { parseTradingFees: [ 1 ] },
+        'paradex.ts': { signOrderRequest: [ 1 ] },
+        'prediction/hyperliquid.ts': { constructPhantomAgent: [ 1 ] },
+        'prediction/limitless.ts': { applyScale: [ 1 ] },
+        'pro/backpack.ts': { watchPublic: [ 3 ], watchPrivate: [ 3 ] },
+        'pro/bybit.ts': { getUrlByMarketType: [ 1 ] },
+        'pro/gate.ts': { getUrlByMarketType: [ 1 ], subscribePrivate: [ 5 ] },
+        'pro/grvt.ts': { subscribeMultiple: [ 3 ] },
+        'pro/htx.ts': { getUrlByMarketType: [ 2, 3, 4 ] },
+        'pro/weex.ts': { subscribePublic: [ 2 ], subscribePrivate: [ 3 ] },
+    };
+}
+
+function j10BooleanParamType (printer, node) {
+    const method = node?.parent;
+    if (node?.kind !== ts.SyntaxKind.Parameter || method?.kind !== ts.SyntaxKind.MethodDeclaration || !ts.isIdentifier (method.name ?? {})) {
+        return undefined;
+    }
+    const fileName = node.getSourceFile ().fileName.replace (/\\/g, '/');
+    const m = /\/ts\/src\/((?:pro\/|prediction\/)?[a-z0-9]+\.ts)$/.exec (fileName);
+    const positions = m === null ? undefined : j10BooleanParamTable ()[m[1]]?.[method.name.text];
+    if (!Array.isArray (positions) || !positions.includes (method.parameters.indexOf (node)) || !printer.javaIsPrintedMethod (method)) {
+        return undefined;
+    }
+    const annotation = node.type === undefined ? '' : node.type.getText ().replace (/\s/g, '');
+    if (!isBooleanLiteralNode (node.initializer) || ![ '', 'boolean', 'Bool' ].includes (annotation)
+        || !ts.isIdentifier (node.name) || printer.javaParameterIsWritten (node)) {
+        throw new Error (`hx4 J10: ${method.name.text} (${m[1]}) param ${node.name.getText ()} is not a read-only boolean-literal default`);
+    }
+    return 'Boolean';
+}
+
+// ===== hx4 J10 (B): integer-literal counters print `long` =====
+// `let x = <int>` whose every write is `<int>`, `x ± <int>`, `x ±= <int>` or `x++`/`x--`, and whose every read is an
+// ordering comparison, an arithmetic operand, an element index or a this.sum argument: each of those reads goes
+// through a helper that normalises Integer to Long, or through the printer's native long rule, so the value is unchanged.
+function j10IntLiteral (node) {
+    const n = unwrapParens (node);
+    const lit = n !== undefined && ts.isPrefixUnaryExpression (n) && n.operator === ts.SyntaxKind.MinusToken ? n.operand : n;
+    return lit !== undefined && ts.isNumericLiteral (lit) && /^\d{1,9}$/.test (lit.text);
+}
+
+function j10SameSymbol (checker, symbol, node) {
+    const n = unwrapParens (node);
+    return n !== undefined && ts.isIdentifier (n) && checker.getSymbolAtLocation (n) === symbol;
+}
+
+const J10_ORDER_OPS = new Set ([ ts.SyntaxKind.LessThanToken, ts.SyntaxKind.LessThanEqualsToken, ts.SyntaxKind.GreaterThanToken, ts.SyntaxKind.GreaterThanEqualsToken,
+    ts.SyntaxKind.EqualsEqualsEqualsToken, ts.SyntaxKind.ExclamationEqualsEqualsToken ]);
+const J10_ARITH_OPS = new Set ([ ts.SyntaxKind.PlusToken, ts.SyntaxKind.MinusToken, ts.SyntaxKind.AsteriskToken, ts.SyntaxKind.SlashToken, ts.SyntaxKind.PercentToken ]);
+
+// the write shape of an assignment to the counter: 'lit' | '+' | '-' (with its int literal), or undefined
+function j10CounterWrite (checker, symbol, binary) {
+    const op = binary.operatorToken.kind;
+    if (op === ts.SyntaxKind.PlusEqualsToken || op === ts.SyntaxKind.MinusEqualsToken) {
+        return j10IntLiteral (binary.right) ? { op: op === ts.SyntaxKind.PlusEqualsToken ? '+' : '-', literal: unwrapParens (binary.right) } : undefined;
+    }
+    if (op !== ts.SyntaxKind.EqualsToken) {
+        return undefined;
+    }
+    if (j10IntLiteral (binary.right)) {
+        return { op: 'lit', literal: unwrapParens (binary.right) };
+    }
+    const r = unwrapParens (binary.right);
+    if (r !== undefined && ts.isBinaryExpression (r) && (r.operatorToken.kind === ts.SyntaxKind.PlusToken || r.operatorToken.kind === ts.SyntaxKind.MinusToken)
+        && j10SameSymbol (checker, symbol, r.left) && j10IntLiteral (r.right)) {
+        return { op: r.operatorToken.kind === ts.SyntaxKind.PlusToken ? '+' : '-', literal: unwrapParens (r.right) };
+    }
+    return undefined;
+}
+
+function j10CounterAdmitted (printer, declaration) {
+    if (!ts.isVariableDeclaration (declaration) || !ts.isIdentifier (declaration.name) || !j10IntLiteral (declaration.initializer)) {
+        return false;
+    }
+    const list = declaration.parent;
+    if (!ts.isVariableDeclarationList (list) || list.declarations.length !== 1 || (list.flags & ts.NodeFlags.Let) === 0
+        || ts.isForStatement (list.parent) || ts.isForInStatement (list.parent) || ts.isForOfStatement (list.parent)) {
+        return false;
+    }
+    const checker = printer.getChecker ();
+    const symbol = checker.getSymbolAtLocation (declaration.name);
+    const scope = enclosingFunction (declaration);
+    if (symbol === undefined || scope === undefined || printer.printNode (declaration.name, 0) !== declaration.name.text) {
+        return false;
+    }
+    let writes = 0;
+    for (const n of identifierIndex (scope).get (declaration.name.text) ?? []) {
+        if (n === declaration.name || checker.getSymbolAtLocation (n) !== symbol) {
+            continue;
+        }
+        if (enclosingFunction (n) !== scope) {
+            return false; // a closure capture
+        }
+        let child = n;
+        let parent = n.parent;
+        while (parent !== undefined && ts.isParenthesizedExpression (parent)) {
+            child = parent;
+            parent = parent.parent;
+        }
+        if (parent === undefined) {
+            return false;
+        }
+        if ((ts.isPostfixUnaryExpression (parent) || ts.isPrefixUnaryExpression (parent))
+            && (parent.operator === ts.SyntaxKind.PlusPlusToken || parent.operator === ts.SyntaxKind.MinusMinusToken)) {
+            if (!ts.isExpressionStatement (parent.parent) && !(ts.isForStatement (parent.parent) && parent.parent.incrementor === parent)) {
+                return false;
+            }
+            writes++;
+            continue;
+        }
+        if (ts.isBinaryExpression (parent)) {
+            const op = parent.operatorToken.kind;
+            if (parent.left === child && op >= ts.SyntaxKind.FirstAssignment && op <= ts.SyntaxKind.LastAssignment) {
+                if (child !== n || j10CounterWrite (checker, symbol, parent) === undefined || !ts.isExpressionStatement (parent.parent)) {
+                    return false;
+                }
+                writes++;
+                continue;
+            }
+            if (J10_ORDER_OPS.has (op) || J10_ARITH_OPS.has (op)) {
+                continue;
+            }
+            return false;
+        }
+        if (ts.isElementAccessExpression (parent) && parent.argumentExpression === child) {
+            continue;
+        }
+        if (ts.isCallExpression (parent) && parent.arguments.includes (child) && isThisCall (parent) && parent.expression.name.text === 'sum') {
+            continue;
+        }
+        return false;
+    }
+    return writes > 0;
+}
+
+function j10CounterDeclaration (printer, node, memo) {
+    if (node === undefined || !ts.isIdentifier (node)) {
+        return undefined;
+    }
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getSymbolAtLocation (node)?.valueDeclaration?.resolve ();
+    } catch (e) {
+        return undefined;
+    }
+    if (declaration === undefined || !ts.isVariableDeclaration (declaration)) {
+        return undefined;
+    }
+    if (!memo.has (declaration)) {
+        let ok = false;
+        try {
+            ok = j10CounterAdmitted (printer, declaration);
+        } catch (e) {
+            ok = false;
+        }
+        memo.set (declaration, ok);
+    }
+    return memo.get (declaration) ? declaration : undefined;
+}
+
+export function installJ10Types (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.javaOptionalParameterTypeOf !== 'function' || printer._j10TypesPatched) {
+        return;
+    }
+    printer._j10TypesPatched = true;
+    // (A) defaulted boolean params
+    const upstreamType = printer.javaOptionalParameterTypeOf.bind (printer);
+    printer.javaOptionalParameterTypeOf = function (node) {
+        return j10BooleanParamType (printer, node) ?? upstreamType (node);
+    };
+    const upstreamConvert = printer.javaConvertToCoreType.bind (printer);
+    printer.javaConvertToCoreType = function (type, printed, node) {
+        if (type === 'Boolean' && node !== undefined && unwrapParens (node)?.kind !== ts.SyntaxKind.NullKeyword
+            && !(ts.isIdentifier (node) && node.text === 'undefined') && javaBooleanArgumentIsTyped (printer, node)) {
+            return printed;
+        }
+        return upstreamConvert (type, printed, node);
+    };
+    const upstreamCondition = printer.printCondition.bind (printer);
+    printer.printCondition = function (node, identation) {
+        const bare = unwrapParens (node);
+        if (bare?.kind === ts.SyntaxKind.Identifier) {
+            const declaration = printer.javaDeclarationOfIdentifier (bare);
+            const printed = printer.printNode (bare, 0);
+            if (declaration?.kind === ts.SyntaxKind.Parameter && j10BooleanParamType (printer, declaration) === 'Boolean'
+                && printed.startsWith ('java.util.Objects.requireNonNullElse(')) {
+                return printer.getIden (identation) + printed;
+            }
+        }
+        return upstreamCondition (node, identation);
+    };
+    // (B) counters
+    const memo = new WeakMap ();
+    publishJavaDeclaredLocalTypes (printer, (declaration) => (declaration !== undefined && ts.isVariableDeclaration (declaration)
+        && j10CounterDeclaration (printer, declaration.name, memo) === declaration ? 'long' : undefined));
+    const upstreamList = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstreamList (node, identation);
+        const declaration = node.declarations?.length === 1 ? node.declarations[0] : undefined;
+        if (declaration === undefined || j10CounterDeclaration (printer, declaration.name, memo) !== declaration) {
+            return printed;
+        }
+        const m = new RegExp (`(?:${printer.VAR_TOKEN}|Integer|Long|int|long) ${declaration.name.text} = `).exec (printed);
+        if (m === null) {
+            throw new Error (`hx4 J10: counter ${declaration.name.text} printed without a numeric declaration`);
+        }
+        return printed.slice (0, m.index) + `long ${declaration.name.text} = ` + printed.slice (m.index + m[0].length);
+    };
+    const upstreamBinary = printer.printBinaryExpression.bind (printer);
+    printer.printBinaryExpression = function (node, identation) {
+        const op = node.operatorToken.kind;
+        if (op >= ts.SyntaxKind.FirstAssignment && op <= ts.SyntaxKind.LastAssignment && ts.isIdentifier (node.left)) {
+            const declaration = j10CounterDeclaration (printer, node.left, memo);
+            if (declaration !== undefined) {
+                const write = j10CounterWrite (printer.getChecker (), printer.getChecker ().getSymbolAtLocation (node.left), node);
+                const name = node.left.text;
+                const lit = printer.printNode (write.literal, 0).replace (/^\((.*)\)$/, '$1');
+                return write.op === 'lit' ? `${name} = ${lit}` : `${name} = (${name} ${write.op} ${lit}L)`;
+            }
+        }
+        return upstreamBinary (node, identation);
+    };
+}
+
+// ===== hx4 J11: Object locals that only ever hold a Map print java.util.Map<String, Object> =====
+// Joins what sections 13/16/50 keep apart: a casted Map producer (base safeDict*, a fresh-map method)
+// with omit-of-self / Map-copy writes. The J01 put and J02 get rules then see a declared Map receiver.
+const J11_MAP_CAST = '(java.util.Map<String, Object>)';
+
+// { cast } when the printed value is a Map (or null) on every path, else undefined
+function j11MapValue (printer, node, declaration, depth = 0) {
+    const value = unwrapParens (node);
+    if (value === undefined || depth > 3) {
+        return undefined;
+    }
+    if (isNullishInitializer (value)) {
+        return { cast: false };
+    }
+    if (ts.isObjectLiteralExpression (value)) {
+        return literalObjectLiteralIsPlain (value) ? { cast: false } : undefined;
+    }
+    if (ts.isIdentifier (value)) {
+        return value.text === declaration.name.text || javaOmitSourceIsMap (printer, value, 0) ? { cast: false } : undefined;
+    }
+    if (!ts.isCallExpression (value) || !isThisCall (value) || value.arguments.some ((a) => ts.isSpreadElement (a))) {
+        return undefined;
+    }
+    if (javaOmitMapCall (printer, value) !== undefined || javaOmitSelfCall (printer, value, declaration)) {
+        return { cast: false }; // the typed omit(Map, ..) overload returns a fresh Map
+    }
+    const name = String (value.expression.name.text);
+    const defaultAt = SAFE_DICT_ACCESSORS.get (name);
+    if (defaultAt !== undefined) {
+        // BaseExchange.safeDict* hands back a Map element of the source or the default untouched
+        if (!resolvesToBaseOrStrippedAccessor (printer, value, name) || value.arguments.length > defaultAt + 1) {
+            return undefined;
+        }
+        const fallback = value.arguments[defaultAt];
+        return fallback === undefined || j11MapValue (printer, fallback, declaration, depth + 1) !== undefined ? { cast: true } : undefined;
+    }
+    const collection = collectionCallInfo (printer, value);
+    if (collection !== undefined) {
+        return collection.type === JAVA_MAP_TYPE ? { cast: collection.cast } : undefined;
+    }
+    // a method whose every dispatchable body returns a fresh map literal / extend (account, depositWithdrawFee)
+    if (!javaFreshMapMethods ().classes.has (path.resolve (value.getSourceFile ().fileName))) {
+        javaFreshMapMethodIndex = undefined; // the class index predates this file: rebuild it once
+    }
+    if (!isAsyncMethodCall (printer, value) && javaFreshMapValue (value, new Set ())) {
+        const declared = String (syncCoreCallType (printer, value) ?? '').replace (/\s+/g, '').replace (/^java\.util\./, '');
+        return { cast: declared !== 'Map<String,Object>' };
+    }
+    return undefined;
+}
+
+function j11MapLocal (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
+        || !ts.isVariableDeclarationList (declaration.parent) || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement
+        || declaration.initializer === undefined) {
+        return undefined;
+    }
+    const init = j11MapValue (printer, declaration.initializer, declaration);
+    if (init === undefined) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    const index = scope === undefined ? undefined : dataflowIndex (printer, scope);
+    const name = String (declaration.name.text);
+    if (index === undefined || (index.bindingCounts.get (name) ?? 0) !== 1 || index.parameterNames.has (name)
+        || index.blockedNames.has (name) || dataflowTypeTokenCollides (index, JAVA_MAP_TYPE)) {
+        return undefined;
+    }
+    // a nullish start needs at least one Map write to say anything
+    const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+    const ok = isSafeToNarrow (printer, declaration, name, JAVA_MAP_TYPE, isProFile, {
+        noCastAssertions: true,
+        writeOnly: true,
+        writeOk: (right) => j11MapValue (printer, right, declaration) !== undefined,
+        destructureOk: (assignment, at) => mapLocalDestructureOk (printer, assignment, at),
+    });
+    return ok ? { cast: init.cast } : undefined;
+}
+
+export function installJ11MapLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaJ11MapLocalsPatched) {
+        return;
+    }
+    printer._javaJ11MapLocalsPatched = true;
+    const typed = new WeakMap ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)) {
+            return printed;
+        }
+        const marker = `${printer.getIden (identation)}Object ${printer.printNode (declaration.name, 0)} = `;
+        const at = printed.indexOf (marker);
+        if (at !== 0 && !(at > 0 && printed[at - 1] === '\n')) {
+            return printed;
+        }
+        let info;
+        try {
+            info = j11MapLocal (printer, declaration);
+        } catch (e) {
+            info = undefined;
+        }
+        if (info === undefined) {
+            return printed;
+        }
+        typed.set (declaration, JAVA_MAP_TYPE);
+        const head = marker.replace (/Object (\S+) = $/, `${JAVA_MAP_TYPE} $1 = `) + (info.cast ? J11_MAP_CAST + ' ' : '');
+        return printed.slice (0, at) + head + printed.slice (at + marker.length);
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
+    // later writes from an Object-declared Map producer take the same checkcast
+    const upstreamBinary = printer.printBinaryExpression.bind (printer);
+    printer.printBinaryExpression = function (node, identation) {
+        const printed = upstreamBinary (node, identation);
+        if (node.operatorToken.kind !== ts.SyntaxKind.EqualsToken || !ts.isIdentifier (node.left)) {
+            return printed;
+        }
+        let declaration;
+        let info;
+        try {
+            declaration = printer.getChecker ().getSymbolAtLocation (node.left)?.valueDeclaration?.resolve ();
+            info = declaration !== undefined && typed.has (declaration) ? j11MapValue (printer, node.right, declaration) : undefined;
+        } catch (e) {
+            info = undefined;
+        }
+        if (info === undefined || !info.cast) {
+            return printed;
+        }
+        return accumulatorCastWrite (printer, node, printed, { cast: J11_MAP_CAST });
+    };
+}
+
+// hx4 J12: fixed parameters of venue-only methods print their TS type instead of `Object`
+// (`string` -> String, `boolean` -> Boolean, `any[]`/`List`/`Dict[]` -> List<Object>) when the name is
+// declared once in ts/src, only ever called as `this.name (..)` in its own file with typed arguments,
+// never referenced otherwise (no dispatch tables / string names) and never written in the body.
+const J12_PARAM_TYPES = {
+    'string': 'String',
+    'boolean': 'Boolean',
+    'any[]': 'java.util.List<Object>',
+    'List': 'java.util.List<Object>',
+    'Dict[]': 'java.util.List<Object>',
+};
+const J12_VENUE_FILE = /(^|[\\/])ts[\\/]src[\\/](?:pro[\\/])?[a-z0-9_]+\.ts$/;
+const J12_JAVA_DIR = path.resolve (path.dirname (fileURLToPath (import.meta.url)), '..', 'java', 'lib', 'src', 'main', 'java', 'io', 'github', 'ccxt');
+let j12Index;
+
+// every method/property name declared in ts/src, every non-call `.name` reference and every string literal
+function j12NameIndex () {
+    if (j12Index !== undefined) {
+        return j12Index;
+    }
+    const declared = new Map ();
+    const referenced = new Set ();
+    const literals = new Set ();
+    const files = new Set ();
+    const visitDir = (dir) => {
+        if (!fs.existsSync (dir)) {
+            return;
+        }
+        for (const entry of fs.readdirSync (dir, { withFileTypes: true })) {
+            const full = path.join (dir, entry.name);
+            if (entry.isDirectory ()) {
+                if (entry.name !== 'static_dependencies' && entry.name !== 'node_modules') {
+                    visitDir (full);
+                }
+                continue;
+            }
+            if (!entry.name.endsWith ('.ts') || entry.name.endsWith ('.d.ts')) {
+                continue;
+            }
+            files.add (path.resolve (full));
+            j12IndexSource (ts.createSourceFile (full, fs.readFileSync (full, 'utf8'), ts.ScriptTarget.Latest, true), declared, referenced, literals);
+        }
+    };
+    visitDir (JAVA_FRESH_MAP_TS_ROOT);
+    let java = '';
+    try {
+        java = fs.readdirSync (J12_JAVA_DIR).filter ((f) => f.endsWith ('.java'))
+            .map ((f) => fs.readFileSync (path.join (J12_JAVA_DIR, f), 'utf8').split ('// METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT')[0]).join ('\n');
+    } catch (e) {
+        java = undefined;
+    }
+    j12Index = { declared, referenced, literals, java, files };
+    return j12Index;
+}
+
+// a file written after the index was built (a probe) is folded in on first sight
+function j12IndexFile (file) {
+    const index = j12NameIndex ();
+    const key = path.resolve (file.fileName);
+    if (!index.files.has (key)) {
+        index.files.add (key);
+        j12IndexSource (file, index.declared, index.referenced, index.literals);
+    }
+    return index;
+}
+
+function j12IndexSource (sf, declared, referenced, literals) {
+    const visit = (n) => {
+        if ((ts.isMethodDeclaration (n) || ts.isPropertyDeclaration (n) || ts.isPropertyAssignment (n)) && n.name !== undefined && ts.isIdentifier (n.name)) {
+            declared.set (n.name.text, (declared.get (n.name.text) ?? 0) + 1);
+        }
+        if (ts.isPropertyAccessExpression (n)) {
+            const isThisCall = n.expression.kind === ts.SyntaxKind.ThisKeyword && ts.isCallExpression (n.parent) && n.parent.expression === n;
+            if (!isThisCall) {
+                referenced.add (n.name.text);
+            }
+        }
+        if (ts.isStringLiteralLike (n)) {
+            literals.add (n.text);
+        }
+        n.forEachChild (visit);
+    };
+    visit (sf);
+}
+
+// the argument already prints the target Java type (no checkcast, so no new ClassCastException):
+// null, a literal of the family, a local/parameter declared that type, a primitive boolean
+// expression, an array literal, or safeList* with a list default (the section-10 checkcast proof)
+function j12ArgumentTypeAgrees (printer, arg, target) {
+    const bare = unwrapParens (arg);
+    if (bare === undefined || ts.isSpreadElement (bare)) {
+        return false;
+    }
+    if (bare.kind === ts.SyntaxKind.NullKeyword || (ts.isIdentifier (bare) && bare.text === 'undefined')) {
+        return true;
+    }
+    if (ts.isIdentifier (bare)) {
+        const declared = printer.printNode (bare, 0) === bare.text ? printer.javaDeclaredTypeOf (bare) : undefined;
+        if (declared !== undefined && declared.replace (/java\.util\./g, '') === target.replace (/java\.util\./g, '')) {
+            return true;
+        }
+    }
+    if (target === 'String') {
+        return printer.javaNativeArgumentAlreadyTyped (bare, 'String');
+    }
+    if (target === 'Boolean') {
+        return javaBooleanArgumentIsTyped (printer, bare);
+    }
+    if (ts.isArrayLiteralExpression (bare)) {
+        return !bare.elements.some ((e) => ts.isSpreadElement (e));
+    }
+    return ts.isCallExpression (bare) && ts.isPropertyAccessExpression (bare.expression)
+        && bare.expression.expression.kind === ts.SyntaxKind.ThisKeyword
+        && JAVA_SAFE_LIST_NAMES.has (bare.expression.name.text) && safeListDefaultIsList (printer, bare, bare.expression.name.text);
+}
+
+// a String parameter must not be the left operand of `+` against a non-literal: Helpers.add(String, Object)
+// prints "null.." where add(Object, Object) answers null for a null left and non-String right
+function j12StringPlusHazard (method, name) {
+    let hazard = false;
+    const visit = (n) => {
+        if (hazard) {
+            return;
+        }
+        if (ts.isBinaryExpression (n) && (n.operatorToken.kind === ts.SyntaxKind.PlusToken || n.operatorToken.kind === ts.SyntaxKind.PlusEqualsToken)) {
+            const left = unwrapParens (n.left);
+            const right = unwrapParens (n.right);
+            if (ts.isIdentifier (left) && left.text === name && !ts.isStringLiteralLike (right)) {
+                hazard = true;
+                return;
+            }
+        }
+        n.forEachChild (visit);
+    };
+    visit (method.body);
+    return hazard;
+}
+
+function j12ParamType (printer, node) {
+    const method = node?.parent;
+    if (node?.kind !== ts.SyntaxKind.Parameter || node.initializer !== undefined || node.questionToken !== undefined
+        || node.dotDotDotToken !== undefined || !ts.isIdentifier (node.name) || node.type === undefined
+        || method?.kind !== ts.SyntaxKind.MethodDeclaration || method.body === undefined
+        || !ts.isIdentifier (method.name ?? {}) || !ts.isClassDeclaration (method.parent)) {
+        return undefined;
+    }
+    const target = J12_PARAM_TYPES[node.type.getText ().replace (/\s/g, '')];
+    const file = node.getSourceFile ();
+    if (target === undefined || !J12_VENUE_FILE.test (file.fileName)) {
+        return undefined;
+    }
+    const cache = printer._j12ParamTypes ?? (printer._j12ParamTypes = new WeakMap ());
+    if (cache.has (node)) {
+        return cache.get (node);
+    }
+    cache.set (node, undefined);
+    let result;
+    try {
+        const name = method.name.text;
+        const index = method.parameters.indexOf (node);
+        const { declared, referenced, literals, java } = j12IndexFile (file);
+        const unique = declared.get (name) === 1 && !referenced.has (name) && !literals.has (name)
+            && java !== undefined && !new RegExp (`\\b${name}\\s*\\(`).test (java);
+        const venueOnly = unique && printer.getMethodOverride (method) === undefined && !printer.exchangeTierMethods ().has (name)
+            && printer.javaIsPrintedMethod (method);
+        const readOnly = venueOnly && !printer.javaParameterIsWritten (node) && !printer.javaParameterIsCompoundAssigned (node)
+            && !(target === 'String' && j12StringPlusHazard (method, node.name.text));
+        if (readOnly) {
+            let ok = true;
+            const visit = (n) => {
+                if (!ok) {
+                    return;
+                }
+                if (ts.isCallExpression (n) && ts.isPropertyAccessExpression (n.expression) && n.expression.name.text === name) {
+                    const arg = n.arguments[index];
+                    ok = n.expression.expression.kind === ts.SyntaxKind.ThisKeyword && arg !== undefined
+                        && !n.arguments.some ((a) => ts.isSpreadElement (a)) && j12ArgumentTypeAgrees (printer, arg, target);
+                }
+                n.forEachChild (visit);
+            };
+            visit (file);
+            result = ok ? target : undefined;
+        }
+    } catch (e) {
+        result = undefined;
+    }
+    cache.set (node, result);
+    return result;
+}
+
+export function installJ12ParamTypes (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.javaNativeParameterTypeOf !== 'function' || printer._j12ParamTypesPatched) {
+        return;
+    }
+    printer._j12ParamTypesPatched = true;
+    const upstreamType = printer.javaNativeParameterTypeOf.bind (printer);
+    printer.javaNativeParameterTypeOf = function (node) {
+        return upstreamType (node) ?? j12ParamType (printer, node);
+    };
+    // an identifier already declared the slot's type passes bare into a J12-typed slot
+    const upstreamTyped = printer.javaNativeArgumentAlreadyTyped.bind (printer);
+    printer.javaNativeArgumentAlreadyTyped = function (arg, type) {
+        return upstreamTyped (arg, type) || j12SlotArgumentDeclared (printer, arg, type);
+    };
+}
+
+function j12SlotArgumentDeclared (printer, arg, type) {
+    const call = arg?.parent;
+    if (!ts.isIdentifier (arg ?? {}) || call === undefined || !ts.isCallExpression (call) || !ts.isPropertyAccessExpression (call.expression)
+        || call.expression.expression.kind !== ts.SyntaxKind.ThisKeyword || printer.printNode (arg, 0) !== arg.text) {
+        return false;
+    }
+    const declared = printer.javaDeclaredTypeOf (arg);
+    if (declared === undefined || declared.replace (/java\.util\./g, '') !== type.replace (/java\.util\./g, '')) {
+        return false;
+    }
+    try {
+        const method = printer.getChecker ().getResolvedSignature (call)?.declaration?.resolve?.();
+        const param = method?.parameters?.[call.arguments.indexOf (arg)];
+        return param !== undefined && j12ParamType (printer, param) === type;
+    } catch (e) {
+        return false;
+    }
+}
+
+// ===== hx4 J13: Object locals that only ever hold a List print java.util.List<Object> =====
+// Init and every write are proven lists (literal, base safeList* with a list default, Object.keys, collection
+// helpers, sync List<Object> cores, fresh-list methods); published so length/element reads see a declared List.
+const J13_LIST_TYPE = 'java.util.List<Object>';
+const J13_LIST_CAST = '(java.util.List<Object>)';
+const J13_SAFE_LIST_DEFAULT_AT = new Map ([ [ 'safeList', 2 ], [ 'safeList2', 3 ], [ 'safeListN', 2 ] ]);
+
+function j13DeclaredListLocal (printer, identifier) {
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getSymbolAtLocation (identifier)?.valueDeclaration?.resolve ();
+    } catch (e) {
+        return false;
+    }
+    if (declaration === undefined || !ts.isVariableDeclaration (declaration)) {
+        return false;
+    }
+    const type = String (printer.javaDeclaredLocalTypeResolver?.(declaration) ?? '').replace (/\s+/g, '').replace (/^java\.util\./, '');
+    return type === 'List<Object>';
+}
+
+// a method body whose every return is an array literal or a never-reassigned local initialised with one
+function j13FreshListBody (declaration) {
+    if (!ts.isMethodDeclaration (declaration) || declaration.body === undefined) {
+        return false;
+    }
+    const fresh = new Set ();
+    const written = new Set ();
+    const returned = [];
+    let ok = true;
+    const walk = (node) => {
+        if (!ok || node === undefined || (node !== declaration && ts.isFunctionLike (node))) {
+            return;
+        }
+        if (ts.isVariableDeclaration (node) && ts.isIdentifier (node.name) && node.initializer !== undefined) {
+            const init = javaFreshMapUnwrap (node.initializer);
+            if (ts.isArrayLiteralExpression (init) && literalArrayLiteralIsPlain (init)) {
+                fresh.add (node.name.text);
+            }
+        }
+        if (ts.isBinaryExpression (node) && node.operatorToken.kind >= ts.SyntaxKind.FirstAssignment && node.operatorToken.kind <= ts.SyntaxKind.LastAssignment) {
+            const left = javaFreshMapUnwrap (node.left);
+            if (ts.isIdentifier (left)) {
+                written.add (left.text);
+            } else if (ts.isArrayLiteralExpression (left) || ts.isObjectLiteralExpression (left)) {
+                ok = false;
+            }
+        }
+        if (ts.isReturnStatement (node)) {
+            returned.push (javaFreshMapUnwrap (node.expression));
+        }
+        node.forEachChild (walk);
+    };
+    walk (declaration.body);
+    return ok && returned.length > 0 && returned.every ((r) => r !== undefined
+        && ((ts.isArrayLiteralExpression (r) && literalArrayLiteralIsPlain (r))
+            || (ts.isIdentifier (r) && fresh.has (r.text) && !written.has (r.text))));
+}
+
+// every declaration a this-call can dispatch to is a generated-tier fresh-list body (no hand-written base)
+function j13FreshListMethod (call) {
+    const name = String (call.expression.name.text);
+    const state = javaFreshMapMethods ();
+    const declarations = javaFreshMapDispatch (call.getSourceFile ().fileName, name) ?? [];
+    if (declarations.length === 0 || state.handWritten.some ((text) => text === undefined || new RegExp (`\\s${name}\\s*\\(`).test (text))) {
+        return false;
+    }
+    return declarations.every ((d) => j13FreshListBody (d));
+}
+
+// { cast } when the printed value is a List<Object> (or null) on every path, else undefined
+function j13ListValue (printer, node, declaration, depth = 0) {
+    let value = unwrapParens (node);
+    if (value !== undefined && ts.isAsExpression (value)) {
+        // printAsExpression: `as any` prints ((Object)v), `as any[]` (List<Object>)(v), `as string[]` an
+        // inconvertible (List<String>)(v); every other assertion prints v bare
+        const kind = value.type.kind;
+        const element = kind === ts.SyntaxKind.ArrayType ? value.type.elementType.kind : undefined;
+        if (kind === ts.SyntaxKind.StringKeyword || element === ts.SyntaxKind.StringKeyword) {
+            return undefined;
+        }
+        const inner = j13ListValue (printer, value.expression, declaration, depth + 1);
+        if (inner === undefined) {
+            return undefined;
+        }
+        return kind === ts.SyntaxKind.AnyKeyword ? { cast: true } : element === ts.SyntaxKind.AnyKeyword ? { cast: false } : inner;
+    }
+    if (value === undefined || depth > 3 || ts.isTypeAssertion (value)) {
+        return undefined;
+    }
+    if (isNullishInitializer (value)) {
+        return { cast: false };
+    }
+    if (ts.isArrayLiteralExpression (value)) {
+        return literalArrayLiteralIsPlain (value) ? { cast: false } : undefined;
+    }
+    if (ts.isIdentifier (value)) {
+        return value.text === declaration.name.text || j13DeclaredListLocal (printer, value) ? { cast: false } : undefined;
+    }
+    if (!ts.isCallExpression (value) || value.arguments.some ((a) => ts.isSpreadElement (a))) {
+        return undefined;
+    }
+    // Object.keys (x) prints Helpers.objectKeys(x) / a native keySet copy, both List<Object>
+    if (ts.isPropertyAccessExpression (value.expression) && value.expression.name.text === 'keys'
+        && ts.isIdentifier (value.expression.expression) && value.expression.expression.text === 'Object') {
+        return { cast: false };
+    }
+    if (!isThisCall (value)) {
+        return undefined;
+    }
+    const name = String (value.expression.name.text);
+    const defaultAt = J13_SAFE_LIST_DEFAULT_AT.get (name);
+    if (defaultAt !== undefined) {
+        // BaseExchange.safeList* hands back a List element of the source or the default untouched
+        if (!resolvesToBaseOrStrippedAccessor (printer, value, name) || !safeListInitializerIsList (printer, value)
+            || value.arguments.length > defaultAt + 1) {
+            return undefined;
+        }
+        const fallback = value.arguments[defaultAt];
+        return fallback === undefined || j13ListValue (printer, fallback, declaration, depth + 1) !== undefined ? { cast: true } : undefined;
+    }
+    const collection = collectionCallInfo (printer, value);
+    if (collection !== undefined) {
+        return collection.type === JAVA_ARRAY_TYPE ? { cast: collection.cast } : undefined;
+    }
+    if (isAsyncMethodCall (printer, value)) {
+        return undefined; // prints a CompletableFuture
+    }
+    const declared = String (syncCoreCallType (printer, value) ?? '').replace (/\s+/g, '').replace (/^java\.util\./, '');
+    if (declared === 'List<Object>') {
+        return { cast: false };
+    }
+    if (declared === '' && j13FreshListMethod (value)) {
+        return { cast: true };
+    }
+    return undefined;
+}
+
+function j13ListLocal (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
+        || !ts.isVariableDeclarationList (declaration.parent) || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement
+        || declaration.initializer === undefined) {
+        return undefined;
+    }
+    const init = j13ListValue (printer, declaration.initializer, declaration);
+    if (init === undefined) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    const index = scope === undefined ? undefined : dataflowIndex (printer, scope);
+    const name = String (declaration.name.text);
+    if (index === undefined || (index.bindingCounts.get (name) ?? 0) !== 1 || index.parameterNames.has (name)
+        || index.blockedNames.has (name) || dataflowTypeTokenCollides (index, J13_LIST_TYPE)) {
+        return undefined;
+    }
+    let listWrites = 0;
+    const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+    const ok = isSafeToNarrow (printer, declaration, name, J13_LIST_TYPE, isProFile, {
+        noCastAssertions: true,
+        writeOnly: true,
+        writeOk: (right) => {
+            const info = j13ListValue (printer, right, declaration);
+            if (info !== undefined && !isNullishInitializer (unwrapParens (right))) {
+                listWrites++;
+            }
+            return info !== undefined;
+        },
+    });
+    // a nullish start needs at least one List write to say anything
+    return ok && (listWrites > 0 || !isNullishInitializer (unwrapParens (declaration.initializer))) ? { cast: init.cast } : undefined;
+}
+
+export function installJ13ListLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaJ13ListLocalsPatched) {
+        return;
+    }
+    printer._javaJ13ListLocalsPatched = true;
+    const typed = new WeakMap ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)) {
+            return printed;
+        }
+        const marker = `${printer.getIden (identation)}Object ${printer.printNode (declaration.name, 0)} = `;
+        const at = printed.indexOf (marker);
+        if (at !== 0 && !(at > 0 && printed[at - 1] === '\n')) {
+            return printed;
+        }
+        let info;
+        try {
+            info = j13ListLocal (printer, declaration);
+        } catch (e) {
+            info = undefined;
+        }
+        if (info === undefined) {
+            return printed;
+        }
+        typed.set (declaration, J13_LIST_TYPE);
+        const head = marker.replace (/Object (\S+) = $/, `${J13_LIST_TYPE} $1 = `) + (info.cast ? J13_LIST_CAST + ' ' : '');
+        return printed.slice (0, at) + head + printed.slice (at + marker.length);
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
+    // later writes from an Object-declared List producer take the same checkcast
+    const upstreamBinary = printer.printBinaryExpression.bind (printer);
+    printer.printBinaryExpression = function (node, identation) {
+        const printed = upstreamBinary (node, identation);
+        if (node.operatorToken.kind !== ts.SyntaxKind.EqualsToken || !ts.isIdentifier (node.left)) {
+            return printed;
+        }
+        let info;
+        try {
+            const declaration = printer.getChecker ().getSymbolAtLocation (node.left)?.valueDeclaration?.resolve ();
+            info = declaration !== undefined && typed.has (declaration) ? j13ListValue (printer, node.right, declaration) : undefined;
+        } catch (e) {
+            info = undefined;
+        }
+        if (info === undefined || !info.cast) {
+            return printed;
+        }
+        return accumulatorCastWrite (printer, node, printed, { cast: J13_LIST_CAST });
+    };
+}
+
+// ===== hx4 J14: Object locals fed only by proven Long/Double/String/Boolean producers print that box =====
+// The init and every write must be the same box (or null): a sync callee whose on-disk Java declaration
+// returns it, a base accessor that returns it on every path (checkcast), a typed local, or a literal/
+// comparison for String/Boolean. Published to javaDeclaredLocalTypeResolver so J04/J05/J08/J09 fire.
+const J14_TYPES = [ 'Long', 'Double', 'String', 'Boolean' ];
+// base accessors declared `Object` in Java whose box is fixed when the default argument is absent/null
+// (safeIntegerOmitZero: Long or null on every path; safeNumberOmitZero / safeIntegerProduct2/N hand the
+// default back, so only a nullish default proves them)
+const J14_CAST_ACCESSORS = {
+    'safeIntegerOmitZero': { type: 'Long', defaultAt: -1 },
+    'safeNumberOmitZero': { type: 'Double', defaultAt: 2 },
+    'safeIntegerProduct2': { type: 'Long', defaultAt: 4 },
+    'safeIntegerProductN': { type: 'Long', defaultAt: 3 },
+};
+const J14_BASE_FILE = /(^|[\\/])ts[\\/]src[\\/]base[\\/](Exchange(\.nooverloads\.\d+)?\.ts|functions[\\/]type\.ts)$/;
+
+function j14ResolvesToBase (printer, call) {
+    const file = resolvedSignatureFile (printer, call);
+    return file !== undefined && J14_BASE_FILE.test (file);
+}
+
+// { cast } when the printed value is a T box or null on every path, else undefined
+function j14Value (printer, node, declaration, type, depth = 0) {
+    const value = unwrapParens (node);
+    if (value === undefined || depth > 4) {
+        return undefined;
+    }
+    if (isNullishInitializer (value)) {
+        return { cast: '' };
+    }
+    if (ts.isIdentifier (value)) {
+        if (value.text === declaration.name.text) {
+            return { cast: '' };
+        }
+        let declared;
+        try {
+            declared = printer.javaDeclaredTypeOf (value);
+        } catch (e) {
+            declared = undefined;
+        }
+        return declared === type && printer.printNode (value, 0) === value.text ? { cast: '' } : undefined;
+    }
+    if (type === 'String') {
+        if (value.kind === ts.SyntaxKind.StringLiteral || value.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral) {
+            return { cast: '' };
+        }
+        if (ts.isConditionalExpression (value)) {
+            return j14Value (printer, value.whenTrue, declaration, type, depth + 1)?.cast === ''
+                && j14Value (printer, value.whenFalse, declaration, type, depth + 1)?.cast === '' ? { cast: '' } : undefined;
+        }
+        if (ts.isBinaryExpression (value) || ts.isPropertyAccessExpression (value)) {
+            return printedJavaIsString (printer, value) ? { cast: '' } : undefined;
+        }
+    }
+    if (type === 'Long' && ts.isBinaryExpression (value) && [ ts.SyntaxKind.PlusToken, ts.SyntaxKind.MinusToken, ts.SyntaxKind.AsteriskToken ].includes (value.operatorToken.kind)) {
+        // Helpers.add/subtract/multiply widen Integer to Long: Long|int operands give a Long box or null
+        const operand = (o) => j10IntLiteral (o) || j14Value (printer, o, declaration, 'Long', depth + 1)?.cast === '';
+        return operand (value.left) && operand (value.right) && !(j10IntLiteral (value.left) && j10IntLiteral (value.right)) ? { cast: '(Long)' } : undefined;
+    }
+    if (type === 'Boolean' && (value.kind === ts.SyntaxKind.TrueKeyword || value.kind === ts.SyntaxKind.FalseKeyword
+        || javaPrimitiveBooleanExpression (printer, value))) {
+        return { cast: '' }; // a primitive boolean autoboxes
+    }
+    if (!ts.isCallExpression (value)) {
+        return undefined;
+    }
+    if (ts.isPropertyAccessExpression (value.expression) && ts.isIdentifier (value.expression.expression)
+        && value.expression.expression.text === 'Precise') {
+        return type === 'String' && PRECISE_STRING_STATICS.has (String (value.expression.name.text)) ? { cast: '' } : undefined;
+    }
+    if (!isThisCall (value) || value.arguments.some ((a) => ts.isSpreadElement (a)) || isAsyncMethodCall (printer, value)) {
+        return undefined;
+    }
+    const name = String (value.expression.name.text);
+    const accessor = LOCAL_THIS_RETURN_TYPES[name];
+    if (type === 'Boolean' && accessor?.safeBool === true) {
+        // BaseExchange.safeBool*: `value instanceof Boolean ? value : defaultValue`
+        if (!accessorResolvesToBase (printer, value, name, accessor) || value.arguments.length > accessor.defaultArg + 1) {
+            return undefined;
+        }
+        const fallback = value.arguments[accessor.defaultArg];
+        return fallback === undefined || j14Value (printer, fallback, declaration, type, depth + 1) !== undefined ? { cast: '(Boolean)' } : undefined;
+    }
+    const cast = J14_CAST_ACCESSORS[name];
+    if (cast !== undefined) {
+        if (cast.type !== type || !j14ResolvesToBase (printer, value)) {
+            return undefined;
+        }
+        const fallback = cast.defaultAt < 0 ? undefined : value.arguments[cast.defaultAt];
+        return fallback === undefined || isNullishInitializer (fallback) ? { cast: `(${type})` } : undefined;
+    }
+    // a sync callee whose Java declaration (hand-written base or generated core) already returns T
+    const declared = syncCoreCallType (printer, value);
+    return declared === type ? { cast: '' } : undefined;
+}
+
+// a ternary arm / unary operand would unbox a Long/Double/Boolean local (NPE on null); equality is
+// value-safe since hx4 J15 (two declared boxes print Objects.equals / unboxed compare)
+function j14UnboxingUse (n) {
+    let child = n;
+    let parent = n.parent;
+    while (parent !== undefined && ts.isParenthesizedExpression (parent)) {
+        child = parent;
+        parent = parent.parent;
+    }
+    return parent !== undefined && ((ts.isConditionalExpression (parent) && parent.condition !== child)
+        || ts.isPrefixUnaryExpression (parent) && parent.operator !== ts.SyntaxKind.ExclamationToken);
+}
+
+function j14ScalarLocal (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
+        || !ts.isVariableDeclarationList (declaration.parent) || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement
+        || declaration.initializer === undefined || isNullishInitializer (declaration.initializer)) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    const index = scope === undefined ? undefined : dataflowIndex (printer, scope);
+    const name = String (declaration.name.text);
+    if (index === undefined || (index.bindingCounts.get (name) ?? 0) !== 1 || index.parameterNames.has (name) || index.blockedNames.has (name)) {
+        return undefined;
+    }
+    const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+    for (const type of J14_TYPES) {
+        const init = j14Value (printer, declaration.initializer, declaration, type);
+        if (init === undefined || dataflowTypeTokenCollides (index, type)) {
+            continue;
+        }
+        if (type !== 'String' && (identifierIndex (scope).get (name) ?? []).some ((n) => n !== declaration.name && j14UnboxingUse (n))) {
+            return undefined;
+        }
+        const ok = isSafeToNarrow (printer, declaration, name, type, isProFile, {
+            writeOnly: true,
+            nonNull: type === 'String' ? false : undefined,
+            strictPlus: type === 'String',
+            writeOk: (right) => j14Value (printer, right, declaration, type) !== undefined,
+        });
+        return ok ? { type, cast: init.cast } : undefined;
+    }
+    return undefined;
+}
+
+export function installJ14ScalarLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._j14ScalarLocalsPatched) {
+        return;
+    }
+    printer._j14ScalarLocalsPatched = true;
+    const typed = new WeakMap ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)) {
+            return printed;
+        }
+        const marker = `${printer.getIden (identation)}Object ${printer.printNode (declaration.name, 0)} = `;
+        const at = printed.indexOf (marker);
+        if (at !== 0 && !(at > 0 && printed[at - 1] === '\n')) {
+            return printed;
+        }
+        let info;
+        try {
+            info = j14ScalarLocal (printer, declaration);
+        } catch (e) {
+            info = undefined;
+        }
+        if (info === undefined) {
+            return printed;
+        }
+        typed.set (declaration, info.type);
+        const rest = printed.slice (at + marker.length);
+        const head = marker.replace (/Object (\S+) = $/, `${info.type} $1 = `) + (info.cast !== '' && !rest.startsWith (info.cast) ? info.cast + ' ' : '');
+        return printed.slice (0, at) + head + rest;
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
+    // later writes from an Object-declared producer take the same checkcast
+    const upstreamBinary = printer.printBinaryExpression.bind (printer);
+    printer.printBinaryExpression = function (node, identation) {
+        const printed = upstreamBinary (node, identation);
+        if (node.operatorToken.kind !== ts.SyntaxKind.EqualsToken || !ts.isIdentifier (node.left)) {
+            return printed;
+        }
+        let info;
+        try {
+            const declaration = printer.getChecker ().getSymbolAtLocation (node.left)?.valueDeclaration?.resolve ();
+            const type = declaration === undefined ? undefined : typed.get (declaration);
+            info = type === undefined ? undefined : j14Value (printer, node.right, declaration, type);
+        } catch (e) {
+            info = undefined;
+        }
+        if (info === undefined || info.cast === '') {
+            return printed;
+        }
+        return accumulatorCastWrite (printer, node, printed, { cast: info.cast });
+    };
+}
+
+// ===== hx4 J15: J12 caller pre-scan =====
+// A J12 parameter whose caller passes a local no pass has typed YET (the caller prints after the callee)
+// marks the file; the file is then printed twice so every local table is filled before J12 decides.
+function j15UntypedLocalArgument (printer, method, index) {
+    const name = method.name.text;
+    let pending = false;
+    const visit = (n) => {
+        if (pending) {
+            return;
+        }
+        if (ts.isCallExpression (n) && ts.isPropertyAccessExpression (n.expression) && n.expression.name.text === name
+            && n.expression.expression.kind === ts.SyntaxKind.ThisKeyword && n.pos > method.end) {
+            const arg = unwrapParens (n.arguments[index]);
+            if (arg !== undefined && ts.isIdentifier (arg) && arg.text !== 'undefined') {
+                const declaration = printer.getChecker ().getSymbolAtLocation (arg)?.valueDeclaration?.resolve?.();
+                if (declaration !== undefined && ts.isVariableDeclaration (declaration) && printer.javaDeclaredTypeOf (arg) === undefined) {
+                    pending = true;
+                }
+            }
+        }
+        n.forEachChild (visit);
+    };
+    visit (method.getSourceFile ());
+    return pending;
+}
+
+export function installJ15J12PreScan (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.javaNativeParameterTypeOf !== 'function' || printer._j15PreScanPatched) {
+        return;
+    }
+    printer._j15PreScanPatched = true;
+    const upstreamType = printer.javaNativeParameterTypeOf.bind (printer);
+    printer.javaNativeParameterTypeOf = function (node) {
+        const type = upstreamType (node);
+        if (type === undefined && printer._j15FirstPass && node?.kind === ts.SyntaxKind.Parameter && node.type !== undefined
+            && J12_PARAM_TYPES[node.type.getText ().replace (/\s/g, '')] !== undefined && node.parent?.kind === ts.SyntaxKind.MethodDeclaration
+            && ts.isIdentifier (node.parent.name ?? {})) {
+            try {
+                if (j15UntypedLocalArgument (printer, node.parent, node.parent.parameters.indexOf (node))) {
+                    printer._j15Retry = true;
+                }
+            } catch (e) {
+                // an unresolvable caller keeps the single-pass answer
+            }
+        }
+        return type;
+    };
+    const upstreamPrint = printer.printNode.bind (printer);
+    printer.printNode = function (node, identation) {
+        if (node?.kind !== ts.SyntaxKind.SourceFile || printer._j15FirstPass !== undefined) {
+            return upstreamPrint (node, identation);
+        }
+        printer._j15FirstPass = true;
+        printer._j15Retry = false;
+        let out;
+        try {
+            out = upstreamPrint (node, identation);
+        } finally {
+            printer._j15FirstPass = undefined;
+        }
+        if (!printer._j15Retry) {
+            return out;
+        }
+        // second pass: the local tables now hold every caller's type; J12 decides afresh
+        printer._j12ParamTypes = new WeakMap ();
+        printer._j15FirstPass = false;
+        try {
+            return upstreamPrint (node, identation);
+        } finally {
+            printer._j15FirstPass = undefined;
+        }
+    };
+}
+
+// ===== hx4 J17: String returns of `: Str` / `: string` methods proven after their bodies print =====
+// javaNativeReturnType is memoised on first query; a caller printed above its callee asked before the
+// callee's typed locals were published, so the callee kept `Object`. Each class body now prints its
+// String-candidate methods callee-first (output order unchanged), and a candidate redeclared by a
+// descendant class keeps `Object` (Java return types are covariant only).
+let j17Index;
+
+function j17ClassIndex () {
+    if (j17Index !== undefined) {
+        return j17Index;
+    }
+    const files = new Map (); // resolved file -> { parent: resolved file | undefined, methods: Set }
+    const visitDir = (dir) => {
+        if (!fs.existsSync (dir)) {
+            return;
+        }
+        for (const entry of fs.readdirSync (dir, { withFileTypes: true })) {
+            const full = path.join (dir, entry.name);
+            if (entry.isDirectory ()) {
+                if (entry.name !== 'static_dependencies' && entry.name !== 'node_modules' && entry.name !== 'test') {
+                    visitDir (full);
+                }
+                continue;
+            }
+            if (entry.name.endsWith ('.ts') && !entry.name.endsWith ('.d.ts')) {
+                j17IndexSource (files, path.resolve (full), fs.readFileSync (full, 'utf8'));
+            }
+        }
+    };
+    visitDir (JAVA_FRESH_MAP_TS_ROOT);
+    j17Index = files;
+    return files;
+}
+
+function j17IndexSource (files, fileName, text) {
+    const sf = ts.createSourceFile (fileName, text, ts.ScriptTarget.Latest, true);
+    const imports = new Map ();
+    let parent;
+    const methods = new Set ();
+    const hazards = new Set ();
+    const stringHazards = new Set ();
+    for (const statement of sf.statements) {
+        if (ts.isImportDeclaration (statement) && statement.importClause?.name !== undefined && ts.isStringLiteral (statement.moduleSpecifier)) {
+            imports.set (statement.importClause.name.text, path.resolve (path.dirname (fileName), statement.moduleSpecifier.text.replace (/\.js$/, '.ts')));
+        }
+    }
+    const visit = (n) => {
+        if (ts.isClassDeclaration (n)) {
+            const base = n.heritageClauses?.[0]?.types?.[0]?.expression;
+            if (base !== undefined && ts.isIdentifier (base) && imports.has (base.text)) {
+                parent = imports.get (base.text);
+            }
+            for (const member of n.members) {
+                if (ts.isMethodDeclaration (member) && member.name !== undefined && ts.isIdentifier (member.name)) {
+                    methods.add (member.name.text);
+                }
+            }
+        }
+        if (ts.isCallExpression (n) && ts.isPropertyAccessExpression (n.expression) && j17NumericUseHazard (n)) {
+            hazards.add (n.expression.name.text);
+        }
+        if (ts.isCallExpression (n) && ts.isPropertyAccessExpression (n.expression) && j17StringUseHazard (n)) {
+            stringHazards.add (n.expression.name.text);
+        }
+        n.forEachChild (visit);
+    };
+    visit (sf);
+    files.set (fileName, { parent, methods, hazards, stringHazards });
+}
+
+// a Long/Double result here would unbox (ternary arm, unary operand) or meet a reference `==`;
+// a `const|let x = <call>` local is checked through every read of x in its function
+function j17NumericUseHazard (call) {
+    if (j14UnboxingUse (call)) {
+        return true;
+    }
+    let child = call;
+    let parent = call.parent;
+    while (parent !== undefined && ts.isParenthesizedExpression (parent)) {
+        child = parent;
+        parent = parent.parent;
+    }
+    const local = parent !== undefined && ts.isVariableDeclaration (parent) && parent.initializer === child && ts.isIdentifier (parent.name) ? parent.name
+        : parent !== undefined && ts.isBinaryExpression (parent) && parent.right === child && parent.operatorToken.kind === ts.SyntaxKind.EqualsToken
+            && ts.isIdentifier (parent.left) ? parent.left : undefined;
+    if (local === undefined) {
+        return false;
+    }
+    const scope = enclosingFunction (call);
+    return scope === undefined || (identifierIndex (scope).get (local.text) ?? []).some ((n) => n !== local && j14UnboxingUse (n));
+}
+
+// a String result on the left of `+` moves Helpers.add to its (String, Object) overload, which prints
+// "null" where add(Object, Object) answers null; omitZero has a String overload too
+function j17StringUseHazard (call) {
+    let child = call;
+    let parent = call.parent;
+    while (parent !== undefined && ts.isParenthesizedExpression (parent)) {
+        child = parent;
+        parent = parent.parent;
+    }
+    if (parent !== undefined && ts.isCallExpression (parent) && parent.arguments.includes (child)
+        && ts.isPropertyAccessExpression (parent.expression) && parent.expression.name.text === 'omitZero') {
+        return true;
+    }
+    return !plusUsesAreSafe (call);
+}
+
+// some other ts/src class that extends this file's class (transitively) declares the same method name
+function j17RedeclaredByDescendant (method) {
+    const name = method?.name?.text;
+    if (name === undefined) {
+        return true;
+    }
+    const files = j17ClassIndex ();
+    const own = path.resolve (method.getSourceFile ().fileName);
+    if (!files.has (own)) {
+        j17IndexSource (files, own, method.getSourceFile ().text); // a probe written after the index was built
+    }
+    for (const [ file, entry ] of files) {
+        if (file === own || !entry.methods.has (name)) {
+            continue;
+        }
+        let ancestor = entry.parent;
+        for (let depth = 0; ancestor !== undefined && depth < 12; depth++) {
+            if (ancestor === own) {
+                return true;
+            }
+            ancestor = files.get (ancestor)?.parent;
+        }
+    }
+    return false;
+}
+
+const J17_NUMERIC_RETURNS = { 'Int': 'Long', 'Num': 'Double' };
+
+// any ts/src file calls this method name in a hazardous position for the box (over-approximated by name)
+function j17NumericCallHazard (method, table) {
+    const name = method.name.text;
+    const files = j17ClassIndex ();
+    const own = path.resolve (method.getSourceFile ().fileName);
+    if (!files.has (own)) {
+        j17IndexSource (files, own, method.getSourceFile ().text);
+    }
+    for (const entry of files.values ()) {
+        if (entry[table].has (name)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function j17IsStringCandidate (printer, member) {
+    if (!ts.isMethodDeclaration (member) || member.body === undefined || member.type === undefined
+        || member.name === undefined || !ts.isIdentifier (member.name)) {
+        return false;
+    }
+    try {
+        return !printer.isAsyncFunction (member) && [ 'String', 'Long', 'Double' ].includes (printer.javaNativeReturnTypeTarget (member));
+    } catch (e) {
+        return false;
+    }
+}
+
+// String candidates callee-first (depth-first over `this.<candidate> (..)` calls), then every other member
+function j17PrintOrder (printer, node) {
+    const members = [ ...node.members ];
+    const candidates = new Map ();
+    for (const member of members) {
+        if (j17IsStringCandidate (printer, member) && !candidates.has (member.name.text)) {
+            candidates.set (member.name.text, member);
+        }
+    }
+    if (candidates.size === 0) {
+        return undefined;
+    }
+    const order = [];
+    const seen = new Set ();
+    const place = (member) => {
+        if (seen.has (member)) {
+            return;
+        }
+        seen.add (member);
+        const visit = (n) => {
+            if (ts.isCallExpression (n) && ts.isPropertyAccessExpression (n.expression)
+                && n.expression.expression.kind === ts.SyntaxKind.ThisKeyword && candidates.has (n.expression.name.text)) {
+                place (candidates.get (n.expression.name.text));
+            }
+            n.forEachChild (visit);
+        };
+        member.body.forEachChild (visit);
+        order.push (member);
+    };
+    for (const member of members) {
+        if (candidates.get (member.name?.text) === member) {
+            place (member);
+        }
+    }
+    for (const member of members) {
+        if (!seen.has (member)) {
+            order.push (member);
+        }
+    }
+    return order;
+}
+
+export function installJ17StringReturns (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printClassBody !== 'function' || typeof printer.javaNativeReturnType !== 'function'
+        || printer._j17StringReturnsPatched) {
+        return;
+    }
+    printer._j17StringReturnsPatched = true;
+    const upstreamReturnType = printer.javaNativeReturnType.bind (printer);
+    printer.javaNativeReturnType = function (node) {
+        const type = upstreamReturnType (node);
+        if (type !== 'String' && type !== 'Long' && type !== 'Double') {
+            return type;
+        }
+        let redeclared;
+        try {
+            redeclared = j17RedeclaredByDescendant (node) || j17NumericCallHazard (node, type === 'String' ? 'stringHazards' : 'hazards');
+        } catch (e) {
+            redeclared = true;
+        }
+        return redeclared ? undefined : type;
+    };
+    // `: Int` -> Long, `: Num` -> Double when every return is null, a typed local of that box, or a
+    // base-tier call whose hand-written Java declaration returns it (no checkcast at the return)
+    const upstreamTarget = printer.javaNativeReturnTypeTarget.bind (printer);
+    printer.javaNativeReturnTypeTarget = function (node) {
+        const own = upstreamTarget (node);
+        if (own !== undefined || node?.type === undefined || !ts.isTypeReferenceNode (node.type) || !ts.isIdentifier (node.type.typeName)) {
+            return own;
+        }
+        const alias = J17_NUMERIC_RETURNS[node.type.typeName.text];
+        let file;
+        try {
+            const symbol = printer.getChecker ().getSymbolAtLocation (node.type.typeName);
+            const target = symbol !== undefined && (symbol.flags & ts.SymbolFlags.Alias) ? printer.getChecker ().getAliasedSymbol (symbol) : symbol;
+            file = target?.declarations?.[0]?.resolve?.()?.getSourceFile?.()?.fileName;
+        } catch (e) {
+            file = undefined;
+        }
+        return alias !== undefined && /(^|[\\/])ts[\\/]src[\\/]base[\\/]types\.ts$/.test (String (file)) ? alias : undefined;
+    };
+    const upstreamPrints = printer.javaExpressionPrintsType.bind (printer);
+    printer.javaExpressionPrintsType = function (expression, target) {
+        if (target !== 'Long' && target !== 'Double') {
+            return upstreamPrints (expression, target);
+        }
+        const node = printer.javaUnwrapReturnExpression (expression);
+        if (node === undefined) {
+            return false;
+        }
+        if (isNullishInitializer (node)) {
+            return true;
+        }
+        if (ts.isConditionalExpression (node)) {
+            return printer.javaExpressionPrintsType (node.whenTrue, target) && printer.javaExpressionPrintsType (node.whenFalse, target);
+        }
+        try {
+            if (ts.isIdentifier (node)) {
+                return printer.printNode (node, 0) === node.text && printer.javaDeclaredTypeOf (node) === target;
+            }
+            if (isThisCall (node) && !node.arguments.some ((a) => ts.isSpreadElement (a)) && !isAsyncMethodCall (printer, node)) {
+                if (printer.javaReturnedCallType (node) === target) {
+                    return true;
+                }
+                return j14ResolvesToBase (printer, node) && syncCoreCallType (printer, node) === target;
+            }
+        } catch (e) {
+            return false;
+        }
+        return false;
+    };
+    const upstreamBody = printer.printClassBody.bind (printer);
+    printer.printClassBody = function (node, identation) {
+        let order;
+        try {
+            order = j17PrintOrder (printer, node);
+        } catch (e) {
+            order = undefined;
+        }
+        if (order === undefined) {
+            return upstreamBody (node, identation);
+        }
+        // an answer memoised by an earlier file is re-proven once the body has printed
+        for (const member of node.members) {
+            printer.javaReturnTypeCache?.delete?.(member);
+        }
+        const printed = new Map ();
+        for (const member of order) {
+            printed.set (member, printer.printNode (member, identation + 1));
+        }
+        return node.members.map ((member, index) => (member.kind === ts.SyntaxKind.PropertyDeclaration || index === 0
+            ? printed.get (member)
+            : '\n'.repeat (printer.NUM_LINES_BETWEEN_CLASS_MEMBERS) + printed.get (member))).join ('\n');
+    };
+}
+
+// hx4 J20: setLeverage / cancelAllOrdersAfter / handleErrors keep their first parameter `Object p` (an int in TS,
+// a Number box or null at runtime); a comparison / divide / mod of that unwritten parameter against an integer
+// literal prints the double compare with the helper's null arm (isLessThan(null, N) is true, isGreaterThan false).
+const J20_MEMBER = /^    public \S+(?:<[^>]*>)? (?:setLeverage|cancelAllOrdersAfter|handleErrors)\(Object (\w+)[,)]/;
+
+function j20Rewrite (line, p) {
+    const v = `((Number) ${p}).doubleValue()`;
+    const lit = '(-?\\d+)L?';
+    const cmp = new RegExp (`Helpers\\.(isLessThanOrEqual|isGreaterThanOrEqual|isLessThan|isGreaterThan|isEqual)\\(${p}, ${lit}\\)`, 'g');
+    let out = line.replace (cmp, (m, op, n) => {
+        if (op === 'isGreaterThan') return `(${p} != null && ${v} > ${n})`;
+        if (op === 'isGreaterThanOrEqual') return `(${p} != null && ${v} >= ${n})`;
+        if (op === 'isEqual') return `(${p} != null && ${v} == ${n})`;
+        if (op === 'isLessThan') return `(${p} == null || !(${v} >= ${n}))`;
+        return `(${p} == null || !(${v} > ${n}))`;
+    });
+    out = out.replace (new RegExp (`Helpers\\.divide\\(${p}, ${lit}\\)`, 'g'), (m, n) => `(${p} == null ? null : ${v} / ${n})`);
+    out = out.replace (new RegExp (`Helpers\\.divide\\(${lit}, ${p}\\)`, 'g'), (m, n) => `(${p} == null ? null : ((double) ${n}) / ${v})`);
+    out = out.replace (new RegExp (`Helpers\\.mod\\(${lit}, ${p}\\)`, 'g'), (m, n) => `(${p} == null ? null : ((double) ${n}) % ${v})`);
+    return out;
+}
+
+export function nativeJavaJ20ParamCompare (content) {
+    if (!/ (?:setLeverage|cancelAllOrdersAfter|handleErrors)\(Object /.test (content)) return content;
+    const lines = content.split ('\n');
+    let changed = false;
+    for (let i = 0; i < lines.length; i++) {
+        const m = J20_MEMBER.exec (lines[i]);
+        if (m === null) continue;
+        const p = m[1];
+        let end = i + 1;
+        while (end < lines.length && lines[end] !== '    }') end++;
+        // D2: any write or redeclaration of the parameter keeps every helper in the member
+        const write = new RegExp (`(?<![\\w.])${p}\\s*(?:[-+*/]?=(?!=)|\\+\\+|--)|(?:\\+\\+|--)${p}\\b`);
+        let written = false;
+        for (let k = i + 1; k < end; k++) if (write.test (lines[k].replace (/"(?:[^"\\]|\\.)*"/g, '""'))) { written = true; break; }
+        if (!written) {
+            for (let k = i + 1; k < end; k++) {
+                const next = j20Rewrite (lines[k], p);
+                if (next !== lines[k]) { lines[k] = next; changed = true; }
+            }
+        }
+        i = end;
+    }
+    return changed ? lines.join ('\n') : content;
+}
+
+
+// hx4 J23
+// ===== hx4 J23: arithmetic helpers over typed primitives the J04 pass cannot prove =====
+// Adds operand proofs (parseToInt of a numeric, Math.*, .size()/.length(), microseconds, double
+// chains), Double operands on + - / % and opNeg, multiply-with-double under value-insensitive consumers,
+// and null-guarded ternary arms whose other arm is the guarded Long. Runs after J04, also on base methods.
+function j23Operands (e) {
+    const mask = longMultiplyMask (e);
+    if (mask.includes ('"')) return undefined;
+    const out = [];
+    const ops = [];
+    let depth = 0;
+    let last = 0;
+    for (let k = 0; k < mask.length; k++) {
+        const ch = mask[k];
+        if (ch === '(') depth++;
+        else if (ch === ')') depth--;
+        else if (depth === 0 && /^ [-+*/%] /.test (mask.slice (k, k + 3))) {
+            out.push (e.slice (last, k));
+            ops.push (mask[k + 1]);
+            last = k + 3;
+            k += 2;
+        } else if (depth === 0 && (ch === '?' || ch === ':' || ch === '=' || ch === '<' || ch === '>' || ch === '&' || ch === '|')) {
+            return undefined;
+        }
+    }
+    out.push (e.slice (last));
+    return out.length > 1 ? { operands: out, ops } : undefined;
+}
+
+function j23Widest (ks) {
+    if (ks.includes (undefined)) return undefined;
+    if (ks.includes ('double')) return 'double';
+    return ks.includes ('long') ? 'long' : 'int';
+}
+
+// the Java primitive kind of a printed never-null numeric expression; undefined when unproven
+function j23Kind (ctx, text, nn) {
+    const base = j04Kind (ctx, text, nn);
+    if (base !== undefined) return base;
+    const e = longLimitStrip (text);
+    if (/^-?\d+\.\d+$/.test (e)) return 'double';
+    if (/^(?:\w+\.)?this\.microseconds\(\)$/.test (e)) return 'long';
+    if (/^(?:\w+\.)?this\.(?:milliseconds|seconds)\(\)$/.test (e)) return 'long';
+    // String.length() / List.size() are primitive ints; a null-guarded `x == null ? 0 : x.length()` too
+    const recv = '(?:\\(\\([\\w.<>?, ]+\\)[A-Za-z_]\\w*\\)|[A-Za-z_]\\w*)';
+    if (new RegExp (`^${recv}\\.(?:size|length)\\(\\)$`).test (e)) return 'int';
+    const guarded = new RegExp (`^([A-Za-z_]\\w*) == null \\? 0 : (${recv})\\.(?:size|length)\\(\\)$`).exec (e);
+    if (guarded !== null && guarded[2].replace (/^\(\([^)]*\)(\w+)\)$/, '$1') === guarded[1]) return 'int';
+    const cast = /^\((long|double|int)\) (.*)$/.exec (e);
+    if (cast !== null) {
+        const k = j23Kind (ctx, cast[2], nn);
+        return k === undefined ? undefined : (cast[1] === 'int' ? 'int' : cast[1]);
+    }
+    const neg = /^-([A-Za-z_(][\s\S]*)$/.exec (e);
+    if (neg !== null && (/^[\w.]+(\(\))?$/.test (neg[1]) || longLimitStrip (neg[1]) !== neg[1].trim ())) {
+        return j23Kind (ctx, neg[1], nn);
+    }
+    const mask = longMultiplyMask (e);
+    // Double.parseDouble returns a primitive double (it throws on null); Math.* over primitives
+    if (longLimitCallArgs (mask, 'Double.parseDouble') !== undefined) return 'double';
+    for (const f of [ 'Math.floor', 'Math.ceil', 'Math.pow', 'Math.sqrt' ]) {
+        const args = longLimitCallArgs (mask, f);
+        if (args !== undefined && args.every ((a) => j23Kind (ctx, a, () => true) !== undefined)) return 'double';
+    }
+    const round = longLimitCallArgs (mask, 'Math.round');
+    if (round !== undefined && round.length === 1 && j23Kind (ctx, round[0], () => true) === 'double') return 'long';
+    for (const f of [ 'Math.min', 'Math.max' ]) {
+        const args = longLimitCallArgs (mask, f);
+        // the arguments already unbox in the original expression: a null box threw there too
+        if (args !== undefined && args.length === 2) return j23Widest (args.map ((a) => j23Kind (ctx, a, () => true)));
+    }
+    // parseToInt of a non-null number never answers null (numberToString/parseFloat/parseInt all succeed)
+    const pti = /^((?:\w+\.)?this\.parseToInt)\(/.exec (e);
+    if (pti !== null) {
+        const args = longLimitCallArgs (e, pti[1]);
+        if (args !== undefined && args.length === 1 && j23Kind (ctx, args[0], nn) !== undefined) return 'long';
+    }
+    const chain = j23Operands (e);
+    if (chain !== undefined) return j23Widest (chain.operands.map ((o) => j23Kind (ctx, o, nn)));
+    return undefined;
+}
+
+function j23NonNullValue (ctx, value, nn) {
+    if (j04NonNullValue (ctx, value, nn)) return true;
+    const e = longLimitStrip (value);
+    if (j23Kind (ctx, e, nn) !== undefined) return true;
+    const t = longLimitSplitTernary (e);
+    if (t !== undefined) {
+        const g = /^(!?)java\.util\.Objects\.equals\(([A-Za-z_]\w*), null\)$/.exec (longLimitStrip (t.cond));
+        const arm = (a, isTrue) => (g !== null && longLimitStrip (a) === g[2] && (g[1] === '!') === isTrue
+            && [ 'Long', 'Integer', 'Double' ].includes (ctx.declType (g[2]))) || j23NonNullValue (ctx, a, nn);
+        return arm (t.whenTrue, true) && arm (t.whenFalse, false);
+    }
+    return false;
+}
+
+// j04MemberCtx with the J23 non-null producers and Double locals
+function j23MemberCtx (lines, from, to) {
+    const base = j04MemberCtx (lines, from, to);
+    const ctx = base.ctx;
+    const boxes = [ 'Long', 'Integer', 'Double' ];
+    const writeCache = new Map ();
+    const writes = (name) => {
+        if (writeCache.has (name)) return writeCache.get (name);
+        const decl = new RegExp (`^\\s*(?:final\\s+)?[A-Za-z_][\\w.<>, ]*? ${name} = (.*?);(\\s*//.*)?$`);
+        const plain = new RegExp (`^\\s*${name} = (.*?);(\\s*//.*)?$`);
+        const other = new RegExp (`(?<![\\w$.])${name}\\s*(?:\\+\\+|--|[-+*/%]=)|(?:\\+\\+|--)${name}\\b`);
+        const any = new RegExp (`(?<![\\w$.])${name}\\s*=(?!=)`);
+        let out = [];
+        for (let w = from + 1; w < to && out !== undefined; w++) {
+            const code = longLimitCodeOnly (lines[w]);
+            if (!new RegExp (`(?<![\\w$.])${name}\\b`).test (code)) continue;
+            if (other.test (code) || /->/.test (code) && any.test (code)) { out = undefined; break; }
+            const m = decl.exec (lines[w]) ?? plain.exec (lines[w]);
+            if (m !== null) out.push ({ line: w, value: m[1].trim () });
+            else if (any.test (code)) out = undefined;
+        }
+        writeCache.set (name, out);
+        return out;
+    };
+    const memo = new Map ();
+    const writesNonNull = (name, seen) => {
+        if (memo.has (name)) return memo.get (name);
+        if (seen.has (name)) return false;
+        seen.add (name);
+        const ws = writes (name);
+        const t = ctx.declType (name);
+        const ok = ws !== undefined && ws.length > 0 && boxes.includes (t)
+            && new RegExp (`^\\s*(?:final\\s+)?${t} ${name} = `).test (lines[ws[0].line])
+            && ws.every ((w) => j23NonNullValue (ctx, w.value, (n) => base.nonNullAt (n, w.line) || writesNonNull (n, seen)));
+        seen.delete (name);
+        memo.set (name, ok);
+        return ok;
+    };
+    const nonNullAt = (name, j) => base.nonNullAt (name, j) || (boxes.includes (ctx.declType (name)) && writesNonNull (name, new Set ()));
+    return { ctx, nonNullAt };
+}
+
+// multiply re-boxes an integral double as Long: a double product is only native under a consumer that
+// reads both boxes alike (parseToInt, Double.parseDouble(toString|valueOf))
+function j23BoxInsensitiveConsumer (mask, start, close) {
+    const before = mask.slice (0, start);
+    const after = mask.slice (close + 1);
+    const m = /(?:(?:\w+\.)?this\.parseToInt\(|Double\.parseDouble\((?:Helpers\.toString|String\.valueOf)\(\(?)(\(*)$/.exec (before);
+    if (m === null) return false;
+    const opened = (m[0].match (/\(/g) ?? []).length;
+    return after.startsWith (')'.repeat (opened));
+}
+
+// `x = Objects.equals(G, null) ? <call> : G` (or the negated form) where G is a Long: the arms promote
+// to long and the call's Long box is unchanged; the G arm is read only when it is non-null
+function j23TernaryArmOk (line, mask, start, close, ctx) {
+    const head = /^(\s*(?:[\w.<>]+ )?[A-Za-z_]\w* = |\s*return )/.exec (mask);
+    if (head === null || !/;\s*(\/\/.*)?$/.test (line)) return false;
+    const rhsEnd = mask.lastIndexOf (';');
+    const t = longLimitSplitTernary (line.slice (head[0].length, rhsEnd));
+    if (t === undefined) return false;
+    const call = line.slice (start, close + 1);
+    const g = /^(!?)java\.util\.Objects\.equals\(([A-Za-z_]\w*), null\)$/.exec (longLimitStrip (t.cond));
+    if (g === null || ctx.declType (g[2]) !== 'Long') return false;
+    const [ mine, other ] = g[1] === '' ? [ t.whenTrue, t.whenFalse ] : [ t.whenFalse, t.whenTrue ];
+    return longLimitStrip (mine) === call && longLimitStrip (other) === g[2];
+}
+
+function j23Member (lines, from, to) {
+    let state;
+    let changed = false;
+    const helpers = [ [ 'Helpers.add(', '+' ], [ 'Helpers.subtract(', '-' ], [ 'Helpers.multiply(', '*' ],
+        [ 'Helpers.divide(', '/' ], [ 'Helpers.mod(', '%' ], [ 'Helpers.opNeg(', 'neg' ] ];
+    const atom = (e) => (/^[\w.]+(\(\))?$/.test (e) ? e : `(${e})`);
+    for (let j = from + 1; j < to; j++) {
+        if (!helpers.some (([ h ]) => lines[j].includes (h))) continue;
+        state = state ?? j23MemberCtx (lines, from, to);
+        let line = lines[j];
+        const mask0 = longMultiplyMask (line);
+        const starts = [];
+        for (const [ h, op ] of helpers) {
+            for (let k = mask0.indexOf (h); k !== -1; k = mask0.indexOf (h, k + 1)) {
+                if (k === 0 || !/[\w.]/.test (mask0[k - 1])) starts.push ([ k, h, op ]);
+            }
+        }
+        starts.sort ((a, b) => b[0] - a[0]);
+        for (const [ start, h, op ] of starts) {
+            const mask = longMultiplyMask (line);
+            const call = longMultiplyArgSpans (mask, start + h.length - 1);
+            if (call === undefined || call.spans.length !== (op === 'neg' ? 1 : 2)) continue;
+            const args = call.spans.map (([ x, y ]) => longLimitStrip (line.slice (x, y)));
+            const plain = j04PlainValuePosition (mask, start, call.close);
+            const armOk = !plain && j23TernaryArmOk (line, mask, start, call.close, state.ctx);
+            if (!plain && !armOk) continue;
+            const ternary = j04TernaryGuarded (mask, line, start);
+            const nn = (n) => ternary.has (n) || state.nonNullAt (n, j);
+            const kinds = args.map ((a) => j23Kind (state.ctx, a, nn));
+            if (kinds.includes (undefined)) continue;
+            const dbl = kinds.includes ('double');
+            if (armOk && (dbl || op === '/' || op === '%')) continue;
+            let text;
+            if (op === 'neg') {
+                text = `(-${atom (args[0])})`;
+            } else if (op === '/' || op === '%') {
+                text = `(((double) ${atom (args[0])}) ${op} ((double) ${atom (args[1])}))`;
+            } else if (dbl) {
+                if (op === '*' && !j23BoxInsensitiveConsumer (mask, start, call.close)) continue;
+                // any Double operand makes the helper answer toDouble(a) op toDouble(b)
+                const show = (a, k) => (k === 'intlit' ? a + 'L' : atom (a));
+                text = `(${show (args[0], kinds[0])} ${op} ${show (args[1], kinds[1])})`;
+            } else {
+                const show = (a, k) => (k === 'intlit' ? a + 'L' : atom (a));
+                const allInt = kinds.every ((k) => k === 'int' || k === 'intlit') && !kinds.every ((k) => k === 'intlit');
+                const lit = kinds.every ((k) => k === 'intlit');
+                text = lit ? `(${args[0]}L ${op} ${args[1]}L)` : `(${allInt ? `((long) ${atom (args[0])})` : show (args[0], kinds[0])} ${op} ${allInt && kinds[1] === 'intlit' ? args[1] : show (args[1], kinds[1])})`;
+            }
+            line = line.slice (0, start) + text + line.slice (call.close + 1);
+        }
+        if (line !== lines[j]) { lines[j] = line; changed = true; }
+    }
+    return changed;
+}
+
+export function nativeJavaJ23Arithmetic (content) {
+    if (!/Helpers\.(?:add|subtract|multiply|divide|mod|opNeg)\(/.test (content)) return content;
+    const lines = content.split ('\n');
+    const starts = [];
+    for (let i = 0; i < lines.length; i++) if (LONG_LIMIT_MEMBER_START.test (lines[i])) starts.push (i);
+    let changed = false;
+    for (let s = 0; s < starts.length; s++) {
+        if (j23Member (lines, starts[s], s + 1 < starts.length ? starts[s + 1] : lines.length)) changed = true;
+    }
+    return changed ? lines.join ('\n') : content;
+}
+
+// hx4 J24
+// ===== hx4 J24: retype Object numeric locals so multiply/subtract/divide/mod/opNeg go native =====
+// An `Object x` local whose every write is null or a proven primitive of one family (long/int, or double)
+// prints `Long x` / `Double x` when each read is box-neutral; the J23 pass then proves the operators.
+const J24_TARGETS = /Helpers\.(?:multiply|subtract|divide|mod|opNeg)\(/;
+
+// the never-null primitive kind of a printed value: J23's proofs plus String.indexOf and proven ternaries
+function j24Kind (ctx, text, nn) {
+    const k = j23Kind (ctx, text, nn);
+    if (k !== undefined) return k;
+    const e = longLimitStrip (text);
+    if (/^\(\(String\)[A-Za-z_]\w*\)\.indexOf\([^()]*(?:\(\(String\)[A-Za-z_]\w*\))?\)$/.test (e)) return 'int';
+    const t = longLimitSplitTernary (e);
+    if (t === undefined) return undefined;
+    const g = /^(!?)java\.util\.Objects\.equals\(([A-Za-z_]\w*), null\)$/.exec (longLimitStrip (t.cond));
+    const arm = (a, isTrue) => {
+        const x = longLimitStrip (a);
+        const guarded = g !== null && x === g[2] && (g[1] === '!') === isTrue;
+        return j24Kind (ctx, x, guarded ? () => true : nn);
+    };
+    const ks = [ arm (t.whenTrue, true), arm (t.whenFalse, false) ];
+    if (ks.includes (undefined)) return undefined;
+    // a ternary over int and long promotes to long; int literals alone stay int
+    return ks.every ((x) => x === 'intlit') ? 'int' : j23Widest (ks.map ((x) => (x === 'intlit' ? 'int' : x)));
+}
+
+function j24UseOk (line, name, boxChanges) {
+    const lhs = new RegExp (`^(\\s*)${name} = `);
+    const probe = line.replace (lhs, '$1j24w = ');
+    const code = longLimitCodeOnly (probe);
+    if (/\bcatch\b/.test (code)) return false;
+    // a typed ternary arm unboxes (numeric promotion): `c ? x : y` must keep the Object box
+    const re = new RegExp (`(?<![\\w$.])${name}\\b(?!\\s*\\()`, 'g');
+    let m;
+    while ((m = re.exec (code)) !== null) {
+        const before = code.slice (0, m.index).replace (/[\s(]*$/, '');
+        const after = code.slice (m.index + name.length).replace (/^[\s)]*/, '');
+        if (/[?:]$/.test (before) || /^[?:]/.test (after)) return false;
+        if (boxChanges) continue;
+        // the same box as before: plain copies, returns and static Helpers arguments read it alike
+        if (/(?:^\s*return|^\s*Object [A-Za-z_]\w* =|^\s*[A-Za-z_]\w* =)$/.test (before) && /^;\s*$/.test (after)) continue;
+        const callee = longLimitCallee (code, m.index);
+        if (callee !== undefined && /^(?:Helpers\.\w+|(?:\w+\.)?this\.(?:parseToInt|iso8601|numberToString|sum)|java\.util\.Objects\.equals)$/.test (callee)) continue;
+    }
+    return longLimitUseOk (probe, name, boxChanges) || (!boxChanges && j24NeutralLine (code, name));
+}
+
+// every mention is one of the box-neutral shapes j24UseOk accepts for an unchanged box
+function j24NeutralLine (code, name) {
+    const re = new RegExp (`(?<![\\w$.])${name}\\b(?!\\s*\\()`, 'g');
+    let m;
+    while ((m = re.exec (code)) !== null) {
+        const before = code.slice (0, m.index).replace (/[\s(]*$/, '');
+        const after = code.slice (m.index + name.length).replace (/^[\s)]*/, '');
+        if (/(?:^\s*return|^\s*Object [A-Za-z_]\w* =|^\s*[A-Za-z_]\w* =)$/.test (before) && /^;\s*$/.test (after)) continue;
+        const callee = longLimitCallee (code, m.index);
+        if (callee !== undefined && /^(?:Helpers\.\w+|(?:\w+\.)?this\.(?:parseToInt|iso8601|numberToString|sum)|java\.util\.Objects\.equals)$/.test (callee)) continue;
+        if (/[-+*/%]$/.test (before) || /^[-+*/%]/.test (after)) continue;
+        return false;
+    }
+    return true;
+}
+
+function j24RetypeMember (lines, from, to) {
+    const state = j23MemberCtx (lines, from, to);
+    const decl = /^(\s*)Object ([A-Za-z_]\w*) = (.*?);(\s*\/\/.*)?$/;
+    let changed = false;
+    for (let i = from + 1; i < to; i++) {
+        const d = decl.exec (lines[i]);
+        if (d === null) continue;
+        const [ , iden, name ] = d;
+        if (longLimitDeclarations (lines, from, to, name).length !== 1) continue;
+        const operand = new RegExp (`Helpers\\.(?:multiply|subtract|divide|mod|opNeg)\\([^;]*(?<![\\w$.])${name}\\b`);
+        if (!lines.slice (i, to).some ((l) => operand.test (longLimitCodeOnly (l)))) continue;
+        const writeDecl = new RegExp (`^(\\s*)(?:Object )?${name} = (.*?);(\\s*//.*)?$`);
+        const compound = new RegExp (`(?<![\\w$.])${name}\\s*(?:\\+\\+|--|[-+*/%]=)|(?:\\+\\+|--)${name}\\b`);
+        const mention = new RegExp (`(?<![\\w$.])${name}\\b(?!\\s*\\()`);
+        const writes = [];
+        let ok = true;
+        for (let j = i; j < to && ok; j++) {
+            const code = longLimitCodeOnly (lines[j]);
+            if (!mention.test (code)) continue;
+            if (compound.test (code)) { ok = false; break; }
+            const w = writeDecl.exec (lines[j]);
+            if (w !== null && (j === i || !/^\s*Object /.test (lines[j]))) writes.push ({ line: j, value: w[2].trim (), w });
+            else if (new RegExp (`(?<![\\w$.=!<>])${name}\\s*=(?!=)`).test (code)) ok = false;
+        }
+        if (!ok) continue;
+        // every write: null or a never-null primitive of one family
+        const kinds = writes.map ((w) => (w.value === 'null' ? 'null'
+            : j24Kind (state.ctx, w.value, (n) => n !== name && state.nonNullAt (n, w.line))));
+        if (kinds.includes (undefined) || kinds.every ((k) => k === 'null')) continue;
+        const dbl = kinds.some ((k) => k === 'double');
+        if (dbl && kinds.some ((k) => k !== 'double' && k !== 'null')) continue;
+        // all-int writes keep their Integer box; an int write beside a long one changes box (Integer -> Long)
+        const allInt = kinds.every ((k) => k === 'int' || k === 'intlit' || k === 'null');
+        const boxChanges = !allInt && kinds.some ((k) => k === 'int' || k === 'intlit');
+        let usesOk = true;
+        for (let j = from; j < to && usesOk; j++) {
+            if (j === i && !mention.test (longLimitCodeOnly (d[3]))) continue;
+            const code = longLimitCodeOnly (lines[j]);
+            if (!mention.test (code)) continue;
+            const text = j === i ? `${iden}j24w = ${d[3]};` : lines[j];
+            if (/->/.test (code) && new RegExp (`(?<![\\w$.])${name}\\s*=(?!=)`).test (code)) usesOk = false;
+            else if (!j24UseOk (text, name, boxChanges)) usesOk = false;
+        }
+        if (!usesOk) continue;
+        const type = dbl ? 'Double' : allInt ? 'Integer' : 'Long';
+        writes.forEach ((w, k) => {
+            const widen = !allInt && !dbl;
+            const v = widen && kinds[k] === 'intlit' ? `${w.value}L` : widen && kinds[k] === 'int' ? `((long) (${w.value}))` : w.value;
+            const head = w.line === i ? `${w.w[1]}${type} ${name} = ` : `${w.w[1]}${name} = `;
+            lines[w.line] = `${head}${v};${w.w[3] ?? ''}`;
+        });
+        changed = true;
+    }
+    return changed;
+}
+
+export function nativeJavaJ24Arithmetic (content) {
+    if (!J24_TARGETS.test (content)) return content;
+    let out = content;
+    for (let round = 0; round < 4; round++) {
+        const lines = out.split ('\n');
+        const starts = [];
+        for (let i = 0; i < lines.length; i++) if (LONG_LIMIT_MEMBER_START.test (lines[i])) starts.push (i);
+        let changed = false;
+        const count = (ls) => ls.reduce ((n, l) => n + (longLimitCodeOnly (l).match (/Helpers\.(?:multiply|subtract|divide|mod|opNeg)\(/g) ?? []).length, 0);
+        const next = [];
+        for (let s = 0; s < starts.length; s++) {
+            const to = s + 1 < starts.length ? starts[s + 1] : lines.length;
+            const member = lines.slice (starts[s], to);
+            if (s === 0) next.push (...lines.slice (0, starts[0]));
+            const work = member.slice ();
+            // keep a retype only when it lets at least one target helper go native
+            if (j24RetypeMember (work, 0, work.length)) {
+                const native = nativeJavaJ23Arithmetic (nativeJavaJ04Arithmetic (work.join ('\n'))).split ('\n');
+                if (count (native) < count (member)) { next.push (...native); changed = true; continue; }
+            }
+            next.push (...member);
+        }
+        if (!changed) break;
+        out = starts.length === 0 ? out : next.join ('\n');
+    }
+    return out;
+}
+
+// hx4 J27
+// ===== hx4 J27: Object locals whose every write already yields one box (Long or Double, null allowed) =====
+// Producers: safeInteger*/safeTimestamp*/parseToInt/Helpers.parseInt (Long), safeNumber*/parseFloat (Double),
+// sum/mathMin/mathMax over Long-family args, typed locals, J23 primitives. The box is unchanged, so only
+// box-neutral reads are allowed; J04/J23 then prove the operators under the existing null guards.
+function j27Box (ctx, text) {
+    const e = longLimitStrip (text).replace (/^\((?:Long|Double)\) /, '');
+    if (e === 'null') return 'null';
+    // string arguments masked: only the argument count and numeric arguments are read
+    const masked = e.replace (/"(?:[^"\\]|\\.)*"/g, 'j27s');
+    const call = (re) => { const m = re.exec (masked); return m === null ? undefined : longLimitCallArgs (masked, m[1]); };
+    if (call (/^((?:\w+\.)?this\.(?:safeInteger|safeInteger2|safeIntegerN|safeTimestamp|safeTimestamp2|safeTimestampN|parseToInt))\(/) !== undefined) return 'Long';
+    if (call (/^(Helpers\.parseInt)\(/) !== undefined) return 'Long';
+    if (call (/^((?:\w+\.)?this\.(?:safeNumber|safeNumber2|safeNumberN))\(/) !== undefined) return 'Double';
+    if (call (/^(Helpers\.parseFloat)\(/) !== undefined) return 'Double';
+    if (/^[A-Za-z_]\w*$/.test (e)) {
+        const t = ctx.declType (e);
+        return t === 'Long' || t === 'Double' ? t : undefined;
+    }
+    const longArg = (a) => { const b = j27Box (ctx, a); return b === 'Long' || (b === undefined && [ 'long', 'int', 'intlit' ].includes (j23Kind (ctx, a, () => true))); };
+    // Generic.sum answers (long) for a whole sum: integer-family args always give a Long box
+    const sum = call (/^((?:\w+\.)?this\.sum)\(/);
+    if (sum !== undefined) return sum.every (longArg) ? 'Long' : undefined;
+    // mathMin/mathMax hand back one operand: Long when both are Long boxes (an int literal would be Integer)
+    const mm = call (/^(Helpers\.math(?:Min|Max))\(/);
+    if (mm !== undefined) return mm.length === 2 && mm.every ((a) => j27Box (ctx, a) === 'Long' || /^-?\d+L$/.test (longLimitStrip (a))) ? 'Long' : undefined;
+    const k = j23Kind (ctx, e, () => true);
+    if (k === 'long') return 'Long';
+    if (k === 'double') return 'Double';
+    return undefined;
+}
+
+function j27RetypeMember (lines, from, to) {
+    const ctx = j04MemberCtx (lines, from, to).ctx;
+    const decl = /^(\s*)Object ([A-Za-z_]\w*) = (.*?);(\s*\/\/.*)?$/;
+    let changed = false;
+    for (let i = from + 1; i < to; i++) {
+        const d = decl.exec (lines[i]);
+        if (d === null) continue;
+        const [ , iden, name ] = d;
+        if (longLimitDeclarations (lines, from, to, name).length !== 1) continue;
+        const operand = new RegExp (`Helpers\\.(?:multiply|subtract|divide|mod|opNeg)\\([^;]*(?<![\\w$.])${name}\\b`);
+        if (!lines.slice (i, to).some ((l) => operand.test (longLimitCodeOnly (l)))) continue;
+        const writeDecl = new RegExp (`^(\\s*)(?:Object )?${name} = (.*?);(\\s*//.*)?$`);
+        const compound = new RegExp (`(?<![\\w$.])${name}\\s*(?:\\+\\+|--|[-+*/%]=)|(?:\\+\\+|--)${name}\\b`);
+        const mention = new RegExp (`(?<![\\w$.])${name}\\b(?!\\s*\\()`);
+        const assign = new RegExp (`(?<![\\w$.=!<>])${name}\\s*=(?!=)`);
+        const values = [];
+        let ok = true;
+        for (let j = i; j < to && ok; j++) {
+            const code = longLimitCodeOnly (lines[j]);
+            if (!mention.test (code)) continue;
+            if (compound.test (code) || (/->/.test (code) && assign.test (code))) { ok = false; break; }
+            const w = writeDecl.exec (lines[j]);
+            if (w !== null && (j === i || !/^\s*Object /.test (lines[j]))) {
+                values.push (w[2].trim ());
+                if (!j24UseOk (j === i ? `${iden}j24w = ${d[3]};` : lines[j], name, false)) ok = false;
+            } else if (assign.test (code)) ok = false;
+            else if (!j24UseOk (lines[j], name, false)) ok = false;
+        }
+        if (!ok) continue;
+        // a self-referencing write (`x = f(x)`) is classified without x
+        const boxes = values.map ((v) => j27Box (ctx, v));
+        const real = boxes.filter ((b) => b !== 'null');
+        if (boxes.includes (undefined) || real.length === 0 || real.some ((b) => b !== real[0])) continue;
+        lines[i] = `${iden}${real[0]} ${name} = ${d[3]};${d[4] ?? ''}`;
+        changed = true;
+    }
+    return changed;
+}
+
+export function nativeJavaJ27Arithmetic (content) {
+    if (!J24_TARGETS.test (content)) return content;
+    const count = (ls) => ls.reduce ((n, l) => n + (longLimitCodeOnly (l).match (/Helpers\.(?:multiply|subtract|divide|mod|opNeg)\(/g) ?? []).length, 0);
+    let out = content;
+    for (let round = 0; round < 4; round++) {
+        const lines = out.split ('\n');
+        const starts = [];
+        for (let i = 0; i < lines.length; i++) if (LONG_LIMIT_MEMBER_START.test (lines[i])) starts.push (i);
+        if (starts.length === 0) return out;
+        const next = lines.slice (0, starts[0]);
+        let changed = false;
+        for (let s = 0; s < starts.length; s++) {
+            const member = lines.slice (starts[s], s + 1 < starts.length ? starts[s + 1] : lines.length);
+            const work = member.slice ();
+            // keep a retype only when it lets at least one target helper go native
+            if (j27RetypeMember (work, 0, work.length)) {
+                const native = nativeJavaJ24Arithmetic (nativeJavaJ23Arithmetic (nativeJavaJ04Arithmetic (work.join ('\n')))).split ('\n');
+                if (count (native) < count (member)) { next.push (...native); changed = true; continue; }
+            }
+            next.push (...member);
+        }
+        if (!changed) break;
+        out = next.join ('\n');
+    }
+    return out;
+}
+
+// hx4 J31
+// ===== hx4 J31: multiply/subtract over Long/Integer locals the J04/J23 null proofs miss =====
+// Adds non-null writes the string-blind splitters reject: ternaries whose condition holds a string literal
+// (`Objects.equals(market.get("spot"), true) ? 500L : 1000L`) and safeInteger*(.., "k", <non-null default>).
+function j31Masked (text) {
+    const strs = [];
+    const masked = text.replace (/"(?:[^"\\]|\\.)*"/g, (s) => { strs.push (s); return 'j31s' + (strs.length - 1); });
+    return { masked, unmask: (t) => t.replace (/j31s(\d+)/g, (_, i) => strs[Number (i)]) };
+}
+
+function j31NonNullValue (ctx, value, nn) {
+    if (j23NonNullValue (ctx, value, nn)) return true;
+    const { masked, unmask } = j31Masked (longLimitStrip (value));
+    const t = longLimitSplitTernary (masked);
+    if (t !== undefined) {
+        const g = /^(!?)java\.util\.Objects\.equals\(([A-Za-z_]\w*), null\)$/.exec (longLimitStrip (t.cond));
+        const arm = (a, isTrue) => {
+            const x = longLimitStrip (unmask (a));
+            if (g !== null && x === g[2] && (g[1] === '!') === isTrue && [ 'Long', 'Integer' ].includes (ctx.declType (x))) return true;
+            return /^-?\d+L$/.test (x) || j31NonNullValue (ctx, x, nn);
+        };
+        return arm (t.whenTrue, true) && arm (t.whenFalse, false);
+    }
+    // SafeIntegerN answers toLong(default) on every miss: a non-null numeric default is never null
+    const safe = /^(?:\w+\.)?this\.(safeInteger|safeInteger2|safeIntegerN)\(/.exec (masked);
+    if (safe !== null) {
+        const args = longLimitCallArgs (masked, safe[0].slice (0, -1));
+        const min = safe[1] === 'safeInteger2' ? 4 : 3;
+        if (args !== undefined && args.length === min) {
+            const d = longLimitStrip (unmask (args[min - 1]));
+            if (/^-?\d+L?$/.test (d)) return true;
+            const k = j23Kind (ctx, d, nn);
+            if (k !== undefined && k !== 'double') return true;
+        }
+    }
+    return false;
+}
+
+function j31MemberCtx (lines, from, to) {
+    const base = j23MemberCtx (lines, from, to);
+    // a local re-declared in sibling blocks with one type keeps that type (writes are scanned member-wide)
+    const ctx = { declType: (name) => {
+        const t = base.ctx.declType (name);
+        if (t !== undefined) return t;
+        const d = longLimitDeclarations (lines, from, to, name);
+        return d.length > 1 && d[0].index > from && d.every ((x) => x.type === d[0].type) ? d[0].type.replace (/^final\s+/, '') : undefined;
+    } };
+    const writes = (name) => {
+        const decl = new RegExp (`^\\s*(?:final\\s+)?(?:Long|Integer|Object) ${name} = (.*?);(\\s*//.*)?$`);
+        const plain = new RegExp (`^\\s*${name} = (.*?);(\\s*//.*)?$`);
+        const other = new RegExp (`(?<![\\w$.])${name}\\s*(?:\\+\\+|--|[-+*/%]=)|(?:\\+\\+|--)${name}\\b`);
+        const any = new RegExp (`(?<![\\w$.=!<>])${name}\\s*=(?!=)`);
+        const out = [];
+        for (let w = from + 1; w < to; w++) {
+            const code = longLimitCodeOnly (lines[w]);
+            if (!new RegExp (`(?<![\\w$.])${name}\\b`).test (code)) continue;
+            if (other.test (code) || (/->/.test (code) && any.test (code))) return undefined;
+            const m = decl.exec (lines[w]) ?? plain.exec (lines[w]);
+            if (m !== null) out.push ({ line: w, value: m[1].trim () });
+            else if (any.test (code)) return undefined;
+        }
+        return out;
+    };
+    const memo = new Map ();
+    const writesNonNull = (name, seen) => {
+        if (memo.has (name)) return memo.get (name);
+        if (seen.has (name)) return false;
+        if (![ 'Long', 'Integer' ].includes (ctx.declType (name))) return false;
+        seen.add (name);
+        const ws = writes (name);
+        const ok = ws !== undefined && ws.length > 0
+            && new RegExp (`^\\s*(?:final\\s+)?(?:Long|Integer) ${name} = `).test (lines[ws[0].line])
+            && ws.every ((w) => j31NonNullValue (ctx, w.value, (n) => base.nonNullAt (n, w.line) || writesNonNull (n, seen)));
+        seen.delete (name);
+        memo.set (name, ok);
+        return ok;
+    };
+    const nonNullAt = (name, j) => base.nonNullAt (name, j) || writesNonNull (name, new Set ());
+    // an Object local whose every write is a never-null integral value (Integer or Long box)
+    const intMemo = new Map ();
+    const objectIntegral = (name) => {
+        if (intMemo.has (name)) return intMemo.get (name);
+        intMemo.set (name, false);
+        let ok = ctx.declType (name) === 'Object';
+        const ws = ok ? writes (name) : undefined;
+        ok = ok && ws !== undefined && ws.length > 0 && new RegExp (`^\\s*Object ${name} = `).test (lines[ws[0].line])
+            && ws.every ((w) => j31Integral (ctx, w.value, (n) => n !== name && nonNullAt (n, w.line), objectIntegral));
+        intMemo.set (name, ok);
+        return ok;
+    };
+    return { ctx, nonNullAt, objectIntegral };
+}
+
+// Generic.sum maps null to 0 and answers (long) for a whole sum: integral (or null) args give a Long box
+function j31IntegralSum (ctx, e, nn, objInt) {
+    const m = /^((?:\w+\.)?this\.sum)\(/.exec (e);
+    const args = m === null ? undefined : longLimitCallArgs (e, m[1]);
+    return args !== undefined && args.every ((a) => {
+        const x = longLimitStrip (a);
+        if (/^[A-Za-z_]\w*$/.test (x) && [ 'Long', 'Integer', 'long', 'int' ].includes (ctx.declType (x))) return true;
+        return j31Integral (ctx, x, nn, objInt);
+    });
+}
+
+// `((Number) <x>).longValue()` (a J31 emission) reads as a primitive long for the kind proofs
+function j31LongValues (text) {
+    let out = text;
+    for (let k = out.indexOf ('((Number) '); k !== -1; k = out.indexOf ('((Number) ', k + 1)) {
+        let depth = 0;
+        let close = -1;
+        for (let x = k; x < out.length; x++) {
+            if (out[x] === '(') depth++;
+            else if (out[x] === ')' && --depth === 0) { close = x; break; }
+        }
+        if (close !== -1 && out.startsWith ('.longValue()', close + 1)) out = out.slice (0, k) + '9L' + out.slice (close + 13);
+    }
+    return out;
+}
+
+// a never-null int/long value (string literals in a ternary condition allowed); objInt proves Object locals
+function j31Integral (ctx, value, nn, objInt = () => false) {
+    value = j31LongValues (value);
+    const k = j24Kind (ctx, value, nn);
+    if (k !== undefined) return k !== 'double';
+    const e = longLimitStrip (value);
+    if (/^[A-Za-z_]\w*$/.test (e)) return ctx.declType (e) === 'Object' && objInt (e);
+    if (/^-?\d+L$/.test (e)) return true;
+    if (j31IntegralSum (ctx, e, nn, objInt)) return true;
+    // mathMin/mathMax hand back one operand; multiply/subtract of integral boxes stay Long
+    const h = /^(Helpers\.(?:mathMin|mathMax|multiply|subtract))\(/.exec (e);
+    const hargs = h === null ? undefined : longLimitCallArgs (e, h[1]);
+    if (hargs !== undefined && hargs.length === 2) return hargs.every ((a) => j31Integral (ctx, a, nn, objInt));
+    const { masked, unmask } = j31Masked (e);
+    const t = longLimitSplitTernary (masked);
+    if (t === undefined) return false;
+    const guards = new Set (j04GuardNames (t.cond, false));
+    const negs = new Set (j04GuardNames (t.cond, true));
+    const arm = (a, isTrue) => {
+        const x = longLimitStrip (unmask (a));
+        const guarded = (isTrue ? guards : negs).has (x) && [ 'Long', 'Integer' ].includes (ctx.declType (x));
+        return guarded || j31Integral (ctx, x, nn, objInt);
+    };
+    return arm (t.whenTrue, true) && arm (t.whenFalse, false);
+}
+
+// j23Member restricted to multiply/subtract with the J31 null proofs
+function j31Member (lines, from, to) {
+    let state;
+    let changed = false;
+    const helpers = [ [ 'Helpers.subtract(', '-' ], [ 'Helpers.multiply(', '*' ] ];
+    const atom = (e) => (/^[\w.]+(\(\))?$/.test (e) ? e : `(${e})`);
+    for (let j = from + 1; j < to; j++) {
+        if (!helpers.some (([ h ]) => lines[j].includes (h))) continue;
+        state = state ?? j31MemberCtx (lines, from, to);
+        let line = lines[j];
+        const mask0 = longMultiplyMask (line);
+        const starts = [];
+        for (const [ h, op ] of helpers) {
+            for (let k = mask0.indexOf (h); k !== -1; k = mask0.indexOf (h, k + 1)) {
+                if (k === 0 || !/[\w.]/.test (mask0[k - 1])) starts.push ([ k, h, op ]);
+            }
+        }
+        starts.sort ((a, b) => b[0] - a[0]);
+        for (const [ start, h, op ] of starts) {
+            const mask = longMultiplyMask (line);
+            const call = longMultiplyArgSpans (mask, start + h.length - 1);
+            if (call === undefined || call.spans.length !== 2) continue;
+            const args = call.spans.map (([ x, y ]) => longLimitStrip (line.slice (x, y)));
+            const plain = j04PlainValuePosition (mask, start, call.close);
+            const armOk = !plain && j23TernaryArmOk (line, mask, start, call.close, state.ctx);
+            if (!plain && !armOk) continue;
+            const ternary = j04TernaryGuarded (mask, line, start);
+            const nn = (n) => ternary.has (n) || state.nonNullAt (n, j);
+            const kinds = args.map ((a) => j23Kind (state.ctx, j31LongValues (a), nn));
+            // an integral Object local reads through Number.longValue(): the helper widened Integer to Long too
+            args.forEach ((a, x) => {
+                if (kinds[x] === undefined && ((/^[A-Za-z_]\w*$/.test (a) && state.objectIntegral (a))
+                    || j31IntegralSum (state.ctx, a, nn, state.objectIntegral))) {
+                    kinds[x] = 'long';
+                    args[x] = `((Number) ${atom (a)}).longValue()`;
+                }
+            });
+            // a double operand: subtract keeps toDouble(a) - toDouble(b); multiply would re-box (left to J23)
+            if (kinds.includes (undefined) || (kinds.includes ('double') && (op === '*' || armOk))) continue;
+            const show = (a, k) => (k === 'intlit' ? a + 'L' : atom (a));
+            let text;
+            if (kinds.includes ('double')) {
+                text = `(${show (args[0], kinds[0])} ${op} ${show (args[1], kinds[1])})`;
+            } else {
+                const allInt = kinds.every ((k) => k === 'int' || k === 'intlit') && !kinds.every ((k) => k === 'intlit');
+                const lit = kinds.every ((k) => k === 'intlit');
+                text = lit ? `(${args[0]}L ${op} ${args[1]}L)` : `(${allInt ? `((long) ${atom (args[0])})` : show (args[0], kinds[0])} ${op} ${allInt && kinds[1] === 'intlit' ? args[1] : show (args[1], kinds[1])})`;
+            }
+            line = line.slice (0, start) + text + line.slice (call.close + 1);
+        }
+        if (line !== lines[j]) { lines[j] = line; changed = true; }
+    }
+    return changed;
+}
+
+export function nativeJavaJ31Arithmetic (content) {
+    if (!/Helpers\.(?:subtract|multiply)\(/.test (content)) return content;
+    const lines = content.split ('\n');
+    const starts = [];
+    for (let i = 0; i < lines.length; i++) if (LONG_LIMIT_MEMBER_START.test (lines[i])) starts.push (i);
+    let changed = false;
+    for (let s = 0; s < starts.length; s++) {
+        if (j31Member (lines, starts[s], s + 1 < starts.length ? starts[s + 1] : lines.length)) changed = true;
+    }
+    return changed ? lines.join ('\n') : content;
+}
+
+// hx4 J32
+// ===== hx4 J32: Helpers.divide / Helpers.mod / Helpers.opNeg on proven Number operands print native =====
+// divide/mod return null for a null operand, else toDouble(a) op toDouble(b) (a Double box); opNeg negates the exact
+// box. Operands: numeric literals, declared Long/Integer/Double(/primitive) names, Object locals whose every write is a
+// Number producer, a non-overridden `this.sum(..)` (never null). Each boxed name is null-guarded once.
+const J32_NUMERIC_DECL = [ 'Long', 'Integer', 'Double', 'long', 'int', 'double' ];
+
+function j32Writes (lines, from, to, name) {
+    const decl = new RegExp (`^\\s*(?:final\\s+)?[A-Za-z_][\\w.<>, ]*? ${name} = (.*?);(\\s*//.*)?$`);
+    const plain = new RegExp (`^\\s*${name} = (.*?);(\\s*//.*)?$`);
+    const other = new RegExp (`(?<![\\w$.])${name}\\s*(?:\\+\\+|--|[-+*/%]=)|(?:\\+\\+|--)${name}\\b|(?<![\\w$.])${name}\\s*->`);
+    const any = new RegExp (`(?<![\\w$.])${name}\\s*=(?!=)`);
+    const out = [];
+    for (let w = from + 1; w < to; w++) {
+        const code = longLimitCodeOnly (lines[w]);
+        if (!new RegExp (`(?<![\\w$.])${name}\\b`).test (code)) continue;
+        if (other.test (code)) return undefined;
+        const m = decl.exec (lines[w]) ?? plain.exec (lines[w]);
+        if (m !== null) out.push (m[1].trim ());
+        else if (any.test (code)) return undefined;
+    }
+    return out;
+}
+
+function j32Member (lines, from, to, overrides) {
+    const ctx = j04MemberCtx (lines, from, to).ctx;
+    const memo = new Map ();
+    const sumCall = (e) => !overrides.has ('sum') && longLimitCallArgs (e, 'this.sum') !== undefined;
+    // a printed value that is null or a java.lang.Number at runtime
+    const numberValue = (v, seen) => {
+        const e = longLimitStrip (v);
+        if (e === 'null' || /^-?\d+(?:\.\d+)?L?$/.test (e) || sumCall (e)) return true;
+        if (/^this\.(?:milliseconds|seconds)\(\)$/.test (e) && !overrides.has ('milliseconds') && !overrides.has ('seconds')) return true;
+        if (!overrides.has ('parseToInt') && longLimitCallArgs (e, 'this.parseToInt') !== undefined) return true;
+        for (const h of [ 'Helpers.parseInt', 'Helpers.multiply', 'Helpers.subtract', 'Helpers.divide', 'Helpers.mod', 'Math.min', 'Math.max' ]) {
+            if (longLimitCallArgs (e, h) !== undefined) return true;
+        }
+        if (/^[A-Za-z_]\w*$/.test (e)) return objectNumber (e, seen) || J32_NUMERIC_DECL.includes (ctx.declType (e));
+        if (j04Kind (ctx, e, () => true) !== undefined) return true;
+        const t = longLimitSplitTernary (e);
+        return t !== undefined && numberValue (t.whenTrue, seen) && numberValue (t.whenFalse, seen);
+    };
+    const objectNumber = (name, seen) => {
+        if (memo.has (name)) return memo.get (name);
+        if (seen.has (name) || ctx.declType (name) !== 'Object') return false;
+        seen.add (name);
+        const ws = j32Writes (lines, from, to, name);
+        const ok = ws !== undefined && ws.length > 0 && ws.every ((v) => numberValue (v, seen));
+        seen.delete (name);
+        memo.set (name, ok);
+        return ok;
+    };
+    // { text: double-valued text, guard?: boxed name } for a divide/mod operand
+    const operand = (a) => {
+        const e = longLimitStrip (a);
+        if (/^-?\d+(?:\.\d+)?L?$/.test (e)) return { text: `((double) ${e})` };
+        if (e === 'this.rateLimit' && !overrides.has ('rateLimit')) return { text: 'this.rateLimit' };
+        if (sumCall (e)) return { text: `((Number) ${e}).doubleValue()` };
+        if (/^[A-Za-z_]\w*$/.test (e)) {
+            const t = ctx.declType (e);
+            if ([ 'long', 'int', 'double' ].includes (t)) return { text: `((double) ${e})` };
+            if ([ 'Long', 'Integer', 'Double' ].includes (t)) return { text: `((double) ${e})`, guard: e };
+            if (objectNumber (e, new Set ())) return { text: `((Number) ${e}).doubleValue()`, guard: e };
+            return undefined;
+        }
+        const k = j04Kind (ctx, e, () => false);
+        return k !== undefined ? { text: `((double) (${e}))` } : undefined;
+    };
+    const helpers = [ [ 'Helpers.divide(', '/' ], [ 'Helpers.mod(', '%' ], [ 'Helpers.opNeg(', 'neg' ] ];
+    let changed = false;
+    for (let j = from + 1; j < to; j++) {
+        if (!helpers.some (([ h ]) => lines[j].includes (h))) continue;
+        let line = lines[j];
+        const mask0 = longMultiplyMask (line);
+        const starts = [];
+        for (const [ h, op ] of helpers) {
+            for (let k = mask0.indexOf (h); k !== -1; k = mask0.indexOf (h, k + 1)) {
+                if (k === 0 || !/[\w.]/.test (mask0[k - 1])) starts.push ([ k, h, op ]);
+            }
+        }
+        starts.sort ((a, b) => b[0] - a[0]);
+        for (const [ start, h, op ] of starts) {
+            const mask = longMultiplyMask (line);
+            const call = longMultiplyArgSpans (mask, start + h.length - 1);
+            if (call === undefined || call.spans.length !== (op === 'neg' ? 1 : 2)) continue;
+            const before = mask.slice (0, start).trimEnd ();
+            if (before === '' || /[;{}]$/.test (before)) continue;
+            // an operator operand would unbox the null arm
+            if (/(?:[-+*/%<>!]|&&|\|\|)[\s(]*$/.test (before) || /^[\s)]*(?:[-+*/%<>]|&&|\|\|)/.test (mask.slice (call.close + 1))) continue;
+            const args = call.spans.map (([ x, y ]) => longLimitStrip (line.slice (x, y)));
+            let text;
+            if (op === 'neg') {
+                // the exact box negated: Long -> Long, Integer -> Integer, Double -> Double
+                if (!/^[A-Za-z_]\w*$/.test (args[0]) || ![ 'Long', 'Integer', 'Double' ].includes (ctx.declType (args[0]))) continue;
+                text = `(${args[0]} == null ? null : -${args[0]})`;
+            } else {
+                const ops = args.map (operand);
+                if (ops.includes (undefined)) continue;
+                const guards = [ ...new Set (ops.filter ((o) => o.guard !== undefined).map ((o) => `${o.guard} == null`)) ];
+                const value = `${ops[0].text} ${op} ${ops[1].text}`;
+                text = guards.length === 0 ? `(${value})` : `(${guards.join (' || ')} ? null : ${value})`;
+            }
+            // outside a plain value slot keep the helper's static type (Object)
+            if (!j04PlainValuePosition (mask, start, call.close)) text = `((Object) ${text})`;
+            line = line.slice (0, start) + text + line.slice (call.close + 1);
+        }
+        if (line !== lines[j]) { lines[j] = line; changed = true; }
+    }
+    return changed;
+}
+
+export function nativeJavaJ32DivModNeg (content, base = false) {
+    if (!/Helpers\.(?:divide|mod|opNeg)\(/.test (content)) return content;
+    const lines = content.split ('\n');
+    // members the class itself declares shadow the base producers
+    const overrides = new Set ();
+    for (const l of lines) {
+        const m = /^    (?:public|private|protected)[^(=]*?\s([A-Za-z_]\w*)\s*(?:\(|;|=)/.exec (l);
+        if (m !== null) overrides.add (m[1]);
+    }
+    if (base) for (const n of [ 'sum', 'parseToInt', 'milliseconds', 'seconds', 'rateLimit' ]) overrides.delete (n);
+    const starts = [];
+    for (let i = 0; i < lines.length; i++) if (LONG_LIMIT_MEMBER_START.test (lines[i])) starts.push (i);
+    let changed = false;
+    for (let s = 0; s < starts.length; s++) {
+        if (j32Member (lines, starts[s], s + 1 < starts.length ? starts[s + 1] : lines.length, overrides)) changed = true;
+    }
+    return changed ? lines.join ('\n') : content;
+}
+
+// hx4 J37
+// ===== hx4 J37: every remaining Helpers.divide / Helpers.mod / Helpers.opNeg prints inline native Java =====
+// Tier 2 after J32's typed proofs: the call becomes a typed lambda applied in place, which evaluates each
+// operand once, left to right, and keeps the helper's static type (Object). Its body is a verbatim copy of
+// Helpers.divide / Helpers.mod / Helpers.opNeg + Helpers.toDouble + normalizeIntIfNeeded: null -> null,
+// Long/Integer/Double/Float/BigDecimal -> doubleValue, other values -> parseDouble(String.valueOf(x)) or 0.0,
+// a Double box for divide/mod (zero divisor = Infinity/NaN as in the helper), mod null for a non
+// String/Long/Integer/Double dividend, and opNeg negating the exact Byte/Short/Integer/Long/Float/Double box.
+function j37ToDouble () {
+    return 'java.util.function.ToDoubleFunction<Object> j37d = (j37o) -> { '
+        + 'if (j37o instanceof Double j37v) return j37v; '
+        + 'if (j37o instanceof Float j37v) return j37v.doubleValue(); '
+        + 'if (j37o instanceof Long j37v) return j37v.doubleValue(); '
+        + 'if (j37o instanceof Integer j37v) return j37v.doubleValue(); '
+        + 'if (j37o instanceof java.math.BigDecimal j37v) return j37v.doubleValue(); '
+        + 'try { return Double.parseDouble(String.valueOf(j37o)); } catch (NumberFormatException j37e) { return 0.0; } }; ';
+}
+
+function j37Inline (op, args) {
+    if (op === 'neg') {
+        return '((java.util.function.UnaryOperator<Object>) (j37a) -> { '
+            + 'if (j37a instanceof Byte j37v) return (byte) -j37v; '
+            + 'if (j37a instanceof Short j37v) return (short) -j37v; '
+            + 'if (j37a instanceof Integer j37v) return -j37v; '
+            + 'if (j37a instanceof Long j37v) return -j37v; '
+            + 'if (j37a instanceof Float j37v) return -j37v; '
+            + 'if (j37a instanceof Double j37v) return -j37v; '
+            + `return null; }).apply(${args[0]})`;
+    }
+    const guard = op === '%'
+        ? 'if (!(j37a instanceof String || j37a instanceof Long || j37a instanceof Integer || j37a instanceof Double)) return null; '
+        : '';
+    return '((java.util.function.BinaryOperator<Object>) (j37a, j37b) -> { '
+        + 'if (j37a == null || j37b == null) return null; ' + guard + j37ToDouble ()
+        + `return j37d.applyAsDouble(j37a) ${op} j37d.applyAsDouble(j37b); }).apply(${args[0]}, ${args[1]})`;
+}
+
+export function nativeJavaJ37DivModNeg (content) {
+    if (!/Helpers\.(?:divide|mod|opNeg)\(/.test (content)) return content;
+    const helpers = [ [ 'Helpers.divide(', '/' ], [ 'Helpers.mod(', '%' ], [ 'Helpers.opNeg(', 'neg' ] ];
+    const lines = content.split ('\n');
+    let changed = false;
+    for (let j = 0; j < lines.length; j++) {
+        if (!helpers.some (([ h ]) => lines[j].includes (h))) continue;
+        let line = lines[j];
+        // innermost (rightmost) first, so an outer call wraps the inner inline text
+        for (;;) {
+            const mask = longMultiplyMask (line);
+            let best;
+            for (const [ h, op ] of helpers) {
+                for (let k = mask.indexOf (h); k !== -1; k = mask.indexOf (h, k + 1)) {
+                    if ((k === 0 || !/[\w.$]/.test (mask[k - 1])) && (best === undefined || k > best[0])) best = [ k, h, op ];
+                }
+            }
+            if (best === undefined) break;
+            const [ start, h, op ] = best;
+            const call = longMultiplyArgSpans (mask, start + h.length - 1);
+            if (call === undefined || call.spans.length !== (op === 'neg' ? 1 : 2)) break;
+            const args = call.spans.map (([ x, y ]) => line.slice (x, y).trim ());
+            line = line.slice (0, start) + j37Inline (op, args) + line.slice (call.close + 1);
+        }
+        if (line !== lines[j]) { lines[j] = line; changed = true; }
+    }
+    return changed ? lines.join ('\n') : content;
+}

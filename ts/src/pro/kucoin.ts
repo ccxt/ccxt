@@ -264,8 +264,7 @@ export default class kucoin extends kucoinRest {
         this.checkRequiredCredentials ();
         const utaToken = this.safeString (this.options, 'utaToken');
         const lastUpdate = this.safeInteger (this.options, 'utaTokenLastUpdate', 0);
-        let refreshInterval = 1000 * 60 * 60 * 24; // 24 hours
-        refreshInterval = this.safeInteger (this.options, 'utaTokenRefreshInterval', refreshInterval);
+        const refreshInterval = this.safeInteger (this.options, 'utaTokenRefreshInterval', 86400000); // 24 hours
         const now = this.milliseconds ();
         const expired = (now - lastUpdate) >= refreshInterval;
         const messageHash = 'utaToken';
@@ -294,7 +293,7 @@ export default class kucoin extends kucoinRest {
         return this.safeString (this.options, 'utaToken');
     }
 
-    unSubscribe (url: any, messageHash: any, topic: any, subscriptionHash: any, params = {}, subscription: NullableDict = undefined): Promise<any> {
+    unSubscribe (url: string, messageHash: string, topic: string, subscriptionHash: string, params: Dict = {}, subscription: NullableDict = undefined): Promise<any> {
         return this.unSubscribeMultiple (url, [ messageHash ], topic, [ subscriptionHash ], params, subscription);
     }
 
@@ -1721,7 +1720,7 @@ export default class kucoin extends kucoinRest {
                 }
                 (orderbook.cache as any[]).push (data);
                 return;
-            } else if (nonce >= (deltaEnd as number)) {
+            } else if ((deltaEnd !== undefined) && (nonce >= deltaEnd)) {
                 return;
             }
         }
@@ -1780,7 +1779,7 @@ export default class kucoin extends kucoinRest {
                 }
                 (orderbook.cache as any[]).push (data);
                 return;
-            } else if (nonce >= (deltaEnd as number)) {
+            } else if ((deltaEnd !== undefined) && (nonce >= deltaEnd)) {
                 return;
             }
         }
@@ -1795,7 +1794,7 @@ export default class kucoin extends kucoinRest {
         if ((nonce === undefined) || (firstDeltaStart === undefined)) {
             return -1;
         }
-        if ((nonce as number) < (firstDeltaStart as number) - 1) {
+        if (nonce < firstDeltaStart - 1) {
             return -1;
         }
         for (let i = 0; i < cache.length; i++) {
@@ -1805,7 +1804,7 @@ export default class kucoin extends kucoinRest {
             if ((deltaStart === undefined) || (deltaEnd === undefined)) {
                 continue;
             }
-            if (((nonce as number) >= (deltaStart as number) - 1) && ((nonce as number) < (deltaEnd as number))) {
+            if ((nonce >= deltaStart - 1) && (nonce < deltaEnd)) {
                 return i;
             }
         }
@@ -1990,7 +1989,10 @@ export default class kucoin extends kucoinRest {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const symbolResolved: Str = (market !== undefined) ? this.safeString (market, 'symbol') : symbol;
+        let symbolResolved: Str = symbol;
+        if (market !== undefined) {
+            symbolResolved = this.safeString (market, 'symbol');
+        }
         let messageHash = 'orders';
         if (symbolResolved !== undefined) {
             messageHash = messageHash + ':' + symbolResolved;
@@ -2417,7 +2419,10 @@ export default class kucoin extends kucoinRest {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const symbolResolved: Str = (market !== undefined) ? this.safeString (market, 'symbol') : symbol;
+        let symbolResolved: Str = symbol;
+        if (market !== undefined) {
+            symbolResolved = this.safeString (market, 'symbol');
+        }
         if (market !== undefined) {
             messageHash = messageHash + ':' + market['symbol'];
         }
@@ -2971,7 +2976,7 @@ export default class kucoin extends kucoinRest {
         return this.filterBySymbolsSinceLimit (cache, symbolsNormalized, since, limit, true);
     }
 
-    getCurrentPosition (symbol: string) {
+    getCurrentPosition (symbol: string): NullableDict {
         if (this.positions === undefined) {
             return undefined;
         }
@@ -3004,7 +3009,7 @@ export default class kucoin extends kucoinRest {
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             const contracts = this.safeNumber (position, 'contracts', 0);
-            if ((contracts as number) > 0) {
+            if ((contracts !== undefined) && (contracts > 0)) {
                 cache.append (position);
             }
         }

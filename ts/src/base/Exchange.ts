@@ -2402,8 +2402,18 @@ export class BaseExchange {
     }
 
     checkOptionBool (methodName: Str, optionName: string, value: any): Bool {
-        // the statically typed ports throw on a present non-boolean value; here it passes through unchanged
-        return value;
+        // "true"/"false" strings and 1/0 numbers read as booleans; any other present non-boolean throws BadRequest
+        if ((value === undefined) || (value === null)) {
+            return undefined;
+        }
+        if ((value === true) || (value === 'true') || (value === 1)) {
+            return true;
+        }
+        if ((value === false) || (value === 'false') || (value === 0)) {
+            return false;
+        }
+        const label = (methodName === undefined) ? 'exchange-wide' : methodName + '()';
+        throw new BadRequest (this.id + ' ' + label + ' option ' + optionName + ' must be a boolean');
     }
 
     checkOptionInteger (methodName: Str, optionName: string, value: any): Int {
@@ -3572,10 +3582,10 @@ export class BaseExchange {
             if (arrayLength > 0) {
                 let ascending = true;
                 if ((key in array[0])) {
-                    const first = array[0][key];
-                    const last = array[arrayLength - 1][key];
+                    const first = this.safeFloat (array[0], key);
+                    const last = this.safeFloat (array[arrayLength - 1], key);
                     if (first !== undefined && last !== undefined) {
-                        ascending = first <= last;  // true if array is sorted in ascending order based on 'timestamp'
+                        ascending = last >= first;  // true if array is sorted in ascending order based on 'timestamp'
                     }
                 }
                 if (fromStart) {
@@ -3605,8 +3615,8 @@ export class BaseExchange {
             result = [ ];
             for (let i = 0; i < parsedArray.length; i++) {
                 const entry = parsedArray[i];
-                const value = this.safeValue (entry, key);
-                if ((value !== undefined) && (value !== null) && (value !== 0) && (value >= since)) {
+                const value = this.safeInteger (entry, key);
+                if ((value !== undefined) && (value !== 0) && (value >= since)) {
                     result.push (entry);
                 }
             }
@@ -3634,8 +3644,8 @@ export class BaseExchange {
                 // KeyError in python/php — prediction structures key on outcome, not symbol
                 const entryFiledEqualValue = this.safeValue (entry, field) === value;
                 const firstCondition: boolean = valueIsDefined ? entryFiledEqualValue : true;
-                const entryKeyValue = this.safeValue (entry, key);
-                const entryKeyGESince = (entryKeyValue !== undefined) && (entryKeyValue !== null) && (entryKeyValue !== 0) && (since !== undefined) && (entryKeyValue >= since);
+                const entryKeyValue = this.safeInteger (entry, key);
+                const entryKeyGESince = (entryKeyValue !== undefined) && (entryKeyValue !== 0) && (since !== undefined) && (entryKeyValue >= since);
                 const secondCondition: boolean = sinceIsDefined ? entryKeyGESince : true;
                 if (firstCondition && secondCondition) {
                     result.push (entry);
@@ -4689,7 +4699,7 @@ export class BaseExchange {
                         continue;
                     }
                     if (this.precisionMode === TICK_SIZE) {
-                        if (currentPrecision < highestPrecision) {
+                        if (highestPrecision > currentPrecision) {
                             highestPrecisionCurrency = currentCurrency;
                         }
                     } else if (currentPrecision > highestPrecision) {
@@ -6182,7 +6192,10 @@ export class BaseExchange {
                     position['initialMargin'] = this.parseNumber (derivedEntryMargin);
                     marginString = derivedEntryMargin;
                     position['positionMargin'] = this.parseNumber (derivedEntryMargin);
-                    const derivedCollateral = (unrealizedPnlString !== undefined) ? Precise.stringAdd (derivedEntryMargin, unrealizedPnlString) : derivedEntryMargin;
+                    let derivedCollateral: Str = derivedEntryMargin;
+                    if (unrealizedPnlString !== undefined) {
+                        derivedCollateral = Precise.stringAdd (derivedEntryMargin, unrealizedPnlString);
+                    }
                     if (Precise.stringGt (derivedCollateral, '0')) {
                         collateralString = derivedCollateral;
                         position['collateral'] = this.parseNumber (derivedCollateral);
@@ -6193,15 +6206,19 @@ export class BaseExchange {
                 const totalSize = Precise.stringMul (contractsString, contractSizeString);
                 if (Precise.stringGt (marginBuffer, '0') && Precise.stringGt (totalSize, '0')) {
                     const bufferPerUnit = Precise.stringDiv (marginBuffer, totalSize);
-                    let derivedLp: Str = undefined;
+                    let derivedLp = Precise.stringAdd (entryPriceString, bufferPerUnit);
+                    if (side === 'long') {
+                        derivedLp = Precise.stringSub (entryPriceString, bufferPerUnit);
+                    }
                     if (isInverse) {
                         const invEntry = Precise.stringDiv ('1', entryPriceString);
-                        const invLp = (side === 'long') ? Precise.stringAdd (invEntry, bufferPerUnit) : Precise.stringSub (invEntry, bufferPerUnit);
-                        if (Precise.stringGt (invLp, '0')) {
-                            derivedLp = Precise.stringDiv ('1', invLp);
+                        let invDerivedLp = Precise.stringSub (invEntry, bufferPerUnit);
+                        if (side === 'long') {
+                            invDerivedLp = Precise.stringAdd (invEntry, bufferPerUnit);
                         }
-                    } else {
-                        derivedLp = (side === 'long') ? Precise.stringSub (entryPriceString, bufferPerUnit) : Precise.stringAdd (entryPriceString, bufferPerUnit);
+                        // 1 / invDerivedLp keeps its sign (undefined at 0), so the > 0 guard below
+                        // rejects exactly the values a separate invDerivedLp > 0 check would
+                        derivedLp = Precise.stringDiv ('1', invDerivedLp);
                     }
                     if ((derivedLp !== undefined) && Precise.stringGt (derivedLp, '0')) {
                         liquidationPriceString = derivedLp;
@@ -6213,15 +6230,19 @@ export class BaseExchange {
                 const totalSize = Precise.stringMul (contractsString, contractSizeString);
                 if (Precise.stringGt (marginBuffer, '0') && Precise.stringGt (totalSize, '0')) {
                     const bufferPerUnit = Precise.stringDiv (marginBuffer, totalSize);
-                    let derivedEp: Str = undefined;
+                    let derivedEp = Precise.stringSub (liquidationPriceString, bufferPerUnit);
+                    if (side === 'long') {
+                        derivedEp = Precise.stringAdd (liquidationPriceString, bufferPerUnit);
+                    }
                     if (isInverse) {
                         const invLp = Precise.stringDiv ('1', liquidationPriceString);
-                        const invEp = (side === 'long') ? Precise.stringSub (invLp, bufferPerUnit) : Precise.stringAdd (invLp, bufferPerUnit);
-                        if (Precise.stringGt (invEp, '0')) {
-                            derivedEp = Precise.stringDiv ('1', invEp);
+                        let invEp = Precise.stringAdd (invLp, bufferPerUnit);
+                        if (side === 'long') {
+                            invEp = Precise.stringSub (invLp, bufferPerUnit);
                         }
-                    } else {
-                        derivedEp = (side === 'long') ? Precise.stringAdd (liquidationPriceString, bufferPerUnit) : Precise.stringSub (liquidationPriceString, bufferPerUnit);
+                        // 1 / invEp keeps its sign (undefined at 0), so the > 0 guard below
+                        // rejects exactly the values a separate invEp > 0 check would
+                        derivedEp = Precise.stringDiv ('1', invEp);
                     }
                     if ((derivedEp !== undefined) && Precise.stringGt (derivedEp, '0')) {
                         entryPriceString = derivedEp;
@@ -6265,29 +6286,41 @@ export class BaseExchange {
             // 1. notional <-> markPrice / contracts / contractSize
             if ((notionalString === undefined) && hasMarkPrice && hasContracts && hasContractSize) {
                 const totalSize = Precise.stringMul (contractsString, contractSizeString);
-                const derivedNotional = isInverse ? Precise.stringDiv (totalSize, markPriceString) : Precise.stringMul (totalSize, markPriceString);
+                let derivedNotional = Precise.stringMul (totalSize, markPriceString);
+                if (isInverse) {
+                    derivedNotional = Precise.stringDiv (totalSize, markPriceString);
+                }
                 if (Precise.stringGt (derivedNotional, '0')) {
                     notionalString = derivedNotional;
                     position['notional'] = this.parseNumber (derivedNotional);
                 }
             } else if ((markPriceString === undefined) && (entryPriceString === undefined) && (lastPriceString === undefined) && hasNotional && hasContracts && hasContractSize) {
                 const totalSize = Precise.stringMul (contractsString, contractSizeString);
-                const derivedMark = isInverse ? Precise.stringDiv (totalSize, notionalString) : Precise.stringDiv (notionalString, totalSize);
+                let derivedMark = Precise.stringDiv (notionalString, totalSize);
+                if (isInverse) {
+                    derivedMark = Precise.stringDiv (totalSize, notionalString);
+                }
                 if (Precise.stringGt (derivedMark, '0')) {
                     markPriceString = derivedMark;
                     position['markPrice'] = this.parseNumber (derivedMark);
                 }
             } else if ((contractsString === undefined) && hasNotional && hasMarkPrice && hasContractSize) {
-                const derivedContracts = isInverse ? Precise.stringDiv (Precise.stringMul (notionalString, markPriceString), contractSizeString) : Precise.stringDiv (notionalString, Precise.stringMul (markPriceString, contractSizeString));
-                if (Precise.stringGt (derivedContracts, '0')) {
-                    contractsString = derivedContracts;
-                    position['contracts'] = this.parseNumber (derivedContracts);
+                let notionalContracts = Precise.stringDiv (notionalString, Precise.stringMul (markPriceString, contractSizeString));
+                if (isInverse) {
+                    notionalContracts = Precise.stringDiv (Precise.stringMul (notionalString, markPriceString), contractSizeString);
+                }
+                if (Precise.stringGt (notionalContracts, '0')) {
+                    contractsString = notionalContracts;
+                    position['contracts'] = this.parseNumber (notionalContracts);
                 }
             } else if ((contractSizeString === undefined) && hasNotional && hasMarkPrice && hasContracts) {
-                const derivedContractSize = isInverse ? Precise.stringDiv (Precise.stringMul (notionalString, markPriceString), contractsString) : Precise.stringDiv (notionalString, Precise.stringMul (markPriceString, contractsString));
-                if (Precise.stringGt (derivedContractSize, '0')) {
-                    contractSizeString = derivedContractSize;
-                    position['contractSize'] = this.parseNumber (derivedContractSize);
+                let notionalContractSize = Precise.stringDiv (notionalString, Precise.stringMul (markPriceString, contractsString));
+                if (isInverse) {
+                    notionalContractSize = Precise.stringDiv (Precise.stringMul (notionalString, markPriceString), contractsString);
+                }
+                if (Precise.stringGt (notionalContractSize, '0')) {
+                    contractSizeString = notionalContractSize;
+                    position['contractSize'] = this.parseNumber (notionalContractSize);
                 }
             }
             // 2. unrealizedPnl from entryPrice, markPrice, contracts, contractSize, side
@@ -6778,7 +6811,7 @@ export class BaseExchange {
         const skipZeroPrices = this.safeBool (options, 'skipZeroPrices', true);
         for (let i = 0; i < oldest; i++) {
             const trade = trades[i];
-            const ts = trade['timestamp'];
+            const ts = this.safeInteger (trade, 'timestamp');
             const price = trade['price'];
             if ((ts === undefined) || (price === undefined)) {
                 continue;
@@ -7172,7 +7205,7 @@ export class BaseExchange {
     handleOptionBoolAndParams (params: Dict, methodName: Str, optionName: string, defaultValue?: Bool): [Bool, Dict];
     /* eslint-enable no-unused-vars */
     handleOptionBoolAndParams (params: Dict, methodName: Str, optionName: string, defaultValue: Bool = undefined): [Bool, Dict] {
-        // handleOptionAndParams read as a boolean; the statically typed ports throw on another type
+        // handleOptionAndParams read as a boolean (see checkOptionBool)
         const [ value, newParams ] = this.handleOptionAndParams (params, methodName, optionName, defaultValue);
         return [ this.checkOptionBool (methodName, optionName, value), newParams ];
     }
@@ -7809,7 +7842,7 @@ export class BaseExchange {
             return parsedPrecision + '1';
         } else {
             let parsedPrecision = '1';
-            for (let i = 0; i < precisionNumber * -1 - 1; i++) {
+            for (let i = 0; i < -1 - precisionNumber; i++) {
                 parsedPrecision = parsedPrecision + '0';
             }
             return parsedPrecision + '0';
@@ -8073,7 +8106,7 @@ export class BaseExchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as LongShortRatio[];
     }
 
-    handleTriggerPricesAndParams (symbol: any, params: any, omitParams = true): any[] {
+    handleTriggerPricesAndParams (symbol: any, params: any, omitParams = true): [Str, Str, Str, Dict] {
         //
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         let triggerPriceStr: Str = undefined;
@@ -8107,7 +8140,7 @@ export class BaseExchange {
         return [ triggerPriceStr, stopLossPriceStr, takeProfitPriceStr, paramsOmitted ];
     }
 
-    handleTriggerDirectionAndParams (params: any, exchangeSpecificKey: Str = undefined, allowEmpty: Bool = false): any[] {
+    handleTriggerDirectionAndParams (params: any, exchangeSpecificKey: Str = undefined, allowEmpty: Bool = false): [Str, Dict] {
         /**
          * @ignore
          * @method
@@ -8131,13 +8164,13 @@ export class BaseExchange {
         return [ triggerDirection, paramsOmitted ];
     }
 
-    handleTriggerAndParams (params: any): any[] {
+    handleTriggerAndParams (params: any): [Bool, Dict] {
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop');
         const paramsOmitted = (isTrigger === true) ? this.omit (params, [ 'trigger', 'stop' ]) : params;
         return [ isTrigger, paramsOmitted ];
     }
 
-    isTriggerOrder (params: any): any[] {
+    isTriggerOrder (params: any): [Bool, Dict] {
         // for backwards compatibility
         return this.handleTriggerAndParams (params);
     }
@@ -8773,7 +8806,7 @@ export class BaseExchange {
         const tasks: Promise<any>[] = [];
         const time = this.parseTimeframe (timeframe) * 1000;
         const maxEntriesPerRequestValue: Int = this.requireValue (maxEntriesPerRequestOption, 'fetchPaginatedCallDeterministic() maxEntriesPerRequest is required');
-        const step = time * maxEntriesPerRequestValue;
+        const step = time * this.parseToInt (maxEntriesPerRequestValue);
         const until = this.safeInteger2 (paramsOmitted, 'until', 'till'); // do not omit it here
         let currentSince = current - (maxCallsPaginationCalls * step) - 1;
         if (since !== undefined) {
@@ -9532,7 +9565,8 @@ export class BaseExchange {
     }
 
     timeframeFromMilliseconds (ms: number): string {
-        if (ms <= 0) {
+        const msInt = this.parseToInt (ms);
+        if (msInt <= 0) {
             return '';
         }
         const second = 1000;
@@ -9540,20 +9574,20 @@ export class BaseExchange {
         const hour = 60 * minute;
         const day = 24 * hour;
         const week = 7 * day;
-        if (ms % week === 0) {
-            return (ms / week) + 'w';
+        if (msInt % week === 0) {
+            return this.parseToInt (msInt / week).toString () + 'w';
         }
-        if (ms % day === 0) {
-            return (ms / day) + 'd';
+        if (msInt % day === 0) {
+            return this.parseToInt (msInt / day).toString () + 'd';
         }
-        if (ms % hour === 0) {
-            return (ms / hour) + 'h';
+        if (msInt % hour === 0) {
+            return this.parseToInt (msInt / hour).toString () + 'h';
         }
-        if (ms % minute === 0) {
-            return (ms / minute) + 'm';
+        if (msInt % minute === 0) {
+            return this.parseToInt (msInt / minute).toString () + 'm';
         }
-        if (ms % second === 0) {
-            return (ms / second) + 's';
+        if (msInt % 1000 === 0) {
+            return this.parseToInt (msInt / 1000).toString () + 's';
         }
         return '';
     }

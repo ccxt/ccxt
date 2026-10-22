@@ -929,21 +929,24 @@ export default class krakenfutures extends Exchange {
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
         const paramsOmitted: Dict = this.omit (paramsPaginate, 'price');
-        const windowLimit = (limit === undefined) ? 2000 : Math.min (limit, 2000);
-        let limitResolved = undefined;
+        const windowLimit: Int = ((limit === undefined) || (limit > 2000)) ? 2000 : limit;
+        const windowSize = this.parseToInt (windowLimit);
+        let limitResolved: Int = undefined;
         if ((since !== undefined) || (limit !== undefined)) {
-            limitResolved = windowLimit;
+            limitResolved = windowSize;
         }
         if (since !== undefined) {
             const duration = this.parseTimeframe (timeframe);
-            request['from'] = this.parseToInt (since / 1000);
-            const toTimestamp = this.sum (request['from'], windowLimit * duration - 1);
+            const fromTimestamp = this.parseToInt (since / 1000);
+            request['from'] = fromTimestamp;
+            const toTimestamp = this.parseToInt (this.sum (fromTimestamp, windowSize * duration - 1));
             const currentTimestamp = this.seconds ();
-            request['to'] = Math.min (toTimestamp, currentTimestamp);
+            request['to'] = (toTimestamp < currentTimestamp) ? toTimestamp : currentTimestamp;
         } else if (limitResolved !== undefined) {
             const duration = this.parseTimeframe (timeframe);
-            request['to'] = this.seconds ();
-            request['from'] = this.parseToInt (request['to'] - (duration * limitResolved));
+            const toTimestamp = this.seconds ();
+            request['to'] = toTimestamp;
+            request['from'] = this.parseToInt (toTimestamp - (duration * windowSize));
         }
         const response = await this.chartsGetPriceTypeSymbolInterval (this.extend (request, paramsOmitted));
         //
@@ -1189,23 +1192,21 @@ export default class krakenfutures extends Exchange {
         let order = this.safeString (trade, 'order_id');
         let marketId = this.safeString (trade, 'symbol');
         let side = this.safeString (trade, 'side');
-        let type: Str = undefined;
+        let rawType: Str = undefined;
         const priorEdit = this.safeDict (trade, 'orderPriorEdit');
         const priorExecution = this.safeDict (trade, 'orderPriorExecution');
         if (priorExecution !== undefined) {
             order = this.safeString (priorExecution, 'orderId');
             marketId = this.safeString (priorExecution, 'symbol');
             side = this.safeString (priorExecution, 'side');
-            type = this.safeString (priorExecution, 'type');
+            rawType = this.safeString (priorExecution, 'type');
         } else if (priorEdit !== undefined) {
             order = this.safeString (priorEdit, 'orderId');
             marketId = this.safeString (priorEdit, 'symbol');
             side = this.safeString (priorEdit, 'type');
-            type = this.safeString (priorEdit, 'type');
+            rawType = this.safeString (priorEdit, 'type');
         }
-        if (type !== undefined) {
-            type = this.parseOrderType (type);
-        }
+        const type = this.parseOrderType (rawType); // undefined stays undefined
         const marketResolved: Market = this.safeMarket (marketId, market);
         let cost: Str = undefined;
         const linear = this.safeBool (marketResolved, 'linear');
@@ -1306,7 +1307,8 @@ export default class krakenfutures extends Exchange {
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
         const isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
         const triggerSignal = this.safeString (paramsPostOnly, 'triggerSignal', 'last');
-        let reduceOnly = this.safeBool (paramsPostOnly, 'reduceOnly');
+        const reduceOnlyParam = this.safeBool (paramsPostOnly, 'reduceOnly');
+        let reduceOnly = (reduceOnlyParam === true);
         if (isStopLossOrTakeProfitTrigger || isTriggerOrder) {
             request['triggerSignal'] = triggerSignal;
         }
@@ -1323,7 +1325,7 @@ export default class krakenfutures extends Exchange {
                 request['stopPrice'] = this.priceToPrecision (symbolValue, takeProfitTriggerPrice);
             }
         }
-        if (reduceOnly === true) {
+        if (reduceOnly) {
             request['reduceOnly'] = true;
         }
         request['orderType'] = typeValue;
@@ -1918,7 +1920,7 @@ export default class krakenfutures extends Exchange {
         return this.safeString (typesMap, orderType, orderType);
     }
 
-    verifyOrderActionSuccess (status: any, method: any, omit: string[] = []) {
+    verifyOrderActionSuccess (status: any, method: string, omit: string[] = []) {
         const errors: Dict = {
             'invalidOrderType': InvalidOrder,
             'invalidSide': InvalidOrder,
@@ -1946,7 +1948,7 @@ export default class krakenfutures extends Exchange {
         }
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'placed': 'open', // the order was placed successfully
             'cancelled': 'canceled', // the order was cancelled successfully
@@ -2439,8 +2441,9 @@ export default class krakenfutures extends Exchange {
             id = this.safeString2 (details, 'orderId', 'uid');
         }
         const type = this.safeStringLower2 (details, 'type', 'orderType');
+        const parsedType = this.parseOrderType (type);
         let timeInForce = 'gtc';
-        if (type === 'ioc' || this.parseOrderType (type) === 'market') {
+        if (type === 'ioc' || parsedType === 'market') {
             timeInForce = 'ioc';
         }
         const ts = this.safeInteger (details, 'timestamp', timestamp);
@@ -2458,7 +2461,7 @@ export default class krakenfutures extends Exchange {
             'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': this.safeInteger (details, 'lastUpdateTimestamp', lastUpdateTimestamp),
             'symbol': symbol,
-            'type': this.parseOrderType (type),
+            'type': parsedType,
             'timeInForce': timeInForce,
             'postOnly': type === 'post',
             'reduceOnly': this.safeBool2 (details, 'reduceOnly', 'reduce_only'),
@@ -3175,7 +3178,7 @@ export default class krakenfutures extends Exchange {
         //        ]
         //    }
         //
-        const rates = this.safeValue (response, 'rates');
+        const rates = this.safeList (response, 'rates', []);
         const result: FundingRateHistory[] = [];
         for (let i = 0; i < rates.length; i++) {
             const item = this.safeDict (rates, i);
@@ -3853,7 +3856,7 @@ export default class krakenfutures extends Exchange {
         }
         const url = apiUrl + query;
         const requestBody = (path === 'batchorder') ? postData : undefined;
-        let privateHeaders = undefined;
+        let privateHeaders: NullableDict = undefined;
         if (apiName === 'private' || access === 'private') {
             this.checkRequiredCredentials ();
             let auth = postData + '/api/';

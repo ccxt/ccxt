@@ -372,7 +372,7 @@ type ICoreExchange interface {
 	SafeNumber(obj any, key any, optionalArgs ...any) *float64
 	SafeNumber2(dictionary any, key1 any, key2 any, optionalArgs ...any) *float64
 	SafeNumberOmitZero(obj any, key any, optionalArgs ...any) *float64
-	IsEmptyString(obj any) any
+	IsEmptyString(obj any) bool
 	SafeDictN(dictionaryOrList any, keys any, optionalArgs ...any) any
 	SafeListN(dictionaryOrList any, keys any, optionalArgs ...any) any
 	SafeList(dictionaryOrList any, key any, optionalArgs ...any) any
@@ -385,7 +385,7 @@ type ICoreExchange interface {
 	OmitDict(a map[string]any, parameters ...any) map[string]any
 	CheckProxyUrlSettings(optionalArgs ...any) any
 	CheckProxySettings(optionalArgs ...any) any
-	IsTickPrecision() any
+	IsTickPrecision() bool
 	SetProperty(obj any, property any, defaultValue any)
 	Capitalize(value any) string
 	GetProperty(obj any, property any, defaultValue ...any) any

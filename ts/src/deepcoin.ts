@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/deepcoin.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Bool, Currency, DepositAddress, Dict, Fee, FeeString, FundingRate, FundingRateHistory, FundingRates, int, Int, LedgerEntry, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, SubType, Ticker, Tickers, Trade, Transaction, TransferEntry, Endpoint } from './base/types.js';
+import type { Balances, Bool, Currency, DepositAddress, Dict, NullableDict, Fee, FeeString, FundingRate, FundingRateHistory, FundingRates, int, Int, LedgerEntry, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, SubType, Ticker, Tickers, Trade, Transaction, TransferEntry, Endpoint } from './base/types.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound, NotSupported, NullResponse } from './base/errors.js';
 
 // ---------------------------------------------------------------------------
@@ -414,14 +414,14 @@ export default class deepcoin extends Exchange {
         } else {
             types = this.safeList (this.options, 'fetchMarkets', types) as List; // backward-support
         }
-        let promises: List = [];
+        const promises: List = [];
         let result: List = [];
         for (let i = 0; i < types.length; i++) {
             promises.push (this.fetchMarketsByType (types[i], params));
         }
-        promises = await Promise.all (promises);
-        for (let i = 0; i < promises.length; i++) {
-            result = this.arrayConcat (result, promises[i]);
+        const responses = await Promise.all (promises);
+        for (let i = 0; i < responses.length; i++) {
+            result = this.arrayConcat (result, responses[i]);
         }
         return result;
     }
@@ -523,7 +523,7 @@ export default class deepcoin extends Exchange {
         if ((base === undefined) || (quote === undefined)) {
             return undefined;
         }
-        let symbol = base + '/' + quote;
+        let symbol: string = base + '/' + quote;
         let isLinear: Bool = undefined;
         if (swap) {
             isLinear = (quoteId !== 'USD');
@@ -938,8 +938,8 @@ export default class deepcoin extends Exchange {
         }, marketResolved);
     }
 
-    parseTakerOrMaker (execType: Str) {
-        const types = {
+    parseTakerOrMaker (execType: Str): Str {
+        const types: Dict = {
             'T': 'taker',
             'M': 'maker',
         };
@@ -1418,7 +1418,7 @@ export default class deepcoin extends Exchange {
      */
     override async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params: Dict = {}): Promise<TransferEntry> {
         const [ userIdOption, paramsUserId ] = this.handleOptionStringAndParams (params, 'transfer', 'userId');
-        let userId = undefined;
+        let userId: Str = undefined;
         if (userIdOption !== undefined && userIdOption !== '') {
             userId = userIdOption;
         } else {
@@ -1655,7 +1655,7 @@ export default class deepcoin extends Exchange {
         } else if (!isMarketOrder) {
             throw new BadRequest (this.id + ' createOrder() requires a price argument for limit orders');
         }
-        let paramsRequest = undefined;
+        let paramsRequest: NullableDict = undefined;
         if (market['spot'] === true) {
             const cost = this.safeString (paramsOrderType, 'cost');
             if (cost !== undefined) {
