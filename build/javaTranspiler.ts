@@ -9794,47 +9794,64 @@ function j42SelfTest (): string[] {
     return problems;
 }
 
-// hx4 J43: Helpers.replace/replaceAll/split/padEnd as curried lambdas replaying the Helpers.java
-// bodies verbatim (args evaluated once, left to right; no captures; same static return type).
-function j43Rewrite (name: string, args: string[], n: number): string | undefined {
-    const [ a, b, c ] = [ 'hx4J43a' + n, 'hx4J43b' + n, 'hx4J43c' + n ];
-    const x = args.map ((s) => s.trim ());
-    const F = 'java.util.function.Function<Object, java.util.function.BiFunction<Object, Object, String>>';
-    if (args.length === 3 && name === 'replace') {
-        return `((${F}) ${a} -> (${b}, ${c}) -> { if (${a} == null) { return null; } String ${a}s = String.valueOf(${a}); String ${a}f = (${b} == null) ? "" : String.valueOf(${b}); String ${a}r = (${c} == null) ? "" : String.valueOf(${c}); return ${a}s.replaceFirst(java.util.regex.Pattern.quote(${a}f), java.util.regex.Matcher.quoteReplacement(${a}r)); }).apply(${x[0]}).apply(${x[1]}, ${x[2]})`;
+// hx5 X18 (was hx4 J43): no curried lambdas. Helpers.replaceAll(s, f, r) becomes the plain
+// `s.replace(f, r)` only when s is proven a non-null String and f/r are string literals with
+// f non-empty (helper: null s -> null, "" f -> s, all occurrences, literal). Everything else
+// stays the helper call: Helpers.replace is replaceFirst (JS semantics, String.replace is
+// replace-all), Helpers.split null-guards and wraps in Arrays.asList, padEnd coerces numbers.
+function x18NonNullString (e: string): string | undefined {
+    // returns a postfix expression proven to evaluate to a non-null String (or to NPE before the
+    // helper would run, exactly as master did)
+    let x = e.trim ();
+    for (;;) {
+        // strip `((String)X)` / `(String)X` casts
+        const m = /^\(\s*\(String\)\s*(.*)\)$/s.exec (x);
+        if (m !== null && j05Close (j05Mask (x), 0) === x.length) { x = m[1].trim (); continue; }
+        const c = /^\(String\)\s*(.*)$/s.exec (x);
+        if (c !== null) { x = c[1].trim (); continue; }
+        break;
     }
-    if (args.length === 3 && name === 'replaceAll') {
-        return `((${F}) ${a} -> (${b}, ${c}) -> { if (${a} == null) { return null; } String ${a}s = String.valueOf(${a}); String ${a}f = (${b} == null) ? "" : String.valueOf(${b}); if (${a}f.isEmpty()) { return ${a}s; } String ${a}r = (${c} == null) ? "" : String.valueOf(${c}); return ${a}s.replace(${a}f, ${a}r); }).apply(${x[0]}).apply(${x[1]}, ${x[2]})`;
-    }
-    if (args.length === 3 && name === 'padEnd') {
-        const toInt = `(${b} instanceof Integer ? (Integer) ${b} : ${b} instanceof Long ? ((Long) ${b}).intValue() : ${b} instanceof Double ? ((Double) ${b}).intValue() : ${b} instanceof Float ? ((Float) ${b}).intValue() : ${b} instanceof java.math.BigDecimal ? ((java.math.BigDecimal) ${b}).intValue() : ${b} instanceof String ? Integer.parseInt((String) ${b}) : Integer.parseInt(String.valueOf(${b})))`;
-        return `((${F}) ${a} -> (${b}, ${c}) -> { int ${a}n = ${toInt}; String ${a}s = (${a} == null) ? null : ${a}.toString(); String ${a}p = (${c} == null) ? null : ${c}.toString(); if (${a}p.isEmpty()) { throw new IllegalArgumentException("padStr must not be empty"); } while (${a}s.length() < ${a}n) { ${a}s += ${a}p; } return ${a}s.substring(0, ${a}n); }).apply(${x[0]}).apply(${x[1]}, ${x[2]})`;
-    }
-    if (args.length === 2 && name === 'split') {
-        return `((java.util.function.BiFunction<Object, Object, Object>) (${a}, ${b}) -> { if (${a} == null || ${b} == null) { return java.util.Collections.emptyList(); } return java.util.Arrays.asList(String.valueOf(${a}).split(java.util.regex.Pattern.quote(String.valueOf(${b})))); }).apply(${x[0]}, ${x[1]})`;
-    }
+    if (/^"(?:[^"\\\n]|\\.)*"$/.test (x)) { return x; }
+    const mk = j05Mask (x);
+    // `(<expr>).toLowerCase()` / `.toUpperCase()` / `.trim()`: NPEs on null before the helper, else non-null
+    const call = /\.(toLowerCase|toUpperCase|trim)\(\)$/.exec (mk);
+    if (call !== null && mk.startsWith ('(') && j05Close (mk, 0) === call.index) { return x; }
+    if (mk.startsWith ('String.valueOf(') && j05Close (mk, 'String.valueOf'.length) === mk.length) { return x; }
     return undefined;
 }
 
+function x18Literal (e: string): string | undefined {
+    let x = e.trim ();
+    const m = /^\(\s*String\s*\)\s*(".*")$/s.exec (x);
+    if (m !== null) { x = m[1]; }
+    return /^"(?:[^"\\\n]|\\.)*"$/.test (x) ? x : undefined;
+}
+
+function j43Rewrite (name: string, args: string[]): string | undefined {
+    if (name !== 'replaceAll' || args.length !== 3) { return undefined; }
+    const s = x18NonNullString (args[0]);
+    const f = x18Literal (args[1]);
+    const r = x18Literal (args[2]);
+    if (s === undefined || f === undefined || r === undefined || f === '""') { return undefined; }
+    return `${s}.replace(${f}, ${r})`;
+}
+
 export function nativeJavaJ43 (content: string): string {
-    if (!/Helpers\.(replace|replaceAll|split|padEnd)\(/.test (content)) { return content; }
+    if (!/Helpers\.replaceAll\(/.test (content)) { return content; }
     let masked = j05Mask (content);
     let from = masked.length;
-    let n = 1 + Math.max (-1, ...[ ...content.matchAll (/hx4J43a(\d+)/g) ].map ((m) => Number (m[1])));
     for (;;) {
-        const at = masked.lastIndexOf ('Helpers.', from);
+        const at = masked.lastIndexOf ('Helpers.replaceAll(', from);
         if (at === -1) { break; }
         from = at - 1;
         if (at > 0 && /[\w.]/.test (masked[at - 1])) { continue; }
-        const head = /^Helpers\.(replace|replaceAll|split|padEnd)\(/.exec (masked.slice (at, at + 40));
-        if (head === null) { continue; }
-        const open = at + head[0].length - 1;
+        const open = at + 'Helpers.replaceAll'.length;
         const end = j05Close (masked, open);
         if (end === -1) { continue; }
         const argsM = splitTopLevelArgs (masked.slice (open + 1, end - 1));
         const args: string[] = []; let p = open + 1;
         for (const m of argsM) { args.push (content.slice (p, p + m.length)); p += m.length + 1; }
-        const repl = j43Rewrite (head[1], args, n++);
+        const repl = j43Rewrite ('replaceAll', args);
         if (repl === undefined) { continue; }
         content = content.slice (0, at) + repl + content.slice (end);
         masked = j05Mask (content);
@@ -9842,19 +9859,26 @@ export function nativeJavaJ43 (content: string): string {
     return content;
 }
 
-// hx4 J43: snippet checks (`--audit-string-types --self-test`)
+// hx5 X18: snippet checks (`--audit-string-types --self-test`)
 function j43SelfTest (): string[] {
     const problems: string[] = [];
     const cases: [string, string][] = [
-        [ 'String x = Helpers.replace(((String)s), ".", "");', '.apply(((String)s)).apply(".", "")' ],
-        [ 'String x = Helpers.replaceAll(s, (String)"-", (String)"+");', 'replace(hx4J43a0f, hx4J43a0r)' ],
-        [ 'List<Object> x = (List<Object>) Helpers.split(m.get("a,b"), ",");', '.apply(m.get("a,b"), ",")' ],
-        [ 'String x = Helpers.padEnd(f, ((Number)6).intValue(), ((String)"0").charAt(0));', 'padStr must not be empty' ],
-        [ 'Object x = Helpers.parseInt(Helpers.replace(Helpers.replace(s, "a", "b"), "c", ""));', '.apply(s).apply("a", "b")' ],
+        // native: receiver proven non-null String, literal non-empty search
+        [ 'String n = Helpers.replaceAll(((String)((String)marketPart).toLowerCase()), "-", "_");', 'String n = ((String)marketPart).toLowerCase().replace("-", "_");' ],
+        [ 'String n = Helpers.replaceAll(String.valueOf(x), (String)"-", (String)"+");', 'String n = String.valueOf(x).replace("-", "+");' ],
+        // helper left alone
+        [ 'String x = Helpers.replaceAll(s, (String)"-", (String)"+");', 'String x = Helpers.replaceAll(s, (String)"-", (String)"+");' ],
+        [ 'String x = Helpers.replaceAll(((String)s), k, v);', 'String x = Helpers.replaceAll(((String)s), k, v);' ],
+        [ 'String x = Helpers.replaceAll(String.valueOf(x), "", "+");', 'String x = Helpers.replaceAll(String.valueOf(x), "", "+");' ],
+        [ 'String x = Helpers.replace(((String)s), ".", "");', 'String x = Helpers.replace(((String)s), ".", "");' ],
+        [ 'String x = Helpers.replace("a.b", ".", "");', 'String x = Helpers.replace("a.b", ".", "");' ],
+        [ 'List<Object> x = (List<Object>) Helpers.split(m.get("a,b"), ",");', 'List<Object> x = (List<Object>) Helpers.split(m.get("a,b"), ",");' ],
+        [ 'String x = Helpers.padEnd(f, ((Number)6).intValue(), ((String)"0").charAt(0));', 'String x = Helpers.padEnd(f, ((Number)6).intValue(), ((String)"0").charAt(0));' ],
     ];
     for (const [ src, expect ] of cases) {
         const out = nativeJavaJ43 (src);
-        if (!out.includes (expect) || /Helpers\.(replace|replaceAll|split|padEnd)\(/.test (out)) { problems.push (`hx4 J43: ${src}\n${out}`); }
+        if (out !== expect || /hx4J43|->/.test (out)) { problems.push (`hx5 X18: ${src}\n${out}`); }
+        if (nativeJavaJ43 (out) !== out) { problems.push (`hx5 X18: not idempotent: ${src}`); }
     }
     return problems;
 }
