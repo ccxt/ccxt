@@ -746,7 +746,7 @@ export default class interactivebrokers extends Exchange {
         this.options['liveSessionTokenExpiration'] = this.safeInteger (response, 'live_session_token_expiration');
         // open the brokerage session
         const initRequest = this.safeDict (this.options, 'signInInitRequest', {});
-        await this.privatePostIserverAuthSsodhInit (initRequest);
+        await this.webapiPostV1ApiIserverAuthSsodhInit (initRequest);
         await this.fetchServiceAccounts ();
         return response;
     }
@@ -846,9 +846,9 @@ export default class interactivebrokers extends Exchange {
             await this.loadMarkets ();
         }
         const promises = [];
-        promises.push (this.privateGetPortfolioAccountIdLedger (this.extend (request, query)));
+        promises.push (this.webapiGetV1ApiPortfolioAccountIdLedger (this.extend (request, query)));
         if (withPositions) {
-            promises.push (this.privateGetPortfolio2AccountIdPositions (request));
+            promises.push (this.webapiGetV1ApiPortfolio2AccountIdPositions (request));
             //
             //     [
             //         {
@@ -1052,7 +1052,6 @@ export default class interactivebrokers extends Exchange {
         return await super.loadMarkets (reload, params);
     }
  
-
     async test1() {
         await this.loadServiceAccounts ();
         // const res1 = await this.privateGetTrsrvSecdef ({conids:'479624278'});
@@ -1163,7 +1162,7 @@ export default class interactivebrokers extends Exchange {
             const secdefRequest: Dict = {
                 'conids': chunk.join (','),
             };
-            promises.push (this.privateGetTrsrvSecdef (secdefRequest));
+            promises.push (this.webapiGetV1ApiTrsrvSecdef (secdefRequest));
             offset = end;
         }
         const responses = await Promise.all (promises);
@@ -1204,7 +1203,7 @@ export default class interactivebrokers extends Exchange {
             const pairsRequest: Dict = {
                 'currency': fxCurrency,
             };
-            promises.push (this.privateGetIserverCurrencyPairs (pairsRequest));
+            promises.push (this.webapiGetV1ApiIserverCurrencyPairs (pairsRequest));
             //
             //    { "USD": [ { "symbol": "EUR.USD", "conid": 12087792, "ccyPair": "EUR" } ] }
             //
@@ -1237,7 +1236,7 @@ export default class interactivebrokers extends Exchange {
                 'symbol': cryptoSymbol,
                 'secType': 'CRYPTO',
             };
-            promises.push (this.privatePostIserverSecdefSearch (searchRequest));
+            promises.push (this.webapiPostV1ApiIserverSecdefSearch (searchRequest));
             //
             //     [
             //         {
@@ -1292,7 +1291,7 @@ export default class interactivebrokers extends Exchange {
         const request: Dict = {
             'symbols': symbols.join (','),
         };
-        const response = await this.privateGetTrsrvFutures (request);
+        const response = await this.webapiGetV1ApiTrsrvFutures (request);
         //
         //     {
         //         "BIP": [
@@ -1352,7 +1351,7 @@ export default class interactivebrokers extends Exchange {
         const request: Dict = {
             'symbols': symbols.join (','),
         };
-        const response = await this.privateGetTrsrvFutures (request);
+        const response = await this.webapiGetV1ApiTrsrvFutures (request);
         //
         //     {
         //         "MBT": [
@@ -1409,7 +1408,7 @@ export default class interactivebrokers extends Exchange {
                 'exchange': cfdExchanges[i],
                 'assetClass': 'CFD',
             };
-            promises.push (this.privateGetTrsrvAllConids (request));
+            promises.push (this.webapiGetV1ApiTrsrvAllConids (request));
             //
             //     [ { "ticker": "AAPL", "conid": 120549942, "exchange": null } ]
             //
@@ -1448,7 +1447,7 @@ export default class interactivebrokers extends Exchange {
                 'exchange': exchange,
                 'assetClass': 'STK',
             };
-            const stocks = await this.privateGetTrsrvAllConids (this.extend (stockRequest, params));
+            const stocks = await this.webapiGetV1ApiTrsrvAllConids (this.extend (stockRequest, params));
             //
             //     [ { "ticker": "AAPL", "conid": 265598, "exchange": "NMS" } ]
             //
@@ -1700,7 +1699,7 @@ export default class interactivebrokers extends Exchange {
         };
         let response: List = [];
         for (let i = 0; i <= retries; i++) {
-            response = await this.privateGetIserverMarketdataSnapshot (this.extend (request, query));
+            response = await this.webapiGetV1ApiIserverMarketdataSnapshot (this.extend (request, query));
             if (this.ibkrSnapshotReady (response)) {
                 break;
             }
@@ -1847,7 +1846,7 @@ export default class interactivebrokers extends Exchange {
             requestLimit = Math.min (requestLimit + 1, maxLimit);
         }
         request['period'] = this.ibkrPeriod (duration, requestLimit);
-        const response = await this.privateGetIserverMarketdataHistory (this.extend (request, params));
+        const response = await this.webapiGetV1ApiIserverMarketdataHistory (this.extend (request, params));
         //
         //     {
         //         "points": 99,
@@ -1967,7 +1966,7 @@ export default class interactivebrokers extends Exchange {
      * @returns {object} the raw response from the exchange
      */
     async fetchServiceAccounts (params: Dict = {}): Promise<Dict> {
-        const response = await this.privateGetIserverAccounts (params);
+        const response = await this.webapiGetV1ApiIserverAccounts (params);
         //
         //    {
         //        "accounts": [
@@ -2060,9 +2059,9 @@ export default class interactivebrokers extends Exchange {
         const [ method, query ] = this.handleOptionAndParams (params, 'fetchPortfolioAccounts', 'method', 'privateGetPortfolioAccounts');
         let response = undefined;
         if (method === 'privateGetPortfolioSubaccounts') {
-            response = await this.privateGetPortfolioSubaccounts (query);
+            response = await this.webapiGetV1ApiPortfolioSubaccounts (query);
         } else {
-            response = await this.privateGetPortfolioAccounts (query);
+            response = await this.webapiGetV1ApiPortfolioAccounts (query);
             //
             //    [
             //        {
@@ -2121,7 +2120,7 @@ export default class interactivebrokers extends Exchange {
             'acctId': accountId,
         };
         await this.authenticate ();
-        const response = await this.privatePostIserverAccount (this.extend (request, params));
+        const response = await this.webapiPostV1ApiIserverAccount (this.extend (request, params));
         //
         //     {
         //         "set": true,
@@ -2169,7 +2168,7 @@ export default class interactivebrokers extends Exchange {
             'orders': [ orderRequest ],
         };
         if (whatif) {
-            const previewResponse = await this.privatePostIserverAccountAccountIdOrdersWhatif (request);
+            const previewResponse = await this.webapiPostV1ApiIserverAccountAccountIdOrdersWhatif (request);
             //
             //     {
             //         "amount": { "amount": "23,000 USD (100 Shares)", "commission": "1 USD", "total": "23,001 USD" },
@@ -2193,7 +2192,7 @@ export default class interactivebrokers extends Exchange {
                 'status': undefined,
             }, market);
         }
-        const response = await this.privatePostIserverAccountAccountIdOrders (request);
+        const response = await this.webapiPostV1ApiIserverAccountAccountIdOrders (request);
         const result = await this.ibkrHandleOrderReplies (response, 'createOrder');
         //
         //     [ { "order_id": "1370093239", "order_status": "PreSubmitted", "encrypt_message": "1" } ]
@@ -2320,7 +2319,7 @@ export default class interactivebrokers extends Exchange {
                 'replyid': replyId,
                 'confirmed': true,
             };
-            current = await this.privatePostIserverReplyReplyid (replyRequest);
+            current = await this.webapiPostV1ApiIserverReplyReplyId (replyRequest);
         }
         throw new InvalidOrder (this.id + ' ' + methodName + '() exceeded options.createOrder.maxReplies order reply confirmations');
     }
@@ -2350,7 +2349,7 @@ export default class interactivebrokers extends Exchange {
         orderRequest['acctId'] = accountId;
         orderRequest['accountId'] = accountId;
         orderRequest['orderId'] = id;
-        const response = await this.privatePostIserverAccountAccountIdOrderOrderId (orderRequest);
+        const response = await this.webapiPostV1ApiIserverAccountAccountIdOrderOrderId (orderRequest);
         const result = await this.ibkrHandleOrderReplies (response, 'editOrder');
         const order = this.parseOrder (result, market);
         order['type'] = type;
@@ -2379,7 +2378,7 @@ export default class interactivebrokers extends Exchange {
             'accountId': accountId,
             'orderId': id,
         };
-        const response = await this.privateDeleteIserverAccountAccountIdOrderOrderId (this.extend (request, query));
+        const response = await this.webapiDeleteV1ApiIserverAccountAccountIdOrderOrderId (this.extend (request, query));
         //
         //     { "msg": "Request was submitted", "order_id": 123456789, "conid": 265598, "account": "U1234567" }
         //
@@ -2404,7 +2403,7 @@ export default class interactivebrokers extends Exchange {
         };
         let response: Dict | undefined = undefined;
         try {
-            response = await this.privateGetIserverAccountOrderStatusOrderId (this.extend (request, params));
+            response = await this.webapiGetV1ApiIserverAccountOrderStatusOrderId (this.extend (request, params));
             //
             //     {
             //         "order_id": 1799796559,
@@ -2543,11 +2542,11 @@ export default class interactivebrokers extends Exchange {
     async fetchLiveOrdersRaw (params: Dict = {}): Promise<Dict[]> {
         await this.loadMarkets ();
         const retryDelay = this.safeInteger (this.safeDict (this.options, 'fetchOrders', {}), 'retryDelay', 500);
-        let response = await this.privateGetIserverAccountOrders (params);
+        let response = await this.webapiGetV1ApiIserverAccountOrders (params);
         if (!this.safeBool (response, 'snapshot', true)) {
             // the first request of a session only starts the order subscription
             await this.sleep (retryDelay);
-            response = await this.privateGetIserverAccountOrders (params);
+            response = await this.webapiGetV1ApiIserverAccountOrders (params);
         }
         //
         //    {
@@ -2750,7 +2749,7 @@ export default class interactivebrokers extends Exchange {
         const request: Dict = {
             'days': days,
         };
-        const response = await this.privateGetIserverAccountTrades (this.extend (request, query));
+        const response = await this.webapiGetV1ApiIserverAccountTrades (this.extend (request, query));
         //
         //     [
         //         {
@@ -2806,7 +2805,7 @@ export default class interactivebrokers extends Exchange {
             'currency': currency,
             'days': days,
         };
-        const response = await this.privatePostPaTransactions (this.extend (request, query));
+        const response = await this.webapiPostV1ApiPaTransactions (this.extend (request, query));
         //
         //     {
         //         "rc": 0,
@@ -2977,7 +2976,7 @@ export default class interactivebrokers extends Exchange {
         const request: Dict = {
             'accountId': accountId,
         };
-        const response = await this.privateGetPortfolio2AccountIdPositions (this.extend (request, query));
+        const response = await this.webapiGetV1ApiPortfolio2AccountIdPositions (this.extend (request, query)) as any[];
         //
         //     [
         //         {
@@ -3149,7 +3148,7 @@ export default class interactivebrokers extends Exchange {
                     throw e;
                 }
                 this.options['serviceAccountsLoaded'] = false;
-                await this.privateGetIserverAccounts ();
+                await this.webapiGetV1ApiIserverAccounts ();
                 this.options['serviceAccountsLoaded'] = true;
                 await this.sleep (retryDelay);
             }
