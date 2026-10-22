@@ -12,6 +12,7 @@ import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Tickers;
 import io.github.ccxt.types.Trade;
@@ -576,6 +577,7 @@ public class Bittrade extends BittradeApi
                 put( "broad", new HashMap<String, Object>() {{
                     put( "contract is restricted of closing positions on API.  Please contact customer service", OnMaintenance.class );
                     put( "maintain", OnMaintenance.class );
+                    put( "trade not open now", BadSymbol.class );
                 }} );
                 put( "exact", new HashMap<String, Object>() {{
                     put( "bad-request", BadRequest.class );
@@ -612,15 +614,15 @@ public class Bittrade extends BittradeApi
             put( "options", new HashMap<String, Object>() {{
                 put( "defaultNetwork", "ERC20" );
                 put( "networks", new HashMap<String, Object>() {{
-                    put( "ETH", "erc20" );
-                    put( "TRX", "trc20" );
+                    put( "ERC20", "erc20" );
+                    put( "TRC20", "trc20" );
                     put( "HRC20", "hrc20" );
                     put( "HECO", "hrc20" );
                     put( "HT", "hrc20" );
                     put( "ALGO", "algo" );
                 }} );
                 put( "fetchOrdersByStates", new HashMap<String, Object>() {{
-                    put( "method", "private_get_order_orders" );
+                    put( "method", "privateGetOrderOrders" );
                 }} );
                 put( "fetchOpenOrders", new HashMap<String, Object>() {{
                     put( "method", "fetch_open_orders_v1" );
@@ -1663,7 +1665,7 @@ public class Bittrade extends BittradeApi
                 market = this.market(symbol);
                 request.put("symbol", market.get("id"));
             }
-            Object method = this.handleOption("fetchOrdersByStates", "method", "private_get_order_orders");
+            Object method = this.handleOption("fetchOrdersByStates", "method", "privateGetOrderOrders");
             Map<String, Object> response = null;
             if ((java.util.Objects.equals(method, "private_get_order_history")) || (java.util.Objects.equals(method, "privateGetOrderHistory")))
             {
@@ -2046,7 +2048,7 @@ public class Bittrade extends BittradeApi
             if ((java.util.Objects.equals(type, "market")) && (java.util.Objects.equals(side, "buy")))
             {
                 String quoteAmount = null;
-                io.github.ccxt.base.Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsOmitted), "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsOmitted), "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 Boolean createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.first();
                 Map<String, Object> paramsRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.second();
                 Double cost = this.safeNumber(paramsRequiresPrice, "cost", (Object) null);
@@ -2341,7 +2343,7 @@ public class Bittrade extends BittradeApi
         Map<String,Object> networksById = this.indexBy(networks, "id");
         Object networkValue = this.safeValue(networksById, networkId, networkId);
         String network = this.safeString(networkValue, "network");
-        this.checkAddress(address);
+        this.checkAddress(address, (String) null, (String) null);
         return new HashMap<String, Object>() {{
             put( "currency", code );
             put( "address", address );
@@ -2512,7 +2514,7 @@ public class Bittrade extends BittradeApi
             h2kMap0.put("txid", this.safeString(transaction, "tx-hash"));
             h2kMap0.put("timestamp", timestamp);
             h2kMap0.put("datetime", this.iso8601(timestamp));
-            h2kMap0.put("network", this.safeStringUpper(transaction, "chain"));
+            h2kMap0.put("network", this.networkIdToCode(this.safeStringUpper(transaction, "chain"), code));
             h2kMap0.put("address", this.safeString(transaction, "address"));
             h2kMap0.put("addressTo", null);
             h2kMap0.put("addressFrom", null);
@@ -2564,23 +2566,23 @@ public class Bittrade extends BittradeApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, (Map<String, Object>) (parameters));
-            var tagWithdrawTag = ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
+            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
+            String tagWithdrawTag = (String) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
             Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            this.checkAddress(address);
+            this.checkAddress(address, code, tagWithdrawTag);
             Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "address", address );
@@ -2592,7 +2594,11 @@ public class Bittrade extends BittradeApi
                 request.put("addr-tag", tagWithdrawTag); // only for XRP?
             }
             Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
-            String network = this.safeStringUpper(paramsWithdrawTag, "network"); // this line allows the user to specify either ERC20 or ETH
+            String network = this.safeStringUpper(paramsWithdrawTag, "network");
+            if (!java.util.Objects.equals(network, null))
+            {
+                network = this.safeString(this.networkAliases, network, network); // accepts aliases like ETH for ERC20
+            }
             network = this.safeStringLower(networks, network, network); // handle ETH>ERC20 alias
             if (!java.util.Objects.equals(network, null))
             {
@@ -2618,24 +2624,25 @@ public class Bittrade extends BittradeApi
 
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Map<String, Object> requestHeaders = null;
         String requestBody = null;
         Object url = "/";
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "market"))
+        if (java.util.Objects.equals(apiName, "market"))
         {
             url = (url + "market");
-        } else if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private")))
+        } else if ((java.util.Objects.equals(apiName, "public")) || (java.util.Objects.equals(apiName, "private")))
         {
             url = Helpers.add(url, this.version);
-        } else if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "v2Public")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "v2Private")))
+        } else if ((java.util.Objects.equals(apiName, "v2Public")) || (java.util.Objects.equals(apiName, "v2Private")))
         {
             url = (url + "v2");
         }
         url = (url + ("/" + this.implodeParams(path, parameters)));
         Object query = this.omit(parameters, this.extractParams(path));
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "v2Private"))
+        if (java.util.Objects.equals(apiName, "private") || java.util.Objects.equals(apiName, "v2Private"))
         {
             this.checkRequiredCredentials(true);
             String timestamp = this.ymdhms(this.milliseconds(), "T");
@@ -2679,7 +2686,7 @@ public class Bittrade extends BittradeApi
                 url = (url + ("?" + this.urlencode(parameters)));
             }
         }
-        String baseApiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String baseApiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(baseApiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -2687,8 +2694,8 @@ public class Bittrade extends BittradeApi
         url = Helpers.add(this.implodeParams(baseApiUrl, new HashMap<String, Object>() {{
     put( "hostname", Bittrade.this.hostname );
 }}), url);
-        Object headersResult = (((!java.util.Objects.equals(requestHeaders, null)))) ? requestHeaders : headers;
-        String bodyResult = (((!java.util.Objects.equals(requestBody, null)))) ? requestBody : body;
+        Map<String, Object> headersResult = requestHeaders;
+        String bodyResult = requestBody;
         {
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
             h2kMap1.put("url", url);

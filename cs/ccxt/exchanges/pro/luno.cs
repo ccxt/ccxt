@@ -243,19 +243,26 @@ public partial class luno : ccxt.luno
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.indexedOrderBook(new Dictionary<string, object>() {});
         }
+        ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         List<object> asks = this.safeList(message, "asks");
+        if ((asks == null))
+        {
+            bool inSequence = this.isOrderBookDeltaInSequence(client, message, symbol);
+            if (!inSequence)
+            {
+                return;
+            }
+        }
         if ((asks != null))
         {
             Dictionary<string, object> snapshot = this.customParseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "volume", "id");
-            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.indexedOrderBook(snapshot);
+            (orderbook as IOrderBook).reset(snapshot);
         } else
         {
-            ccxt.pro.IOrderBook ob = this.getOrderBook(this.orderbooks, symbol);
-            this.handleBookDelta(ob, message);
-            ob["timestamp"] = timestamp;
-            ob["datetime"] = this.iso8601(timestamp);
+            this.handleBookDelta(orderbook, message);
+            orderbook["timestamp"] = timestamp;
+            orderbook["datetime"] = this.iso8601(timestamp);
         }
-        ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         Int64? nonce = this.safeInteger(message, "sequence");
         orderbook["nonce"] = nonce;
         client.resolve(orderbook, messageHash);
@@ -355,9 +362,29 @@ public partial class luno : ccxt.luno
         //         "timestamp": 1660598775360
         //     }
         //
-        IDictionary<string, object> createUpdate = this.safeDict(message, "create_update");
         ccxt.pro.IAsks asksOrderSide = orderbook?.asks;
         ccxt.pro.IBids bidsOrderSide = orderbook?.bids;
+        // trade updates are applied first, matching the ordering of the
+        // reference luno streaming client
+        List<object> tradeUpdates = this.safeList(message, "trade_updates", new List<object>() {});
+        for (int i = 0; i < tradeUpdates.Count; i++)
+        {
+            object tradeUpdate = tradeUpdates[i];
+            string? makerOrderId = this.safeString(tradeUpdate, "maker_order_id");
+            string? tradedAmount = this.safeString(tradeUpdate, "base");
+            if (((makerOrderId != null)) && ((tradedAmount != null)))
+            {
+                // the message does not carry the side of the maker order and
+                // order ids are unique across the book, so try the bids first
+                // and fall back to the asks only on a miss
+                bool reduced = this.reduceOrderVolume(bidsOrderSide, makerOrderId, tradedAmount);
+                if (!reduced)
+                {
+                    this.reduceOrderVolume(asksOrderSide, makerOrderId, tradedAmount);
+                }
+            }
+        }
+        IDictionary<string, object> createUpdate = this.safeDict(message, "create_update");
         if ((createUpdate != null))
         {
             List<object> bidAskArray = this.customParseBidAsk(createUpdate, "price", "volume", "order_id");
@@ -379,6 +406,102 @@ public partial class luno : ccxt.luno
         }
     }
 
+    /**
+     * @ignore
+     * @method
+     * @name luno#reduceOrderVolume
+     * @description reduces the outstanding volume of the order with the given id inside one side of a level-3 orderbook after a trade, deleting the order when it is fully filled
+     * @param {object} orderSide the bids or asks side of an indexed orderbook
+     * @param {string} orderId the exchange-specific id of the maker order that traded
+     * @param {string} tradedAmount the traded amount in base currency, as a string
+     * @returns {boolean} true if the order was found in this side, false otherwise
+     */
+    public virtual bool reduceOrderVolume(object orderSide, object orderId, object tradedAmount)
+    {
+        int sideLength = getArrayLength(orderSide);
+        for (int i = 0; i < sideLength; i++)
+        {
+            object order = getValue(orderSide, i);
+            string? entryId = this.safeString(order, 2);
+            if (isEqual(entryId, orderId))
+            {
+                double? price = this.safeNumber(order, 0);
+                string? currentAmount = this.safeString(order, 1);
+                string? remainingAmount = Precise.stringSub(currentAmount, tradedAmount);
+                if (Precise.stringLe(remainingAmount, "0"))
+                {
+                    // fully filled, storing a zero amount deletes the order
+                    (orderSide as IOrderBookSide).storeArray(new List<object>() {price, 0, orderId});
+                } else
+                {
+                    (orderSide as IOrderBookSide).storeArray(new List<object>() {price, this.parseNumber(remainingAmount), orderId});
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name luno#isOrderBookDeltaInSequence
+     * @description checks the sequence number of an orderbook delta frame against the stored book, and on a gap tears the connection down so that the next watch call resubscribes and receives a fresh snapshot
+     * @param {object} client the websocket client the frame arrived on
+     * @param {object} message the delta frame
+     * @param {string} symbol unified market symbol of the book
+     * @returns {boolean} true if the delta can be applied to the stored book, false if it must be discarded
+     */
+    public virtual bool isOrderBookDeltaInSequence(WebSocketClient client, object message, object symbol)
+    {
+        ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
+        Int64? storedNonce = this.safeInteger(orderbook, "nonce");
+        if ((storedNonce == null))
+        {
+            // no snapshot was received yet, deltas cannot be applied to an
+            // empty book: luno sends the snapshot as the first frame after
+            // the handshake, so discard the delta
+            return false;
+        }
+        Int64? messageSequence = this.safeInteger(message, "sequence");
+        if ((messageSequence == null))
+        {
+            return true;
+        }
+        if ((messageSequence == null || messageSequence <= storedNonce))
+        {
+            // an old or replayed frame, discard it
+            return false;
+        }
+        Int64? expectedSequence = (storedNonce + 1);
+        if ((messageSequence != expectedSequence))
+        {
+            // a gap in the sequence means a lost message and the book is
+            // unrecoverable on a live connection, because luno only sends
+            // a snapshot as the first frame after a fresh handshake:
+            // reset the client, which stops its keepalive and rejects
+            // every pending future on the connection, clear the
+            // subscription so that frames still arriving on the orphaned
+            // connection are ignored by handleMessage, and drop the
+            // client, so that the next watch call dials a new connection;
+            // the cached book is kept so references returned by earlier
+            // watchOrderBook calls stay live: clearing its nonce discards
+            // deltas until the fresh snapshot resets the book in place
+            var error = new InvalidNonce(((((((this.id + " watchOrderBook() received an out-of-sequence update for ") + (symbol)) + ", expected ") + ((object)expectedSequence).ToString()) + " but got ") + ((object)messageSequence).ToString()));
+            orderbook["nonce"] = null;
+            Dictionary<string, object> market = this.market(symbol);
+            string subscriptionHash = ("/stream/" + ((market.ContainsKey("id") ? market["id"] : null)));
+            if ((client.subscriptions != null && client.subscriptions.ContainsKey(subscriptionHash)))
+            {
+                ((IDictionary<string,object>)client.subscriptions).Remove(subscriptionHash);
+            }
+            client.reset(error);
+            ((IDictionary<string, ccxt.Exchange.WebSocketClient>)this.clients).Remove((string)client.url);
+            return false;
+        }
+        return true;
+    }
+
     public override void handleMessage(WebSocketClient client, object message)
     {
         if ((message is ""))
@@ -386,6 +509,13 @@ public partial class luno : ccxt.luno
             return;
         }
         List<object> subscriptions = new List<object>(((IDictionary<string,object>)client.subscriptions).Values);
+        int subscriptionsLength = subscriptions.Count;
+        if ((subscriptionsLength == 0))
+        {
+            // the subscription was dropped after a sequence gap, ignore the
+            // frames still arriving until the client resubscribes
+            return;
+        }
         List<object> handlers = new List<object>() {this.handleOrderBook, this.handleTrades};
         for (int j = 0; j < (handlers?.Count ?? 0); j++)
         {

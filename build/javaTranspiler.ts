@@ -2026,7 +2026,6 @@ class NewTranspiler {
 
     transpiler!: Transpiler;
     pythonStandardLibraries;
-    piscina: Piscina | undefined;
     oldTranspiler = new OldTranspiler();
     // lazily created in webworkerTranspile and kept alive for the lifetime of the
     // transpiler, so worker threads (and their warm Transpiler + ts.Program batch)
@@ -2036,6 +2035,13 @@ class NewTranspiler {
     // trading methods), reused by both the Exchange.java injection and the
     // PredictionExchange.java convenience-method injection.
     _exchangeTierBody: string | undefined;
+
+    async destroy () {
+        if (this.piscina) {
+            await this.piscina.destroy ();
+            this.piscina = undefined;
+        }
+    }
 
     constructor() {
 
@@ -2643,7 +2649,6 @@ class NewTranspiler {
             'loadOrderBook',
             'fetchCurrencies',
             'loadMarketsHelper',
-            'createNetworksByIdObject',
             'setMarketsFromExchange',
             'setLastRequest',
             'setLastRestRequestTimestamp',
@@ -3500,6 +3505,7 @@ class NewTranspiler {
         // override extends from Exchange to ClassApi
         content = content.replace(/extends\s\w+/g, `extends ${this.capitalize(name)}Api`);
         content = content.replace(/class\s+\w+\s+extends/, `class ${className} extends`);
+        content = content.replace(/, (sha1|sha384|sha512|sha256|md5|ed25519|keccak|p256|secp256k1)([,)])/g, `, $1()$2`);
         content = content.replace(/, (sha1|sha384|sha512|sha256|md5|ed25519|keccak|p256|secp256k1)([,)])/g, `, $1()$2`);
         content = content.replace(/(\s+public Object describe\(\))/g, `${constructor}$1`)
         // `for (var i = <ident>; Helpers.isLessThan(i, end); i++)` — when the loop
@@ -5826,20 +5832,24 @@ async function runMain() {
     shouldTranspileTests = process.argv.includes('--noTests') ? false : true
     log.bright.green({ force })
     const transpiler = new NewTranspiler();
-    if (baseClassOnly) {
-        transpiler.transpileBaseMethods('./ts/src/base/Exchange.ts');
-        transpiler.transpilePredictionBaseMethods();
-    } else if (restAndWs) {
-        await transpiler.transpileEverything(force, false, examples)
-        await transpiler.transpileWS(force)
-    } else if (prediction) {
-        await transpiler.transpilePrediction(force)
-    } else if (ws) {
-        await transpiler.transpileWS(force)
-    } else if (test || baseTestsOnly) {
-        await transpiler.transpileTests()
-    } else {
-        await transpiler.transpileEverything(force, false, examples)
+    try {
+        if (baseClassOnly) {
+            transpiler.transpileBaseMethods('./ts/src/base/Exchange.ts');
+            transpiler.transpilePredictionBaseMethods();
+        } else if (restAndWs) {
+            await transpiler.transpileEverything(force, false, examples)
+            await transpiler.transpileWS(force)
+        } else if (prediction) {
+            await transpiler.transpilePrediction(force)
+        } else if (ws) {
+            await transpiler.transpileWS(force)
+        } else if (test || baseTestsOnly) {
+            await transpiler.transpileTests()
+        } else {
+            await transpiler.transpileEverything(force, false, examples)
+        }
+    } finally {
+        await transpiler.destroy();
     }
 }
 

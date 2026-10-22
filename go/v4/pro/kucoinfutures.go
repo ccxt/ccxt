@@ -119,7 +119,7 @@ func (this *Kucoinfutures) transferBody(ch chan ccxt.AsyncResult[map[string]any]
 		"amount":   amountToPrecision,
 	}
 	var toAccountString *string = this.ParseTransferType(toAccount)
-	var response map[string]any = nil
+	var response any = nil
 	if (toAccountString != nil && *toAccountString == "TRADE") || (toAccountString != nil && *toAccountString == "MAIN") {
 		request["recAccountType"] = toAccountString
 

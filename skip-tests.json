@@ -235,6 +235,9 @@
             },
             "watchTickers": {
                 "compareQuoteVolumeBaseVolume": "coin-m ids (BTCUSD_PERP, ETHUSD_PERP, XRPUSD_260925, ...) leak into the usdm !miniTicker@arr stream; binanceusdm loads only linear markets, so they resolve to no loaded market and the inverse-contract exemption (safeBool(market,'inverse')) cannot fire, https://github.com/ccxt/ccxt/actions/runs/32295515130/job/96206607580?pr=29952#step:11:295"
+            },
+            "fetchTrades": {
+                "sideSequence": "venue data: aggTrades side comes from the m flag and same-millisecond aggregates can tick against it; live fapi/v1/aggTrades BTCUSDT showed 81471.8 buy -> 81471.9 sell at one T (checked from an NL host; CI region may differ)"
             }
         }
     },
@@ -243,8 +246,6 @@
         "wsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
             "loadMarkets": {
-                "taker": "is undefined",
-                "maker": "is undefined",
                 "currencyIdAndCode": "not all currencies are available"
             },
             "ticker": {
@@ -254,7 +255,10 @@
                 "spread": "same bid-ask https://app.travis-ci.com/github/ccxt/ccxt/builds/269550508#L3581",
                 "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/16058190301/job/45317906432#step:9:253"
             },
-            "fetchTickers": "tmp skip, todo",
+            "fetchTickers": {
+                "checkActiveSymbols": "fetchTickers () returns one market type per call (defaultType), the check counts active markets of all types",
+                "comparePercentage": "priceChangePercent is rounded to two decimals by the venue"
+            },
             "fetchCurrencies": {
                 "limits": "min/max essup temrporarily"
             },
@@ -262,20 +266,12 @@
                 "compareToNextItem": "multiple bid prices are equal https://app.travis-ci.com/github/ccxt/ccxt/builds/265172859#L2745"
             },
             "fetchPositions": {
-                "marginRatio": "undefined",
                 "stopLossPrice": "undefined",
                 "takeProfitPrice": "undefined",
-                "initialMarginPercentage": "undefined",
                 "hedged": "undefined",
                 "timestamp": "undefined",
                 "datetime": "undefined",
-                "lastUpdateTimestamp": "undefined",
-                "maintenanceMargin": "undefined",
-                "contractSize": "undefined",
-                "markPrice": "undefined",
-                "lastPrice": "undefined",
-                "percentage": "undefined",
-                "liquidationPrice": "undefined"
+                "lastPrice": "undefined"
             }
         }
     },
@@ -373,6 +369,7 @@
         }
     },
     "bitget": {
+        "preferredSpotSymbol": "BTC/USDT",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies"
@@ -760,6 +757,10 @@
             }
         }
     },
+    "bybitid": {
+        "httpsProxy": "http://188.245.226.105:8911",
+        "wsProxy": "http://188.245.226.105:8911"
+    },
     "bybiteu": {
         "httpsProxy": "http://188.245.226.105:8911",
         "wsProxy": "http://188.245.226.105:8911",
@@ -898,17 +899,21 @@
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "i.e. coinbase does not have currency code TIA",
-                "max": "zero values"
+                "max": "zero values",
+                "precisionAmountAbnormal": "some markets report integer min_trade_amount such as 2",
+                "strike": "option_combo instruments are multi-leg spreads without a single strike",
+                "optionType": "option_combo instruments are multi-leg spreads without a single optionType"
             },
             "fetchCurrencies": {
-                "precision": "not provided",
-                "networks": "not provided",
                 "withdraw": "not provided",
                 "deposit": "not provided",
                 "type": "todo",
                 "activeMajorCurrencies": "todo"
             },
-            "fetchOrderBook": "exchange does not have it"
+            "ticker": {
+                "lastBetweenBidAsk": "gateway spot BTC/USDT is illiquid, last_price can lag the book by more than 1%"
+            },
+            "fetchTickers": "requires custom param"
         }
     },
     "coinmetro": {
@@ -1093,7 +1098,8 @@
             "fetchTrades": {
                 "price": "sometimes is not set",
                 "cost": "same",
-                "amount": "sometimes not present, only cost present sometimes"
+                "amount": "sometimes not present, only cost present sometimes",
+                "sideSequence": "second-precision timestamps served newest-first, intra-second order is not execution order"
             },
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
@@ -1211,8 +1217,8 @@
         }
     },
     "derive": {
+        "preferredSpotSymbol": "DRV/USDC",
         "skipMethods": {
-            "features": "not implemented",
             "loadMarkets": {
                 "currency": "messed",
                 "currencyIdAndCode": "messed"
@@ -1229,7 +1235,8 @@
             "fetchTrades": {
                 "takerOrMaker": "todo fix",
                 "sideSequence": "todo check"
-            }
+            },
+            "watchOrderBook.rs": "the rust base orderbook fails the strict bid sorting assert on live books (pre-existing core issue, kraken fails the same way on master), recheck 2026-12-01"
         }
     },
     "digifinex": {
@@ -1878,6 +1885,9 @@
             "fetchTicker": {
                 "lastBetweenBidAsk": "the venue serves stale wide bestBid/bestAsk snapshots during incidents - 2026-08-17: 30+ minutes of a dust bid and a ghost negative-quantity ask from the ticker endpoint itself while trades printed 1.15% above the stale median"
             },
+            "fetchTickers": {
+                "maxIncrease": "the all-markets sweep hits XAUT/BTC, whose percentage is the venue's own change24h verbatim - 407121.29% on 2026-10-03, 1 of 1231 tickers, off a 0.0000001 dust fill at the 240 BTC ask while the bid sits at 0.058458. this venue has no fetchOHLCV, so test.fetchTickers cannot take its first-day-of-listing escape. scoped to fetchTickers on purpose - fetchTicker keeps the percentage and change bounds; recheck 2026-12-01"
+            },
             "loadMarkets": {
                 "precision": "messed just for one pair https://app.travis-ci.com/github/ccxt/ccxt/builds/269924468#L4006",
                 "currency": "messed",
@@ -1992,7 +2002,8 @@
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L6610",
                 "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L3916",
-                "vwap": "https://app.travis-ci.com/github/ccxt/ccxt/builds/271520319#L5664"
+                "vwap": "https://app.travis-ci.com/github/ccxt/ccxt/builds/271520319#L5664",
+                "maxIncrease": "delisted-but-enabled contracts (e.g. KOKUSAISTOCK_USDT: state 0, isHidden true, probed 2026-09-21) return all-zero tickers - change is 0 while every price field is 0 and omitted, so the change-vs-price bound compares against undefined and fails; recheck 2026-12-01"
             },
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
@@ -2155,6 +2166,9 @@
         "skipMethods": {
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
+            },
+            "fetchTrades": {
+                "sideSequence": "okx venue data: side is verbatim from the payload and same-millisecond fills walk the book both ways; live /api/v5/market/trades BTC-USDT-SWAP had 118/500 such pairs (checked from an NL host; CI region may differ)"
             }
         }
     },
@@ -2179,7 +2193,13 @@
         "httpsProxy": "http://188.245.226.105:8911",
         "wsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
-            "createOrder": "Polymarket geo-blocks order placement and CI runs via an EU proxy (403 from /order); verified live locally + the signed payload is covered by the static request fixtures"
+            "createOrder": "Polymarket geo-blocks order placement and CI runs via an EU proxy (403 from /order); verified live locally + the signed payload is covered by the static request fixtures",
+            "fetchCurrencies": {
+                "activeMajorCurrencies": "perps collateral is pUSD only; BTC/ETH are perpetual-contract underlyings, not depositable or withdrawable assets, so their deposit/withdraw flags are false by design"
+            },
+            "fetchTrades": {
+                "sideSequence": "venue data: info/trades returns same-millisecond fills unsorted, e.g. two fills at timestamp 1792566132107 on BTC/USD:PUSD, both buys at 82716 then 82714, so the price direction cannot be checked against the side"
+            }
         },
         "preferredPredictionOutcome": "DEMOCRATIC_PRESIDENTIAL_NOMINEE_2028_BERNIE_SANDERS_WIN_2028_DEMOCRATIC_PRESIDENTIAL_NOMINATION_879:YES",
         "predictionNote": "liquid book, resolves 2028; C#/Go/Java dict ordering otherwise scans onto placeholder markets (Another team / Person Y) whose CLOB books 404; the harness falls back to a scan if this pin goes stale"
@@ -2338,6 +2358,9 @@
     },
     "toobit": {
         "skipMethods": {
+            "fetchTrades": {
+                "sideSequence": "same-ms trades returned out of execution order; ibm mapping verified against live depth"
+            },
             "loadMarkets": {
                 "taker": "not provided",
                 "maker": "not provided",
@@ -2393,7 +2416,8 @@
             },
             "fetchOrderBooks": {
                 "spread": "https://github.com/ccxt/ccxt/actions/runs/17955230405/job/51065006659?pr=26884#step:9:410"
-            }
+            },
+            "watchOHLCV.go": "upbit ws only has 1s candles, the test asks for 1m and the go harness repanics the NotSupported, recheck 2026-10-01"
         }
     },
     "vertex": {
@@ -2641,6 +2665,7 @@
         "skip": "ip whitelist required"
     },
     "bydfi": {
+        "skip": "api.bydfi.com returns 404 on every REST path incl. exchange_info; developers.bydfi.com no longer resolves",
         "skipMethods": {
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
@@ -2687,6 +2712,9 @@
         "httpsProxy": "http://188.245.226.105:8911",
         "wsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
+            "fetchTrades": {
+                "sideSequence": "venue data: separate taker orders fill in the same block at one timestamp, live recentTrades BTC showed 81501.7 sell -> 81502.1 sell at one timestamp from two different ask accounts"
+            },
             "watchTicker.go": "Go test harness repanics the NotSupported thrown for spot symbols (the market_stats channel is swap-only) instead of skipping it like the other languages, recheck 2026-12-17",
             "watchTickers.go": "Go test harness repanics the NotSupported thrown for spot symbols (the market_stats channel is swap-only) instead of skipping it like the other languages, recheck 2026-12-17",
             "loadMarkets": {

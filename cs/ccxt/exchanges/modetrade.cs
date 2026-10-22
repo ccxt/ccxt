@@ -87,8 +87,8 @@ public partial class modetrade : Exchange
                 { "fetchPositions", true },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchStatus", true },
-                { "fetchTicker", false },
-                { "fetchTickers", false },
+                { "fetchTicker", true },
+                { "fetchTickers", true },
                 { "fetchTime", true },
                 { "fetchTrades", true },
                 { "fetchTradingFee", false },
@@ -801,6 +801,7 @@ public partial class modetrade : Exchange
         //
         //   {
         //     "symbol": "PERP_BTC_USDC",
+        //     "status": "ACTIVE",
         //     "quote_min": 123,
         //     "quote_max": 100000,
         //     "quote_tick": 0.1,
@@ -826,6 +827,12 @@ public partial class modetrade : Exchange
         //   }
         //
         string? marketId = this.safeString(market, "symbol", "");
+        string? status = this.safeString(market, "status");
+        bool? active = null;
+        if ((status != null))
+        {
+            active = (status == "ACTIVE");
+        }
         List<object> parts = marketId.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
         string marketType = "swap";
         string? baseId = this.safeString(parts, 1);
@@ -854,7 +861,7 @@ public partial class modetrade : Exchange
             { "swap", true },
             { "future", false },
             { "option", false },
-            { "active", null },
+            { "active", active },
             { "contract", true },
             { "linear", true },
             { "inverse", false },
@@ -910,6 +917,7 @@ public partial class modetrade : Exchange
         //       "rows": [
         //         {
         //           "symbol": "PERP_BTC_USDC",
+        //           "status": "ACTIVE",
         //           "quote_min": 123,
         //           "quote_max": 100000,
         //           "quote_tick": 0.1,
@@ -1406,6 +1414,150 @@ public partial class modetrade : Exchange
         }
         List<object> sorted = this.sortBy(rates, "timestamp");
         return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit));
+    }
+
+    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    {
+        //
+        //     {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "display_symbol_name": "BTC",
+        //         "broker_id": null,
+        //         "status": "ACTIVE",
+        //         "index_price": 81559.8,
+        //         "mark_price": 81542.2,
+        //         "sum_unitary_funding": 27744.3,
+        //         "est_funding_rate": 0.00008318,
+        //         "last_funding_rate": 0.0000394,
+        //         "next_funding_time": 1792281600000,
+        //         "open_interest": 42.65602,
+        //         "is_pretge": false,
+        //         "24h_open": 81606.8,
+        //         "24h_close": 81518.1,
+        //         "24h_high": 81706.7,
+        //         "24h_low": 81069.9,
+        //         "24h_volume": 65.48965,
+        //         "24h_amount": 5333323.390584
+        //     }
+        //
+        string? marketId = this.safeString(ticker, "symbol");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Int64? timestamp = this.safeInteger(ticker, "timestamp");
+        return this.safeTicker(new Dictionary<string, object>() {
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "high", this.safeString(ticker, "24h_high") },
+            { "low", this.safeString(ticker, "24h_low") },
+            { "bid", null },
+            { "bidVolume", null },
+            { "ask", null },
+            { "askVolume", null },
+            { "vwap", null },
+            { "open", this.safeString(ticker, "24h_open") },
+            { "close", this.safeString(ticker, "24h_close") },
+            { "last", this.safeString(ticker, "24h_close") },
+            { "previousClose", null },
+            { "change", null },
+            { "percentage", null },
+            { "average", null },
+            { "baseVolume", this.safeString(ticker, "24h_volume") },
+            { "quoteVolume", this.safeString(ticker, "24h_amount") },
+            { "indexPrice", this.safeString(ticker, "index_price") },
+            { "markPrice", this.safeString(ticker, "mark_price") },
+            { "info", ticker },
+        }, marketResolved);
+    }
+
+    /**
+     * @method
+     * @name modetrade#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
+        };
+        Dictionary<string, object> response = await this.v1PublicGetPublicFuturesSymbol(this.extend(request, parameters));
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "symbol": "PERP_BTC_USDC",
+        //             "24h_close": 81518.1
+        //         },
+        //         "timestamp": 1792270455082
+        //     }
+        //
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        Int64? timestamp = this.safeInteger(response, "timestamp");
+        Dictionary<string, object> ticker = this.extend(new Dictionary<string, object>() {
+            { "timestamp", timestamp },
+        }, data);
+        return this.parseTicker(ticker, market);
+    }
+
+    /**
+     * @method
+     * @name modetrade#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public async override Task<ccxt.Tickers> FetchTickers(IList<object> symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        Dictionary<string, object> response = await this.v1PublicGetPublicFutures(parameters);
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "rows": [
+        //                 {
+        //                     "symbol": "PERP_BTC_USDC",
+        //                     "24h_close": 81518.1
+        //                 }
+        //             ]
+        //         },
+        //         "timestamp": 1792270455518
+        //     }
+        //
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        List<object> rows = this.safeList(data, "rows", new List<object>() {});
+        Int64? timestamp = this.safeInteger(response, "timestamp");
+        List<object> result = new List<object>() {};
+        for (int i = 0; i < rows.Count; i++)
+        {
+            object row = rows[i];
+            string? marketId = this.safeString(row, "symbol", "");
+            if (((this.markets_by_id == null)) || !(((marketId != null) && this.markets_by_id.ContainsKey(marketId))))
+            {
+                continue;
+            }
+            Dictionary<string, object> ticker = this.extend(new Dictionary<string, object>() {
+                { "timestamp", timestamp },
+            }, row);
+            result.Add(ccxt.BaseExchange.FromTicker(this.parseTicker(ticker)));
+        }
+        return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbolsNormalized));
     }
 
     public override Dictionary<string, object> parseIncome(object income, IDictionary<string, object> market = null)
@@ -3207,11 +3359,11 @@ public partial class modetrade : Exchange
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3581,9 +3733,9 @@ public partial class modetrade : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(string path, object section = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object section = null, string method = null, object parameters = null)
     {
-        section ??= "public";
+        section ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object version = getValue(section, 0);
@@ -3646,7 +3798,7 @@ public partial class modetrade : Exchange
                 { "orderly-timestamp", ts },
             };
             auth = (((((ts + method) + "/") + (version)) + "/") + pathWithParams);
-            object signedBody = null;
+            string? signedBody = null;
             if ((method == "POST") || (method == "PUT"))
             {
                 signedBody = this.json(paramsSigned);
@@ -3660,7 +3812,7 @@ public partial class modetrade : Exchange
                     auth = add(auth, ("?" + this.rawencode(paramsSigned)));
                 }
                 signedHeaders["content-type"] = "application/x-www-form-urlencoded";
-                signedBody = ((method == "DELETE")) ? "" : body;
+                signedBody = ((method == "DELETE")) ? "" : null;
             }
             object secret = this.secret;
             if (getIndexOf(secret, "ed25519:") >= 0)
@@ -3680,8 +3832,8 @@ public partial class modetrade : Exchange
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", null },
+            { "headers", null },
         };
     }
 

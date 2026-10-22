@@ -12,6 +12,7 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
+from ccxt.base.precise import Precise  # noqa E402
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
 def test_position(exchange, skipped_properties, method, entry, symbol, now):
@@ -34,6 +35,7 @@ def test_position(exchange, skipped_properties, method, entry, symbol, now):
             'marginRatio': True,
             'liquidationPrice': True,
             'markPrice': True,
+            'positionMargin': True,
             'collateral': True,
             'percentage': True,
         }, skipped_properties)
@@ -55,12 +57,13 @@ def test_position(exchange, skipped_properties, method, entry, symbol, now):
         'marginRatio': exchange.parse_number('1.234'),
         'liquidationPrice': exchange.parse_number('1.234'),
         'markPrice': exchange.parse_number('1.234'),
+        'positionMargin': exchange.parse_number('1.234'),
         'collateral': exchange.parse_number('1.234'),
         'marginMode': 'cross',
         'side': 'long',
         'percentage': exchange.parse_number('1.234'),
     }
-    emptyot_allowed_for = ['liquidationPrice', 'initialMargin', 'initialMarginPercentage', 'maintenanceMargin', 'maintenanceMarginPercentage', 'marginRatio']
+    emptyot_allowed_for = ['positionMargin', 'liquidationPrice', 'initialMargin', 'initialMarginPercentage', 'maintenanceMargin', 'maintenanceMarginPercentage', 'marginRatio']
     test_shared_methods.assert_structure(exchange, skipped_properties, method, entry, format, emptyot_allowed_for)
     test_shared_methods.assert_timestamp_and_datetime(exchange, skipped_properties, method, entry, now)
     test_shared_methods.assert_symbol(exchange, skipped_properties, method, entry, 'symbol', symbol)
@@ -80,3 +83,61 @@ def test_position(exchange, skipped_properties, method, entry, symbol, now):
     test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'liquidationPrice', '0')
     test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'markPrice', '0')
     test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'collateral', '0')
+    # testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'percentage', '0'); # percentage might be < 0
+    margin_mode = exchange.safe_string(entry, 'marginMode')
+    if margin_mode == 'isolated':
+        log_text = test_shared_methods.log_template(exchange, method, entry)
+        side = exchange.safe_string(entry, 'side')
+        entry_price_string = exchange.safe_string(entry, 'entryPrice')
+        liquidation_price_string = exchange.safe_string(entry, 'liquidationPrice')
+        contracts_string = exchange.safe_string(entry, 'contracts')
+        contract_size_string = exchange.safe_string(entry, 'contractSize')
+        maintenance_margin_string = exchange.safe_string(entry, 'maintenanceMargin')
+        collateral_string = exchange.safe_string(entry, 'collateral')
+        initial_margin_string = exchange.safe_string(entry, 'initialMargin')
+        unrealized_pnl_string = exchange.safe_string(entry, 'unrealizedPnl')
+        if (entry_price_string is not None) and (liquidation_price_string is not None) and Precise.string_gt(entry_price_string, '0') and Precise.string_gt(liquidation_price_string, '0'):
+            if side == 'long':
+                test_shared_methods.assert_less(exchange, skipped_properties, method, entry, 'liquidationPrice', entry_price_string)
+            elif side == 'short':
+                test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'liquidationPrice', entry_price_string)
+        margin_string = exchange.safe_string(entry, 'positionMargin')
+        if (margin_string is not None) and (collateral_string is not None) and (unrealized_pnl_string is not None):
+            # collateral is margin + unrealizedPnl
+            expected_collateral = Precise.string_add(margin_string, unrealized_pnl_string)
+            collateral_diff = Precise.string_abs(Precise.string_sub(collateral_string, expected_collateral))
+            collateral_tolerance = Precise.string_mul(Precise.string_abs(margin_string), '0.05')
+            assert Precise.string_le(collateral_diff, collateral_tolerance), 'collateral should equal margin + unrealizedPnl' + log_text
+        entry_margin_string = margin_string
+        if (entry_margin_string is None) and (collateral_string is not None):
+            if (unrealized_pnl_string is not None) and not Precise.string_eq(collateral_string, initial_margin_string):
+                entry_margin_string = Precise.string_sub(collateral_string, unrealized_pnl_string)
+            else:
+                entry_margin_string = collateral_string
+        elif (entry_margin_string is None) and (initial_margin_string is not None):
+            entry_margin_string = initial_margin_string
+        has_entry_margin = (entry_margin_string is not None) and Precise.string_gt(entry_margin_string, '0')
+        has_entry_price = (entry_price_string is not None) and Precise.string_gt(entry_price_string, '0')
+        has_liq_price = (liquidation_price_string is not None) and Precise.string_gt(liquidation_price_string, '0')
+        has_contracts = (contracts_string is not None) and Precise.string_gt(contracts_string, '0')
+        has_contract_size = (contract_size_string is not None) and Precise.string_gt(contract_size_string, '0')
+        has_mm = (maintenance_margin_string is not None) and Precise.string_gt(maintenance_margin_string, '0')
+        if has_entry_margin and has_entry_price and has_liq_price and has_contracts and has_contract_size and has_mm:
+            symbol_for_market = symbol if (symbol is not None) else exchange.safe_string(entry, 'symbol')
+            market = None
+            if (symbol_for_market is not None) and (exchange.markets is not None) and (symbol_for_market in exchange.markets):
+                market = exchange.market(symbol_for_market)
+            is_inverse = (market is not None) and exchange.safe_bool(market, 'inverse', False)
+            price_diff = None
+            if is_inverse:
+                inv_entry = Precise.string_div('1', entry_price_string)
+                inv_liq = Precise.string_div('1', liquidation_price_string)
+                price_diff = Precise.string_abs(Precise.string_sub(inv_entry, inv_liq))
+            else:
+                price_diff = Precise.string_abs(Precise.string_sub(entry_price_string, liquidation_price_string))
+            loss_from_entry = Precise.string_mul(price_diff, Precise.string_mul(contracts_string, contract_size_string))
+            calculated_mm = Precise.string_sub(entry_margin_string, loss_from_entry)
+            assert Precise.string_gt(calculated_mm, '0'), 'isolated position remaining collateral at liquidationPrice (' + calculated_mm + ') should be greater than 0' + log_text
+            mm_diff = Precise.string_abs(Precise.string_sub(calculated_mm, maintenance_margin_string))
+            max_tolerance = Precise.string_mul(entry_margin_string, '0.05')
+            assert Precise.string_le(mm_diff, max_tolerance), 'isolated position maintenanceMargin (' + maintenance_margin_string + ') does not match remaining collateral at liquidationPrice (' + calculated_mm + ')' + log_text

@@ -16,6 +16,7 @@ import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.OpenInterest;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Position;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Trade;
@@ -1190,7 +1191,7 @@ public class Bullish extends BullishApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Long maxLimit = 100L;
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTrades", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTrades", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -1266,7 +1267,7 @@ public class Bullish extends BullishApi
                 response = (this.privateGetV1TradesClientOrderIdClientOrderId(this.extend(request, parameters))).join();
             } else
             {
-                io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
+                Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
                 Boolean paginate = paginateparamsPaginateVariable.first();
                 Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
                 if (Boolean.TRUE.equals(paginate))
@@ -1644,7 +1645,7 @@ public class Bullish extends BullishApi
             }
             Map<String, Object> market = this.market(symbol);
             Long maxLimit = 100L;
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -1656,7 +1657,7 @@ public class Bullish extends BullishApi
                 put( "timeBucket", Bullish.this.safeString(Bullish.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
                 put( "_pageSize", maxLimit );
             }};
-            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("createdAtDatetime[lte]", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("createdAtDatetime[lte]", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Object until = this.safeInteger(requestUntil, "createdAtDatetime[lte]");
@@ -1728,7 +1729,7 @@ public class Bullish extends BullishApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Long maxLimit = 100L;
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingRateHistory", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingRateHistory", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -1829,7 +1830,7 @@ public class Bullish extends BullishApi
             }
             String method = "privateGetV2HistoryOrders";
             Map<String, Object> paramsMethod = null;
-            io.github.ccxt.base.Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsSinceAndUntil), "fetchOrders", "method", method);
+            Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsSinceAndUntil), "fetchOrders", "method", method);
             method = methodparamsMethodVariable.first();
             paramsMethod = methodparamsMethodVariable.second();
             List<Object> response = new ArrayList<Object>(Arrays.asList());
@@ -2156,7 +2157,7 @@ public class Bullish extends BullishApi
             {
                 orderType = "POST_ONLY";
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsPostOnly), "createOrder", "timeInForce", "GTC");
+            Pair<String, Map<String, Object>> timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsPostOnly), "createOrder", "timeInForce", "GTC");
             String timeInForce = timeInForceparamsTimeInForceVariable.first();
             Map<String, Object> paramsTimeInForce = timeInForceparamsTimeInForceVariable.second(); // is mandatory
             ((Map<String, Object>)paramsTimeInForce).put("timeInForce", ((String)timeInForce).toUpperCase());
@@ -2482,7 +2483,7 @@ public class Bullish extends BullishApi
 
             (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.handleToken(new HashMap<String, Object>() {{}})))).join();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("createdAtDatetime[lte]", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("createdAtDatetime[lte]", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Long until = this.safeInteger(requestUntil, "createdAtDatetime[lte]");
@@ -2548,14 +2549,14 @@ public class Bullish extends BullishApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} [tag]
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} params.timestamp the timestamp of the withdrawal request (mandatory)
      * @param {string} params.nonce the nonce of the withdrawal request (mandatory)
      * @param {string} params.network network for withdraw (mandatory)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2701,7 +2702,7 @@ public class Bullish extends BullishApi
 
             String tradingAccountId = null;
             Map<String, Object> paramsTradingAccountId = null;
-            io.github.ccxt.base.Pair<String, Map<String, Object>> tradingAccountIdparamsTradingAccountIdVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "loadAccount", "tradingAccountId", (String) null);
+            Pair<String, Map<String, Object>> tradingAccountIdparamsTradingAccountIdVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "loadAccount", "tradingAccountId", (String) null);
             tradingAccountId = tradingAccountIdparamsTradingAccountIdVariable.first();
             paramsTradingAccountId = tradingAccountIdparamsTradingAccountIdVariable.second();
             if (java.util.Objects.equals(tradingAccountId, null))
@@ -2880,7 +2881,7 @@ public class Bullish extends BullishApi
                 if (java.util.Objects.equals(network, null))
                 {
                     // use default network if not specified and multiple are available
-                    network = this.defaultNetworkCode(code);
+                    network = this.safeString(this.safeDict(this.options, "defaultNetworks", new HashMap<String, Object>() {{}}), code, this.safeString(this.options, "defaultNetwork"));
                 }
                 if (!java.util.Objects.equals(network, null))
                 {
@@ -3143,7 +3144,7 @@ public class Bullish extends BullishApi
             (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.handleToken(new HashMap<String, Object>() {{}})))).join();
             Object tradingAccountId = (this.loadAccount(parameters)).join();
             Long maxLimit = 100L;
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTransfers", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTransfers", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -3329,7 +3330,7 @@ public class Bullish extends BullishApi
             }};
             Long now = this.milliseconds();
             Object startTimestamp = since;
-            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("createdAtDatetime[lte]", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("createdAtDatetime[lte]", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Long until = this.safeInteger(requestUntil, "createdAtDatetime[lte]");
@@ -3510,19 +3511,20 @@ public class Bullish extends BullishApi
         }}, market);
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object requestHeaders = headers;
-        String requestBody = body;
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        Object requestHeaders = null;
+        String requestBody = null;
         Object request = this.omit(parameters, this.extractParams(path));
         String endpoint = ("/" + this.implodeParams(path, parameters));
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = (apiUrl + endpoint);
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
             String nonce = String.valueOf(this.microseconds());

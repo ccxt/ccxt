@@ -1044,9 +1044,26 @@ class kraken extends \ccxt\async\kraken {
             $orderbook['datetime'] = $datetime;
         } else {
             // snapshot
-            $depth = count($a);
-            $this->orderbooks[$symbol] = $this->order_book(array(), $depth);
+            $subscription = $this->safe_dict($client->subscriptions, $messageHash, array());
+            // size the book from the subscribed depth (10 by default), not from
+            // the level count of this snapshot: a thin market's snapshot can
+            // carry fewer levels than the subscription and must not cap the book
+            $limit = $this->safe_integer($subscription, 'limit', 10);
+            $asksLength = count($a);
+            $depth = ($asksLength > $limit) ? $asksLength : $limit;
+            $depths = $this->safe_dict($this->options, 'wsOrderBookDepths', array());
+            $storedDepth = $this->safe_integer($depths, $symbol);
+            if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) || ($storedDepth !== $depth)) {
+                // rebuild only on the first snapshot or when the depth changes,
+                // e.g. a re-subscription with a different limit
+                $this->orderbooks[$symbol] = $this->order_book(array(), $depth);
+                $depths[$symbol] = $depth;
+                $this->options['wsOrderBookDepths'] = $depths;
+            }
+            // reset in place so that references held by users keep receiving
+            // updates after a reconnect snapshot (a new object would orphan them)
             $orderbook = $this->orderbooks[$symbol];
+            $orderbook->reset(array());
             $keys = array( 'asks', 'bids' );
             for ($i = 0; $i < count($keys); $i++) {
                 $key = $keys[$i];

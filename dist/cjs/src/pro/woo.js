@@ -84,7 +84,7 @@ class woo extends woo$1["default"] {
     }
     async watchPublic(messageHash, message) {
         let urlUid = '';
-        if (this.uid !== '') {
+        if ((this.uid !== undefined) && (this.uid !== '')) {
             urlUid = '/' + this.uid;
         }
         const url = this.safeString(this.urls['api']['ws'], 'public') + urlUid;
@@ -97,7 +97,7 @@ class woo extends woo$1["default"] {
     }
     async unwatchPublic(subHash, symbol, topic, params = {}) {
         let urlUid = '';
-        if (this.uid !== '') {
+        if ((this.uid !== undefined) && (this.uid !== '')) {
             urlUid = '/' + this.uid;
         }
         const url = this.safeString(this.urls['api']['ws'], 'public') + urlUid;
@@ -143,7 +143,7 @@ class woo extends woo$1["default"] {
         const market = this.market(symbol);
         const topic = market['id'] + '@' + method;
         let urlUid = '';
-        if (this.uid !== '') {
+        if ((this.uid !== undefined) && (this.uid !== '')) {
             urlUid = '/' + this.uid;
         }
         const url = this.safeString(this.urls['api']['ws'], 'public') + urlUid;
@@ -268,10 +268,14 @@ class woo extends woo$1["default"] {
         if (symbol === undefined) {
             return;
         }
-        if (symbol in this.orderbooks) {
-            delete this.orderbooks[symbol];
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook({}, limit);
         }
-        this.orderbooks[symbol] = this.orderBook({}, limit);
+        const orderbook = this.orderbooks[symbol];
+        // handleOrderBook queues deltas while timestamp is undefined, until the REST snapshot lands
+        orderbook['timestamp'] = undefined;
+        orderbook['datetime'] = undefined;
+        orderbook.cache = [];
         this.spawn(this.fetchOrderBookSnapshot, client, message, subscription);
     }
     async fetchOrderBookSnapshot(client, message, subscription) {

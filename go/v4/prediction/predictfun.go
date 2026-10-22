@@ -4910,38 +4910,27 @@ func (this *Predictfun) Nonce() any {
  * @name predictfun#sign
  * @description builds the request URL and attaches the API key header required by every endpoint
  * @param {string} path the endpoint path
- * @param {string|string[]} [api] the API group and access level
+ * @param {string[]} [api] the API group and access level
  * @param {string} [method] HTTP method
  * @param {object} [params] request parameters
- * @param {object} [headers] request headers
- * @param {object} [body] request body
  * @returns {object} a dictionary with url, method, body and headers
  */
 func (this *Predictfun) Sign(path string, optionalArgs ...any) any {
 	// the venue authenticates every endpoint, so the key is required up front rather than
 	// per access level - a key-less request is answered with a 401 by the API gateway.
 	// the testnet is the exception, it is served without an API key at all
-	api := ccxt.GetArg(optionalArgs, 0, "predictfun")
+	api := ccxt.GetArg(optionalArgs, 0, []any{"predictfun"})
 	_ = api
 	var method string = ccxt.GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := ccxt.GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := ccxt.GetArg(optionalArgs, 4, nil)
-	_ = body
 	var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	var apiKey any = this.ApiKey
 	if (apiKey == nil) && !(sandboxMode != nil && *sandboxMode) {
 		panic(ccxt.AuthenticationError(this.Id + " sign() requires the \"apiKey\" credential for all endpoints"))
 	}
-	var apiGroup any = func() any {
-		if ccxt.IsString(api) {
-			return api
-		}
-		return ccxt.GetValue(api, 0)
-	}()
+	var apiGroup *string = ccxt.SafeStringPtr(ccxt.GetValue(api, 0))
 	var baseUrls any = this.Urls["api"]
 	var baseUrl *string = this.SafeString(baseUrls, apiGroup, ccxt.GetValue(baseUrls, "predictfun"))
 	var url string = *baseUrl + "/" + this.ImplodeParams(path, params)
@@ -4951,13 +4940,8 @@ func (this *Predictfun) Sign(path string, optionalArgs ...any) any {
 			url += "?" + this.Urlencode(query)
 		}
 	}
-	var existingHeaders any = func() any {
-		if !ccxt.IsEqual(headers, nil) {
-			return headers
-		}
-		return map[string]any{}
-	}()
-	var headersValue any = existingHeaders
+	var existingHeaders map[string]any = map[string]any{}
+	var headersValue map[string]any = existingHeaders
 	var authHeaders map[string]any = map[string]any{}
 	if (apiKey != nil) && (!(sandboxMode != nil && *sandboxMode)) {
 		// the php transpiler prefixes every standalone 'api' with a $, string literals included,
@@ -4978,13 +4962,13 @@ func (this *Predictfun) Sign(path string, optionalArgs ...any) any {
 	if (jwtToken != nil) && this.InArray(path, walletPaths) {
 		authHeaders["Authorization"] = "Bearer " + *jwtToken
 	}
-	var bodyValue any = body
+	var bodyValue *string = nil
 	if method != "GET" {
 		if !(sandboxMode != nil && *sandboxMode) {
 			this.CheckRequiredCredentials()
 		}
 		authHeaders["Content-Type"] = "application/json"
-		bodyValue = this.Json(params)
+		bodyValue = ccxt.SafeStringPtr(this.Json(params))
 	}
 	var headersExtended map[string]any = this.Extend(headersValue, authHeaders)
 	return map[string]any{

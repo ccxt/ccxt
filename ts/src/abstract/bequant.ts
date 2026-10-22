@@ -8,129 +8,490 @@
 import { Dict, List } from '../base/types.js';
 import _hitbtc from '../hitbtc.js';
 
-interface hitbtc {
-    publicGetPublicCurrency (params?: {}): Promise<Dict>;
-    publicGetPublicCurrencyCurrency (params?: {}): Promise<Dict>;
-    publicGetPublicSymbol (params?: {}): Promise<Dict>;
-    publicGetPublicSymbolSymbol (params?: {}): Promise<Dict>;
-    publicGetPublicTicker (params?: {}): Promise<Dict>;
-    publicGetPublicTickerSymbol (params?: {}): Promise<Dict>;
-    publicGetPublicPriceRate (params?: {}): Promise<Dict>;
-    publicGetPublicPriceHistory (params?: {}): Promise<Dict>;
-    publicGetPublicPriceTicker (params?: {}): Promise<Dict>;
-    publicGetPublicPriceTickerSymbol (params?: {}): Promise<Dict>;
-    publicGetPublicTrades (params?: {}): Promise<Dict>;
-    publicGetPublicTradesSymbol (params?: {}): Promise<List>;
-    publicGetPublicOrderbook (params?: {}): Promise<Dict>;
-    publicGetPublicOrderbookSymbol (params?: {}): Promise<Dict>;
-    publicGetPublicCandles (params?: {}): Promise<Dict>;
-    publicGetPublicCandlesSymbol (params?: {}): Promise<List>;
-    publicGetPublicConvertedCandles (params?: {}): Promise<Dict>;
-    publicGetPublicConvertedCandlesSymbol (params?: {}): Promise<List>;
-    publicGetPublicFuturesInfo (params?: {}): Promise<Dict>;
-    publicGetPublicFuturesInfoSymbol (params?: {}): Promise<Dict>;
-    publicGetPublicFuturesHistoryFunding (params?: {}): Promise<Dict>;
-    publicGetPublicFuturesHistoryFundingSymbol (params?: {}): Promise<List>;
-    publicGetPublicFuturesCandlesIndexPrice (params?: {}): Promise<Dict>;
-    publicGetPublicFuturesCandlesIndexPriceSymbol (params?: {}): Promise<List>;
-    publicGetPublicFuturesCandlesMarkPrice (params?: {}): Promise<Dict>;
-    publicGetPublicFuturesCandlesMarkPriceSymbol (params?: {}): Promise<List>;
-    publicGetPublicFuturesCandlesPremiumIndex (params?: {}): Promise<Dict>;
-    publicGetPublicFuturesCandlesPremiumIndexSymbol (params?: {}): Promise<List>;
-    publicGetPublicFuturesCandlesOpenInterest (params?: {}): Promise<Dict>;
-    publicGetPublicFuturesCandlesOpenInterestSymbol (params?: {}): Promise<List>;
-    privateGetSpotBalance (params?: {}): Promise<Dict>;
-    privateGetSpotBalanceCurrency (params?: {}): Promise<Dict>;
-    privateGetSpotOrder (params?: {}): Promise<List>;
-    privateGetSpotOrderClientOrderId (params?: {}): Promise<Dict>;
-    privateGetSpotFee (params?: {}): Promise<List>;
-    privateGetSpotFeeSymbol (params?: {}): Promise<Dict>;
-    privateGetSpotHistoryOrder (params?: {}): Promise<List>;
-    privateGetSpotHistoryTrade (params?: {}): Promise<List>;
-    privateGetMarginAccount (params?: {}): Promise<List>;
-    privateGetMarginAccountIsolatedSymbol (params?: {}): Promise<Dict>;
-    privateGetMarginAccountCrossCurrency (params?: {}): Promise<List>;
-    privateGetMarginOrder (params?: {}): Promise<List>;
-    privateGetMarginOrderClientOrderId (params?: {}): Promise<Dict>;
-    privateGetMarginConfig (params?: {}): Promise<Dict>;
-    privateGetMarginHistoryOrder (params?: {}): Promise<List>;
-    privateGetMarginHistoryTrade (params?: {}): Promise<List>;
-    privateGetMarginHistoryPositions (params?: {}): Promise<List>;
-    privateGetMarginHistoryClearing (params?: {}): Promise<List>;
-    privateGetMarginSettings (params?: {}): Promise<Dict>;
-    privateGetFuturesBalance (params?: {}): Promise<Dict>;
-    privateGetFuturesBalanceCurrency (params?: {}): Promise<Dict>;
-    privateGetFuturesAccount (params?: {}): Promise<List>;
-    privateGetFuturesAccountIsolatedSymbol (params?: {}): Promise<Dict>;
-    privateGetFuturesOrder (params?: {}): Promise<List>;
-    privateGetFuturesOrderClientOrderId (params?: {}): Promise<Dict>;
-    privateGetFuturesConfig (params?: {}): Promise<Dict>;
-    privateGetFuturesFee (params?: {}): Promise<List>;
-    privateGetFuturesFeeSymbol (params?: {}): Promise<Dict>;
-    privateGetFuturesHistoryOrder (params?: {}): Promise<List>;
-    privateGetFuturesHistoryTrade (params?: {}): Promise<List>;
-    privateGetFuturesHistoryPositions (params?: {}): Promise<List>;
-    privateGetFuturesHistoryClearing (params?: {}): Promise<List>;
-    privateGetUserApiKeys (params?: {}): Promise<List>;
-    privateGetWalletBalance (params?: {}): Promise<Dict>;
-    privateGetWalletBalanceCurrency (params?: {}): Promise<Dict>;
-    privateGetWalletCryptoAddressWhiteList (params?: {}): Promise<Dict>;
-    privateGetWalletCryptoAddress (params?: {}): Promise<List>;
-    privateGetWalletCryptoAddressRecentDeposit (params?: {}): Promise<List>;
-    privateGetWalletCryptoAddressRecentWithdraw (params?: {}): Promise<List>;
-    privateGetWalletCryptoAddressCheckMine (params?: {}): Promise<Dict>;
-    privateGetWalletTransactions (params?: {}): Promise<List>;
-    privateGetWalletTransactionsTxId (params?: {}): Promise<Dict>;
-    privateGetWalletCryptoFeeEstimate (params?: {}): Promise<Dict>;
-    privateGetWalletCryptoFeeWithdrawHash (params?: {}): Promise<Dict>;
-    privateGetWalletAirdrops (params?: {}): Promise<List>;
-    privateGetWalletAmountLocks (params?: {}): Promise<List>;
-    privateGetSubAccount (params?: {}): Promise<List>;
-    privateGetSubAccountAcl (params?: {}): Promise<List>;
-    privateGetSubAccountBalanceSubAccID (params?: {}): Promise<Dict>;
-    privateGetSubAccountCryptoAddressSubAccIDCurrency (params?: {}): Promise<Dict>;
-    privatePostSpotOrder (params?: {}): Promise<Dict>;
-    privatePostSpotOrderList (params?: {}): Promise<List>;
-    privatePostMarginOrder (params?: {}): Promise<Dict>;
-    privatePostMarginOrderList (params?: {}): Promise<List>;
-    privatePostFuturesOrder (params?: {}): Promise<Dict>;
-    privatePostFuturesOrderList (params?: {}): Promise<List>;
-    privatePostWalletCryptoAddress (params?: {}): Promise<Dict>;
-    privatePostWalletCryptoWithdraw (params?: {}): Promise<Dict>;
-    privatePostWalletConvert (params?: {}): Promise<List>;
-    privatePostWalletTransfer (params?: {}): Promise<Dict>;
-    privatePostWalletInternalWithdraw (params?: {}): Promise<Dict>;
-    privatePostWalletCryptoCheckOffchainAvailable (params?: {}): Promise<Dict>;
-    privatePostWalletCryptoFeesEstimate (params?: {}): Promise<List>;
-    privatePostWalletCryptoFeeEstimateBulk (params?: {}): Promise<List>;
-    privatePostWalletAirdropsIdClaim (params?: {}): Promise<Dict>;
-    privatePostSubAccountFreeze (params?: {}): Promise<Dict>;
-    privatePostSubAccountActivate (params?: {}): Promise<Dict>;
-    privatePostSubAccountTransfer (params?: {}): Promise<Dict>;
-    privatePostSubAccountTransferSubToSuper (params?: {}): Promise<Dict>;
-    privatePostSubAccountTransferSubToSub (params?: {}): Promise<Dict>;
-    privatePostSubAccountAcl (params?: {}): Promise<List>;
-    privatePatchSpotOrderClientOrderId (params?: {}): Promise<Dict>;
-    privatePatchMarginOrderClientOrderId (params?: {}): Promise<Dict>;
-    privatePatchFuturesOrderClientOrderId (params?: {}): Promise<Dict>;
-    privateDeleteSpotOrder (params?: {}): Promise<List>;
-    privateDeleteSpotOrderClientOrderId (params?: {}): Promise<Dict>;
-    privateDeleteMarginPosition (params?: {}): Promise<List>;
-    privateDeleteMarginPositionIsolatedSymbol (params?: {}): Promise<Dict>;
-    privateDeleteMarginOrder (params?: {}): Promise<List>;
-    privateDeleteMarginOrderClientOrderId (params?: {}): Promise<Dict>;
-    privateDeleteFuturesPosition (params?: {}): Promise<List>;
-    privateDeleteFuturesPositionMarginModeSymbol (params?: {}): Promise<Dict>;
-    privateDeleteFuturesOrder (params?: {}): Promise<List>;
-    privateDeleteFuturesOrderClientOrderId (params?: {}): Promise<Dict>;
-    privateDeleteWalletCryptoWithdrawId (params?: {}): Promise<Dict>;
-    privatePutMarginAccountIsolatedSymbol (params?: {}): Promise<Dict>;
-    privatePutMarginSettingsAmm (params?: {}): Promise<Dict>;
-    privatePutMarginMarginSettingsAmr (params?: {}): Promise<Dict>;
-    privatePutFuturesAccountIsolatedSymbol (params?: {}): Promise<Dict>;
-    privatePutFuturesMarginSettingsAmr (params?: {}): Promise<Dict>;
-    privatePutWalletCryptoWithdrawId (params?: {}): Promise<Dict>;
-}
-abstract class hitbtc extends _hitbtc {}
+abstract class hitbtc extends _hitbtc {
+    override publicGetPublicCurrency (params = {}): Promise<Dict> {
+        return this.request ('public/currency', [ 'public' ], 'GET', params, { 'cost': 10 });
+    }
 
-export default hitbtc
+    override publicGetPublicCurrencyCurrency (params = {}): Promise<Dict> {
+        return this.request ('public/currency/{currency}', [ 'public' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override publicGetPublicSymbol (params = {}): Promise<Dict> {
+        return this.request ('public/symbol', [ 'public' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override publicGetPublicSymbolSymbol (params = {}): Promise<Dict> {
+        return this.request ('public/symbol/{symbol}', [ 'public' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override publicGetPublicTicker (params = {}): Promise<Dict> {
+        return this.request ('public/ticker', [ 'public' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override publicGetPublicTickerSymbol (params = {}): Promise<Dict> {
+        return this.request ('public/ticker/{symbol}', [ 'public' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override publicGetPublicPriceRate (params = {}): Promise<Dict> {
+        return this.request ('public/price/rate', [ 'public' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override publicGetPublicPriceHistory (params = {}): Promise<Dict> {
+        return this.request ('public/price/history', [ 'public' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override publicGetPublicPriceTicker (params = {}): Promise<Dict> {
+        return this.request ('public/price/ticker', [ 'public' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override publicGetPublicPriceTickerSymbol (params = {}): Promise<Dict> {
+        return this.request ('public/price/ticker/{symbol}', [ 'public' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override publicGetPublicTrades (params = {}): Promise<Dict> {
+        return this.request ('public/trades', [ 'public' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override publicGetPublicTradesSymbol (params = {}): Promise<List> {
+        return this.request ('public/trades/{symbol}', [ 'public' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override publicGetPublicOrderbook (params = {}): Promise<Dict> {
+        return this.request ('public/orderbook', [ 'public' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override publicGetPublicOrderbookSymbol (params = {}): Promise<Dict> {
+        return this.request ('public/orderbook/{symbol}', [ 'public' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override publicGetPublicCandles (params = {}): Promise<Dict> {
+        return this.request ('public/candles', [ 'public' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override publicGetPublicCandlesSymbol (params = {}): Promise<List> {
+        return this.request ('public/candles/{symbol}', [ 'public' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override publicGetPublicConvertedCandles (params = {}): Promise<Dict> {
+        return this.request ('public/converted/candles', [ 'public' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override publicGetPublicConvertedCandlesSymbol (params = {}): Promise<List> {
+        return this.request ('public/converted/candles/{symbol}', [ 'public' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override publicGetPublicFuturesInfo (params = {}): Promise<Dict> {
+        return this.request ('public/futures/info', [ 'public' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override publicGetPublicFuturesInfoSymbol (params = {}): Promise<Dict> {
+        return this.request ('public/futures/info/{symbol}', [ 'public' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override publicGetPublicFuturesHistoryFunding (params = {}): Promise<Dict> {
+        return this.request ('public/futures/history/funding', [ 'public' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override publicGetPublicFuturesHistoryFundingSymbol (params = {}): Promise<List> {
+        return this.request ('public/futures/history/funding/{symbol}', [ 'public' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override publicGetPublicFuturesCandlesIndexPrice (params = {}): Promise<Dict> {
+        return this.request ('public/futures/candles/index_price', [ 'public' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override publicGetPublicFuturesCandlesIndexPriceSymbol (params = {}): Promise<List> {
+        return this.request ('public/futures/candles/index_price/{symbol}', [ 'public' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override publicGetPublicFuturesCandlesMarkPrice (params = {}): Promise<Dict> {
+        return this.request ('public/futures/candles/mark_price', [ 'public' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override publicGetPublicFuturesCandlesMarkPriceSymbol (params = {}): Promise<List> {
+        return this.request ('public/futures/candles/mark_price/{symbol}', [ 'public' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override publicGetPublicFuturesCandlesPremiumIndex (params = {}): Promise<Dict> {
+        return this.request ('public/futures/candles/premium_index', [ 'public' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override publicGetPublicFuturesCandlesPremiumIndexSymbol (params = {}): Promise<List> {
+        return this.request ('public/futures/candles/premium_index/{symbol}', [ 'public' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override publicGetPublicFuturesCandlesOpenInterest (params = {}): Promise<Dict> {
+        return this.request ('public/futures/candles/open_interest', [ 'public' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override publicGetPublicFuturesCandlesOpenInterestSymbol (params = {}): Promise<List> {
+        return this.request ('public/futures/candles/open_interest/{symbol}', [ 'public' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override privateGetSpotBalance (params = {}): Promise<Dict> {
+        return this.request ('spot/balance', [ 'private' ], 'GET', params, { 'cost': 15 });
+    }
+
+    override privateGetSpotBalanceCurrency (params = {}): Promise<Dict> {
+        return this.request ('spot/balance/{currency}', [ 'private' ], 'GET', params, { 'cost': 15 });
+    }
+
+    override privateGetSpotOrder (params = {}): Promise<List> {
+        return this.request ('spot/order', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetSpotOrderClientOrderId (params = {}): Promise<Dict> {
+        return this.request ('spot/order/{client_order_id}', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetSpotFee (params = {}): Promise<List> {
+        return this.request ('spot/fee', [ 'private' ], 'GET', params, { 'cost': 15 });
+    }
+
+    override privateGetSpotFeeSymbol (params = {}): Promise<Dict> {
+        return this.request ('spot/fee/{symbol}', [ 'private' ], 'GET', params, { 'cost': 15 });
+    }
+
+    override privateGetSpotHistoryOrder (params = {}): Promise<List> {
+        return this.request ('spot/history/order', [ 'private' ], 'GET', params, { 'cost': 15 });
+    }
+
+    override privateGetSpotHistoryTrade (params = {}): Promise<List> {
+        return this.request ('spot/history/trade', [ 'private' ], 'GET', params, { 'cost': 15 });
+    }
+
+    override privateGetMarginAccount (params = {}): Promise<List> {
+        return this.request ('margin/account', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetMarginAccountIsolatedSymbol (params = {}): Promise<Dict> {
+        return this.request ('margin/account/isolated/{symbol}', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetMarginAccountCrossCurrency (params = {}): Promise<List> {
+        return this.request ('margin/account/cross/{currency}', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetMarginOrder (params = {}): Promise<List> {
+        return this.request ('margin/order', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetMarginOrderClientOrderId (params = {}): Promise<Dict> {
+        return this.request ('margin/order/{client_order_id}', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetMarginConfig (params = {}): Promise<Dict> {
+        return this.request ('margin/config', [ 'private' ], 'GET', params, { 'cost': 15 });
+    }
+
+    override privateGetMarginHistoryOrder (params = {}): Promise<List> {
+        return this.request ('margin/history/order', [ 'private' ], 'GET', params, { 'cost': 15 });
+    }
+
+    override privateGetMarginHistoryTrade (params = {}): Promise<List> {
+        return this.request ('margin/history/trade', [ 'private' ], 'GET', params, { 'cost': 15 });
+    }
+
+    override privateGetMarginHistoryPositions (params = {}): Promise<List> {
+        return this.request ('margin/history/positions', [ 'private' ], 'GET', params, { 'cost': 15 });
+    }
+
+    override privateGetMarginHistoryClearing (params = {}): Promise<List> {
+        return this.request ('margin/history/clearing', [ 'private' ], 'GET', params, { 'cost': 15 });
+    }
+
+    override privateGetMarginSettings (params = {}): Promise<Dict> {
+        return this.request ('margin-settings', [ 'private' ], 'GET', params, { 'cost': 15 });
+    }
+
+    override privateGetFuturesBalance (params = {}): Promise<Dict> {
+        return this.request ('futures/balance', [ 'private' ], 'GET', params, { 'cost': 15 });
+    }
+
+    override privateGetFuturesBalanceCurrency (params = {}): Promise<Dict> {
+        return this.request ('futures/balance/{currency}', [ 'private' ], 'GET', params, { 'cost': 15 });
+    }
+
+    override privateGetFuturesAccount (params = {}): Promise<List> {
+        return this.request ('futures/account', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetFuturesAccountIsolatedSymbol (params = {}): Promise<Dict> {
+        return this.request ('futures/account/isolated/{symbol}', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetFuturesOrder (params = {}): Promise<List> {
+        return this.request ('futures/order', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetFuturesOrderClientOrderId (params = {}): Promise<Dict> {
+        return this.request ('futures/order/{client_order_id}', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetFuturesConfig (params = {}): Promise<Dict> {
+        return this.request ('futures/config', [ 'private' ], 'GET', params, { 'cost': 15 });
+    }
+
+    override privateGetFuturesFee (params = {}): Promise<List> {
+        return this.request ('futures/fee', [ 'private' ], 'GET', params, { 'cost': 15 });
+    }
+
+    override privateGetFuturesFeeSymbol (params = {}): Promise<Dict> {
+        return this.request ('futures/fee/{symbol}', [ 'private' ], 'GET', params, { 'cost': 15 });
+    }
+
+    override privateGetFuturesHistoryOrder (params = {}): Promise<List> {
+        return this.request ('futures/history/order', [ 'private' ], 'GET', params, { 'cost': 15 });
+    }
+
+    override privateGetFuturesHistoryTrade (params = {}): Promise<List> {
+        return this.request ('futures/history/trade', [ 'private' ], 'GET', params, { 'cost': 15 });
+    }
+
+    override privateGetFuturesHistoryPositions (params = {}): Promise<List> {
+        return this.request ('futures/history/positions', [ 'private' ], 'GET', params, { 'cost': 15 });
+    }
+
+    override privateGetFuturesHistoryClearing (params = {}): Promise<List> {
+        return this.request ('futures/history/clearing', [ 'private' ], 'GET', params, { 'cost': 15 });
+    }
+
+    override privateGetUserApiKeys (params = {}): Promise<List> {
+        return this.request ('user/api-keys', [ 'private' ], 'GET', params, { 'cost': 15 });
+    }
+
+    override privateGetWalletBalance (params = {}): Promise<Dict> {
+        return this.request ('wallet/balance', [ 'private' ], 'GET', params, { 'cost': 30 });
+    }
+
+    override privateGetWalletBalanceCurrency (params = {}): Promise<Dict> {
+        return this.request ('wallet/balance/{currency}', [ 'private' ], 'GET', params, { 'cost': 30 });
+    }
+
+    override privateGetWalletCryptoAddressWhiteList (params = {}): Promise<Dict> {
+        return this.request ('wallet/crypto/address/white-list', [ 'private' ], 'GET', params, { 'cost': 30 });
+    }
+
+    override privateGetWalletCryptoAddress (params = {}): Promise<List> {
+        return this.request ('wallet/crypto/address', [ 'private' ], 'GET', params, { 'cost': 30 });
+    }
+
+    override privateGetWalletCryptoAddressRecentDeposit (params = {}): Promise<List> {
+        return this.request ('wallet/crypto/address/recent-deposit', [ 'private' ], 'GET', params, { 'cost': 30 });
+    }
+
+    override privateGetWalletCryptoAddressRecentWithdraw (params = {}): Promise<List> {
+        return this.request ('wallet/crypto/address/recent-withdraw', [ 'private' ], 'GET', params, { 'cost': 30 });
+    }
+
+    override privateGetWalletCryptoAddressCheckMine (params = {}): Promise<Dict> {
+        return this.request ('wallet/crypto/address/check-mine', [ 'private' ], 'GET', params, { 'cost': 30 });
+    }
+
+    override privateGetWalletTransactions (params = {}): Promise<List> {
+        return this.request ('wallet/transactions', [ 'private' ], 'GET', params, { 'cost': 30 });
+    }
+
+    override privateGetWalletTransactionsTxId (params = {}): Promise<Dict> {
+        return this.request ('wallet/transactions/{tx_id}', [ 'private' ], 'GET', params, { 'cost': 30 });
+    }
+
+    override privateGetWalletCryptoFeeEstimate (params = {}): Promise<Dict> {
+        return this.request ('wallet/crypto/fee/estimate', [ 'private' ], 'GET', params, { 'cost': 30 });
+    }
+
+    override privateGetWalletCryptoFeeWithdrawHash (params = {}): Promise<Dict> {
+        return this.request ('wallet/crypto/fee/withdraw/hash', [ 'private' ], 'GET', params, { 'cost': 30 });
+    }
+
+    override privateGetWalletAirdrops (params = {}): Promise<List> {
+        return this.request ('wallet/airdrops', [ 'private' ], 'GET', params, { 'cost': 30 });
+    }
+
+    override privateGetWalletAmountLocks (params = {}): Promise<List> {
+        return this.request ('wallet/amount-locks', [ 'private' ], 'GET', params, { 'cost': 30 });
+    }
+
+    override privateGetSubAccount (params = {}): Promise<List> {
+        return this.request ('sub-account', [ 'private' ], 'GET', params, { 'cost': 15 });
+    }
+
+    override privateGetSubAccountAcl (params = {}): Promise<List> {
+        return this.request ('sub-account/acl', [ 'private' ], 'GET', params, { 'cost': 15 });
+    }
+
+    override privateGetSubAccountBalanceSubAccID (params = {}): Promise<Dict> {
+        return this.request ('sub-account/balance/{subAccID}', [ 'private' ], 'GET', params, { 'cost': 15 });
+    }
+
+    override privateGetSubAccountCryptoAddressSubAccIDCurrency (params = {}): Promise<Dict> {
+        return this.request ('sub-account/crypto/address/{subAccID}/{currency}', [ 'private' ], 'GET', params, { 'cost': 15 });
+    }
+
+    override privatePostSpotOrder (params = {}): Promise<Dict> {
+        return this.request ('spot/order', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostSpotOrderList (params = {}): Promise<List> {
+        return this.request ('spot/order/list', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostMarginOrder (params = {}): Promise<Dict> {
+        return this.request ('margin/order', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostMarginOrderList (params = {}): Promise<List> {
+        return this.request ('margin/order/list', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostFuturesOrder (params = {}): Promise<Dict> {
+        return this.request ('futures/order', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostFuturesOrderList (params = {}): Promise<List> {
+        return this.request ('futures/order/list', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostWalletCryptoAddress (params = {}): Promise<Dict> {
+        return this.request ('wallet/crypto/address', [ 'private' ], 'POST', params, { 'cost': 30 });
+    }
+
+    override privatePostWalletCryptoWithdraw (params = {}): Promise<Dict> {
+        return this.request ('wallet/crypto/withdraw', [ 'private' ], 'POST', params, { 'cost': 30 });
+    }
+
+    override privatePostWalletConvert (params = {}): Promise<List> {
+        return this.request ('wallet/convert', [ 'private' ], 'POST', params, { 'cost': 30 });
+    }
+
+    override privatePostWalletTransfer (params = {}): Promise<Dict> {
+        return this.request ('wallet/transfer', [ 'private' ], 'POST', params, { 'cost': 30 });
+    }
+
+    override privatePostWalletInternalWithdraw (params = {}): Promise<Dict> {
+        return this.request ('wallet/internal/withdraw', [ 'private' ], 'POST', params, { 'cost': 30 });
+    }
+
+    override privatePostWalletCryptoCheckOffchainAvailable (params = {}): Promise<Dict> {
+        return this.request ('wallet/crypto/check-offchain-available', [ 'private' ], 'POST', params, { 'cost': 30 });
+    }
+
+    override privatePostWalletCryptoFeesEstimate (params = {}): Promise<List> {
+        return this.request ('wallet/crypto/fees/estimate', [ 'private' ], 'POST', params, { 'cost': 30 });
+    }
+
+    override privatePostWalletCryptoFeeEstimateBulk (params = {}): Promise<List> {
+        return this.request ('wallet/crypto/fee/estimate/bulk', [ 'private' ], 'POST', params, { 'cost': 30 });
+    }
+
+    override privatePostWalletAirdropsIdClaim (params = {}): Promise<Dict> {
+        return this.request ('wallet/airdrops/{id}/claim', [ 'private' ], 'POST', params, { 'cost': 30 });
+    }
+
+    override privatePostSubAccountFreeze (params = {}): Promise<Dict> {
+        return this.request ('sub-account/freeze', [ 'private' ], 'POST', params, { 'cost': 15 });
+    }
+
+    override privatePostSubAccountActivate (params = {}): Promise<Dict> {
+        return this.request ('sub-account/activate', [ 'private' ], 'POST', params, { 'cost': 15 });
+    }
+
+    override privatePostSubAccountTransfer (params = {}): Promise<Dict> {
+        return this.request ('sub-account/transfer', [ 'private' ], 'POST', params, { 'cost': 15 });
+    }
+
+    override privatePostSubAccountTransferSubToSuper (params = {}): Promise<Dict> {
+        return this.request ('sub-account/transfer/sub-to-super', [ 'private' ], 'POST', params, { 'cost': 15 });
+    }
+
+    override privatePostSubAccountTransferSubToSub (params = {}): Promise<Dict> {
+        return this.request ('sub-account/transfer/sub-to-sub', [ 'private' ], 'POST', params, { 'cost': 15 });
+    }
+
+    override privatePostSubAccountAcl (params = {}): Promise<List> {
+        return this.request ('sub-account/acl', [ 'private' ], 'POST', params, { 'cost': 15 });
+    }
+
+    override privatePatchSpotOrderClientOrderId (params = {}): Promise<Dict> {
+        return this.request ('spot/order/{client_order_id}', [ 'private' ], 'PATCH', params, { 'cost': 1 });
+    }
+
+    override privatePatchMarginOrderClientOrderId (params = {}): Promise<Dict> {
+        return this.request ('margin/order/{client_order_id}', [ 'private' ], 'PATCH', params, { 'cost': 1 });
+    }
+
+    override privatePatchFuturesOrderClientOrderId (params = {}): Promise<Dict> {
+        return this.request ('futures/order/{client_order_id}', [ 'private' ], 'PATCH', params, { 'cost': 1 });
+    }
+
+    override privateDeleteSpotOrder (params = {}): Promise<List> {
+        return this.request ('spot/order', [ 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    override privateDeleteSpotOrderClientOrderId (params = {}): Promise<Dict> {
+        return this.request ('spot/order/{client_order_id}', [ 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    override privateDeleteMarginPosition (params = {}): Promise<List> {
+        return this.request ('margin/position', [ 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    override privateDeleteMarginPositionIsolatedSymbol (params = {}): Promise<Dict> {
+        return this.request ('margin/position/isolated/{symbol}', [ 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    override privateDeleteMarginOrder (params = {}): Promise<List> {
+        return this.request ('margin/order', [ 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    override privateDeleteMarginOrderClientOrderId (params = {}): Promise<Dict> {
+        return this.request ('margin/order/{client_order_id}', [ 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    override privateDeleteFuturesPosition (params = {}): Promise<List> {
+        return this.request ('futures/position', [ 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    override privateDeleteFuturesPositionMarginModeSymbol (params = {}): Promise<Dict> {
+        return this.request ('futures/position/{margin_mode}/{symbol}', [ 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    override privateDeleteFuturesOrder (params = {}): Promise<List> {
+        return this.request ('futures/order', [ 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    override privateDeleteFuturesOrderClientOrderId (params = {}): Promise<Dict> {
+        return this.request ('futures/order/{client_order_id}', [ 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    override privateDeleteWalletCryptoWithdrawId (params = {}): Promise<Dict> {
+        return this.request ('wallet/crypto/withdraw/{id}', [ 'private' ], 'DELETE', params, { 'cost': 30 });
+    }
+
+    override privatePutMarginAccountIsolatedSymbol (params = {}): Promise<Dict> {
+        return this.request ('margin/account/isolated/{symbol}', [ 'private' ], 'PUT', params, { 'cost': 1 });
+    }
+
+    override privatePutMarginSettingsAmm (params = {}): Promise<Dict> {
+        return this.request ('margin-settings/amm', [ 'private' ], 'PUT', params, { 'cost': 15 });
+    }
+
+    override privatePutMarginMarginSettingsAmr (params = {}): Promise<Dict> {
+        return this.request ('margin/margin-settings/amr', [ 'private' ], 'PUT', params, { 'cost': 15 });
+    }
+
+    override privatePutFuturesAccountIsolatedSymbol (params = {}): Promise<Dict> {
+        return this.request ('futures/account/isolated/{symbol}', [ 'private' ], 'PUT', params, { 'cost': 1 });
+    }
+
+    override privatePutFuturesMarginSettingsAmr (params = {}): Promise<Dict> {
+        return this.request ('futures/margin-settings/amr', [ 'private' ], 'PUT', params, { 'cost': 15 });
+    }
+
+    override privatePutWalletCryptoWithdrawId (params = {}): Promise<Dict> {
+        return this.request ('wallet/crypto/withdraw/{id}', [ 'private' ], 'PUT', params, { 'cost': 30 });
+    }
+}
+
+export default hitbtc;

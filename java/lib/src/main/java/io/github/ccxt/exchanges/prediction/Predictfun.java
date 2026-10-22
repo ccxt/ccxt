@@ -9,6 +9,7 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.PredictionEvent;
 import io.github.ccxt.types.PredictionOrder;
 import io.github.ccxt.types.PredictionOrderBook;
@@ -2168,7 +2169,7 @@ public class Predictfun extends PredictfunApi
             // read through the extractor rather than off the instance, so one call can opt in without
             // reconfiguring the exchange - and so the key is taken out of params instead of riding
             // along into the request body
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "createOrder", "warnOnMarketOrderWithoutPrice", true);
+            Pair<Boolean, Map<String, Object>> warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "createOrder", "warnOnMarketOrderWithoutPrice", true);
             Boolean warnOnMarketOrderWithoutPrice = warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable.first();
             Map<String, Object> paramsWarnOnMarketOrderWithoutPrice = warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable.second();
             if (java.util.Objects.equals(price, null))
@@ -4398,14 +4399,12 @@ public class Predictfun extends PredictfunApi
      * @name predictfun#sign
      * @description builds the request URL and attaches the API key header required by every endpoint
      * @param {string} path the endpoint path
-     * @param {string|string[]} [api] the API group and access level
+     * @param {string[]} [api] the API group and access level
      * @param {string} [method] HTTP method
      * @param {object} [params] request parameters
-     * @param {object} [headers] request headers
-     * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, Object body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         // the venue authenticates every endpoint, so the key is required up front rather than
         // per access level - a key-less request is answered with a 401 by the API gateway.
@@ -4416,7 +4415,7 @@ public class Predictfun extends PredictfunApi
         {
             throw new AuthenticationError((this.id + " sign() requires the \"apiKey\" credential for all endpoints")) ;
         }
-        Object apiGroup = (((java.util.Objects.requireNonNullElse(api, "predictfun") instanceof String))) ? java.util.Objects.requireNonNullElse(api, "predictfun") : Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "predictfun"), 0);
+        Object apiGroup = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Object baseUrls = this.urls.get("api");
         String baseUrl = this.safeString(baseUrls, apiGroup, ((String)((Map<String, Object>)baseUrls).get("predictfun")));
         String url = ((baseUrl + "/") + this.implodeParams(path, parameters));
@@ -4428,8 +4427,8 @@ public class Predictfun extends PredictfunApi
                 url = (url + ("?" + this.urlencode(query)));
             }
         }
-        Object existingHeaders = (((!java.util.Objects.equals(headers, null)))) ? headers : new HashMap<String, Object>() {{}};
-        Object headersValue = existingHeaders;
+        Map<String, Object> existingHeaders = new HashMap<String, Object>() {{}};
+        Map<String, Object> headersValue = existingHeaders;
         Map<String, Object> authHeaders = new HashMap<String, Object>() {{}};
         if ((!java.util.Objects.equals(apiKey, null)) && (!Boolean.TRUE.equals(sandboxMode)))
         {
@@ -4452,7 +4451,7 @@ public class Predictfun extends PredictfunApi
         {
             authHeaders.put("Authorization", ("Bearer " + jwtToken));
         }
-        Object bodyValue = body;
+        String bodyValue = null;
         if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
             if (!Boolean.TRUE.equals(sandboxMode))
@@ -4471,9 +4470,5 @@ public class Predictfun extends PredictfunApi
             h2kMap3.put("headers", headersExtended);
             return h2kMap3;
         }
-    }
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
-    {
-        return this.sign(path, api, method, parameters, headers, (Object) (body));
     }
 }

@@ -97,9 +97,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
 	case "coincheck":
 		coincheckItf := NewCoincheck(exchangeArgs)
 		return coincheckItf, true
-	case "coinex":
-		coinexItf := NewCoinex(exchangeArgs)
-		return coinexItf, true
 	case "coinone":
 		coinoneItf := NewCoinone(exchangeArgs)
 		return coinoneItf, true
@@ -214,6 +211,9 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
 	case "poloniex":
 		poloniexItf := NewPoloniex(exchangeArgs)
 		return poloniexItf, true
+	case "polymarket":
+		polymarketItf := NewPolymarket(exchangeArgs)
+		return polymarketItf, true
 	case "toobit":
 		toobitItf := NewToobit(exchangeArgs)
 		return toobitItf, true

@@ -255,7 +255,7 @@ func (this *Foxbit) Describe() any {
 				"cardano":         "ADA",
 				"cosmos":          "ATOM",
 				"dogecoin":        "DOGE",
-				"erc20":           "ETH",
+				"erc20":           "ERC20",
 				"hedera":          "HBAR",
 				"litecoin":        "LTC",
 				"near":            "NEAR",
@@ -279,7 +279,7 @@ func (this *Foxbit) Describe() any {
 				"ADA":      "cardano",
 				"ATOM":     "cosmos",
 				"DOGE":     "dogecoin",
-				"ETH":      "erc20",
+				"ERC20":    "erc20",
 				"HBAR":     "hedera",
 				"LTC":      "litecoin",
 				"NEAR":     "near",
@@ -2235,8 +2235,8 @@ func (this *Foxbit) editOrderBody(ch chan AsyncResult[map[string]any], id string
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Foxbit) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
@@ -2247,13 +2247,12 @@ func (this *Foxbit) WithdrawAsync(code string, amount any, address any, optional
 func (this *Foxbit) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	var tagWithdrawTag *string = SafeStringPtr(tagWithdrawTagparamsWithdrawTagVariable[0])
+	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
+	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
 	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
+	this.CheckAddress(address, code, tagWithdrawTag)
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -2267,7 +2266,7 @@ func (this *Foxbit) withdrawBody(ch chan EndpointResult[map[string]any], code st
 		"amount":              this.NumberToString(amount),
 		"destination_address": address,
 	}
-	if tagWithdrawTag != nil {
+	if !IsEqual(tagWithdrawTag, nil) {
 		request["destination_tag"] = tagWithdrawTag
 	}
 	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(paramsWithdrawTag)
@@ -2445,6 +2444,14 @@ func (this *Foxbit) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var bestBid map[string]any = SafeMapTyped(best, "bid")
 	var lastTrade map[string]any = SafeMapTyped(ticker, "last_trade")
 	var lastPrice *string = this.SafeString(lastTrade, "price")
+	var change *string = this.SafeString(rolling_24h, "price_change")
+	var percentage *string = this.SafeString(rolling_24h, "price_change_percent")
+	// never-traded markets report all-zero placeholders instead of omitting the values
+	if Precise.StringEq(lastPrice, "0") {
+		lastPrice = nil
+		change = nil
+		percentage = nil
+	}
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     this.ParseDate(this.SafeString(lastTrade, "date")),
@@ -2460,8 +2467,8 @@ func (this *Foxbit) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		"close":         lastPrice,
 		"last":          lastPrice,
 		"previousClose": nil,
-		"change":        this.SafeString(rolling_24h, "price_change"),
-		"percentage":    this.SafeString(rolling_24h, "price_change_percent"),
+		"change":        change,
+		"percentage":    percentage,
 		"average":       nil,
 		"baseVolume":    this.SafeString(rolling_24h, "volume"),
 		"quoteVolume":   this.SafeString(rolling_24h, "quote_volume"),
@@ -2646,7 +2653,7 @@ func (this *Foxbit) ParseTransaction(transaction any, optionalArgs ...any) map[s
 		"txid":        this.SafeString(cryptoDetails, "transaction_id"),
 		"timestamp":   timestamp,
 		"datetime":    datetime,
-		"network":     this.SafeString(transaction, "network_code"),
+		"network":     this.NetworkIdToCode(this.SafeString(transaction, "network_code"), currencyCode),
 		"address":     address,
 		"addressTo":   address,
 		"addressFrom": nil,
@@ -2743,22 +2750,18 @@ func (this *Foxbit) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var headers map[string]any = GetArgMap(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
-	var version any = GetValue(api, 0)
-	var urlPath any = GetValue(api, 1)
-	var fullPath any = Add(Add(Add("/rest/", version), "/"), this.ImplodeParams(path, params))
-	if version == "status" {
+	var version *string = SafeStringPtr(GetValue(api, 0))
+	var urlPath *string = SafeStringPtr(GetValue(api, 1))
+	var fullPath string = "/rest/" + *version + "/" + this.ImplodeParams(path, params)
+	if version != nil && *version == "status" {
 		fullPath = "/status"
-		urlPath = "status"
+		urlPath = SafeStringPtr("status")
 	}
 	var apiUrl *string = this.SafeString(this.Urls["api"], urlPath)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url any = Add(apiUrl, fullPath)
+	var url string = *apiUrl + fullPath
 	var paramsOmitted any = this.Omit(params, this.ExtractParams(path))
 	var timestamp int64 = this.Milliseconds()
 	var query string = ""
@@ -2768,7 +2771,7 @@ func (this *Foxbit) Sign(path string, optionalArgs ...any) any {
 		var paramKeysLength int = len(paramKeys)
 		if paramKeysLength > 0 {
 			query = this.Urlencode(paramsOmitted)
-			url = Add(url, "?"+query)
+			url += "?" + query
 		}
 		for i := 0; i < len(paramKeys); i++ {
 			var key string = paramKeys[i]
@@ -2781,7 +2784,7 @@ func (this *Foxbit) Sign(path string, optionalArgs ...any) any {
 			}
 		}
 	}
-	var requestBody any = body
+	var requestBody any = nil
 	if (method == "POST") || (method == "PUT") {
 		requestBody = this.Json(paramsOmitted)
 	}
@@ -2794,7 +2797,7 @@ func (this *Foxbit) Sign(path string, optionalArgs ...any) any {
 		"X-FB-CLIENT":         "ccxt",
 		"X-FB-CLIENT-VERSION": this.GetCcxtVersion(),
 	}
-	if urlPath == "private" {
+	if urlPath != nil && *urlPath == "private" {
 		this.CheckRequiredCredentials()
 		var preHash *string = SafeStringPtr(Add(Add(Add(Add(this.NumberToString(timestamp), method), fullPath), signatureQuery), bodyToSignature))
 		var signature string = this.Hmac(this.Encode(preHash), this.Encode(this.Secret), sha256, "hex")
@@ -3460,8 +3463,8 @@ func (this *Foxbit) EditOrder(id string, symbol string, typeVar string, side str
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Foxbit) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
@@ -3471,7 +3474,7 @@ func (this *Foxbit) Withdraw(code string, amount float64, address string, option
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}

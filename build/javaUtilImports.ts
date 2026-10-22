@@ -48,7 +48,7 @@ export const CCXT_TYPE_NAMES: readonly string[] = [
     'IsolatedBorrowRate', 'IsolatedBorrowRates', 'LastPrices', 'LedgerEntry', 'Leverage',
     'LeverageTier', 'LeverageTiers', 'Leverages', 'Liquidation', 'LongShortRatio', 'MarginLoan',
     'MarginMode', 'MarginModes', 'MarginModification', 'MarketInterface', 'OHLCV', 'OpenInterest',
-    'OpenInterests', 'Option', 'OptionChain', 'Order', 'OrderBook', 'OrderBooks', 'Position',
+    'OpenInterests', 'Option', 'OptionChain', 'Order', 'OrderBook', 'OrderBookL3', 'OrderBooks', 'Pair', 'Position',
     'PositionModeInfo', 'PredictionEvent', 'PredictionOpenInterest', 'PredictionOrder',
     'PredictionOrderBook', 'PredictionPosition', 'PredictionSettlement', 'PredictionTicker',
     'PredictionTickers', 'PredictionTrade', 'PredictionTradingFee', 'Status', 'Ticker', 'Tickers',

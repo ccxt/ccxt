@@ -33,6 +33,7 @@ from ccxt.test.base.test_network_methods import test_network_methods  # noqa E40
 from ccxt.test.base.language_specific.test_language_specific import test_language_specific  # noqa E402
 from ccxt.test.base.test_safe_methods import test_safe_methods  # noqa E402
 from ccxt.test.base.test_safe_ticker import test_safe_ticker  # noqa E402
+from ccxt.test.base.test_safe_position import test_safe_position  # noqa E402
 from ccxt.test.base.test_merge_balance_account import test_merge_balance_account  # noqa E402
 from ccxt.test.base.test_json import test_json  # noqa E402
 from ccxt.test.base.test_io import test_io  # noqa E402
@@ -56,6 +57,7 @@ from ccxt.test.base.test_rawencode import test_rawencode  # noqa E402
 from ccxt.test.base.test_fetch_history import test_fetch_history  # noqa E402
 from ccxt.test.base.test_handle_methods import test_handle_methods  # noqa E402
 from ccxt.test.base.test_handle_http_status_code import test_handle_http_status_code  # noqa E402
+from ccxt.test.base.test_check_address import test_check_address  # noqa E402
 from ccxt.test.base.test_remove_repeated_elements_from_array import test_remove_repeated_elements_from_array  # noqa E402
 from ccxt.test.base.test_urlencode_with_array_repeat import test_urlencode_with_array_repeat  # noqa E402
 from ccxt.test.base.test_parse_precision import test_parse_precision  # noqa E402
@@ -103,6 +105,7 @@ async def base_tests_init():
     test_precise()
     test_safe_methods()
     test_safe_ticker()
+    test_safe_position()
     test_merge_balance_account()
     test_base58_to_binary()
     test_to_array()
@@ -121,6 +124,7 @@ async def base_tests_init():
     test_filter_by()
     test_handle_methods()
     test_handle_http_status_code()
+    test_check_address()
     test_network_methods()
     test_remove_repeated_elements_from_array()
     test_is_empty()

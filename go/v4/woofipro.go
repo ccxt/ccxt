@@ -4248,8 +4248,8 @@ func (this *Woofipro) SignMessage(message any, privateKey any) string {
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Woofipro) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
@@ -4260,9 +4260,7 @@ func (this *Woofipro) WithdrawAsync(code string, amount any, address any, option
 func (this *Woofipro) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -5031,31 +5029,27 @@ func (this *Woofipro) Nonce() any {
 	return this.Milliseconds()
 }
 func (this *Woofipro) Sign(path string, optionalArgs ...any) any {
-	section := GetArg(optionalArgs, 0, "public")
+	section := GetArg(optionalArgs, 0, []any{"public"})
 	_ = section
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
-	var version any = GetValue(section, 0)
-	var access any = GetValue(section, 1)
+	var version *string = SafeStringPtr(GetValue(section, 0))
+	var access *string = SafeStringPtr(GetValue(section, 1))
 	var pathWithParams string = this.ImplodeParams(path, params)
 	var apiUrl *string = this.SafeString(this.Urls["api"], access)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url any = Add(Add(*apiUrl+"/", version), "/")
+	var url string = *apiUrl + "/" + *version + "/"
 	var requestParams map[string]any = this.Keysort(this.Omit(params, this.ExtractParams(path)))
 	var requestBody any = nil
 	var requestHeaders any = nil
-	if access == "public" {
-		url = Add(url, pathWithParams)
+	if access != nil && *access == "public" {
+		url += pathWithParams
 		if len(requestParams) > 0 {
-			url = Add(url, "?"+this.Urlencode(requestParams))
+			url += "?" + this.Urlencode(requestParams)
 		}
 	} else {
 		this.CheckRequiredCredentials()
@@ -5076,7 +5070,7 @@ func (this *Woofipro) Sign(path string, optionalArgs ...any) any {
 		}
 		var auth any = ""
 		var ts string = ToString(this.Nonce())
-		url = Add(url, pathWithParams)
+		url += pathWithParams
 		var apiKey any = this.ApiKey
 		if GetIndexOf(apiKey, "ed25519:") < 0 {
 			apiKey = Add("ed25519:", apiKey)
@@ -5086,14 +5080,14 @@ func (this *Woofipro) Sign(path string, optionalArgs ...any) any {
 			"orderly-key":        apiKey,
 			"orderly-timestamp":  ts,
 		}
-		auth = Add(Add(Add(ts+method+"/", version), "/"), pathWithParams)
+		auth = ts + method + "/" + *version + "/" + pathWithParams
 		if (method == "POST") || (method == "PUT") {
 			requestBody = this.Json(requestParams)
 			auth = Add(auth, requestBody)
 			AddElementToObject(requestHeaders, "content-type", "application/json")
 		} else {
 			if len(requestParams) > 0 {
-				url = Add(url, "?"+this.Urlencode(requestParams))
+				url += "?" + this.Urlencode(requestParams)
 				auth = Add(auth, "?"+this.Rawencode(requestParams))
 			}
 			AddElementToObject(requestHeaders, "content-type", "application/x-www-form-urlencoded")
@@ -5114,18 +5108,8 @@ func (this *Woofipro) Sign(path string, optionalArgs ...any) any {
 		var signature string = Eddsa(this.Encode(auth), this.Base58ToBinary(secret), ed25519)
 		AddElementToObject(requestHeaders, "orderly-signature", this.UrlencodeBase64(this.Base64ToBinary(signature)))
 	}
-	var bodyResult any = func() any {
-		if requestBody == nil {
-			return body
-		}
-		return requestBody
-	}()
-	var headersResult any = func() any {
-		if requestHeaders == nil {
-			return headers
-		}
-		return requestHeaders
-	}()
+	var bodyResult any = requestBody
+	var headersResult any = requestHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,
@@ -6041,8 +6025,8 @@ func (this *Woofipro) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawa
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Woofipro) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
@@ -6052,7 +6036,7 @@ func (this *Woofipro) Withdraw(code string, amount float64, address string, opti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}

@@ -24,32 +24,34 @@ func newHyperliquid() *Hyperliquid {
 func (this *Hyperliquid) Describe() any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
-			"ws":                    true,
-			"cancelOrderWs":         true,
-			"cancelOrdersWs":        true,
-			"createOrderWs":         true,
-			"createOrdersWs":        true,
-			"editOrderWs":           true,
-			"watchBalance":          true,
-			"watchMyTrades":         true,
-			"watchOHLCV":            true,
-			"watchOrderBook":        true,
-			"watchOrders":           true,
-			"watchTicker":           true,
-			"watchTickers":          true,
-			"watchTrades":           true,
-			"watchTradesForSymbols": false,
-			"watchPosition":         false,
-			"unWatchBalance":        true,
-			"watchPositions":        true,
-			"unWatchPositions":      true,
-			"unWatchOrderBook":      true,
-			"unWatchTicker":         true,
-			"unWatchTickers":        true,
-			"unWatchTrades":         true,
-			"unWatchOHLCV":          true,
-			"unWatchMyTrades":       true,
-			"unWatchOrders":         true,
+			"ws":                            true,
+			"cancelOrderWs":                 true,
+			"cancelOrdersWs":                true,
+			"createOrderWs":                 true,
+			"createOrdersWs":                true,
+			"editOrderWs":                   true,
+			"watchBalance":                  true,
+			"watchMyLiquidations":           true,
+			"watchMyLiquidationsForSymbols": true,
+			"watchMyTrades":                 true,
+			"watchOHLCV":                    true,
+			"watchOrderBook":                true,
+			"watchOrders":                   true,
+			"watchTicker":                   true,
+			"watchTickers":                  true,
+			"watchTrades":                   true,
+			"watchTradesForSymbols":         false,
+			"watchPosition":                 false,
+			"unWatchBalance":                true,
+			"watchPositions":                true,
+			"unWatchPositions":              true,
+			"unWatchOrderBook":              true,
+			"unWatchTicker":                 true,
+			"unWatchTickers":                true,
+			"unWatchTrades":                 true,
+			"unWatchOHLCV":                  true,
+			"unWatchMyTrades":               true,
+			"unWatchOrders":                 true,
 		},
 		"urls": map[string]any{
 			"api": map[string]any{
@@ -882,6 +884,121 @@ func (this *Hyperliquid) watchMyTradesBody(ch chan ccxt.AsyncResult[[]any], opti
 
 /**
  * @method
+ * @name hyperliquid#watchMyLiquidations
+ * @description watch the private liquidations of a trading pair
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+ * @param {string} symbol unified CCXT market symbol
+ * @param {int} [since] the earliest time in ms to fetch liquidations for
+ * @param {int} [limit] the maximum number of liquidation structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+ * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
+ */
+func (this *Hyperliquid) WatchMyLiquidationsAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
+	go this.watchMyLiquidationsBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) watchMyLiquidationsBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
+	_ = since
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
+	_ = limit
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
+	_ = params
+
+	r := <-this.WatchMyLiquidationsForSymbolsAsync([]any{symbol}, since, limit, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r.Value}
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#watchMyLiquidationsForSymbols
+ * @description watch the private liquidations of a list of trading pairs
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+ * @param {string[]} symbols list of unified market symbols
+ * @param {int} [since] the earliest time in ms to fetch liquidations for
+ * @param {int} [limit] the maximum number of liquidation structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+ * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
+ */
+func (this *Hyperliquid) WatchMyLiquidationsForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
+	go this.watchMyLiquidationsForSymbolsBody(ch, symbols, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) watchMyLiquidationsForSymbolsBody(ch chan ccxt.AsyncResult[any], symbols any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
+	_ = since
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
+	_ = limit
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
+	_ = params
+	userAddressparamsValueVariable := this.HandlePublicAddress("watchMyLiquidationsForSymbols", params)
+	userAddress := ccxt.GetValue(userAddressparamsValueVariable, 0)
+	var paramsValue map[string]any = ccxt.MapTyped(ccxt.GetValue(userAddressparamsValueVariable, 1))
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true)
+	var messageHashes []any = []any{}
+	if this.IsEmpty(symbolsNormalized) {
+		messageHashes = append(messageHashes, "myLiquidations")
+	} else {
+		for i := 0; i < len(symbolsNormalized); i++ {
+			messageHashes = append(messageHashes, ccxt.Add("myLiquidations::", symbolsNormalized[i]))
+		}
+	}
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
+	var request map[string]any = map[string]any{
+		"method": "subscribe",
+		"subscription": map[string]any{
+			"type": "userFills",
+			"user": userAddress,
+		},
+	}
+	var message map[string]any = this.Extend(request, paramsValue)
+	if ccxt.IsEqual(userAddress, nil) {
+		panic(ccxt.ArgumentsRequired(this.Id + " watchMyLiquidationsForSymbols() requires a user address"))
+	}
+	// shares the userFills subscription with watchMyTrades
+	var subscribeHash string = "subscribe:userFills::" + ccxt.ToLower(userAddress)
+
+	r1 := <-this.WaitForPendingUnsubscribeAsync(url, "myTrades")
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+
+	r2 := <-this.WatchMultiple(url, messageHashes, message, []any{subscribeHash})
+	if r2.Err != nil {
+		panic(r2.Err)
+	}
+	newLiquidations := r2.Value
+	if this.NewUpdates {
+
+		ch <- ccxt.AsyncResult[any]{Value: newLiquidations}
+		return nil
+	}
+
+	ch <- ccxt.AsyncResult[any]{Value: this.FilterBySymbolsSinceLimit(this.MyLiquidations, symbolsNormalized, since, limit, true)}
+	return nil
+}
+
+/**
+ * @method
  * @name hyperliquid#unWatchMyTrades
  * @description unWatches information on multiple trades made by the user
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
@@ -1048,6 +1165,8 @@ func (this *Hyperliquid) HandleMyTrades(client any, message map[string]any) {
 	//         }
 	//     }
 	//
+	// an empty snapshot still seeds the liquidations cache
+	this.HandleMyLiquidations(client, message)
 	var entry map[string]any = ccxt.SafeMapTyped(message, "data")
 	if this.MyTrades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -1088,6 +1207,69 @@ func (this *Hyperliquid) HandleMyTrades(client any, message map[string]any) {
 	// non-symbol specific
 	var messageHash string = "myTrades"
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
+}
+func (this *Hyperliquid) HandleMyLiquidations(client any, message map[string]any) {
+	//
+	// userFills message, see handleMyTrades, liquidation fills carry
+	//
+	//     "liquidation": {
+	//         "liquidatedUser": "0x5c902b2eb0e1d9eb9a232014824ae6247df0a480",
+	//         "markPx": "4.69112",
+	//         "method": "market"
+	//     }
+	//
+	var entry map[string]any = ccxt.SafeMapTyped(message, "data")
+	// every subscription starts with a snapshot, a resubscribe replays it
+	var isSnapshot *bool = this.SafeBool(entry, "isSnapshot", false)
+	if (isSnapshot != nil && *isSnapshot) || (ccxt.IsEqual(this.MyLiquidations, nil)) {
+		var limit *int64 = this.SafeInteger(this.Options, "myLiquidationsLimit", 1000)
+		this.MyLiquidations = ccxt.NewArrayCache(limit)
+	}
+	var user *string = this.SafeStringLower(entry, "user")
+	var fills []any = ccxt.SafeListTyped(entry, "fills")
+	var newLiquidations []any = []any{}
+	for i := 0; i < len(fills); i++ {
+		var fill any = func() any {
+			if i >= 0 && i < len(fills) {
+				return ccxt.DerefScalar(fills[i])
+			}
+			return nil
+		}()
+		var liquidation map[string]any = ccxt.SafeMapTyped(fill, "liquidation")
+		// liquidator fills carry the liquidated counterparty here
+		if this.SafeStringLower(liquidation, "liquidatedUser") == user || (this.SafeStringLower(liquidation, "liquidatedUser") != nil && user != nil && *this.SafeStringLower(liquidation, "liquidatedUser") == *user) {
+			newLiquidations = append(newLiquidations, this.ParseLiquidation(fill))
+		}
+	}
+	var newLiquidationsLength int = len(newLiquidations)
+	if newLiquidationsLength == 0 {
+		return
+	}
+	var cache any = this.MyLiquidations
+	var symbols map[string]any = map[string]any{}
+	for i := 0; i < newLiquidationsLength; i++ {
+		var liquidation any = func() any {
+			if i >= 0 && i < len(newLiquidations) {
+				return ccxt.DerefScalar(newLiquidations[i])
+			}
+			return nil
+		}()
+		cache.(ccxt.Appender).Append(liquidation)
+		ccxt.AddElementToObject(symbols, ccxt.GetValue(liquidation, "symbol"), true)
+	}
+	var keys []string = nil
+	if symbols != nil {
+		keys = make([]string, 0, len(symbols))
+		for objectKey := range symbols {
+			keys = append(keys, objectKey)
+		}
+	}
+	for i := 0; i < len(keys); i++ {
+		var symbol string = keys[i]
+		var symbolLiquidations any = this.FilterBySymbol(newLiquidations, symbol)
+		client.(ccxt.ClientInterface).Resolve(symbolLiquidations, "myLiquidations::"+symbol)
+	}
+	client.(ccxt.ClientInterface).Resolve(newLiquidations, "myLiquidations")
 }
 
 /**
@@ -2494,6 +2676,9 @@ func (this *Hyperliquid) HandleMyTradesUnsubscription(client any, subscription m
 	var subHash string = "myTrades"
 	var unSubHash string = "unsubscribe:" + subHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subHash, unSubHash, true)
+	// userFills also feeds watchMyLiquidations
+	this.CleanUnsubscription(ccxt.AsClient(client), "myLiquidations", unSubHash, true)
+	this.MyLiquidations = nil
 	// the prefix sweep above can't see the per-user dedup key (prefix-disjoint by design)
 	// clear it for the user echoed in the ack so a later watch re-subscribes
 	var user *string = this.SafeStringLower(subscription, "user")
@@ -2998,6 +3183,60 @@ func (this *Hyperliquid) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]
 		return nil, r.Err
 	}
 	var res []ccxt.Trade = ccxt.NewTradeArray(r.Value)
+	return res, nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#watchMyLiquidations
+ * @description watch the private liquidations of a trading pair
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+ * @param {string} symbol unified CCXT market symbol
+ * @param {int} [since] the earliest time in ms to fetch liquidations for
+ * @param {int} [limit] the maximum number of liquidation structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+ * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
+ */
+func (this *Hyperliquid) WatchMyLiquidations(symbol string, options ...ccxt.WatchMyLiquidationsOptions) ([]ccxt.Liquidation, error) {
+
+	opts := ccxt.WatchMyLiquidationsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.WatchMyLiquidationsAsync(symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	var res []ccxt.Liquidation = ccxt.NewLiquidationArray(r.Value)
+	return res, nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#watchMyLiquidationsForSymbols
+ * @description watch the private liquidations of a list of trading pairs
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+ * @param {string[]} symbols list of unified market symbols
+ * @param {int} [since] the earliest time in ms to fetch liquidations for
+ * @param {int} [limit] the maximum number of liquidation structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+ * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
+ */
+func (this *Hyperliquid) WatchMyLiquidationsForSymbols(symbols []string, options ...ccxt.WatchMyLiquidationsForSymbolsOptions) ([]ccxt.Liquidation, error) {
+
+	opts := ccxt.WatchMyLiquidationsForSymbolsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.WatchMyLiquidationsForSymbolsAsync(symbols, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	var res []ccxt.Liquidation = ccxt.NewLiquidationArray(r.Value)
 	return res, nil
 }
 

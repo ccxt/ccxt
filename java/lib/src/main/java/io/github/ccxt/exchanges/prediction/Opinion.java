@@ -2640,22 +2640,20 @@ public class Opinion extends OpinionApi
      * @name opinion#sign
      * @description builds the request url and attaches the apikey/EIP-712 authentication headers for private endpoints
      * @param {string} path the endpoint path
-     * @param {string|string[]} api the api group and access level
+     * @param {string[]} api the api group and access level
      * @param {string} method the http method
      * @param {object} params the request parameters
-     * @param {object} [headers] request headers
-     * @param {string} [body] the request body
      * @returns {object} a dict with url, method, body and headers
      */
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, Object body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiGroup = (((java.util.Objects.requireNonNullElse(api, "opinion") instanceof String))) ? java.util.Objects.requireNonNullElse(api, "opinion") : Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "opinion"), 0);
-        Object access = (((java.util.Objects.requireNonNullElse(api, "opinion") instanceof String))) ? "public" : Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "opinion"), 1);
+        Object apiGroup = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String access = this.safeString(api, 1, "public");
         Object baseUrls = this.urls.get("api");
         String baseUrl = this.safeString(baseUrls, apiGroup, ((String)((Map<String, Object>)baseUrls).get("opinion")));
         String url = ((baseUrl + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
-        Object existingHeaders = (((!java.util.Objects.equals(headers, null)))) ? headers : new HashMap<String, Object>() {{}};
+        Map<String, Object> existingHeaders = new HashMap<String, Object>() {{}};
         Map<String, Object> headersExtended = this.extend(new HashMap<String, Object>() {{
             put( "Accept", "application/json" );
             put( "Content-Type", "application/json" );
@@ -2692,7 +2690,7 @@ public class Opinion extends OpinionApi
                 headersExtended.put("apikey", apiKey);
             }
         }
-        Object bodyValue = body;
+        String bodyValue = null;
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
             if (Helpers.objectKeys(query).size() > 0)
@@ -2711,9 +2709,5 @@ public class Opinion extends OpinionApi
             h2kMap2.put("headers", headersExtended);
             return h2kMap2;
         }
-    }
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
-    {
-        return this.sign(path, api, method, parameters, headers, (Object) (body));
     }
 }

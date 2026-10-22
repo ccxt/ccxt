@@ -711,7 +711,7 @@ class coinmate(Exchange, ImplicitAPI):
             'txid': self.safe_string(transaction, 'txid'),
             'type': self.safe_string_lower(transaction, 'transferType'),
             'currency': code,
-            'network': self.safe_string(transaction, 'walletType'),
+            'network': self.network_id_to_code(self.safe_string(transaction, 'walletType'), code),
             'amount': self.safe_number(transaction, 'amount'),
             'status': self.parse_transaction_status(self.safe_string(transaction, 'transferStatus')),
             'timestamp': timestamp,
@@ -732,7 +732,7 @@ class coinmate(Exchange, ImplicitAPI):
             },
         }
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -746,12 +746,12 @@ class coinmate(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
-        self.check_address(address)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
+        self.check_address(address, code, tagWithdrawTag)
         if self.markets is None:
             await self.load_markets()
         currency = self.currency(code)
@@ -1228,14 +1228,15 @@ class coinmate(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
         bodySigned = None
         headersSigned = None
         apiUrl = self.safe_string(self.urls['api'], 'rest')
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + '/' + path
-        if api == 'public':
+        if apiName == 'public':
             if len(params) > 0:
                 url += '?' + self.urlencode(params)
         else:
@@ -1253,8 +1254,8 @@ class coinmate(Exchange, ImplicitAPI):
             headersSigned = {
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
-        headersResolved = headers if (headersSigned is None) else headersSigned
-        bodyResolved = body if (bodySigned is None) else bodySigned
+        headersResolved = headersSigned
+        bodyResolved = bodySigned
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

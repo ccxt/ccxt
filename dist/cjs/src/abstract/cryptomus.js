@@ -6,6 +6,99 @@ var Exchange$1 = require('../base/Exchange.js');
 
 // ----------------------------------------------------------------------------
 class Exchange extends Exchange$1["default"] {
+    publicGetV2UserApiExchangeMarkets(params = {}) {
+        return this.request('v2/user-api/exchange/markets', ['public'], 'GET', params, { 'cost': 1 });
+    }
+    publicGetV2UserApiExchangeMarketPrice(params = {}) {
+        return this.request('v2/user-api/exchange/market/price', ['public'], 'GET', params, { 'cost': 1 });
+    }
+    publicGetV2UserApiExchangeMarketsPrice(params = {}) {
+        return this.request('v2/user-api/exchange/markets/price', ['public'], 'GET', params, { 'cost': 1 });
+    }
+    publicGetV1ExchangeMarketAssets(params = {}) {
+        return this.request('v1/exchange/market/assets', ['public'], 'GET', params, { 'cost': 1 });
+    }
+    publicGetV1ExchangeMarketOrderBookCurrencyPair(params = {}) {
+        return this.request('v1/exchange/market/order-book/{currencyPair}', ['public'], 'GET', params, { 'cost': 1 });
+    }
+    publicGetV1ExchangeMarketTickers(params = {}) {
+        return this.request('v1/exchange/market/tickers', ['public'], 'GET', params, { 'cost': 1 });
+    }
+    publicGetV1ExchangeMarketTradesCurrencyPair(params = {}) {
+        return this.request('v1/exchange/market/trades/{currencyPair}', ['public'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetV2UserApiExchangeOrders(params = {}) {
+        return this.request('v2/user-api/exchange/orders', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetV2UserApiExchangeOrdersHistory(params = {}) {
+        return this.request('v2/user-api/exchange/orders/history', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetV2UserApiExchangeAccountBalance(params = {}) {
+        return this.request('v2/user-api/exchange/account/balance', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetV2UserApiExchangeAccountTariffs(params = {}) {
+        return this.request('v2/user-api/exchange/account/tariffs', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetV2UserApiPaymentServices(params = {}) {
+        return this.request('v2/user-api/payment/services', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetV2UserApiPayoutServices(params = {}) {
+        return this.request('v2/user-api/payout/services', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetV2UserApiTransactionList(params = {}) {
+        return this.request('v2/user-api/transaction/list', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetV2UserApiBalance(params = {}) {
+        return this.request('v2/user-api/balance', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetV2UserApiConvertDirectionList(params = {}) {
+        return this.request('v2/user-api/convert/direction-list', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetV2UserApiConvertOrderList(params = {}) {
+        return this.request('v2/user-api/convert/order-list', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetV2UserApiAmlCheckBalance(params = {}) {
+        return this.request('v2/user-api/aml/check/balance', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetV2UserApiAmlCheckCurrencies(params = {}) {
+        return this.request('v2/user-api/aml/check/currencies', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetV2UserApiAmlCheckPackages(params = {}) {
+        return this.request('v2/user-api/aml/check/packages', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetV2UserApiAmlCheckRequest(params = {}) {
+        return this.request('v2/user-api/aml/check/request', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetV2UserApiAmlCheckRequestId(params = {}) {
+        return this.request('v2/user-api/aml/check/request/{id}', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privatePostV2UserApiExchangeOrders(params = {}) {
+        return this.request('v2/user-api/exchange/orders', ['private'], 'POST', params, { 'cost': 1 });
+    }
+    privatePostV2UserApiExchangeOrdersMarket(params = {}) {
+        return this.request('v2/user-api/exchange/orders/market', ['private'], 'POST', params, { 'cost': 1 });
+    }
+    privatePostV2UserApiConvert(params = {}) {
+        return this.request('v2/user-api/convert', ['private'], 'POST', params, { 'cost': 1 });
+    }
+    privatePostV2UserApiConvertCalculate(params = {}) {
+        return this.request('v2/user-api/convert/calculate', ['private'], 'POST', params, { 'cost': 1 });
+    }
+    privatePostV2UserApiConvertLimit(params = {}) {
+        return this.request('v2/user-api/convert/limit', ['private'], 'POST', params, { 'cost': 1 });
+    }
+    privatePostV2UserApiAmlCheckRequest(params = {}) {
+        return this.request('v2/user-api/aml/check/request', ['private'], 'POST', params, { 'cost': 1 });
+    }
+    privatePostV2UserApiAmlCheckRequestIdReportSend(params = {}) {
+        return this.request('v2/user-api/aml/check/request/{id}/report/send', ['private'], 'POST', params, { 'cost': 1 });
+    }
+    privateDeleteV2UserApiExchangeOrdersOrderId(params = {}) {
+        return this.request('v2/user-api/exchange/orders/{orderId}', ['private'], 'DELETE', params, { 'cost': 1 });
+    }
+    privateDeleteV2UserApiConvertOrderUuid(params = {}) {
+        return this.request('v2/user-api/convert/{orderUuid}', ['private'], 'DELETE', params, { 'cost': 1 });
+    }
 }
 
 exports["default"] = Exchange;

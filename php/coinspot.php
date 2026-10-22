@@ -231,7 +231,7 @@ class coinspot extends Exchange {
                 'DRK' => 'DASH',
             ),
             'options' => array(
-                'fetchBalance' => 'private_post_my_balances',
+                'fetchBalance' => 'privatePostMyBalances',
             ),
             'features' => array(
                 'spot' => array(
@@ -330,7 +330,7 @@ class coinspot extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $method = $this->safe_string($this->options, 'fetchBalance', 'private_post_my_balances');
+        $method = $this->safe_string($this->options, 'fetchBalance', 'privatePostMyBalances');
         $response = null;
         if (($method === 'private_post_ro_my_balances') || ($method === 'privatePostRoMyBalances')) {
             $response = $this->privatePostRoMyBalances($params);
@@ -751,12 +751,13 @@ class coinspot extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $requestHeaders = $headers;
-        $requestBody = $body;
-        $isVersionedApi = (gettype($api) === 'array' && array_keys($api) === array_keys(array_keys($api)));
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $requestHeaders = null;
+        $requestBody = null;
+        $apiLength = count($api);
+        $isVersionedApi = $apiLength > 1;
         $version = $isVersionedApi ? $api[0] : null;
-        $accessType = $isVersionedApi ? $api[1] : $api;
+        $accessType = $isVersionedApi ? $api[1] : $api[0];
         $endpoint = '/' . $this->implode_params($path, $params);
         $fullPath = $endpoint;
         if ($version !== null) {

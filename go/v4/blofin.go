@@ -2740,7 +2740,8 @@ func (this *Blofin) NetworkCodeToChainId(networkCode any, optionalArgs ...any) a
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var aliases map[string]any = SafeMapTyped(this.Options, "networkCodeAliases")
-	var unifiedCode *string = this.SafeString(aliases, networkCode, networkCode)
+	var aliasedCode *string = this.SafeString(aliases, networkCode, networkCode)
+	var unifiedCode *string = this.SafeString(this.NetworkAliases, aliasedCode, aliasedCode)
 	// prefer the exact chain id from the currencies registry when it is
 	// loaded, since some ids are currency-specific (USDT on Optimism)
 	if currency != nil {
@@ -3259,8 +3260,8 @@ func (this *Blofin) fetchWithdrawalBody(ch chan AsyncResult[map[string]any], id 
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw, the withdrawal fee is not included and must be reserved on top
  * @param {string} address the address to withdraw to, or a UID / email / phone number for an internal transfer
- * @param {string} tag additional identifier (memo / payment id) required by certain networks
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @param {string} [params.network] the unified network code for on-chain withdrawals, mapped to the exchange's chain name
  * @param {string} [params.dest] 'onchain' (default) or 'internal' for an internal transfer
  * @param {string} [params.addrType] address type, 1: wallet address, 2: UID, 3: email, 4: mobile phone
@@ -3286,14 +3287,12 @@ func (this *Blofin) withdrawBody(ch chan EndpointResult[map[string]any], code st
 	//   with 152002 "Invalid parameter" - see options["networks"]
 	// - 152002 responses omit the offending field name even though the
 	//   error table documents the message as "Parameter {} error"
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagValue *string = nil
+	var tagValue any = nil
 	var query any = nil
-	var tagValuequeryVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	tagValue = SafeStringPtr(tagValuequeryVariable[0])
+	var tagValuequeryVariable []any = this.HandleParamString(params, "tag")
+	tagValue = GetValue(tagValuequeryVariable, 0)
 	query = GetValue(tagValuequeryVariable, 1)
 
 	r := <-this.LoadMarketsAsync()
@@ -3310,7 +3309,7 @@ func (this *Blofin) withdrawBody(ch chan EndpointResult[map[string]any], code st
 	request["dest"] = dest
 	query = this.Omit(query, "dest")
 	if dest != nil && *dest == "onchain" {
-		this.CheckAddress(address)
+		this.CheckAddress(address, code, tagValue)
 		// the doc's Request Parameters table marks addrType "Required:
 		// No", but the live venue rejects on-chain withdrawals without
 		// it (152001 "Parameter addrType cannot be empty") - default to
@@ -3406,11 +3405,11 @@ func (this *Blofin) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...an
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes247419 []any = ListTyped(r1.Value)
-		if retRes247419 == nil {
+		var retRes247519 []any = ListTyped(r1.Value)
+		if retRes247519 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes247419}
+			ch <- AsyncResult[any]{Value: retRes247519}
 		}
 		return nil
 	}
@@ -4040,24 +4039,46 @@ func (this *Blofin) ParsePosition(position any, optionalArgs ...any) any {
 	var notionalString *string = this.SafeString(position, "notionalUsd")
 	if marketResolved["inverse"] == true {
 		notionalString = Precise.StringDiv(Precise.StringMul(contractsAbs, contractSizeString), markPriceString)
+	} else if notionalString == nil {
+		notionalString = Precise.StringMul(Precise.StringMul(contractsAbs, contractSizeString), markPriceString)
 	}
 	var notional *float64
 	if derefNum, isNum := this.ParseNumber(notionalString).(float64); isNum {
 		notional = &derefNum
 	}
 	var marginMode *string = this.SafeString(position, "marginMode")
-	var initialMarginString *string = nil
+	var initialMarginString any = nil
 	var entryPriceString *string = this.SafeString2(position, "averagePrice", "openAveragePrice")
 	var unrealizedPnlString *string = this.SafeString(position, "unrealizedPnl")
 	var leverageString *string = this.SafeString(position, "leverage")
 	var initialMarginPercentage any = nil
-	var collateralString *string = nil
+	var collateralString any = nil
+	var marginString any = nil
 	if marginMode != nil && *marginMode == "cross" {
-		initialMarginString = this.SafeString(position, "initialMargin")
-		collateralString = Precise.StringAdd(initialMarginString, unrealizedPnlString)
+		if derefPtr := this.SafeString(position, "initialMargin"); derefPtr != nil {
+			initialMarginString = *derefPtr
+		} else {
+			initialMarginString = nil
+		}
+		collateralString = func() any {
+			if unrealizedPnlString != nil {
+				return Precise.StringAdd(initialMarginString, unrealizedPnlString)
+			}
+			return initialMarginString
+		}()
 	} else if marginMode != nil && *marginMode == "isolated" {
 		initialMarginPercentage = Precise.StringDiv("1", leverageString)
-		collateralString = this.SafeString(position, "margin")
+		var isolatedMarginString any = this.OmitZero(this.SafeString2(position, "margin", "initialMargin"))
+		if isolatedMarginString != nil {
+			initialMarginString = isolatedMarginString
+			marginString = isolatedMarginString
+			collateralString = func() any {
+				if unrealizedPnlString != nil {
+					return Precise.StringAdd(isolatedMarginString, unrealizedPnlString)
+				}
+				return isolatedMarginString
+			}()
+		}
 	}
 	var maintenanceMarginString *string = this.SafeString(position, "maintenanceMargin")
 	var maintenanceMargin *float64
@@ -4067,16 +4088,51 @@ func (this *Blofin) ParsePosition(position any, optionalArgs ...any) any {
 	var maintenanceMarginPercentageString *string = Precise.StringDiv(maintenanceMarginString, notionalString)
 	if initialMarginPercentage == nil {
 		initialMarginPercentage = this.ParseNumber(Precise.StringDiv(initialMarginString, notionalString, 4))
-	} else if initialMarginString == nil {
+	} else if IsEqual(initialMarginString, nil) {
 		var initialMarginPercentageString *string = this.NumberToString(initialMarginPercentage)
 		initialMarginString = Precise.StringMul(initialMarginPercentageString, notionalString)
 	}
 	var rounder string = "0.00005" // round to closest 0.01%
-	var maintenanceMarginPercentage *float64
-	if derefNum, isNum := this.ParseNumber(Precise.StringDiv(Precise.StringAdd(maintenanceMarginPercentageString, rounder), "1", 4)).(float64); isNum {
-		maintenanceMarginPercentage = &derefNum
+	var maintenanceMarginPercentage *float64 = func() *float64 {
+		if maintenanceMarginPercentageString != nil {
+			if derefNum, isNum := this.ParseNumber(Precise.StringDiv(Precise.StringAdd(maintenanceMarginPercentageString, rounder), "1", 4)).(float64); isNum {
+				return &derefNum
+			}
+			return nil
+		}
+		return nil
+	}()
+	var liquidationPriceString any = this.OmitZero(this.SafeString(position, "liquidationPrice"))
+	if (liquidationPriceString == nil) && (marginMode != nil && *marginMode == "isolated") && (!IsEqual(initialMarginString, nil)) && (entryPriceString != nil) && (contractsAbs != nil) && Precise.StringGt(contractsAbs, "0") && (contractSizeString != nil) && (maintenanceMarginPercentage != nil) {
+		var takerFeeRate *string = this.SafeString(marketResolved, "taker", "0.0006")
+		var mmpWithFee *string = Precise.StringAdd(this.NumberToString(maintenanceMarginPercentage), takerFeeRate)
+		var totalSize *string = Precise.StringMul(contractsAbs, contractSizeString)
+		var marginPerUnit *string = Precise.StringDiv(initialMarginString, totalSize)
+		var num *string = func() *string {
+			if side != nil && *side == "long" {
+				return Precise.StringSub(entryPriceString, marginPerUnit)
+			}
+			return Precise.StringAdd(entryPriceString, marginPerUnit)
+		}()
+		var denom any = func() any {
+			if side != nil && *side == "long" {
+				return Precise.StringSub("1", mmpWithFee)
+			}
+			return Precise.StringAdd("1", mmpWithFee)
+		}()
+		if (denom != nil) && Precise.StringGt(denom, "0") {
+			liquidationPriceString = Precise.StringDiv(num, denom)
+		}
 	}
-	var liquidationPrice *float64 = this.SafeNumber(position, "liquidationPrice")
+	var liquidationPrice *float64 = func() *float64 {
+		if (liquidationPriceString != nil) && Precise.StringGt(liquidationPriceString, "0") {
+			if derefNum, isNum := this.ParseNumber(liquidationPriceString).(float64); isNum {
+				return &derefNum
+			}
+			return nil
+		}
+		return nil
+	}()
 	var percentageString *string = this.SafeString(position, "unrealizedPnlRatio")
 	var percentage *float64
 	if derefNum, isNum := this.ParseNumber(Precise.StringMul(percentageString, "100")).(float64); isNum {
@@ -4110,6 +4166,7 @@ func (this *Blofin) ParsePosition(position any, optionalArgs ...any) any {
 		"lastUpdateTimestamp":         nil,
 		"maintenanceMargin":           maintenanceMargin,
 		"maintenanceMarginPercentage": maintenanceMarginPercentage,
+		"positionMargin":              this.ParseNumber(marginString),
 		"collateral":                  this.ParseNumber(collateralString),
 		"initialMargin":               this.ParseNumber(initialMarginString),
 		"initialMarginPercentage":     this.ParseNumber(initialMarginPercentage),
@@ -4440,11 +4497,11 @@ func (this *Blofin) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes324719 []any = ListTyped(r1.Value)
-		if retRes324719 == nil {
+		var retRes326919 []any = ListTyped(r1.Value)
+		if retRes326919 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes324719}
+			ch <- AsyncResult[any]{Value: retRes326919}
 		}
 		return nil
 	}
@@ -4840,16 +4897,13 @@ func (this *Blofin) HandleErrors(httpCode any, reason any, url any, method any, 
 	return nil
 }
 func (this *Blofin) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var request string = "/api/" + this.Version + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var apiUrl *string = this.SafeString(this.Urls["api"], "rest")
@@ -4858,11 +4912,11 @@ func (this *Blofin) Sign(path string, optionalArgs ...any) any {
 	}
 	var url string = *apiUrl + request
 	// const type = this.getPathAuthenticationType (path);
-	if api == "public" {
+	if apiName != nil && *apiName == "public" {
 		if !this.IsEmpty(query) {
 			url += "?" + this.Urlencode(query)
 		}
-	} else if api == "private" {
+	} else if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()
 		var timestamp string = strconv.FormatInt(this.Milliseconds(), 10)
 		var signedHeaders map[string]any = map[string]any{
@@ -4889,12 +4943,7 @@ func (this *Blofin) Sign(path string, optionalArgs ...any) any {
 		var auth *string = SafeStringPtr(Add(request+method+timestamp+timestamp, sign_body))
 		var signature string = this.StringToBase64(this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256))
 		signedHeaders["ACCESS-SIGN"] = signature
-		var bodyResolved any = func() any {
-			if signedBody == nil {
-				return body
-			}
-			return signedBody
-		}()
+		var bodyResolved any = signedBody
 		return map[string]any{
 			"url":     url,
 			"method":  method,
@@ -4905,8 +4954,8 @@ func (this *Blofin) Sign(path string, optionalArgs ...any) any {
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    nil,
+		"headers": nil,
 	}
 }
 
@@ -5506,8 +5555,8 @@ func (this *Blofin) FetchWithdrawal(id string, options ...FetchWithdrawalOptions
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw, the withdrawal fee is not included and must be reserved on top
  * @param {string} address the address to withdraw to, or a UID / email / phone number for an internal transfer
- * @param {string} tag additional identifier (memo / payment id) required by certain networks
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @param {string} [params.network] the unified network code for on-chain withdrawals, mapped to the exchange's chain name
  * @param {string} [params.dest] 'onchain' (default) or 'internal' for an internal transfer
  * @param {string} [params.addrType] address type, 1: wallet address, 2: UID, 3: email, 4: mobile phone
@@ -5522,7 +5571,7 @@ func (this *Blofin) Withdraw(code string, amount float64, address string, option
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}

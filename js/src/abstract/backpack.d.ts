@@ -1,6 +1,6 @@
 import { List, Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
-interface Exchange {
+declare abstract class Exchange extends _Exchange {
     publicGetApiV1Assets(params?: {}): Promise<List>;
     publicGetApiV1Collateral(params?: {}): Promise<List>;
     publicGetApiV1BorrowLendMarkets(params?: {}): Promise<List>;
@@ -15,6 +15,9 @@ interface Exchange {
     publicGetApiV1PredictionTags(params?: {}): Promise<List>;
     publicGetApiV1MarketSessions(params?: {}): Promise<List>;
     publicGetApiV1MarketHolidays(params?: {}): Promise<List>;
+    publicGetApiV1StockSessions(params?: {}): Promise<List>;
+    publicGetApiV1StockHolidays(params?: {}): Promise<List>;
+    publicGetApiV1StockIndicativeQuote(params?: {}): Promise<Dict>;
     publicGetApiV1Securities(params?: {}): Promise<List>;
     publicGetApiV1Klines(params?: {}): Promise<List>;
     publicGetApiV1MarkPrices(params?: {}): Promise<List>;
@@ -64,7 +67,6 @@ interface Exchange {
     privatePostApiV1Orders(params?: {}): Promise<List>;
     privatePostApiV1Rfq(params?: {}): Promise<Dict>;
     privatePostApiV1RfqAccept(params?: {}): Promise<Dict>;
-    privatePostApiV1RfqRefresh(params?: {}): Promise<Dict>;
     privatePostApiV1RfqCancel(params?: {}): Promise<Dict>;
     privatePostApiV1RfqQuote(params?: {}): Promise<Dict>;
     privatePostApiV1Strategy(params?: {}): Promise<Dict>;
@@ -73,7 +75,5 @@ interface Exchange {
     privateDeleteApiV1Strategy(params?: {}): Promise<Dict>;
     privateDeleteApiV1Strategies(params?: {}): Promise<List>;
     privatePatchApiV1Account(params?: {}): Promise<Dict>;
-}
-declare abstract class Exchange extends _Exchange {
 }
 export default Exchange;

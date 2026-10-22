@@ -1313,7 +1313,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -1322,11 +1322,11 @@ class btcmarkets(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
         if self.markets is None:
             await self.load_markets()
         currency = self.currency(code)
@@ -1335,7 +1335,7 @@ class btcmarkets(Exchange, ImplicitAPI):
             'amount': self.currency_to_precision(code, amount),
         }
         if code != 'AUD':
-            self.check_address(address)
+            self.check_address(address, code, tagWithdrawTag)
             request['toAddress'] = address
         if tagWithdrawTag is not None:
             request['toAddress'] = address + '?dt=' + tagWithdrawTag
@@ -1361,12 +1361,13 @@ class btcmarkets(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
         requestHeaders = None
         requestBody = None
         request = '/' + self.version + '/' + self.implode_params(path, params)
         query = self.keysort(self.omit(params, self.extract_params(path)))
-        if api == 'private':
+        if apiName == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())
             secret = self.base64_to_binary(self.secret)
@@ -1386,15 +1387,15 @@ class btcmarkets(Exchange, ImplicitAPI):
                 'BM-AUTH-TIMESTAMP': nonce,
                 'BM-AUTH-SIGNATURE': signature,
             }
-        elif api == 'public':
+        elif apiName == 'public':
             if len(query) > 0:
                 request += '?' + self.urlencode(query)
-        apiUrl = self.safe_string(self.urls['api'], api)
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + request
-        headersResult = requestHeaders if (requestHeaders is not None) else headers
-        bodyResult = requestBody if (requestBody is not None) else body
+        headersResult = requestHeaders
+        bodyResult = requestBody
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

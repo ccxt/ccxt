@@ -221,7 +221,7 @@ export default class indodax extends Exchange {
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'networks': {
                     'XLM': 'Stellar Token',
-                    'BSC': 'bep20',
+                    'BEP20': 'bep20',
                     'TRC20': 'trc20',
                     'MATIC': 'polygon',
                     // 'BEP2': 'bep2',
@@ -1288,13 +1288,13 @@ export default class indodax extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
-        this.checkAddress (address);
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleParamString (params, 'tag');
+        this.checkAddress (address, code, tagWithdrawTag);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1521,15 +1521,16 @@ export default class indodax extends Exchange {
         return result as DepositAddress[];
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        const apiUrl = this.safeString (this.urls['api'], api);
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
+        const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
         let url = apiUrl;
         let privateBody: Str = undefined;
         let privateHeaders: NullableDict = undefined;
-        const isPublic = (api === 'public');
+        const isPublic = (apiName === 'public');
         if (isPublic) {
             const query = this.omit (params, this.extractParams (path));
             const requestPath = '/' + this.implodeParams (path, params);
@@ -1552,11 +1553,11 @@ export default class indodax extends Exchange {
         }
         let requestBody: Str = privateBody;
         if (isPublic) {
-            requestBody = body;
+            requestBody = undefined;
         }
         let requestHeaders: NullableDict = privateHeaders;
         if (isPublic) {
-            requestHeaders = headers;
+            requestHeaders = undefined;
         }
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }

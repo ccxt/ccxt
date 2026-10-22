@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.85'
+__version__ = '4.5.89'
 
 # ----------------------------------------------------------------------------
 
@@ -126,7 +126,6 @@ from ccxt.coinbase import coinbase                                    # noqa: F4
 from ccxt.coinbaseexchange import coinbaseexchange                    # noqa: F401
 from ccxt.coinbaseinternational import coinbaseinternational          # noqa: F401
 from ccxt.coincheck import coincheck                                  # noqa: F401
-from ccxt.coinex import coinex                                        # noqa: F401
 from ccxt.coinmate import coinmate                                    # noqa: F401
 from ccxt.coinone import coinone                                      # noqa: F401
 from ccxt.coinsph import coinsph                                      # noqa: F401
@@ -178,6 +177,7 @@ from ccxt.paradex import paradex                                      # noqa: F4
 from ccxt.paymium import paymium                                      # noqa: F401
 from ccxt.phemex import phemex                                        # noqa: F401
 from ccxt.poloniex import poloniex                                    # noqa: F401
+from ccxt.polymarket import polymarket                                # noqa: F401
 from ccxt.revolutx import revolutx                                    # noqa: F401
 from ccxt.tokocrypto import tokocrypto                                # noqa: F401
 from ccxt.toobit import toobit                                        # noqa: F401
@@ -232,7 +232,6 @@ exchanges = [
     'coinbaseexchange',
     'coinbaseinternational',
     'coincheck',
-    'coinex',
     'coinmate',
     'coinone',
     'coinsph',
@@ -284,6 +283,7 @@ exchanges = [
     'paymium',
     'phemex',
     'poloniex',
+    'polymarket',
     'revolutx',
     'tokocrypto',
     'toobit',

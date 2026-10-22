@@ -67,14 +67,6 @@ public partial class blofin : ccxt.blofin
         return "ping";
     }
 
-    public virtual void handlePong(WebSocketClient client, Dictionary<string, object> message)
-    {
-        //
-        //   'pong'
-        //
-        client.lastPong = this.milliseconds();
-    }
-
     /**
      * @method
      * @name blofin#watchTrades
@@ -923,7 +915,6 @@ public partial class blofin : ccxt.blofin
         // incoming data updates' examples can be seen under each handler method
         //
         Dictionary<string, object> methods = new Dictionary<string, object>() {
-            { "pong", this.handlePong },
             { "trades", this.handleTrades },
             { "books", this.handleOrderBook },
             { "tickers", this.handleTicker },
@@ -937,7 +928,8 @@ public partial class blofin : ccxt.blofin
         object method = null;
         if ((message is "pong"))
         {
-            method = this.safeValue(methods, "pong");
+            client.lastPong = this.milliseconds();
+            return;
         } else
         {
             string? eventVar = this.safeString(message, "event");

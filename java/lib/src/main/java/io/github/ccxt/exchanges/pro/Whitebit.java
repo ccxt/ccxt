@@ -12,6 +12,7 @@ import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Tickers;
 import io.github.ccxt.types.Trade;
@@ -879,7 +880,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, parameters, (String) null);
+            Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, parameters, (String) null);
             String type = typeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
             String messageHash = "wallet:";
@@ -896,10 +897,10 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Client client = this.client(url);
             this.setBalanceCache(client, type, messageHash);
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsMarketType), "watchBalance", "fetchBalanceSnapshot", true);
+            Pair<Boolean, Map<String, Object>> fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsMarketType), "watchBalance", "fetchBalanceSnapshot", true);
             Boolean fetchBalanceSnapshot = fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable.first();
             Map<String, Object> paramsFetchBalanceSnapshot = fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable.second();
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> awaitBalanceSnapshotparamsAwaitBalanceSnapshotVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsFetchBalanceSnapshot), "watchBalance", "awaitBalanceSnapshot", true);
+            Pair<Boolean, Map<String, Object>> awaitBalanceSnapshotparamsAwaitBalanceSnapshotVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsFetchBalanceSnapshot), "watchBalance", "awaitBalanceSnapshot", true);
             Boolean awaitBalanceSnapshot = awaitBalanceSnapshotparamsAwaitBalanceSnapshotVariable.first();
             Map<String, Object> paramsAwaitBalanceSnapshot = awaitBalanceSnapshotparamsAwaitBalanceSnapshotVariable.second();
             if (Boolean.TRUE.equals(fetchBalanceSnapshot) && Boolean.TRUE.equals(awaitBalanceSnapshot))
@@ -1201,7 +1202,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
             try
             {
-                Map<String, Object> authToken = (this.v4PrivatePostProfileWebsocketToken()).join();
+                Map<String, Object> authToken = (this.v4PrivatePostProfileWebsocketToken(new HashMap<String, Object>() {{}})).join();
                 //
                 //   {
                 //       "websocket_token": "$2y$10$lxCvTXig/XrcTBFY1bdFseCKQmFTDtCpEzHNVnXowGplExFxPJp9y"

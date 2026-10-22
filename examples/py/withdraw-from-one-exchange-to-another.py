@@ -35,7 +35,7 @@ print('-----------------------------------------------------------')
 print(deposit)
 print('-----------------------------------------------------------')
 
-withdrawal = kucoin.withdraw(code, amount, deposit['address'], deposit['tag'], params)
+withdrawal = kucoin.withdraw(code, amount, deposit['address'], {**params, 'tag': deposit['tag']})
 
 print('-----------------------------------------------------------')
 

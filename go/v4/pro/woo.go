@@ -102,7 +102,7 @@ func (this *Woo) watchPublicBody(ch chan ccxt.AsyncResult[any], messageHash any,
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var urlUid any = ""
-	if this.Uid != "" {
+	if (!ccxt.IsEqual(this.Uid, nil)) && (this.Uid != "") {
 		urlUid = ccxt.Add("/", this.Uid)
 	}
 	var url *string = ccxt.SafeStringPtr(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "public"), urlUid))
@@ -130,7 +130,7 @@ func (this *Woo) unwatchPublicBody(ch chan ccxt.AsyncResult[any], subHash any, s
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var urlUid any = ""
-	if this.Uid != "" {
+	if (!ccxt.IsEqual(this.Uid, nil)) && (this.Uid != "") {
 		urlUid = ccxt.Add("/", this.Uid)
 	}
 	var url *string = ccxt.SafeStringPtr(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "public"), urlUid))
@@ -203,7 +203,7 @@ func (this *Woo) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInter
 	var market map[string]any = this.Market(symbol)
 	var topic any = ccxt.Add(ccxt.Add(market["id"], "@"), method)
 	var urlUid any = ""
-	if this.Uid != "" {
+	if (!ccxt.IsEqual(this.Uid, nil)) && (this.Uid != "") {
 		urlUid = ccxt.Add("/", this.Uid)
 	}
 	var url *string = ccxt.SafeStringPtr(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "public"), urlUid))
@@ -368,10 +368,14 @@ func (this *Woo) HandleOrderBookSubscription(client any, message map[string]any,
 	if symbol == nil {
 		return
 	}
-	if ccxt.InOp(this.Orderbooks, symbol) {
-		ccxt.Remove(this.Orderbooks, symbol)
+	if !(ccxt.InOp(this.Orderbooks, symbol)) {
+		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
 	}
-	ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
+	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	// handleOrderBook queues deltas while timestamp is undefined, until the REST snapshot lands
+	ccxt.AddElementToObject(orderbook, "timestamp", nil)
+	ccxt.AddElementToObject(orderbook, "datetime", nil)
+	orderbook.(ccxt.OrderBookInterface).SetCache([]any{})
 	this.Spawn(this.FetchOrderBookSnapshotAsync, client, message, subscription)
 }
 func (this *Woo) FetchOrderBookSnapshotAsync(client any, message any, subscription any) <-chan ccxt.AsyncResult[any] {

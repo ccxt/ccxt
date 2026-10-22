@@ -13,6 +13,7 @@ import io.github.ccxt.types.FundingRate;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Position;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Tickers;
@@ -93,14 +94,6 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
     public Object ping(Client client)
     {
         return "ping";
-    }
-
-    public void handlePong(Client client, Object message)
-    {
-        //
-        //   'pong'
-        //
-        client.lastPong = ((Number)this.milliseconds()).longValue();
     }
 
     /**
@@ -250,7 +243,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             List<Object> callerMethodNameparamsCallerMethodNameVariable = (List<Object>) this.handleParamString(parameters, "callerMethodName", "watchOrderBookForSymbols");
             var callerMethodName = ((List<Object>) callerMethodNameparamsCallerMethodNameVariable).get(0);
             Map<String, Object> paramsCallerMethodName = (Map<String, Object>) ((List<Object>) callerMethodNameparamsCallerMethodNameVariable).get(1);
-            io.github.ccxt.base.Pair<String, Map<String, Object>> channelNameparamsChannelVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsCallerMethodName), (String) (callerMethodName), "channel", "books");
+            Pair<String, Map<String, Object>> channelNameparamsChannelVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsCallerMethodName), (String) (callerMethodName), "channel", "books");
             var channelName = ((List<Object>) channelNameparamsChannelVariable).get(0);
             Map<String, Object> paramsChannel = channelNameparamsChannelVariable.second();
             // due to some problem, temporarily disable other channels
@@ -433,7 +426,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             Object symbolsList = (List<String>)(symbolsNormalized);
             Map<String, Object> firstMarket = this.market((symbolsList == null || 0 >= ((List<?>)symbolsList).size() ? null : ((List<?>)symbolsList).get(0)));
             String channel = "tickers";
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBidsAsks", firstMarket, parameters, (String) null);
+            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBidsAsks", firstMarket, parameters, (String) null);
             String marketType = marketTypeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             String url = (String) Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)(this.urls.get("api"))).get("ws"), marketType), "public");
@@ -619,7 +612,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, parameters, (String) null);
+            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, parameters, (String) null);
             String marketType = marketTypeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             if (java.util.Objects.equals(marketType, "spot"))
@@ -856,7 +849,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchFundingRate", market, parameters, (String) null);
+            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchFundingRate", market, parameters, (String) null);
             String marketType = marketTypeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             String messageHash = ("fundingRate:" + market.get("symbol"));
@@ -920,7 +913,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             {
                 firstMarket = this.market(firstSymbol);
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams(callerMethodNameOption, firstMarket, paramsCallerMethodName, (String) null);
+            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams(callerMethodNameOption, firstMarket, paramsCallerMethodName, (String) null);
             String marketType = marketTypeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             if (!java.util.Objects.equals(marketType, "swap"))
@@ -1008,7 +1001,6 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         // incoming data updates' examples can be seen under each handler method
         //
         Map<String, Object> methods = new HashMap<String, Object>() {{
-            put( "pong", "handlePong");
             put( "trades", "handleTrades");
             put( "books", "handleOrderBook");
             put( "tickers", "handleTicker");
@@ -1022,7 +1014,8 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         Object method = null;
         if (java.util.Objects.equals(message, "pong"))
         {
-            method = this.safeValue(methods, "pong");
+            client.lastPong = ((Number)this.milliseconds()).longValue();
+            return;
         } else
         {
             String eventVar = this.safeString(message, "event");

@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinbase.js';
-import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num, Account, Currencies, Conversion, Dict, NullableDict, int, TradingFees, LedgerEntry, DepositAddress, Position, TransferEntry, DepositAddresses } from './base/types.js';
+import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num, Account, Currencies, Conversion, Dict, int, TradingFees, LedgerEntry, DepositAddress, Position, TransferEntry, DepositAddresses } from './base/types.js';
 /**
  * @class coinbase
  * @augments Exchange
@@ -203,7 +203,7 @@ export default class coinbase extends Exchange {
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/accounts/list-accounts
      * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/accounts
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/get-futures-balance-summary
+     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/futures/get-futures-balance-summary
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.v3] default false, set true to use v3 api endpoint
      * @param {string} [params.type] "spot" (default) or "swap" or "future"
@@ -456,13 +456,13 @@ export default class coinbase extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} [tag] an optional tag for the withdrawal
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} [params.network] the cryptocurrency network to use for the withdrawal using the lowercase name like bitcoin, ethereum, solana, etc.
      * @param {object} [params.travel_rule_data] some regions require travel rule information for crypto withdrawals, see the exchange docs for details https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/travel-rule
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
     /**
      * @method
      * @name coinbase#fetchDepositAddress
@@ -592,11 +592,9 @@ export default class coinbase extends Exchange {
      * @method
      * @name coinbase#fetchPositions
      * @description fetch all open positions
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/list-futures-positions
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/international-derivatives/list-perpetuals-positions
+     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/futures/list-futures-positions
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.portfolio] the portfolio UUID to fetch positions for
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     fetchPositions(symbols?: Strings, params?: Dict): Promise<Position[]>;
@@ -604,15 +602,20 @@ export default class coinbase extends Exchange {
      * @method
      * @name coinbase#fetchPosition
      * @description fetch data on a single open contract trade position
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/international-derivatives/get-perpetuals-position
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/get-futures-position
-     * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
+     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/futures/get-futures-position
+     * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.product_id] *futures only* the product id of the position to fetch, required for futures markets only
-     * @param {string} [params.portfolio] *perpetual/swaps only* the portfolio UUID to fetch the position for, required for perpetual/swaps markets only
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     fetchPosition(symbol: string, params?: Dict): Promise<Position>;
+    /**
+     * @ignore
+     * @method
+     * @description throws a NotSupported error pointing to coinbaseinternational when an INTX perpetuals portfolio is requested
+     * @param {string} methodName the name of the calling method
+     * @param {object} params the parameters passed to the calling method
+     */
+    checkIntxPortfolioParam(methodName: string, params: Dict): void;
     parsePosition(position: Dict, market?: Market): Position;
     /**
      * @method
@@ -637,7 +640,7 @@ export default class coinbase extends Exchange {
     parsePortfolioDetails(portfolioData: Dict): Dict[];
     createAuthToken(seconds: Int, method?: Str, url?: Str, useEddsa?: boolean): string;
     nonce(): number;
-    sign(path: string, api?: any, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     /**
      * @method

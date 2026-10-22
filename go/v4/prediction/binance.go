@@ -2612,27 +2612,16 @@ func (this *Binance) HandleErrors(code any, reason any, url any, method any, hea
  * @param {string|string[]} [api] the api group and access level
  * @param {string} [method] HTTP method
  * @param {object} [params] request parameters
- * @param {object} [headers] request headers
- * @param {object} [body] request body
  * @returns {object} a dictionary with url, method, body and headers
  */
 func (this *Binance) Sign(path string, optionalArgs ...any) any {
-	api := ccxt.GetArg(optionalArgs, 0, "sapi")
+	api := ccxt.GetArg(optionalArgs, 0, []any{"sapi"})
 	_ = api
 	var method string = ccxt.GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := ccxt.GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := ccxt.GetArg(optionalArgs, 4, nil)
-	_ = body
-	var apiGroup any = func() any {
-		if ccxt.IsString(api) {
-			return api
-		}
-		return ccxt.GetValue(api, 0)
-	}()
+	var apiGroup *string = ccxt.SafeStringPtr(ccxt.GetValue(api, 0))
 	var baseUrls any = this.Urls["api"]
 	var baseUrl *string = this.SafeString(baseUrls, apiGroup, ccxt.GetValue(baseUrls, "sapi"))
 	var url string = *baseUrl + "/" + this.ImplodeParams(path, params)
@@ -2653,11 +2642,11 @@ func (this *Binance) Sign(path string, optionalArgs ...any) any {
 	var headersValue map[string]any = map[string]any{
 		"X-MBX-APIKEY": this.ApiKey,
 	}
-	var bodyValue any = body
+	var bodyValue *string = nil
 	if (method == "GET") || (method == "DELETE") {
 		url = url + "?" + querystring
 	} else {
-		bodyValue = querystring
+		bodyValue = ccxt.SafeStringPtr(querystring)
 		headersValue["Content-Type"] = "application/x-www-form-urlencoded"
 	}
 	return map[string]any{
@@ -3236,7 +3225,7 @@ func (this *Binance) CreateDepositAddress(code string, options ...ccxt.CreateDep
  * @method
  * @name binance#createMarketBuyOrderWithCost
  * @description create a market buy order by providing the symbol and cost
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#new-order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3255,7 +3244,7 @@ func (this *Binance) CreateMarketBuyOrderWithCost(outcome string, cost float64, 
  * @method
  * @name binance#createMarketSellOrderWithCost
  * @description create a market sell order by providing the symbol and cost
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#new-order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3276,7 +3265,6 @@ func (this *Binance) CreateMarketSellOrderWithCost(outcome string, cost float64,
  * @description *contract only* create a list of trade orders
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Place-Multiple-Orders
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Place-Multiple-Orders
- * @see https://developers.binance.com/docs/derivatives/option/trade/Place-Multiple-Orders // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#place-multiple-orders
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3307,15 +3295,14 @@ func (this *Binance) FetchBorrowRate(code string, amount float64, options ...ccx
  * @method
  * @name binance#fetchClosedOrders
  * @description fetches information on multiple closed orders made by the user
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#all-orders-user_data
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#all-orders
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders
- * @see https://developers.binance.com/docs/derivatives/option/trade/Query-ccxt.Option-ccxt.Order-History // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#query-option-order-history
  * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-ccxt.Account-All-Orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
- * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
+ * @see https://developers.binance.com/en/docs/catalog/advanced-trading-derivatives-trading-portfolio-margin/api/rest-api/trade#query-um-algo-order-history
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
  * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#equity-order-history
  * @param {string} [symbol] unified market symbol of the market orders were made in
@@ -3467,19 +3454,16 @@ func (this *Binance) FetchMyLiquidations(options ...ccxt.FetchMyLiquidationsOpti
  * @method
  * @name binance#fetchOHLCV
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#klinecandlestick-data
- * @see https://developers.binance.com/docs/derivatives/option/market-data/Kline-Candlestick-Data // deprecated
- * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#kline-candlestick-data
- * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Kline-Candlestick-Data // deprecated
- * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/rest-api/market-data#kline-candlestick-data
- * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Index-Price-Kline-Candlestick-Data
- * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price-Kline-Candlestick-Data
- * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Premium-Index-Kline-Data
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Kline-Candlestick-Data // deprecated
- * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/market-data#kline-candlestick-data
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-Kline-Candlestick-Data
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Mark-Price-Kline-Candlestick-Data
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Premium-Index-Kline-Data
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#klines // spot
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#kline-candlestick-data // option
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/rest-api/market-data#kline-candlestick-data // swap
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Index-Price-Kline-Candlestick-Data // swap index
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price-Kline-Candlestick-Data // swap mark
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Premium-Index-Kline-Data // swap premium
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/market-data#kline-candlestick-data // future
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-Kline-Candlestick-Data // future index
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Mark-Price-Kline-Candlestick-Data // future mark
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Premium-Index-Kline-Data // future premium
  * @param {string} symbol unified symbol of the market to fetch ccxt.OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -3511,7 +3495,6 @@ func (this *Binance) FetchOHLCV(outcome string, params map[string]any, options .
  * @description retrieves the open interest of a contract trading pair
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Open-Interest
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Open-Interest
- * @see https://developers.binance.com/docs/derivatives/option/market-data/Open-Interest // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#open-interest
  * @param {string} symbol unified CCXT market symbol
  * @param {object} [params] exchange specific parameters
@@ -3545,7 +3528,7 @@ func (this *Binance) FetchOrderBooks(options ...ccxt.FetchOrderBooksOptions) (cc
  * @method
  * @name binance#fetchOrderTrades
  * @description fetch all the trades made from a single order
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/account-endpoints#account-trade-list-user_data
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#my-trades
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/ccxt.Account-ccxt.Trade-List
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/ccxt.Account-ccxt.Trade-List
  * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-ccxt.Account-ccxt.Trade-List
@@ -3594,22 +3577,20 @@ func (this *Binance) FetchTime(params ...any) (int64, error) {
  * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#compressedaggregate-trades-list    // publicGetAggTrades (spot)
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Compressed-Aggregate-Trades-List // fapiPublicGetAggTrades (swap)
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Compressed-Aggregate-Trades-List // dapiPublicGetAggTrades (future)
- * @see https://developers.binance.com/docs/derivatives/option/market-data/Recent-Trades-List                                       // eapiPublicGetTrades (option) // deprecated
  * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#recent-trades-list // eapiPublicGetTrades (option)
  * Other fetchTradesMethod
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#recent-trades-list                 // publicGetTrades (spot)
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#get-trades                     // publicGetTrades (spot)
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Recent-Trades-List               // fapiPublicGetTrades (swap)
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Recent-Trades-List               // dapiPublicGetTrades (future)
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#old-trade-lookup                   // publicGetHistoricalTrades (spot)
+ * @see https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#historical-trades              // publicGetHistoricalTrades (spot)
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Old-Trades-Lookup                // fapiPublicGetHistoricalTrades (swap)
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Old-Trades-Lookup                // dapiPublicGetHistoricalTrades (future)
- * @see https://developers.binance.com/docs/derivatives/option/market-data/Old-Trades-Lookup                                        // eapiPublicGetHistoricalTrades (option) // deprecated
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] only used when fetchTradesMethod is 'publicGetAggTrades', 'fapiPublicGetAggTrades', or 'dapiPublicGetAggTrades'
  * @param {int} [limit] default 500, max 1000
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] only used when fetchTradesMethod is 'publicGetAggTrades', 'fapiPublicGetAggTrades', or 'dapiPublicGetAggTrades'
- * @param {int} [params.fetchTradesMethod] 'publicGetAggTrades' (spot default), 'fapiPublicGetAggTrades' (swap default), 'dapiPublicGetAggTrades' (future default), 'eapiPublicGetTrades' (option default), 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', 'publicGetHistoricalTrades', 'fapiPublicGetHistoricalTrades', 'dapiPublicGetHistoricalTrades', 'eapiPublicGetHistoricalTrades'
+ * @param {int} [params.fetchTradesMethod] 'publicGetAggTrades' (spot default), 'fapiPublicGetAggTrades' (swap default), 'dapiPublicGetAggTrades' (future default), 'eapiPublicGetTrades' (option default), 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', 'publicGetHistoricalTrades', 'fapiPublicGetHistoricalTrades', 'dapiPublicGetHistoricalTrades'
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  *
  * EXCHANGE SPECIFIC PARAMETERS

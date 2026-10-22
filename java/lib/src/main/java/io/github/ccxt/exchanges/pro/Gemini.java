@@ -491,20 +491,36 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) market.get("symbol");
         String messageHash = ("orderbook:" + symbol);
-        // let orderbook = this.safeValue (this.orderbooks, symbol);
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
-        } else if (Boolean.TRUE.equals(isInitial))
-        {
-            // handle https://github.com/ccxt/ccxt/issues/29210
-            if (((Map<?, ?>)this.orderbooks).containsKey(symbol))
-            {
-                ((Map<String,Object>)this.orderbooks).remove(symbol);
-            }
-            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
+        if (Boolean.TRUE.equals(isInitial))
+        {
+            // the initial message carries the full book (https://github.com/ccxt/ccxt/issues/29210)
+            List<Object> bidsSnapshot = new ArrayList<Object>(Arrays.asList());
+            List<Object> asksSnapshot = new ArrayList<Object>(Arrays.asList());
+            for (var i = 0; i < ((List<?>)changes).size(); i++)
+            {
+                Object delta = (changes == null || i < 0 || i >= changes.size() ? null : changes.get(i));
+                List<Object> bidAsk = new ArrayList<Object>(Arrays.asList(this.safeNumber(delta, 1, (Object) null), this.safeNumber(delta, 2, (Object) null)));
+                if (java.util.Objects.equals(this.safeString(delta, 0), "buy"))
+                {
+                    ((List<Object>)bidsSnapshot).add(bidAsk);
+                } else
+                {
+                    ((List<Object>)asksSnapshot).add(bidAsk);
+                }
+            }
+            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(new HashMap<String, Object>() {{
+                put( "bids", bidsSnapshot );
+                put( "asks", asksSnapshot );
+            }}, symbol, (Long) null, "bids", "asks", 0, 1, 2);
+            orderbook.reset(snapshot);
+            client.resolve(orderbook, messageHash);
+            return;
+        }
         for (var i = 0; i < ((List<?>)changes).size(); i++)
         {
             Object delta = (changes == null || i < 0 || i >= changes.size() ? null : changes.get(i));

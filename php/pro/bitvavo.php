@@ -965,10 +965,16 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function handle_order_book_subscription(Client $client, array $message, array $subscription) {
         $symbol = $this->safe_string($subscription, 'symbol');
         $limit = $this->safe_integer($subscription, 'limit');
-        if (is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) {
-            unset($this->orderbooks[$symbol]);
+        $limits = $this->safe_dict($this->options, 'orderBookLimits', array());
+        $storedLimit = $this->safe_integer($limits, $symbol);
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) || ($storedLimit !== $limit)) {
+            $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
+            $limits[$symbol] = $limit;
+            $this->options['orderBookLimits'] = $limits;
         }
-        $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
+        $orderbook = $this->orderbooks[$symbol];
+        $orderbook['nonce'] = null;
+        $orderbook->cache = array();
     }
 
     public function handle_order_book_subscriptions(Client $client, array $message, array $marketIds) {
@@ -1441,22 +1447,22 @@ class bitvavo extends \ccxt\async\bitvavo {
         $client->resolve($trades, $messageHash);
     }
 
-    public function withdraw_ws(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw_ws(...))($code, $amount, $address, $tag, $params);
+    public function withdraw_ws(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw_ws(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw_ws(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw_ws(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a withdrawal
          * @param {string} $code unified currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->check_address($address);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
+        $this->check_address($address, $code, $tagWithdrawTag);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }

@@ -106,7 +106,7 @@ class lighter extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
-                'fetchTrades' => false,
+                'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
                 'fetchTransfer' => false,
@@ -961,6 +961,16 @@ class lighter extends Exchange {
         list($groupingType, $paramsGroupingType) = $this->handle_option_integer_and_params($params, $method, 'groupingType', 3); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
         $orderRequests = $this->create_order_request($symbol, $type, $side, $amount, $price, $paramsGroupingType);
         $totalOrderRequests = count($orderRequests);
+        if ($totalOrderRequests > 1) {
+            // the signer replaces a -1 expiry with now + 28 days reading the clock once per leg, and rejects
+            // a group whose legs differ ("OrderExpiry is invalid"), so resolve the default once for all legs
+            $groupOrderExpiry = $this->sum($this->milliseconds(), 2419200000); // 28 days
+            for ($i = 0; $i < $totalOrderRequests; $i++) {
+                if ($this->safe_integer($orderRequests[$i], 'order_expiry') === -1) {
+                    $orderRequests[$i]['order_expiry'] = $groupOrderExpiry;
+                }
+            }
+        }
         $order = null;
         if ($totalOrderRequests > 0) {
             $order = $orderRequests[0];
@@ -1407,7 +1417,7 @@ class lighter extends Exchange {
             'limit' => 100,
         );
         if ($limit !== null) {
-            $request['limit'] = min($limit, 100);
+            $request['limit'] = min($limit, 250);
         }
         $response = $this->publicGetOrderBookOrders($this->extend($request, $params));
         //
@@ -2044,6 +2054,14 @@ class lighter extends Exchange {
                 $leverage = 100 / $imf;
             }
         }
+        $contractsString = $this->safe_string($position, 'position');
+        $positionValueString = $this->safe_string($position, 'position_value');
+        $markPriceString = Precise::string_div($positionValueString, $contractsString);
+        // allocated_margin is the isolated collateral balance (0 for cross)
+        $positionMargin = null;
+        if ($marginMode === 'isolated') {
+            $positionMargin = $this->safe_number($position, 'allocated_margin');
+        }
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
@@ -2053,13 +2071,14 @@ class lighter extends Exchange {
             'isolated' => ($marginMode === 'isolated'),
             'hedged' => null,
             'side' => $side,
-            'contracts' => $this->safe_number($position, 'position'),
+            'contracts' => $this->parse_number($contractsString),
             'contractSize' => null,
             'entryPrice' => $this->safe_number($position, 'avg_entry_price'),
-            'markPrice' => null,
-            'notional' => $this->safe_number($position, 'position_value'),
+            'markPrice' => $this->parse_number($markPriceString),
+            'notional' => $this->parse_number($positionValueString),
             'leverage' => $leverage,
-            'collateral' => $this->safe_number($position, 'allocated_margin'),
+            'positionMargin' => $positionMargin,
+            'collateral' => null,
             'initialMargin' => null,
             'maintenanceMargin' => null,
             'initialMarginPercentage' => null,
@@ -2853,14 +2872,14 @@ class lighter extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
+    public function withdraw(string $code, float $amount, string $address, $params = array()): array {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} [$tag]
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @param {string} [$params->accountIndex] account index
          * @param {string} [$params->apiKeyIndex] api key index
          * @param {int} [$params->routeType] wallet type, 0 => perp, 1 => spot, default is 0
@@ -2899,6 +2918,55 @@ class lighter extends Exchange {
         );
         $response = $this->publicPostSendTx($request);
         return $this->parse_transaction($response);
+    }
+
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
+        /**
+         * get the list of most recent $trades for a particular $symbol
+         *
+         * @see https://apidocs.lighter.xyz/reference/recenttrades
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch $trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of $trades to fetch, default 100, max 100
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
+         */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'market_id' => $market['id'],
+            'limit' => 100,
+        );
+        if ($limit !== null) {
+            $request['limit'] = min($limit, 100);
+        }
+        $response = $this->publicGetRecentTrades($this->extend($request, $params));
+        //
+        //     {
+        //         "code": 200,
+        //         "trades": [
+        //             {
+        //                 "trade_id": 35564491385,
+        //                 "type": "trade",
+        //                 "market_id": 0,
+        //                 "size": "0.0003",
+        //                 "price": "2385.57",
+        //                 "usd_amount": "0.715671",
+        //                 "ask_id": 281478054267183,
+        //                 "bid_id": 562946767299880,
+        //                 "ask_account_id": 723632,
+        //                 "bid_account_id": 317087,
+        //                 "is_maker_ask": false,
+        //                 "timestamp": 1792497687525
+        //             }
+        //         ]
+        //     }
+        //
+        $trades = $this->safe_list($response, 'trades', array());
+        return $this->parse_trades($trades, $market, $since, $limit);
     }
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -3033,6 +3101,10 @@ class lighter extends Exchange {
                 $side = 'buy';
                 $orderId = $this->safe_string($trade, 'bid_id');
             }
+        }
+        // public trades use Lighter's taker-side convention
+        if (($side === null) && ($isMakerAsk !== null)) {
+            $side = ($isMakerAsk === true) ? 'buy' : 'sell';
         }
         $takerOrMaker = null;
         if ($side !== null && $isMakerAsk !== null) {
@@ -3237,8 +3309,12 @@ class lighter extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        if (($timeout < 300000) || ($timeout > 1296000000)) {
-            throw new BadRequest($this->id . ' timeout should be between 5 minutes and 15 days.');
+        if ($timeout === null) {
+            throw new ArgumentsRequired($this->id . ' cancelAllOrdersAfter() requires a timeout argument');
+        }
+        $isScheduled = ($timeout !== 0);
+        if ($isScheduled && (($timeout < 300000) || ($timeout > 1296000000))) {
+            throw new BadRequest($this->id . ' timeout should be between 5 minutes and 15 days, or 0 to cancel the timer.');
         }
         list($apiKeyIndex, $paramsApiKeyIndex) = $this->handle_api_key_index($params, 'cancelOrder', 'apiKeyIndex', 'api_key_index');
         list($accountIndex, $paramsAccountIndex) = $this->handle_account_index($paramsApiKeyIndex, 'cancelAllOrdersAfter', 'accountIndex', 'account_index');
@@ -3246,9 +3322,15 @@ class lighter extends Exchange {
         $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
         $signer = $this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $paramsAccountIndex);
         $nonce = $this->fetch_nonce($accountIndex, $apiKeyIndex, $paramsAccountIndex);
+        $timeInForce = 2; // 0: IMMEDIATE 1: SCHEDULED 2: ABORT
+        $cancelTime = 0;
+        if ($isScheduled) {
+            $timeInForce = 1;
+            $cancelTime = $this->sum($this->milliseconds(), $timeout);
+        }
         $signRaw = array(
-            'time_in_force' => 1, // 0: IMMEDIATE 1: SCHEDULED 2: ABORT
-            'time' => $this->milliseconds() . $timeout, // if time_in_force is not IMMEDIATE, set the timestamp_ms here
+            'time_in_force' => $timeInForce,
+            'time' => $cancelTime,
             'nonce' => $nonce,
             'api_key_index' => $apiKeyIndex,
             'account_index' => $accountIndex,
@@ -3353,23 +3435,24 @@ class lighter extends Exchange {
         );
     }
 
-    public function sign(string $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()) {
+        $apiName = $api[0];
         $url = null;
-        if ($api === 'root') {
+        if ($apiName === 'root') {
             $baseApiUrl = $this->safe_string($this->urls['api'], 'public');
             if ($baseApiUrl === null) {
                 throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
             }
             $url = $this->implode_hostname($baseApiUrl);
         } else {
-            $baseApiUrl2 = $this->safe_string($this->urls['api'], $api);
+            $baseApiUrl2 = $this->safe_string($this->urls['api'], $apiName);
             if ($baseApiUrl2 === null) {
                 throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
             }
             $url = $this->implode_hostname($baseApiUrl2) . '/api/' . $this->version . '/' . $path;
         }
         $authHeaders = null;
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $authHeaders = array(
                 'Authorization' => $this->create_auth($params),
             );
@@ -3383,10 +3466,10 @@ class lighter extends Exchange {
             }
             $url .= '?' . $this->rawencode($params);
         }
-        if ($api === 'private') {
-            return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $authHeaders );
+        if ($apiName === 'private') {
+            return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => $authHeaders );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

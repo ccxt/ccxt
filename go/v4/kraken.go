@@ -367,10 +367,7 @@ func (this *Kraken) Describe() any {
 			"marketsByAltname":        map[string]any{},
 			"delistedMarketsById":     map[string]any{},
 			"inactiveCurrencies":      []any{"CAD", "USD", "JPY", "GBP"},
-			"networks": map[string]any{
-				"ETH": "ERC20",
-				"TRX": "TRC20",
-			},
+			"networks":                map[string]any{},
 			"depositMethods": map[string]any{
 				"1INCH":      "1inch" + " " + "(1INCH)",
 				"AAVE":       "Aave",
@@ -1513,11 +1510,11 @@ func (this *Kraken) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, opti
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes122319 []any = ListTyped(r1.Value)
-		if retRes122319 == nil {
+		var retRes122019 []any = ListTyped(r1.Value)
+		if retRes122019 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes122319}
+			ch <- AsyncResult[any]{Value: retRes122019}
 		}
 		return nil
 	}
@@ -2168,11 +2165,11 @@ func (this *Kraken) createMarketOrderWithCostBody(ch chan AsyncResult[map[string
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes169515 map[string]any = r1.Value
-	if retRes169515 == nil {
+	var retRes169215 map[string]any = r1.Value
+	if retRes169215 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes169515}
+		ch <- AsyncResult[map[string]any]{Value: retRes169215}
 	}
 	return nil
 }
@@ -2209,11 +2206,11 @@ func (this *Kraken) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any], s
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes171215 map[string]any = r1.Value
-	if retRes171215 == nil {
+	var retRes170915 map[string]any = r1.Value
+	if retRes170915 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes171215}
+		ch <- AsyncResult[any]{Value: retRes170915}
 	}
 	return nil
 }
@@ -4243,11 +4240,11 @@ func (this *Kraken) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes320619 []any = ListTyped(r1.Value)
-		if retRes320619 == nil {
+		var retRes320319 []any = ListTyped(r1.Value)
+		if retRes320319 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes320619}
+			ch <- AsyncResult[any]{Value: retRes320319}
 		}
 		return nil
 	}
@@ -4365,11 +4362,11 @@ func (this *Kraken) createDepositAddressBody(ch chan AsyncResult[any], code stri
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes329715 map[string]any = MapTyped(r.Value)
-	if retRes329715 == nil {
+	var retRes329415 map[string]any = MapTyped(r.Value)
+	if retRes329415 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes329715}
+		ch <- AsyncResult[any]{Value: retRes329415}
 	}
 	return nil
 }
@@ -4466,8 +4463,9 @@ func (this *Kraken) fetchDepositAddressBody(ch chan AsyncResult[any], code strin
 	}
 	var currency map[string]any = this.Currency(code)
 	var network *string = this.SafeStringUpper(params, "network")
-	var networks map[string]any = SafeMapTyped(this.Options, "networks")
-	network = this.SafeString(networks, network, network) // support ETH > ERC20 aliases
+	if network != nil {
+		network = this.SafeString(this.NetworkAliases, network, network)
+	}
 	var paramsOmitted map[string]any = this.OmitDict(params, "network")
 	var codeResolved string = code
 	if (code == "USDT") && (network != nil && *network == "TRC20") {
@@ -4567,8 +4565,8 @@ func (this *Kraken) ParseDepositAddress(depositAddress any, optionalArgs ...any)
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to, not required can be '' or undefined/none/null
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Kraken) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
@@ -4579,12 +4577,21 @@ func (this *Kraken) WithdrawAsync(code string, amount any, address any, optional
 func (this *Kraken) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagAndParams any = this.HandleWithdrawTagAndParams(tag, params)
-	var paramsWithdrawTag any = GetValue(tagAndParams, 1)
+	var tagAndParams []any = this.HandleParamString(params, "tag")
+	var tagWithdrawTag *string = SafeStringPtr(func() any {
+		if 0 >= 0 && 0 < len(tagAndParams) {
+			return DerefScalar(tagAndParams[0])
+		}
+		return nil
+	}())
+	var paramsWithdrawTag any = func() any {
+		if 1 >= 0 && 1 < len(tagAndParams) {
+			return DerefScalar(tagAndParams[1])
+		}
+		return nil
+	}()
 	if InOp(paramsWithdrawTag, "key") {
 
 		r := <-this.LoadMarketsAsync()
@@ -4598,7 +4605,7 @@ func (this *Kraken) withdrawBody(ch chan EndpointResult[map[string]any], code st
 		}
 		if (!IsEqual(address, nil)) && (!IsEqual(address, "")) {
 			request["address"] = address
-			this.CheckAddress(address)
+			this.CheckAddress(address, code, tagWithdrawTag)
 		}
 
 		r1 := <-this.PrivatePostWithdraw(this.Extend(request, paramsWithdrawTag))
@@ -4800,11 +4807,11 @@ func (this *Kraken) transferOutBody(ch chan AsyncResult[any], code any, amount a
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes361815 map[string]any = r.Value
-	if retRes361815 == nil {
+	var retRes361715 map[string]any = r.Value
+	if retRes361715 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes361815}
+		ch <- AsyncResult[any]{Value: retRes361715}
 	}
 	return nil
 }
@@ -4903,23 +4910,20 @@ func (this *Kraken) ParseTransfer(transfer any, optionalArgs ...any) map[string]
 	}
 }
 func (this *Kraken) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
-	var url any = Add(Add(Add("/"+this.Version+"/", api), "/"), path)
-	if api == "public" {
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var url string = "/" + this.Version + "/" + *apiName + "/" + path
+	if apiName != nil && *apiName == "public" {
 		if len(ObjectKeys(params)) > 0 {
 			// rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
-			url = Add(url, "?"+this.UrlencodeNested(params))
+			url += "?" + this.UrlencodeNested(params)
 		}
-	} else if api == "private" {
+	} else if apiName != nil && *apiName == "private" {
 		var price *string = this.SafeString(params, "price")
 		var isTriggerPercent bool = false
 		if price != nil {
@@ -4962,11 +4966,11 @@ func (this *Kraken) Sign(path string, optionalArgs ...any) any {
 		} else {
 			headersSigned["Content-Type"] = "application/x-www-form-urlencoded"
 		}
-		var baseApiUrl *string = this.SafeString(this.Urls["api"], api)
+		var baseApiUrl *string = this.SafeString(this.Urls["api"], apiName)
 		if baseApiUrl == nil {
 			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 		}
-		var urlSigned *string = SafeStringPtr(Add(baseApiUrl, url))
+		var urlSigned string = *baseApiUrl + url
 		return map[string]any{
 			"url":     urlSigned,
 			"method":  method,
@@ -4976,15 +4980,15 @@ func (this *Kraken) Sign(path string, optionalArgs ...any) any {
 	} else {
 		url = "/" + path
 	}
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	return map[string]any{
-		"url":     Add(apiUrl, url),
+		"url":     *apiUrl + url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    nil,
+		"headers": nil,
 	}
 }
 func (this *Kraken) Nonce() any {
@@ -5889,8 +5893,8 @@ func (this *Kraken) FetchDepositAddress(code string, options ...FetchDepositAddr
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to, not required can be '' or undefined/none/null
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Kraken) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
@@ -5900,7 +5904,7 @@ func (this *Kraken) Withdraw(code string, amount float64, address string, option
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}

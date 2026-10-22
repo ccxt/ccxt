@@ -18,6 +18,8 @@ public partial class hyperliquid : ccxt.hyperliquid
                 { "createOrdersWs", true },
                 { "editOrderWs", true },
                 { "watchBalance", true },
+                { "watchMyLiquidations", true },
+                { "watchMyLiquidationsForSymbols", true },
                 { "watchMyTrades", true },
                 { "watchOHLCV", true },
                 { "watchOrderBook", true },
@@ -563,6 +565,82 @@ public partial class hyperliquid : ccxt.hyperliquid
 
     /**
      * @method
+     * @name hyperliquid#watchMyLiquidations
+     * @description watch the private liquidations of a trading pair
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+     * @param {string} symbol unified CCXT market symbol
+     * @param {int} [since] the earliest time in ms to fetch liquidations for
+     * @param {int} [limit] the maximum number of liquidation structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
+     */
+    public async override Task<List<ccxt.Liquidation>> WatchMyLiquidations(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return await this.WatchMyLiquidationsForSymbols(new List<object>() {symbol},ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#watchMyLiquidationsForSymbols
+     * @description watch the private liquidations of a list of trading pairs
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+     * @param {string[]} symbols list of unified market symbols
+     * @param {int} [since] the earliest time in ms to fetch liquidations for
+     * @param {int} [limit] the maximum number of liquidation structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
+     */
+    public async override Task<List<ccxt.Liquidation>> WatchMyLiquidationsForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        IList<object> userAddressparamsValueVariable = (IList<object>)this.handlePublicAddress("watchMyLiquidationsForSymbols", parameters);
+        var userAddress = userAddressparamsValueVariable[0];
+        IDictionary<string, object> paramsValue = ((IDictionary<string, object>)userAddressparamsValueVariable[1]);
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true);
+        List<object> messageHashes = new List<object>() {};
+        if (this.isEmpty(symbolsNormalized))
+        {
+            messageHashes.Add("myLiquidations");
+        } else
+        {
+            for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
+            {
+                messageHashes.Add(("myLiquidations::" + (symbolsNormalized[i])));
+            }
+        }
+        string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"));
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "method", "subscribe" },
+            { "subscription", new Dictionary<string, object>() {
+                { "type", "userFills" },
+                { "user", userAddress },
+            } },
+        };
+        Dictionary<string, object> message = this.extend(request, paramsValue);
+        if ((userAddress == null))
+        {
+            throw new ArgumentsRequired ((this.id + " watchMyLiquidationsForSymbols() requires a user address")) ;
+        }
+        // shares the userFills subscription with watchMyTrades
+        string subscribeHash = ("subscribe:userFills::" + ((string)userAddress).ToLower());
+        await this.waitForPendingUnsubscribe(url, "myTrades");
+        object newLiquidations = await this.watchMultiple(url, messageHashes, message, new List<object>() {subscribeHash});
+        if (this.newUpdates)
+        {
+            return ccxt.BaseExchange.ToLiquidationList(newLiquidations);
+        }
+        return ccxt.BaseExchange.ToLiquidationList(this.filterBySymbolsSinceLimit(this.myLiquidations, symbolsNormalized, since, limit, true));
+    }
+
+    /**
+     * @method
      * @name hyperliquid#unWatchMyTrades
      * @description unWatches information on multiple trades made by the user
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
@@ -715,6 +793,8 @@ public partial class hyperliquid : ccxt.hyperliquid
         //         }
         //     }
         //
+        // an empty snapshot still seeds the liquidations cache
+        this.handleMyLiquidations(client, message);
         IDictionary<string, object> entry = this.safeDict(message, "data", new Dictionary<string, object>() {});
         if ((this.myTrades == null))
         {
@@ -746,6 +826,61 @@ public partial class hyperliquid : ccxt.hyperliquid
         // non-symbol specific
         string messageHash = "myTrades";
         client.resolve(trades, messageHash);
+    }
+
+    public virtual void handleMyLiquidations(WebSocketClient client, object message)
+    {
+        //
+        // userFills message, see handleMyTrades, liquidation fills carry
+        //
+        //     "liquidation": {
+        //         "liquidatedUser": "0x5c902b2eb0e1d9eb9a232014824ae6247df0a480",
+        //         "markPx": "4.69112",
+        //         "method": "market"
+        //     }
+        //
+        IDictionary<string, object> entry = this.safeDict(message, "data", new Dictionary<string, object>() {});
+        // every subscription starts with a snapshot, a resubscribe replays it
+        bool? isSnapshot = this.safeBool(entry, "isSnapshot", false);
+        if ((isSnapshot == true) || (isEqual(this.myLiquidations, null)))
+        {
+            Int64? limit = this.safeInteger(this.options, "myLiquidationsLimit", 1000);
+            this.myLiquidations = new ArrayCache(limit);
+        }
+        string? user = this.safeStringLower(entry, "user");
+        List<object> fills = this.safeList(entry, "fills", new List<object>() {});
+        List<object> newLiquidations = new List<object>() {};
+        for (int i = 0; i < fills.Count; i++)
+        {
+            object fill = fills[i];
+            IDictionary<string, object> liquidation = this.safeDict(fill, "liquidation", new Dictionary<string, object>() {});
+            // liquidator fills carry the liquidated counterparty here
+            if ((this.safeStringLower(liquidation, "liquidatedUser") == user))
+            {
+                newLiquidations.Add(this.parseLiquidation(fill));
+            }
+        }
+        int newLiquidationsLength = (newLiquidations?.Count ?? 0);
+        if ((newLiquidationsLength == 0))
+        {
+            return;
+        }
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.myLiquidations);
+        Dictionary<string, object> symbols = new Dictionary<string, object>() {};
+        for (int i = 0; i < newLiquidationsLength; i++)
+        {
+            object liquidation = (newLiquidations != null && i < newLiquidations.Count ? newLiquidations[i] : null);
+            cache.append(liquidation);
+            symbols[(string)((string)getValue(liquidation, "symbol"))] = true;
+        }
+        List<object> keys = new List<object>(symbols.Keys);
+        for (int i = 0; i < keys.Count; i++)
+        {
+            string? symbol = ((string)keys[i]);
+            IList<object> symbolLiquidations = this.filterBySymbol(newLiquidations, symbol);
+            client.resolve(symbolLiquidations, ("myLiquidations::" + symbol));
+        }
+        client.resolve(newLiquidations, "myLiquidations");
     }
 
     /**
@@ -1889,6 +2024,9 @@ public partial class hyperliquid : ccxt.hyperliquid
         string subHash = "myTrades";
         string unSubHash = ("unsubscribe:" + subHash);
         this.cleanUnsubscription(client, subHash, unSubHash, true);
+        // userFills also feeds watchMyLiquidations
+        this.cleanUnsubscription(client, "myLiquidations", unSubHash, true);
+        this.myLiquidations = null;
         // the prefix sweep above can't see the per-user dedup key (prefix-disjoint by design);
         // clear it for the user echoed in the ack so a later watch re-subscribes
         string? user = this.safeStringLower(subscription, "user");

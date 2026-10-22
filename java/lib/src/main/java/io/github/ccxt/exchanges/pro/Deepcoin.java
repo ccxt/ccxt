@@ -11,6 +11,7 @@ import io.github.ccxt.Client;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Position;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Trade;
@@ -856,7 +857,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         String symbol = this.safeString(market, "symbol");
         String aggregation = null;
         Map<String, Object> paramsAggregation = null;
-        io.github.ccxt.base.Pair<String, Map<String, Object>> aggregationparamsAggregationVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), (String) (methodName), "aggregation", (String) null);
+        Pair<String, Map<String, Object>> aggregationparamsAggregationVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), (String) (methodName), "aggregation", (String) null);
         aggregation = aggregationparamsAggregationVariable.first();
         paramsAggregation = aggregationparamsAggregationVariable.second();
         if (java.util.Objects.equals(aggregation, null))

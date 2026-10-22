@@ -1853,9 +1853,9 @@ class delta extends Exchange {
         $side = null;
         if ($sizeString !== null) {
             if (Precise::string_gt($sizeString, '0')) {
-                $side = 'buy';
+                $side = 'long';
             } elseif (Precise::string_lt($sizeString, '0')) {
-                $side = 'sell';
+                $side = 'short';
             }
         }
         return $this->safe_position(array(
@@ -1863,7 +1863,7 @@ class delta extends Exchange {
             'id' => null,
             'symbol' => $symbol,
             'notional' => null,
-            'marginMode' => null,
+            'marginMode' => $this->safe_string($position, 'margin_mode'),
             'liquidationPrice' => $this->safe_number($position, 'liquidation_price'),
             'entryPrice' => $this->safe_number($position, 'entry_price'),
             'unrealizedPnl' => null, // todo - realized_pnl ?
@@ -1877,6 +1877,7 @@ class delta extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'maintenanceMargin' => null,
             'maintenanceMarginPercentage' => null,
+            'positionMargin' => $this->safe_number($position, 'margin'),
             'collateral' => null,
             'initialMargin' => null,
             'initialMarginPercentage' => null,
@@ -4165,9 +4166,10 @@ class delta extends Exchange {
         );
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = array(), ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         $requestPath = '/' . $this->version . '/' . $this->implode_params($path, $params);
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
@@ -4175,11 +4177,11 @@ class delta extends Exchange {
         $query = $this->omit($params, $this->extract_params($path));
         $requestBody = null;
         $requestHeaders = null;
-        if ($api === 'public') {
+        if ($apiName === 'public') {
             if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
-        } elseif ($api === 'private') {
+        } elseif ($apiName === 'private') {
             $this->check_required_credentials();
             $timestamp = (string) $this->seconds();
             $requestHeaders = array(
@@ -4201,8 +4203,8 @@ class delta extends Exchange {
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
             $requestHeaders['signature'] = $signature;
         }
-        $bodyResult = ($requestBody === null) ? $body : $requestBody;
-        $headersResult = ($requestHeaders === null) ? $headers : $requestHeaders;
+        $bodyResult = $requestBody;
+        $headersResult = $requestHeaders;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
     }
 

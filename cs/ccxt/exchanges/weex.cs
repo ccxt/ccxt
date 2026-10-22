@@ -649,9 +649,7 @@ public partial class weex : Exchange
                 } },
                 { "networks", new Dictionary<string, object>() {
                     { "BEP20", "BEP20(BSC)" },
-                    { "BSC", "BEP20(BSC)" },
                     { "ERC20", "ERC20" },
-                    { "ETH", "ERC20" },
                     { "POLYGON", "POLYGON(MATIC)" },
                     { "MATIC", "POLYGON(MATIC)" },
                     { "ARBITRUM", "ARBITRUM(ARB)" },
@@ -1497,7 +1495,7 @@ public partial class weex : Exchange
             { "ask", this.safeString(ticker, "askPrice") },
             { "askVolume", this.safeString(ticker, "askQty") },
             { "vwap", null },
-            { "open", this.safeString(ticker, "openPrice") },
+            { "open", null },
             { "close", this.safeString(ticker, "lastPrice") },
             { "last", this.safeString(ticker, "lastPrice") },
             { "previousClose", null },
@@ -4394,27 +4392,41 @@ public partial class weex : Exchange
         string? notional = this.safeString(position, "openValue");
         string? size = this.safeString(position, "size");
         string? entryPrice = Precise.stringDiv(notional, size);
+        string? unrealizePnl = this.safeString(position, "unrealizePnl");
+        string? isolatedMargin = ((string)this.omitZero(this.safeString2(position, "isolatedMargin", "marginSize")));
+        string? collateralString = null;
+        if ((marginMode == "isolated") && ((isolatedMargin != null)))
+        {
+            collateralString = ((unrealizePnl != null)) ? Precise.stringAdd(isolatedMargin, unrealizePnl) : isolatedMargin;
+        }
+        string? initialMarginString = ((string)this.omitZero(this.safeString2(position, "marginSize", "isolatedMargin")));
+        string? marginString = null;
+        if (marginMode == "isolated")
+        {
+            marginString = isolatedMargin;
+        }
         return this.safePosition(new Dictionary<string, object>() {
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "id", this.safeString2(position, "id", "positionId") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "contracts", this.parseNumber(size) },
-            { "contractSize", null },
+            { "contractSize", this.safeNumber(marketResolved, "contractSize") },
             { "side", this.safeStringLower(position, "side") },
             { "notional", this.parseNumber(notional) },
             { "leverage", this.safeNumber(position, "leverage") },
-            { "unrealizedPnl", this.safeNumber(position, "unrealizePnl") },
+            { "unrealizedPnl", this.parseNumber(unrealizePnl) },
             { "realizedPnl", null },
-            { "collateral", null },
+            { "positionMargin", this.parseNumber(marginString) },
+            { "collateral", this.parseNumber(collateralString) },
             { "entryPrice", this.parseNumber(entryPrice) },
             { "markPrice", null },
-            { "liquidationPrice", this.safeNumber(position, "liquidatePrice") },
+            { "liquidationPrice", this.parseNumber(this.omitZero(this.safeString(position, "liquidatePrice"))) },
             { "marginMode", marginMode },
             { "hedged", hedged },
             { "maintenanceMargin", null },
             { "maintenanceMarginPercentage", null },
-            { "initialMargin", this.safeNumber(position, "marginSize") },
+            { "initialMargin", this.parseNumber(initialMarginString) },
             { "initialMarginPercentage", null },
             { "marginRatio", null },
             { "lastUpdateTimestamp", this.safeInteger(position, "updatedTime") },
@@ -5001,11 +5013,12 @@ public partial class weex : Exchange
         this.options["sandboxMode"] = enable;
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        object apiName = getValue(api, 0);
         object endpoint = this.implodeParams(path, parameters);
         object query = this.omit(parameters, this.extractParams(path));
         bool isBatch = (path.IndexOf("batch", StringComparison.Ordinal) >= 0);
@@ -5016,9 +5029,9 @@ public partial class weex : Exchange
                 endpoint = add(endpoint, ("?" + this.urlencode(query)));
             }
         }
-        bool isPrivate = ((api is "private")) || ((api is "contractPrivate"));
+        bool isPrivate = ((apiName is "private")) || ((apiName is "contractPrivate"));
         bool hasJsonBody = isPrivate && (((method == "POST")) || isBatch);
-        object requestBody = body;
+        string? requestBody = null;
         if (hasJsonBody)
         {
             requestBody = this.json(query);
@@ -5055,7 +5068,7 @@ public partial class weex : Exchange
                 { "User-Agent", "ccxt" },
             };
         }
-        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((baseApiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -5082,6 +5095,10 @@ public partial class weex : Exchange
         if ((message != null))
         {
             string? errorCode = this.safeString(response, "code");
+            if (errorCode == "200" && (message.ToLower() == "success"))
+            {
+                return null;
+            }
             string feedback = ((this.id + " ") + (body));
             this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
             this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);

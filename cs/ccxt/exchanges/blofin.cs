@@ -2345,7 +2345,8 @@ public partial class blofin : Exchange
     public virtual string? networkCodeToChainId(string? networkCode, object currency = null)
     {
         IDictionary<string, object> aliases = this.safeDict(this.options, "networkCodeAliases", new Dictionary<string, object>() {});
-        string? unifiedCode = this.safeString(aliases, networkCode, networkCode);
+        string? aliasedCode = this.safeString(aliases, networkCode, networkCode);
+        string? unifiedCode = this.safeString(this.networkAliases, aliasedCode, aliasedCode);
         // prefer the exact chain id from the currencies registry when it is
         // loaded, since some ids are currency-specific (USDT on Optimism)
         if ((currency != null))
@@ -2781,8 +2782,8 @@ public partial class blofin : Exchange
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw, the withdrawal fee is not included and must be reserved on top
      * @param {string} address the address to withdraw to, or a UID / email / phone number for an internal transfer
-     * @param {string} tag additional identifier (memo / payment id) required by certain networks
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} [params.network] the unified network code for on-chain withdrawals, mapped to the exchange's chain name
      * @param {string} [params.dest] 'onchain' (default) or 'internal' for an internal transfer
      * @param {string} [params.addrType] address type, 1: wallet address, 2: UID, 3: email, 4: mobile phone
@@ -2790,7 +2791,7 @@ public partial class blofin : Exchange
      * @param {string} [params.clientId] a client-supplied id of up to 32 case-sensitive alphanumerics
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
     {
         // LIVE API vs DOCS quirks, verified against the venue 2026-09-14:
         // - addrType is documented optional but the live venue rejects
@@ -2803,10 +2804,10 @@ public partial class blofin : Exchange
         // - 152002 responses omit the offending field name even though the
         //   error table documents the message as "Parameter {} error"
         parameters ??= new Dictionary<string, object>();
-        object tagValue = null;
+        string? tagValue = null;
         object query = null;
-        IList<object> tagValuequeryVariable = (IList<object>)this.handleWithdrawTagAndParams(tag, parameters);
-        tagValue = tagValuequeryVariable[0];
+        IList<object> tagValuequeryVariable = (IList<object>)this.handleParamString(parameters, "tag");
+        tagValue = (string)tagValuequeryVariable[0];
         query = tagValuequeryVariable[1];
         await this.loadMarkets();
         Dictionary<string, object> currency = this.currency(code);
@@ -2820,7 +2821,7 @@ public partial class blofin : Exchange
         query = this.omit(query, "dest");
         if (dest == "onchain")
         {
-            this.checkAddress(address);
+            this.checkAddress(address, code, tagValue);
             // the doc's Request Parameters table marks addrType "Required:
             // No", but the live venue rejects on-chain withdrawals without
             // it (152001 "Parameter addrType cannot be empty") - default to
@@ -3448,6 +3449,9 @@ public partial class blofin : Exchange
         if ((((marketResolved != null && marketResolved.ContainsKey("inverse") ? marketResolved["inverse"] : null) as bool?) == true))
         {
             notionalString = Precise.stringDiv(Precise.stringMul(contractsAbs, contractSizeString), markPriceString);
+        } else if ((notionalString == null))
+        {
+            notionalString = Precise.stringMul(Precise.stringMul(contractsAbs, contractSizeString), markPriceString);
         }
         double? notional = this.parseNumber(notionalString);
         string? marginMode = this.safeString(position, "marginMode");
@@ -3457,14 +3461,21 @@ public partial class blofin : Exchange
         string? leverageString = this.safeString(position, "leverage");
         object initialMarginPercentage = null;
         string? collateralString = null;
+        string? marginString = null;
         if (marginMode == "cross")
         {
             initialMarginString = this.safeString(position, "initialMargin");
-            collateralString = Precise.stringAdd(initialMarginString, unrealizedPnlString);
+            collateralString = ((unrealizedPnlString != null)) ? Precise.stringAdd(initialMarginString, unrealizedPnlString) : initialMarginString;
         } else if (marginMode == "isolated")
         {
             initialMarginPercentage = Precise.stringDiv("1", leverageString);
-            collateralString = this.safeString(position, "margin");
+            string? isolatedMarginString = ((string)this.omitZero(this.safeString2(position, "margin", "initialMargin")));
+            if ((isolatedMarginString != null))
+            {
+                initialMarginString = isolatedMarginString;
+                marginString = isolatedMarginString;
+                collateralString = ((unrealizedPnlString != null)) ? Precise.stringAdd(isolatedMarginString, unrealizedPnlString) : isolatedMarginString;
+            }
         }
         string? maintenanceMarginString = this.safeString(position, "maintenanceMargin");
         double? maintenanceMargin = this.parseNumber(maintenanceMarginString);
@@ -3478,8 +3489,22 @@ public partial class blofin : Exchange
             initialMarginString = Precise.stringMul(initialMarginPercentageString, notionalString);
         }
         string rounder = "0.00005"; // round to closest 0.01%
-        double? maintenanceMarginPercentage = this.parseNumber(Precise.stringDiv(Precise.stringAdd(maintenanceMarginPercentageString, rounder), "1", 4));
-        double? liquidationPrice = this.safeNumber(position, "liquidationPrice");
+        double? maintenanceMarginPercentage = ((maintenanceMarginPercentageString != null)) ? this.parseNumber(Precise.stringDiv(Precise.stringAdd(maintenanceMarginPercentageString, rounder), "1", 4)) : null;
+        string? liquidationPriceString = ((string)this.omitZero(this.safeString(position, "liquidationPrice")));
+        if (((liquidationPriceString == null)) && (marginMode == "isolated") && ((initialMarginString != null)) && ((entryPriceString != null)) && ((contractsAbs != null)) && Precise.stringGt(contractsAbs, "0") && ((contractSizeString != null)) && ((maintenanceMarginPercentage != null)))
+        {
+            string? takerFeeRate = this.safeString(marketResolved, "taker", "0.0006");
+            string? mmpWithFee = Precise.stringAdd(this.numberToString(maintenanceMarginPercentage), takerFeeRate);
+            string? totalSize = Precise.stringMul(contractsAbs, contractSizeString);
+            string? marginPerUnit = Precise.stringDiv(initialMarginString, totalSize);
+            string? num = (side == "long") ? Precise.stringSub(entryPriceString, marginPerUnit) : Precise.stringAdd(entryPriceString, marginPerUnit);
+            string? denom = (side == "long") ? Precise.stringSub("1", mmpWithFee) : Precise.stringAdd("1", mmpWithFee);
+            if (((denom != null)) && Precise.stringGt(denom, "0"))
+            {
+                liquidationPriceString = Precise.stringDiv(num, denom);
+            }
+        }
+        double? liquidationPrice = (((liquidationPriceString != null)) && Precise.stringGt(liquidationPriceString, "0")) ? this.parseNumber(liquidationPriceString) : null;
         string? percentageString = this.safeString(position, "unrealizedPnlRatio");
         double? percentage = this.parseNumber(Precise.stringMul(percentageString, "100"));
         Int64? timestamp = this.safeInteger(position, "updateTime");
@@ -3507,6 +3532,7 @@ public partial class blofin : Exchange
             { "lastUpdateTimestamp", null },
             { "maintenanceMargin", maintenanceMargin },
             { "maintenanceMarginPercentage", maintenanceMarginPercentage },
+            { "positionMargin", this.parseNumber(marginString) },
             { "collateral", this.parseNumber(collateralString) },
             { "initialMargin", this.parseNumber(initialMarginString) },
             { "initialMarginPercentage", this.parseNumber(initialMarginPercentage) },
@@ -4065,11 +4091,12 @@ public partial class blofin : Exchange
         return null;
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        object apiName = getValue(api, 0);
         object request = ((("/api/" + this.version) + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         object apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest");
@@ -4079,13 +4106,13 @@ public partial class blofin : Exchange
         }
         object url = add(apiUrl, request);
         // const type = this.getPathAuthenticationType (path);
-        if ((api is "public"))
+        if ((apiName is "public"))
         {
             if (!this.isEmpty(query))
             {
                 url = add(url, ("?" + this.urlencode(query)));
             }
-        } else if ((api is "private"))
+        } else if ((apiName is "private"))
         {
             this.checkRequiredCredentials();
             string timestamp = this.milliseconds().ToString();
@@ -4117,7 +4144,7 @@ public partial class blofin : Exchange
             string? auth = ((string)add(add(add(add(request, method), timestamp), timestamp), sign_body));
             string signature = this.stringToBase64(this.hmac(this.encode(auth), this.encode(this.secret), sha256));
             signedHeaders["ACCESS-SIGN"] = signature;
-            object bodyResolved = ((signedBody == null)) ? body : signedBody;
+            string? bodyResolved = signedBody;
             return new Dictionary<string, object>() {
                 { "url", url },
                 { "method", method },
@@ -4128,8 +4155,8 @@ public partial class blofin : Exchange
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", null },
+            { "headers", null },
         };
     }
 }

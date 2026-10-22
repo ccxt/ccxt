@@ -1810,15 +1810,15 @@ class delta(Exchange, ImplicitAPI):
         side = None
         if sizeString is not None:
             if Precise.string_gt(sizeString, '0'):
-                side = 'buy'
+                side = 'long'
             elif Precise.string_lt(sizeString, '0'):
-                side = 'sell'
+                side = 'short'
         return self.safe_position({
             'info': position,
             'id': None,
             'symbol': symbol,
             'notional': None,
-            'marginMode': None,
+            'marginMode': self.safe_string(position, 'margin_mode'),
             'liquidationPrice': self.safe_number(position, 'liquidation_price'),
             'entryPrice': self.safe_number(position, 'entry_price'),
             'unrealizedPnl': None,  # todo - realized_pnl ?
@@ -1832,6 +1832,7 @@ class delta(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
             'maintenanceMargin': None,
             'maintenanceMarginPercentage': None,
+            'positionMargin': self.safe_number(position, 'margin'),
             'collateral': None,
             'initialMargin': None,
             'initialMarginPercentage': None,
@@ -4043,19 +4044,20 @@ class delta(Exchange, ImplicitAPI):
             'datetime': datetime,
         }
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = {}, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
         requestPath = '/' + self.version + '/' + self.implode_params(path, params)
-        apiUrl = self.safe_string(self.urls['api'], api)
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + requestPath
         query = self.omit(params, self.extract_params(path))
         requestBody = None
         requestHeaders = None
-        if api == 'public':
+        if apiName == 'public':
             if len(query) > 0:
                 url += '?' + self.urlencode(query)
-        elif api == 'private':
+        elif apiName == 'private':
             self.check_required_credentials()
             timestamp = str(self.seconds())
             requestHeaders = {
@@ -4074,8 +4076,8 @@ class delta(Exchange, ImplicitAPI):
                 requestHeaders['Content-Type'] = 'application/json'
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
             requestHeaders['signature'] = signature
-        bodyResult = body if (requestBody is None) else requestBody
-        headersResult = headers if (requestHeaders is None) else requestHeaders
+        bodyResult = requestBody
+        headersResult = requestHeaders
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

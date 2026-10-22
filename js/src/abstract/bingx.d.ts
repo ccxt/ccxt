@@ -1,6 +1,6 @@
 import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
-interface Exchange {
+declare abstract class Exchange extends _Exchange {
     fundV1PrivateGetAccountBalance(params?: {}): Promise<Dict>;
     spotV1PublicGetServerTime(params?: {}): Promise<Dict>;
     spotV1PublicGetCommonSymbols(params?: {}): Promise<Dict>;
@@ -187,8 +187,8 @@ interface Exchange {
     apiV3PrivateGetCapitalDepositHisrec(params?: {}): Promise<Dict>;
     apiV3PrivateGetCapitalWithdrawHistory(params?: {}): Promise<Dict>;
     apiV3PrivatePostPostAssetTransfer(params?: {}): Promise<Dict>;
+    apiAssetV1PrivateGetTransferSupportCoins(params?: {}): Promise<Dict>;
     apiAssetV1PrivatePostTransfer(params?: {}): Promise<Dict>;
-    apiAssetV1PublicGetTransferSupportCoins(params?: {}): Promise<Dict>;
     agentV1PrivateGetAccountInviteAccountList(params?: {}): Promise<Dict>;
     agentV1PrivateGetRewardCommissionDataList(params?: {}): Promise<Dict>;
     agentV1PrivateGetAccountInviteRelationCheck(params?: {}): Promise<Dict>;
@@ -202,7 +202,5 @@ interface Exchange {
     wealthV1PrivateGetProductDualCurrencyOrderRecords(params?: {}): Promise<Dict>;
     wealthV1PrivatePostProductDualCurrencyInvestAssetList(params?: {}): Promise<Dict>;
     wealthV1PrivatePostProductDualCurrencyOrder(params?: {}): Promise<Dict>;
-}
-declare abstract class Exchange extends _Exchange {
 }
 export default Exchange;

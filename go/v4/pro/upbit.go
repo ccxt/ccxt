@@ -431,7 +431,7 @@ func (this *Upbit) HandleOrderBook(client any, message map[string]any) {
 	var typeVar *string = this.SafeString(message, "stream_type")
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchOrderBook")
 	var limit *int64 = this.SafeInteger(options, "limit", 15)
-	if typeVar != nil && *typeVar == "SNAPSHOT" {
+	if (typeVar != nil && *typeVar == "SNAPSHOT") && !(ccxt.InOp(this.Orderbooks, symbol)) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
 	}
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
@@ -439,24 +439,28 @@ func (this *Upbit) HandleOrderBook(client any, message map[string]any) {
 	// the "REALTIME" deltas are not incremental
 	// therefore we reset the orderbook on each update
 	// and reinitialize it again with new bidasks
-	orderbook.(ccxt.OrderBookInterface).Reset(map[string]any{})
-	ccxt.AddElementToObject(orderbook, "symbol", symbol)
-	var bids any = ccxt.GetValue(orderbook, "bids")
-	var asks any = ccxt.GetValue(orderbook, "asks")
 	var data []any = ccxt.SafeListTyped(message, "orderbook_units")
+	var timestamp *int64 = this.SafeInteger(message, "timestamp")
+	var bidsSnapshot []any = []any{}
+	var asksSnapshot []any = []any{}
 	for i := 0; i < len(data); i++ {
 		var entry map[string]any = ccxt.SafeMapTyped(data, i)
-		var ask_price *float64 = this.SafeFloat(entry, "ask_price")
-		var ask_size *float64 = this.SafeFloat(entry, "ask_size")
-		var bid_price *float64 = this.SafeFloat(entry, "bid_price")
-		var bid_size *float64 = this.SafeFloat(entry, "bid_size")
-		asks.(ccxt.IOrderBookSide).Store(ask_price, ask_size)
-		bids.(ccxt.IOrderBookSide).Store(bid_price, bid_size)
+		var bidPrice *float64 = this.SafeNumber(entry, "bid_price")
+		var bidSize *float64 = this.SafeNumber(entry, "bid_size")
+		var askPrice *float64 = this.SafeNumber(entry, "ask_price")
+		var askSize *float64 = this.SafeNumber(entry, "ask_size")
+		if (bidPrice != nil) && (bidSize != nil) {
+			bidsSnapshot = append(bidsSnapshot, []any{bidPrice, bidSize})
+		}
+		if (askPrice != nil) && (askSize != nil) {
+			asksSnapshot = append(asksSnapshot, []any{askPrice, askSize})
+		}
 	}
-	var timestamp *int64 = this.SafeInteger(message, "timestamp")
-	var datetime *string = this.Iso8601(timestamp)
-	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
-	ccxt.AddElementToObject(orderbook, "datetime", datetime)
+	var snapshot map[string]any = this.ParseOrderBook(map[string]any{
+		"bids": bidsSnapshot,
+		"asks": asksSnapshot,
+	}, symbol, timestamp)
+	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	var messageHash string = "orderbook:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
@@ -511,14 +515,7 @@ func (this *Upbit) HandleOHLCV(client any, message map[string]any) {
 	var ohlcv any = ccxt.OHLCVToList(this.ParseOHLCV(message))
 	client.(ccxt.ClientInterface).Resolve(ohlcv, messageHash)
 }
-func (this *Upbit) AuthenticateAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
-	go this.authenticateBody(ch, optionalArgs...)
-	return ch
-}
-func (this *Upbit) authenticateBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
-	defer close(ch)
-	defer ccxt.ReturnPanicError(ch)
+func (this *Upbit) Authenticate(optionalArgs ...any) {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
@@ -538,11 +535,6 @@ func (this *Upbit) authenticateBody(ch chan ccxt.AsyncResult[any], optionalArgs 
 		})
 		this.Options.Store("ws", wsOptions)
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.Add(this.SafeString(this.Urls["api"], "ws"), "/private"))
-	var client ccxt.ClientInterface = this.Client(url)
-
-	ch <- ccxt.AsyncResult[any]{Value: client}
-	return nil
 }
 func (this *Upbit) WatchPrivateAsync(symbol any, channel string, messageHash string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
@@ -554,20 +546,16 @@ func (this *Upbit) watchPrivateBody(ch chan ccxt.AsyncResult[any], symbol any, c
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-
-	r := <-this.AuthenticateAsync()
-	if r.Err != nil {
-		panic(r.Err)
-	}
+	this.Authenticate()
 	var request map[string]any = map[string]any{
 		"type": channel,
 	}
 	var symbolResolved any = nil
 	if !ccxt.IsEqual(symbol, nil) {
 
-		r1 := <-this.LoadMarketsAsync()
-		if r1.Err != nil {
-			panic(r1.Err)
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
 		}
 		var market map[string]any = this.Market(symbol)
 		symbolResolved = market["symbol"]
@@ -617,11 +605,11 @@ func (this *Upbit) watchPrivateBody(ch chan ccxt.AsyncResult[any], symbol any, c
 		}())
 	}
 
-	r2 := <-this.Watch(url, messageHashResolved, message, messageHashResolved)
-	if r2.Err != nil {
-		panic(r2.Err)
+	r1 := <-this.Watch(url, messageHashResolved, message, messageHashResolved)
+	if r1.Err != nil {
+		panic(r1.Err)
 	}
-	ch <- ccxt.AsyncResult[any]{Value: r2.Value}
+	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
 
@@ -748,17 +736,26 @@ func (this *Upbit) ParseWsOrder(order any, optionalArgs ...any) any {
 	//     "ask_bid": "BID",
 	//     "order_type": "limit",
 	//     "state": "trade",
-	//     "price": 0.001453,
+	//     "trade_uuid": "68315169-fba4-4175-ade3-aff14a616657",
+	//     "price": 0.001453,                 // order price, or the fill price when state is trade
 	//     "avg_price": 0.00145372,
-	//     "volume": 30925891.29839369,
+	//     "volume": 30925891.29839369,       // order volume, or the fill volume when state is trade
 	//     "remaining_volume": 29968038.09235948,
 	//     "executed_volume": 30925891.29839369,
 	//     "trades_count": 1,
 	//     "reserved_fee": 44.23943970238218,
 	//     "remaining_fee": 21.77177967409916,
-	//     "paid_fee": 22.467660028283017,
+	//     "paid_fee": 22.467660028283017,    // cumulative
 	//     "locked": 43565.33112787242,
 	//     "executed_funds": 44935.32005656603,
+	//     "time_in_force": null,
+	//     "trade_fee": 22.467660028283017,   // fee of the fill, null unless state is trade
+	//     "is_maker": true,                  // null unless state is trade
+	//     "identifier": "test-1",
+	//     "smp_type": "cancel_maker",
+	//     "prevented_volume": 1.174291929,
+	//     "prevented_locked": 0.001706246173,
+	//     "trade_timestamp": 1710751590421,
 	//     "order_timestamp": 1710751590000,
 	//     "timestamp": 1710751597500,
 	//     "stream_type": "REALTIME"
@@ -770,11 +767,12 @@ func (this *Upbit) ParseWsOrder(order any, optionalArgs ...any) any {
 	var side *string = this.SafeStringLower(order, "ask_bid")
 	if side != nil && *side == "bid" {
 		side = ccxt.SafeStringPtr("buy")
-	} else {
+	} else if side != nil && *side == "ask" {
 		side = ccxt.SafeStringPtr("sell")
 	}
-	var timestamp *int64 = this.Parse8601(this.SafeString(order, "order_timestamp"))
-	var status *string = this.ParseWsOrderStatus(this.SafeString(order, "state"))
+	var timestamp *int64 = this.SafeInteger(order, "order_timestamp")
+	var rawStatus *string = this.SafeString(order, "state")
+	var status *string = this.ParseWsOrderStatus(rawStatus)
 	var marketId *string = this.SafeString(order, "code")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var fee map[string]any = nil
@@ -785,29 +783,45 @@ func (this *Upbit) ParseWsOrder(order any, optionalArgs ...any) any {
 			"cost":     feeCost,
 		}
 	}
+	// when state is trade the price and volume fields describe the fill, not the order:
+	// fall back to the average fill price and let the order volume derive from filled + remaining
+	var isTrade bool = (rawStatus != nil && *rawStatus == "trade")
+	var price *string = func() *string {
+		if isTrade {
+			return this.SafeString(order, "avg_price")
+		}
+		return this.SafeString(order, "price")
+	}()
+	var amount *string = func() *string {
+		if isTrade {
+			return nil
+		}
+		return this.SafeString(order, "volume")
+	}()
 	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
-		"info":               order,
-		"id":                 id,
-		"clientOrderId":      nil,
-		"timestamp":          timestamp,
-		"datetime":           this.Iso8601(timestamp),
-		"lastTradeTimestamp": this.SafeString(order, "trade_timestamp"),
-		"symbol":             marketResolved["symbol"],
-		"type":               this.SafeString(order, "order_type"),
-		"timeInForce":        this.SafeString(order, "time_in_force"),
-		"postOnly":           nil,
-		"side":               side,
-		"price":              this.SafeString(order, "price"),
-		"stopPrice":          nil,
-		"triggerPrice":       nil,
-		"cost":               this.SafeString(order, "executed_funds"),
-		"average":            this.SafeString(order, "avg_price"),
-		"amount":             this.SafeString(order, "volume"),
-		"filled":             this.SafeString(order, "executed_volume"),
-		"remaining":          this.SafeString(order, "remaining_volume"),
-		"status":             status,
-		"fee":                fee,
-		"trades":             nil,
+		"info":                order,
+		"id":                  id,
+		"clientOrderId":       this.SafeString(order, "identifier"),
+		"timestamp":           timestamp,
+		"datetime":            this.Iso8601(timestamp),
+		"lastTradeTimestamp":  this.SafeInteger(order, "trade_timestamp"),
+		"lastUpdateTimestamp": this.SafeInteger(order, "timestamp"),
+		"symbol":              marketResolved["symbol"],
+		"type":                this.SafeString(order, "order_type"),
+		"timeInForce":         this.SafeString(order, "time_in_force"),
+		"postOnly":            nil,
+		"side":                side,
+		"price":               price,
+		"stopPrice":           nil,
+		"triggerPrice":        nil,
+		"cost":                this.SafeString(order, "executed_funds"),
+		"average":             this.SafeString(order, "avg_price"),
+		"amount":              amount,
+		"filled":              this.SafeString(order, "executed_volume"),
+		"remaining":           this.SafeString(order, "remaining_volume"),
+		"status":              status,
+		"fee":                 fee,
+		"trades":              nil,
 	}))
 }
 func (this *Upbit) ParseWsTrade(trade any, optionalArgs ...any) any {
@@ -817,14 +831,31 @@ func (this *Upbit) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var side *string = this.SafeStringLower(trade, "ask_bid")
 	if side != nil && *side == "bid" {
 		side = ccxt.SafeStringPtr("buy")
-	} else {
+	} else if side != nil && *side == "ask" {
 		side = ccxt.SafeStringPtr("sell")
 	}
-	var timestamp *int64 = this.Parse8601(this.SafeString(trade, "trade_timestamp"))
+	var timestamp *int64 = this.SafeInteger(trade, "trade_timestamp")
 	var marketId *string = this.SafeString(trade, "code")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
+	// price and volume describe the fill when state is trade
+	var price *string = this.SafeString(trade, "price")
+	var amount *string = this.SafeString(trade, "volume")
+	var cost *string = nil
+	if (price != nil) && (amount != nil) {
+		cost = ccxt.Precise.StringMul(price, amount)
+	}
+	var takerOrMaker *string = nil
+	var isMaker *bool = this.SafeBool(trade, "is_maker")
+	if isMaker != nil {
+		takerOrMaker = ccxt.SafeStringPtr(func() string {
+			if isMaker != nil && *isMaker {
+				return "maker"
+			}
+			return "taker"
+		}())
+	}
 	var fee map[string]any = nil
-	var feeCost *string = this.SafeString(trade, "paid_fee")
+	var feeCost *string = this.SafeString(trade, "trade_fee")
 	if feeCost != nil {
 		fee = map[string]any{
 			"currency": marketResolved["quote"],
@@ -837,11 +868,11 @@ func (this *Upbit) ParseWsTrade(trade any, optionalArgs ...any) any {
 		"datetime":     this.Iso8601(timestamp),
 		"symbol":       marketResolved["symbol"],
 		"side":         side,
-		"price":        this.SafeString(trade, "price"),
-		"amount":       this.SafeString(trade, "volume"),
-		"cost":         this.SafeString(trade, "executed_funds"),
+		"price":        price,
+		"amount":       amount,
+		"cost":         cost,
 		"order":        this.SafeString(trade, "uuid"),
-		"takerOrMaker": nil,
+		"takerOrMaker": takerOrMaker,
 		"type":         this.SafeString(trade, "order_type"),
 		"fee":          fee,
 		"info":         trade,
@@ -857,11 +888,11 @@ func (this *Upbit) HandleMyOrder(client any, message map[string]any) {
 }
 func (this *Upbit) HandleMyTrade(client any, message map[string]any) {
 	// see: parseWsOrder
-	var myTrades any = this.MyTrades
-	if ccxt.IsEqual(myTrades, nil) {
+	if this.MyTrades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
-		myTrades = ccxt.NewArrayCacheBySymbolById(limit)
+		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
+	var myTrades any = this.MyTrades
 	var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(message))
 	myTrades.(ccxt.Appender).Append(trade)
 	var messageHash any = "myTrades"
@@ -891,17 +922,40 @@ func (this *Upbit) HandleOrder(client any, message map[string]any) {
 		return this.SafeDict(orders, orderId)
 	}()
 	if order != nil {
-		var fee any = this.SafeValue(order, "fee")
-		if !ccxt.IsEqual(fee, nil) {
-			parsed["fee"] = fee
-		}
-		var fees any = this.SafeList(order, "fees")
-		if fees != nil {
-			ccxt.AddElementToObject(parsed, "fees", fees)
+		// paid_fee is cumulative, so the cached fee is only a fallback
+		var parsedFee any = this.SafeDict(parsed, "fee")
+		if parsedFee == nil {
+			var fee any = this.SafeValue(order, "fee")
+			if !ccxt.IsEqual(fee, nil) {
+				parsed["fee"] = fee
+			}
+			var fees any = this.SafeList(order, "fees")
+			if fees != nil {
+				ccxt.AddElementToObject(parsed, "fees", fees)
+			}
 		}
 		parsed["trades"] = this.SafeValue(order, "trades")
-		parsed["timestamp"] = this.SafeInteger(order, "timestamp")
-		parsed["datetime"] = this.SafeString(order, "datetime")
+		var lastTradeTimestamp *int64 = this.SafeInteger(parsed, "lastTradeTimestamp")
+		if lastTradeTimestamp == nil {
+			parsed["lastTradeTimestamp"] = this.SafeInteger(order, "lastTradeTimestamp")
+		}
+		var timestamp *int64 = this.SafeInteger(parsed, "timestamp")
+		if timestamp == nil {
+			parsed["timestamp"] = this.SafeInteger(order, "timestamp")
+			parsed["datetime"] = this.SafeString(order, "datetime")
+		}
+		// fill updates carry the fill price and volume instead of the order's
+		var rawStatus *string = this.SafeString(message, "state")
+		if rawStatus != nil && *rawStatus == "trade" {
+			var cachedPrice *float64 = this.SafeNumber(order, "price")
+			if cachedPrice != nil {
+				parsed["price"] = cachedPrice
+			}
+			var cachedAmount *float64 = this.SafeNumber(order, "amount")
+			if cachedAmount != nil {
+				parsed["amount"] = cachedAmount
+			}
+		}
 	}
 	cachedOrders.(ccxt.Appender).Append(parsed)
 	var messageHash any = "myOrder"

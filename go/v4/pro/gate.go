@@ -113,6 +113,13 @@ func (this *Gate) DescribeData() any {
 			},
 		},
 		"options": map[string]any{
+			"ws": map[string]any{
+				"options": map[string]any{
+					"headers": map[string]any{
+						"X-Gate-Size-Decimal": "1",
+					},
+				},
+			},
 			"tradesLimit":                 1000,
 			"OHLCVLimit":                  1000,
 			"watchTradesSubscriptions":    map[string]any{},
@@ -563,11 +570,11 @@ func (this *Gate) fetchOpenOrdersWsBody(ch chan ccxt.AsyncResult[any], optionalA
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes36515 []any = r.Value
-	if retRes36515 == nil {
+	var retRes37215 []any = r.Value
+	if retRes37215 == nil {
 		ch <- ccxt.AsyncResult[any]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[any]{Value: retRes36515}
+		ch <- ccxt.AsyncResult[any]{Value: retRes37215}
 	}
 	return nil
 }
@@ -604,11 +611,11 @@ func (this *Gate) fetchClosedOrdersWsBody(ch chan ccxt.EndpointResult[[]any], op
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes38015 []any = r.Value
-	if retRes38015 == nil {
+	var retRes38715 []any = r.Value
+	if retRes38715 == nil {
 		ch <- ccxt.EndpointResult[[]any]{}
 	} else {
-		ch <- ccxt.EndpointResult[[]any]{Value: retRes38015, Raw: retRes38015}
+		ch <- ccxt.EndpointResult[[]any]{Value: retRes38715, Raw: retRes38715}
 	}
 	return nil
 }
@@ -867,7 +874,12 @@ func (this *Gate) HandleOrderBookSubscription(client any, message map[string]any
 	var symbol *string = this.SafeString(subscription, "symbol")
 	var limit *int64 = this.SafeInteger(subscription, "limit")
 	if symbol != nil {
-		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
+		if !(ccxt.InOp(this.Orderbooks, symbol)) {
+			ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
+		}
+		var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+		ccxt.AddElementToObject(orderbook, "nonce", nil)
+		orderbook.(ccxt.OrderBookInterface).SetCache([]any{})
 	}
 }
 func (this *Gate) HandleNewSpotOrderBook(client any, message any) {
@@ -1022,7 +1034,8 @@ func (this *Gate) HandleOrderBook(client any, message any) {
 		this.HandleBookDelta(storedOrderBook, delta)
 	} else {
 		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
-		ccxt.Remove(this.Orderbooks, symbol)
+		ccxt.AddElementToObject(storedOrderBook, "nonce", nil)
+		storedOrderBook.(ccxt.OrderBookInterface).SetCache([]any{})
 		var checksum any = this.HandleOption("watchOrderBook", "checksum", true)
 		if checksum == true {
 			error := ccxt.ChecksumError(ccxt.Add(this.Id+" ", this.OrderbookChecksumMessage(symbol)))
@@ -1160,9 +1173,9 @@ func (this *Gate) watchTickersBody(ch chan ccxt.AsyncResult[map[string]any], opt
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	retRes79415 := r.Value
+	retRes80715 := r.Value
 	var resolved map[string]any
-	switch resolvedBox := retRes79415.(type) {
+	switch resolvedBox := retRes80715.(type) {
 	case map[string]any:
 		resolved = resolvedBox
 	case *sync.Map:
@@ -1226,9 +1239,9 @@ func (this *Gate) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]any], op
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	retRes83115 := r.Value
+	retRes84415 := r.Value
 	var resolved map[string]any
-	switch resolvedBox := retRes83115.(type) {
+	switch resolvedBox := retRes84415.(type) {
 	case map[string]any:
 		resolved = resolvedBox
 	case *sync.Map:
@@ -2482,9 +2495,9 @@ func (this *Gate) HandleOrder(client any, message map[string]any) {
 		} else if event != nil && *event == "finish" {
 			var status *string = this.SafeString(parsed, "status")
 			if status == nil {
-				var left *int64 = this.SafeInteger(info, "left")
+				var left *string = this.SafeString(info, "left")
 				ccxt.AddElementToObject(parsed, "status", func() string {
-					if left != nil && *left == 0 {
+					if ccxt.Precise.StringEquals(left, "0") {
 						return "closed"
 					}
 					return "canceled"
@@ -3167,9 +3180,11 @@ func (this *Gate) GetUrlByMarketType(typeVar any, optionalArgs ...any) any {
 }
 func (this *Gate) GetMarketTypeByUrl(url any) any {
 	var findBy map[string]any = map[string]any{
-		"op-":      "option",
-		"delivery": "future",
-		"fx":       "swap",
+		"op-":          "option",
+		"/ws/options/": "option",
+		"delivery":     "future",
+		"fx":           "swap",
+		"/ws/futures/": "swap",
 	}
 	var keys []string = nil
 	if findBy != nil {

@@ -3827,12 +3827,10 @@ class myriad extends myriad$1["default"] {
      * @param {string|string[]} api the api group and access level
      * @param {string} method the http method
      * @param {object} params the request parameters
-     * @param {object} [headers] request headers
-     * @param {string} [body] the request body
      * @returns {object} a dict with url, method, body and headers
      */
-    sign(path, api = 'myriad', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const apiGroup = typeof api === 'string' ? api : api[0];
+    sign(path, api = ['myriad'], method = 'GET', params = {}) {
+        const apiGroup = api[0];
         const baseUrls = this.urls['api'];
         const baseUrl = this.safeString(baseUrls, apiGroup, baseUrls['myriad']);
         let url = baseUrl + '/' + this.implodeParams(path, params);
@@ -3843,14 +3841,14 @@ class myriad extends myriad$1["default"] {
                 url += '?' + querystring;
             }
         }
-        const existingHeaders = (headers !== undefined) ? headers : {};
+        const existingHeaders = {};
         let headersValue = this.extend({
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         }, existingHeaders);
         // non-GET requests carry the params as a JSON body (public POSTs like markets/quote
         // included — the previous logic only sent a body for authenticated requests)
-        let bodyValue = body;
+        let bodyValue = undefined;
         if (method !== 'GET') {
             const queryKeys = Object.keys(query);
             const queryKeysLength = queryKeys.length;

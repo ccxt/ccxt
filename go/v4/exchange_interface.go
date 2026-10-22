@@ -109,6 +109,7 @@ type IBaseExchange interface {
 	SetAccountId(privateKey any)
 	SetWalletAddress(walletAddress any)
 	SetSecret(secret any)
+	SetToken(token any)
 	SetUid(uid any)
 	SetPassword(password any)
 	SetApiKey(apiKey any)
@@ -129,6 +130,7 @@ type IBaseExchange interface {
 	GetOptions() *sync.Map
 	GetCurrencies() *sync.Map
 	GetMarkets() *sync.Map
+	GetNetworkAliases() map[string]any
 	SetSandboxMode(enable any)
 	EnableDemoTrading(enable any)
 	LoadMarkets(params ...any) (map[string]MarketInterface, error)
@@ -167,6 +169,7 @@ type ICoreExchange interface {
 	SetPrivateKey(privateKey any)
 	SetWalletAddress(walletAddress any)
 	SetSecret(secret any)
+	SetToken(token any)
 	SetUid(uid any)
 	SetPassword(password any)
 	SetApiKey(apiKey any)
@@ -187,6 +190,7 @@ type ICoreExchange interface {
 	GetOptions() *sync.Map
 	GetCurrencies() *sync.Map
 	GetMarkets() *sync.Map
+	GetNetworkAliases() map[string]any
 	CheckRequiredCredentials(optionalArgs ...any) bool
 	Sleep(milliseconds any) <-chan bool
 	Json(object any) string
@@ -195,6 +199,7 @@ type ICoreExchange interface {
 	CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	Sum(args ...any) any
 	NumberToString(num any) *string
+	Base16ToBinary(str any) []byte
 	ParseToNumeric(value any) any
 	LoadMarketsAsync(params ...any) <-chan AsyncResult[any]
 	SetMarkets(markets any, optionalArgs ...any) any

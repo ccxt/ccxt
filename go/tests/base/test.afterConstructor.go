@@ -76,6 +76,18 @@ func HelperTestInitSandbox() {
 	HelperTestSandboxState(exchange4, true)
 	exchange4.SetSandboxMode(false)
 	HelperTestSandboxState(exchange4, false)
+	//
+	// CASE C: passed 'sandbox' within userConfig
+	//
+	ccxt.AddElementToObject(opts["options"], "sandbox", false)
+	// @ts-expect-error
+	opts["sandbox"] = true
+	exchange5 := ccxt.NewExchange().(*ccxt.Exchange)
+	exchange5.DerivedExchange = exchange5
+	exchange5.InitParent(opts, map[string]any{}, exchange5)
+	HelperTestSandboxState(exchange5, true)
+	exchange5.SetSandboxMode(false)
+	HelperTestSandboxState(exchange5, false)
 }
 func HelperTestInitMarket() {
 	// ############# markets ############# //
@@ -122,13 +134,6 @@ func HelperTestProperties() {
 	// options
 	//
 	Assert(!ccxt.IsEqual(exchange.Options, nil))
-	// const defaultNetworkCodeReplacements = [
-	//     { 'baseCoin': 'ETH', 'primary': 'ETH', 'secondary': 'ERC20' },
-	//     { 'baseCoin': 'CRO', 'primary': 'CRONOS', 'secondary': 'CRC20' },
-	//     { 'baseCoin': 'TRX', 'primary': 'TRX', 'secondary': 'TRC20' },
-	//     { 'baseCoin': 'BTC', 'primary': 'BTC', 'secondary': 'BRC20' },
-	// ];
-	// assertDeepEqual (exchange, {}, 'options', exchange.options['defaultNetworkCodeReplacements'], defaultNetworkCodeReplacements);
 	//
 	// credentials
 	//

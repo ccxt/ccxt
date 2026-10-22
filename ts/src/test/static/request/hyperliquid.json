@@ -16,6 +16,23 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchMyLiquidations": [
+            {
+                "description": "fetchMyLiquidations skips non-liquidation fills",
+                "method": "fetchMyLiquidations",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    null,
+                    1787172600000,
+                    null,
+                    {
+                        "user": "0x5c902b2eb0e1d9eb9a232014824ae6247df0a480",
+                        "until": 1787173400000
+                    }
+                ],
+                "output": "{\"user\":\"0x5c902b2eb0e1d9eb9a232014824ae6247df0a480\",\"type\":\"userFillsByTime\",\"startTime\":1787172600000,\"endTime\":1787173400000}"
+            }
+        ],
         "isUnifiedEnabled": [
             {
                 "disabled": true,
@@ -1028,6 +1045,74 @@
                 "output": { "type": "fundingHistory", "coin": "xyz:XYZ100", "startTime": 1704323735060, "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A" }
             }
         ],
+        "fetchFundingRate": [
+            {
+                "description": "fetchFundingRate",
+                "method": "fetchFundingRate",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "output": { "type": "metaAndAssetCtxs" }
+            },
+            {
+                "description": "hip3 funding rate is requested from the market's dex",
+                "method": "fetchFundingRate",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    "XYZ-XYZ100/USDC:USDC"
+                ],
+                "output": { "type": "metaAndAssetCtxs", "dex": "xyz" }
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "hip3 funding rates are requested from the symbols' dex",
+                "method": "fetchFundingRates",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    [
+                        "XYZ-XYZ100/USDC:USDC",
+                        "XYZ-AAPL/USDC:USDC"
+                    ]
+                ],
+                "output": { "type": "metaAndAssetCtxs", "dex": "xyz" }
+            }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "fetchOpenInterest",
+                "method": "fetchOpenInterest",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "output": { "type": "metaAndAssetCtxs" }
+            },
+            {
+                "description": "hip3 open interest is requested from the market's dex",
+                "method": "fetchOpenInterest",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    "XYZ-XYZ100/USDC:USDC"
+                ],
+                "output": { "type": "metaAndAssetCtxs", "dex": "xyz" }
+            }
+        ],
+        "fetchOpenInterests": [
+            {
+                "description": "hip3 open interests are requested from the symbols' dex",
+                "method": "fetchOpenInterests",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    [
+                        "XYZ-XYZ100/USDC:USDC",
+                        "XYZ-AAPL/USDC:USDC"
+                    ]
+                ],
+                "output": { "type": "metaAndAssetCtxs", "dex": "xyz" }
+            }
+        ],
         "fetchOpenOrders": [
             {
                 "description": "open order using a non usdc hip3 market",
@@ -1351,6 +1436,30 @@
         ],
         "transfer": [
             {
+                "description": "transfer from  sub-account to main",
+                "method": "transfer",
+                "url": "https://api.hyperliquid.xyz/exchange",
+                "input": [
+                    "USDC",
+                    5,
+                    "0x56a1cc0d72cf557718c8488991278ab3c78e10ff",
+                    "main", {"enableUnifiedMargin": true, "user": "0x78C7b44105eB616B48d4A4328D4Ded1c3B53AF31"}
+                ],
+                "output": "{\"action\":{\"hyperliquidChain\":\"Mainnet\",\"signatureChainId\":\"0x66eee\",\"type\":\"sendAsset\",\"destination\":\"0x78C7b44105eB616B48d4A4328D4Ded1c3B53AF31\",\"sourceDex\":\"spot\",\"destinationDex\":\"spot\",\"token\":\"USDC:0x6d1e7cde53ba9467b783cb7c530ce054\",\"amount\":\"5\",\"fromSubAccount\":\"0x56a1cc0d72cf557718c8488991278ab3c78e10ff\",\"nonce\":1792484001565},\"nonce\":1792484001565,\"signature\":{\"r\":\"0x487a19e9283a119c5cbab2161d7667d90c046b864e49cdeadba7c229ba5d4c7f\",\"s\":\"0x232f55edcd0db65564bd635894bfd6d65099aff774f960320e20f751be2aacef\",\"v\":28}}"
+            },
+            {
+                "description": "transfer from main to sub-account",
+                "method": "transfer",
+                "url": "https://api.hyperliquid.xyz/exchange",
+                "input": [
+                    "USDC",
+                    5,
+                    "main",
+                    "0x56a1cc0d72cf557718c8488991278ab3c78e10ff", {"enableUnifiedMargin": true}
+                ],
+                "output": "{\"action\":{\"hyperliquidChain\":\"Mainnet\",\"signatureChainId\":\"0x66eee\",\"type\":\"sendAsset\",\"destination\":\"0x56a1cc0d72cf557718c8488991278ab3c78e10ff\",\"sourceDex\":\"spot\",\"destinationDex\":\"spot\",\"token\":\"USDC:0x6d1e7cde53ba9467b783cb7c530ce054\",\"amount\":\"5\",\"fromSubAccount\":\"\",\"nonce\":1792483918651},\"nonce\":1792483918651,\"signature\":{\"r\":\"0xc8e6091833d11d6aebce4e26e1f9102fbd81d345ba2b7661cb1a2e91c866fdea\",\"s\":\"0x4101f65b66121bae95168807a744f2e0b0cc90a127800c0b6bc4878758c67a86\",\"v\":27}}"
+            },
+            {
                 "description": "transfer from spot to swap",
                 "method": "transfer",
                 "url": "https://api.hyperliquid-testnet.xyz/exchange",
@@ -1424,6 +1533,58 @@
                     "main"
                 ],
                 "output": { "action": { "type": "subAccountSpotTransfer", "subAccountUser": "0xc751489d24a33172541ea451bc253d7a9e98c781", "isDeposit": false, "token": "HYPE:0x0d01dc56dcaaca66ad901c959b4011ec", "amount": "3" }, "nonce": 1785977955306, "signature": { "r": "0x18ca95bb25b010ed60aa44cee04b6ccb982dc9e0c99c5424e8254958e8e1df67", "s": "0x5a934b3316da5503f8629979610a2f1874f6ff8cf2d32fa1f019770492025cd6", "v": 27 } }
+            },
+            {
+                "description": "unified account main to subaccount routes through sendAsset on the spot balance",
+                "method": "transfer",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    "USDC",
+                    5,
+                    "main",
+                    "0xc751489d24a33172541ea451bc253d7a9e98c781",
+                    {"enableUnifiedMargin": true}
+                ],
+                "output": {"action": {"hyperliquidChain": "Mainnet", "signatureChainId": "0x66eee", "type": "sendAsset", "destination": "0xc751489d24a33172541ea451bc253d7a9e98c781", "sourceDex": "spot", "destinationDex": "spot", "token": "USDC:0x6d1e7cde53ba9467b783cb7c530ce054", "amount": "5", "fromSubAccount": "", "nonce": 1760000000000}, "nonce": 1760000000000, "signature": {"r": "0x0", "s": "0x0", "v": 27}}
+            },
+            {
+                "description": "unified account subaccount to main sets fromSubAccount and the master destination",
+                "method": "transfer",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    "USDC",
+                    5,
+                    "0xc751489d24a33172541ea451bc253d7a9e98c781",
+                    "main",
+                    {"enableUnifiedMargin": true, "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"}
+                ],
+                "output": {"action": {"hyperliquidChain": "Mainnet", "signatureChainId": "0x66eee", "type": "sendAsset", "destination": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A", "sourceDex": "spot", "destinationDex": "spot", "token": "USDC:0x6d1e7cde53ba9467b783cb7c530ce054", "amount": "5", "fromSubAccount": "0xc751489d24a33172541ea451bc253d7a9e98c781", "nonce": 1760000000000}, "nonce": 1760000000000, "signature": {"r": "0x0", "s": "0x0", "v": 27}}
+            },
+            {
+                "description": "sendAsset forced by params.method moves the perp dex balance with type swap",
+                "method": "transfer",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    "USDC",
+                    5,
+                    "main",
+                    "0xc751489d24a33172541ea451bc253d7a9e98c781",
+                    {"method": "sendAsset", "type": "swap"}
+                ],
+                "output": {"action": {"hyperliquidChain": "Mainnet", "signatureChainId": "0x66eee", "type": "sendAsset", "destination": "0xc751489d24a33172541ea451bc253d7a9e98c781", "sourceDex": "", "destinationDex": "", "token": "USDC:0x6d1e7cde53ba9467b783cb7c530ce054", "amount": "5", "fromSubAccount": "", "nonce": 1760000000000}, "nonce": 1760000000000, "signature": {"r": "0x0", "s": "0x0", "v": 27}}
+            },
+            {
+                "description": "sendAsset sends a non-USDC token as NAME:tokenId",
+                "method": "transfer",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    "HYPE",
+                    3,
+                    "main",
+                    "0xc751489d24a33172541ea451bc253d7a9e98c781",
+                    {"method": "sendAsset"}
+                ],
+                "output": {"action": {"hyperliquidChain": "Mainnet", "signatureChainId": "0x66eee", "type": "sendAsset", "destination": "0xc751489d24a33172541ea451bc253d7a9e98c781", "sourceDex": "spot", "destinationDex": "spot", "token": "HYPE:0x0d01dc56dcaaca66ad901c959b4011ec", "amount": "3", "fromSubAccount": "", "nonce": 1760000000000}, "nonce": 1760000000000, "signature": {"r": "0x0", "s": "0x0", "v": 27}}
             }
         ],
         "withdraw": [
@@ -1457,11 +1618,10 @@
                     "USDC",
                     100,
                     "0xc751489d24a33172541ea451bc253d7a9e98c781",
-                    "",
                     {
-                        "vaultAddress": "0xc751489d24a33172541ea451bc253d7a9e98c781"
+                      "vaultAddress": "0xc751489d24a33172541ea451bc253d7a9e98c781"
                     }
-                ],
+                  ],
                 "output": { "action": { "vaultAddress": "0xc751489d24a33172541ea451bc253d7a9e98c781", "isDeposit": false, "usd": 100, "type": "vaultTransfer" }, "nonce": 1718449507245, "signature": { "r": "0x10bb60d01ebab494400e5509b50881f6967389adbe04579419ae5fdb3555fae1", "s": "0x232044e07569968bfe6f2a52ecb0d9e85b9f5215174e39c8a82241d244860b9", "v": 27 } }
             }
         ],

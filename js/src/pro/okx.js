@@ -364,6 +364,9 @@ export default class okx extends okxRest {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async watchFundingRate(symbol, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const symbolValue = this.symbol(symbol);
         const fr = await this.watchFundingRates([symbolValue], params);
         return fr[symbolValue];
@@ -456,6 +459,9 @@ export default class okx extends okxRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const [channel, paramsChannel] = this.handleOptionStringAndParams(params, 'watchTicker', 'channel', 'tickers');
         paramsChannel['channel'] = channel;
         const market = this.market(symbol);
@@ -509,6 +515,9 @@ export default class okx extends okxRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchMarkPrice(symbol, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const [channel, paramsChannel] = this.handleOptionStringAndParams(params, 'watchMarkPrice', 'channel', 'mark-price');
         paramsChannel['channel'] = channel;
         const market = this.market(symbol);
@@ -1290,6 +1299,25 @@ export default class okx extends okxRest {
             'args': topics,
         };
         const url = this.getUrl(depth, 'public');
+        const client = this.client(url);
+        const resyncTopics = [];
+        const resyncHashes = [];
+        let resyncNeeded = false;
+        for (let i = 0; i < messageHashes.length; i++) {
+            if (this.safeString(client.subscriptions, messageHashes[i]) === 'resync') {
+                // okx sends a snapshot only in reply to a subscribe, so a channel left without a book is unsubscribed first
+                resyncTopics.push(topics[i]);
+                resyncHashes.push('unsubscribe:orderbook:' + symbolsNormalized[i]);
+                resyncNeeded = true;
+            }
+        }
+        if (resyncNeeded) {
+            const unsubscribeRequest = {
+                'op': 'unsubscribe',
+                'args': resyncTopics,
+            };
+            await this.watchMultiple(url, resyncHashes, unsubscribeRequest, resyncHashes);
+        }
         const orderbook = await this.watchMultiple(url, messageHashes, request, messageHashes);
         return orderbook.limit();
     }
@@ -1552,8 +1580,8 @@ export default class okx extends okxRest {
                     const update = data[i];
                     this.handleOrderBookMessage(client, update, orderbook, messageHash, market);
                     if (!(messageHash in client.subscriptions)) {
-                        // a nonce gap rejected the future and always cleared the subscription entry, while the book
-                        // removal alone is skipped for a frame lacking an instrument id - stop replaying leftover rows
+                        // a nonce gap rejected the future; the channel stays subscribed without a book until the next watch resyncs it
+                        client.subscriptions[messageHash] = 'resync';
                         break;
                     }
                     client.resolve(orderbook, messageHash);
@@ -2441,6 +2469,34 @@ export default class okx extends okxRest {
         };
         return await this.watch(url, messageHash, request, messageHash);
     }
+    handleCancelOrders(client, message) {
+        //
+        //    {
+        //        "id": "1512",
+        //        "op": "batch-cancel-orders",
+        //        "data": [
+        //            {
+        //                "clOrdId": "",
+        //                "ordId": "2510789768709120",
+        //                "sCode": "0",
+        //                "sMsg": ""
+        //            }
+        //        ],
+        //        "code": "0",
+        //        "msg": ""
+        //    }
+        //
+        const messageHash = this.safeString(message, 'id');
+        let args = this.safeList(message, 'data', []);
+        args = this.filterBy(args, 'sCode', '0');
+        if (this.isEmpty(args)) {
+            const method = this.safeString(message, 'op');
+            const stringMsg = this.json(message);
+            this.handleErrors(1, '', client.url, method, {}, stringMsg, message, {}, {});
+        }
+        const orders = this.parseOrders(args, undefined, undefined, undefined);
+        client.resolve(orders, messageHash);
+    }
     handleCancelAllOrders(client, message) {
         //
         //    {
@@ -2603,6 +2659,7 @@ export default class okx extends okxRest {
                 'amend-order': this.handlePlaceOrders,
                 'batch-amend-orders': this.handlePlaceOrders,
                 'cancel-order': this.handlePlaceOrders,
+                'batch-cancel-orders': this.handleCancelOrders,
                 'mass-cancel': this.handleCancelAllOrders,
             };
             const method = this.safeValue(methods, event);
@@ -2675,6 +2732,10 @@ export default class okx extends okxRest {
         const subMessageHash = 'multi:' + channel + ':' + symbol;
         const messageHash = 'unsubscribe:' + subMessageHash;
         this.cleanUnsubscription(client, subMessageHash, messageHash);
+        // watchOHLCV subscribes through subscribe () under channel:marketId
+        if (symbol !== undefined) {
+            this.cleanUnsubscription(client, channel + ':' + this.marketId(symbol), undefined);
+        }
         if ((symbol !== undefined) && (timeframe !== undefined) && (timeframe in this.ohlcvs[symbol])) {
             delete this.ohlcvs[symbol][timeframe];
         }

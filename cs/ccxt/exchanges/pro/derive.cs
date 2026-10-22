@@ -11,25 +11,25 @@ public partial class derive : ccxt.derive
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
-                { "ws", false },
-                { "watchBalance", false },
+                { "ws", true },
+                { "watchBalance", true },
                 { "watchMyTrades", true },
                 { "watchOHLCV", false },
                 { "watchOrderBook", true },
                 { "watchOrders", true },
                 { "watchTicker", true },
                 { "watchTickers", false },
-                { "watchBidsAsks", false },
+                { "watchBidsAsks", true },
                 { "watchTrades", true },
                 { "watchTradesForSymbols", false },
-                { "watchPositions", false },
+                { "watchPositions", true },
             } },
             { "urls", new Dictionary<string, object>() {
                 { "api", new Dictionary<string, object>() {
-                    { "ws", "wss://api.lyra.finance/ws" },
+                    { "ws", "wss://api.derive.xyz/v3/ws" },
                 } },
                 { "test", new Dictionary<string, object>() {
-                    { "ws", "wss://api-demo.lyra.finance/ws" },
+                    { "ws", "wss://testnet.api.derive.xyz/v3/ws" },
                 } },
             } },
             { "options", new Dictionary<string, object>() {
@@ -74,7 +74,7 @@ public partial class derive : ccxt.derive
     /**
      * @method
      * @name derive#watchOrderBook
-     * @see https://docs.derive.xyz/reference/orderbook-instrument_name-group-depth
+     * @see https://docs.derive.xyz/api-reference/channels/orderbook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
@@ -147,7 +147,7 @@ public partial class derive : ccxt.derive
     /**
      * @method
      * @name derive#watchTicker
-     * @see https://docs.derive.xyz/reference/ticker-instrument_name-interval
+     * @see https://docs.derive.xyz/api-reference/channels/tickerslim
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -161,7 +161,7 @@ public partial class derive : ccxt.derive
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string topic = (("ticker_slim." + ((market.ContainsKey("id") ? market["id"] : null))) + ".100"); // the venue deprecated the fat ticker channel in favor of ticker_slim
+        string topic = (("ticker_slim." + ((market.ContainsKey("id") ? market["id"] : null))) + ".100"); // v3 removed the fat ticker channel, ticker_slim is the only ticker feed
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "params", new Dictionary<string, object>() {
@@ -176,112 +176,148 @@ public partial class derive : ccxt.derive
         return ccxt.BaseExchange.ToTicker(await this.watchPublic(topic, request, subscription));
     }
 
+    /**
+     * @method
+     * @name derive#unWatchTicker
+     * @description unsubscribe from the ticker channel; note that the bid ask feed of the same symbol shares the channel and stops as well
+     * @see https://docs.derive.xyz/api-reference/channels/tickerslim
+     * @param {string} symbol unified symbol of the market to unwatch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    public async override Task<object> unWatchTicker(string? symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        Dictionary<string, object> market = this.market(symbol);
+        string topic = (("ticker_slim." + ((market.ContainsKey("id") ? market["id"] : null))) + ".100");
+        string messageHash = ("unwatch" + topic);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "method", "unsubscribe" },
+            { "params", new Dictionary<string, object>() {
+                { "channels", new List<object>() {topic} },
+            } },
+        };
+        Dictionary<string, object> subscription = new Dictionary<string, object>() {
+            { "name", topic },
+        };
+        return await this.unWatchPublic(messageHash, request, subscription);
+    }
+
+    /**
+     * @method
+     * @name derive#watchBidsAsks
+     * @description watches best bid & ask for symbols; the data is sourced from the same ticker_slim channel the ticker uses
+     * @see https://docs.derive.xyz/api-reference/channels/tickerslim
+     * @param {string[]} symbols unified symbols of the markets to fetch the bids and asks for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        IList<object> symbolsResolved = this.marketSymbols(symbols, null, false);
+        List<object> topics = new List<object>() {};
+        List<object> messageHashes = new List<object>() {};
+        for (int i = 0; i < (symbolsResolved?.Count ?? 0); i++)
+        {
+            Dictionary<string, object> market = this.market(symbolsResolved[i]);
+            topics.Add((("ticker_slim." + ((market.ContainsKey("id") ? market["id"] : null))) + ".100"));
+            messageHashes.Add(("bidask:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
+        }
+        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        Int64 requestId = this.requestId(url);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "method", "subscribe" },
+            { "params", new Dictionary<string, object>() {
+                { "channels", topics },
+            } },
+            { "id", requestId },
+        };
+        Dictionary<string, object> subscription = new Dictionary<string, object>() {
+            { "id", requestId },
+            { "method", "subscribe" },
+        };
+        object ticker = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, subscription);
+        if (this.newUpdates)
+        {
+            Dictionary<string, object> result = new Dictionary<string, object>() {};
+            result[(string)getValue(ticker, "symbol")] = ticker;
+            return ccxt.BaseExchange.ToTickers(result);
+        }
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(this.bidsasks, "symbol", symbolsResolved));
+    }
+
     public virtual object handleTicker(WebSocketClient client, Dictionary<string, object> message)
     {
         //
-        // {
-        //     method: 'subscription',
-        //     params: {
-        //       channel: 'ticker.BTC-PERP.100',
-        //       data: {
-        //         timestamp: 1738485104439,
-        //         instrument_ticker: {
-        //           instrument_type: 'perp',
-        //           instrument_name: 'BTC-PERP',
-        //           scheduled_activation: 1701840228,
-        //           scheduled_deactivation: '9223372036854775807',
-        //           is_active: true,
-        //           tick_size: '0.1',
-        //           minimum_amount: '0.01',
-        //           maximum_amount: '10000',
-        //           amount_step: '0.001',
-        //           mark_price_fee_rate_cap: '0',
-        //           maker_fee_rate: '0.0001',
-        //           taker_fee_rate: '0.0003',
-        //           base_fee: '0.1',
-        //           base_currency: 'BTC',
-        //           quote_currency: 'USD',
-        //           option_details: null,
-        //           perp_details: {
-        //             index: 'BTC-USD',
-        //             max_rate_per_hour: '0.004',
-        //             min_rate_per_hour: '-0.004',
-        //             static_interest_rate: '0.0000125',
-        //             aggregate_funding: '10581.779418721074588722',
-        //             funding_rate: '0.000024792239208858'
-        //           },
-        //           erc20_details: null,
-        //           base_asset_address: '0xDBa83C0C654DB1cd914FA2710bA743e925B53086',
-        //           base_asset_sub_id: '0',
-        //           pro_rata_fraction: '0',
-        //           fifo_min_allocation: '0',
-        //           pro_rata_amount_step: '0.1',
-        //           best_ask_amount: '0.131',
-        //           best_ask_price: '99898.6',
-        //           best_bid_amount: '0.056',
-        //           best_bid_price: '99889.1',
-        //           five_percent_bid_depth: '11.817',
-        //           five_percent_ask_depth: '9.116',
-        //           option_pricing: null,
-        //           index_price: '99883.8',
-        //           mark_price: '99897.52408421244763303548098',
-        //           stats: {
-        //             contract_volume: '92.395',
-        //             num_trades: '2924',
-        //             open_interest: '33.743468027373780786',
-        //             high: '102320.4',
-        //             low: '99064.3',
-        //             percent_change: '-0.021356',
-        //             usd_change: '-2178'
-        //           },
-        //           timestamp: 1738485165881,
-        //           min_price: '97939.1',
-        //           max_price: '101895.2'
+        //     {
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "ticker_slim.BTC-PERP.100",
+        //             "data": {
+        //                 "timestamp": 1790879819285,
+        //                 "instrument_ticker": {
+        //                     "t": 1790879819268,
+        //                     "A": "0.278",
+        //                     "a": "84214.6",
+        //                     "B": "0.213",
+        //                     "b": "84205.4",
+        //                     "f": "0.000012500",
+        //                     "option_pricing": null,
+        //                     "I": "84210.9",
+        //                     "M": "84210.2",
+        //                     "stats": {
+        //                         "c": "16.41",
+        //                         "v": "1377350.271",
+        //                         "pr": "1377095.872",
+        //                         "n": 98,
+        //                         "oi": "0",
+        //                         "h": "84282",
+        //                         "l": "83661.8",
+        //                         "p": "0"
+        //                     },
+        //                     "minp": "82526.1",
+        //                     "maxp": "85894.9"
+        //                 }
+        //             }
         //         }
-        //       }
         //     }
-        // }
         //
         IDictionary<string, object> parameters = this.safeDict(message, "params");
         IDictionary<string, object> rawData = this.safeDict(parameters, "data");
         IDictionary<string, object> data = this.safeDict(rawData, "instrument_ticker", new Dictionary<string, object>() {});
-        string? topic = this.safeString(parameters, "channel");
-        Dictionary<string, object> ticker = null;
-        if ((topic != null) && topic.StartsWith("ticker_slim"))
-        {
-            // the slim payload uses short keys and does not carry the instrument name,
-            // so the symbol is recovered from the channel: ticker_slim.BTC-PERP.100
-            List<object> parts = topic.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
-            string? marketId = this.safeString(parts, 1);
-            Dictionary<string, object> market = this.safeMarket(marketId);
-            IDictionary<string, object> stats = this.safeDict(data, "stats", new Dictionary<string, object>() {});
-            ticker = ccxt.BaseExchange.FromTicker(this.safeTicker(new Dictionary<string, object>() {
-                { "symbol", (market.ContainsKey("symbol") ? market["symbol"] : null) },
-                { "timestamp", this.safeInteger(data, "t") },
-                { "datetime", this.iso8601(this.safeInteger(data, "t")) },
-                { "bid", this.safeString(data, "b") },
-                { "bidVolume", this.safeString(data, "B") },
-                { "ask", this.safeString(data, "a") },
-                { "askVolume", this.safeString(data, "A") },
-                { "high", this.safeString(stats, "h") },
-                { "low", this.safeString(stats, "l") },
-                { "baseVolume", this.safeString(stats, "c") },
-                { "quoteVolume", this.safeString(stats, "v") },
-                { "percentage", this.safeString(stats, "p") },
-                { "markPrice", this.safeString(data, "M") },
-                { "indexPrice", this.safeString(data, "I") },
-                { "info", rawData },
-            }, market));
-        } else
-        {
-            ticker = ccxt.BaseExchange.FromTicker(this.parseTicker(data));
-        }
-        string? tickerSymbol = ((string)GetValue(ticker, "symbol"));
+        string? topic = this.safeString(parameters, "channel", "");
+        // the slim payload does not carry the instrument name, so the symbol is recovered from the channel: ticker_slim.BTC-PERP.100
+        List<object> parts = topic.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
+        string? marketId = this.safeString(parts, 1);
+        Dictionary<string, object> market = this.safeMarket(marketId);
+        ccxt.Ticker ticker = this.parseTicker(data, market);
+        string? tickerSymbol = ticker.symbol;
         if ((tickerSymbol != null))
         {
-            this.tickers[(string)tickerSymbol] = ticker;
+            this.tickers[(string)tickerSymbol] = ccxt.BaseExchange.FromTicker(ticker);
+            ccxt.Ticker bidAsk = this.safeTicker(new Dictionary<string, object>() {
+                { "symbol", tickerSymbol },
+                { "timestamp", ticker.timestamp },
+                { "datetime", ticker.datetime },
+                { "bid", ticker.bid },
+                { "bidVolume", ticker.bidVolume },
+                { "ask", ticker.ask },
+                { "askVolume", ticker.askVolume },
+                { "info", data },
+            }, market);
+            this.bidsasks[(string)tickerSymbol] = ccxt.BaseExchange.FromTicker(bidAsk);
+            client.resolve(ccxt.BaseExchange.FromTicker(bidAsk), ("bidask:" + tickerSymbol));
         }
-        client.resolve(ticker, topic);
+        client.resolve(ccxt.BaseExchange.FromTicker(ticker), topic);
         return message;
     }
 
@@ -375,13 +411,7 @@ public partial class derive : ccxt.derive
         {
             ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
         }
-        if ((client.subscriptions != null && topic is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0)))
-        {
-            ((IDictionary<string,object>)client.subscriptions).Remove((string)topic);
-        }
-        var error = new UnsubscribeError(((this.id + " orderbook ") + symbol));
-        client.reject(error, topic);
-        client.resolve(error, ("unwatch" + (topic)));
+        this.cleanUnsubscription(client, topic, ("unwatch" + (topic)));
     }
 
     public virtual void handleTradesUnSubscription(WebSocketClient client, object topic)
@@ -390,29 +420,59 @@ public partial class derive : ccxt.derive
         string? marketId = this.safeString(parsedTopic, 1);
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        if ((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))
+        if ((this.trades != null && symbol != null && this.trades.ContainsKey(symbol)))
         {
             this.trades.Remove(symbol);
         }
-        if ((client.subscriptions != null && topic is string inOpKey1 && client.subscriptions.ContainsKey(inOpKey1)))
+        this.cleanUnsubscription(client, topic, ("unwatch" + (topic)));
+    }
+
+    public virtual void handleTickerUnSubscription(WebSocketClient client, object topic)
+    {
+        List<object> parsedTopic = ((string)topic).Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
+        string? marketId = this.safeString(parsedTopic, 1);
+        Dictionary<string, object> market = this.safeMarket(marketId);
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        if ((this.tickers != null && symbol != null && this.tickers.ContainsKey(symbol)))
         {
-            ((IDictionary<string,object>)client.subscriptions).Remove((string)topic);
+            this.tickers.Remove(symbol);
         }
-        var error = new UnsubscribeError(((this.id + " trades ") + symbol));
-        client.reject(error, topic);
-        client.resolve(error, ("unwatch" + (topic)));
+        if ((this.bidsasks != null && symbol != null && this.bidsasks.ContainsKey(symbol)))
+        {
+            this.bidsasks.Remove(symbol);
+        }
+        // the bid ask stream shares the ticker_slim channel, so its waiters must not be left hanging either
+        string bidAskHash = ("bidask:" + symbol);
+        if ((client.futures != null && client.futures.ContainsKey(bidAskHash)))
+        {
+            var error = new UnsubscribeError(((this.id + " ") + bidAskHash));
+            client.reject(error, bidAskHash);
+        }
+        this.cleanUnsubscription(client, topic, ("unwatch" + (topic)));
+    }
+
+    public virtual void handleOrdersUnSubscription(WebSocketClient client, string? topic)
+    {
+        this.orders = null;
+        this.cleanUnsubscription(client, topic, ("unwatch" + topic), true);
+    }
+
+    public virtual void handleMyTradesUnSubscription(WebSocketClient client, object topic)
+    {
+        this.myTrades = null;
+        this.cleanUnsubscription(client, topic, ("unwatch" + (topic)), true);
     }
 
     public virtual object handleUnSubscribe(WebSocketClient client, object message)
     {
         //
-        // {
-        //     id: 1,
-        //     result: {
-        //       status: { 'orderbook.BTC-PERP.10.10': 'ok' },
-        //       remaining_subscriptions: []
+        //     {
+        //         "id": 1,
+        //         "result": {
+        //             "status": { "orderbook.BTC-PERP.10.10": "ok" },
+        //             "remaining_subscriptions": []
+        //         }
         //     }
-        // }
         //
         IDictionary<string, object> result = this.safeDict(message, "result");
         IDictionary<string, object> status = this.safeDict(result, "status");
@@ -422,12 +482,23 @@ public partial class derive : ccxt.derive
             for (int i = 0; i < topics.Count; i++)
             {
                 string? topic = ((string)topics[i]);
-                if ((topic?.IndexOf("orderbook", StringComparison.Ordinal) ?? -1) >= 0)
+                List<object> parsedTopic = topic.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
+                string? suffix = this.safeString(parsedTopic, 1);
+                if (((topic?.IndexOf("orderbook", StringComparison.Ordinal) ?? -1) == 0))
                 {
                     this.handleOrderBookUnSubscription(client, topic);
-                } else if ((topic?.IndexOf("trades", StringComparison.Ordinal) ?? -1) >= 0)
+                } else if (((topic?.IndexOf("ticker_slim", StringComparison.Ordinal) ?? -1) == 0))
+                {
+                    this.handleTickerUnSubscription(client, topic);
+                } else if (((topic?.IndexOf("trades", StringComparison.Ordinal) ?? -1) == 0))
                 {
                     this.handleTradesUnSubscription(client, topic);
+                } else if (suffix == "orders")
+                {
+                    this.handleOrdersUnSubscription(client, topic);
+                } else if (suffix == "trades")
+                {
+                    this.handleMyTradesUnSubscription(client, topic);
                 }
             }
         }
@@ -438,7 +509,7 @@ public partial class derive : ccxt.derive
      * @method
      * @name derive#watchTrades
      * @description watches information on multiple trades made in a market
-     * @see https://docs.derive.xyz/reference/trades-instrument_name
+     * @see https://docs.derive.xyz/api-reference/channels/tradesbyinstrument
      * @param {string} symbol unified market symbol of the market trades were made in
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -480,8 +551,8 @@ public partial class derive : ccxt.derive
         //
         IDictionary<string, object> parameters = this.safeDict(message, "params");
         IDictionary<string, object> data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
-        object topic = this.safeValue(parameters, "channel");
-        List<object> parsedTopic = ((string)topic).Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
+        string? topic = this.safeString(parameters, "channel", "");
+        List<object> parsedTopic = topic.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parsedTopic, 1);
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
@@ -512,9 +583,13 @@ public partial class derive : ccxt.derive
         if ((authenticated == null))
         {
             Int64 requestId = this.requestId(url);
-            string now = this.milliseconds().ToString();
+            string? now = this.numberToString(this.nonce());
             string signature = this.signMessage(now, this.privateKey);
             string? deriveWalletAddress = this.safeString(this.options, "deriveWalletAddress");
+            if (((deriveWalletAddress == null)) || (deriveWalletAddress == ""))
+            {
+                deriveWalletAddress = this.walletAddress; // v3: the owner wallet is the user's own EOA
+            }
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "id", requestId },
                 { "method", "public/login" },
@@ -553,7 +628,7 @@ public partial class derive : ccxt.derive
     /**
      * @method
      * @name derive#watchOrders
-     * @see https://docs.derive.xyz/reference/subaccount_id-orders
+     * @see https://docs.derive.xyz/api-reference/channels/subaccountorders
      * @description watches information on multiple orders made by the user
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
@@ -663,7 +738,7 @@ public partial class derive : ccxt.derive
                 IDictionary<string, object> order = ((orderId == null)) ? null : this.safeDict(orders, orderId);
                 if ((order != null))
                 {
-                    object fee = this.safeValue(order, "fee");
+                    IDictionary<string, object> fee = this.safeDict(order, "fee");
                     if ((fee != null))
                     {
                         parsed["fee"] = fee;
@@ -673,7 +748,7 @@ public partial class derive : ccxt.derive
                     {
                         parsed["fees"] = fees;
                     }
-                    parsed["trades"] = this.safeValue(order, "trades");
+                    parsed["trades"] = this.safeList(order, "trades");
                     parsed["timestamp"] = this.safeInteger(order, "timestamp");
                     parsed["datetime"] = this.safeString(order, "datetime");
                 }
@@ -690,8 +765,43 @@ public partial class derive : ccxt.derive
 
     /**
      * @method
+     * @name derive#unWatchOrders
+     * @description unsubscribe from the orders channel
+     * @see https://docs.derive.xyz/api-reference/channels/subaccountorders
+     * @param {string} [symbol] not used by derive unWatchOrders, the whole subaccount channel is unsubscribed
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subaccount_id] *required* the subaccount id
+     * @returns {any} status of the unwatch request
+     */
+    public async override Task<object> unWatchOrders(string? symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        IList<object> subaccountIdparamsDeriveSubaccountIdVariable = (IList<object>)this.handleDeriveSubaccountId("unWatchOrders", parameters);
+        var subaccountId = subaccountIdparamsDeriveSubaccountIdVariable[0];
+        IDictionary<string, object> paramsDeriveSubaccountId = ((IDictionary<string, object>)subaccountIdparamsDeriveSubaccountIdVariable[1]);
+        string topic = (this.numberToString(subaccountId) + ".orders");
+        string messageHash = ("unwatch" + topic);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "method", "unsubscribe" },
+            { "params", new Dictionary<string, object>() {
+                { "channels", new List<object>() {topic} },
+            } },
+        };
+        Dictionary<string, object> subscription = new Dictionary<string, object>() {
+            { "name", topic },
+        };
+        Dictionary<string, object> message = this.extend(request, paramsDeriveSubaccountId);
+        return await this.unWatchPublic(messageHash, message, subscription);
+    }
+
+    /**
+     * @method
      * @name derive#watchMyTrades
-     * @see https://docs.derive.xyz/reference/subaccount_id-trades
+     * @see https://docs.derive.xyz/api-reference/channels/subaccounttrades
      * @description watches information on multiple trades made by the user
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
@@ -746,20 +856,313 @@ public partial class derive : ccxt.derive
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             myTrades = new ArrayCacheBySymbolById(limit);
+            this.myTrades = myTrades;
         }
         IDictionary<string, object> parameters = this.safeDict(message, "params");
         string? topic = this.safeString(parameters, "channel");
         List<object> rawTrades = this.safeList(parameters, "data", new List<object>() {});
         for (int i = 0; i < rawTrades.Count; i++)
         {
-            ccxt.Trade trade = this.parseTrade(message);
+            ccxt.Trade trade = this.parseTrade(rawTrades[i]);
             myTrades.append(ccxt.BaseExchange.FromTrade(trade));
             client.resolve(myTrades, topic);
             if ((topic != null))
             {
-                string messageHash = (topic + this.safeString(ccxt.BaseExchange.FromTrade(trade), "symbol", ""));
+                string messageHash = ((topic + ":") + this.safeString(ccxt.BaseExchange.FromTrade(trade), "symbol", ""));
                 client.resolve(myTrades, messageHash);
             }
+        }
+    }
+
+    /**
+     * @method
+     * @name derive#unWatchMyTrades
+     * @description unsubscribe from the my trades channel
+     * @see https://docs.derive.xyz/api-reference/channels/subaccounttrades
+     * @param {string} [symbol] not used by derive unWatchMyTrades, the whole subaccount channel is unsubscribed
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subaccount_id] *required* the subaccount id
+     * @returns {any} status of the unwatch request
+     */
+    public async override Task<object> unWatchMyTrades(string? symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        IList<object> subaccountIdparamsDeriveSubaccountIdVariable = (IList<object>)this.handleDeriveSubaccountId("unWatchMyTrades", parameters);
+        var subaccountId = subaccountIdparamsDeriveSubaccountIdVariable[0];
+        IDictionary<string, object> paramsDeriveSubaccountId = ((IDictionary<string, object>)subaccountIdparamsDeriveSubaccountIdVariable[1]);
+        string topic = (this.numberToString(subaccountId) + ".trades");
+        string messageHash = ("unwatch" + topic);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "method", "unsubscribe" },
+            { "params", new Dictionary<string, object>() {
+                { "channels", new List<object>() {topic} },
+            } },
+        };
+        Dictionary<string, object> subscription = new Dictionary<string, object>() {
+            { "name", topic },
+        };
+        Dictionary<string, object> message = this.extend(request, paramsDeriveSubaccountId);
+        return await this.unWatchPublic(messageHash, message, subscription);
+    }
+
+    /**
+     * @method
+     * @name derive#watchBalance
+     * @description watches balance updates for a single subaccount, the returned structure is scoped to the watched subaccount
+     * @see https://docs.derive.xyz/api-reference/channels/subaccountbalances
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subaccount_id] *required* the subaccount id
+     * @param {boolean} [params.fetchBalanceSnapshot] default true, the channel only streams changed totals, so an initial snapshot is loaded over rest before subscribing
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        (bool?, object) fetchSnapshotparamsSnapshotVariable = this.handleOptionBoolAndParams(parameters, "watchBalance", "fetchBalanceSnapshot", true);
+        bool? fetchSnapshot = fetchSnapshotparamsSnapshotVariable.Item1;
+        IDictionary<string, object> paramsSnapshot = ((IDictionary<string, object>)fetchSnapshotparamsSnapshotVariable.Item2);
+        IList<object> subaccountIdparamsDeriveSubaccountIdVariable = (IList<object>)this.handleDeriveSubaccountId("watchBalance", paramsSnapshot);
+        var subaccountId = subaccountIdparamsDeriveSubaccountIdVariable[0];
+        IDictionary<string, object> paramsDeriveSubaccountId = ((IDictionary<string, object>)subaccountIdparamsDeriveSubaccountIdVariable[1]);
+        if ((this.balance == null))
+        {
+            Dictionary<string, object> emptyBalances = new Dictionary<string, object>() {};
+            this.balance = emptyBalances;
+        }
+        // the balance state and the snapshot are tracked per subaccount, mirroring the subaccount-scoped channel and fetchBalance (params.subaccount_id)
+        string subaccountIdKey = this.numberToString(subaccountId);
+        if ((fetchSnapshot == true) && !((this.balance != null && this.balance.ContainsKey(subaccountIdKey))))
+        {
+            Dictionary<string, object> snapshotRequest = new Dictionary<string, object>() {
+                { "subaccount_id", subaccountId },
+            };
+            Dictionary<string, object> snapshotParams = this.extend(snapshotRequest, paramsDeriveSubaccountId);
+            Dictionary<string, object> snapshot = ccxt.BaseExchange.FromBalances(await this.FetchBalance(snapshotParams));
+            Dictionary<string, object> emptyBalance = new Dictionary<string, object>() {}; // hoisted: an inline literal on the right side of a property assignment derails the rust transpiler
+            Dictionary<string, object> seeded = this.extend(snapshot, emptyBalance); // the extra extend keeps the csharp assignment dictionary-typed (CS0266 otherwise)
+            this.balance[subaccountIdKey] = seeded;
+        }
+        string topic = (this.numberToString(subaccountId) + ".balances");
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "method", "subscribe" },
+            { "params", new Dictionary<string, object>() {
+                { "channels", new List<object>() {topic} },
+            } },
+        };
+        Dictionary<string, object> subscription = new Dictionary<string, object>() {
+            { "name", topic },
+            { "params", paramsDeriveSubaccountId },
+        };
+        Dictionary<string, object> message = this.extend(request, paramsDeriveSubaccountId);
+        return ccxt.BaseExchange.ToBalances(await this.watchPrivate(topic, message, subscription));
+    }
+
+    /**
+     * @method
+     * @name derive#watchPositions
+     * @description watch all open positions; the sizes stream over the balances channel, while entry price, pnl and margin fields stay from the rest snapshot until the next one
+     * @see https://docs.derive.xyz/api-reference/channels/subaccountbalances
+     * @param {string[]} [symbols] list of unified market symbols to watch positions for
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum number of positions to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subaccount_id] *required* the subaccount id
+     * @param {boolean} [params.fetchPositionsSnapshot] default true, the channel only streams size changes, so an initial snapshot is loaded over rest before subscribing
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    public async override Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        IList<object> symbolsResolved = this.marketSymbols(symbols, null, true);
+        (bool?, object) fetchSnapshotparamsSnapshotVariable = this.handleOptionBoolAndParams(parameters, "watchPositions", "fetchPositionsSnapshot", true);
+        bool? fetchSnapshot = fetchSnapshotparamsSnapshotVariable.Item1;
+        IDictionary<string, object> paramsSnapshot = ((IDictionary<string, object>)fetchSnapshotparamsSnapshotVariable.Item2);
+        IList<object> subaccountIdparamsDeriveSubaccountIdVariable = (IList<object>)this.handleDeriveSubaccountId("watchPositions", paramsSnapshot);
+        var subaccountId = subaccountIdparamsDeriveSubaccountIdVariable[0];
+        IDictionary<string, object> paramsDeriveSubaccountId = ((IDictionary<string, object>)subaccountIdparamsDeriveSubaccountIdVariable[1]);
+        if ((this.positions == null))
+        {
+            Dictionary<string, object> emptyCaches = new Dictionary<string, object>() {};
+            this.positions = emptyCaches;
+            Dictionary<string, object> emptySnapshots = new Dictionary<string, object>() {};
+            this.options["loadedPositionsSnapshots"] = emptySnapshots;
+        }
+        // the cache and the snapshot are tracked per subaccount, so subaccounts holding the same instrument and side do not overwrite each other
+        string subaccountIdKey = this.numberToString(subaccountId);
+        if (!(inOp(this.positions, subaccountIdKey)))
+        {
+            ((IDictionary<string,object>)this.positions)[subaccountIdKey] = new ArrayCacheBySymbolBySide();
+        }
+        IDictionary<string, object> loadedSnapshots = this.safeDict(this.options, "loadedPositionsSnapshots", new Dictionary<string, object>() {});
+        if ((fetchSnapshot == true) && !(((subaccountIdKey != null) && (loadedSnapshots?.ContainsKey(subaccountIdKey) == true))))
+        {
+            Dictionary<string, object> snapshotRequest = new Dictionary<string, object>() {
+                { "subaccount_id", subaccountId },
+            };
+            Dictionary<string, object> snapshotParams = this.extend(snapshotRequest, paramsDeriveSubaccountId);
+            List<object> positionsSnapshot = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(null, snapshotParams));
+            ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)getValue(this.positions, subaccountIdKey));
+            for (int i = 0; i < (positionsSnapshot?.Count ?? 0); i++)
+            {
+                cache.append(positionsSnapshot[i]);
+            }
+            loadedSnapshots[(string)subaccountIdKey] = true;
+            this.options["loadedPositionsSnapshots"] = loadedSnapshots;
+        }
+        string topic = (this.numberToString(subaccountId) + ".balances");
+        string messageHash = ("positions:" + topic);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "method", "subscribe" },
+            { "params", new Dictionary<string, object>() {
+                { "channels", new List<object>() {topic} },
+            } },
+        };
+        Dictionary<string, object> subscription = new Dictionary<string, object>() {
+            { "name", topic },
+            { "params", paramsDeriveSubaccountId },
+        };
+        Dictionary<string, object> message = this.extend(request, paramsDeriveSubaccountId);
+        object newPositions = await this.watchPrivate(messageHash, message, subscription);
+        if (this.newUpdates)
+        {
+            return ccxt.BaseExchange.ToPositionList(newPositions);
+        }
+        return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(getValue(this.positions, subaccountIdKey), symbolsResolved, since, limit, true));
+    }
+
+    public virtual object handlePositionDelta(object subaccountIdKey, object entry)
+    {
+        string? marketId = this.safeString(entry, "name");
+        Dictionary<string, object> market = this.safeMarket(marketId);
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? newSize = this.safeString(entry, "new_balance", "0");
+        bool isShort = Precise.stringLt(newSize, "0");
+        string side = isShort ? "short" : "long";
+        string? contracts = Precise.stringAbs(newSize);
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)getValue(this.positions, subaccountIdKey));
+        IDictionary<string, object> symbolPositions = this.safeDict((cache as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
+        // a fill through zero flattens the opposite side first
+        string oppositeSide = isShort ? "long" : "short";
+        IDictionary<string, object> opposite = this.safeDict(symbolPositions, oppositeSide);
+        if ((opposite != null))
+        {
+            string? oppositeContracts = this.safeString(opposite, "contracts");
+            if (((oppositeContracts != null)) && (oppositeContracts != "0"))
+            {
+                opposite["contracts"] = this.parseNumber("0");
+                opposite["lastUpdateTimestamp"] = this.milliseconds();
+                cache.append(opposite);
+            }
+        }
+        IDictionary<string, object> position = this.safeDict(symbolPositions, side);
+        if ((position == null))
+        {
+            // the position is freshly opened by the current fill, so the local clock approximates the open time
+            Int64 timestamp = this.milliseconds();
+            position = this.safePosition(new Dictionary<string, object>() {
+                { "symbol", symbol },
+                { "side", side },
+                { "timestamp", timestamp },
+                { "datetime", this.iso8601(timestamp) },
+                { "info", entry },
+            });
+        }
+        position["contracts"] = this.parseNumber(contracts);
+        position["side"] = side;
+        position["lastUpdateTimestamp"] = this.milliseconds();
+        position["info"] = entry;
+        cache.append(position);
+        return position;
+    }
+
+    public virtual void handleBalance(WebSocketClient client, Dictionary<string, object> message)
+    {
+        //
+        //     {
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "86815.balances",
+        //             "data": [
+        //                 {
+        //                     "name": "USDC",
+        //                     "new_balance": "8427.545482",
+        //                     "previous_balance": "8428.545482",
+        //                     "update_type": "trade"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        IDictionary<string, object> parameters = this.safeDict(message, "params");
+        string? topic = this.safeString(parameters, "channel");
+        List<object> topicParts = topic.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
+        string subaccountIdKey = this.safeString(topicParts, 0);
+        List<object> data = this.safeList(parameters, "data", new List<object>() {});
+        if ((this.balance == null))
+        {
+            this.balance = new Dictionary<string, object>() {};
+        }
+        IDictionary<string, object> subBalance = this.safeDict(this.balance, subaccountIdKey);
+        if ((subBalance == null))
+        {
+            Dictionary<string, object> emptySubBalance = new Dictionary<string, object>() {};
+            subBalance = emptySubBalance;
+        }
+        bool updated = false;
+        List<object> positionUpdates = new List<object>() {};
+        for (int i = 0; i < data.Count; i++)
+        {
+            IDictionary<string, object> entry = this.safeDict(data, i, new Dictionary<string, object>() {});
+            string? name = this.safeString(entry, "name", "");
+            if ((name?.IndexOf("-", StringComparison.Ordinal) ?? -1) >= 0)
+            {
+                // position deltas carry instrument names and do not belong into the balance structure
+                if (((this.positions != null)) && (inOp(this.positions, subaccountIdKey)))
+                {
+                    object position = this.handlePositionDelta(subaccountIdKey, entry);
+                    positionUpdates.Add(position);
+                }
+                continue;
+            }
+            string? code = this.safeCurrencyCode(name);
+            if ((code == null))
+            {
+                continue;
+            }
+            IDictionary<string, object> account = this.safeDict(subBalance, code);
+            if ((account == null))
+            {
+                account = this.account();
+            }
+            // the channel and the balance state are both subaccount-scoped, so the streamed new_balance is the authoritative absolute total
+            account["total"] = this.safeString(entry, "new_balance");
+            // the margin requirements the rest free/used model needs are not part of the stream, so stale snapshot values are dropped instead of reporting free + used != total
+            account["free"] = null;
+            account["used"] = null;
+            subBalance[(string)code] = account;
+            updated = true;
+        }
+        if (updated)
+        {
+            this.balance[subaccountIdKey] = this.safeBalance(((object)subBalance));
+            client.resolve((this.balance != null && this.balance.ContainsKey(subaccountIdKey) ? this.balance[subaccountIdKey] : null), topic);
+        }
+        int positionUpdatesLength = (positionUpdates?.Count ?? 0);
+        if (positionUpdatesLength > 0)
+        {
+            client.resolve(positionUpdates, ("positions:" + topic));
         }
     }
 
@@ -817,6 +1220,7 @@ public partial class derive : ccxt.derive
             { "trades", this.handleTrade },
             { "orders", this.handleOrder },
             { "mytrades", this.handleMyTrade },
+            { "balances", this.handleBalance },
         };
         string? eventVar = null;
         IDictionary<string, object> parameters = this.safeDict(message, "params");
@@ -826,10 +1230,10 @@ public partial class derive : ccxt.derive
             if ((channel != null))
             {
                 List<object> parsedChannel = channel.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
-                if ((channel.IndexOf("orders", StringComparison.Ordinal) >= 0) || channel.IndexOf("trades", StringComparison.Ordinal) > 0)
+                if ((channel.IndexOf("orders", StringComparison.Ordinal) >= 0) || (channel.IndexOf("trades", StringComparison.Ordinal) > 0) || (channel.IndexOf("balances", StringComparison.Ordinal) > 0))
                 {
                     eventVar = this.safeString(parsedChannel, 1);
-                    // {subaccounr_id}.trades
+                    // {subaccount_id}.trades
                     if (eventVar == "trades")
                     {
                         eventVar = "mytrades";
@@ -849,16 +1253,35 @@ public partial class derive : ccxt.derive
         if ((message != null && ((IDictionary<string, object>)message).ContainsKey("id")))
         {
             string? id = this.safeString(message, "id");
-            Dictionary<string, object> subscriptionsById = this.indexBy(client.subscriptions, "id");
-            IDictionary<string, object> subscription = ((id == null)) ? new Dictionary<string, object>() {} : this.safeDict(subscriptionsById, id, new Dictionary<string, object>() {});
-            if (subscription.ContainsKey("method"))
+            // the subscriptions are scanned with safeString comparisons: an indexBy over the integer ids would need an integer lookup key in python while the object keys are always strings in javascript
+            List<object> subscriptionKeys = new List<object>(((IDictionary<string,object>)client.subscriptions).Keys);
+            bool matched = false;
+            for (int i = 0; i < subscriptionKeys.Count; i++)
             {
-                if ((this.safeString(subscription, "method") == "public/login"))
+                IDictionary<string, object> subscription = this.safeDict(client.subscriptions, subscriptionKeys[i], new Dictionary<string, object>() {});
+                string? subscriptionId = this.safeString(subscription, "id");
+                if (((subscriptionId != null)) && ((subscriptionId == id)))
                 {
+                    matched = true;
+                    string? subscriptionMethod = this.safeString(subscription, "method");
+                    if (subscriptionMethod == "public/login")
+                    {
+                        this.handleAuth(client, message);
+                    } else if (subscriptionMethod == "unsubscribe")
+                    {
+                        this.handleUnSubscribe(client, message);
+                    }
+                }
+            }
+            if (!matched)
+            {
+                List<object> loginResult = this.safeList(message, "result");
+                if ((loginResult != null))
+                {
+                    // the login acknowledgement is the only id reply whose result is a bare list (the subaccount ids)
+                    // in java the acknowledgement can arrive before the subscription record is stored
+                    // so the shape serves as the routing fallback when the id scan finds nothing
                     this.handleAuth(client, message);
-                } else if ((this.safeString(subscription, "method") == "unsubscribe"))
-                {
-                    this.handleUnSubscribe(client, message);
                 }
             }
         }
@@ -874,7 +1297,8 @@ public partial class derive : ccxt.derive
         //
         string messageHash = "authenticated";
         List<object> ids = this.safeList(message, "result", new List<object>() {});
-        if (ids.Count > 0)
+        int idsLength = ids.Count;
+        if (idsLength > 0)
         {
             // client.resolve (message, messageHash);
             Future future = ((Future)this.safeValue(client.futures, "authenticated"));
