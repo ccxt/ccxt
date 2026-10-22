@@ -912,7 +912,7 @@ export default class coincheck extends Exchange {
         return this.parseTransactions (data, currency, since, limit, { 'type': 'withdrawal' });
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             // withdrawals
             'pending': 'pending',
@@ -997,7 +997,7 @@ export default class coincheck extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
         let bodySigned: Str = undefined;
         let headersSigned: NullableDict = undefined;
@@ -1047,7 +1047,7 @@ export default class coincheck extends Exchange {
         //     {"success":false,"error":"invalid authentication"}
         //
         const success = this.safeBool (response, 'success', true);
-        if (success !== true) {
+        if (!success) {
             const error = this.safeString (response, 'error');
             const feedback = this.id + ' ' + this.json (response);
             this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);

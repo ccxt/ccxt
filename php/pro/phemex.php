@@ -289,10 +289,10 @@ class phemex extends \ccxt\async\phemex {
         //
         $tickers = array();
         if (is_array($message) && array_key_exists('market24h' ?? '', $message)) {
-            $ticker = $this->safe_value($message, 'market24h');
+            $ticker = $this->safe_dict($message, 'market24h', array());
             $tickers[] = $this->parse_swap_ticker($ticker);
         } elseif (is_array($message) && array_key_exists('spot_market24h' ?? '', $message)) {
-            $ticker = $this->safe_value($message, 'spot_market24h');
+            $ticker = $this->safe_dict($message, 'spot_market24h', array());
             $tickers[] = $this->parse_ticker($ticker);
         } elseif (is_array($message) && array_key_exists('data' ?? '', $message)) {
             $data = $this->safe_list($message, 'data', array());
@@ -1003,7 +1003,8 @@ class phemex extends \ccxt\async\phemex {
             $cachedTrades->append($parsed);
             $symbol = $parsed['symbol'];
             if ($type === null) {
-                $type = ($market['settle'] === 'USDT') ? 'perpetual' : $market['type'];
+                $marketSettle = $this->safe_string($market, 'settle');
+                $type = ($marketSettle === 'USDT') ? 'perpetual' : $market['type'];
             }
             if ($symbol !== null) {
                 $marketIds[$symbol] = true;

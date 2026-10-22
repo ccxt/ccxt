@@ -1059,7 +1059,7 @@ class tokocrypto extends Exchange {
         $buyerMaker = $this->safe_bool_2($trade, 'm', 'isBuyerMaker');
         $takerOrMaker = null;
         if ($buyerMaker !== null) {
-            $side = ($buyerMaker === true) ? 'sell' : 'buy'; // this is reversed intentionally
+            $side = ($buyerMaker) ? 'sell' : 'buy'; // this is reversed intentionally
             $takerOrMaker = 'taker';
         } elseif (is_array($trade) && array_key_exists('side' ?? '', $trade)) {
             $side = $this->safe_string_lower($trade, 'side');
@@ -1611,7 +1611,7 @@ class tokocrypto extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             '-2' => 'open',
             '0' => 'open', // NEW
@@ -1836,16 +1836,19 @@ class tokocrypto extends Exchange {
         $isPostOnlyTimeInForce = ($requestedTimeInForce === 'GTX');
         list($postOnly, $paramsPostOnly) = $this->handle_post_only($isMarketOrder, $isPostOnlyTimeInForce, $params);
         // only supported for spot/margin api
-        $typeResolved = ($postOnly === true) ? 'LIMIT_MAKER' : $type;
+        $typeResolved = ($postOnly) ? 'LIMIT_MAKER' : $type;
         // post only is expressed by the order type here, not by a time force
-        $timeInForceResolved = ($postOnly === true) ? null : $requestedTimeInForce;
+        $timeInForceResolved = $requestedTimeInForce;
+        if ($postOnly) {
+            $timeInForceResolved = null;
+        }
         $initialUppercaseType = strtoupper($typeResolved);
         $uppercaseType = $initialUppercaseType;
         $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
         $triggerKeys = ($triggerPrice !== null) ? array( 'triggerPrice', 'stopPrice' ) : array();
         $paramsRequest = $this->omit($paramsPostOnly, $this->array_concat(array( 'clientId', 'clientOrderId', 'timeInForce' ), $triggerKeys));
         if ($triggerPrice !== null) {
-            if ($postOnly === true) {
+            if ($postOnly) {
                 throw new InvalidOrder($this->id . ' createOrder() does not support post only trigger orders, the venue has no post only trigger order type');
             }
             if ($uppercaseType === 'MARKET') {
@@ -2756,7 +2759,7 @@ class tokocrypto extends Exchange {
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         $success = $this->safe_bool($response, 'success', true);
         $parsedMessage = null;
-        if ($success !== true) {
+        if (!$success) {
             $messageInner = $this->safe_string($response, 'msg');
             if ($messageInner !== null) {
                 try {
@@ -2799,7 +2802,7 @@ class tokocrypto extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $feedback);
             throw new ExchangeError($feedback);
         }
-        if ($success !== true) {
+        if (!$success) {
             throw new ExchangeError($this->id . ' ' . $body);
         }
         return null;
@@ -2813,11 +2816,12 @@ class tokocrypto extends Exchange {
         } elseif ((is_array($config) && array_key_exists('noPoolId' ?? '', $config)) && !(is_array($params) && array_key_exists('poolId' ?? '', $params))) {
             return $config['noPoolId'];
         } elseif ((is_array($config) && array_key_exists('byLimit' ?? '', $config)) && (is_array($params) && array_key_exists('limit' ?? '', $params))) {
-            $limit = $params['limit'];
+            $limit = $this->safe_integer($params, 'limit');
             $byLimit = $this->safe_list($config, 'byLimit', array());
             for ($i = 0; $i < count($byLimit); $i++) {
                 $entry = $byLimit[$i];
-                if ($limit <= $entry[0]) {
+                $entryLimit = $this->safe_integer($entry, 0);
+                if (($limit !== null) && ($entryLimit !== null) && ($limit <= $entryLimit)) {
                     return $entry[1];
                 }
             }

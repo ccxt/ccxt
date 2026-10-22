@@ -914,7 +914,7 @@ class dydx(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'UNTRIGGERED': 'open',
             'OPEN': 'open',
@@ -924,7 +924,7 @@ class dydx(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type(self, type: Str):
+    def parse_order_type(self, type: Str) -> Str:
         types = {
             'LIMIT': 'LIMIT',
             'STOP_LIMIT': 'LIMIT',
@@ -1209,7 +1209,7 @@ class dydx(Exchange, ImplicitAPI):
         signature = self.sign_hash(encodedTx, privateKey)
         return self.encode_dydx_tx_raw(signDoc, signature['r'] + signature['s'])
 
-    def retrieve_credentials(self) -> object:
+    def retrieve_credentials(self) -> dict:
         credentials = self.safe_dict(self.options, 'dydxCredentials')
         if credentials is not None:
             return credentials
@@ -1228,7 +1228,7 @@ class dydx(Exchange, ImplicitAPI):
         self.load_dydx_protos()
         dydxAccount = self.safe_dict(self.options, 'dydxAccount')
         if dydxAccount is not None:
-            return dydxAccount
+            return self.safe_dict(self.options, 'dydxAccount', {})
         if self.walletAddress is None:
             raise ArgumentsRequired(self.id + ' fetchDydxAccount() requires the walletAddress to be set using the dydx chain address eg: dydx1cpb4tedmwq304c2kc9pwzjwq0sc6z2a4tasxrz')
         if not self.walletAddress.startswith('dydx'):
@@ -1256,9 +1256,9 @@ class dydx(Exchange, ImplicitAPI):
             'key': account['pub_key']['key'],
         }
         self.options['dydxAccount'] = account
-        return account
+        return self.safe_dict(self.options, 'dydxAccount', {})
 
-    def pow(self, n: str, m: Str):
+    def pow(self, n: str, m: Str) -> Str:
         r = Precise.string_mul(n, '1')
         c = self.parse_to_int(m)
         # TODO: cap
@@ -1280,8 +1280,8 @@ class dydx(Exchange, ImplicitAPI):
         subaccountId = 0
         subaccountIdOption, paramsSubAccountId = self.handle_option_integer_and_params(params, 'createOrder', 'subAccountId', subaccountId)
         triggerPrice = self.safe_string_2(paramsSubAccountId, 'triggerPrice', 'stopPrice')
-        stopLossPrice = self.safe_value(paramsSubAccountId, 'stopLossPrice', triggerPrice)
-        takeProfitPrice = self.safe_value(paramsSubAccountId, 'takeProfitPrice')
+        stopLossPrice = self.safe_string(paramsSubAccountId, 'stopLossPrice', triggerPrice)
+        takeProfitPrice = self.safe_string(paramsSubAccountId, 'takeProfitPrice')
         isConditional = triggerPrice is not None or stopLossPrice is not None or takeProfitPrice is not None
         isMarket = orderType == 'MARKET'
         timeInForce = self.safe_string_upper(paramsSubAccountId, 'timeInForce', 'GTT')
@@ -1396,7 +1396,7 @@ class dydx(Exchange, ImplicitAPI):
         orderInfo = prefix + '-' + self.number_to_string(clientOrderId) + '-' + self.number_to_string(clobPairId) + '-' + self.number_to_string(orderFlags)
         return self.uuid5(nameSp, orderInfo)
 
-    def fetch_latest_block_height(self, params={}) -> int:
+    def fetch_latest_block_height(self, params: dict = {}) -> int:
         response = self.nodeRpcGetAbciInfo(params)
         #
         # {
@@ -1498,7 +1498,7 @@ class dydx(Exchange, ImplicitAPI):
         """
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
         paramsOmitted = self.omit(params, ['trigger', 'stop'])
-        if (isTrigger is not True) and (symbol is None):
+        if (not isTrigger) and (symbol is None):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         if self.markets is None:
             self.load_markets()
@@ -1509,11 +1509,12 @@ class dydx(Exchange, ImplicitAPI):
         idString = str(id)
         if idString.find('-') > -1:
             raise NotSupported(self.id + ' cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.')
-        goodTillBlock = self.safe_integer(paramsOmitted, 'goodTillBlock')
+        goodTillBlockOption = self.safe_integer(paramsOmitted, 'goodTillBlock')
+        goodTillBlock = goodTillBlockOption
         goodTillBlockTimeInSeconds = 2592000
         goodTillBlockTimeInSecondsOption, paramsGoodTillBlockTimeInSeconds = self.handle_option_integer_and_params(paramsOmitted, 'cancelOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds)  # default is 30 days
         goodTillBlockTime = None
-        defaultOrderFlags = 32 if (isTrigger is True) else 64
+        defaultOrderFlags = 32 if (isTrigger) else 64
         orderFlags = self.safe_integer(paramsGoodTillBlockTimeInSeconds, 'orderFlags', defaultOrderFlags)
         subAccountId = 0
         subAccountIdOption = self.handle_option_integer_and_params(paramsGoodTillBlockTimeInSeconds, 'cancelOrder', 'subAccountId', subAccountId)[0]
@@ -1522,7 +1523,7 @@ class dydx(Exchange, ImplicitAPI):
         if orderFlags > 0:
             if goodTillBlockTimeInSecondsOption is None:
                 raise ArgumentsRequired(self.id + ' goodTillBlockTimeInSeconds is required in params for long term or conditional order.')
-            if goodTillBlock is not None and goodTillBlock > 0:
+            if goodTillBlockOption is not None and goodTillBlockOption > 0:
                 raise InvalidOrder(self.id + ' goodTillBlock should be 0 for long term or conditional order.')
             goodTillBlockTime = self.seconds() + goodTillBlockTimeInSecondsOption
         else:
@@ -2140,7 +2141,7 @@ class dydx(Exchange, ImplicitAPI):
         rows = self.array_concat(withdrawals, deposits)
         return self.parse_transactions(rows, currency, since, limit)
 
-    def fetch_transactions_helper(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[dict]:
+    def fetch_transactions_helper(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[dict]:
         methodName = self.safe_string(params, 'methodName')
         paramsOmitted = self.omit(params, 'methodName')
         userAddress, paramsPublicAddress = self.handle_public_address(methodName, paramsOmitted)
@@ -2173,7 +2174,8 @@ class dydx(Exchange, ImplicitAPI):
         #     ]
         # }
         #
-        return self.safe_list(response, 'transfers', [])
+        transfers = self.safe_list(response, 'transfers', [])
+        return transfers
 
     def fetch_accounts(self, params: dict = {}) -> list[Account]:
         """
@@ -2344,7 +2346,7 @@ class dydx(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' nonce() requires a numeric options["timeDifference"]')
         return self.milliseconds() - timeDifference
 
-    def get_wallet_address(self):
+    def get_wallet_address(self) -> str:
         if self.walletAddress is not None and self.walletAddress != '':
             return self.walletAddress
         dydxAccount = self.safe_dict(self.options, 'dydxAccount')
@@ -2355,7 +2357,7 @@ class dydx(Exchange, ImplicitAPI):
                 return wallet
         raise ArgumentsRequired(self.id + ' getWalletAddress() requires a wallet address. Set `walletAddress` or `dydxAccount` in exchange options.')
 
-    def sign(self, path: str, section: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, section: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         requestHeaders = None
         requestBody = None
         pathWithParams = self.implode_params(path, params)
@@ -2393,7 +2395,7 @@ class dydx(Exchange, ImplicitAPI):
         if (errorCode is None) or (errorCode == ''):
             errorCode = self.safe_string(response, 'code')
         if (errorCode is not None) and (errorCode != ''):
-            errorCodeNum = self.parse_to_numeric(errorCode)
+            errorCodeNum = self.parse_to_int(errorCode)
             if errorCodeNum > 0:
                 feedback = self.id + ' ' + self.json(response)
                 self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)

@@ -110,6 +110,13 @@ class gate(ccxt.async_support.gate):
                 },
             },
             'options': {
+                'ws': {
+                    'options': {
+                        'headers': {
+                            'X-Gate-Size-Decimal': '1',  # contract sizes are pushed as decimal strings instead of rounded-down integers
+                        },
+                    },
+                },
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
                 'watchTradesSubscriptions': {},
@@ -437,7 +444,7 @@ class gate(ccxt.async_support.gate):
         limitResolved = defaultLimit if (limit is None) else limit
         if market['spot'] is True:
             # the subscription limit seeds the rest snapshot, gateeu returns an empty book above 100
-            maxSpotLimit = self.handle_option('fetchOrderBook', 'maxSpotLimit', 1000)
+            maxSpotLimit = self.parse_to_int(self.handle_option('fetchOrderBook', 'maxSpotLimit', 1000))
             limitResolved = min(limitResolved, maxSpotLimit)
         payload = []
         channel = ''
@@ -555,7 +562,7 @@ class gate(ccxt.async_support.gate):
         if self.safe_value(self.orderbooks, symbol) is None:
             self.orderbooks[symbol] = self.order_book({}, 1000)
         orderbook = self.orderbooks[symbol]
-        if full is True:
+        if full:
             snapshopt = self.parse_order_book(result, symbol, None, 'b', 'a')
             snapshopt['nonce'] = self.safe_integer(result, 'u')
             snapshopt['timestamp'] = self.safe_integer(result, 't')
@@ -641,11 +648,12 @@ class gate(ccxt.async_support.gate):
         storedOrderBook = self.safe_value(self.orderbooks, symbol, self.order_book({}))
         nonce = self.safe_integer(storedOrderBook, 'nonce')
         if nonce is None:
-            cacheLength = 0
+            cacheLength = self.parse_to_int(0)
             if storedOrderBook is not None:
-                cacheLength = len(storedOrderBook.cache)
-            snapshotDelay = self.handle_option('watchOrderBook', 'snapshotDelay', 10)
-            waitAmount = 0
+                storedCacheLength = len(storedOrderBook.cache)
+                cacheLength = self.parse_to_int(storedCacheLength)
+            snapshotDelay = self.parse_to_int(self.handle_option('watchOrderBook', 'snapshotDelay', 10))
+            waitAmount = self.parse_to_int(0)
             if isSpot:
                 waitAmount = snapshotDelay
             if cacheLength == waitAmount:
@@ -657,7 +665,7 @@ class gate(ccxt.async_support.gate):
             return
         elif (deltaEnd is not None) and (nonce >= deltaEnd):
             return
-        elif (deltaStart is not None) and (nonce >= deltaStart - 1):
+        elif (deltaStart is not None) and (nonce is not None) and (nonce >= deltaStart - 1):
             self.handle_book_delta(storedOrderBook, delta)
         else:
             del client.subscriptions[messageHash]
@@ -723,7 +731,7 @@ class gate(ccxt.async_support.gate):
         symbolValue = market['symbol']
         params['callerMethodName'] = 'watchTicker'
         result = await self.watch_tickers([symbolValue], params)
-        return self.safe_value(result, symbolValue)
+        return self.safe_dict(result, symbolValue)
 
     def watch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
@@ -956,9 +964,12 @@ class gate(ccxt.async_support.gate):
         #     }]
         # }
         #
-        result = self.safe_value(message, 'result')
-        if not isinstance(result, list):
-            result = [result]
+        rawResult = self.safe_value(message, 'result')
+        result = []
+        if isinstance(rawResult, list):
+            result = self.safe_list(message, 'result', [])
+        else:
+            result = [rawResult]
         parsedTrades = self.parse_trades(result)
         for i in range(0, len(parsedTrades)):
             trade = parsedTrades[i]
@@ -1029,9 +1040,12 @@ class gate(ccxt.async_support.gate):
         marketType = 'contract'
         if rawMarketType == 'spot':
             marketType = 'spot'
-        result = self.safe_value(message, 'result')
-        if not isinstance(result, list):
-            result = [result]
+        rawResult = self.safe_value(message, 'result')
+        result = []
+        if isinstance(rawResult, list):
+            result = self.safe_list(message, 'result', [])
+        else:
+            result = [rawResult]
         marketIds = {}
         for i in range(0, len(result)):
             ohlcv = result[i]
@@ -1564,8 +1578,8 @@ class gate(ccxt.async_support.gate):
             elif event == 'finish':
                 status = self.safe_string(parsed, 'status')
                 if status is None:
-                    left = self.safe_integer(info, 'left')
-                    parsed['status'] = 'closed' if (left == 0) else 'canceled'
+                    left = self.safe_string(info, 'left')
+                    parsed['status'] = 'closed' if Precise.string_equals(left, '0') else 'canceled'
             stored.append(parsed)
             symbol = parsed['symbol']
             market = self.market(symbol)
@@ -2062,8 +2076,10 @@ class gate(ccxt.async_support.gate):
     def get_market_type_by_url(self, url: str) -> str:
         findBy = {
             'op-': 'option',
+            '/ws/options/': 'option',
             'delivery': 'future',
             'fx': 'swap',
+            '/ws/futures/': 'swap',
         }
         keys = list(findBy.keys())
         for i in range(0, len(keys)):

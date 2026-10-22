@@ -1130,7 +1130,7 @@ class cryptomus(Exchange, ImplicitAPI):
             'taker': takerFees,
         }
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         endpoint = self.implode_params(path, params)
         paramsOmitted = self.omit(params, self.extract_params(path))
         apiName = api[0]

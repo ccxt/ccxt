@@ -700,7 +700,7 @@ public partial class latoken : Exchange
         }
         string? defaultType = this.safeString2(this.options, "fetchBalance", "defaultType", "spot");
         string? type = this.safeString(parameters, "type", defaultType);
-        object paramsOmitted = this.omit(parameters, "type");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "type"));
         List<object> response = await this.privateGetAuthAccount(paramsOmitted);
         //
         //     [
@@ -729,7 +729,7 @@ public partial class latoken : Exchange
             { "timestamp", null },
             { "datetime", null },
         };
-        object maxTimestamp = null;
+        Int64? maxTimestamp = null;
         IDictionary<string, object> types = this.safeDict(this.options, "types", new Dictionary<string, object>() {});
         string? accountType = this.safeString(types, type, type);
         Dictionary<string, object> balancesByType = this.groupBy(response, "type");
@@ -741,12 +741,9 @@ public partial class latoken : Exchange
             Int64? timestamp = this.safeInteger(balance, "timestamp");
             if ((timestamp != null))
             {
-                if ((maxTimestamp == null))
+                if (((maxTimestamp == null)) || ((timestamp != null && (maxTimestamp == null || timestamp > maxTimestamp))))
                 {
                     maxTimestamp = timestamp;
-                } else
-                {
-                    maxTimestamp = mathMax(maxTimestamp, timestamp);
                 }
             }
             string? code = this.safeCurrencyCode(currencyId);
@@ -1148,7 +1145,7 @@ public partial class latoken : Exchange
         IDictionary<string, object> options = this.safeDict(this.options, "fetchTradingFee", new Dictionary<string, object>() {});
         string? defaultMethod = this.safeString(options, "method", "fetchPrivateTradingFee");
         string? method = this.safeString(parameters, "method", defaultMethod);
-        object paramsOmitted = this.omit(parameters, "method");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "method"));
         if (method == "fetchPrivateTradingFee")
         {
             return ccxt.BaseExchange.ToTradingFeeInterface(await this.FetchPrivateTradingFee(symbol, paramsOmitted));
@@ -1161,7 +1158,7 @@ public partial class latoken : Exchange
         }
     }
 
-    public async virtual Task<Dictionary<string, object>> FetchPublicTradingFee(string? symbol, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchPublicTradingFee(string? symbol, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1185,7 +1182,7 @@ public partial class latoken : Exchange
         return ccxt.BaseExchange.ToDict(new Dictionary<string, object>() {             { "info", response },             { "symbol", (market.ContainsKey("symbol") ? market["symbol"] : null) },             { "maker", this.safeNumber(response, "makerFee") },             { "taker", this.safeNumber(response, "takerFee") },             { "percentage", null },             { "tierBased", null },         });
     }
 
-    public async virtual Task<Dictionary<string, object>> FetchPrivateTradingFee(string? symbol, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchPrivateTradingFee(string? symbol, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1435,7 +1432,7 @@ public partial class latoken : Exchange
         }
         List<object> response = null;
         bool? isTrigger = this.safeBool2(parameters, "trigger", "stop");
-        object paramsOmitted = this.omit(parameters, new List<object>() {"stop", "trigger"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"stop", "trigger"}));
         // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1499,7 +1496,7 @@ public partial class latoken : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
         bool? isTrigger = this.safeBool2(parameters, "trigger", "stop");
-        object paramsOmitted = this.omit(parameters, new List<object>() {"stop", "trigger"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"stop", "trigger"}));
         if ((limit != null))
         {
             request["limit"] = limit; // default 100
@@ -1575,7 +1572,7 @@ public partial class latoken : Exchange
             { "id", id },
         };
         bool? isTrigger = this.safeBool2(parameters, "trigger", "stop");
-        object paramsOmitted = this.omit(parameters, new List<object>() {"stop", "trigger"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"stop", "trigger"}));
         Dictionary<string, object> response = null;
         if ((isTrigger == true))
         {
@@ -1651,7 +1648,7 @@ public partial class latoken : Exchange
             request["price"] = this.priceToPrecision(symbol, price);
         }
         string? triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
-        object paramsOmitted = this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice"}));
         Dictionary<string, object> response = null;
         if ((triggerPrice != null))
         {
@@ -1699,7 +1696,7 @@ public partial class latoken : Exchange
             { "id", id },
         };
         bool? isTrigger = this.safeBool2(parameters, "trigger", "stop");
-        object paramsOmitted = this.omit(parameters, new List<object>() {"stop", "trigger"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"stop", "trigger"}));
         Dictionary<string, object> response = null;
         if ((isTrigger == true))
         {
@@ -1741,7 +1738,7 @@ public partial class latoken : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
         bool? isTrigger = this.safeBool2(parameters, "trigger", "stop");
-        object paramsOmitted = this.omit(parameters, new List<object>() {"stop", "trigger"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"stop", "trigger"}));
         Dictionary<string, object> response = null;
         if ((symbol != null))
         {

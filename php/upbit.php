@@ -346,13 +346,13 @@ class upbit extends Exchange {
         $walletLocked = $this->safe_bool($memberInfo, 'wallet_locked');
         $locked = $this->safe_bool($memberInfo, 'locked');
         $active = true;
-        if (($canWithdraw !== null) && ($canWithdraw !== true)) {
+        if (($canWithdraw !== null) && (!$canWithdraw)) {
             $active = false;
         } elseif ($walletState !== 'working') {
             $active = false;
-        } elseif (($walletLocked !== null) && ($walletLocked === true)) {
+        } elseif (($walletLocked !== null) && ($walletLocked)) {
             $active = false;
-        } elseif (($locked !== null) && ($locked === true)) {
+        } elseif (($locked !== null) && ($locked)) {
             $active = false;
         }
         $maxOnetimeWithdrawal = $this->safe_string($withdrawLimits, 'onetime');
@@ -877,7 +877,7 @@ class upbit extends Exchange {
         return $this->parse_tickers($tickers, $symbolsNormalized);
     }
 
-    public function ids_query_strings(?array $ids, float $maxQueryLength): array {
+    public function ids_query_strings(?array $ids, int $maxQueryLength): array {
         if ($ids === null) {
             return array();
         }
@@ -1356,7 +1356,7 @@ class upbit extends Exchange {
             throw new ArgumentsRequired($this->id . ' createOrder() requires a timeInForce parameter for best type orders');
         }
         $paramsRequest = $this->omit($paramsOrdType, array( 'timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'cost', 'selfTradePrevention', 'smp_type', 'test' ));
-        if ($test === true) {
+        if ($test) {
             $response = $this->privatePostOrdersTest($this->extend($request, $paramsRequest));
         } else {
             $response = $this->privatePostOrders($this->extend($request, $paramsRequest));
@@ -1736,7 +1736,7 @@ class upbit extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'submitting' => 'pending', // 처리 중
             'submitted' => 'pending', // 처리 완료
@@ -1818,7 +1818,7 @@ class upbit extends Exchange {
         );
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'wait' => 'open',
             'done' => 'closed',

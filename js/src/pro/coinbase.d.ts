@@ -194,11 +194,11 @@ export default class coinbase extends coinbaseRest {
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: Dict): Promise<OrderBook>;
-    handleTrade(client: any, message: Dict): void;
-    handleOrder(client: any, message: Dict): void;
+    handleTrade(client: Client, message: Dict): void;
+    handleOrder(client: Client, message: Dict): void;
     parseWsOrder(order: Dict, market?: Market): Order;
-    handleOrderBookHelper(orderbook: any, updates: any): void;
-    handleOrderBook(client: any, message: Dict): void;
+    handleOrderBookHelper(orderbook: any, updates: any[]): void;
+    handleOrderBook(client: Client, message: Dict): void;
     tryResolveUsdc(client: Client, messageHash: string, result: any): void;
     handleSubscriptionStatus(client: Client, message: Dict): Dict;
     handleHeartbeats(client: Client, message: Dict): Dict;

@@ -149,7 +149,7 @@ public partial class weex : ccxt.weex
     public virtual void authenticate(object url)
     {
         this.checkRequiredCredentials();
-        if (((this.clients != null)) && (inOp(this.clients, url)))
+        if (((this.clients != null)) && ((this.clients != null && url != null && this.clients.ContainsKey((string)url))))
         {
             return;
         }
@@ -679,7 +679,7 @@ public partial class weex : ccxt.weex
             await this.loadMarkets();
         }
         string? callerMethodName = this.safeString(parameters, "callerMethodName", "watchOHLCVForSymbols");
-        object paramsOmitted = this.omit(parameters, "callerMethodName");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "callerMethodName"));
         List<object> channels = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         List<object> firstEntry = this.safeList(symbolsAndTimeframes, 0, new List<object>() {});
@@ -762,7 +762,7 @@ public partial class weex : ccxt.weex
             await this.loadMarkets();
         }
         string? callerMethodName = this.safeString(parameters, "callerMethodName", "unWatchOHLCVForSymbols");
-        object paramsOmitted = this.omit(parameters, "callerMethodName");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "callerMethodName"));
         List<object> channels = new List<object>() {};
         List<object> subHashes = new List<object>() {};
         List<object> unSubHashes = new List<object>() {};
@@ -933,7 +933,7 @@ public partial class weex : ccxt.weex
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
         bool? isContract = ((bool?)(firstMarket != null && firstMarket.ContainsKey("contract") ? firstMarket["contract"] : null));
         string? callerMethodName = this.safeString(parameters, "callerMethodName", "watchOrderBookForSymbols");
-        object paramsOmitted = this.omit(parameters, "callerMethodName");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "callerMethodName"));
         string depth = "200";
         (string?, object) depthOptionparamsDepthVariable = this.handleOptionStringAndParams(paramsOmitted, callerMethodName, "depth", depth);
         string? depthOption = depthOptionparamsDepthVariable.Item1;
@@ -996,7 +996,7 @@ public partial class weex : ccxt.weex
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
         bool? isContract = ((bool?)(firstMarket != null && firstMarket.ContainsKey("contract") ? firstMarket["contract"] : null));
         string? callerMethodName = this.safeString(parameters, "callerMethodName", "unWatchOrderBookForSymbols");
-        object paramsOmitted = this.omit(parameters, "callerMethodName");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "callerMethodName"));
         string depth = "200";
         (string?, object) depthOptionparamsDepthVariable = this.handleOptionStringAndParams(paramsOmitted, callerMethodName, "depth", depth);
         string? depthOption = depthOptionparamsDepthVariable.Item1;
@@ -1836,7 +1836,7 @@ public partial class weex : ccxt.weex
         IDictionary<string, object> options = this.safeDict(this.options, "watchBalance");
         bool? fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
         bool? awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
-        if (((fetchBalanceSnapshot == true)) && ((awaitBalanceSnapshot == true)))
+        if ((fetchBalanceSnapshot == true) && (awaitBalanceSnapshot == true))
         {
             await client.future(add(type, ":fetchBalanceSnapshot"));
         }
@@ -1855,7 +1855,7 @@ public partial class weex : ccxt.weex
         if ((fetchBalanceSnapshot == true))
         {
             object messageHash = add(type, ":fetchBalanceSnapshot");
-            if (!(inOp(client.futures, messageHash)))
+            if (!((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash))))
             {
                 client.future(messageHash);
                 this.spawn(this.loadBalanceSnapshot, new object[] { client, messageHash, type});
@@ -1874,11 +1874,11 @@ public partial class weex : ccxt.weex
         Dictionary<string, object> response = ccxt.BaseExchange.FromBalances(await this.FetchBalance(parameters));
         this.balance[(string)type] = this.extend(response, this.safeDict(this.balance, type, new Dictionary<string, object>() {}));
         // don't remove the future from the .futures cache
-        if (inOp(client.futures, messageHash))
+        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
         {
             Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve();
-            client.resolve(getValue(this.balance, type), add(type, ":balance"));
+            client.resolve((this.balance != null && type != null && this.balance.ContainsKey((string)type) ? this.balance[(string)type] : null), add(type, ":balance"));
         }
     }
 
@@ -1948,7 +1948,7 @@ public partial class weex : ccxt.weex
             accountType = "swap";
         }
         string messageHash = (accountType + ":balance");
-        if (isEqual((this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null), null))
+        if (((this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null) == null))
         {
             this.balance[accountType] = new Dictionary<string, object>() {};
         }
@@ -2039,7 +2039,7 @@ public partial class weex : ccxt.weex
         }
     }
 
-    public async virtual Task loadPositionsSnapshot(WebSocketClient client, object messageHash, object parameters)
+    public async virtual Task loadPositionsSnapshot(WebSocketClient client, object messageHash, IDictionary<string, object> parameters)
     {
         List<object> positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(null, parameters));
         this.positions = new ArrayCacheBySymbolById();
@@ -2227,7 +2227,7 @@ public partial class weex : ccxt.weex
         //     }
         //
         bool? result = this.safeBool(message, "result", true);
-        if ((result != true))
+        if (result != true)
         {
             string? msg = this.safeString(message, "msg", "");
             string feedback = ((this.id + " ") + this.json(message));

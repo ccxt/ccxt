@@ -235,7 +235,7 @@ export class BaseExchange {
     [key: string]: any;
 
     // this is updated by vss.js when building
-    static ccxtVersion = '4.5.88';
+    static ccxtVersion = '4.5.89';
 
     options: Dict;
 
@@ -340,7 +340,7 @@ export class BaseExchange {
     accountId!: string;
 
     balance: Dict = {};
-    liquidations: any = undefined;
+    liquidations: ArrayCache | undefined = undefined;
     orderbooks: Dictionary<WsOrderBook> = {};
     tickers: Dictionary<Ticker> = {};
     fundingRates: Dictionary<FundingRate> = {};
@@ -350,7 +350,7 @@ export class BaseExchange {
     trades: Dictionary<ArrayCache>;
     transactions: Dictionary<Transaction> = {};
     ohlcvs: Dictionary<Dictionary<ArrayCacheByTimestamp>>;
-    myLiquidations: any = undefined;
+    myLiquidations: ArrayCache | undefined = undefined;
     myTrades: ArrayCache | undefined;
     positions: any;
     urls!: {
@@ -755,7 +755,7 @@ export class BaseExchange {
                 } catch (e) {
                     //  when they are actually needed (in setProxyAgents) 'NotSupported' exception with install instructions is already raised
                 }
-                if (this.socksProxyAgentModuleChecked === false) {
+                if (!this.socksProxyAgentModuleChecked) {
                     try {
                         // @ts-ignore
                         this.socksProxyAgentModule = await dynamicImport ('socks-proxy-agent');
@@ -2402,8 +2402,18 @@ export class BaseExchange {
     }
 
     checkOptionBool (methodName: Str, optionName: string, value: any): Bool {
-        // the statically typed ports throw on a present non-boolean value; here it passes through unchanged
-        return value;
+        // "true"/"false" strings and 1/0 numbers read as booleans; any other present non-boolean throws BadRequest
+        if ((value === undefined) || (value === null)) {
+            return undefined;
+        }
+        if ((value === true) || (value === 'true') || (value === 1)) {
+            return true;
+        }
+        if ((value === false) || (value === 'false') || (value === 0)) {
+            return false;
+        }
+        const label = (methodName === undefined) ? 'exchange-wide' : methodName + '()';
+        throw new BadRequest (this.id + ' ' + label + ' option ' + optionName + ' must be a boolean');
     }
 
     checkOptionInteger (methodName: Str, optionName: string, value: any): Int {
@@ -2816,7 +2826,7 @@ export class BaseExchange {
                 'borrowMargin': undefined,
                 'cancelAllOrders': undefined,
                 'cancelAllOrdersWs': undefined,
-                'cancelOrder': true,
+                'cancelOrder': undefined,
                 'cancelOrderWithClientOrderId': undefined,
                 'cancelOrderWs': undefined,
                 'cancelOrders': undefined,
@@ -2827,7 +2837,7 @@ export class BaseExchange {
                 'createDepositAddress': undefined,
                 'createLimitBuyOrder': undefined,
                 'createLimitBuyOrderWs': undefined,
-                'createLimitOrder': true,
+                'createLimitOrder': undefined,
                 'createLimitOrderWs': undefined,
                 'createLimitSellOrder': undefined,
                 'createLimitSellOrderWs': undefined,
@@ -2835,15 +2845,15 @@ export class BaseExchange {
                 'createMarketBuyOrderWs': undefined,
                 'createMarketBuyOrderWithCost': undefined,
                 'createMarketBuyOrderWithCostWs': undefined,
-                'createMarketOrder': true,
-                'createMarketOrderWs': true,
+                'createMarketOrder': undefined,
+                'createMarketOrderWs': undefined,
                 'createMarketOrderWithCost': undefined,
                 'createMarketOrderWithCostWs': undefined,
                 'createMarketSellOrder': undefined,
                 'createMarketSellOrderWs': undefined,
                 'createMarketSellOrderWithCost': undefined,
                 'createMarketSellOrderWithCostWs': undefined,
-                'createOrder': true,
+                'createOrder': undefined,
                 'createOrderWs': undefined,
                 'createOrders': undefined,
                 'createOrderWithTakeProfitAndStopLoss': undefined,
@@ -2875,7 +2885,7 @@ export class BaseExchange {
                 'editOrderWs': undefined,
                 'fetchAccounts': undefined,
                 'fetchADLRank': undefined,
-                'fetchBalance': true,
+                'fetchBalance': undefined,
                 'fetchBalanceWs': undefined,
                 'fetchBidsAsks': undefined,
                 'fetchBorrowInterest': undefined,
@@ -2918,7 +2928,7 @@ export class BaseExchange {
                 'fetchIsolatedBorrowRates': undefined,
                 'fetchMarginAdjustmentHistory': undefined,
                 'fetchIsolatedPositions': undefined,
-                'fetchL2OrderBook': true,
+                'fetchL2OrderBook': undefined,
                 'fetchL3OrderBook': undefined,
                 'fetchLastPrices': undefined,
                 'fetchLedger': undefined,
@@ -2951,7 +2961,7 @@ export class BaseExchange {
                 'fetchOptionChain': undefined,
                 'fetchOrder': undefined,
                 'fetchOrderWithClientOrderId': undefined,
-                'fetchOrderBook': true,
+                'fetchOrderBook': undefined,
                 'fetchOrderBooks': undefined,
                 'fetchOrderBookWs': undefined,
                 'fetchOrders': undefined,
@@ -2974,13 +2984,13 @@ export class BaseExchange {
                 'fetchPremiumIndexOHLCV': undefined,
                 'fetchSettlementHistory': undefined,
                 'fetchStatus': undefined,
-                'fetchTicker': true,
+                'fetchTicker': 'emulated',
                 'fetchTickerWs': undefined,
                 'fetchTickers': undefined,
                 'fetchMarkPrices': undefined,
                 'fetchTickersWs': undefined,
                 'fetchTime': undefined,
-                'fetchTrades': true,
+                'fetchTrades': undefined,
                 'fetchTradesWs': undefined,
                 'fetchTradingFee': undefined,
                 'fetchTradingFees': undefined,
@@ -3342,7 +3352,7 @@ export class BaseExchange {
         }
     }
 
-    handleDeltas (bookside: any, deltas: any) {
+    handleDeltas (bookside: any, deltas: any[]) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
@@ -3572,10 +3582,10 @@ export class BaseExchange {
             if (arrayLength > 0) {
                 let ascending = true;
                 if ((key in array[0])) {
-                    const first = array[0][key];
-                    const last = array[arrayLength - 1][key];
+                    const first = this.safeFloat (array[0], key);
+                    const last = this.safeFloat (array[arrayLength - 1], key);
                     if (first !== undefined && last !== undefined) {
-                        ascending = first <= last;  // true if array is sorted in ascending order based on 'timestamp'
+                        ascending = last >= first;  // true if array is sorted in ascending order based on 'timestamp'
                     }
                 }
                 if (fromStart) {
@@ -3605,8 +3615,8 @@ export class BaseExchange {
             result = [ ];
             for (let i = 0; i < parsedArray.length; i++) {
                 const entry = parsedArray[i];
-                const value = this.safeValue (entry, key);
-                if ((value !== undefined) && (value !== null) && (value !== 0) && (value >= since)) {
+                const value = this.safeInteger (entry, key);
+                if ((value !== undefined) && (value !== 0) && (value >= since)) {
                     result.push (entry);
                 }
             }
@@ -3634,8 +3644,8 @@ export class BaseExchange {
                 // KeyError in python/php — prediction structures key on outcome, not symbol
                 const entryFiledEqualValue = this.safeValue (entry, field) === value;
                 const firstCondition: boolean = valueIsDefined ? entryFiledEqualValue : true;
-                const entryKeyValue = this.safeValue (entry, key);
-                const entryKeyGESince = (entryKeyValue !== undefined) && (entryKeyValue !== null) && (entryKeyValue !== 0) && (since !== undefined) && (entryKeyValue >= since);
+                const entryKeyValue = this.safeInteger (entry, key);
+                const entryKeyGESince = (entryKeyValue !== undefined) && (entryKeyValue !== 0) && (since !== undefined) && (entryKeyValue >= since);
                 const secondCondition: boolean = sinceIsDefined ? entryKeyGESince : true;
                 if (firstCondition && secondCondition) {
                     result.push (entry);
@@ -3703,7 +3713,7 @@ export class BaseExchange {
         this.options['enableDemoTrading'] = enable;
     }
 
-    sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+    sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         return { 'url': undefined, 'method': undefined, 'headers': undefined, 'body': undefined };
     }
 
@@ -4090,6 +4100,7 @@ export class BaseExchange {
         const networkIdsToCodesGenerated = this.invertFlatStringDictionary (this.safeValue (this.options, 'networks', {}));
         this.options['networksById'] = this.extend (networkIdsToCodesGenerated, this.safeValue (this.options, 'networksById', {}));
         this.featuresGenerator ();
+        this.hasAutocorrect ();
         // init predefined markets if any
         if (this.markets !== undefined) {
             this.setMarkets (this.markets);
@@ -4098,12 +4109,32 @@ export class BaseExchange {
         this.initRestRateLimiter ();
         // sanbox mode
         const isSandbox = this.safeBool2 (this.options, 'sandbox', 'testnet', false);
-        if (isSandbox === true) {
+        if (isSandbox) {
             this.setSandboxMode (isSandbox);
         }
         // compatibility for sandbox/testnet options in userConfig
         if ((this.safeBool (userConfig, 'sandbox', false)) || (this.safeBool (userConfig, 'testnet', false))) {
             this.setSandboxMode (true);
+        }
+    }
+
+    hasAutocorrect () {
+        const fallbacks: Dict = {
+            'fetchL2OrderBook': 'fetchOrderBook',
+            'createLimitOrder': 'createOrder',
+            'createMarketOrder': 'createOrder',
+            'createLimitOrderWs': 'createOrderWs',
+            'createMarketOrderWs': 'createOrderWs',
+        };
+        const targets = Object.keys (fallbacks);
+        for (let i = 0; i < targets.length; i++) {
+            const target = targets[i];
+            const source = fallbacks[target];
+            const sourceDefined = (source in this.has) && (this.has[source] !== undefined);
+            const targetDefined = (target in this.has) && (this.has[target] !== undefined);
+            if (sourceDefined && !targetDefined) {
+                this.has[target] = this.has[source];
+            }
         }
     }
 
@@ -4570,18 +4601,19 @@ export class BaseExchange {
 
     setMarkets (markets: any, currencies: any = undefined): Dictionary<Market> {
         const values: Dict[] = [];
-        this.markets_by_id = this.createSafeDictionary ();
+        // build the id index locally and publish it in one swap, so ws handlers never see a half-built table
+        const marketsById: Dict = {};
         // handle marketId conflicts
         // we insert spot markets first
         const marketValues = this.sortBy (this.toArray (markets), 'spot', true, true);
         for (let i = 0; i < marketValues.length; i++) {
             const value = marketValues[i];
-            if (value['id'] in this.markets_by_id) {
-                const marketsByIdArray = (this.markets_by_id[value['id']] as any);
+            if (value['id'] in marketsById) {
+                const marketsByIdArray = (marketsById[value['id']] as any);
                 marketsByIdArray.push (value);
-                this.markets_by_id[value['id']] = marketsByIdArray;
+                marketsById[value['id']] = marketsByIdArray;
             } else {
-                this.markets_by_id[value['id']] = [ value ];
+                marketsById[value['id']] = [ value ];
             }
             // strip undefined-valued keys from the parsed market before deepExtend,
             // otherwise an explicit `taker: undefined` (from safeMarketStructure)
@@ -4608,6 +4640,7 @@ export class BaseExchange {
             values.push (market);
         }
         this.markets = this.mapToSafeMap (this.indexBy (values, 'symbol'));
+        this.markets_by_id = this.mapToSafeMap (marketsById);
         const marketsSortedBySymbol = this.keysort (this.markets);
         const marketsSortedById = this.keysort (this.markets_by_id);
         this.symbols = Object.keys (marketsSortedBySymbol);
@@ -4666,7 +4699,7 @@ export class BaseExchange {
                         continue;
                     }
                     if (this.precisionMode === TICK_SIZE) {
-                        if (currentPrecision < highestPrecision) {
+                        if (highestPrecision > currentPrecision) {
                             highestPrecisionCurrency = currentCurrency;
                         }
                     } else if (currentPrecision > highestPrecision) {
@@ -4936,7 +4969,7 @@ export class BaseExchange {
         if (average === undefined) {
             if ((filled !== undefined) && (cost !== undefined) && Precise.stringGt (filled, '0')) {
                 const filledTimesContractSize = Precise.stringMul (filled, contractSize);
-                if (inverse === true) {
+                if (inverse) {
                     average = Precise.stringDiv (filledTimesContractSize, cost);
                 } else {
                     average = Precise.stringDiv (cost, filledTimesContractSize);
@@ -4959,7 +4992,7 @@ export class BaseExchange {
             }
             // contract trading
             const filledTimesContractSize = Precise.stringMul (filled, contractSize);
-            if (inverse === true) {
+            if (inverse) {
                 cost = Precise.stringDiv (filledTimesContractSize, multiplyPrice);
             } else {
                 cost = Precise.stringMul (filledTimesContractSize, multiplyPrice);
@@ -5181,7 +5214,7 @@ export class BaseExchange {
             let multiplyPrice = price;
             if (contractSize !== undefined) {
                 const inverse = this.safeBool (market, 'inverse', false);
-                if (inverse === true) {
+                if (inverse) {
                     multiplyPrice = Precise.stringDiv ('1', price);
                 }
                 multiplyPrice = Precise.stringMul (multiplyPrice, contractSize);
@@ -5656,7 +5689,7 @@ export class BaseExchange {
         } catch (e) {
             errorMessage = this.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.';
         }
-        if (muteOnFailure === true) {
+        if (muteOnFailure) {
             return undefined;
         } else {
             throw new BadResponse (errorMessage);
@@ -6028,7 +6061,7 @@ export class BaseExchange {
                 const market = this.safeMarket (id, undefined, undefined, 'swap');
                 const symbol = market['symbol'];
                 const contract = this.safeBool (market, 'contract', false);
-                if ((contract === true) && (noSymbols || ((symbolsNormalized !== undefined) && this.inArray (symbol, symbolsNormalized)))) {
+                if ((contract) && (noSymbols || ((symbolsNormalized !== undefined) && this.inArray (symbol, symbolsNormalized)))) {
                     tiers[symbol] = this.parseMarketLeverageTiers (item, market);
                 }
             }
@@ -6040,7 +6073,7 @@ export class BaseExchange {
                 const market = this.safeMarket (marketId, undefined, undefined, 'swap');
                 const symbol = market['symbol'];
                 const contract = this.safeBool (market, 'contract', false);
-                if ((contract === true) && (noSymbols || ((symbolsNormalized !== undefined) && this.inArray (symbol, symbolsNormalized)))) {
+                if ((contract) && (noSymbols || ((symbolsNormalized !== undefined) && this.inArray (symbol, symbolsNormalized)))) {
                     tiers[symbol] = this.parseMarketLeverageTiers (item, market);
                 }
             }
@@ -6069,17 +6102,6 @@ export class BaseExchange {
 
     safePosition (position: Dict): Position {
         // simplified version of: /pull/12765/
-        const unrealizedPnlString = this.safeString (position, 'unrealizedPnl');
-        const initialMarginString = this.safeString (position, 'initialMargin');
-        //
-        // PERCENTAGE
-        //
-        const percentage = this.safeValue (position, 'percentage');
-        if ((percentage === undefined) && (unrealizedPnlString !== undefined) && (initialMarginString !== undefined)) {
-            // as it was done in all implementations ( aax, btcex, bybit, deribit, gate, kucoinfutures, phemex )
-            const percentageString = Precise.stringMul (Precise.stringDiv (unrealizedPnlString, initialMarginString, 4), '100');
-            position['percentage'] = this.parseNumber (percentageString);
-        }
         // if contractSize is undefined get from market
         let contractSize = this.safeNumber (position, 'contractSize');
         const symbol = this.safeString (position, 'symbol');
@@ -6090,6 +6112,317 @@ export class BaseExchange {
         if (contractSize === undefined && market !== undefined) {
             contractSize = this.safeNumber (market, 'contractSize');
             position['contractSize'] = contractSize;
+        }
+        const isInverse = (market !== undefined) && this.safeBool (market, 'inverse', false);
+        const side = this.safeString (position, 'side');
+        const marginMode = this.safeString (position, 'marginMode');
+        let unrealizedPnlString = this.safeString (position, 'unrealizedPnl');
+        let initialMarginString = this.safeString (position, 'initialMargin');
+        let maintenanceMarginString = this.safeString (position, 'maintenanceMargin');
+        let collateralString = this.safeString (position, 'collateral');
+        let entryPriceString = this.safeString (position, 'entryPrice');
+        let liquidationPriceString = this.safeString (position, 'liquidationPrice');
+        let contractsString = this.safeString (position, 'contracts');
+        let contractSizeString = this.safeString (position, 'contractSize');
+        // margin is the amount held in the position (excludes unrealized pnl), collateral = margin + unrealizedPnl
+        let marginString = this.safeString (position, 'positionMargin');
+        if ((marginString === undefined) && (marginMode === 'isolated') && (collateralString !== undefined)) {
+            let derivedMargin: Str = collateralString;
+            if ((unrealizedPnlString !== undefined) && !Precise.stringEq (collateralString, initialMarginString)) {
+                derivedMargin = Precise.stringSub (collateralString, unrealizedPnlString);
+            }
+            if (Precise.stringGt (derivedMargin, '0')) {
+                marginString = derivedMargin;
+                position['positionMargin'] = this.parseNumber (derivedMargin);
+            }
+        }
+        if (marginString === undefined) {
+            position['positionMargin'] = undefined; // keep the unified key present across all exchanges
+        }
+        if ((collateralString === undefined) && (marginString !== undefined) && (unrealizedPnlString !== undefined)) {
+            collateralString = Precise.stringAdd (marginString, unrealizedPnlString);
+            position['collateral'] = this.parseNumber (collateralString);
+        }
+        if (marginMode === 'isolated') {
+            let entryMarginString = marginString;
+            if ((entryMarginString === undefined) && (collateralString === undefined)) {
+                entryMarginString = initialMarginString;
+            }
+            const hasEntryMargin = (entryMarginString !== undefined) && Precise.stringGt (entryMarginString, '0');
+            const hasEntryPrice = (entryPriceString !== undefined) && Precise.stringGt (entryPriceString, '0');
+            const hasLiqPrice = (liquidationPriceString !== undefined) && Precise.stringGt (liquidationPriceString, '0');
+            const hasContracts = (contractsString !== undefined) && Precise.stringGt (contractsString, '0');
+            const hasContractSize = (contractSizeString !== undefined) && Precise.stringGt (contractSizeString, '0');
+            const hasMm = (maintenanceMarginString !== undefined) && Precise.stringGt (maintenanceMarginString, '0');
+            let priceDiff: Str = undefined;
+            if (hasEntryPrice && hasLiqPrice) {
+                if (isInverse) {
+                    const invEntry = Precise.stringDiv ('1', entryPriceString);
+                    const invLiq = Precise.stringDiv ('1', liquidationPriceString);
+                    if (side === 'long') {
+                        priceDiff = Precise.stringSub (invLiq, invEntry);
+                    } else if (side === 'short') {
+                        priceDiff = Precise.stringSub (invEntry, invLiq);
+                    } else {
+                        priceDiff = Precise.stringAbs (Precise.stringSub (invEntry, invLiq));
+                    }
+                } else {
+                    if (side === 'long') {
+                        priceDiff = Precise.stringSub (entryPriceString, liquidationPriceString);
+                    } else if (side === 'short') {
+                        priceDiff = Precise.stringSub (liquidationPriceString, entryPriceString);
+                    } else {
+                        priceDiff = Precise.stringAbs (Precise.stringSub (entryPriceString, liquidationPriceString));
+                    }
+                }
+            }
+            const hasPriceDiff = (priceDiff !== undefined) && Precise.stringGt (priceDiff, '0');
+            if ((maintenanceMarginString === undefined) && hasEntryMargin && hasPriceDiff && hasContracts && hasContractSize) {
+                const lossFromEntry = Precise.stringMul (priceDiff, Precise.stringMul (contractsString, contractSizeString));
+                const derivedMm = Precise.stringSub (entryMarginString, lossFromEntry);
+                if (Precise.stringGt (derivedMm, '0')) {
+                    maintenanceMarginString = derivedMm;
+                    position['maintenanceMargin'] = this.parseNumber (derivedMm);
+                }
+            } else if ((collateralString === undefined) && (initialMarginString === undefined) && hasMm && hasPriceDiff && hasContracts && hasContractSize) {
+                const lossFromEntry = Precise.stringMul (priceDiff, Precise.stringMul (contractsString, contractSizeString));
+                const derivedEntryMargin = Precise.stringAdd (maintenanceMarginString, lossFromEntry);
+                if (Precise.stringGt (derivedEntryMargin, '0')) {
+                    initialMarginString = derivedEntryMargin;
+                    position['initialMargin'] = this.parseNumber (derivedEntryMargin);
+                    marginString = derivedEntryMargin;
+                    position['positionMargin'] = this.parseNumber (derivedEntryMargin);
+                    let derivedCollateral: Str = derivedEntryMargin;
+                    if (unrealizedPnlString !== undefined) {
+                        derivedCollateral = Precise.stringAdd (derivedEntryMargin, unrealizedPnlString);
+                    }
+                    if (Precise.stringGt (derivedCollateral, '0')) {
+                        collateralString = derivedCollateral;
+                        position['collateral'] = this.parseNumber (derivedCollateral);
+                    }
+                }
+            } else if ((liquidationPriceString === undefined) && hasEntryMargin && hasMm && hasEntryPrice && hasContracts && hasContractSize && ((side === 'long') || (side === 'short'))) {
+                const marginBuffer = Precise.stringSub (entryMarginString, maintenanceMarginString);
+                const totalSize = Precise.stringMul (contractsString, contractSizeString);
+                if (Precise.stringGt (marginBuffer, '0') && Precise.stringGt (totalSize, '0')) {
+                    const bufferPerUnit = Precise.stringDiv (marginBuffer, totalSize);
+                    let derivedLp = Precise.stringAdd (entryPriceString, bufferPerUnit);
+                    if (side === 'long') {
+                        derivedLp = Precise.stringSub (entryPriceString, bufferPerUnit);
+                    }
+                    if (isInverse) {
+                        const invEntry = Precise.stringDiv ('1', entryPriceString);
+                        let invDerivedLp = Precise.stringSub (invEntry, bufferPerUnit);
+                        if (side === 'long') {
+                            invDerivedLp = Precise.stringAdd (invEntry, bufferPerUnit);
+                        }
+                        // 1 / invDerivedLp keeps its sign (undefined at 0), so the > 0 guard below
+                        // rejects exactly the values a separate invDerivedLp > 0 check would
+                        derivedLp = Precise.stringDiv ('1', invDerivedLp);
+                    }
+                    if ((derivedLp !== undefined) && Precise.stringGt (derivedLp, '0')) {
+                        liquidationPriceString = derivedLp;
+                        position['liquidationPrice'] = this.parseNumber (derivedLp);
+                    }
+                }
+            } else if ((entryPriceString === undefined) && hasEntryMargin && hasMm && hasLiqPrice && hasContracts && hasContractSize && ((side === 'long') || (side === 'short'))) {
+                const marginBuffer = Precise.stringSub (entryMarginString, maintenanceMarginString);
+                const totalSize = Precise.stringMul (contractsString, contractSizeString);
+                if (Precise.stringGt (marginBuffer, '0') && Precise.stringGt (totalSize, '0')) {
+                    const bufferPerUnit = Precise.stringDiv (marginBuffer, totalSize);
+                    let derivedEp = Precise.stringSub (liquidationPriceString, bufferPerUnit);
+                    if (side === 'long') {
+                        derivedEp = Precise.stringAdd (liquidationPriceString, bufferPerUnit);
+                    }
+                    if (isInverse) {
+                        const invLp = Precise.stringDiv ('1', liquidationPriceString);
+                        let invEp = Precise.stringAdd (invLp, bufferPerUnit);
+                        if (side === 'long') {
+                            invEp = Precise.stringSub (invLp, bufferPerUnit);
+                        }
+                        // 1 / invEp keeps its sign (undefined at 0), so the > 0 guard below
+                        // rejects exactly the values a separate invEp > 0 check would
+                        derivedEp = Precise.stringDiv ('1', invEp);
+                    }
+                    if ((derivedEp !== undefined) && Precise.stringGt (derivedEp, '0')) {
+                        entryPriceString = derivedEp;
+                        position['entryPrice'] = this.parseNumber (derivedEp);
+                    }
+                }
+            } else if ((contractsString === undefined) && hasEntryMargin && hasMm && hasPriceDiff && hasContractSize) {
+                const marginBuffer = Precise.stringSub (entryMarginString, maintenanceMarginString);
+                const denom = Precise.stringMul (priceDiff, contractSizeString);
+                if (Precise.stringGt (marginBuffer, '0') && Precise.stringGt (denom, '0')) {
+                    const derivedContracts = Precise.stringDiv (marginBuffer, denom);
+                    if (Precise.stringGt (derivedContracts, '0')) {
+                        contractsString = derivedContracts;
+                        position['contracts'] = this.parseNumber (derivedContracts);
+                    }
+                }
+            } else if ((contractSizeString === undefined) && hasEntryMargin && hasMm && hasPriceDiff && hasContracts) {
+                const marginBuffer = Precise.stringSub (entryMarginString, maintenanceMarginString);
+                const denom = Precise.stringMul (priceDiff, contractsString);
+                if (Precise.stringGt (marginBuffer, '0') && Precise.stringGt (denom, '0')) {
+                    const derivedContractSize = Precise.stringDiv (marginBuffer, denom);
+                    if (Precise.stringGt (derivedContractSize, '0')) {
+                        contractSizeString = derivedContractSize;
+                        position['contractSize'] = this.parseNumber (derivedContractSize);
+                    }
+                }
+            }
+        }
+        //
+        // POSITION-LOCAL DERIVATIONS (CROSS & ISOLATED)
+        //
+        const isZeroPosition = (contractsString !== undefined) && Precise.stringEq (contractsString, '0');
+        if (!isZeroPosition) {
+            let notionalString = this.safeString (position, 'notional');
+            let markPriceString = this.safeString (position, 'markPrice');
+            const lastPriceString = this.safeString (position, 'lastPrice');
+            const hasContracts = (contractsString !== undefined) && Precise.stringGt (contractsString, '0');
+            const hasContractSize = (contractSizeString !== undefined) && Precise.stringGt (contractSizeString, '0');
+            const hasMarkPrice = (markPriceString !== undefined) && Precise.stringGt (markPriceString, '0');
+            const hasNotional = (notionalString !== undefined) && Precise.stringGt (notionalString, '0');
+            // 1. notional <-> markPrice / contracts / contractSize
+            if ((notionalString === undefined) && hasMarkPrice && hasContracts && hasContractSize) {
+                const totalSize = Precise.stringMul (contractsString, contractSizeString);
+                let derivedNotional = Precise.stringMul (totalSize, markPriceString);
+                if (isInverse) {
+                    derivedNotional = Precise.stringDiv (totalSize, markPriceString);
+                }
+                if (Precise.stringGt (derivedNotional, '0')) {
+                    notionalString = derivedNotional;
+                    position['notional'] = this.parseNumber (derivedNotional);
+                }
+            } else if ((markPriceString === undefined) && (entryPriceString === undefined) && (lastPriceString === undefined) && hasNotional && hasContracts && hasContractSize) {
+                const totalSize = Precise.stringMul (contractsString, contractSizeString);
+                let derivedMark = Precise.stringDiv (notionalString, totalSize);
+                if (isInverse) {
+                    derivedMark = Precise.stringDiv (totalSize, notionalString);
+                }
+                if (Precise.stringGt (derivedMark, '0')) {
+                    markPriceString = derivedMark;
+                    position['markPrice'] = this.parseNumber (derivedMark);
+                }
+            } else if ((contractsString === undefined) && hasNotional && hasMarkPrice && hasContractSize) {
+                let notionalContracts = Precise.stringDiv (notionalString, Precise.stringMul (markPriceString, contractSizeString));
+                if (isInverse) {
+                    notionalContracts = Precise.stringDiv (Precise.stringMul (notionalString, markPriceString), contractSizeString);
+                }
+                if (Precise.stringGt (notionalContracts, '0')) {
+                    contractsString = notionalContracts;
+                    position['contracts'] = this.parseNumber (notionalContracts);
+                }
+            } else if ((contractSizeString === undefined) && hasNotional && hasMarkPrice && hasContracts) {
+                let notionalContractSize = Precise.stringDiv (notionalString, Precise.stringMul (markPriceString, contractsString));
+                if (isInverse) {
+                    notionalContractSize = Precise.stringDiv (Precise.stringMul (notionalString, markPriceString), contractsString);
+                }
+                if (Precise.stringGt (notionalContractSize, '0')) {
+                    contractSizeString = notionalContractSize;
+                    position['contractSize'] = this.parseNumber (notionalContractSize);
+                }
+            }
+            // 2. unrealizedPnl from entryPrice, markPrice, contracts, contractSize, side
+            if ((unrealizedPnlString === undefined) && (entryPriceString !== undefined) && (markPriceString !== undefined) && (contractsString !== undefined) && (contractSizeString !== undefined)) {
+                if (Precise.stringGt (entryPriceString, '0') && Precise.stringGt (markPriceString, '0') && Precise.stringGt (contractsString, '0') && Precise.stringGt (contractSizeString, '0')) {
+                    const totalSize = Precise.stringMul (contractsString, contractSizeString);
+                    let pnlDiff: Str = undefined;
+                    if (isInverse) {
+                        const invEntry = Precise.stringDiv ('1', entryPriceString);
+                        const invMark = Precise.stringDiv ('1', markPriceString);
+                        if (side === 'long') {
+                            pnlDiff = Precise.stringSub (invEntry, invMark);
+                        } else if (side === 'short') {
+                            pnlDiff = Precise.stringSub (invMark, invEntry);
+                        }
+                    } else {
+                        if (side === 'long') {
+                            pnlDiff = Precise.stringSub (markPriceString, entryPriceString);
+                        } else if (side === 'short') {
+                            pnlDiff = Precise.stringSub (entryPriceString, markPriceString);
+                        }
+                    }
+                    if (pnlDiff !== undefined) {
+                        const candidateUpnl = Precise.stringMul (pnlDiff, totalSize);
+                        if (Precise.stringEq (candidateUpnl, '0') || Precise.stringGe (Precise.stringAbs (candidateUpnl), '0.000001')) {
+                            unrealizedPnlString = candidateUpnl;
+                            position['unrealizedPnl'] = this.parseNumber (unrealizedPnlString);
+                        }
+                    }
+                }
+            }
+            // 3. initialMargin <-> initialMarginPercentage <-> leverage / notional
+            const hasValidNotional = (notionalString !== undefined) && Precise.stringGt (notionalString, '0');
+            const hasNegativeCollateral = (collateralString !== undefined) && Precise.stringLt (collateralString, '0');
+            let initialMarginPercentageString = this.safeString (position, 'initialMarginPercentage');
+            const leverageString = this.safeString (position, 'leverage');
+            const hasLeverage = (leverageString !== undefined) && Precise.stringGt (leverageString, '0');
+            const hasInitialMargin = (initialMarginString !== undefined) && Precise.stringGt (initialMarginString, '0');
+            const hadInitialMargin = (initialMarginString !== undefined);
+            if ((initialMarginPercentageString === undefined) && !hasNegativeCollateral && (hasInitialMargin || !hadInitialMargin)) {
+                if (hasInitialMargin && hasValidNotional) {
+                    initialMarginPercentageString = Precise.stringDiv (initialMarginString, notionalString);
+                } else if (hasLeverage) {
+                    initialMarginPercentageString = Precise.stringDiv ('1', leverageString);
+                }
+                if ((initialMarginPercentageString !== undefined) && Precise.stringGt (initialMarginPercentageString, '0')) {
+                    position['initialMarginPercentage'] = this.parseNumber (initialMarginPercentageString);
+                }
+            }
+            const hasImp = (initialMarginPercentageString !== undefined) && Precise.stringGt (initialMarginPercentageString, '0');
+            if ((initialMarginString === undefined) && !hasNegativeCollateral && hasValidNotional) {
+                if (hasLeverage) {
+                    initialMarginString = Precise.stringDiv (notionalString, leverageString);
+                } else if (hasImp) {
+                    initialMarginString = Precise.stringMul (notionalString, initialMarginPercentageString);
+                }
+                if ((initialMarginString !== undefined) && Precise.stringGt (initialMarginString, '0')) {
+                    position['initialMargin'] = this.parseNumber (initialMarginString);
+                }
+            }
+            if ((leverageString === undefined) && !hadInitialMargin && hasImp) {
+                const derivedLeverage = Precise.stringDiv ('1', initialMarginPercentageString);
+                if (Precise.stringGt (derivedLeverage, '0') && Precise.stringLe (derivedLeverage, '200')) {
+                    position['leverage'] = this.parseNumber (derivedLeverage);
+                }
+            }
+            // 4. maintenanceMargin <-> maintenanceMarginPercentage / notional
+            let maintenanceMarginPercentageString = this.safeString (position, 'maintenanceMarginPercentage');
+            const hasValidMm = (maintenanceMarginString !== undefined) && Precise.stringGt (maintenanceMarginString, '0');
+            const hasValidMmp = (maintenanceMarginPercentageString !== undefined) && Precise.stringGt (maintenanceMarginPercentageString, '0');
+            if ((maintenanceMarginString === undefined) && hasValidNotional && hasValidMmp) {
+                const derivedMm = Precise.stringMul (notionalString, maintenanceMarginPercentageString);
+                if (Precise.stringGt (derivedMm, '0')) {
+                    maintenanceMarginString = derivedMm;
+                    position['maintenanceMargin'] = this.parseNumber (derivedMm);
+                }
+            } else if ((maintenanceMarginPercentageString === undefined) && hasValidNotional && hasValidMm) {
+                const derivedMmp = Precise.stringDiv (maintenanceMarginString, notionalString);
+                if (Precise.stringGt (derivedMmp, '0')) {
+                    maintenanceMarginPercentageString = derivedMmp;
+                    position['maintenanceMarginPercentage'] = this.parseNumber (derivedMmp);
+                }
+            }
+            // 5. marginRatio = maintenanceMargin / collateral
+            const marginRatio = this.safeValue (position, 'marginRatio');
+            if ((marginRatio === undefined) && (maintenanceMarginString !== undefined) && (collateralString !== undefined)) {
+                if (Precise.stringGt (maintenanceMarginString, '0') && Precise.stringGt (collateralString, '0')) {
+                    const derivedMarginRatio = Precise.stringDiv (maintenanceMarginString, collateralString, 4);
+                    if ((derivedMarginRatio !== undefined) && Precise.stringGt (derivedMarginRatio, '0')) {
+                        position['marginRatio'] = this.parseNumber (derivedMarginRatio);
+                    }
+                }
+            }
+        }
+        //
+        // PERCENTAGE
+        //
+        const percentage = this.safeValue (position, 'percentage');
+        if ((percentage === undefined) && (unrealizedPnlString !== undefined) && (initialMarginString !== undefined)) {
+            // as it was done in all implementations ( aax, btcex, bybit, deribit, gate, kucoinfutures, phemex )
+            const percentageString = Precise.stringMul (Precise.stringDiv (unrealizedPnlString, initialMarginString, 4), '100');
+            position['percentage'] = this.parseNumber (percentageString);
         }
         return position as Position;
     }
@@ -6209,7 +6542,11 @@ export class BaseExchange {
      * @method
      * @ignore
      * @name Exchange#incrementingNonce
-     * @description returns a strictly-increasing nonce for venues that reject duplicate nonces per signer; the unit is whatever nonce () returns — the base default is seconds, so a venue that does not override nonce () gets a second-resolution counter that drifts ahead of wall clock under load, while venues needing milliseconds override nonce () as hyperliquid does. The counter is per exchange instance, so it narrows the duplicate-nonce race but does not remove it across instances or processes.
+     * @description returns a strictly-increasing nonce for venues that reject duplicate nonces per signer;
+     * the unit is whatever nonce () returns — the base default is seconds, so a venue that does not override
+     * nonce () gets a second-resolution counter that drifts ahead of wall clock under load, while venues
+     * needing milliseconds override nonce () as hyperliquid does. The counter is per exchange instance,
+     * so it narrows the duplicate-nonce race but does not remove it across instances or processes.
      * @returns {int} a strictly-increasing nonce in the unit returned by nonce ()
      */
     incrementingNonce () {
@@ -6478,7 +6815,7 @@ export class BaseExchange {
         const skipZeroPrices = this.safeBool (options, 'skipZeroPrices', true);
         for (let i = 0; i < oldest; i++) {
             const trade = trades[i];
-            const ts = trade['timestamp'];
+            const ts = this.safeInteger (trade, 'timestamp');
             const price = trade['price'];
             if ((ts === undefined) || (price === undefined)) {
                 continue;
@@ -6498,7 +6835,7 @@ export class BaseExchange {
             if (price === undefined) {
                 throw new ArgumentsRequired (this.id + ' buildOHLCVC() requires a price argument');
             }
-            if ((skipZeroPrices === true) && !(price > 0) && !(price < 0)) {
+            if ((skipZeroPrices) && !(price > 0) && !(price < 0)) {
                 continue;
             }
             let isNewCandle = candle === -1;
@@ -6747,7 +7084,7 @@ export class BaseExchange {
             throw new NotSupported (this.id + ' fetchDepositWithdrawFee() is not supported yet');
         }
         const fees = await this.fetchDepositWithdrawFees ([ code ], params);
-        return this.safeValue (fees, code);
+        return this.safeDict (fees, code) as DepositWithdrawFee;
     }
 
     getSupportedMapping (key: Str, mapping: Dict = {}) {
@@ -6872,7 +7209,7 @@ export class BaseExchange {
     handleOptionBoolAndParams (params: Dict, methodName: Str, optionName: string, defaultValue?: Bool): [Bool, Dict];
     /* eslint-enable no-unused-vars */
     handleOptionBoolAndParams (params: Dict, methodName: Str, optionName: string, defaultValue: Bool = undefined): [Bool, Dict] {
-        // handleOptionAndParams read as a boolean; the statically typed ports throw on another type
+        // handleOptionAndParams read as a boolean (see checkOptionBool)
         const [ value, newParams ] = this.handleOptionAndParams (params, methodName, optionName, defaultValue);
         return [ this.checkOptionBool (methodName, optionName, value), newParams ];
     }
@@ -7250,13 +7587,12 @@ export class BaseExchange {
 
     async fetchDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
         if (this.has['fetchDepositAddresses'] !== undefined && this.has['fetchDepositAddresses'] !== false) {
-            const depositAddresses = await this.fetchDepositAddresses ([ code ], params);
-            const depositAddress = this.safeValue (depositAddresses, code);
-            if (depositAddress === undefined) {
+            const depositAddressesList = await this.fetchDepositAddresses ([ code ], params);
+            const depositAddresses = this.indexBy (depositAddressesList, 'currency');
+            if (this.safeDict (depositAddresses, code) === undefined) {
                 throw new InvalidAddress (this.id + ' fetchDepositAddress() could not find a deposit address for ' + code + ', make sure you have created a corresponding deposit address in your wallet on the exchange website');
-            } else {
-                return depositAddress;
             }
+            return this.safeDict (depositAddresses, code) as DepositAddress;
         } else if (this.has['fetchDepositAddressesByNetwork'] !== undefined && this.has['fetchDepositAddressesByNetwork'] !== false) {
             const network = this.safeString (params, 'network');
             const paramsOmitted: Dict = this.omit (params, 'network');
@@ -7510,7 +7846,7 @@ export class BaseExchange {
             return parsedPrecision + '1';
         } else {
             let parsedPrecision = '1';
-            for (let i = 0; i < precisionNumber * -1 - 1; i++) {
+            for (let i = 0; i < -1 - precisionNumber; i++) {
                 parsedPrecision = parsedPrecision + '0';
             }
             return parsedPrecision + '0';
@@ -7551,7 +7887,7 @@ export class BaseExchange {
             throw new ExchangeError (this.id + ' loadTimeDifference() missing serverTime');
         }
         this.options['timeDifference'] = after - serverTime;
-        return this.options['timeDifference'];
+        return this.parseToInt (this.options['timeDifference']);
     }
 
     implodeHostname (url: string): string {
@@ -7565,7 +7901,8 @@ export class BaseExchange {
                 throw new BadSymbol (this.id + ' fetchMarketLeverageTiers() supports contract markets only');
             }
             const tiers = await this.fetchLeverageTiers ([ symbol ]);
-            return this.safeValue (tiers, symbol);
+            const marketTiers = this.safeList (tiers, symbol);
+            return marketTiers as LeverageTier[];
         } else {
             throw new NotSupported (this.id + ' fetchMarketLeverageTiers() is not supported yet');
         }
@@ -7629,7 +7966,7 @@ export class BaseExchange {
             }
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
-        return this.filterByArray (results, 'symbol', symbolsNormalized);
+        return this.indexBy (this.filterByArray (results, 'symbol', symbolsNormalized, false), 'symbol');
     }
 
     parseTickers (tickers: any, symbols: Strings = undefined, params: Dict = {}): Tickers {
@@ -7677,18 +8014,18 @@ export class BaseExchange {
     }
 
     parseDepositAddresses (addresses: any, codes: Strings = undefined, indexed = true, params: Dict = {}): DepositAddress[] {
-        let result: Dict[] = [];
+        let result: DepositAddress[] = [];
         for (let i = 0; i < addresses.length; i++) {
             const address = this.extend (this.parseDepositAddress (addresses[i]), params);
             result.push (address);
         }
         if (codes !== undefined) {
-            result = this.filterByArray (result, 'currency', codes, false);
+            result = this.toArray (this.filterByArray (result, 'currency', codes, false));
         }
         if (indexed) {
-            result = this.filterByArray (result, 'currency', undefined, indexed);
+            result = this.toArray (this.filterByArray (result, 'currency', undefined, indexed));
         }
-        return result as DepositAddress[];
+        return result;
     }
 
     parseBorrowInterests (response: any, market: Market = undefined): BorrowInterest[] {
@@ -7773,7 +8110,7 @@ export class BaseExchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as LongShortRatio[];
     }
 
-    handleTriggerPricesAndParams (symbol: any, params: any, omitParams = true): any[] {
+    handleTriggerPricesAndParams (symbol: any, params: any, omitParams = true): [Str, Str, Str, Dict] {
         //
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         let triggerPriceStr: Str = undefined;
@@ -7807,7 +8144,7 @@ export class BaseExchange {
         return [ triggerPriceStr, stopLossPriceStr, takeProfitPriceStr, paramsOmitted ];
     }
 
-    handleTriggerDirectionAndParams (params: any, exchangeSpecificKey: Str = undefined, allowEmpty: Bool = false): any[] {
+    handleTriggerDirectionAndParams (params: any, exchangeSpecificKey: Str = undefined, allowEmpty: Bool = false): [Str, Dict] {
         /**
          * @ignore
          * @method
@@ -7831,13 +8168,13 @@ export class BaseExchange {
         return [ triggerDirection, paramsOmitted ];
     }
 
-    handleTriggerAndParams (params: any): any[] {
+    handleTriggerAndParams (params: any): [Bool, Dict] {
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop');
         const paramsOmitted = (isTrigger === true) ? this.omit (params, [ 'trigger', 'stop' ]) : params;
         return [ isTrigger, paramsOmitted ];
     }
 
-    isTriggerOrder (params: any): any[] {
+    isTriggerOrder (params: any): [Bool, Dict] {
         // for backwards compatibility
         return this.handleTriggerAndParams (params);
     }
@@ -7852,18 +8189,12 @@ export class BaseExchange {
          * @returns {boolean} true if a post only order, false otherwise
          */
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
-        let postOnly = this.safeBool2 (params, 'postOnly', 'post_only', false);
         // we assume timeInForce is uppercase from safeStringUpper (params, 'timeInForce')
         const ioc = timeInForce === 'IOC';
         const fok = timeInForce === 'FOK';
         const timeInForcePostOnly = timeInForce === 'PO';
-        if (postOnly !== true) {
-            postOnly = timeInForcePostOnly;
-        }
-        if (postOnly !== true) {
-            postOnly = exchangeSpecificParam;
-        }
-        if (postOnly === true) {
+        const postOnly = this.safeBool2 (params, 'postOnly', 'post_only', false) || timeInForcePostOnly || exchangeSpecificParam;
+        if (postOnly) {
             if (ioc || fok) {
                 throw new InvalidOrder (this.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce);
             } else if (isMarketOrder) {
@@ -7886,17 +8217,11 @@ export class BaseExchange {
          * @returns {Array}
          */
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
-        let postOnly = this.safeBool (params, 'postOnly', false);
         const ioc = timeInForce === 'IOC';
         const fok = timeInForce === 'FOK';
         const po = timeInForce === 'PO';
-        if (postOnly !== true) {
-            postOnly = po;
-        }
-        if (postOnly !== true) {
-            postOnly = exchangeSpecificPostOnlyOption;
-        }
-        if (postOnly === true) {
+        const postOnly = this.safeBool (params, 'postOnly', false) || po || exchangeSpecificPostOnlyOption;
+        if (postOnly) {
             if (ioc || fok) {
                 throw new InvalidOrder (this.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce);
             } else if (isMarketOrder) {
@@ -7931,7 +8256,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' fetchConvertCurrencies() is not supported yet');
     }
 
-    parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
+    parseOpenInterest (interest: NullableDict, market: Market = undefined): OpenInterest {
         throw new NotSupported (this.id + ' parseOpenInterest () is not supported yet');
     }
 
@@ -7944,7 +8269,7 @@ export class BaseExchange {
                 result[parsed['symbol']] = parsed;
             }
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.indexBy (this.filterByArray (result, 'symbol', symbols, false), 'symbol');
     }
 
     parseOpenInterestsHistory (response: any, market: Market = undefined, since: Int = undefined, limit: Int = undefined): OpenInterest[] {
@@ -8173,7 +8498,7 @@ export class BaseExchange {
         return depositWithdrawFees;
     }
 
-    parseDepositWithdrawFee (fee: any, currency: Currency = undefined): any {
+    parseDepositWithdrawFee (fee: NullableDict, currency: Currency = undefined): any {
         throw new NotSupported (this.id + ' parseDepositWithdrawFee() is not supported yet');
     }
 
@@ -8317,7 +8642,7 @@ export class BaseExchange {
          * @method
          * @description Typed wrapper for filterByArray that returns a list of ADL Ranks
          */
-        return this.filterByArray (objects, key, values, indexed) as ADL[];
+        return this.toArray (this.filterByArray (objects, key, values, indexed)) as ADL[];
     }
 
     createOHLCVObject (symbol: string, timeframe: string, data: any): Dictionary<Dictionary<OHLCV[]>> {
@@ -8334,7 +8659,7 @@ export class BaseExchange {
         return [ maxEntriesPerRequestResolved, paramsMaxEntriesPerRequest ];
     }
 
-    async fetchPaginatedCallDynamic (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}, maxEntriesPerRequest: Int = undefined, removeRepeated = true): Promise<any> {
+    async fetchPaginatedCallDynamic (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}, maxEntriesPerRequest: Int = undefined, removeRepeated = true): Promise<any[]> {
         const maxCalls = 10;
         const [ maxCallsPaginationCalls, paramsPaginationCalls ] = this.handleOptionIntegerAndParams (params, method, 'paginationCalls', maxCalls);
         const maxRetries = 3;
@@ -8353,6 +8678,7 @@ export class BaseExchange {
             }
             paginationTimestamp = since;
         }
+        let shouldBreak = false;
         while ((calls < maxCallsPaginationCalls)) {
             calls += 1;
             try {
@@ -8372,6 +8698,7 @@ export class BaseExchange {
                         this.log (backwardMessage);
                     }
                     if (responseLength === 0) {
+                        shouldBreak = true;
                         break;
                     }
                     errors = 0;
@@ -8379,9 +8706,11 @@ export class BaseExchange {
                     const firstElement = this.safeValue (response, 0);
                     paginationTimestamp = this.safeInteger2 (firstElement, 'timestamp', 0);
                     if (paginationTimestamp === undefined) {
+                        shouldBreak = true;
                         break;
                     }
                     if ((since !== undefined) && (paginationTimestamp <= since)) {
+                        shouldBreak = true;
                         break;
                     }
                 } else {
@@ -8396,6 +8725,7 @@ export class BaseExchange {
                         this.log (forwardMessage);
                     }
                     if (responseLength === 0) {
+                        shouldBreak = true;
                         break;
                     }
                     errors = 0;
@@ -8403,11 +8733,13 @@ export class BaseExchange {
                     const last = this.safeValue (response, responseLength - 1);
                     const lastTimestamp = this.safeInteger (last, 'timestamp', 0);
                     if (lastTimestamp === undefined) {
+                        shouldBreak = true;
                         break;
                     }
                     const nextPaginationTimestamp = lastTimestamp + 1;
                     paginationTimestamp = nextPaginationTimestamp;
                     if ((until !== undefined) && (nextPaginationTimestamp >= until)) {
+                        shouldBreak = true;
                         break;
                     }
                 }
@@ -8416,6 +8748,9 @@ export class BaseExchange {
                 if (errors > maxRetriesOption) {
                     throw e;
                 }
+            }
+            if (shouldBreak) {
+                break; // go turns a break inside try into a panic that only ends the iteration
             }
         }
         let uniqueResults = result;
@@ -8451,7 +8786,7 @@ export class BaseExchange {
         return [];
     }
 
-    async fetchPaginatedCallDeterministic (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, timeframe: Str = undefined, params: Dict = {}, maxEntriesPerRequest: Int = undefined): Promise<any> {
+    async fetchPaginatedCallDeterministic (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, timeframe: Str = undefined, params: Dict = {}, maxEntriesPerRequest: Int = undefined): Promise<any[]> {
         const maxCalls = 10;
         const [ maxCallsPaginationCalls, paramsPaginationCalls ] = this.handleOptionIntegerAndParams (params, method, 'paginationCalls', maxCalls);
         const [ maxEntriesPerRequestOption, paramsMaxEntriesPerRequest ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, paramsPaginationCalls);
@@ -8463,7 +8798,7 @@ export class BaseExchange {
         const tasks: Promise<any>[] = [];
         const time = this.parseTimeframe (timeframe) * 1000;
         const maxEntriesPerRequestValue: Int = this.requireValue (maxEntriesPerRequestOption, 'fetchPaginatedCallDeterministic() maxEntriesPerRequest is required');
-        const step = time * maxEntriesPerRequestValue;
+        const step = time * this.parseToInt (maxEntriesPerRequestValue);
         const until = this.safeInteger2 (paramsOmitted, 'until', 'till'); // do not omit it here
         let currentSince = current - (maxCallsPaginationCalls * step) - 1;
         if (since !== undefined) {
@@ -8496,7 +8831,8 @@ export class BaseExchange {
                 break;
             }
             tasks.push (this.safeDeterministicCall (method, symbol, currentSince, maxEntriesPerRequestValue, timeframe, paramsOmitted));
-            currentSince = currentSince + step - 1;
+            // this.sum keeps it numeric in PHP, where the regex transpiler turns `a + b` into string concatenation
+            currentSince = this.sum (currentSince, step) - 1;
         }
         const results = await Promise.all (tasks);
         let result: any[] = [];
@@ -8510,7 +8846,7 @@ export class BaseExchange {
 
     // the 'symbol' slot is forwarded to `this[method]` untouched and is only compared against
     // undefined here, so fetchPositions/fetchPositionsHistory legitimately pass a symbol list
-    async fetchPaginatedCallCursor (method: string, symbol: Str | Strings = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}, cursorReceived: Str = undefined, cursorSent: Str = undefined, cursorIncrement: Int = undefined, maxEntriesPerRequest: Int = undefined): Promise<any> {
+    async fetchPaginatedCallCursor (method: string, symbol: Str | Strings = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}, cursorReceived: Str = undefined, cursorSent: Str = undefined, cursorIncrement: Int = undefined, maxEntriesPerRequest: Int = undefined): Promise<any[]> {
         const maxCalls = 10;
         const [ maxCallsPaginationCalls, paramsPaginationCalls ] = this.handleOptionIntegerAndParams (params, method, 'paginationCalls', maxCalls);
         const maxRetries = 3;
@@ -8522,11 +8858,12 @@ export class BaseExchange {
         let result: any[] = [];
         const timeframe = this.safeString (paramsMaxEntriesPerRequest, 'timeframe');
         const paramsOmitted: Dict = this.omit (paramsMaxEntriesPerRequest, 'timeframe'); // reading the timeframe from the method arguments to avoid changing the signature
+        let shouldBreak = false;
         while (i < maxCallsPaginationCalls) {
             try {
                 if (cursorValue !== undefined) {
                     if (cursorIncrement !== undefined) {
-                        cursorValue = this.parseToInt (cursorValue) + cursorIncrement;
+                        cursorValue = this.sum (this.parseToInt (cursorValue), cursorIncrement);
                     }
                     paramsOmitted[cursorSent as string] = cursorValue;
                 }
@@ -8559,6 +8896,7 @@ export class BaseExchange {
                     this.log (cursorMessage);
                 }
                 if (responseLength === 0) {
+                    shouldBreak = true;
                     break;
                 }
                 if (response !== undefined) {
@@ -8567,17 +8905,17 @@ export class BaseExchange {
                 const last = this.safeDict (response, responseLength - 1);
                 // cursorValue = this.safeValue (last['info'], cursorReceived);
                 cursorValue = undefined; // search for the cursor
+                // guard instead of break: inside a try block go turns break into a panic that ends the whole iteration
                 for (let j = 0; j < responseLength; j++) {
-                    const index = responseLength - j - 1;
-                    const entry = this.safeDict (response, index);
-                    const info = this.safeDict (entry, 'info');
-                    const cursor = (cursorReceived === undefined) ? undefined : this.safeValue (info, cursorReceived);
-                    if (cursor !== undefined) {
-                        cursorValue = cursor;
-                        break;
+                    if (cursorValue === undefined) {
+                        const index = responseLength - j - 1;
+                        const entry = this.safeDict (response, index);
+                        const info = this.safeDict (entry, 'info');
+                        cursorValue = (cursorReceived === undefined) ? undefined : this.safeValue (info, cursorReceived);
                     }
                 }
                 if (cursorValue === undefined) {
+                    shouldBreak = true;
                     break;
                 }
                 const lastTimestamp = this.safeInteger (last, 'timestamp');
@@ -8585,6 +8923,7 @@ export class BaseExchange {
                     throw new ArgumentsRequired (this.id + ' fetchPaginatedCallCursor() requires a since argument');
                 }
                 if (lastTimestamp !== undefined && lastTimestamp < since) {
+                    shouldBreak = true;
                     break;
                 }
             } catch (e) {
@@ -8593,6 +8932,9 @@ export class BaseExchange {
                     throw e;
                 }
             }
+            if (shouldBreak) {
+                break; // go turns a break inside try into a panic that only ends the iteration
+            }
             i += 1;
         }
         const sorted = this.sortCursorPaginatedResult (result);
@@ -8600,7 +8942,7 @@ export class BaseExchange {
         return this.filterBySinceLimit (sorted, since, limit, key);
     }
 
-    async fetchPaginatedCallIncremental (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}, pageKey: Str = undefined, maxEntriesPerRequest: Int = undefined): Promise<any> {
+    async fetchPaginatedCallIncremental (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}, pageKey: Str = undefined, maxEntriesPerRequest: Int = undefined): Promise<any[]> {
         const maxCalls = 10;
         const [ maxCallsPaginationCalls, paramsPaginationCalls ] = this.handleOptionIntegerAndParams (params, method, 'paginationCalls', maxCalls);
         const maxRetries = 3;
@@ -8609,6 +8951,7 @@ export class BaseExchange {
         let i = 0;
         let errors = 0;
         let result: any[] = [];
+        let shouldBreak = false;
         while (i < maxCallsPaginationCalls) {
             try {
                 paramsMaxEntriesPerRequest[pageKey as string] = i + 1;
@@ -8616,11 +8959,12 @@ export class BaseExchange {
                 errors = 0;
                 const responseLength: number = response.length;
                 if (this.verbose) {
-                    const iteration = (i + 1).toString ();
-                    const incrementalMessage = 'Incremental pagination call ' + iteration + ' method ' + method + ' response length ' + responseLength.toString ();
+                    const iteration = (i + 1);
+                    const incrementalMessage = 'Incremental pagination call ' + iteration.toString () + ' method ' + method + ' response length ' + responseLength.toString ();
                     this.log (incrementalMessage);
                 }
                 if (responseLength === 0) {
+                    shouldBreak = true;
                     break;
                 }
                 result = this.arrayConcat (result, response);
@@ -8630,6 +8974,9 @@ export class BaseExchange {
                     throw e;
                 }
             }
+            if (shouldBreak) {
+                break; // go turns a break inside try into a panic that only ends the iteration
+            }
             i += 1;
         }
         const sorted = this.sortCursorPaginatedResult (result);
@@ -8638,7 +8985,7 @@ export class BaseExchange {
     }
 
     sortCursorPaginatedResult (result: any) {
-        const first = this.safeValue (result, 0);
+        const first = this.safeDict (result, 0);
         if (first !== undefined) {
             if ('timestamp' in first) {
                 return this.sortBy (result, 'timestamp', true);
@@ -8794,7 +9141,7 @@ export class BaseExchange {
             }
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
-        return this.filterByArray (results, 'symbol', symbolsNormalized);
+        return this.indexBy (this.filterByArray (results, 'symbol', symbolsNormalized, false), 'symbol') as AllGreeks;
     }
 
     parseOption (chain: Dict, currency: Currency = undefined, market: Market = undefined): Option {
@@ -9210,7 +9557,8 @@ export class BaseExchange {
     }
 
     timeframeFromMilliseconds (ms: number): string {
-        if (ms <= 0) {
+        const msInt = this.parseToInt (ms);
+        if (msInt <= 0) {
             return '';
         }
         const second = 1000;
@@ -9218,20 +9566,20 @@ export class BaseExchange {
         const hour = 60 * minute;
         const day = 24 * hour;
         const week = 7 * day;
-        if (ms % week === 0) {
-            return (ms / week) + 'w';
+        if (msInt % week === 0) {
+            return this.parseToInt (msInt / week).toString () + 'w';
         }
-        if (ms % day === 0) {
-            return (ms / day) + 'd';
+        if (msInt % day === 0) {
+            return this.parseToInt (msInt / day).toString () + 'd';
         }
-        if (ms % hour === 0) {
-            return (ms / hour) + 'h';
+        if (msInt % hour === 0) {
+            return this.parseToInt (msInt / hour).toString () + 'h';
         }
-        if (ms % minute === 0) {
-            return (ms / minute) + 'm';
+        if (msInt % minute === 0) {
+            return this.parseToInt (msInt / minute).toString () + 'm';
         }
-        if (ms % second === 0) {
-            return (ms / second) + 's';
+        if (msInt % 1000 === 0) {
+            return this.parseToInt (msInt / 1000).toString () + 's';
         }
         return '';
     }
@@ -9274,8 +9622,7 @@ export default class Exchange extends BaseExchange {
          * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
          */
         if (this.has['fetchPositionsHistory'] !== undefined && this.has['fetchPositionsHistory'] !== false) {
-            const positions = await this.fetchPositionsHistory ([ symbol ], since, limit, params);
-            return positions as Position[];
+            return await this.fetchPositionsHistory ([ symbol ], since, limit, params);
         } else {
             throw new NotSupported (this.id + ' fetchPositionHistory () is not supported yet');
         }
@@ -9922,7 +10269,7 @@ export default class Exchange extends BaseExchange {
         // TODO: TypeScript: change method signature by replacing
         // Promise<string> with Promise<Order['status']>.
         const order = await this.fetchOrder (id, symbol, params);
-        return order['status'];
+        return this.safeString (order, 'status');
     }
 
     async fetchUnifiedOrder (order: any, params: Dict = {}): Promise<Order> {
@@ -10185,7 +10532,7 @@ export default class Exchange extends BaseExchange {
     }
 
     async cancelUnifiedOrder (order: Order, params: Dict = {}): Promise<Order> {
-        return this.cancelOrder (this.safeString (order, 'id') as string, this.safeString (order, 'symbol'), params);
+        return await this.cancelOrder (this.safeString (order, 'id') as string, this.safeString (order, 'symbol'), params);
     }
 
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {

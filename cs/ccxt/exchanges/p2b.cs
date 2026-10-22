@@ -1192,22 +1192,33 @@ public partial class p2b : Exchange
         {
             await this.loadMarkets();
         }
-        Int64? until = this.safeInteger(parameters, "until");
-        object paramsOmitted = this.omit(parameters, "until");
-        if ((until == null))
+        Int64? untilParam = this.safeInteger(parameters, "until");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "until"));
+        Int64? until = null;
+        object sinceResolved = 0;
+        if ((untilParam != null))
         {
-            if ((since == null))
+            until = untilParam;
+            if ((since != null))
             {
-                until = this.milliseconds();
+                if (((untilParam - since) > 86400000))
+                {
+                    throw new BadRequest ((this.id + " fetchMyTrades () the time between since and params[\"until\"] cannot be greater than 24 hours")) ;
+                }
+                sinceResolved = since;
             } else
             {
-                until = (since + 86400000);
+                sinceResolved = (untilParam - 86400000);
             }
-        }
-        object sinceResolved = ((since == null)) ? (subtract(until, 86400000)) : since;
-        if (isGreaterThan((subtract(until, sinceResolved)), 86400000))
+        } else if ((since != null))
         {
-            throw new BadRequest ((this.id + " fetchMyTrades () the time between since and params[\"until\"] cannot be greater than 24 hours")) ;
+            until = (since + 86400000);
+            sinceResolved = since;
+        } else
+        {
+            Int64 now = this.milliseconds();
+            until = now;
+            sinceResolved = (now - 86400000);
         }
         Dictionary<string, object> market = this.market(symbol);
         Int64? sinceSec = this.parseToInt(divide(sinceResolved, 1000));
@@ -1275,27 +1286,38 @@ public partial class p2b : Exchange
         {
             await this.loadMarkets();
         }
-        Int64? until = this.safeInteger(parameters, "until");
-        object paramsOmitted = this.omit(parameters, "until");
+        Int64? untilParam = this.safeInteger(parameters, "until");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "until"));
         IDictionary<string, object> market = null;
         if ((symbol != null))
         {
             market = this.market(symbol);
         }
-        if ((until == null))
+        Int64? until = null;
+        object sinceResolved = 0;
+        if ((untilParam != null))
         {
-            if ((since == null))
+            until = untilParam;
+            if ((since != null))
             {
-                until = this.milliseconds();
+                if (((untilParam - since) > 86400000))
+                {
+                    throw new BadRequest ((this.id + " fetchClosedOrders () the time between since and params[\"until\"] cannot be greater than 24 hours")) ;
+                }
+                sinceResolved = since;
             } else
             {
-                until = (since + 86400000);
+                sinceResolved = (untilParam - 86400000);
             }
-        }
-        object sinceResolved = ((since == null)) ? (subtract(until, 86400000)) : since;
-        if (isGreaterThan((subtract(until, sinceResolved)), 86400000))
+        } else if ((since != null))
         {
-            throw new BadRequest ((this.id + " fetchClosedOrders () the time between since and params[\"until\"] cannot be greater than 24 hours")) ;
+            until = (since + 86400000);
+            sinceResolved = since;
+        } else
+        {
+            Int64 now = this.milliseconds();
+            until = now;
+            sinceResolved = (now - 86400000);
         }
         Int64? sinceSec = this.parseToInt(divide(sinceResolved, 1000));
         Int64? untilSec = this.parseToInt(((double?)until / 1000));
@@ -1483,13 +1505,14 @@ public partial class p2b : Exchange
         //     {"success":true,"errorCode":"","message":"","result":{...},"cache_time":1787611797.535462,"current_time":1787611797.535973}
         //
         bool? success = this.safeBool(response, "success", true);
-        if ((success != true))
+        if (success != true)
         {
             string? errorCode = this.safeString(response, "errorCode");
             string feedback = ((this.id + " ") + (body));
             this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
             string codeAsString = code.ToString();
-            if ((isLessThan(code, 400)) || !(this.httpExceptions.ContainsKey(codeAsString)))
+            Int64? statusCode = this.parseToInt(code);
+            if ((((statusCode == null || statusCode < 400))) || !(this.httpExceptions.ContainsKey(codeAsString)))
             {
                 throw new ExchangeError (feedback) ;
             }

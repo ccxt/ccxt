@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import cryptocomRest from '../cryptocom.js';
 import { AuthenticationError, ArgumentsRequired, ChecksumError, ExchangeError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, OHLCV, Position, Balances, Num, Dict, Tickers, Market, Bool } from '../base/types.js';
+import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, OHLCV, Position, Balances, Num, Dict, Tickers, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
@@ -203,7 +203,7 @@ export default class cryptocom extends cryptocomRest {
         bookside.storeArray ([ price, amount, count ]);
     }
 
-    override handleDeltas (bookside: any, deltas: any) {
+    override handleDeltas (bookside: any, deltas: any[]) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
@@ -268,8 +268,7 @@ export default class cryptocom extends cryptocomRest {
         const marketId = this.safeString (message, 'instrument_name');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        let data = this.safeValue (message, 'data');
-        data = this.safeDict (data, 0);
+        const data = this.safeDict (this.safeList (message, 'data'), 0);
         const timestamp = this.safeInteger (data, 't');
         if (!(symbol in this.orderbooks)) {
             const limit = this.safeInteger (message, 'depth');
@@ -815,7 +814,7 @@ export default class cryptocom extends cryptocomRest {
                 this.ohlcvs[symbol][timeframe] = stored;
             }
         }
-        const data: any[] = this.safeValue (message, 'data');
+        const data = this.safeList (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const tick = this.safeDict (data, i);
             const parsed = this.parseOHLCV (tick, market);
@@ -1335,7 +1334,7 @@ export default class cryptocom extends cryptocomRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleErrorMessage (client: Client, message: Dict): Bool {
+    handleErrorMessage (client: Client, message: Dict): boolean {
         //
         //    {
         //        "id": 0,
@@ -1433,7 +1432,7 @@ export default class cryptocom extends cryptocomRest {
         // handle unsubscribe
         // {"id":1725448572836,"method":"unsubscribe","code":0}
         //
-        if (this.handleErrorMessage (client, message) === true) {
+        if (this.handleErrorMessage (client, message)) {
             return;
         }
         const method = this.safeString (message, 'method');

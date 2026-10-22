@@ -1070,7 +1070,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         buyerMaker = self.safe_bool_2(trade, 'm', 'isBuyerMaker')
         takerOrMaker = None
         if buyerMaker is not None:
-            side = 'sell' if (buyerMaker is True) else 'buy'  # this is reversed intentionally
+            side = 'sell' if (buyerMaker) else 'buy'  # this is reversed intentionally
             takerOrMaker = 'taker'
         elif 'side' in trade:
             side = self.safe_string_lower(trade, 'side')
@@ -1582,7 +1582,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                 result[code] = account
         return self.safe_balance(result)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             '-2': 'open',
             '0': 'open',  # NEW
@@ -1801,16 +1801,18 @@ class tokocrypto(Exchange, ImplicitAPI):
         isPostOnlyTimeInForce = (requestedTimeInForce == 'GTX')
         postOnly, paramsPostOnly = self.handle_post_only(isMarketOrder, isPostOnlyTimeInForce, params)
         # only supported for spot/margin api
-        typeResolved = 'LIMIT_MAKER' if (postOnly is True) else type
+        typeResolved = 'LIMIT_MAKER' if (postOnly) else type
         # post only is expressed by the order type here, not by a time force
-        timeInForceResolved = None if (postOnly is True) else requestedTimeInForce
+        timeInForceResolved = requestedTimeInForce
+        if postOnly:
+            timeInForceResolved = None
         initialUppercaseType = typeResolved.upper()
         uppercaseType = initialUppercaseType
         triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
         triggerKeys = ['triggerPrice', 'stopPrice'] if (triggerPrice is not None) else []
         paramsRequest = self.omit(paramsPostOnly, self.array_concat(['clientId', 'clientOrderId', 'timeInForce'], triggerKeys))
         if triggerPrice is not None:
-            if postOnly is True:
+            if postOnly:
                 raise InvalidOrder(self.id + ' createOrder() does not support post only trigger orders, the venue has no post only trigger order type')
             if uppercaseType == 'MARKET':
                 uppercaseType = 'STOP_LOSS'
@@ -2557,7 +2559,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def sign(self, path: str, api: list[str] = ['public'], method: object = 'GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
         if not (apiName in self.urls['api']['rest']):
             raise NotSupported(self.id + ' does not have a testnet/sandbox URL for ' + apiName + ' endpoints')
@@ -2636,7 +2638,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         # response in format {'msg': 'The coin does not exist.', 'success': true/false}
         success = self.safe_bool(response, 'success', True)
         parsedMessage = None
-        if success is not True:
+        if not success:
             messageInner = self.safe_string(response, 'msg')
             if messageInner is not None:
                 try:
@@ -2671,7 +2673,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                 raise MarginModeAlreadySet(feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)
             raise ExchangeError(feedback)
-        if success is not True:
+        if not success:
             raise ExchangeError(self.id + ' ' + body)
         return None
 
@@ -2683,10 +2685,11 @@ class tokocrypto(Exchange, ImplicitAPI):
         elif ('noPoolId' in config) and not ('poolId' in params):
             return config['noPoolId']
         elif ('byLimit' in config) and ('limit' in params):
-            limit = params['limit']
+            limit = self.safe_integer(params, 'limit')
             byLimit = self.safe_list(config, 'byLimit', [])
             for i in range(0, len(byLimit)):
                 entry = byLimit[i]
-                if limit <= entry[0]:
+                entryLimit = self.safe_integer(entry, 0)
+                if (limit is not None) and (entryLimit is not None) and (limit <= entryLimit):
                     return entry[1]
         return self.safe_integer(config, 'cost', 1)

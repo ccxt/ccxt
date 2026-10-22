@@ -340,7 +340,7 @@ class coinone(ccxt.async_support.coinone):
         isSellerMaker = self.safe_bool(trade, 'is_seller_maker')
         side = None
         if isSellerMaker is not None:
-            side = 'sell' if (isSellerMaker is True) else 'buy'
+            side = 'sell' if (isSellerMaker) else 'buy'
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'qty')
         return self.safe_trade({

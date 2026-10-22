@@ -170,7 +170,8 @@ export default class hyperliquid extends Exchange {
      * @returns {int} the outcome side encoding
      */
     outcomeEncoding (outcomeId: number, side: number): number {
-        return this.sum (10 * outcomeId, side);
+        const outcomeIdInt = this.parseToInt (outcomeId);
+        return this.sum (10 * outcomeIdInt, side);
     }
 
     /**
@@ -279,7 +280,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [question] linked question object from outcomeMeta
      * @returns {string} the parent market outcome
      */
-    buildOutcomeParentSymbol (desc: Dict, outcomeId: number, name = '', question: Dict = {}): string {
+    buildOutcomeParentSymbol (desc: Dict, outcomeId: number, name: string = '', question: Dict = {}): string {
         const underlying = this.safeString (desc, 'underlying');
         if ((underlying !== undefined) && (underlying !== '')) {
             const targetPrice = this.safeString (desc, 'targetPrice');
@@ -629,12 +630,18 @@ export default class hyperliquid extends Exchange {
         const midStr = this.numberToString (midPx);
         const parts = midStr.split ('.');
         const intPart = parts[0];
-        const significantDigits = Math.max (5, intPart.length);
-        const maxDecimals = 8 - szDecimals;
-        const pricePrecisionDecimals = Math.max (1, Math.min (maxDecimals, significantDigits - intPart.length));
+        const intPartLength = intPart.length;
+        const szDecimalsInt = this.parseToInt (szDecimals);
+        const maxDecimals = 8 - szDecimalsInt;
+        // significantDigits - intPartLength, with significantDigits = max (5, intPartLength)
+        let digitsLeft: int = 0;
+        if (intPartLength <= 5) {
+            digitsLeft = 5 - intPartLength;
+        }
+        const cappedDecimals = (maxDecimals < digitsLeft) ? maxDecimals : digitsLeft;
+        // appends max (1, cappedDecimals) - 1 zeros
         let zeros = '';
-        const zeroCount = pricePrecisionDecimals - 1;
-        for (let zi = 0; zi < zeroCount; zi++) {
+        for (let zi = 1; zi < cappedDecimals; zi++) {
             zeros = zeros + '0';
         }
         return this.parseToNumeric ('0.' + zeros + '1');
@@ -875,11 +882,12 @@ export default class hyperliquid extends Exchange {
             const tf = this.parseTimeframe (timeframe);
             const candleCount = (limit !== undefined) ? limit : 100;
             const startOffset = tf * candleCount * -1000;
-            startTime = this.sum (until, startOffset);
+            const shiftedStart = this.sum (until, startOffset);
+            startTime = shiftedStart;
             if (startTime === undefined) {
                 throw new ExchangeError (this.id + ' fetchOHLCV() missing startTime');
             }
-            if (startTime < 0) {
+            if (shiftedStart < 0) {
                 startTime = 0;
             }
         }
@@ -1267,7 +1275,7 @@ export default class hyperliquid extends Exchange {
         if (isMarket) {
             defaultTif = 'Ioc';
         }
-        if (postOnly === true) {
+        if (postOnly) {
             defaultTif = 'Alo';
         }
         let tif = this.capitalize (this.safeStringLower (params, 'timeInForce', defaultTif)); // eslint-disable-line
@@ -1975,7 +1983,7 @@ export default class hyperliquid extends Exchange {
             // push through a local and write the slice back — the go transpiler's
             // AppendToArray reassigns only a local copy of a map-stored array, so a
             // direct push on groupMap[parentSymbol] loses the element in go
-            const parentMarkets = this.safeValue (groupMap, parentSymbol);
+            const parentMarkets = this.safeList (groupMap, parentSymbol, []);
             parentMarkets.push (mkt);
             if (parentSymbol !== undefined) {
                 groupMap[parentSymbol] = parentMarkets;
@@ -2002,7 +2010,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} raw a dict with parentSymbol and markets entries
      * @returns {object} an event structure
      */
-    parseEvent (raw: Dict): any {
+    parseEvent (raw: Dict): PredictionEvent {
         const parentSymbol = this.safeString (raw, 'parentSymbol');
         const markets = this.safeList (raw, 'markets', []) as any[];
         // Extract info from first market
@@ -2112,7 +2120,7 @@ export default class hyperliquid extends Exchange {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64));
     }
 
-    constructPhantomAgent (hash: any, isTestnet = true): Dict {
+    constructPhantomAgent (hash: any, isTestnet: boolean = true): Dict {
         let source: Str = 'a';
         if (isTestnet) {
             source = 'b';
@@ -2198,7 +2206,7 @@ export default class hyperliquid extends Exchange {
         const nonce = this.incrementingNonce ();
         const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         const payload: Dict = {
-            'hyperliquidChain': (isSandboxMode === true) ? 'Testnet' : 'Mainnet',
+            'hyperliquidChain': (isSandboxMode) ? 'Testnet' : 'Mainnet',
             'maxFeeRate': maxFeeRate,
             'builder': builder,
             'nonce': nonce,
@@ -2227,7 +2235,7 @@ export default class hyperliquid extends Exchange {
         // async for the PHP and typed transpilers, which mishandle an async body that never suspends
         await this.loadMarkets ();
         const buildFee = this.safeBool (this.options, 'builderFee', false);
-        if (buildFee !== true) {
+        if (!buildFee) {
             return undefined;
         }
         if (this.safeBool (this.options, 'approvedBuilderFee', false)) {
@@ -2269,11 +2277,11 @@ export default class hyperliquid extends Exchange {
         return normalized.toLowerCase ();
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'POST', params: Dict = {}) {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'POST', params: Dict = {}) {
         const apiGroup = api[0];
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let baseUrl: string;
-        if (sandboxMode === true) {
+        if (sandboxMode) {
             const testUrls = this.safeDict (this.urls, 'test', {});
             baseUrl = this.safeString (testUrls, apiGroup, this.safeString (testUrls, 'public', ''));
         } else {

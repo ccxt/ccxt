@@ -305,8 +305,8 @@ public partial class p2b : ccxt.p2b
         //        "id": null
         //    }
         //
-        List<object> data = this.safeList(message, "params");
-        data = this.safeList(data, 0);
+        List<object> parameters = this.safeList(message, "params");
+        List<object> data = this.safeList(parameters, 0);
         string? method = this.safeString(message, "method");
         List<object> splitMethod = method.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
         string? channel = this.safeString(splitMethod, 0);
@@ -434,7 +434,7 @@ public partial class p2b : ccxt.p2b
         {
             ticker = ccxt.BaseExchange.FromTicker(this.parseTicker(tickerData, market));
         }
-        string? symbol = ((string)GetValue(ticker, "symbol"));
+        string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
         this.tickers[(string)symbol] = ticker;
         if ((messageHashStart != null))
         {
@@ -517,7 +517,7 @@ public partial class p2b : ccxt.p2b
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        if (isEqual(this.handleErrorMessage(client, message), true))
+        if ((this.handleErrorMessage(client, message) == true))
         {
             return;
         }

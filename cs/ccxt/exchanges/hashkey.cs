@@ -1834,7 +1834,7 @@ public partial class hashkey : Exchange
         string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         string? last = this.safeString(ticker, "c");
         string? baseVolume = this.safeString(ticker, "v");
-        if (((((marketResolved != null && marketResolved.ContainsKey("contract") ? marketResolved["contract"] : null) as bool?) == true)) && (!isEqual((marketResolved != null && marketResolved.ContainsKey("contractSize") ? marketResolved["contractSize"] : null), null)))
+        if (((((marketResolved != null && marketResolved.ContainsKey("contract") ? marketResolved["contract"] : null) as bool?) == true)) && (!((marketResolved != null && marketResolved.ContainsKey("contractSize") ? marketResolved["contractSize"] : null) == null)))
         {
             // 'v' counts contracts, and a ticker reports base volume
             baseVolume = Precise.stringMul(baseVolume, this.numberToString((marketResolved != null && marketResolved.ContainsKey("contractSize") ? marketResolved["contractSize"] : null)));

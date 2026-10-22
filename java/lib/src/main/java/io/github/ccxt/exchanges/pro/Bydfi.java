@@ -114,12 +114,12 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
 
     public Long requestId()
     {
-        Object reqid;
+        Long reqid;
         synchronized (this) {
-        reqid = this.sum(this.safeInteger(this.options, "reqid", 0), 1);
+        reqid = (Long) this.sum(this.safeInteger(this.options, "reqid", 0), 1);
         Helpers.addElementToObject(this.options, "reqid", reqid);
         }
-        return Helpers.toLongOrNull(reqid);
+        return reqid;
     }
 
     public CompletableFuture<Object> watchPublic(Object messageHashes, Object channels, Map<String, Object> parameters, Map<String, Object> subscription)
@@ -134,8 +134,8 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             }};
             Boolean unsubscribe = (Boolean) this.safeBool(parameters, "unsubscribe", false);
             String method = "SUBSCRIBE";
-            Map<String, Object> paramsOmitted = (((java.util.Objects.equals(unsubscribe, true)))) ? this.omit(parameters, "unsubscribe") : parameters;
-            if (java.util.Objects.equals(unsubscribe, true))
+            Map<String, Object> paramsOmitted = ((Boolean.TRUE.equals(unsubscribe))) ? this.omit(parameters, "unsubscribe") : parameters;
+            if (Boolean.TRUE.equals(unsubscribe))
             {
                 method = "UNSUBSCRIBE";
                 subscriptionParams.put("unsubscribe", true);
@@ -222,18 +222,14 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Object> unWatchTicker(String symbol, Object parameters)
+    public CompletableFuture<Object> unWatchTicker(String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.unWatchTickers(new ArrayList<String>(Arrays.asList(symbol)), Helpers.toMapArg(parameters))).join();
+            return (this.unWatchTickers(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
         });
 
-    }
-    public CompletableFuture<Object> unWatchTicker(String symbol, Map<String, Object> parameters)
-    {
-        return this.unWatchTicker(symbol, (Object) (parameters));
     }
 
     /**
@@ -307,7 +303,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             {
                 // all tickers and tickers for specific symbols are different channels
                 // we need to unsubscribe from all ticker channels
-                Object subHashes = this.getMessageHashesForTickersUnsubscription();
+                List<Object> subHashes = (List<Object>) this.getMessageHashesForTickersUnsubscription();
                 subscription.put("subHashIsPrefix", true);
                 for (var i = 0; i < ((List<?>)subHashes).size(); i++)
                 {
@@ -418,18 +414,14 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<Object> unWatchOHLCV(String symbol, String timeframe, Object parameters)
+    public CompletableFuture<Object> unWatchOHLCV(String symbol, String timeframe, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.unWatchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), Helpers.toMapArg(parameters))).join();
+            return (this.unWatchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), parameters)).join();
         });
 
-    }
-    public CompletableFuture<Object> unWatchOHLCV(String symbol, String timeframe, Map<String, Object> parameters)
-    {
-        return this.unWatchOHLCV(symbol, timeframe, (Object) (parameters));
     }
 
     /**
@@ -594,18 +586,14 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Object parameters)
+    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), Helpers.toMapArg(parameters))).join();
+            return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
         });
 
-    }
-    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
-    {
-        return this.unWatchOrderBook(symbol, (Object) (parameters));
     }
 
     /**
@@ -891,10 +879,12 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         String feeCost = this.safeString(order, "fee");
         if (!java.util.Objects.equals(feeCost, null))
         {
-            fee = Helpers.newMap(
-                "cost", Precise.stringAbs(feeCost),
-                "currency", marketResolved.get("quote")
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("cost", Precise.stringAbs(feeCost));
+                hx4NewMap0.put("currency", marketResolved.get("quote"));
+                fee = hx4NewMap0;
+            }
         }
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
         mapLiteral1.put("info", order);
@@ -1121,7 +1111,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchBalance", (Object) null);
             Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
             Boolean awaitBalanceSnapshot = (Boolean) this.safeBool(options, "awaitBalanceSnapshot", true);
-            if ((java.util.Objects.equals(fetchBalanceSnapshot, true)) && (java.util.Objects.equals(awaitBalanceSnapshot, true)))
+            if (Boolean.TRUE.equals(fetchBalanceSnapshot) && Boolean.TRUE.equals(awaitBalanceSnapshot))
             {
                 client.future("fetchBalanceSnapshot").getFuture().join();
             }
@@ -1135,7 +1125,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
     {
         Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchBalance", (Object) null);
         Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
-        if (java.util.Objects.equals(fetchBalanceSnapshot, true))
+        if (Boolean.TRUE.equals(fetchBalanceSnapshot))
         {
             String messageHash = "fetchBalanceSnapshot";
             if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))
@@ -1151,10 +1141,10 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = new HashMap<String, Object>() {{
+            Map<String, Object> parameters = new HashMap<String, Object>() {{
                 put( "type", "swap" );
             }};
-            Balances response = (this.fetchBalance(Helpers.toMapArg(parameters))).join();
+            Balances response = (this.fetchBalance(parameters)).join();
             this.balance = this.extend(response, this.balance);
             // don't remove the future from the .futures cache
             io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
@@ -1249,7 +1239,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         Map<String,Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
         Map<String, Object> subscription = (Map<String, Object>) this.safeDict(subscriptionsById, id, new HashMap<String, Object>() {{}});
         Boolean isUnSubMessage = (Boolean) this.safeBool(subscription, "unsubscribe", false);
-        if (java.util.Objects.equals(isUnSubMessage, true))
+        if (Boolean.TRUE.equals(isUnSubMessage))
         {
             this.handleUnSubscription(client, (Map<String, Object>) (subscription));
         }

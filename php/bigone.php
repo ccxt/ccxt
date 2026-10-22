@@ -1378,16 +1378,16 @@ class bigone extends Exchange {
             'period' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             'limit' => $limitResolved,
         );
-        if ($sinceIsDefined) {
+        if ($since !== null) {
             // const start = this.parseToInt (since / 1000);
             $duration = $this->parse_timeframe($timeframe);
-            $endByLimit = $this->sum($since, $limitResolved * $duration * 1000);
-            if ($untilIsDefined) {
+            $endByLimit = $this->parse_to_int($this->sum($since, $limitResolved * $duration * 1000));
+            if ($until !== null) {
                 $request['time'] = $this->iso8601(min($endByLimit, $until + 1));
             } else {
                 $request['time'] = $this->iso8601($endByLimit);
             }
-        } elseif ($untilIsDefined) {
+        } elseif ($until !== null) {
             $request['time'] = $this->iso8601($until + 1);
         }
         $paramsOmitted = $this->omit($params, 'until');
@@ -1473,7 +1473,7 @@ class bigone extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function parse_type(?string $type) {
+    public function parse_type(?string $type): ?string {
         $types = array(
             'STOP_LIMIT' => 'limit',
             'STOP_MARKET' => 'market',
@@ -1616,7 +1616,7 @@ class bigone extends Exchange {
         $exchangeSpecificParam = $this->safe_bool($params, 'post_only', false);
         $postOnly = null;
         $query = null;
-        list($postOnly, $query) = $this->handle_post_only($uppercaseType === 'MARKET', $exchangeSpecificParam === true, $params);
+        list($postOnly, $query) = $this->handle_post_only($uppercaseType === 'MARKET', $exchangeSpecificParam, $params);
         $triggerPrice = $this->safe_string_n($query, array( 'triggerPrice', 'stopPrice', 'stop_price' ));
         $request = array(
             'asset_pair_name' => $market['id'], // asset pair name BTC-USDT, required
@@ -1634,7 +1634,7 @@ class bigone extends Exchange {
                 if ($timeInForce === 'IOC') {
                     $request['immediate_or_cancel'] = true;
                 }
-                if ($postOnly === true) {
+                if ($postOnly) {
                     $request['post_only'] = true;
                 }
             }
@@ -1920,7 +1920,7 @@ class bigone extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'PENDING' => 'open',
             'FILLED' => 'closed',
@@ -1966,7 +1966,8 @@ class bigone extends Exchange {
     }
 
     public function nonce(): float {
-        $exchangeTimeCorrection = $this->safe_integer($this->options, 'exchangeMillisecondsCorrection', 0) * 1000000;
+        $exchangeMillisecondsCorrection = $this->safe_integer($this->options, 'exchangeMillisecondsCorrection', 0);
+        $exchangeTimeCorrection = $exchangeMillisecondsCorrection * 1000000;
         return $this->sum($this->microseconds() * 1000, $exchangeTimeCorrection);
     }
 
@@ -2066,7 +2067,7 @@ class bigone extends Exchange {
         );
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             // what are other statuses here?
             'WITHHOLD' => 'ok', // deposits
@@ -2319,7 +2320,7 @@ class bigone extends Exchange {
         $transfer = $this->parse_transfer($response, $currency);
         $transferOptions = $this->safe_dict($this->options, 'transfer', array());
         $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
-        if ($fillResponseFromRequest === true) {
+        if ($fillResponseFromRequest) {
             $transfer['fromAccount'] = $fromAccount;
             $transfer['toAccount'] = $toAccount;
             $transfer['amount'] = $amount;

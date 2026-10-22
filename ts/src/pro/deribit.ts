@@ -708,7 +708,7 @@ export default class deribit extends deribitRest {
         }
     }
 
-    override handleDeltas (bookside: any, deltas: any) {
+    override handleDeltas (bookside: any, deltas: any[]) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
@@ -964,7 +964,7 @@ export default class deribit extends deribitRest {
             'id': this.requestId (),
         };
         const extendedRequest = this.deepExtend (request, params);
-        const maxMessageByteLimit = 32768 - 1; // 'Message Too Big: limit 32768B'
+        const maxMessageByteLimit = 32767; // 'Message Too Big: limit 32768B'
         const jsonedText = this.json (extendedRequest);
         if (jsonedText.length >= maxMessageByteLimit) {
             throw new ExchangeError (this.id + ' requested subscription length over limit, try to reduce symbols amount');

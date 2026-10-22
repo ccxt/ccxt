@@ -1,5 +1,5 @@
 import deriveRest from '../derive.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Balances, Position, Dict, Bool } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Balances, Position, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class derive extends deriveRest {
     describe(): any;
@@ -166,7 +166,7 @@ export default class derive extends deriveRest {
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
     handlePositionDelta(subaccountIdKey: string, entry: Dict): Position;
     handleBalance(client: Client, message: Dict): void;
-    handleErrorMessage(client: Client, message: Dict): Bool;
+    handleErrorMessage(client: Client, message: Dict): boolean;
     handleMessage(client: Client, message: Dict): void;
     handleAuth(client: Client, message: Dict): void;
 }

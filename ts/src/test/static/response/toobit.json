@@ -3,6 +3,253 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchIndexOHLCV": [
+            {
+                "description": "fetchIndexOHLCV with since",
+                "method": "fetchIndexOHLCV",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    1789760220000,
+                    3
+                ],
+                "httpResponse": {
+                    "code": 200,
+                    "data": [
+                        {
+                            "t": 1789761600000,
+                            "s": "BTCUSDT",
+                            "sn": "BTCUSDT",
+                            "c": "81106.395",
+                            "h": "81226.02608696",
+                            "l": "80948.92304348",
+                            "o": "81207.2573913",
+                            "v": "0",
+                            "st": 1792352275479
+                        },
+                        {
+                            "t": 1789765200000,
+                            "s": "BTCUSDT",
+                            "sn": "BTCUSDT",
+                            "c": "81233.33152174",
+                            "h": "81290.36434783",
+                            "l": "81092.12021739",
+                            "o": "81106.71673913",
+                            "v": "0",
+                            "st": 1792352275479
+                        },
+                        {
+                            "t": 1789768800000,
+                            "s": "BTCUSDT",
+                            "sn": "BTCUSDT",
+                            "c": "81134.44108696",
+                            "h": "81367.74065217",
+                            "l": "81081.70434783",
+                            "o": "81233.33521739",
+                            "v": "0",
+                            "st": 1792352275479
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1789761600000,
+                        81207.2573913,
+                        81226.02608696,
+                        80948.92304348,
+                        81106.395,
+                        0
+                    ],
+                    [
+                        1789765200000,
+                        81106.71673913,
+                        81290.36434783,
+                        81092.12021739,
+                        81233.33152174,
+                        0
+                    ],
+                    [
+                        1789768800000,
+                        81233.33521739,
+                        81367.74065217,
+                        81081.70434783,
+                        81134.44108696,
+                        0
+                    ]
+                ]
+            }
+        ],
+        "fetchMarkOHLCV": [
+            {
+                "description": "fetchMarkOHLCV with until",
+                "method": "fetchMarkOHLCV",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    null,
+                    3,
+                    {
+                        "until": 1789771000000
+                    }
+                ],
+                "httpResponse": {
+                    "code": 200,
+                    "data": [
+                        {
+                            "symbol": "BTC-SWAP-USDT",
+                            "time": 1789761600000,
+                            "low": "80914.2",
+                            "open": "81169",
+                            "high": "81200",
+                            "close": "81085.7",
+                            "volume": "0",
+                            "trades": 1,
+                            "klineType": "1h",
+                            "quoteVolume": "0",
+                            "change": "-0.001",
+                            "curId": 1789761600000
+                        },
+                        {
+                            "symbol": "BTC-SWAP-USDT",
+                            "time": 1789765200000,
+                            "low": "81065.4",
+                            "open": "81085.8",
+                            "high": "81263.9",
+                            "close": "81206.3",
+                            "volume": "0",
+                            "trades": 1,
+                            "klineType": "1h",
+                            "quoteVolume": "0",
+                            "change": "0.0015",
+                            "curId": 1789765200000
+                        },
+                        {
+                            "symbol": "BTC-SWAP-USDT",
+                            "time": 1789768800000,
+                            "low": "81037",
+                            "open": "81206.3",
+                            "high": "81341.4",
+                            "close": "81101.3",
+                            "volume": "0",
+                            "trades": 1,
+                            "klineType": "1h",
+                            "quoteVolume": "0",
+                            "change": "-0.0013",
+                            "curId": 1789768800000
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1789761600000,
+                        81169,
+                        81200,
+                        80914.2,
+                        81085.7,
+                        0
+                    ],
+                    [
+                        1789765200000,
+                        81085.8,
+                        81263.9,
+                        81065.4,
+                        81206.3,
+                        0
+                    ],
+                    [
+                        1789768800000,
+                        81206.3,
+                        81341.4,
+                        81037,
+                        81101.3,
+                        0
+                    ]
+                ]
+            },
+            {
+                "description": "fetchMarkOHLCV with since",
+                "method": "fetchMarkOHLCV",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    1789760220000,
+                    3
+                ],
+                "httpResponse": {
+                    "code": 200,
+                    "data": [
+                        {
+                            "symbol": "BTC-SWAP-USDT",
+                            "time": 1789761600000,
+                            "low": "80914.2",
+                            "open": "81169",
+                            "high": "81200",
+                            "close": "81085.7",
+                            "volume": "0",
+                            "trades": 1,
+                            "klineType": "1h",
+                            "quoteVolume": "0",
+                            "change": "-0.001",
+                            "curId": 1789761600000
+                        },
+                        {
+                            "symbol": "BTC-SWAP-USDT",
+                            "time": 1789765200000,
+                            "low": "81065.4",
+                            "open": "81085.8",
+                            "high": "81263.9",
+                            "close": "81206.3",
+                            "volume": "0",
+                            "trades": 1,
+                            "klineType": "1h",
+                            "quoteVolume": "0",
+                            "change": "0.0015",
+                            "curId": 1789765200000
+                        },
+                        {
+                            "symbol": "BTC-SWAP-USDT",
+                            "time": 1789768800000,
+                            "low": "81037",
+                            "open": "81206.3",
+                            "high": "81341.4",
+                            "close": "81101.3",
+                            "volume": "0",
+                            "trades": 1,
+                            "klineType": "1h",
+                            "quoteVolume": "0",
+                            "change": "-0.0013",
+                            "curId": 1789768800000
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1789761600000,
+                        81169,
+                        81200,
+                        80914.2,
+                        81085.7,
+                        0
+                    ],
+                    [
+                        1789765200000,
+                        81085.8,
+                        81263.9,
+                        81065.4,
+                        81206.3,
+                        0
+                    ],
+                    [
+                        1789768800000,
+                        81206.3,
+                        81341.4,
+                        81037,
+                        81101.3,
+                        0
+                    ]
+                ]
+            }
+        ],
         "fetchDeposits": [
             {
                 "description": "fetchDeposits success and audit statuses",
@@ -925,6 +1172,7 @@
                         "markPrice": 0.20921,
                         "lastPrice": 0.20932,
                         "notional": 13.3503,
+                        "positionMargin": null,
                         "collateral": null,
                         "unrealizedPnl": -0.1701,
                         "side": "long",
@@ -936,7 +1184,7 @@
                         "maintenanceMargin": null,
                         "maintenanceMarginPercentage": null,
                         "initialMargin": 0.5262,
-                        "initialMarginPercentage": null,
+                        "initialMarginPercentage": 0.03941484461023348,
                         "leverage": 25,
                         "liquidationPrice": null,
                         "marginRatio": null,
@@ -2650,9 +2898,9 @@
                     "datetime": "2025-09-09T21:12:17.074Z",
                     "high": 113238,
                     "low": 110714.9,
-                    "bid": null,
+                    "bid": 111631.8,
                     "bidVolume": null,
-                    "ask": null,
+                    "ask": 111631.9,
                     "askVolume": null,
                     "vwap": 111934.19970434585,
                     "open": 111919.7,
@@ -2711,9 +2959,9 @@
                     "datetime": "2025-09-09T21:12:05.117Z",
                     "high": 113293.29,
                     "low": 110766.66,
-                    "bid": null,
+                    "bid": 111693.18,
                     "bidVolume": null,
-                    "ask": null,
+                    "ask": 111693.19,
                     "askVolume": null,
                     "vwap": 111963.35888381973,
                     "open": 111970.98,
@@ -3376,9 +3624,9 @@
                         "datetime": "2025-09-09T21:12:33.717Z",
                         "high": 113238,
                         "low": 110714.9,
-                        "bid": null,
+                        "bid": 111654.9,
                         "bidVolume": null,
-                        "ask": null,
+                        "ask": 111655,
                         "askVolume": null,
                         "vwap": 111934.11488522035,
                         "open": 111919.7,
@@ -3441,9 +3689,9 @@
                         "datetime": "2025-09-09T21:12:25.557Z",
                         "high": 113293.29,
                         "low": 110766.66,
-                        "bid": null,
+                        "bid": 111695.55,
                         "bidVolume": null,
-                        "ask": null,
+                        "ask": 111695.56,
                         "askVolume": null,
                         "vwap": 111963.33966246115,
                         "open": 111970.98,

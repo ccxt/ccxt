@@ -285,7 +285,7 @@ class hollaex(Exchange, ImplicitAPI):
             },
             'options': {
                 # how many seconds before the authenticated request expires
-                'api-expires': self.parse_to_int(self.timeout / 1000),
+                'api-expires': self.parse_to_int(self.parse_to_int(self.timeout) / 1000),
                 'networks': {
                     'BTC': 'btc',
                     'ERC20': 'eth',
@@ -928,15 +928,14 @@ class hollaex(Exchange, ImplicitAPI):
         paginateOption, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', paginate)
         if paginateOption:
             return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit)
-        until = self.safe_integer(paramsPaginate, 'until')
-        timeDelta = self.parse_timeframe(timeframe) * maxLimit * 1000
-        start = since
         now = self.milliseconds()
-        if until is None:
-            until = now  # the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
-        if start is None:
-            start = until - timeDelta
-        request['from'] = self.parse_to_int(start / 1000)  # convert to seconds
+        # the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
+        until = self.safe_integer(paramsPaginate, 'until', now)
+        timeDelta = self.parse_timeframe(timeframe) * maxLimit * 1000
+        if since is None:
+            request['from'] = self.parse_to_int((until - timeDelta) / 1000)  # convert to seconds
+        else:
+            request['from'] = self.parse_to_int(since / 1000)  # convert to seconds
         request['to'] = self.parse_to_int(until / 1000)  # convert to seconds
         paramsOmitted = self.omit(paramsPaginate, 'until')
         response = await self.publicGetChart(self.extend(request, paramsOmitted))
@@ -1211,7 +1210,7 @@ class hollaex(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'new': 'open',
             'pfilled': 'open',
@@ -1781,10 +1780,11 @@ class hollaex(Exchange, ImplicitAPI):
             tagTo = tag
         currencyId = self.safe_string(transaction, 'currency')
         currencyResolved = self.safe_currency(currencyId, currency)
-        status = self.safe_value(transaction, 'status')
+        completed = self.safe_bool(transaction, 'status')
         dismissed = self.safe_bool(transaction, 'dismissed')
         rejected = self.safe_bool(transaction, 'rejected')
-        if status is True:
+        status = None
+        if completed is True:
             status = 'ok'
         elif dismissed is True:
             status = 'canceled'
@@ -1868,7 +1868,7 @@ class hollaex(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None) -> object:
+    def parse_deposit_withdraw_fee(self, fee: dict, currency: Currency = None) -> object:
         #
         #    "bch":{
         #        "id":4,
@@ -1983,7 +1983,7 @@ class hollaex(Exchange, ImplicitAPI):
         coins = self.safe_dict(response, 'coins', {})
         return self.parse_deposit_withdraw_fees(coins, codes, 'symbol')
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         query = self.omit(params, self.extract_params(path))
         requestPath = '/' + self.version + '/' + self.implode_params(path, params)
         if (method == 'GET') or (method == 'DELETE'):
@@ -1997,7 +1997,8 @@ class hollaex(Exchange, ImplicitAPI):
         requestHeaders = None
         if api[0] == 'private':
             self.check_required_credentials()
-            defaultExpires = self.safe_integer_2(self.options, 'api-expires', 'expires', self.parse_to_int(self.timeout / 1000))
+            timeoutMs = self.parse_to_int(self.timeout)
+            defaultExpires = self.safe_integer_2(self.options, 'api-expires', 'expires', self.parse_to_int(timeoutMs / 1000))
             expires = self.sum(self.seconds(), defaultExpires)
             expiresString = str(expires)
             auth = method + requestPath + expiresString
@@ -2020,7 +2021,8 @@ class hollaex(Exchange, ImplicitAPI):
         # { "message": "Invalid token" }
         if response is None:
             return None
-        if (code >= 400) and (code <= 503):
+        statusCode = self.parse_to_int(code)
+        if (statusCode >= 400) and (statusCode <= 503):
             #
             #  { "message": "Invalid token" }
             #

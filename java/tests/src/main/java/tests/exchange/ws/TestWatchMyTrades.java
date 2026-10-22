@@ -42,7 +42,7 @@ public class TestWatchMyTrades extends BaseTest {
                 // continue;
                 success = false;
             }
-            if (java.util.Objects.equals(success, true))
+            if (Boolean.TRUE.equals(success))
             {
                 TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
                 now = exchange.milliseconds();

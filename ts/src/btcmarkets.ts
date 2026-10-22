@@ -371,7 +371,7 @@ export default class btcmarkets extends Exchange {
         return await this.fetchTransactionsWithMethod ('privateGetWithdrawals', code, since, limit, params);
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             'Accepted': 'pending',
             'Pending Authorization': 'pending',
@@ -1167,7 +1167,7 @@ export default class btcmarkets extends Exchange {
         };
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'Accepted': 'open',
             'Placed': 'open',
@@ -1442,7 +1442,7 @@ export default class btcmarkets extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
         let requestHeaders: NullableDict = undefined;
         let requestBody: Str = undefined;

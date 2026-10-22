@@ -15,13 +15,13 @@ func testFetchOrderBookBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreEx
 	defer ReturnPanicError(ch)
 	var method string = "fetchOrderBook"
 
-	r := <-exchange.FetchOrderBookAsync(StringArg(symbol))
+	r := <-exchange.(ccxt.IFetchOrderBook).FetchOrderBookAsync(StringArg(symbol))
 	if r.Err != nil {
 		panic(r.Err)
 	}
 	var orderbook any = nil
-	if r.Value != nil {
-		orderbook = r.Value
+	if !ccxt.StructAbsent(r.Value) {
+		orderbook = ccxt.StructBox(r.Value, ccxt.OrderBookToMap)
 	}
 	TestOrderBook(exchange, skippedProperties, method, orderbook, symbol)
 

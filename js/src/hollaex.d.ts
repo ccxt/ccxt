@@ -1,5 +1,5 @@
 import Exchange from './abstract/hollaex.js';
-import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, OrderBooks, DepositWithdrawFees } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Int, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, OrderBooks, DepositWithdrawFees } from './base/types.js';
 /**
  * @class hollaex
  * @augments Exchange
@@ -285,7 +285,7 @@ export default class hollaex extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
-    parseDepositWithdrawFee(fee: any, currency?: Currency): any;
+    parseDepositWithdrawFee(fee: NullableDict, currency?: Currency): any;
     /**
      * @method
      * @name hollaex#fetchDepositWithdrawFees

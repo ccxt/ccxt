@@ -566,7 +566,7 @@ class toobit(ccxt.async_support.toobit):
         #     }
         #
         isSnapshot = self.safe_bool(message, 'f', False)
-        if isSnapshot is True:
+        if isSnapshot:
             self.set_order_book_snapshot(client, message, 'diffDepth')
             return
         marketId = self.safe_string(message, 'symbol')
@@ -966,11 +966,11 @@ class toobit(ccxt.async_support.toobit):
         messageHash = ''
         symbolsNormalized = symbols
         if not self.is_empty(symbols):
-            symbolsNormalized = self.market_symbols(symbols)
-        if not self.is_empty(symbols):
-            if symbolsNormalized is None:
+            marketSymbols = self.market_symbols(symbols)
+            if marketSymbols is None:
                 raise ArgumentsRequired(self.id + ' watchPositions() symbols is required')
-            messageHash = '::' + ','.join(symbolsNormalized)
+            symbolsNormalized = marketSymbols
+            messageHash = '::' + ','.join(marketSymbols)
         messageHash = type + ':positions' + messageHash
         url = self.get_user_stream_url()
         client = self.client(url)

@@ -1103,16 +1103,25 @@ class p2b(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         if self.markets is None:
             await self.load_markets()
-        until = self.safe_integer(params, 'until')
+        untilParam = self.safe_integer(params, 'until')
         paramsOmitted = self.omit(params, 'until')
-        if until is None:
-            if since is None:
-                until = self.milliseconds()
+        until = None
+        sinceResolved = 0
+        if untilParam is not None:
+            until = untilParam
+            if since is not None:
+                if (untilParam - since) > 86400000:
+                    raise BadRequest(self.id + ' fetchMyTrades () the time between since and params["until"] cannot be greater than 24 hours')
+                sinceResolved = since
             else:
-                until = since + 86400000
-        sinceResolved = (until - 86400000) if (since is None) else since
-        if (until - sinceResolved) > 86400000:
-            raise BadRequest(self.id + ' fetchMyTrades () the time between since and params["until"] cannot be greater than 24 hours')
+                sinceResolved = untilParam - 86400000
+        elif since is not None:
+            until = since + 86400000
+            sinceResolved = since
+        else:
+            now = self.milliseconds()
+            until = now
+            sinceResolved = now - 86400000
         market = self.market(symbol)
         sinceSec = self.parse_to_int(sinceResolved / 1000)
         untilSec = self.parse_to_int(until / 1000)
@@ -1172,19 +1181,28 @@ class p2b(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        until = self.safe_integer(params, 'until')
+        untilParam = self.safe_integer(params, 'until')
         paramsOmitted = self.omit(params, 'until')
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        if until is None:
-            if since is None:
-                until = self.milliseconds()
+        until = None
+        sinceResolved = 0
+        if untilParam is not None:
+            until = untilParam
+            if since is not None:
+                if (untilParam - since) > 86400000:
+                    raise BadRequest(self.id + ' fetchClosedOrders () the time between since and params["until"] cannot be greater than 24 hours')
+                sinceResolved = since
             else:
-                until = since + 86400000
-        sinceResolved = (until - 86400000) if (since is None) else since
-        if (until - sinceResolved) > 86400000:
-            raise BadRequest(self.id + ' fetchClosedOrders () the time between since and params["until"] cannot be greater than 24 hours')
+                sinceResolved = untilParam - 86400000
+        elif since is not None:
+            until = since + 86400000
+            sinceResolved = since
+        else:
+            now = self.milliseconds()
+            until = now
+            sinceResolved = now - 86400000
         sinceSec = self.parse_to_int(sinceResolved / 1000)
         untilSec = self.parse_to_int(until / 1000)
         request = {
@@ -1300,7 +1318,7 @@ class p2b(Exchange, ImplicitAPI):
             'trades': None,
         }, marketResolved)
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
         baseApiUrl = self.safe_string(self.urls['api'], apiName)
         if baseApiUrl is None:
@@ -1336,12 +1354,13 @@ class p2b(Exchange, ImplicitAPI):
         #     {"success":true,"errorCode":"","message":"","result":{...},"cache_time":1787611797.535462,"current_time":1787611797.535973}
         #
         success = self.safe_bool(response, 'success', True)
-        if success is not True:
+        if not success:
             errorCode = self.safe_string(response, 'errorCode')
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             codeAsString = str(code)
-            if (code < 400) or not (codeAsString in self.httpExceptions):
+            statusCode = self.parse_to_int(code)
+            if (statusCode < 400) or not (codeAsString in self.httpExceptions):
                 # an error envelope must always throw — also for statuses the http-status handler has no entry for
                 raise ExchangeError(feedback)
             # unmapped codes on the remaining error statuses fall through to the default http-status handler

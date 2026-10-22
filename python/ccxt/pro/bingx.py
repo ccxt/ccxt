@@ -302,11 +302,7 @@ class bingx(ccxt.async_support.bingx):
         # Coin-M m is coin volume; v is contracts and q is already USD turnover.
         # prefer the caller's stream-derived flag so an unresolved market id on
         # the Coin-M endpoint does not silently fall back to the contract count
-        inverse = False
-        if isInverse is None:
-            inverse = marketResolved['inverse'] is True
-        else:
-            inverse = isInverse
+        inverse = (isInverse is True) or ((isInverse is None) and (marketResolved['inverse'] is True))
         baseVolumeKey = 'm' if inverse else 'v'
         return self.safe_ticker({
             'symbol': marketResolved['symbol'],
@@ -1212,7 +1208,7 @@ class bingx(ccxt.async_support.bingx):
         for i in range(0, len(positions)):
             position = positions[i]
             contracts = self.safe_number(position, 'contracts', 0)
-            if contracts > 0:
+            if (contracts is not None) and (contracts > 0):
                 cache.append(position)
         # don't remove the future from the .futures cache
         if messageHash in client.futures:
@@ -1374,7 +1370,7 @@ class bingx(ccxt.async_support.bingx):
         time = self.milliseconds()
         lastAuthenticatedTime = self.safe_integer(self.options, 'lastAuthenticatedTime', 0)
         listenKeyRefreshRate = self.safe_integer(self.options, 'listenKeyRefreshRate', 3600000)  # 1 hour
-        if time - lastAuthenticatedTime > listenKeyRefreshRate:
+        if (listenKeyRefreshRate is not None) and (time - lastAuthenticatedTime > listenKeyRefreshRate):
             # single-flight leader election on a never-dialed client, see
             # https://github.com/ccxt/ccxt/issues/29393: racing fetches mint
             # different keys and the key rides the private url, so losers
@@ -1768,7 +1764,7 @@ class bingx(ccxt.async_support.bingx):
         subscriptionsById = self.index_by(client.subscriptions, 'id')
         subscription = self.safe_dict(subscriptionsById, id, {})
         isUnSubMessage = self.safe_bool(subscription, 'unsubscribe', False)
-        if isUnSubMessage is True:
+        if isUnSubMessage:
             self.handle_un_subscription(client, subscription)
         return message
 

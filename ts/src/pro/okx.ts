@@ -373,6 +373,9 @@ export default class okx extends okxRest {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     override async watchFundingRate (symbol: string, params: Dict = {}): Promise<FundingRate> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const symbolValue: string = this.symbol (symbol);
         const fr = await this.watchFundingRates ([ symbolValue ], params);
         return fr[symbolValue];
@@ -468,6 +471,9 @@ export default class okx extends okxRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const [ channel, paramsChannel ] = this.handleOptionStringAndParams (params, 'watchTicker', 'channel', 'tickers');
         paramsChannel['channel'] = channel;
         const market = this.market (symbol);
@@ -524,6 +530,9 @@ export default class okx extends okxRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override async watchMarkPrice (symbol: string, params: Dict = {}): Promise<Ticker> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const [ channel, paramsChannel ] = this.handleOptionStringAndParams (params, 'watchMarkPrice', 'channel', 'mark-price');
         paramsChannel['channel'] = channel;
         const market = this.market (symbol);
@@ -891,7 +900,7 @@ export default class okx extends okxRest {
         const isTrigger = this.safeBool2 (params, 'stop', 'trigger', false);
         const paramsOmitted: Dict = this.omit (params, [ 'stop', 'trigger' ]);
         let accessType: Str = 'private';
-        if (isTrigger === true) {
+        if (isTrigger) {
             accessType = 'business';
         }
         await this.authenticate ({ 'access': accessType });
@@ -1423,7 +1432,7 @@ export default class okx extends okxRest {
         bookside.store (price, amount);
     }
 
-    override handleDeltas (bookside: any, deltas: any) {
+    override handleDeltas (bookside: any, deltas: any[]) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
@@ -1460,11 +1469,8 @@ export default class okx extends okxRest {
         const seqId = this.safeInteger (message, 'seqId');
         const prevSeqId = this.safeInteger (message, 'prevSeqId');
         const nonce = orderbook['nonce'];
-        let error: InvalidNonce | undefined = undefined;
         if (prevSeqId !== undefined && prevSeqId !== -1 && nonce !== prevSeqId) {
-            error = new InvalidNonce (this.id + ' watchOrderBook received invalid nonce');
-        }
-        if (error !== undefined) {
+            const error = new InvalidNonce (this.id + ' watchOrderBook received invalid nonce');
             delete client.subscriptions[messageHash];
             if (symbol !== undefined) {
                 delete this.orderbooks[symbol];
@@ -1834,12 +1840,12 @@ export default class okx extends okxRest {
             await this.loadMarkets ();
         }
         let access: Str = 'private';
-        if (isTrigger === true) {
+        if (isTrigger) {
             access = 'business';
         }
         await this.authenticate ({ 'access': access });
         let channel: Str = 'orders';
-        if (isTrigger === true) {
+        if (isTrigger) {
             channel = 'orders-algo';
         }
         let messageHash = channel + '::myTrades';
@@ -2040,7 +2046,7 @@ export default class okx extends okxRest {
             await this.loadMarkets ();
         }
         let accessType: Str = 'private';
-        if (isTrigger === true) {
+        if (isTrigger) {
             accessType = 'business';
         }
         await this.authenticate ({ 'access': accessType });
@@ -2069,7 +2075,7 @@ export default class okx extends okxRest {
             'instType': uppercaseType,
         };
         let channel: Str = 'orders';
-        if (isTrigger === true) {
+        if (isTrigger) {
             channel = 'orders-algo';
         }
         const orders = await this.subscribe ('private', channel, channel, symbolResolved, this.extend (request, paramsMarginMode));
@@ -2506,6 +2512,35 @@ export default class okx extends okxRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
+    handleCancelOrders (client: Client, message: Dict) {
+        //
+        //    {
+        //        "id": "1512",
+        //        "op": "batch-cancel-orders",
+        //        "data": [
+        //            {
+        //                "clOrdId": "",
+        //                "ordId": "2510789768709120",
+        //                "sCode": "0",
+        //                "sMsg": ""
+        //            }
+        //        ],
+        //        "code": "0",
+        //        "msg": ""
+        //    }
+        //
+        const messageHash = this.safeString (message, 'id');
+        let args = this.safeList (message, 'data', []);
+        args = this.filterBy (args, 'sCode', '0');
+        if (this.isEmpty (args)) {
+            const method = this.safeString (message, 'op');
+            const stringMsg = this.json (message);
+            this.handleErrors (1, '', client.url, method as string, {}, stringMsg, message, {}, {});
+        }
+        const orders = this.parseOrders (args, undefined, undefined, undefined);
+        client.resolve (orders, messageHash);
+    }
+
     handleCancelAllOrders (client: Client, message: Dict) {
         //
         //    {
@@ -2672,6 +2707,7 @@ export default class okx extends okxRest {
                 'amend-order': this.handlePlaceOrders,
                 'batch-amend-orders': this.handlePlaceOrders,
                 'cancel-order': this.handlePlaceOrders,
+                'batch-cancel-orders': this.handleCancelOrders,
                 'mass-cancel': this.handleCancelAllOrders,
             };
             const method = this.safeValue (methods, event);
@@ -2745,6 +2781,10 @@ export default class okx extends okxRest {
         const subMessageHash = 'multi:' + channel + ':' + symbol;
         const messageHash = 'unsubscribe:' + subMessageHash;
         this.cleanUnsubscription (client, subMessageHash, messageHash);
+        // watchOHLCV subscribes through subscribe () under channel:marketId
+        if (symbol !== undefined) {
+            this.cleanUnsubscription (client, channel + ':' + this.marketId (symbol), undefined);
+        }
         if ((symbol !== undefined) && (timeframe !== undefined) && (timeframe in this.ohlcvs[symbol])) {
             delete this.ohlcvs[symbol][timeframe];
         }

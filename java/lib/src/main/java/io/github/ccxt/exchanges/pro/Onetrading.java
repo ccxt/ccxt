@@ -261,9 +261,9 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
             Helpers.addElementToObject(this.tickers, symbol, this.parseWSTicker((Map<String, Object>) (ticker), (Map<String, Object>) null));
             Long timestamp = this.parse8601(datetime);
-            Helpers.addElementToObject(Helpers.GetValue(this.tickers, symbol), "timestamp", timestamp);
-            Helpers.addElementToObject(Helpers.GetValue(this.tickers, symbol), "datetime", this.iso8601(timestamp));
-            client.resolve(Helpers.GetValue(this.tickers, symbol), ("ticker." + symbol));
+            Helpers.addElementToObject((symbol == null || this.tickers == null ? null : ((Map<?, ?>)this.tickers).get(symbol)), "timestamp", timestamp);
+            Helpers.addElementToObject((symbol == null || this.tickers == null ? null : ((Map<?, ?>)this.tickers).get(symbol)), "datetime", this.iso8601(timestamp));
+            client.resolve((symbol == null || this.tickers == null ? null : ((Map<?, ?>)this.tickers).get(symbol)), ("ticker." + symbol));
         }
         client.resolve(this.tickers, "tickers");
     }
@@ -327,7 +327,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String messageHash = "myTrades";
-            Object symbolResolved = null;
+            String symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = this.market(symbol);
@@ -352,11 +352,11 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolResolved, limit);
             }
-            trades = this.filterBySymbolSinceLimit(trades, Helpers.toStringArg(symbolResolved), since, limitResolved, false);
-            Integer numTrades = Helpers.getArrayLength(trades);
+            trades = this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, false);
+            Integer numTrades = (switch ((Object)(trades)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; });
             if ((numTrades != null && numTrades == 0))
             {
-                return (this.watchMyTrades(Helpers.toStringArg(symbolResolved), since, limitResolved, parameters)).join();
+                return (this.watchMyTrades(symbolResolved, since, limitResolved, parameters)).join();
             }
             return trades;
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
@@ -492,7 +492,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         //       [ 'SELL', "0.053698", "0" ]
         //    ]
         //
-        for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
+        for (var i = 0; i < (switch ((Object)(deltas)) { case null -> 0; case List<?> j39v4 -> j39v4.size(); case String j39v5 -> j39v5.length(); case Object j39v6 -> j39v6.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v6) : 0; }); i++)
         {
             this.handleBookDelta(orderbook, Helpers.GetValue(deltas, i));
         }
@@ -520,7 +520,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String messageHash = "orders";
-            Object symbolResolved = null;
+            String symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = this.market(symbol);
@@ -545,11 +545,11 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
-            orders = this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, limitResolved, false);
-            Integer numOrders = Helpers.getArrayLength(orders);
+            orders = this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, false);
+            Integer numOrders = (switch ((Object)(orders)) { case null -> 0; case List<?> j39v7 -> j39v7.size(); case String j39v8 -> j39v8.length(); case Object j39v9 -> j39v9.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v9) : 0; });
             if ((numOrders != null && numOrders == 0))
             {
-                return (this.watchOrders(Helpers.toStringArg(symbolResolved), since, limitResolved, parameters)).join();
+                return (this.watchOrders(symbolResolved, since, limitResolved, parameters)).join();
             }
             return orders;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -1198,7 +1198,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
                 {
                     Map<String, Object> ohlcvMarket = (Map<String, Object>) this.safeDict(subscription, marketId, new HashMap<String, Object>() {{}});
                     Boolean marketSubscribed = (Boolean) this.safeBool(ohlcvMarket, java.util.Objects.requireNonNullElse(timeframe, "1m"), false);
-                    if (!java.util.Objects.equals(marketSubscribed, true))
+                    if (!Boolean.TRUE.equals(marketSubscribed))
                     {
                         type = "UPDATE_SUBSCRIPTION";
                         Helpers.addElementToObject(client.subscriptions, subscriptionHash, null);
@@ -1224,7 +1224,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             List<String> marketIds = new ArrayList<String>(((Map<String, Object>)subscription).keySet());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
-                List<Object> marketIdtimeframes = Helpers.objectKeys(Helpers.GetValue(subscription, (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i))));
+                List<Object> marketIdtimeframes = ((List<Object>) switch ((Object)(Helpers.GetValue(subscription, (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i))))) { case Map<?, ?> j39v10 -> { synchronized (j39v10) { yield new ArrayList<Object>(j39v10.keySet()); } } case null, default -> new ArrayList<Object>(); });
                 for (var ii = 0; ii < ((List<?>)marketIdtimeframes).size(); ii++)
                 {
                     Map<String, Object> marketTimeframeId = (Map<String, Object>) this.safeDict(timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), (Object) null);
@@ -1317,7 +1317,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         {
             throw new ArgumentsRequired((this.id + " findTimeframe() timeframes is required")) ;
         }
-        List<Object> keys = Helpers.objectKeys(timeframesResolved);
+        List<Object> keys = ((List<Object>) switch ((Object)(timeframesResolved)) { case Map<?, ?> j39v11 -> { synchronized (j39v11) { yield new ArrayList<Object>(j39v11.keySet()); } } case null, default -> new ArrayList<Object>(); });
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
@@ -1477,7 +1477,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
                     {
                         Object marketId = (marketIds == null || i < 0 || i >= ((List<?>)marketIds).size() ? null : ((List<?>)marketIds).get(i));
                         Boolean marketSubscribed = (Boolean) this.safeBool(subscription, marketId, false);
-                        if (!java.util.Objects.equals(marketSubscribed, true))
+                        if (!Boolean.TRUE.equals(marketSubscribed))
                         {
                             type = "UPDATE_SUBSCRIPTION";
                             Helpers.addElementToObject(client.subscriptions, subscriptionHash, null);

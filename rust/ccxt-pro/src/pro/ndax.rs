@@ -397,7 +397,7 @@ impl NdaxCore {
         let mut message: Value = self.extend(request, &[params]);
         let mut trades: Value = self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;
         let mut limitResolved: Value = limit.clone();
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolValue, limit);
         }
         return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
@@ -435,8 +435,8 @@ impl NdaxCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_507: bool = true;
-            while { if !__for_first_507 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_507 = false; i.as_f64().unwrap_or(f64::NAN) < ((payload.len() as i64) as f64) } {
+            let mut __for_first_525: bool = true;
+            while { if !__for_first_525 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_525 = false; i.as_f64().unwrap_or(f64::NAN) < ((payload.len() as i64) as f64) } {
             let mut trade: Value = self.parse_trade(payload.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[]);
             let mut symbol: Value = trade.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut tradesArray: Value = (if (symbol == Value::Null) { Value::Null } else { self.safe_value(self.trades.clone(), symbol.clone(), &[]) });
@@ -456,8 +456,8 @@ impl NdaxCore {
         let mut symbols: Value = object_keys(&updates);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_508: bool = true;
-            while { if !__for_first_508 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_508 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
+            let mut __for_first_526: bool = true;
+            while { if !__for_first_526 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_526 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
             let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into());
@@ -501,7 +501,7 @@ impl NdaxCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("OMSId".to_string(), omsId);
                 m.insert("InstrumentId".to_string(), self.safe_integer_k(market, "id", &[]));
-                m.insert("Interval".to_string(), (match &self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]) { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null }));
+                m.insert("Interval".to_string(), self.parse_to_int(self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()])));
                 m.insert("IncludeLastCount".to_string(), Value::Int(100));
             m
         });
@@ -516,7 +516,7 @@ impl NdaxCore {
         let mut message: Value = self.extend(request, &[params]);
         let mut ohlcv: Value = self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;
         let mut limitResolved: Value = limit.clone();
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbolValue, limit);
         }
         return self.filter_by_since_limit(ohlcv, &[since, limitResolved, Value::Int(0), Value::Bool(true)]);
@@ -558,8 +558,8 @@ impl NdaxCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_510: bool = true;
-            while { if !__for_first_510 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_510 = false; i.as_f64().unwrap_or(f64::NAN) < ((payload.len() as i64) as f64) } {
+            let mut __for_first_528: bool = true;
+            while { if !__for_first_528 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_528 = false; i.as_f64().unwrap_or(f64::NAN) < ((payload.len() as i64) as f64) } {
             let mut ohlcv: Value = self.safe_list(payload.clone(), i.clone(), &[]);
             let mut marketId: Value = self.safe_string(ohlcv.clone(), Value::Int(8), &[]);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
@@ -574,51 +574,60 @@ impl NdaxCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]); if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
-            let mut keys: Value = object_keys(&self.timeframes);
+            let mut keys: Value = Value::Array(self.timeframes.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_509: bool = true;
-                while { if !__for_first_509 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_509 = false; j.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
+                let mut __for_first_527: bool = true;
+                while { if !__for_first_527 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_527 = false; j.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
                 let mut timeframe: Value = keys.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
-                let mut duration: Value = (match (&((match &interval { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+                let mut duration: Value = (match (&(self.parse_to_int(interval)), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
                 let mut timestamp: Value = self.safe_integer(ohlcv.clone(), Value::Int(0), &[]);
                 if (timestamp == Value::Null) {
                     continue;
                 }
-                let mut parsed: Value = Value::from(vec![self.parse_to_int((match (&(((match ((timestamp).as_f64(), (duration).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), self.safe_float(ohlcv.clone(), Value::Int(3), &[]), self.safe_float(ohlcv.clone(), Value::Int(1), &[]), self.safe_float(ohlcv.clone(), Value::Int(2), &[]), self.safe_float(ohlcv.clone(), Value::Int(4), &[]), self.safe_float(ohlcv.clone(), Value::Int(5), &[])]);
-                let mut stored: Value = self.safe_value(get_value(&self.ohlcvs, &symbol), timeframe.clone(), &[Value::from(vec![])]);
+                let mut candleTimestamp: Value = self.parse_to_int((match (&(((match ((timestamp).as_f64(), (duration).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
+                let mut parsed: Value = Value::from(vec![candleTimestamp.clone(), self.safe_float(ohlcv.clone(), Value::Int(3), &[]), self.safe_float(ohlcv.clone(), Value::Int(1), &[]), self.safe_float(ohlcv.clone(), Value::Int(2), &[]), self.safe_float(ohlcv.clone(), Value::Int(4), &[]), self.safe_float(ohlcv.clone(), Value::Int(5), &[])]);
+                let mut stored: Value = self.safe_value(self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), timeframe.clone(), &[Value::from(vec![])]);
                 let mut length: Value = get_array_length(&stored);
-                if (length.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) && (is_equal(&parsed.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), &get_value(&get_value(&stored, &(match (&(length), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &Value::Int(0)))) {
+                if (length.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) && (candleTimestamp.as_f64() == self.safe_integer(get_value(&stored, &(match (&(length), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), Value::Int(0), &[]).as_f64()) {
                     let mut previous: Value = get_value(&stored, &(match (&(length), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
-                    let mut high: Value = parsed.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-                    if (parsed.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null) == Value::Null) {
-                        high = get_value(&previous, &Value::Int(1));
-                    }  else if (get_value(&previous, &Value::Int(1)) != Value::Null) {
-                        high = crate::runtime::Math::max(&parsed.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null), &get_value(&previous, &Value::Int(1)));
+                    let mut parsedHigh: Value = self.safe_float(ohlcv.clone(), Value::Int(1), &[]);
+                    let mut previousHigh: Value = self.safe_float(previous.clone(), Value::Int(1), &[]);
+                    let mut high: Value = previousHigh.clone();
+                    if (parsedHigh != Value::Null) {
+                        high = parsedHigh.clone();
+                        if (previousHigh != Value::Null) && (previousHigh.as_f64().unwrap_or(f64::NAN) > parsedHigh.as_f64().unwrap_or(f64::NAN)) {
+                            high = previousHigh;
+                        }
                     }
-                    let mut low: Value = parsed.as_array().and_then(|__arr| __arr.get(2)).cloned().unwrap_or(Value::Null);
-                    if (parsed.as_array().and_then(|__arr| __arr.get(2)).cloned().unwrap_or(Value::Null) == Value::Null) {
-                        low = get_value(&previous, &Value::Int(2));
-                    }  else if (get_value(&previous, &Value::Int(2)) != Value::Null) {
-                        low = crate::runtime::Math::min(&parsed.as_array().and_then(|__arr| __arr.get(2)).cloned().unwrap_or(Value::Null), &get_value(&previous, &Value::Int(2)));
+                    let mut parsedLow: Value = self.safe_float(ohlcv.clone(), Value::Int(2), &[]);
+                    let mut previousLow: Value = self.safe_float(previous.clone(), Value::Int(2), &[]);
+                    let mut low: Value = previousLow.clone();
+                    if (parsedLow != Value::Null) {
+                        low = parsedLow.clone();
+                        if (previousLow != Value::Null) && (parsedLow.as_f64().unwrap_or(f64::NAN) > previousLow.as_f64().unwrap_or(f64::NAN)) {
+                            low = previousLow;
+                        }
                     }
                     add_element_to_object(&mut stored, &(match (&(length), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), Value::from(vec![parsed.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), get_value(&previous, &Value::Int(1)), high, low, parsed.as_array().and_then(|__arr| __arr.get(4)).cloned().unwrap_or(Value::Null), self.sum(&[parsed.as_array().and_then(|__arr| __arr.get(5)).cloned().unwrap_or(Value::Null), get_value(&previous, &Value::Int(5))])]));
                     if (marketId != Value::Null) {
                         add_element_to_object(get_value_mut(&mut updates, &marketId), &timeframe, Value::Bool(true));
                     }
                 }  else {
-                    if (length.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) && (self.parse_to_int(parsed.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_f64().unwrap_or(f64::NAN) < self.parse_to_int(get_value(&get_value(&stored, &(match (&(length), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &Value::Int(0))).as_f64().unwrap_or(f64::NAN)) {
-                        continue;
-                    }  else {
-                        append_to_array(&mut stored, parsed);
-                        let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
-                        if length.as_f64().unwrap_or(f64::NAN) >= limit.as_f64().unwrap_or(f64::NAN) {
-                            shift(stored.clone());
+                    if length.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
+                        let mut lastTimestamp: Value = self.safe_integer(get_value(&stored, &(match (&(length), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), Value::Int(0), &[]);
+                        if (lastTimestamp != Value::Null) && (lastTimestamp.as_f64().unwrap_or(f64::NAN) > candleTimestamp.as_f64().unwrap_or(f64::NAN)) {
+                            continue;
                         }
-                        if (marketId != Value::Null) {
-                            add_element_to_object(get_value_mut(&mut updates, &marketId), &timeframe, Value::Bool(true));
-                        }
+                    }
+                    append_to_array(&mut stored, parsed);
+                    let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
+                    if length.as_f64().unwrap_or(f64::NAN) >= limit.as_f64().unwrap_or(f64::NAN) {
+                        shift(stored.clone());
+                    }
+                    if (marketId != Value::Null) {
+                        add_element_to_object(get_value_mut(&mut updates, &marketId), &timeframe, Value::Bool(true));
                     }
                 }
                 add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &timeframe, stored.clone());
@@ -630,19 +639,19 @@ impl NdaxCore {
         let mut marketIds: Value = object_keys(&updates);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_512: bool = true;
-            while { if !__for_first_512 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_512 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketIds.len() as i64) as f64) } {
+            let mut __for_first_530: bool = true;
+            while { if !__for_first_530 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_530 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketIds.len() as i64) as f64) } {
             let mut marketId: Value = marketIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut timeframes: Value = object_keys(&updates.as_map().and_then(|__m| marketId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null));
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_511: bool = true;
-                while { if !__for_first_511 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_511 = false; j.as_f64().unwrap_or(f64::NAN) < ((timeframes.len() as i64) as f64) } {
+                let mut __for_first_529: bool = true;
+                while { if !__for_first_529 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_529 = false; j.as_f64().unwrap_or(f64::NAN) < ((timeframes.len() as i64) as f64) } {
                 let mut timeframe: Value = timeframes.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), timeframe).into()), Value::Str(":".into())).into()), marketId).into());
                 let mut market: Value = self.safe_market(&[marketId.clone()]);
                 let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-                let mut stored: Value = self.safe_list(get_value(&self.ohlcvs, &symbol), timeframe, &[Value::from(vec![])]);
+                let mut stored: Value = self.safe_list(self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), timeframe, &[Value::from(vec![])]);
                 client.resolve(&[stored, messageHash]);
             }
             }
@@ -738,7 +747,7 @@ impl NdaxCore {
         //     ],
         //
         let mut firstBidAsk: Value = self.safe_list(payload.clone(), Value::Int(0), &[Value::from(vec![])]);
-        let mut marketId: Value = self.safe_string(firstBidAsk, Value::Int(7), &[]);
+        let mut marketId: Value = self.safe_string(firstBidAsk.clone(), Value::Int(7), &[]);
         if (marketId == Value::Null) {
             return;
         }
@@ -748,28 +757,29 @@ impl NdaxCore {
         if (orderbook == Value::Null) {
             return;
         }
-        let mut timestamp: Value = Value::Null;
-        let mut nonce: Value = Value::Null;
+        // seeded from the first entry so the locals keep a typed initializer (the loop re-reads it as a no-op)
+        let mut timestamp: Value = self.safe_integer(firstBidAsk.clone(), Value::Int(2), &[]);
+        let mut nonce: Value = self.safe_integer(firstBidAsk, Value::Int(0), &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_513: bool = true;
-            while { if !__for_first_513 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_513 = false; i.as_f64().unwrap_or(f64::NAN) < ((payload.len() as i64) as f64) } {
+            let mut __for_first_531: bool = true;
+            while { if !__for_first_531 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_531 = false; i.as_f64().unwrap_or(f64::NAN) < ((payload.len() as i64) as f64) } {
             let mut bidask: Value = self.safe_list(payload.clone(), i.clone(), &[]);
             if (timestamp == Value::Null) {
                 timestamp = self.safe_integer(bidask.clone(), Value::Int(2), &[]);
             }  else {
                 let mut newTimestamp: Value = self.safe_integer(bidask.clone(), Value::Int(2), &[]);
-                let mut currentTimestampValue: Value = (if (timestamp == Value::Null) { Value::Int(0) } else { timestamp.clone() });
-                let mut newTimestampValue: Value = (if (newTimestamp == Value::Null) { Value::Int(0) } else { newTimestamp });
-                timestamp = crate::runtime::Math::max(&currentTimestampValue, &newTimestampValue);
+                if (newTimestamp != Value::Null) && (newTimestamp.as_f64().unwrap_or(f64::NAN) > timestamp.as_f64().unwrap_or(f64::NAN)) {
+                    timestamp = newTimestamp;
+                }
             }
             if (nonce == Value::Null) {
                 nonce = self.safe_integer(bidask.clone(), Value::Int(0), &[]);
             }  else {
                 let mut newNonce: Value = self.safe_integer(bidask.clone(), Value::Int(0), &[]);
-                let mut currentNonceValue: Value = (if (nonce == Value::Null) { Value::Int(0) } else { nonce.clone() });
-                let mut newNonceValue: Value = (if (newNonce == Value::Null) { Value::Int(0) } else { newNonce });
-                nonce = crate::runtime::Math::max(&currentNonceValue, &newNonceValue);
+                if (newNonce != Value::Null) && (newNonce.as_f64().unwrap_or(f64::NAN) > nonce.as_f64().unwrap_or(f64::NAN)) {
+                    nonce = newNonce;
+                }
             }
             // 0 new, 1 update, 2 remove
             let mut type_var: Option<i64> = self.safe_integer(bidask.clone(), Value::Int(3), &[]).as_i64();

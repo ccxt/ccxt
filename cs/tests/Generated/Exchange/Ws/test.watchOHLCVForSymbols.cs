@@ -47,7 +47,7 @@ public partial class testMainClass : BaseTest
                 success = false;
             }
             now = exchange.milliseconds();
-            if (((success == true)) && ((response != null)))
+            if ((success) && ((response != null)))
             {
                 object assertionMessage = add(add(add(add(add(add(add(add(exchange.id, " "), method), " "), symbol), " "), chosenTimeframeKey), " | "), exchange.json(response));
                 assert(exchange.isDictionary(response), ("Response must be a dictionary. " + (assertionMessage)));

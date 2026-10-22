@@ -469,6 +469,50 @@ abstract class Exchange extends _Exchange {
         return this.request ('v3/market/futures-account-long-short', [ 'public', 'uta' ], 'GET', params, { 'cost': 20 });
     }
 
+    publicUtaGetV3StockplusMarketStatic (params = {}): Promise<Dict> {
+        return this.request ('v3/stockplus/market/static', [ 'public', 'uta' ], 'GET', params, { 'cost': 2 });
+    }
+
+    publicUtaGetV3StockplusMarketQuote (params = {}): Promise<Dict> {
+        return this.request ('v3/stockplus/market/quote', [ 'public', 'uta' ], 'GET', params, { 'cost': 2 });
+    }
+
+    publicUtaGetV3StockplusMarketIntraday (params = {}): Promise<Dict> {
+        return this.request ('v3/stockplus/market/intraday', [ 'public', 'uta' ], 'GET', params, { 'cost': 2 });
+    }
+
+    publicUtaGetV3StockplusMarketDepth (params = {}): Promise<Dict> {
+        return this.request ('v3/stockplus/market/depth', [ 'public', 'uta' ], 'GET', params, { 'cost': 2 });
+    }
+
+    publicUtaGetV3StockplusMarketCandlestick (params = {}): Promise<Dict | List | string> {
+        return this.request ('v3/stockplus/market/candlestick', [ 'public', 'uta' ], 'GET', params, { 'cost': 2 });
+    }
+
+    publicUtaGetV3StockplusMarketHistoryCandlestick (params = {}): Promise<Dict | List | string> {
+        return this.request ('v3/stockplus/market/history-candlestick', [ 'public', 'uta' ], 'GET', params, { 'cost': 2 });
+    }
+
+    publicUtaGetV3StockplusMarketTrade (params = {}): Promise<Dict> {
+        return this.request ('v3/stockplus/market/trade', [ 'public', 'uta' ], 'GET', params, { 'cost': 2 });
+    }
+
+    publicUtaGetV3StockplusMarketOptionQuote (params = {}): Promise<Dict> {
+        return this.request ('v3/stockplus/market/option-quote', [ 'public', 'uta' ], 'GET', params, { 'cost': 2 });
+    }
+
+    publicUtaGetV3StockplusMarketOptionChainInfo (params = {}): Promise<Dict> {
+        return this.request ('v3/stockplus/market/option-chain-info', [ 'public', 'uta' ], 'GET', params, { 'cost': 2 });
+    }
+
+    publicUtaGetV3StockplusMarketOptionExpiryDate (params = {}): Promise<Dict> {
+        return this.request ('v3/stockplus/market/option-expiry-date', [ 'public', 'uta' ], 'GET', params, { 'cost': 2 });
+    }
+
+    publicUtaGetV3StockplusMarketOptionVolume (params = {}): Promise<Dict> {
+        return this.request ('v3/stockplus/market/option-volume', [ 'public', 'uta' ], 'GET', params, { 'cost': 2 });
+    }
+
     publicUtaGetV3RealityMarketStockInfo (params = {}): Promise<Dict> {
         return this.request ('v3/reality/market/stock-info', [ 'public', 'uta' ], 'GET', params, { 'cost': 20 });
     }
@@ -2569,6 +2613,50 @@ abstract class Exchange extends _Exchange {
         return this.request ('v3/position/adlRank', [ 'private', 'uta' ], 'GET', params, { 'cost': 20 });
     }
 
+    privateUtaGetV3AccountRealityOrderbook (params = {}): Promise<Dict> {
+        return this.request ('v3/account/reality-orderbook', [ 'private', 'uta' ], 'GET', params, { 'cost': 2 });
+    }
+
+    privateUtaGetV3AccountRealityFills (params = {}): Promise<Dict> {
+        return this.request ('v3/account/reality-fills', [ 'private', 'uta' ], 'GET', params, { 'cost': 2 });
+    }
+
+    privateUtaGetV3StockplusAssetTransferRecords (params = {}): Promise<Dict> {
+        return this.request ('v3/stockplus/asset/transfer-records', [ 'private', 'uta' ], 'GET', params, { 'cost': 2 });
+    }
+
+    privateUtaGetV3StockplusAssetAccount (params = {}): Promise<Dict> {
+        return this.request ('v3/stockplus/asset/account', [ 'private', 'uta' ], 'GET', params, { 'cost': 2 });
+    }
+
+    privateUtaGetV3StockplusAssetStockPosition (params = {}): Promise<Dict> {
+        return this.request ('v3/stockplus/asset/stock-position', [ 'private', 'uta' ], 'GET', params, { 'cost': 2 });
+    }
+
+    privateUtaGetV3StockplusAssetCashFlow (params = {}): Promise<Dict> {
+        return this.request ('v3/stockplus/asset/cash-flow', [ 'private', 'uta' ], 'GET', params, { 'cost': 2 });
+    }
+
+    privateUtaGetV3StockplusTradeTodayOrders (params = {}): Promise<Dict> {
+        return this.request ('v3/stockplus/trade/today-orders', [ 'private', 'uta' ], 'GET', params, { 'cost': 20 });
+    }
+
+    privateUtaGetV3StockplusTradeHistoryOrders (params = {}): Promise<Dict> {
+        return this.request ('v3/stockplus/trade/history-orders', [ 'private', 'uta' ], 'GET', params, { 'cost': 20 });
+    }
+
+    privateUtaGetV3StockplusTradeOrderDetail (params = {}): Promise<Dict> {
+        return this.request ('v3/stockplus/trade/order-detail', [ 'private', 'uta' ], 'GET', params, { 'cost': 20 });
+    }
+
+    privateUtaGetV3StockplusTradeTodayExecutions (params = {}): Promise<Dict> {
+        return this.request ('v3/stockplus/trade/today-executions', [ 'private', 'uta' ], 'GET', params, { 'cost': 20 });
+    }
+
+    privateUtaGetV3StockplusTradeHistoryExecutions (params = {}): Promise<Dict> {
+        return this.request ('v3/stockplus/trade/history-executions', [ 'private', 'uta' ], 'GET', params, { 'cost': 20 });
+    }
+
     privateUtaGetV3TaxRecords (params = {}): Promise<Dict> {
         return this.request ('v3/tax/records', [ 'private', 'uta' ], 'GET', params, { 'cost': 20 });
     }
@@ -2655,14 +2743,6 @@ abstract class Exchange extends _Exchange {
 
     privateUtaGetV3AccountFundingFinancialRecords (params = {}): Promise<Dict> {
         return this.request ('v3/account/funding-financial-records', [ 'private', 'uta' ], 'GET', params, { 'cost': 2 });
-    }
-
-    privateUtaGetV3AccountRealityOrderbook (params = {}): Promise<Dict> {
-        return this.request ('v3/account/reality-orderbook', [ 'private', 'uta' ], 'GET', params, { 'cost': 2 });
-    }
-
-    privateUtaGetV3AccountRealityFills (params = {}): Promise<Dict> {
-        return this.request ('v3/account/reality-fills', [ 'private', 'uta' ], 'GET', params, { 'cost': 2 });
     }
 
     privateUtaGetV3CopyFuturesTradingPairs (params = {}): Promise<Dict> {
@@ -2799,42 +2879,6 @@ abstract class Exchange extends _Exchange {
 
     privateUtaGetV3StockplusMarketCandlestick (params = {}): Promise<Dict> {
         return this.request ('v3/stockplus/market/candlestick', [ 'private', 'uta' ], 'GET', params, { 'cost': 2 });
-    }
-
-    privateUtaGetV3StockplusTradeTodayOrders (params = {}): Promise<Dict> {
-        return this.request ('v3/stockplus/trade/today-orders', [ 'private', 'uta' ], 'GET', params, { 'cost': 20 });
-    }
-
-    privateUtaGetV3StockplusTradeHistoryOrders (params = {}): Promise<Dict> {
-        return this.request ('v3/stockplus/trade/history-orders', [ 'private', 'uta' ], 'GET', params, { 'cost': 20 });
-    }
-
-    privateUtaGetV3StockplusTradeOrderDetail (params = {}): Promise<Dict> {
-        return this.request ('v3/stockplus/trade/order-detail', [ 'private', 'uta' ], 'GET', params, { 'cost': 20 });
-    }
-
-    privateUtaGetV3StockplusTradeTodayExecutions (params = {}): Promise<Dict> {
-        return this.request ('v3/stockplus/trade/today-executions', [ 'private', 'uta' ], 'GET', params, { 'cost': 20 });
-    }
-
-    privateUtaGetV3StockplusTradeHistoryExecutions (params = {}): Promise<Dict> {
-        return this.request ('v3/stockplus/trade/history-executions', [ 'private', 'uta' ], 'GET', params, { 'cost': 20 });
-    }
-
-    privateUtaGetV3StockplusAssetAccount (params = {}): Promise<Dict> {
-        return this.request ('v3/stockplus/asset/account', [ 'private', 'uta' ], 'GET', params, { 'cost': 2 });
-    }
-
-    privateUtaGetV3StockplusAssetCashFlow (params = {}): Promise<Dict> {
-        return this.request ('v3/stockplus/asset/cash-flow', [ 'private', 'uta' ], 'GET', params, { 'cost': 2 });
-    }
-
-    privateUtaGetV3StockplusAssetStockPosition (params = {}): Promise<Dict> {
-        return this.request ('v3/stockplus/asset/stock-position', [ 'private', 'uta' ], 'GET', params, { 'cost': 2 });
-    }
-
-    privateUtaGetV3StockplusAssetTransferRecords (params = {}): Promise<Dict> {
-        return this.request ('v3/stockplus/asset/transfer-records', [ 'private', 'uta' ], 'GET', params, { 'cost': 2 });
     }
 
     privateUtaGetV3P2pAdList (params = {}): Promise<Dict> {
@@ -2975,6 +3019,22 @@ abstract class Exchange extends _Exchange {
 
     privateUtaPostV3LoanRevisePledge (params = {}): Promise<Dict> {
         return this.request ('v3/loan/revise-pledge', [ 'private', 'uta' ], 'POST', params, { 'cost': 2 });
+    }
+
+    privateUtaPostV3StockplusAssetTransfer (params = {}): Promise<Dict> {
+        return this.request ('v3/stockplus/asset/transfer', [ 'private', 'uta' ], 'POST', params, { 'cost': 4 });
+    }
+
+    privateUtaPostV3StockplusTradePlaceOrder (params = {}): Promise<Dict> {
+        return this.request ('v3/stockplus/trade/place-order', [ 'private', 'uta' ], 'POST', params, { 'cost': 20 });
+    }
+
+    privateUtaPostV3StockplusTradeModifyOrder (params = {}): Promise<Dict> {
+        return this.request ('v3/stockplus/trade/modify-order', [ 'private', 'uta' ], 'POST', params, { 'cost': 20 });
+    }
+
+    privateUtaPostV3StockplusTradeCancelOrder (params = {}): Promise<Dict> {
+        return this.request ('v3/stockplus/trade/cancel-order', [ 'private', 'uta' ], 'POST', params, { 'cost': 20 });
     }
 
     privateUtaPostV3TradePlaceOrder (params = {}): Promise<Dict> {
@@ -3131,22 +3191,6 @@ abstract class Exchange extends _Exchange {
 
     privateUtaPostV3UserSubAccountAgentCreate (params = {}): Promise<Dict> {
         return this.request ('v3/user/sub-account/agent-create', [ 'private', 'uta' ], 'POST', params, { 'cost': 20 });
-    }
-
-    privateUtaPostV3StockplusTradePlaceOrder (params = {}): Promise<Dict> {
-        return this.request ('v3/stockplus/trade/place-order', [ 'private', 'uta' ], 'POST', params, { 'cost': 20 });
-    }
-
-    privateUtaPostV3StockplusTradeCancelOrder (params = {}): Promise<Dict> {
-        return this.request ('v3/stockplus/trade/cancel-order', [ 'private', 'uta' ], 'POST', params, { 'cost': 20 });
-    }
-
-    privateUtaPostV3StockplusTradeModifyOrder (params = {}): Promise<Dict> {
-        return this.request ('v3/stockplus/trade/modify-order', [ 'private', 'uta' ], 'POST', params, { 'cost': 20 });
-    }
-
-    privateUtaPostV3StockplusAssetTransfer (params = {}): Promise<Dict> {
-        return this.request ('v3/stockplus/asset/transfer', [ 'private', 'uta' ], 'POST', params, { 'cost': 4 });
     }
 
     privateUtaPostV3P2pAdCreate (params = {}): Promise<Dict> {

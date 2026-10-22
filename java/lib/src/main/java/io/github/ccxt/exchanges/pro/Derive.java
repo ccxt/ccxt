@@ -79,9 +79,9 @@ public class Derive extends io.github.ccxt.exchanges.Derive
     {
         Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "requestId", new HashMap<String, Object>() {{}});
         Long previousValue = this.safeInteger(options, url, 0);
-        Object newValue = this.sum(previousValue, 1);
+        Long newValue = (Long) this.sum(previousValue, 1);
         Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("requestId")), url, newValue);
-        return Helpers.toLongOrNull(newValue);
+        return newValue;
     }
 
     public CompletableFuture<Object> watchPublic(Object messageHash, Map<String, Object> message, Map<String, Object> subscription)
@@ -652,19 +652,18 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 Long requestId = this.requestId(url);
                 String now = this.numberToString(this.nonce());
                 String signature = this.signMessage(now, this.privateKey);
-                Object deriveWalletAddress = this.safeString(this.options, "deriveWalletAddress");
-                if ((java.util.Objects.equals(deriveWalletAddress, null)) || (java.util.Objects.equals(deriveWalletAddress, "")))
-                {
-                    deriveWalletAddress = this.walletAddress; // v3: the owner wallet is the user's own EOA
-                }
-                Map<String, Object> request = new HashMap<String, Object>();
-                request.put("id", requestId);
-                request.put("method", "public/login");
-                HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-                mapLiteral2.put("wallet", deriveWalletAddress);
-                mapLiteral2.put("timestamp", now);
-                mapLiteral2.put("signature", signature);
-                request.put("params", mapLiteral2);
+                String configuredWalletAddress = this.safeString(this.options, "deriveWalletAddress");
+                // v3: the owner wallet is the user's own EOA
+                Object deriveWalletAddress = ((((java.util.Objects.equals(configuredWalletAddress, null)) || (java.util.Objects.equals(configuredWalletAddress, ""))))) ? this.walletAddress : configuredWalletAddress;
+                Map<String, Object> request = new HashMap<String, Object>() {{
+                    put( "id", requestId );
+                    put( "method", "public/login" );
+                    put( "params", new HashMap<String, Object>() {{
+                        put( "wallet", deriveWalletAddress );
+                        put( "timestamp", now );
+                        put( "signature", signature );
+                    }} );
+                }};
                 // const subscription: Dict = {
                 //     'name': topic,
                 //     'symbol': symbol,
@@ -800,7 +799,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         for (var i = 0; i < ((List<?>)rawOrders).size(); i++)
         {
             Object data = (rawOrders == null || i < 0 || i >= rawOrders.size() ? null : rawOrders.get(i));
-            Object parsed = this.parseOrder(data, (Map<String, Object>) null);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(data, (Map<String, Object>) null);
             String symbol = this.safeString(parsed, "symbol");
             String orderId = this.safeString(parsed, "id");
             if (!java.util.Objects.equals(symbol, null))
@@ -826,8 +825,8 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                         ((Map<String, Object>)parsed).put("fees", fees);
                     }
                     Helpers.addElementToObject(parsed, "trades", this.safeList(order, "trades", (Object) null));
-                    ((Map<String, Object>)parsed).put("timestamp", this.safeInteger(order, "timestamp"));
-                    ((Map<String, Object>)parsed).put("datetime", this.safeString(order, "datetime"));
+                    parsed.put("timestamp", this.safeInteger(order, "timestamp"));
+                    parsed.put("datetime", this.safeString(order, "datetime"));
                 }
                 cachedOrders.append(parsed);
                 if (!java.util.Objects.equals(topic, null))
@@ -1022,7 +1021,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             Map<String, Object> paramsSnapshot = fetchSnapshotparamsSnapshotVariable.second();
             List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("watchBalance", (Map<String, Object>) (paramsSnapshot));
             var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
-            var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
+            Map<String, Object> paramsDeriveSubaccountId = (Map<String, Object>) ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
             if (java.util.Objects.equals(this.balance, null))
             {
                 Map<String, Object> emptyBalances = new HashMap<String, Object>() {{}};
@@ -1035,8 +1034,8 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 Map<String, Object> snapshotRequest = new HashMap<String, Object>() {{
                     put( "subaccount_id", subaccountId );
                 }};
-                Object snapshotParams = this.extend(snapshotRequest, paramsDeriveSubaccountId);
-                Balances snapshot = (this.fetchBalance(Helpers.toMapArg(snapshotParams))).join();
+                Map<String, Object> snapshotParams = this.extend(snapshotRequest, paramsDeriveSubaccountId);
+                Balances snapshot = (this.fetchBalance(snapshotParams)).join();
                 Map<String, Object> emptyBalance = new HashMap<String, Object>() {{}}; // hoisted: an inline literal on the right side of a property assignment derails the rust transpiler
                 Map<String, Object> seeded = this.extend(snapshot, emptyBalance); // the extra extend keeps the csharp assignment dictionary-typed (CS0266 otherwise)
                 Helpers.addElementToObject(this.balance, subaccountIdKey, seeded);
@@ -1086,7 +1085,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             Map<String, Object> paramsSnapshot = fetchSnapshotparamsSnapshotVariable.second();
             List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("watchPositions", (Map<String, Object>) (paramsSnapshot));
             var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
-            var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
+            Map<String, Object> paramsDeriveSubaccountId = (Map<String, Object>) ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
             if (java.util.Objects.equals(this.positions, null))
             {
                 Map<String, Object> emptyCaches = new HashMap<String, Object>() {{}};
@@ -1096,7 +1095,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             }
             // the cache and the snapshot are tracked per subaccount, so subaccounts holding the same instrument and side do not overwrite each other
             String subaccountIdKey = this.numberToString(subaccountId);
-            if (!(Helpers.inOp(this.positions, subaccountIdKey)))
+            if (!((switch ((Object)(this.positions)) { case List<?> j39v2 -> ((Object)(subaccountIdKey)) != null && j39v2.contains(subaccountIdKey); case Map<?, ?> j39v1 -> ((Object)(subaccountIdKey)) instanceof String && j39v1.containsKey(subaccountIdKey); case null, default -> false; })))
             {
                 Helpers.addElementToObject(this.positions, subaccountIdKey, new ArrayCache.ArrayCacheBySymbolBySide());
             }
@@ -1106,8 +1105,8 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 Map<String, Object> snapshotRequest = new HashMap<String, Object>() {{
                     put( "subaccount_id", subaccountId );
                 }};
-                Object snapshotParams = this.extend(snapshotRequest, paramsDeriveSubaccountId);
-                List<Position> positionsSnapshot = (this.fetchPositions((List<String>) null, Helpers.toMapArg(snapshotParams))).join();
+                Map<String, Object> snapshotParams = this.extend(snapshotRequest, paramsDeriveSubaccountId);
+                List<Position> positionsSnapshot = (this.fetchPositions((List<String>) null, snapshotParams)).join();
                 Object cache = Helpers.GetValue(this.positions, subaccountIdKey);
                 for (var i = 0; i < ((List<?>)positionsSnapshot).size(); i++)
                 {
@@ -1163,12 +1162,12 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 ((io.github.ccxt.ws.ArrayCache) cache).append(opposite);
             }
         }
-        Object position = this.safeDict(symbolPositions, side, (Object) null);
+        Map<String, Object> position = (Map<String, Object>) this.safeDict(symbolPositions, side, (Object) null);
         if (java.util.Objects.equals(position, null))
         {
             // the position is freshly opened by the current fill, so the local clock approximates the open time
             Long timestamp = this.milliseconds();
-            position = this.safePosition(new HashMap<String, Object>() {{
+            position = (Map<String, Object>) this.safePosition(new HashMap<String, Object>() {{
                 put( "symbol", symbol );
                 put( "side", side );
                 put( "timestamp", timestamp );
@@ -1211,12 +1210,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         {
             this.balance = new HashMap<String, Object>() {{}};
         }
-        Object subBalance = this.safeDict(this.balance, subaccountIdKey, (Object) null);
-        if (java.util.Objects.equals(subBalance, null))
-        {
-            Map<String, Object> emptySubBalance = new HashMap<String, Object>() {{}};
-            subBalance = emptySubBalance;
-        }
+        Map<String, Object> subBalance = (Map<String, Object>) this.safeDict(this.balance, subaccountIdKey, new HashMap<String, Object>() {{}});
         Boolean updated = false;
         List<Object> positionUpdates = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)data).size(); i++)
@@ -1226,7 +1220,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             if (((String)name).indexOf("-") >= 0)
             {
                 // position deltas carry instrument names and do not belong into the balance structure
-                if ((!java.util.Objects.equals(this.positions, null)) && (Helpers.inOp(this.positions, subaccountIdKey)))
+                if ((!java.util.Objects.equals(this.positions, null)) && ((switch ((Object)(this.positions)) { case List<?> j39v4 -> ((Object)(subaccountIdKey)) != null && j39v4.contains(subaccountIdKey); case Map<?, ?> j39v3 -> ((Object)(subaccountIdKey)) instanceof String && j39v3.containsKey(subaccountIdKey); case null, default -> false; })))
                 {
                     Object position = this.handlePositionDelta(subaccountIdKey, (Map<String, Object>) (entry));
                     ((List<Object>)positionUpdates).add(position);
@@ -1248,7 +1242,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             // the margin requirements the rest free/used model needs are not part of the stream, so stale snapshot values are dropped instead of reporting free + used != total
             Helpers.addElementToObject(account, "free", null);
             Helpers.addElementToObject(account, "used", null);
-            ((Map<String, Object>)subBalance).put(code, account);
+            subBalance.put(code, account);
             updated = true;
         }
         if (Boolean.TRUE.equals(updated))
@@ -1288,7 +1282,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             return false;
         } catch(Exception error)
         {
-            if (Helpers.isInstance(error, AuthenticationError.class))
+            if ((error instanceof AuthenticationError))
             {
                 String messageHash = "authenticated";
                 client.reject(error, messageHash);
@@ -1351,7 +1345,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         {
             String id = this.safeString(message, "id");
             // the subscriptions are scanned with safeString comparisons: an indexBy over the integer ids would need an integer lookup key in python while the object keys are always strings in javascript
-            List<Object> subscriptionKeys = Helpers.objectKeys(client.subscriptions);
+            List<Object> subscriptionKeys = ((List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v5 -> { synchronized (j39v5) { yield new ArrayList<Object>(j39v5.keySet()); } } case null, default -> new ArrayList<Object>(); });
             Boolean matched = false;
             for (var i = 0; i < ((List<?>)subscriptionKeys).size(); i++)
             {

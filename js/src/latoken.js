@@ -617,11 +617,8 @@ export default class latoken extends Exchange {
             const currencyId = this.safeString(balance, 'currency');
             const timestamp = this.safeInteger(balance, 'timestamp');
             if (timestamp !== undefined) {
-                if (maxTimestamp === undefined) {
+                if ((maxTimestamp === undefined) || (timestamp > maxTimestamp)) {
                     maxTimestamp = timestamp;
-                }
-                else {
-                    maxTimestamp = Math.max(maxTimestamp, timestamp);
                 }
             }
             const code = this.safeCurrencyCode(currencyId);

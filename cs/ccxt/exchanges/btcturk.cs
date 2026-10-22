@@ -797,17 +797,24 @@ public partial class btcturk : Exchange
             { "resolution", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
         Int64? until = this.safeInteger(parameters, "until", this.milliseconds());
-        request["to"] = this.parseToInt((((double?)until / 1000)));
+        Int64? untilSeconds = this.parseToInt((((double?)until / 1000)));
+        request["to"] = untilSeconds;
         if ((since != null))
         {
             request["from"] = this.parseToInt(((double?)since / 1000));
         }
-        Int64? limitDefaulted = limit;
-        if (((since == null)) && ((limit == null)))
+        object limitResolved = null;
+        if ((limit != null))
         {
-            limitDefaulted = ((Int64?)100); // default value
+            limitResolved = limit;
+            if ((limit > 11000))
+            {
+                limitResolved = 11000; // max 11000 candles diapason can be covered
+            }
+        } else if ((since == null))
+        {
+            limitResolved = 100; // default value
         }
-        object limitResolved = (!(limitDefaulted == null)) ? mathMin(limitDefaulted, 11000) : null; // max 11000 candles diapason can be covered
         if (!(limitResolved == null))
         {
             if ((timeframeVar == "1y"))
@@ -815,14 +822,18 @@ public partial class btcturk : Exchange
                 throw new BadRequest ((this.id + " fetchOHLCV () does not accept a limit parameter when timeframe == \"1y\"")) ;
             }
             int seconds = this.parseTimeframe(timeframeVar);
-            object limitSeconds = multiply(seconds, (subtract(limitResolved, 1)));
+            object limitCount = ((limit == null)) ? 100 : Math.Min(limit.Value, 11000);
+            object limitSeconds = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(seconds, (((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(limitCount, 1)));
             if ((since != null))
             {
                 object to = add(this.parseToInt(((double?)since / 1000)), limitSeconds);
-                request["to"] = mathMin((request != null && request.ContainsKey("to") ? request["to"] : null), to);
+                if (isLessThan(to, untilSeconds))
+                {
+                    request["to"] = to;
+                }
             } else
             {
-                request["from"] = subtract(this.parseToInt(((double)0 / 1000)), limitSeconds);
+                request["from"] = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(0, limitSeconds);
             }
         }
         Dictionary<string, object> response = await this.graphGetKlinesHistory(this.extend(request, parameters));
@@ -1194,7 +1205,7 @@ public partial class btcturk : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object apiName = getValue(api, 0);
-        if (isEqual(this.id, "btctrader"))
+        if ((this.id == "btctrader"))
         {
             throw new ExchangeError ((this.id + " is an abstract base API for BTCExchange, BTCTurk")) ;
         }

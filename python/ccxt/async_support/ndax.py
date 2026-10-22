@@ -677,8 +677,8 @@ class ndax(Exchange, ImplicitAPI):
         })
 
     def parse_order_book(self, orderbook: object, symbol: object, timestamp: Int = None, bidsKey='bids', asksKey='asks', priceKey: IndexType = 6, amountKey: IndexType = 8, countOrIdKey: IndexType = 2):
-        nonce = None
-        latestTimestamp = timestamp
+        nonce = self.safe_integer(self.safe_list(orderbook, 0), 0)
+        latestTimestamp = self.safe_integer([timestamp], 0)
         result = {
             'symbol': symbol,
             'bids': [],
@@ -689,18 +689,12 @@ class ndax(Exchange, ImplicitAPI):
         }
         for i in range(0, len(orderbook)):
             level = orderbook[i]
-            if latestTimestamp is None:
-                latestTimestamp = self.safe_integer(level, 2)
-            else:
-                newTimestamp = self.safe_integer(level, 2)
-                if newTimestamp is not None:
-                    latestTimestamp = max(latestTimestamp, newTimestamp)
-            if nonce is None:
-                nonce = self.safe_integer(level, 0)
-            else:
-                newNonce = self.safe_integer(level, 0)
-                if newNonce is not None:
-                    nonce = max(nonce, newNonce)
+            newTimestamp = self.safe_integer(level, 2)
+            if (newTimestamp is not None) and ((latestTimestamp is None) or (newTimestamp > latestTimestamp)):
+                latestTimestamp = newTimestamp
+            newNonce = self.safe_integer(level, 0)
+            if (newNonce is not None) and ((nonce is None) or (newNonce > nonce)):
+                nonce = newNonce
             bidask = self.parse_order_book_bid_ask(level, priceKey, amountKey)
             levelSide = self.safe_integer(level, 9)
             side = asksKey if (levelSide is not None and levelSide != 0) else bidsKey
@@ -1418,7 +1412,7 @@ class ndax(Exchange, ImplicitAPI):
             currency = self.currency(code)
         return self.parse_ledger(response, currency, since, limit)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'Accepted': 'open',
             'Rejected': 'rejected',
@@ -1572,7 +1566,7 @@ class ndax(Exchange, ImplicitAPI):
             # 'OrderIdOCO': 0, // The order ID if One Cancels the Other.
             # 'UseDisplayQuantity': false, // If you enter a Limit order with a reserve, you must set UseDisplayQuantity to true
             'Side': orderSide,  # 0 Buy, 1 Sell, 2 Short, 3 unknown an error condition
-            'Quantity': None if (amountString is None) else float(amountString),
+            'Quantity': None if (amountString is None) else self.parse_number(amountString),
             'OrderType': orderType,  # 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
             # 'PegPriceType': 3, // 1 Last, 2 Bid, 3 Ask, 4 Midpoint
             # 'LimitPrice': parseFloat (this.priceToPrecision (symbol, price)),
@@ -1582,7 +1576,7 @@ class ndax(Exchange, ImplicitAPI):
             limitPriceString = self.price_to_precision(symbol, price)
             if limitPriceString is None:
                 limitPriceString = '0'
-            request['LimitPrice'] = float(limitPriceString)
+            request['LimitPrice'] = self.parse_number(limitPriceString)
         if clientOrderId is not None:
             request['ClientOrderId'] = clientOrderId
         if triggerPrice is not None:
@@ -1624,7 +1618,7 @@ class ndax(Exchange, ImplicitAPI):
         orderSide = 0 if (side == 'buy') else 1
         amountString = self.amount_to_precision(symbol, amount)
         request = {
-            'OrderIdToReplace': int(id),
+            'OrderIdToReplace': self.parse_to_int(id),
             'InstrumentId': self.parse_to_int(market['id']),
             'omsId': omsId,
             'AccountId': accountId,
@@ -1637,7 +1631,7 @@ class ndax(Exchange, ImplicitAPI):
             # 'OrderIdOCO': 0, // The order ID if One Cancels the Other.
             # 'UseDisplayQuantity': false, // If you enter a Limit order with a reserve, you must set UseDisplayQuantity to true
             'Side': orderSide,  # 0 Buy, 1 Sell, 2 Short, 3 unknown an error condition
-            'Quantity': None if (amountString is None) else float(amountString),
+            'Quantity': None if (amountString is None) else self.parse_number(amountString),
             'OrderType': self.safe_integer(self.options['orderTypes'], self.capitalize(type)),  # 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
             # 'PegPriceType': 3, // 1 Last, 2 Bid, 3 Ask, 4 Midpoint
             # 'LimitPrice': parseFloat (this.priceToPrecision (symbol, price)),
@@ -1647,7 +1641,7 @@ class ndax(Exchange, ImplicitAPI):
             limitPriceString = self.price_to_precision(symbol, price)
             if limitPriceString is None:
                 limitPriceString = '0'
-            request['LimitPrice'] = float(limitPriceString)
+            request['LimitPrice'] = self.parse_number(limitPriceString)
         if clientOrderId is not None:
             request['ClientOrderId'] = clientOrderId
         response = await self.privatePostCancelReplaceOrder(self.extend(request, paramsOmitted))
@@ -1816,7 +1810,7 @@ class ndax(Exchange, ImplicitAPI):
         if clientOrderId is not None:
             request['ClOrderId'] = clientOrderId
         else:
-            request['OrderId'] = int(id)
+            request['OrderId'] = self.parse_to_int(id)
         paramsOmitted = self.omit(params, ['clientOrderId', 'ClOrderId'])
         response = await self.privatePostCancelOrder(self.extend(request, paramsOmitted))
         order = self.parse_order(response, market)
@@ -2021,7 +2015,7 @@ class ndax(Exchange, ImplicitAPI):
         request = {
             'omsId': omsId,
             'AccountId': accountId,
-            'OrderId': int(id),
+            'OrderId': self.parse_to_int(id),
         }
         response = await self.privateGetGetOrderStatus(self.extend(request, paramsOmitted))
         #
@@ -2100,7 +2094,7 @@ class ndax(Exchange, ImplicitAPI):
         request = {
             'OMSId': self.parse_to_int(omsId),
             # 'AccountId': accountId,
-            'OrderId': int(id),
+            'OrderId': self.parse_to_int(id),
         }
         response = await self.privatePostGetOrderHistoryByOrderId(self.extend(request, params))
         #
@@ -2351,7 +2345,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    def parse_transaction_status_by_type(self, status: Str = None, type: Str = None):
+    def parse_transaction_status_by_type(self, status: Str = None, type: Str = None) -> Str:
         statusesByType = {
             'deposit': {
                 'New': 'pending',  # new ticket awaiting operator review
@@ -2587,7 +2581,7 @@ class ndax(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
         bodySigned = None
         headersSigned = None

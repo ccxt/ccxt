@@ -25,6 +25,19 @@
         "integratorTakerFee": 1000
     },
     "methods": {
+        "fetchTrades": [
+            {
+                "description": "fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/recentTrades?market_id=0&limit=4",
+                "input": [
+                    "ETH/USDC:USDC",
+                    null,
+                    4
+                ],
+                "output": null
+            }
+        ],
         "cancelAllOrdersAfter": [
             {
                 "description": "cancel the timer",

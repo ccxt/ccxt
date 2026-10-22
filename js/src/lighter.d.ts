@@ -8,7 +8,7 @@ export default class lighter extends Exchange {
     describe(): any;
     loadAccount(chainId: any, privateKey: Str, apiKeyIndex: string, accountIndex: string, params?: Dict): Promise<any>;
     initAuthObject(strAccountIndex: string, strApiKeyIndex: string): void;
-    getLighterPrivateKey(strAccountIndex: string, strApiKeyIndex: string): any;
+    getLighterPrivateKey(strAccountIndex: string, strApiKeyIndex: string): Str;
     /**
      * @method
      * @name lighter#preLoadLighterLibrary
@@ -21,10 +21,10 @@ export default class lighter extends Exchange {
     handleAccountIndex(params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue?: any): Promise<[Int, Dict]>;
     createSubAccount(name: string, params?: Dict): Promise<Dict>;
     createAuth(params?: Dict): Str;
-    pow(n: string, m: string): string | undefined;
+    pow(n: string, m: string): Str;
     hashMessage(message: string): string;
-    signHash(hash: any, privateKey: any): string;
-    signL1AndPrepareTxInfo(txInfo: any, message: any, privateKey: any): string;
+    signHash(hash: string, privateKey: string): string;
+    signL1AndPrepareTxInfo(txInfo: any, message: any, privateKey: string): string;
     handleBuilderFeeApproval(accountIndex: number, apiKeyIndex: number): Promise<boolean>;
     checkIfStandardTier(accountIndex: number): Promise<boolean>;
     approveBuilderFee(builder: number, takerFeeRate: number, makerFeeRate: number, accountIndex: number, apiKeyIndex: number, params?: Dict): Promise<Dict>;
@@ -245,7 +245,7 @@ export default class lighter extends Exchange {
     parseOrderType(type: Str): Str;
     parseOrderTypeInteger(typeInteger: Int): Str;
     parseOrderTimeInForce(tif: Str): Str;
-    parseOrderTimeInForceInteger(tifInteger: any): Str;
+    parseOrderTimeInForceInteger(tifInteger: number): Str;
     /**
      * @method
      * @name lighter#transfer
@@ -323,6 +323,18 @@ export default class lighter extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
+    /**
+     * @method
+     * @name lighter#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://apidocs.lighter.xyz/reference/recenttrades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch, default 100, max 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name lighter#fetchMyTrades

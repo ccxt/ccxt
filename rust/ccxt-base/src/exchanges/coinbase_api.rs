@@ -377,26 +377,6 @@ impl CoinbaseCore {
         self.call_method(Value::Str("v3_private_get_brokerage_cfm_intraday_margin_setting".into()), optional_args).await
     }
 
-    /// Auto-generated wrapper for the `v3PrivateGetBrokerageIntxBalancesPortfolioUuid` implicit endpoint.
-    pub async fn v3_private_get_brokerage_intx_balances_portfolio_uuid(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("v3_private_get_brokerage_intx_balances_portfolio_uuid".into()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `v3PrivateGetBrokerageIntxPortfolioPortfolioUuid` implicit endpoint.
-    pub async fn v3_private_get_brokerage_intx_portfolio_portfolio_uuid(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("v3_private_get_brokerage_intx_portfolio_portfolio_uuid".into()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `v3PrivateGetBrokerageIntxPositionsPortfolioUuid` implicit endpoint.
-    pub async fn v3_private_get_brokerage_intx_positions_portfolio_uuid(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("v3_private_get_brokerage_intx_positions_portfolio_uuid".into()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol` implicit endpoint.
-    pub async fn v3_private_get_brokerage_intx_positions_portfolio_uuid_symbol(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("v3_private_get_brokerage_intx_positions_portfolio_uuid_symbol".into()), optional_args).await
-    }
-
     /// Auto-generated wrapper for the `v3PrivateGetBrokeragePaymentMethods` implicit endpoint.
     pub async fn v3_private_get_brokerage_payment_methods(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v3_private_get_brokerage_payment_methods".into()), optional_args).await
@@ -465,16 +445,6 @@ impl CoinbaseCore {
     /// Auto-generated wrapper for the `v3PrivatePostBrokerageCfmIntradayMarginSetting` implicit endpoint.
     pub async fn v3_private_post_brokerage_cfm_intraday_margin_setting(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v3_private_post_brokerage_cfm_intraday_margin_setting".into()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `v3PrivatePostBrokerageIntxAllocate` implicit endpoint.
-    pub async fn v3_private_post_brokerage_intx_allocate(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("v3_private_post_brokerage_intx_allocate".into()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `v3PrivatePostBrokerageIntxMultiAssetCollateral` implicit endpoint.
-    pub async fn v3_private_post_brokerage_intx_multi_asset_collateral(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("v3_private_post_brokerage_intx_multi_asset_collateral".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v3PrivatePostBrokerageOrdersClosePosition` implicit endpoint.

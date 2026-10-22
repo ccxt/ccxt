@@ -596,7 +596,7 @@ export const CORE_NUMERIC_ARGS = {
     'createOrder': { 3: 'double', 4: 'double?' },
     'createOrderWithTakeProfitAndStopLossWs': { 3: 'double', 4: 'double?' },
     'createOrderWs': { 3: 'double', 4: 'double?' },
-    'createOrderbookOrder': { 3: 'double', 4: 'double?' },
+    'createOrderbookOrder': { 3: 'double?', 4: 'double?' },
     'createPostOnlyOrderWs': { 3: 'double', 4: 'double?' },
     'createReduceOnlyOrderWs': { 3: 'double', 4: 'double?' },
     'createStopLimitOrderWs': { 2: 'double', 3: 'double' },
@@ -637,7 +637,7 @@ export const CORE_NUMERIC_ARGS = {
     'fetchDeposits': { 1: 'Int64?', 2: 'Int64?' },
     'fetchDepositsWithdrawals': { 1: 'Int64?', 2: 'Int64?' },
     'fetchDerivativesOpenInterestHistory': { 2: 'Int64?', 3: 'Int64?' },
-    'fetchEventsByQuery': { 1: 'Int64' },
+    'fetchEventsByQuery': { 1: 'Int64?' },
     'fetchFundingHistory': { 1: 'Int64?', 2: 'Int64?' },
     'fetchFundingRateHistory': { 1: 'Int64?', 2: 'Int64?' },
     'fetchL2OrderBook': { 1: 'Int64?' },
@@ -2634,7 +2634,6 @@ export const CSHARP_LOCAL_AWAIT_RETURN_TYPES = {
     'reduceMargin': 'Dictionary<string, object>',
     'addMargin': 'Dictionary<string, object>',
     'modifyMarginHelper': 'Dictionary<string, object>',
-    'closePosition': 'IDictionary<string, object>',
     'borrowCrossMargin': 'Dictionary<string, object>',
     'repayCrossMargin': 'Dictionary<string, object>',
     'borrowIsolatedMargin': 'Dictionary<string, object>',
@@ -7488,7 +7487,8 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
             // negation / identity, same return). `!` prints a bool test and stays valid
             // for every type; any other prefix operator prints through prefixUnaryNeg as
             // well, so the numeric families bind there exactly as they do for `object`.
-            if (parent.operator !== ts.SyntaxKind.ExclamationToken && !isInt && !isDouble) {
+            if (parent.operator !== ts.SyntaxKind.ExclamationToken && !isInt && !isDouble
+                && !hx4L44GuardedNullableDoubleNegation (csharp, parent, csharpType)) {
                 return false; // prefixUnaryNeg/Plus(ref x) without a twin for this type
             }
             // The twin returns int / Int64, so if that result is an operand of `-` the
@@ -7557,7 +7557,8 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
                         // a write whose value is a statically-`string`, provably non-null string
                         // (nonNullStringValue): the non-null spelling holds that same box
                         const nonNullWrite = (csharpType === 'string') && nonNullStringValue (csharp, declaration, parent.right, 0);
-                        const selfOmit = (csharpType === 'Dictionary<string, object>') && (selfOmitWriteType (csharp, context, declaration, parent.right) === 'Dictionary<string, object>');
+                        const selfOmit = ((csharpType === 'Dictionary<string, object>') && (selfOmitWriteType (csharp, context, declaration, parent.right) === 'Dictionary<string, object>'))
+                            || (hx4C09InterfaceSelfOmitWriteType (csharp, context, declaration, csharpType, false, parent.right) !== undefined);
 // the same arm as the join's: a write that reads this very declaration
                         // resolves the read to the candidate type it is being checked against
                         const selfRead = (!selfConcat && !selfOmit && safeHelperLocalInitializer (declaration.initializer))
@@ -10745,7 +10746,7 @@ export function csharpLocalDeclaration (csharp, declaration, context) {
     }
     classifyInProgress.add (declaration);
     try {
-        return csharpLocalTypeOf (csharp, declaration, context) ?? integerLiteralArithmeticLocal (csharp, declaration, context);
+        return csharpLocalTypeOf (csharp, declaration, context) ?? integerLiteralArithmeticLocal (csharp, declaration, context) ?? hx4C08CounterLocal (csharp, declaration, context) ?? hx4C13OmitParamsLocal (csharp, declaration, context);
     } finally {
         classifyInProgress.delete (declaration);
     }
@@ -10767,7 +10768,8 @@ export function csharpLocalDeclaration (csharp, declaration, context) {
 // (its response IS the implicit API's List<object>). Every other `as any` in the tree
 // (pro-luno's safeString read, the prediction market/orderbook template values) is not a
 // safeList* call and keeps its `object`.
-const SAFE_LIST_PRODUCER_CALLS = [ 'safeList', 'safeList2', 'safeListN' ];
+// hx5 X12: toArray (hand-written `IList<object> toArray (object)`, list or null) joins the family
+const SAFE_LIST_PRODUCER_CALLS = [ 'safeList', 'safeList2', 'safeListN', 'toArray' ];
 
 function asAnySafeListReceiverCopy (initializer) {
     if (initializer?.kind !== ts.SyntaxKind.AsExpression || initializer.type?.kind !== ts.SyntaxKind.AnyKeyword) {
@@ -12418,6 +12420,7 @@ function typeFromValueOrWrites (csharp, scope, declaration, varName, initial, co
             // against the running Dictionary type (see selfOmitWriteType).
             written = selfOmitWriteType (csharp, context, declaration, parent.right);
         }
+        written ??= hx4C09InterfaceSelfOmitWriteType (csharp, context, declaration, type, sawNull, parent.right);
         if (written === undefined && safeHelperLocalInitializer (declaration.initializer)) {
             // `let x = this.safeString (…); … x = <expression reading x>`: the read of x inside
             // the write is statically the declaration's own type, so the expression can only be
@@ -13963,6 +13966,9 @@ export function installCsharpLocalTypes (transpiler) {
         return 'IList<object>';
     };
     installTypedDictElementAccess (csharp);
+    // hx4 L44: the printer's guarded `-x` hook asks for the declaration's FINAL type (this module retypes
+    // `object x = this.safeNumber(..)` to `double? x` after printing), so `(x = -x)` matches the retype
+    csharp.csharpHx4DeclaredLocalType = (declaration) => referenceDeclaredType (csharp, declaration);
     // U02: the C# type `typeCoreArgs` narrows the parameter at (method, position) to, or
     // undefined; stringListParameterElementType reads it to prove a list receiver's elements.
     // hasOwnProperty because the table is an object literal (`CORE_LIST_ARGS['toString']` would
@@ -14754,7 +14760,6 @@ export const CSHARP_ASYNC_CORE_RETURNS = {
     'reduceMargin': 'Dictionary<string, object>',
     'addMargin': 'Dictionary<string, object>',
     'modifyMarginHelper': 'Dictionary<string, object>',
-    'closePosition': 'IDictionary<string, object>',
     'borrowCrossMargin': 'Dictionary<string, object>',
     'repayCrossMargin': 'Dictionary<string, object>',
     'borrowIsolatedMargin': 'Dictionary<string, object>',
@@ -16159,7 +16164,7 @@ function csharpParameterCallSitesProve (csharp, parameter, target) {
     const related = (rel) => rel.startsWith ('ts/src/base/') || (corpus.imports.get (rel)?.has (moduleBase) ?? false)
         || (corpus.imports.get (declaringRel)?.has (path.basename (rel).replace (/\.ts$/, '')) ?? false)
         || declaringChain.has (rel) || ancestors (rel).has (declaringRel);
-    if ((target === CSHARP_PARAMETER_ALIAS_TYPES['Dict'].type)
+    if ((target === CSHARP_PARAMETER_ALIAS_TYPES['Dict'].type || hx4C09CalledParameterTarget (target))
         && ((declared === undefined) || [ ...declared ].some ((rel) => (rel !== declaringRel) && related (rel)))) {
         return false;
     }
@@ -16168,8 +16173,8 @@ function csharpParameterCallSitesProve (csharp, parameter, target) {
         if (site.declarations.indexOf (owner) < 0) {
             continue; // a site binding another class's method
         }
-        if (target !== CSHARP_PARAMETER_ALIAS_TYPES['Dict'].type) {
-            return false; // a called method's non-Dict parameters are not this rule's
+        if (target !== CSHARP_PARAMETER_ALIAS_TYPES['Dict'].type && !hx4C09CalledParameterTarget (target)) {
+            return false; // a called method's value-type parameters are not this rule's
         }
         resolved++;
         const argument = site.call.arguments[position];
@@ -17922,3 +17927,683 @@ function integerLiteralArithmeticLocal (csharp, declaration, context) {
     }
     return (reads > 0) ? { type: 'Int64' } : undefined;
 }
+
+// ===== hx4 C01: emitted collection declarations for the printer's indexer reads =====
+// The printer's literal-key read (csharpDeclaredCollectionRead / the row-read arm) emits
+// `(x != null && x.ContainsKey("k") ? x["k"] : null)` / `(x != null && N < x.Count ? x[N] : null)`
+// only for a declaration whose EMITTED type it can name: record the final line per declaration.
+function hx4C01EmittedCollectionType (printed, printedName) {
+    const line = (printed ?? '').split ('\n').find ((l) => l.trim () !== '');
+    const match = (line === undefined) ? null : DECLARED_LOCAL_LINE_RE.exec (line);
+    if (match === null || match[2] !== printedName) {
+        return undefined;
+    }
+    let type = match[1].trim ();
+    if (type === 'var') {
+        const value = match[3].trim ();
+        type = value.startsWith ('new Dictionary<string, object>(') ? 'Dictionary<string, object>'
+            : (value.startsWith ('new List<object>(') ? 'List<object>' : undefined);
+    }
+    const collections = [ 'List<object>', 'IList<object>', 'Dictionary<string, object>', 'IDictionary<string, object>' ];
+    return collections.includes (type) ? type : undefined;
+}
+
+export function installCsharpDeclaredCollectionLocals (transpiler) {
+    const csharp = transpiler?.csharpTranspiler;
+    if (!csharp || typeof csharp.printVariableDeclarationList !== 'function' || csharp._hx4C01Patched) {
+        return;
+    }
+    // keyed by file + position: the worker batch hands back fresh node handles from resolve ()
+    const recorded = new Map ();
+    const keyOf = (n) => `${n.getSourceFile?.()?.fileName ?? ''}:${n.pos}:${n.end}`;
+    const upstreamPrint = csharp.printVariableDeclarationList.bind (csharp);
+    csharp.printVariableDeclarationList = (node, identation) => {
+        const printed = upstreamPrint (node, identation);
+        const declarations = node?.declarations;
+        if (typeof printed === 'string' && declarations?.length === 1 && declarations[0].name?.kind === ts.SyntaxKind.Identifier) {
+            const type = hx4C01EmittedCollectionType (printed, csharp.printNode (declarations[0].name, 0));
+            if (type !== undefined) {
+                recorded.set (keyOf (declarations[0]), type);
+            } else {
+                recorded.delete (keyOf (declarations[0]));
+            }
+        }
+        return printed;
+    };
+    const upstreamResolver = csharp.csharpDeclaredLocalTypeResolver;
+    if (typeof csharp.printParameter === 'function') {
+        const upstreamParameter = csharp.printParameter.bind (csharp);
+        csharp.printParameter = (node, defaultValue = true) => {
+            const printed = upstreamParameter (node, defaultValue);
+            const head = (typeof printed === 'string') ? printed.trim ().split (' = ')[0] : '';
+            const match = /^(.+) ([A-Za-z_]\w*)$/s.exec (head);
+            const type = (match === null) ? undefined : match[1].trim ();
+            const collections = [ 'List<object>', 'IList<object>', 'Dictionary<string, object>', 'IDictionary<string, object>' ];
+            if (node?.name?.kind === ts.SyntaxKind.Identifier && collections.includes (type)) {
+                recorded.set (keyOf (node), type);
+            }
+            return printed;
+        };
+    }
+    csharp.csharpDeclaredLocalTypeResolver = (declaration) => {
+        const upstream = (typeof upstreamResolver === 'function') ? upstreamResolver (declaration) : undefined;
+        if (upstream !== undefined) {
+            return upstream;
+        }
+        return (declaration === undefined) ? undefined : recorded.get (keyOf (declaration));
+    };
+    csharp._hx4C01Patched = true;
+}
+
+// hx4 C02: `+` on Int64 operands the native arithmetic rule leaves on add().
+// (a) an `Int64?` operand proven non-null (null guard / non-null default) is the Int64 branch;
+// (b) `int + <int literal>` statically binds add(Int64, Int64): printed `(x + NL)`, same Int64 sum.
+function hx4C02NonNullKind (csharp, node, plus) {
+    let operand = node;
+    while (operand?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        operand = operand.expression;
+    }
+    const kind = nativeArithmeticOperandKind (csharp, operand);
+    if (kind !== 'Int64?') {
+        return { kind, demoted: false };
+    }
+    if (nativeInt64ValueIsNonNull (csharp, operand, 0)) {
+        return { kind: 'Int64', demoted: true };
+    }
+    const guarded = (operand.kind === ts.SyntaxKind.Identifier) && !nativeSubtractOperandIsRebound (csharp, operand)
+        && (typeof csharp.csharpNullGuardAdmitsRead === 'function') && csharp.csharpNullGuardAdmitsRead (plus, operand);
+    return { kind: guarded ? 'Int64' : kind, demoted: guarded };
+}
+
+function hx4C02NativeAdd (csharp, node) {
+    if (node?.kind !== ts.SyntaxKind.BinaryExpression || node.operatorToken?.kind !== ts.SyntaxKind.PlusToken) {
+        return undefined;
+    }
+    const leftLiteral = intLiteralText (node.left);
+    const rightLiteral = intLiteralText (node.right);
+    if ((leftLiteral === undefined) !== (rightLiteral === undefined)) {
+        const other = (leftLiteral === undefined) ? node.left : node.right;
+        if (nativeArithmeticOperandKind (csharp, other) === 'int') {
+            const L = leftLiteral ?? csharp.printNode (node.left, 0);
+            const R = rightLiteral ?? csharp.printNode (node.right, 0);
+            return '(' + L + ' + ' + R + ')';
+        }
+    }
+    const left = hx4C02NonNullKind (csharp, node.left, node);
+    const right = hx4C02NonNullKind (csharp, node.right, node);
+    if (!left.demoted && !right.demoted) {
+        return undefined; // nativeArithmeticIsProven's decision
+    }
+    const small = (k) => NATIVE_ARITHMETIC_SMALL_INT_KINDS.includes (k);
+    if (!small (left.kind) || !small (right.kind) || (left.kind !== 'Int64' && right.kind !== 'Int64')) {
+        return undefined;
+    }
+    return '(' + csharp.printNode (node.left, 0) + ' + ' + csharp.printNode (node.right, 0) + ')';
+}
+
+export function installCsharpNativeAddHx4C02 (transpiler) {
+    const csharp = transpiler?.csharpTranspiler;
+    if (!csharp || typeof csharp.printCustomBinaryExpressionIfAny !== 'function' || csharp._hx4C02Patched) {
+        return;
+    }
+    const upstream = csharp.printCustomBinaryExpressionIfAny.bind (csharp);
+    csharp.printCustomBinaryExpressionIfAny = (node, identation) => hx4C02NativeAdd (csharp, node) ?? upstream (node, identation);
+    csharp._hx4C02Patched = true;
+}
+
+// ===== hx4 C08: integer-literal counters (`let n = 0; n += 1; if (n < max)`) =====
+// Widens integerLiteralArithmeticLocal: writes may also be `n += <int lit>`, `n = n + <int lit>`,
+// `n++` / `n--` (add(object, object) and the ref twins box Int64 for these), reads may be integer `===`/`!==` and numberToString.
+function hx4C08CounterLocal (csharp, declaration, context) {
+    const intKinds = [ 'int', 'uint', 'Int64', 'Int64?' ];
+    const consumers = [ ts.SyntaxKind.MinusToken, ts.SyntaxKind.PlusToken, ts.SyntaxKind.AsteriskToken, ts.SyntaxKind.SlashToken ];
+    const equalities = [ ts.SyntaxKind.EqualsEqualsEqualsToken, ts.SyntaxKind.ExclamationEqualsEqualsToken, ts.SyntaxKind.EqualsEqualsToken, ts.SyntaxKind.ExclamationEqualsToken ];
+    if (!integerLiteralArithmeticLiteral (declaration.initializer) || !isBlockScopedDeclaration (declaration)
+            || declaration.parent?.declarations?.length !== 1) {
+        return undefined;
+    }
+    const scope = context?.scope ?? ((typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration));
+    if (scope === undefined || typeNameIsShadowed (csharp, scope, declaration, 'Int64')) {
+        return undefined;
+    }
+    const name = declaration.name.text;
+    const isSelf = (node) => {
+        let current = node;
+        while (current?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+            current = current.expression;
+        }
+        return current?.kind === ts.SyntaxKind.Identifier && current.text === name;
+    };
+    const intOperand = (node) => integerLiteralArithmeticLiteral (stripParens (node)) || intKinds.includes (nativeArithmeticOperandKind (csharp, node));
+    let reads = 0;
+    let counterWrites = 0;
+    for (const n of (indexScope (csharp, scope).identifiers.get (name) ?? [])) {
+        if (n === declaration.name || isNotAUse (n) || useRefersToDeclaration (csharp, scope, declaration, n) === false) {
+            continue;
+        }
+        const parent = n.parent;
+        if ((parent?.kind === ts.SyntaxKind.PostfixUnaryExpression)
+                && ((parent.operator === ts.SyntaxKind.PlusPlusToken) || (parent.operator === ts.SyntaxKind.MinusMinusToken))) {
+            // statement / for-incrementor position only: a value-position `n++` hands out the box
+            const holder = parent.parent;
+            if (!(holder?.kind === ts.SyntaxKind.ExpressionStatement || (holder?.kind === ts.SyntaxKind.ForStatement && holder.incrementor === parent))) {
+                return undefined;
+            }
+            counterWrites++;
+            continue;
+        }
+        if ((parent?.kind === ts.SyntaxKind.BinaryExpression) && (parent.left === n)) {
+            const op = parent.operatorToken.kind;
+            if (op === ts.SyntaxKind.PlusEqualsToken && integerLiteralArithmeticLiteral (stripParens (parent.right))) {
+                counterWrites++;
+                continue;
+            }
+            if (op === ts.SyntaxKind.EqualsToken) {
+                const value = stripParens (parent.right);
+                if (integerLiteralArithmeticLiteral (value)) {
+                    continue;
+                }
+                if (value?.kind === ts.SyntaxKind.BinaryExpression && value.operatorToken.kind === ts.SyntaxKind.PlusToken
+                        && isSelf (value.left) && integerLiteralArithmeticLiteral (stripParens (value.right))) {
+                    counterWrites++;
+                    continue;
+                }
+                return undefined;
+            }
+        }
+        let operand = n;
+        while (operand.parent?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+            operand = operand.parent;
+        }
+        const consumer = operand.parent;
+        // the `n` read inside the self write `n = n + 1` was accepted with that write
+        if (consumer?.kind === ts.SyntaxKind.BinaryExpression && consumer.left === operand && consumer.operatorToken.kind === ts.SyntaxKind.PlusToken
+                && consumer.parent?.kind === ts.SyntaxKind.BinaryExpression && stripParens (consumer.parent.right) === consumer
+                && consumer.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken && isSelf (consumer.parent.left)
+                && integerLiteralArithmeticLiteral (stripParens (consumer.right))) {
+            reads++;
+            continue;
+        }
+        // this.numberToString (n): numberToString(object) prints the same digits for an Int32 / Int64 box
+        if (consumer?.kind === ts.SyntaxKind.CallExpression && consumer.arguments.length === 1 && consumer.arguments[0] === operand
+                && consumer.expression?.kind === ts.SyntaxKind.PropertyAccessExpression && consumer.expression.expression?.kind === ts.SyntaxKind.ThisKeyword
+                && consumer.expression.name?.text === 'numberToString') {
+            reads++;
+            continue;
+        }
+        if (consumer?.kind !== ts.SyntaxKind.BinaryExpression) {
+            return undefined;
+        }
+        const op = consumer.operatorToken.kind;
+        const sibling = (consumer.left === operand) ? consumer.right : consumer.left;
+        if (NATIVE_COMPARISON_SYMBOLS[op] !== undefined) {
+            reads++; // (object, object) helpers only: they normalise both boxes
+            continue;
+        }
+        // isEqual compares two integer boxes by Convert.ToInt64 whatever their widths
+        if (equalities.includes (op) || consumers.includes (op)) {
+            if (!intOperand (sibling)) {
+                return undefined;
+            }
+            reads++;
+            continue;
+        }
+        return undefined;
+    }
+    return (reads > 0 && counterWrites > 0) ? { type: 'Int64' } : undefined;
+}
+
+// ===== hx4 C09: `x = this.omit (x, k)` on an IDictionary<string, object> local (the safeDict* family) =====
+// The 2-argument call binds omit(IDictionary<string, object>, string|object), which always returns the
+// fresh Dictionary outDict; Dictionary converts implicitly into the IDictionary declaration (same box).
+function hx4C09InterfaceSelfOmitWriteType (csharp, context, declaration, running, sawNull, value) {
+    if (running !== 'IDictionary<string, object>' || sawNull) {
+        return undefined;
+    }
+    return (selfOmitWriteType (csharp, context, declaration, value) === 'Dictionary<string, object>') ? 'Dictionary<string, object>' : undefined;
+}
+
+// hx4 C09: called exchange-local `List` parameters (IList<object>, a reference target): every call
+// site's proven argument is a List / IList / null, so the box each caller passes is unchanged.
+function hx4C09CalledParameterTarget (target) {
+    return target === CSHARP_PARAMETER_ALIAS_TYPES['List'].type;
+}
+
+// ===== hx4 C10: `add (a, b)` -> `(a + b)` on a left operand proven a NON-NULL string =====
+// add(object, object) on a non-null string box is `(string)a + (string)b`; add(string, *) is C#
+// concatenation. Native `a + b` equals both when `a` is a non-null string and, for an `object`-printed
+// left, the right prints a static string (object + string is string.Concat; a null right reads "").
+function hx4C10Declaration (csharp, identifier) {
+    try {
+        return resolveReference (csharp, identifier); // scope index first (cached), checker fallback
+    } catch (e) {
+        return undefined;
+    }
+}
+
+// top-level verdicts per declaration key (a nested verdict may be cut by the cycle guard)
+const hx4C10LocalVerdicts = new Map ();
+
+function hx4C10NonNullValue (csharp, node, self, seen, depth) {
+    const value = stripParens (node);
+    if (value === undefined || depth > 12) {
+        return false;
+    }
+    if (isStringLiteral (value)) {
+        return true;
+    }
+    switch (value.kind) {
+    case ts.SyntaxKind.Identifier: {
+        const declaration = hx4C10Declaration (csharp, value);
+        if (declaration !== undefined && self !== undefined && hx4C10Key (declaration) === self) {
+            return true; // the running value of the local being proven
+        }
+        return hx4C10NonNullLocal (csharp, value, seen, depth + 1);
+    }
+    case ts.SyntaxKind.AsExpression:
+        return hx4C10NonNullValue (csharp, value.expression, self, seen, depth + 1);
+    case ts.SyntaxKind.BinaryExpression:
+        // add(<non-null string>, b) returns a non-null string (or throws), as does the native concat
+        return (value.operatorToken.kind === ts.SyntaxKind.PlusToken) && hx4C10NonNullValue (csharp, value.left, self, seen, depth + 1);
+    case ts.SyntaxKind.ConditionalExpression:
+        return hx4C10NonNullValue (csharp, value.whenTrue, self, seen, depth + 1) && hx4C10NonNullValue (csharp, value.whenFalse, self, seen, depth + 1);
+    case ts.SyntaxKind.CallExpression: {
+        const callee = value.expression;
+        if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression && callee.expression?.kind === ts.SyntaxKind.ThisKeyword) {
+            const name = callee.name?.text;
+            // SafeString* returns `defaultValue as string` when the key is missing: a literal default is never null
+            const arity = NON_NULL_DEFAULT_SAFE_STRING_ARITY[name];
+            if (arity !== undefined && value.arguments?.length === arity && isStringLiteral (stripParens (value.arguments[arity - 1]))) {
+                return true;
+            }
+            // implodeParams / implodeHostname return null only for a null path
+            if (NON_NULL_PATH_STRING_CALLS.includes (name) && value.arguments?.length >= 1) {
+                return hx4C10NonNullValue (csharp, value.arguments[0], self, seen, depth + 1);
+            }
+        }
+        return nonNullStringWriteLeaf (csharp, value);
+    }
+    }
+    return false;
+}
+
+// a single-declarator local whose initializer and EVERY write (closures included) is a non-null string
+function hx4C10NonNullLocal (csharp, identifier, seen, depth) {
+    const declaration = hx4C10Declaration (csharp, identifier);
+    if (declaration?.kind !== ts.SyntaxKind.VariableDeclaration || declaration.name?.kind !== ts.SyntaxKind.Identifier
+            || declaration.initializer === undefined || declaration.parent?.declarations?.length !== 1) {
+        return false;
+    }
+    try {
+        if (declaration.getEnd () > identifier.getStart ()) {
+            return false;
+        }
+    } catch (e) {
+        return false;
+    }
+    const key = hx4C10Key (declaration);
+    if (key === undefined || seen.has (key)) {
+        return false;
+    }
+    const top = (seen.size === 0);
+    if (top && hx4C10LocalVerdicts.has (key)) {
+        return hx4C10LocalVerdicts.get (key);
+    }
+    seen.add (key);
+    const verdict = hx4C10NonNullLocalScan (csharp, declaration, key, seen, depth);
+    seen.delete (key);
+    if (top) {
+        hx4C10LocalVerdicts.set (key, verdict);
+    }
+    return verdict;
+}
+
+function hx4C10NonNullLocalScan (csharp, declaration, key, seen, depth) {
+    {
+        if (!hx4C10NonNullValue (csharp, declaration.initializer, key, seen, depth + 1)) {
+            return false;
+        }
+        let scope = declaration.parent;
+        while (scope !== undefined && !isFunctionScope (scope) && scope.kind !== ts.SyntaxKind.SourceFile) {
+            scope = scope.parent;
+        }
+        if (scope === undefined) {
+            return false;
+        }
+        let ok = true;
+        const visit = (n) => {
+            if (!ok || n === undefined) {
+                return;
+            }
+            const loopTarget = (n.kind === ts.SyntaxKind.ForOfStatement || n.kind === ts.SyntaxKind.ForInStatement) && stripParens (n.initializer)?.kind === ts.SyntaxKind.Identifier
+                && stripParens (n.initializer).text === declaration.name.text;
+            if (loopTarget) {
+                ok = false;
+                return;
+            }
+            if (n.kind === ts.SyntaxKind.Identifier && n !== declaration.name && n.text === declaration.name.text && csharpWriteTarget (n)) {
+                const target = hx4C10Declaration (csharp, n);
+                if (target === undefined || hx4C10Key (target) === key) {
+                    const parent = n.parent;
+                    const plain = parent?.kind === ts.SyntaxKind.BinaryExpression && parent.left === n;
+                    const op = plain ? parent.operatorToken.kind : undefined;
+                    if (op === ts.SyntaxKind.PlusEqualsToken) {
+                        return; // add(<non-null string>, v): non-null string again
+                    }
+                    if (op !== ts.SyntaxKind.EqualsToken || !hx4C10NonNullValue (csharp, parent.right, key, seen, depth + 1)) {
+                        ok = false;
+                        return;
+                    }
+                }
+            }
+            n.forEachChild (visit);
+        };
+        scope.forEachChild (visit);
+        return ok;
+    }
+}
+
+// the printed static type of an operand when provably a C# string ('string'), else undefined
+function hx4C10StaticString (csharp, node) {
+    const value = stripParens (node);
+    if (value === undefined) {
+        return undefined;
+    }
+    if (isStringLiteral (value)) {
+        return 'string';
+    }
+    switch (value.kind) {
+    case ts.SyntaxKind.AsExpression:
+        return (value.type?.kind === ts.SyntaxKind.StringKeyword) ? 'string' : undefined;
+    case ts.SyntaxKind.ConditionalExpression:
+        return (hx4C10StaticString (csharp, value.whenTrue) === 'string' && hx4C10StaticString (csharp, value.whenFalse) === 'string') ? 'string' : undefined;
+    case ts.SyntaxKind.Identifier:
+        return hx4C10PrintedStringLocal (csharp, value) ? 'string' : undefined;
+    case ts.SyntaxKind.PropertyAccessExpression: {
+        if (value.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+            return undefined;
+        }
+        const memberType = CSHARP_LOCAL_THIS_MEMBER_TYPES[value.name?.text];
+        return (memberType === 'string' || memberType === 'string?') ? 'string' : undefined;
+    }
+    case ts.SyntaxKind.CallExpression: {
+        const callee = value.expression;
+        if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression && callee.name?.text === 'toString') {
+            return 'string';
+        }
+        const own = callReturnType (csharp, value);
+        return (own === 'string' || own === 'string?') ? 'string' : undefined;
+    }
+    case ts.SyntaxKind.BinaryExpression:
+        // a `+` the hook prints native is a C# string concatenation
+        return ((value.operatorToken.kind === ts.SyntaxKind.PlusToken) && hx4C10ConcatPrintsNative (csharp, value)) ? 'string' : undefined;
+    }
+    return undefined;
+}
+
+// the `+` node prints a native concat (U57's verdict, else this rule's), memoized per node
+const hx4C10Native = new WeakMap ();
+
+function hx4C10ConcatPrintsNative (csharp, plus) {
+    if (hx4C10Native.has (plus)) {
+        return hx4C10Native.get (plus);
+    }
+    hx4C10Native.set (plus, false); // a cycle reads unproven
+    const native = (typeof csharp.csharpNativeStringConcat === 'function') && csharp.csharpNativeStringConcat (plus.left, plus.right, 'l', 'r') !== undefined;
+    hx4C10Native.set (plus, native);
+    return native;
+}
+
+// declarations printed `string x = ` / `string? x = `, keyed by position (worker programs hand out fresh nodes)
+const hx4C10PrintedStrings = new Set ();
+// fileName -> the text its keys were minted for (an in-memory re-transpile of the same name gets new keys)
+const hx4C10Files = new Map ();
+let hx4C10FileGeneration = 0;
+
+function hx4C10Key (declaration) {
+    try {
+        const file = declaration.getSourceFile ();
+        let entry = hx4C10Files.get (file.fileName);
+        if (entry === undefined || entry.text !== file.text) {
+            entry = { text: file.text, id: ++hx4C10FileGeneration };
+            hx4C10Files.set (file.fileName, entry);
+        }
+        return file.fileName + '#' + entry.id + ':' + declaration.pos + ':' + declaration.end;
+    } catch (e) {
+        return undefined;
+    }
+}
+
+// a read of a single-binding local whose PRINTED declaration is `string` / `string?`
+function hx4C10PrintedStringLocal (csharp, identifier) {
+    const declaration = hx4C10Declaration (csharp, identifier);
+    if (declaration?.kind !== ts.SyntaxKind.VariableDeclaration || declaration.name?.kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    const key = hx4C10Key (declaration);
+    const scope = enclosingFunctionScopeOf (csharp, identifier);
+    return key !== undefined && hx4C10PrintedStrings.has (key) && scope !== undefined && stringEqualityBindingIsProvable (scope, identifier);
+}
+
+function hx4C10LeftIsNonNull (csharp, plus, left) {
+    const value = stripParens (left);
+    if (value?.kind === ts.SyntaxKind.Identifier) {
+        if (hx4C10NonNullLocal (csharp, value, new Set (), 0)) {
+            return true;
+        }
+        // a `string?` local under a dominating null guard (binds add(string, *))
+        return hx4C10PrintedStringLocal (csharp, value) && (typeof csharp.csharpNullGuardAdmitsRead === 'function')
+            && csharp.csharpNullGuardAdmitsRead (plus, value);
+    }
+    if (value?.kind === ts.SyntaxKind.BinaryExpression) {
+        return (value.operatorToken.kind === ts.SyntaxKind.PlusToken) && (hx4C10StaticString (csharp, value) === 'string')
+            && hx4C10NonNullValue (csharp, value.left, undefined, new Set (), 0);
+    }
+    return hx4C10NonNullValue (csharp, value, undefined, new Set (), 0);
+}
+
+// per `+` node verdict: chains re-ask every prefix, unmemoized the proof is exponential in chain length
+const hx4C10Verdicts = new WeakMap ();
+
+function hx4C10Proven (csharp, plus, left, right) {
+    if (plus !== undefined && hx4C10Verdicts.has (plus)) {
+        return hx4C10Verdicts.get (plus);
+    }
+    const verdict = hx4C10Prove (csharp, plus, left, right);
+    if (plus !== undefined) {
+        hx4C10Verdicts.set (plus, verdict);
+    }
+    return verdict;
+}
+
+function hx4C10Prove (csharp, plus, left, right) {
+    if (!hx4C10LeftIsNonNull (csharp, plus, left)) {
+        return false;
+    }
+    // an `object`-printed left needs a static string right (object + object does not compile)
+    return (hx4C10StaticString (csharp, left) === 'string') || (hx4C10StaticString (csharp, right) === 'string');
+}
+
+export function installCsharpHx4C10NonNullConcat (transpiler) {
+    const csharp = transpiler?.csharpTranspiler;
+    if (!csharp || csharp._hx4C10Patched || typeof csharp.csharpNativeStringConcat !== 'function' || typeof csharp.printCustomBinaryExpressionIfAny !== 'function'
+            || typeof csharp.printVariableDeclarationList !== 'function') {
+        return;
+    }
+    const upstreamDeclaration = csharp.printVariableDeclarationList.bind (csharp);
+    csharp.printVariableDeclarationList = (node, identation) => {
+        const printed = upstreamDeclaration (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (typeof printed === 'string' && node.declarations.length === 1 && declaration?.name?.kind === ts.SyntaxKind.Identifier
+                && new RegExp ('^\\s*string\\??\\s+' + csharp.printNode (declaration.name, 0) + '\\s*=').test (printed)) {
+            const key = hx4C10Key (declaration);
+            if (key !== undefined) {
+                hx4C10PrintedStrings.add (key);
+            }
+        }
+        return printed;
+    };
+    const upstreamConcat = csharp.csharpNativeStringConcat.bind (csharp);
+    csharp.csharpNativeStringConcat = (left, right, leftText, rightText) => {
+        const native = upstreamConcat (left, right, leftText, rightText);
+        if (native !== undefined || typeof leftText !== 'string' || typeof rightText !== 'string' || leftText === '' || rightText === '') {
+            return native;
+        }
+        const plus = left?.parent;
+        try {
+            return hx4C10Proven (csharp, plus, left, right) ? '(' + leftText + ' + ' + rightText + ')' : undefined;
+        } catch (e) {
+            return undefined;
+        }
+    };
+    // `x += v` prints `x = add(x, v)` before the hook: same proof on the identifier
+    const upstreamBinary = csharp.printCustomBinaryExpressionIfAny.bind (csharp);
+    csharp.printCustomBinaryExpressionIfAny = (node, identation) => {
+        if (node?.kind === ts.SyntaxKind.BinaryExpression && node.operatorToken?.kind === ts.SyntaxKind.PlusEqualsToken && node.left?.kind === ts.SyntaxKind.Identifier) {
+            let proven = false;
+            try {
+                proven = hx4C10Proven (csharp, node, node.left, node.right);
+            } catch (e) {
+                proven = false;
+            }
+            const printed = upstreamBinary (node, identation);
+            const leftText = csharp.printNode (node.left, 0);
+            const prefix = leftText + ' = add(' + leftText + ', ';
+            if (proven && typeof printed === 'string' && printed.startsWith (prefix) && printed.endsWith (')')) {
+                return leftText + ' = (' + leftText + ' + (' + printed.slice (prefix.length, -1) + '))';
+            }
+            return printed;
+        }
+        return upstreamBinary (node, identation);
+    };
+    csharp._hx4C10Patched = true;
+}
+
+// ===== hx4 C12: Wave-4 TS annotations -> C# return / string-parameter types =====
+// Sync, non-override, exchange-local names (no base declaration; every declaration prints
+// `object`) whose every return path boxes the listed type (census: hx4 C12 report). The
+// boundary cast of installCsharpMethodReturnTypes names the box; callers' locals follow.
+const HX4_C12_RETURN_TYPES = {
+    'fixCommaNumber': 'string?', 'getStockWsUrl': 'string?', 'hashMessage': 'string?', 'hashOrderMessage': 'string?',
+    'parseTransactionStatusByType': 'string?', 'getTimestamp': 'Int64?',
+    'getExceptionsByUrl': 'IDictionary<string, object>', 'getCurrentPosition': 'IDictionary<string, object>',
+    'findSubscription': 'IDictionary<string, object>', 'indexByStringifiedNumericId': 'Dictionary<string, object>',
+    'parseBalanceHelper': 'Dictionary<string, object>', 'parseOrderFlags': 'List<object>',
+    'parseSbeAccount': 'Dictionary<string, object>', 'parseSbeFill': 'Dictionary<string, object>',
+    'parseSbeFundingData': 'Dictionary<string, object>', 'parseSbeMarketSummary': 'Dictionary<string, object>',
+    'parseSbeOrder': 'Dictionary<string, object>', 'parseSbeOrderBook': 'Dictionary<string, object>',
+    'parseSbePosition': 'Dictionary<string, object>', 'parseSbeTrade': 'Dictionary<string, object>',
+};
+for (const [ name, type ] of Object.entries (HX4_C12_RETURN_TYPES)) {
+    if (CSHARP_METHOD_RETURN_TYPES[name] === undefined) {
+        CSHARP_METHOD_RETURN_TYPES[name] = type;
+    }
+    if (CSHARP_LOCAL_THIS_RETURN_TYPES[name] === undefined) {
+        CSHARP_LOCAL_THIS_RETURN_TYPES[name] = type;
+    }
+}
+// `Str`/`string` positions every caller feeds a string or null and no body writes or uses as an add() left
+const HX4_C12_STRING_PARAMS = {
+    'constructCurrencyObject': { 1: 'string?' }, 'createAuthToken': { 2: 'string?' }, 'createContractOrderRequest': { 0: 'string?' },
+    'getCurrencyName': { 0: 'string?' }, 'getDexFromSymbols': { 0: 'string?' }, 'getMarketType': { 0: 'string?' },
+    'parseLedgerEntryType': { 0: 'string?' }, 'parseLedgerType': { 0: 'string?' }, 'parseOrderStatus': { 0: 'string?' },
+    'parseStatus': { 0: 'string?' }, 'parseTransactionStatus': { 1: 'string?' }, 'parseTransactionStatusByType': { 1: 'string?' },
+    'parseTransactionWithType': { 2: 'string?' }, 'parseTransferStatus': { 0: 'string?' }, 'pow': { 0: 'string?' },
+    'verifyOrderActionSuccess': { 1: 'string?' },
+};
+for (const [ name, positions ] of Object.entries (HX4_C12_STRING_PARAMS)) {
+    CSHARP_STRING_PARAMS[name] = Object.assign ({}, positions, CSHARP_STRING_PARAMS[name] ?? {});
+}
+
+// ===== hx4 C13: `const x = this.omit (params, …)` on the method's own optional `params = {}` =====
+// The trailing `params = {}` prints `parameters ??= new Dictionary<string, object>()`; omit hands a
+// dictionary receiver back as a fresh Dictionary, so the cast names that box. Implicit-API list bodies
+// only reach sign/request/fetch2 (`params` never rebound in the method, which keeps that receiver).
+const HX4_C13_LIST_PARAMS_METHODS = [ 'sign', 'request', 'fetch2' ];
+
+function hx4C13OmitParamsLocal (csharp, declaration, context) {
+    const initializer = stripParens (declaration.initializer);
+    if (declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1
+            || !isBlockScopedDeclaration (declaration) || initializer?.kind !== ts.SyntaxKind.CallExpression) {
+        return undefined;
+    }
+    const callee = initializer.expression;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword
+            || callee.name?.text !== 'omit' || (initializer.arguments?.length ?? 0) < 2) {
+        return undefined;
+    }
+    const receiver = stripParens (initializer.arguments[0]);
+    if (receiver?.kind !== ts.SyntaxKind.Identifier || receiver.text !== 'params') {
+        return undefined;
+    }
+    const parameter = resolveReference (csharp, receiver);
+    const owner = parameter?.parent;
+    if (parameter?.kind !== ts.SyntaxKind.Parameter || owner?.kind !== ts.SyntaxKind.MethodDeclaration
+            || owner.parameters[owner.parameters.length - 1] !== parameter || enclosingFunction (declaration) !== owner) {
+        return undefined;
+    }
+    const defaultValue = stripParens (parameter.initializer);
+    if (defaultValue?.kind !== ts.SyntaxKind.ObjectLiteralExpression || defaultValue.properties.length !== 0
+            || HX4_C13_LIST_PARAMS_METHODS.includes (owner.name?.text) || hx4C13ParamsWritten (csharp, owner, parameter)) {
+        return undefined;
+    }
+    const type = 'IDictionary<string, object>';
+    const scope = context?.scope ?? ((typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : owner);
+    const ctx = context ?? { scope, stack: new Set (), depth: 0 };
+    return csharpLocalIsSafeToRetype (csharp, scope, declaration, declaration.name.text, type, ctx) ? { type, cast: type } : undefined;
+}
+
+// per-method verdict: any `params` write target in the method (closures included)
+const hx4C13ParamsWrittenCache = new WeakMap ();
+
+function hx4C13ParamsWritten (csharp, owner, parameter) {
+    if (hx4C13ParamsWrittenCache.has (owner)) {
+        return hx4C13ParamsWrittenCache.get (owner);
+    }
+    let written = false;
+    for (const n of (indexScope (csharp, owner).identifiers.get ('params') ?? [])) {
+        // a write of any same-name binding in the method keeps object
+        if (n !== parameter.name && csharpWriteTarget (n)) {
+            written = true;
+            break;
+        }
+    }
+    hx4C13ParamsWrittenCache.set (owner, written);
+    return written;
+}
+
+// hx4 L44 — `-x` on a `double?` local (safeNumber read) inside a dominating non-null guard on x: the
+// printer emits the helper's in-place body `(x = -x)` (lifted negation of a non-null double), so the
+// local may keep `double?`. Unguarded negations keep `object` + prefixUnaryNeg (null would NRE).
+function hx4L44GuardedNullableDoubleNegation (csharp, node, csharpType) {
+    return (csharpType === 'double?')
+        && (node?.kind === ts.SyntaxKind.PrefixUnaryExpression)
+        && (node.operator === ts.SyntaxKind.MinusToken)
+        && (node.operand?.kind === ts.SyntaxKind.Identifier)
+        && (typeof csharp?.csharpNullGuardAdmitsRead === 'function')
+        && csharp.csharpNullGuardAdmitsRead (node, node.operand);
+}
+
+// hx5 X12 — widen typed-local inference: return-path-proven list producers.
+// Each name has exactly ONE definition in ts/src (no base declaration, no override) and every
+// return path boxes a List<object> or null, so the declaration and its callers' locals name it:
+//   getSettlementCurrencies (gate)   — `return this.safeList (opts, 'settlementCurrencies', <list literal>)`
+//   outcomesByMarketId (predictfun)  — both returns hand back the fresh `result: any[] = []`
+//   sbeReadVarStrings (pro/paradex)  — `return result` (fresh string[] literal) or `return undefined`
+// `unique` is hand-written `public List<string> unique (object)` (cs/ccxt/base/Exchange.cs).
+// Every retyped local still goes through csharpLocalIsSafeToRetype (all writes re-validated).
+function hx5X12RegisterReturnTypes () {
+    const methods = { 'getSettlementCurrencies': 'List<object>', 'outcomesByMarketId': 'List<object>', 'sbeReadVarStrings': 'List<object>' };
+    for (const [ name, type ] of Object.entries (methods)) {
+        if (!Object.prototype.hasOwnProperty.call (CSHARP_METHOD_RETURN_TYPES, name)) {
+            CSHARP_METHOD_RETURN_TYPES[name] = type;
+        }
+        if (!Object.prototype.hasOwnProperty.call (CSHARP_LOCAL_THIS_RETURN_TYPES, name)) {
+            CSHARP_LOCAL_THIS_RETURN_TYPES[name] = type;
+        }
+    }
+    if (!Object.prototype.hasOwnProperty.call (CSHARP_LOCAL_THIS_RETURN_TYPES, 'unique')) {
+        CSHARP_LOCAL_THIS_RETURN_TYPES['unique'] = 'List<string>';
+    }
+}
+hx5X12RegisterReturnTypes ();

@@ -356,9 +356,9 @@ class cex(ccxt.async_support.cex):
         messageHash = 'ticker:' + symbol
         client.resolve(ticker, messageHash)
         client.resolve(ticker, 'tickers')
-        messageHash = self.safe_string(message, 'oid')
-        if messageHash is not None:
-            client.resolve(ticker, messageHash)
+        oid = self.safe_string(message, 'oid')
+        if oid is not None:
+            client.resolve(ticker, oid)
 
     def parse_ws_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
@@ -396,9 +396,7 @@ class cex(ccxt.async_support.cex):
         symbol = None
         if (base is not None) and (quote is not None):
             symbol = base + '/' + quote
-        timestamp = self.safe_integer(ticker, 'timestamp')
-        if timestamp is not None:
-            timestamp = timestamp * 1000
+        timestamp = self.safe_timestamp(ticker, 'timestamp')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -736,7 +734,7 @@ class cex(ccxt.async_support.cex):
             order = self.parse_ws_order_update(data, market)
         order['remaining'] = remains
         canceled = self.safe_bool(data, 'cancel', False)
-        if canceled is True:
+        if canceled:
             order['status'] = 'canceled'
         if isTransaction:
             order['status'] = 'closed'
@@ -822,7 +820,7 @@ class cex(ccxt.async_support.cex):
             timestamp = self.parse8601(time)
         canceled = self.safe_bool(order, 'cancel', False)
         status = 'open'
-        if canceled is True:
+        if canceled:
             status = 'canceled'
         elif isTransaction:
             status = 'closed'
@@ -858,7 +856,7 @@ class cex(ccxt.async_support.cex):
             parsedOrder['trades'] = self.parse_ws_trade(order, marketResolved)
         return self.safe_order(parsedOrder, marketResolved)
 
-    def from_precision(self, amount: object, scale: object):
+    def from_precision(self, amount: object, scale: object) -> Str:
         if amount is None:
             return None
         precise = Precise(amount)
@@ -866,7 +864,7 @@ class cex(ccxt.async_support.cex):
         precise.reduce()
         return str(precise)
 
-    def currency_from_precision(self, currency: object, amount: object):
+    def currency_from_precision(self, currency: str, amount: object) -> Str:
         scale = self.safe_integer(self.currencies[currency], 'precision', 0)
         return self.from_precision(amount, scale)
 
@@ -1034,7 +1032,7 @@ class cex(ccxt.async_support.cex):
         bidAsk = self.parse_order_book_bid_ask(delta, 0, 1)
         bookside.storeArray(bidAsk)
 
-    def handle_deltas(self, bookside: object, deltas: object):
+    def handle_deltas(self, bookside: object, deltas: list[object]):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 

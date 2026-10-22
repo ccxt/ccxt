@@ -216,6 +216,7 @@ impl KucoinfuturesCore {
         m.insert("swap".to_string(), Value::Bool(true));
         m.insert("future".to_string(), Value::Bool(true));
         m.insert("option".to_string(), Value::Null);
+        m.insert("editOrder".to_string(), Value::Bool(false));
         m.insert("fetchBidsAsks".to_string(), Value::Bool(true));
         m.insert("transfer".to_string(), Value::Bool(true));
     m

@@ -343,14 +343,14 @@ func (this *Zebpay) Describe() any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-func (this *Zebpay) FetchStatusAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
-	ch := make(chan EndpointResult[map[string]any], 1)
+func (this *Zebpay) FetchStatusAsync(optionalArgs ...any) <-chan AsyncResult[Status] {
+	ch := make(chan AsyncResult[Status], 1)
 	go this.fetchStatusBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Zebpay) fetchStatusBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
+func (this *Zebpay) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicErrorT(ch)
+	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchStatus", nil, params)
@@ -387,14 +387,13 @@ func (this *Zebpay) fetchStatusBody(ch chan EndpointResult[map[string]any], opti
 	//
 	var status *string = this.SafeString2(data, "systemStatus", "status")
 
-	chValue := map[string]any{
+	ch <- AsyncResult[Status]{Value: StatusFromMap(map[string]any{
 		"status":  status,
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
 		"info":    response,
-	}
-	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
+	})}
 	return nil
 }
 
@@ -464,12 +463,12 @@ func (this *Zebpay) fetchTimeBody(ch chan AsyncResult[*int64], optionalArgs ...a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *Zebpay) FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Zebpay) FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]MarketInterface] {
+	ch := make(chan AsyncResult[[]MarketInterface], 1)
 	go this.fetchMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Zebpay) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Zebpay) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -497,7 +496,7 @@ func (this *Zebpay) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...a
 	var spotMarkets []any = SafeListTypedDefault(promises, 0, []any{})
 	var futureMarkets []any = SafeListTypedDefault(promises, 1, []any{})
 
-	ch <- AsyncResult[any]{Value: this.ArrayConcat(spotMarkets, futureMarkets)}
+	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ArrayConcat(spotMarkets, futureMarkets))}
 	return nil
 }
 
@@ -509,12 +508,12 @@ func (this *Zebpay) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func (this *Zebpay) FetchCurrenciesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Zebpay) FetchCurrenciesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchCurrenciesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Zebpay) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Zebpay) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -558,7 +557,7 @@ func (this *Zebpay) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs .
 	//
 	var rows []any = SafeListTypedDefault(response, "data", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseCurrencies(rows)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrencies(rows)}
 	return nil
 }
 func (this *Zebpay) ParseCurrency(rawCurrency any) map[string]any {
@@ -685,12 +684,12 @@ func (this *Zebpay) ParseCurrency(rawCurrency any) map[string]any {
  * @param {object} [params.side] side to fetch trading fee
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-func (this *Zebpay) FetchTradingFeeAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Zebpay) FetchTradingFeeAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[TradingFeeInterface] {
+	ch := make(chan AsyncResult[TradingFeeInterface], 1)
 	go this.fetchTradingFeeBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Zebpay) fetchTradingFeeBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Zebpay) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -754,7 +753,7 @@ func (this *Zebpay) fetchTradingFeeBody(ch chan AsyncResult[any], symbol string,
 		data = this.SafeDict(responseData, 0, map[string]any{})
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseTradingFee(data, market)}
+	ch <- AsyncResult[TradingFeeInterface]{Value: this.ParseTradingFee(data, market)}
 	return nil
 }
 
@@ -766,12 +765,12 @@ func (this *Zebpay) fetchTradingFeeBody(ch chan AsyncResult[any], symbol string,
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-func (this *Zebpay) FetchTradingFeesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Zebpay) FetchTradingFeesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]TradingFeeInterface] {
+	ch := make(chan AsyncResult[map[string]TradingFeeInterface], 1)
 	go this.fetchTradingFeesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Zebpay) fetchTradingFeesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Zebpay) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingFeeInterface], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -810,19 +809,19 @@ func (this *Zebpay) fetchTradingFeesBody(ch chan AsyncResult[any], optionalArgs 
 	var fees []any = SafeListTyped(response, "data")
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(fees); i++ {
-		var fee map[string]any = this.ParseTradingFee(func() any {
+		var fee map[string]any = TradingFeeInterfaceToMap(this.ParseTradingFee(func() any {
 			if i >= 0 && i < len(fees) {
 				return DerefScalar(fees[i])
 			}
 			return nil
-		}())
+		}()))
 		var symbol *string = SafeStringPtr(fee["symbol"])
 		if symbol != nil {
 			result[*symbol] = fee
 		}
 	}
 
-	ch <- AsyncResult[any]{Value: result}
+	ch <- AsyncResult[map[string]TradingFeeInterface]{Value: TradingFeeInterfaceMapFromMap(result)}
 	return nil
 }
 
@@ -837,12 +836,12 @@ func (this *Zebpay) fetchTradingFeesBody(ch chan AsyncResult[any], optionalArgs 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Zebpay) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Zebpay) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[OrderBook] {
+	ch := make(chan AsyncResult[OrderBook], 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Zebpay) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
+func (this *Zebpay) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -895,7 +894,7 @@ func (this *Zebpay) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symb
 	var orderbook map[string]any = this.ParseOrderBook(bookData, market["symbol"], nil, "bids", "asks", 0, 1)
 	orderbook["nonce"] = this.SafeInteger(bookData, "nonce")
 
-	ch <- AsyncResult[map[string]any]{Value: orderbook}
+	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(orderbook)}
 	return nil
 }
 
@@ -909,12 +908,12 @@ func (this *Zebpay) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symb
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Zebpay) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Zebpay) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Ticker] {
+	ch := make(chan AsyncResult[Ticker], 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Zebpay) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
+func (this *Zebpay) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -948,7 +947,7 @@ func (this *Zebpay) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol 
 	}
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(data, market))}
+	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(data, market)}
 	return nil
 }
 
@@ -961,12 +960,12 @@ func (this *Zebpay) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Zebpay) FetchTickersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Zebpay) FetchTickersAsync(optionalArgs ...any) <-chan AsyncResult[map[string]Ticker] {
+	ch := make(chan AsyncResult[map[string]Ticker], 1)
 	go this.fetchTickersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Zebpay) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Zebpay) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -1011,7 +1010,7 @@ func (this *Zebpay) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...a
 	//
 	var tickerList []any = SafeListTypedDefault(response, "data", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseTickers(tickerList, symbolsNormalized)}
+	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(tickerList, symbolsNormalized))}
 	return nil
 }
 
@@ -1031,12 +1030,12 @@ func (this *Zebpay) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...a
  * @param {string} [params.priceType] *swap only* LTP (default) or MARK_PRICE
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Zebpay) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Zebpay) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]OHLCV] {
+	ch := make(chan AsyncResult[[]OHLCV], 1)
 	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Zebpay) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Zebpay) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
@@ -1137,7 +1136,7 @@ func (this *Zebpay) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, opti
 	//
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(data, market, timeframe, since, limitResolved)}
+	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(data, market, timeframe, since, limitResolved))}
 	return nil
 }
 
@@ -1153,12 +1152,12 @@ func (this *Zebpay) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, opti
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Zebpay) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Zebpay) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Zebpay) fetchTradesBody(ch chan AsyncResult[any], symbol any, optionalArgs ...any) any {
+func (this *Zebpay) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1211,7 +1210,7 @@ func (this *Zebpay) fetchTradesBody(ch chan AsyncResult[any], symbol any, option
 	//
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseTrades(data, market, since, limit)}
+	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, market, since, limit))}
 	return nil
 }
 
@@ -1226,12 +1225,12 @@ func (this *Zebpay) fetchTradesBody(ch chan AsyncResult[any], symbol any, option
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Zebpay) FetchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Zebpay) FetchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchMyTradesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Zebpay) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Zebpay) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1268,7 +1267,7 @@ func (this *Zebpay) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...
 	var data map[string]any = SafeMapTyped(response, "data")
 	var items []any = SafeListTypedDefault(data, "items", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseTrades(items, market, since, limit)}
+	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(items, market, since, limit))}
 	return nil
 }
 
@@ -1284,12 +1283,12 @@ func (this *Zebpay) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Zebpay) FetchOrderTradesAsync(id string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Zebpay) FetchOrderTradesAsync(id string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchOrderTradesBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Zebpay) fetchOrderTradesBody(ch chan AsyncResult[any], id string, optionalArgs ...any) any {
+func (this *Zebpay) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1340,7 +1339,7 @@ func (this *Zebpay) fetchOrderTradesBody(ch chan AsyncResult[any], id string, op
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 	var trades []any = []any{data}
 
-	ch <- AsyncResult[any]{Value: this.ParseTrades(trades)}
+	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades))}
 	return nil
 }
 func (this *Zebpay) ParseTrade(trade any, optionalArgs ...any) Trade {
@@ -1413,12 +1412,12 @@ func (this *Zebpay) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Zebpay) FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Zebpay) FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[Balances] {
+	ch := make(chan AsyncResult[Balances], 1)
 	go this.fetchBalanceBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Zebpay) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Zebpay) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1467,7 +1466,7 @@ func (this *Zebpay) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...a
 	//         ]
 	//     }
 	//
-	ch <- AsyncResult[any]{Value: this.ParseBalance(response)}
+	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(response))}
 	return nil
 }
 
@@ -1490,12 +1489,12 @@ func (this *Zebpay) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...a
  * @param {string} [params.positionId] PositionId of the order.
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Zebpay) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Zebpay) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Zebpay) createOrderBody(ch chan AsyncResult[map[string]any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Zebpay) createOrderBody(ch chan AsyncResult[Order], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1523,7 +1522,7 @@ func (this *Zebpay) createOrderBody(ch chan AsyncResult[map[string]any], symbol 
 	if market["spot"] == true {
 		requestqueryVariable := this.OrderRequest(symbol, typeVar, amount, request, price, query)
 		request = GetValue(requestqueryVariable, 0)
-		query = MapTyped(GetValue(requestqueryVariable, 1))
+		query = MapTyped(requestqueryVariable[1])
 
 		r1 := <-this.PrivateSpotPostV2ExOrders(this.Extend(request, query))
 		if r1.Err != nil {
@@ -1576,10 +1575,10 @@ func (this *Zebpay) createOrderBody(ch chan AsyncResult[map[string]any], symbol 
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data, market))}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
 	return nil
 }
-func (this *Zebpay) OrderRequest(symbol string, typeVar string, amount any, request any, optionalArgs ...any) any {
+func (this *Zebpay) OrderRequest(symbol string, typeVar string, amount any, request any, optionalArgs ...any) []any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -1620,12 +1619,12 @@ func (this *Zebpay) OrderRequest(symbol string, typeVar string, amount any, requ
  * @param {object} [params.timestamp] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Zebpay) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Zebpay) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Zebpay) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
+func (this *Zebpay) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1673,7 +1672,7 @@ func (this *Zebpay) cancelOrderBody(ch chan AsyncResult[map[string]any], id any,
 	//        },
 	//    }
 	//
-	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(this.SafeDict(response, "data", map[string]any{})))}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.SafeDict(response, "data", map[string]any{}))}
 	return nil
 }
 
@@ -1687,12 +1686,12 @@ func (this *Zebpay) cancelOrderBody(ch chan AsyncResult[map[string]any], id any,
  * @param {int} [params.timestamp] the timestamp of the request in ms
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Zebpay) CancelAllOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Zebpay) CancelAllOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelAllOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Zebpay) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Zebpay) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1727,7 +1726,7 @@ func (this *Zebpay) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs .
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 	var parsedOrder map[string]any = OrderToMap(this.ParseOrder(data))
 
-	ch <- AsyncResult[any]{Value: []any{parsedOrder}}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList([]any{parsedOrder})}
 	return nil
 }
 
@@ -1743,12 +1742,12 @@ func (this *Zebpay) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs .
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Zebpay) FetchOpenOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Zebpay) FetchOpenOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchOpenOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Zebpay) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Zebpay) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1827,7 +1826,7 @@ func (this *Zebpay) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs .
 	//         }
 	//     }
 	//
-	ch <- AsyncResult[any]{Value: this.ParseOrders(orders, market, nil, limit)}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market, nil, limit))}
 	return nil
 }
 
@@ -1844,12 +1843,12 @@ func (this *Zebpay) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs .
  * @param {string} [params.timestamp] cancel order by client order id
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Zebpay) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Zebpay) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Zebpay) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
+func (this *Zebpay) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1910,7 +1909,7 @@ func (this *Zebpay) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, 
 	//
 	var responseData map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(responseData, market))}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(responseData, market)}
 	return nil
 }
 func (this *Zebpay) ParseOrder(order any, optionalArgs ...any) Order {
@@ -1985,12 +1984,12 @@ func (this *Zebpay) ParseOrder(order any, optionalArgs ...any) Order {
  * @param {string} [params.positionId] client order id of the order
  * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *Zebpay) ClosePositionAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Zebpay) ClosePositionAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.closePositionBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Zebpay) closePositionBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Zebpay) closePositionBody(ch chan AsyncResult[Order], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var side *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2016,7 +2015,7 @@ func (this *Zebpay) closePositionBody(ch chan AsyncResult[any], symbol string, o
 	var response map[string]any = r1.Value
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[any]{Value: OrderToMap(this.ParseOrder(data, market))}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
 	return nil
 }
 
@@ -2029,12 +2028,12 @@ func (this *Zebpay) closePositionBody(ch chan AsyncResult[any], symbol string, o
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func (this *Zebpay) FetchLeveragesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Zebpay) FetchLeveragesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]Leverage] {
+	ch := make(chan AsyncResult[map[string]Leverage], 1)
 	go this.fetchLeveragesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Zebpay) fetchLeveragesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Zebpay) fetchLeveragesBody(ch chan AsyncResult[map[string]Leverage], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -2068,7 +2067,7 @@ func (this *Zebpay) fetchLeveragesBody(ch chan AsyncResult[any], optionalArgs ..
 	//
 	var leveragePreferences []any = SafeListTypedDefault(response, "data", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseLeverages(leveragePreferences, symbols, "symbol")}
+	ch <- AsyncResult[map[string]Leverage]{Value: LeverageMapFromMap(this.ParseLeverages(leveragePreferences, symbols, "symbol"))}
 	return nil
 }
 
@@ -2081,12 +2080,12 @@ func (this *Zebpay) fetchLeveragesBody(ch chan AsyncResult[any], optionalArgs ..
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func (this *Zebpay) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Zebpay) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[Leverage] {
+	ch := make(chan AsyncResult[Leverage], 1)
 	go this.fetchLeverageBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Zebpay) fetchLeverageBody(ch chan AsyncResult[map[string]any], symbol any, optionalArgs ...any) any {
+func (this *Zebpay) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2115,7 +2114,7 @@ func (this *Zebpay) fetchLeverageBody(ch chan AsyncResult[map[string]any], symbo
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseLeverage(data, market)}
+	ch <- AsyncResult[Leverage]{Value: this.ParseLeverage(data, market)}
 	return nil
 }
 
@@ -2129,12 +2128,12 @@ func (this *Zebpay) fetchLeverageBody(ch chan AsyncResult[map[string]any], symbo
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Zebpay) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Zebpay) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Zebpay) setLeverageBody(ch chan AsyncResult[any], leverage int64, optionalArgs ...any) any {
+func (this *Zebpay) setLeverageBody(ch chan AsyncResult[map[string]any], leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2164,9 +2163,9 @@ func (this *Zebpay) setLeverageBody(ch chan AsyncResult[any], leverage int64, op
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Raw
+	response := r1.Value
 
-	ch <- AsyncResult[any]{Value: response}
+	ch <- AsyncResult[map[string]any]{Value: response}
 	return nil
 }
 
@@ -2179,12 +2178,12 @@ func (this *Zebpay) setLeverageBody(ch chan AsyncResult[any], leverage int64, op
  * @param {object} [params] Not used by krakenfutures
  * @returns Parsed exchange response for positions
  */
-func (this *Zebpay) FetchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Zebpay) FetchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[[]Position] {
+	ch := make(chan AsyncResult[[]Position], 1)
 	go this.fetchPositionsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Zebpay) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Zebpay) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -2224,7 +2223,7 @@ func (this *Zebpay) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs ..
 	var positions []any = SafeListTypedDefault(response, "data", []any{})
 	var result any = this.ParsePositions(positions)
 
-	ch <- AsyncResult[any]{Value: this.FilterByArrayPositions(result, "symbol", symbols)}
+	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterByArrayPositions(result, "symbol", symbols))}
 	return nil
 }
 
@@ -2240,12 +2239,12 @@ func (this *Zebpay) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs ..
  * @param {string} [params.timestamp] Tiemstamp.
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Zebpay) AddMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Zebpay) AddMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
+	ch := make(chan AsyncResult[MarginModification], 1)
 	go this.addMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Zebpay) addMarginBody(ch chan AsyncResult[map[string]any], symbol string, amount any, optionalArgs ...any) any {
+func (this *Zebpay) addMarginBody(ch chan AsyncResult[MarginModification], symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2288,10 +2287,10 @@ func (this *Zebpay) addMarginBody(ch chan AsyncResult[map[string]any], symbol st
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.Extend(this.ParseMarginModification(data, market), map[string]any{
+	ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(this.Extend(this.ParseMarginModification(data, market), map[string]any{
 		"amount":    amount,
 		"direction": "in",
-	})}
+	}))}
 	return nil
 }
 
@@ -2307,14 +2306,14 @@ func (this *Zebpay) addMarginBody(ch chan AsyncResult[map[string]any], symbol st
  * @param {string} [params.timestamp] Tiemstamp.
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Zebpay) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
-	ch := make(chan EndpointResult[map[string]any], 1)
+func (this *Zebpay) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
+	ch := make(chan AsyncResult[MarginModification], 1)
 	go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Zebpay) reduceMarginBody(ch chan EndpointResult[map[string]any], symbol string, amount any, optionalArgs ...any) any {
+func (this *Zebpay) reduceMarginBody(ch chan AsyncResult[MarginModification], symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicErrorT(ch)
+	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
@@ -2349,19 +2348,18 @@ func (this *Zebpay) reduceMarginBody(ch chan EndpointResult[map[string]any], sym
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	chValue := this.Extend(this.ParseMarginModification(data, market), map[string]any{
+	ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(this.Extend(this.ParseMarginModification(data, market), map[string]any{
 		"amount":    amount,
 		"direction": "out",
-	})
-	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
+	}))}
 	return nil
 }
-func (this *Zebpay) FetchSpotMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
-	ch := make(chan AsyncResult[[]any], 1)
+func (this *Zebpay) FetchSpotMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]MarketInterface] {
+	ch := make(chan AsyncResult[[]MarketInterface], 1)
 	go this.fetchSpotMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Zebpay) fetchSpotMarketsBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
+func (this *Zebpay) fetchSpotMarketsBody(ch chan AsyncResult[[]MarketInterface], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2450,15 +2448,15 @@ func (this *Zebpay) fetchSpotMarketsBody(ch chan AsyncResult[[]any], optionalArg
 		})
 	}
 
-	ch <- AsyncResult[[]any]{Value: result}
+	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(result)}
 	return nil
 }
-func (this *Zebpay) FetchSwapMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
-	ch := make(chan AsyncResult[[]any], 1)
+func (this *Zebpay) FetchSwapMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]MarketInterface] {
+	ch := make(chan AsyncResult[[]MarketInterface], 1)
 	go this.fetchSwapMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Zebpay) fetchSwapMarketsBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
+func (this *Zebpay) fetchSwapMarketsBody(ch chan AsyncResult[[]MarketInterface], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2546,7 +2544,7 @@ func (this *Zebpay) fetchSwapMarketsBody(ch chan AsyncResult[[]any], optionalArg
 		}))
 	}
 
-	ch <- AsyncResult[[]any]{Value: result}
+	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(result)}
 	return nil
 }
 func (this *Zebpay) ParseBalance(response any) map[string]any {
@@ -2570,7 +2568,7 @@ func (this *Zebpay) ParseBalance(response any) map[string]any {
 	}
 	return this.SafeBalance(result).(map[string]any)
 }
-func (this *Zebpay) ParsePosition(position any, optionalArgs ...any) any {
+func (this *Zebpay) ParsePosition(position any, optionalArgs ...any) Position {
 	//
 	// isolated
 	//    {
@@ -2588,12 +2586,20 @@ func (this *Zebpay) ParsePosition(position any, optionalArgs ...any) any {
 	var datetime *string = this.SafeString(position, "datetime")
 	var marketId *string = this.SafeString(position, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	return map[string]any{
+	var marginMode *string = this.SafeStringLower(position, "marginMode", "isolated")
+	var initialMargin *float64 = this.SafeNumber(position, "initialMargin")
+	// isolated positions hold exactly the initial margin posted for them
+	var positionMargin *float64 = nil
+	if marginMode != nil && *marginMode == "isolated" {
+		positionMargin = initialMargin
+	}
+	return this.SafePosition(map[string]any{
 		"info":                        position,
-		"symbol":                      marketId,
+		"id":                          this.SafeString(position, "id"),
+		"symbol":                      marketResolved["symbol"],
 		"timestamp":                   this.Parse8601(datetime),
 		"datetime":                    datetime,
-		"initialMargin":               this.SafeNumber(position, "initialMargin"),
+		"initialMargin":               initialMargin,
 		"initialMarginPercentage":     nil,
 		"maintenanceMargin":           nil,
 		"maintenanceMarginPercentage": nil,
@@ -2606,13 +2612,14 @@ func (this *Zebpay) ParsePosition(position any, optionalArgs ...any) any {
 		"marginRatio":                 nil,
 		"liquidationPrice":            this.SafeNumber(position, "liquidationPrice"),
 		"markPrice":                   nil,
+		"positionMargin":              positionMargin,
 		"collateral":                  nil,
-		"marginMode":                  "isolated",
-		"side":                        this.SafeString(position, "side"),
+		"marginMode":                  marginMode,
+		"side":                        this.SafeStringLower(position, "side"),
 		"percentage":                  nil,
-	}
+	})
 }
-func (this *Zebpay) ParseLeverage(leverage any, optionalArgs ...any) map[string]any {
+func (this *Zebpay) ParseLeverage(leverage any, optionalArgs ...any) Leverage {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(leverage, "symbol")
@@ -2620,27 +2627,27 @@ func (this *Zebpay) ParseLeverage(leverage any, optionalArgs ...any) map[string]
 	var leverageValue *int64 = this.SafeInteger(leverage, "longLeverage")
 	var leverageValueShort *int64 = this.SafeInteger(leverage, "shortLeverage")
 	var marginMode *string = this.SafeString(leverage, "marginMode")
-	return map[string]any{
+	return LeverageFromMap(map[string]any{
 		"info":          info,
 		"symbol":        marketId,
 		"marginMode":    marginMode,
 		"longLeverage":  leverageValue,
 		"shortLeverage": leverageValueShort,
-	}
+	})
 }
-func (this *Zebpay) ParseTradingFee(fee any, optionalArgs ...any) map[string]any {
+func (this *Zebpay) ParseTradingFee(fee any, optionalArgs ...any) TradingFeeInterface {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(fee, "symbol")
 	var symbol *string = this.SafeSymbol(marketId, market)
-	return map[string]any{
+	return TradingFeeInterfaceFromMap(map[string]any{
 		"info":       fee,
 		"symbol":     symbol,
 		"maker":      this.SafeNumber2(fee, "makerFeeRate", "makerFee"),
 		"taker":      this.SafeNumber2(fee, "takerFeeRate", "takerFee"),
 		"percentage": nil,
 		"tierBased":  nil,
-	}
+	})
 }
 func (this *Zebpay) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
@@ -2846,7 +2853,7 @@ func (this *Zebpay) FetchStatus(params ...any) (Status, error) {
 	if r.Err != nil {
 		return Status{}, r.Err
 	}
-	var res Status = NewStatus(r.Raw)
+	var res Status = r.Value
 	return res, nil
 }
 
@@ -2882,7 +2889,7 @@ func (this *Zebpay) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []MarketInterface = NewMarketInterfaceArray(r.Value)
+	var res []MarketInterface = r.Value
 	return res, nil
 }
 
@@ -2925,7 +2932,7 @@ func (this *Zebpay) FetchTradingFee(symbol string, options ...FetchTradingFeeOpt
 	if r.Err != nil {
 		return TradingFeeInterface{}, r.Err
 	}
-	var res TradingFeeInterface = NewTradingFeeInterface(r.Value)
+	var res TradingFeeInterface = r.Value
 	return res, nil
 }
 
@@ -2942,7 +2949,7 @@ func (this *Zebpay) FetchTradingFees(params ...any) (TradingFees, error) {
 	if r.Err != nil {
 		return TradingFees{}, r.Err
 	}
-	var res TradingFees = NewTradingFees(r.Value)
+	var res TradingFees = TradingFees{TradingFees: r.Value}
 	return res, nil
 }
 
@@ -2968,7 +2975,7 @@ func (this *Zebpay) FetchOrderBook(symbol string, options ...FetchOrderBookOptio
 	if r.Err != nil {
 		return OrderBook{}, r.Err
 	}
-	var res OrderBook = NewOrderBook(r.Value)
+	var res OrderBook = r.Value
 	return res, nil
 }
 
@@ -2993,7 +3000,7 @@ func (this *Zebpay) FetchTicker(symbol string, options ...FetchTickerOptions) (T
 	if r.Err != nil {
 		return Ticker{}, r.Err
 	}
-	var res Ticker = NewTicker(r.Value)
+	var res Ticker = r.Value
 	return res, nil
 }
 
@@ -3017,7 +3024,7 @@ func (this *Zebpay) FetchTickers(options ...FetchTickersOptions) (Tickers, error
 	if r.Err != nil {
 		return Tickers{}, r.Err
 	}
-	var res Tickers = NewTickers(r.Value)
+	var res Tickers = Tickers{Tickers: r.Value}
 	return res, nil
 }
 
@@ -3048,7 +3055,7 @@ func (this *Zebpay) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]O
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []OHLCV = NewOHLCVArray(r.Value)
+	var res []OHLCV = r.Value
 	return res, nil
 }
 
@@ -3075,7 +3082,7 @@ func (this *Zebpay) FetchTrades(symbol string, options ...FetchTradesOptions) ([
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(r.Value)
+	var res []Trade = r.Value
 	return res, nil
 }
 
@@ -3101,7 +3108,7 @@ func (this *Zebpay) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, err
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(r.Value)
+	var res []Trade = r.Value
 	return res, nil
 }
 func (this *Zebpay) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
@@ -3115,7 +3122,7 @@ func (this *Zebpay) FetchOrderTrades(id string, options ...FetchOrderTradesOptio
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(r.Value)
+	var res []Trade = r.Value
 	return res, nil
 }
 
@@ -3133,7 +3140,7 @@ func (this *Zebpay) FetchBalance(params ...any) (Balances, error) {
 	if r.Err != nil {
 		return Balances{}, r.Err
 	}
-	var res Balances = NewBalances(r.Value)
+	var res Balances = r.Value
 	return res, nil
 }
 
@@ -3167,7 +3174,7 @@ func (this *Zebpay) CreateOrder(symbol string, typeVar string, side string, amou
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -3194,7 +3201,7 @@ func (this *Zebpay) CancelOrder(id string, options ...CancelOrderOptions) (Order
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -3219,7 +3226,7 @@ func (this *Zebpay) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order,
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -3246,7 +3253,7 @@ func (this *Zebpay) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order,
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -3274,7 +3281,33 @@ func (this *Zebpay) FetchOrder(id string, options ...FetchOrderOptions) (Order, 
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
+	return res, nil
+}
+
+/**
+ * @method
+ * @name zebpay#closePosition
+ * @description closes open positions for a market
+ * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-close-position
+ * @param {string} symbol Unified CCXT market symbol
+ * @param {string} side not used by kucoinfutures closePositions
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.positionId] client order id of the order
+ * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
+ */
+func (this *Zebpay) ClosePosition(symbol string, options ...ClosePositionOptions) (Order, error) {
+
+	opts := ClosePositionOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.ClosePositionAsync(symbol, opts.Side, opts.Params)
+	if r.Err != nil {
+		return Order{}, r.Err
+	}
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -3298,7 +3331,7 @@ func (this *Zebpay) FetchLeverages(options ...FetchLeveragesOptions) (Leverages,
 	if r.Err != nil {
 		return Leverages{}, r.Err
 	}
-	var res Leverages = NewLeverages(r.Value)
+	var res Leverages = Leverages{Leverages: r.Value}
 	return res, nil
 }
 
@@ -3322,7 +3355,7 @@ func (this *Zebpay) FetchLeverage(symbol string, options ...FetchLeverageOptions
 	if r.Err != nil {
 		return Leverage{}, r.Err
 	}
-	var res Leverage = NewLeverage(r.Value)
+	var res Leverage = r.Value
 	return res, nil
 }
 
@@ -3347,7 +3380,7 @@ func (this *Zebpay) SetLeverage(leverage int64, options ...SetLeverageOptions) (
 	if r.Err != nil {
 		return map[string]any{}, r.Err
 	}
-	var res map[string]any = r.Value.(map[string]any)
+	var res map[string]any = r.Value
 	return res, nil
 }
 
@@ -3371,7 +3404,7 @@ func (this *Zebpay) FetchPositions(options ...FetchPositionsOptions) ([]Position
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Position = NewPositionArray(r.Value)
+	var res []Position = r.Value
 	return res, nil
 }
 func (this *Zebpay) FetchSpotMarkets(params ...any) ([]MarketInterface, error) {
@@ -3379,7 +3412,7 @@ func (this *Zebpay) FetchSpotMarkets(params ...any) ([]MarketInterface, error) {
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []MarketInterface = NewMarketInterfaceArray(r.Value)
+	var res []MarketInterface = r.Value
 	return res, nil
 }
 func (this *Zebpay) FetchSwapMarkets(params ...any) ([]MarketInterface, error) {
@@ -3387,7 +3420,7 @@ func (this *Zebpay) FetchSwapMarkets(params ...any) ([]MarketInterface, error) {
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []MarketInterface = NewMarketInterfaceArray(r.Value)
+	var res []MarketInterface = r.Value
 	return res, nil
 }
 

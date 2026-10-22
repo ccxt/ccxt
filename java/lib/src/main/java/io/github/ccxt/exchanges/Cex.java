@@ -1033,7 +1033,7 @@ public class Cex extends CexApi
 
     }
 
-    public Object parseTradingFees(Map<String, Object> response, Object useKeyAsId)
+    public Object parseTradingFees(Map<String, Object> response, Boolean useKeyAsId)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         List<String> keys = new ArrayList<String>(response.keySet());
@@ -1041,11 +1041,11 @@ public class Cex extends CexApi
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object market = null;
-            if (Helpers.isTrue(java.util.Objects.requireNonNullElse(useKeyAsId, false)))
+            if (java.util.Objects.requireNonNullElse(useKeyAsId, false))
             {
                 market = this.safeMarket(key, (Map<String, Object>) null, (String) null, (String) null);
             }
-            Map<String, Object> parsed = this.parseTradingFee((Map<String, Object>) ((response == null || key == null ? null : response.get(key))), Helpers.toMapArg(market));
+            Map<String, Object> parsed = this.parseTradingFee((Map<String, Object>) ((response == null || key == null ? null : response.get(key))), ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
             String parsedSymbol = this.safeString(parsed, "symbol");
             if (!java.util.Objects.equals(parsedSymbol, null))
             {
@@ -1193,7 +1193,7 @@ public class Cex extends CexApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        List<Object> keys = Helpers.objectKeys(response);
+        List<Object> keys = ((List<Object>) switch ((Object)(response)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
@@ -1376,7 +1376,8 @@ public class Cex extends CexApi
                 put( "orderId", Helpers.parseInt(id) );
             }};
             List<Order> result = (this.fetchOpenOrders(symbol, (Long) null, (Long) null, this.extend(request, parameters))).join();
-            return (result == null || 0 >= ((List<?>)result).size() ? null : ((List<?>)result).get(0));
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(result, 0, (Object) null);
+            return order;
         });
 
     }
@@ -1404,7 +1405,8 @@ public class Cex extends CexApi
                 put( "orderId", Helpers.parseInt(id) );
             }};
             List<Order> result = (this.fetchClosedOrders(symbol, (Long) null, (Long) null, this.extend(request, parameters))).join();
-            return (result == null || 0 >= ((List<?>)result).size() ? null : ((List<?>)result).get(0));
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(result, 0, (Object) null);
+            return order;
         });
 
     }
@@ -2165,7 +2167,7 @@ public class Cex extends CexApi
         {
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
-                if (Helpers.objectKeys(query).size() > 0)
+                if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
                 {
                     url = (url + ("?" + this.urlencode(query)));
                 }

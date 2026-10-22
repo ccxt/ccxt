@@ -457,7 +457,7 @@ public partial class bitopro : ccxt.bitopro
 
     public virtual void authenticate(object url)
     {
-        if (((this.clients != null)) && (inOp(this.clients, url)))
+        if (((this.clients != null)) && ((this.clients != null && url != null && this.clients.ContainsKey((string)url))))
         {
             return;
         }

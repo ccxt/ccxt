@@ -18,6 +18,7 @@ import testNetworkMethods from './test.networkMethods.js';
 import testLanguageSpecific from './language_specific/test.languageSpecific.js';
 import testSafeMethods from './test.safeMethods.js';
 import testSafeTicker from './test.safeTicker.js';
+import testSafePosition from './test.safePosition.js';
 import testMergeBalanceAccount from './test.mergeBalanceAccount.js';
 import testJson from './test.json.js';
 import testIo from './test.io.js';
@@ -50,7 +51,6 @@ import testStrip from './test.strip.js';
 import testArrayConcat from './test.arrayConcat.js';
 import testArraysConcat from './test.arraysConcat.js';
 import testSetMarketsFromExchange from './test.setMarketsFromExchange.js';
-import testSleep from './test.sleep.js';
 import testEthMethods from './test.ethMethods.js';
 import testTimeframes from './test.timeframes.js';
 import testKeysort from './test.keysort.js';
@@ -61,7 +61,6 @@ import testStringToBase16 from './test.stringToBase16.js';
 import testCapitalize from './test.capitalize.js';
 import testIncrementingNonce from './test.incrementingNonce.js';
 import testBinaryConcat from './test.binaryConcat.js';
-import testConstants from './test.constants.js';
 import testBase58ToBinary from './test.base58ToBinary.js';
 import testIsJsonEncodedObject from './test.isJsonEncodedObject.js';
 import testIsDictionary from './test.isDictionary.js';
@@ -70,7 +69,6 @@ import testBuildOHLCVC from './test.buildOHLCVC.js';
 
 async function baseTestsInit () {
     await testLanguageSpecific ();
-    testConstants ();
     testAfterConstructor ();
     testAggregate ();
     testExtend ();
@@ -90,6 +88,7 @@ async function baseTestsInit () {
     testPrecise ();
     testSafeMethods ();
     testSafeTicker ();
+    testSafePosition ();
     testMergeBalanceAccount ();
     testBase58ToBinary ();
     testToArray ();
@@ -130,7 +129,6 @@ async function baseTestsInit () {
     testImplodeParams ();
     testUnique ();
     testUrlencodeNested ();
-    await testSleep ();
     await testFetchHistory ();
     testIo ();
     testIsJsonEncodedObject ();

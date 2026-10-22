@@ -1150,7 +1150,7 @@ public partial class onetrading : ccxt.onetrading
             {
                 IDictionary<string, object> ohlcvMarket = this.safeDict(subscription, marketId, new Dictionary<string, object>() {});
                 bool? marketSubscribed = this.safeBool(ohlcvMarket, timeframeVar, false);
-                if ((marketSubscribed != true))
+                if (marketSubscribed != true)
                 {
                     type = "UPDATE_SUBSCRIPTION";
                     ((IDictionary<string,object>)client.subscriptions)[subscriptionHash] = null;
@@ -1176,7 +1176,7 @@ public partial class onetrading : ccxt.onetrading
         List<object> marketIds = new List<object>(subscription.Keys);
         for (int i = 0; i < marketIds.Count; i++)
         {
-            List<object> marketIdtimeframes = new List<object>(((IDictionary<string,object>)getValue(subscription, marketIds[i])).Keys);
+            List<object> marketIdtimeframes = new List<object>(((IDictionary<string,object>)(subscription != null && marketIds[i] != null && subscription.ContainsKey((string)marketIds[i]) ? subscription[(string)marketIds[i]] : null)).Keys);
             for (int ii = 0; ii < marketIdtimeframes.Count; ii++)
             {
                 IDictionary<string, object> marketTimeframeId = this.safeDict(timeframes, timeframeVar);
@@ -1428,7 +1428,7 @@ public partial class onetrading : ccxt.onetrading
                 {
                     object marketId = marketIds[i];
                     bool? marketSubscribed = this.safeBool(subscription, marketId, false);
-                    if ((marketSubscribed != true))
+                    if (marketSubscribed != true)
                     {
                         type = "UPDATE_SUBSCRIPTION";
                         ((IDictionary<string,object>)client.subscriptions)[(string)subscriptionHash] = null;

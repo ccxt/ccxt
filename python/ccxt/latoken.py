@@ -619,10 +619,8 @@ class latoken(Exchange, ImplicitAPI):
             currencyId = self.safe_string(balance, 'currency')
             timestamp = self.safe_integer(balance, 'timestamp')
             if timestamp is not None:
-                if maxTimestamp is None:
+                if (maxTimestamp is None) or (timestamp > maxTimestamp):
                     maxTimestamp = timestamp
-                else:
-                    maxTimestamp = max(maxTimestamp, timestamp)
             code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_string(balance, 'available')
@@ -1075,7 +1073,7 @@ class latoken(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'ORDER_STATUS_PLACED': 'open',
             'ORDER_STATUS_CLOSED': 'closed',
@@ -1090,7 +1088,7 @@ class latoken(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_time_in_force(self, timeInForce: Str):
+    def parse_time_in_force(self, timeInForce: Str) -> Str:
         timeInForces = {
             'ORDER_CONDITION_GOOD_TILL_CANCELLED': 'GTC',
             'ORDER_CONDITION_IMMEDIATE_OR_CANCEL': 'IOC',
@@ -1626,7 +1624,7 @@ class latoken(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             'TRANSACTION_STATUS_CONFIRMED': 'ok',
             'TRANSACTION_STATUS_EXECUTED': 'ok',
@@ -1796,7 +1794,7 @@ class latoken(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
         requestHeaders = None
         requestBody = None

@@ -473,7 +473,7 @@ class bitteam extends bitteam$1["default"] {
         let minCost = undefined;
         const currenciesValuedInUsd = this.handleOption('fetchMarkets', 'currenciesValuedInUsd', {});
         const quoteInUsd = this.safeBool(currenciesValuedInUsd, quote, false);
-        if (quoteInUsd === true) {
+        if (quoteInUsd) {
             const settings = this.safeDict(market, 'settings', {});
             minCost = this.safeNumber(settings, 'limit_usd');
         }

@@ -855,7 +855,7 @@ public partial class zebpay : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Int64? until = this.safeInteger2(parameters, "until", "endtime");
-        object paramsOmitted = this.omit(parameters, new List<object>() {"until", "endtime", "endTime", "interval", "startTime"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"until", "endtime", "endTime", "interval", "startTime"}));
         Dictionary<string, object> response = null;
         Int64? limitResolved = limit;
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
@@ -877,7 +877,7 @@ public partial class zebpay : Exchange
             {
                 throw new ArgumentsRequired ((this.id + " fetchOHLCV() requires a both a since and until/endtime parameter for spot markets")) ;
             }
-            object paramsSpot = this.omit(paramsOmitted, "priceType");
+            Dictionary<string, object> paramsSpot = this.omit(paramsOmitted, "priceType");
             response = await this.publicSpotGetV2MarketKlines(this.extend(request, paramsSpot));
         } else
         {
@@ -1282,7 +1282,7 @@ public partial class zebpay : Exchange
         string? quoteOrderQty = this.safeString2(parameters, "quoteOrderQty", "cost", null);
         string? timeInForce = this.safeString(parameters, "timeInForce", "GTC");
         string? clientOrderId = this.safeString(parameters, "clientOrderId", this.uuid());
-        object paramsOmitted = this.omit(parameters, new List<object>() {"stopLossPrice", "cost", "timeInForce", "clientOrderId"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"stopLossPrice", "cost", "timeInForce", "clientOrderId"}));
         request["type"] = upperCaseType;
         request["clientOrderId"] = clientOrderId;
         request["timeInForce"] = timeInForce;
@@ -1600,7 +1600,7 @@ public partial class zebpay : Exchange
      * @param {string} [params.positionId] client order id of the order
      * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<IDictionary<string, object>> closePosition(string symbol, string side = null, object parameters = null)
+    public async override Task<ccxt.Order> ClosePosition(string symbol, string side = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1613,7 +1613,7 @@ public partial class zebpay : Exchange
         };
         Dictionary<string, object> response = await this.privateSwapPostV1TradePositionClose(this.extend(request, parameters));
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return ((IDictionary<string, object>)((object)(ccxt.BaseExchange.FromOrder(this.parseOrder(data, market)))));
+        return this.parseOrder(data, market);
     }
 
     /**
@@ -2049,12 +2049,21 @@ public partial class zebpay : Exchange
         string? datetime = this.safeString(position, "datetime");
         string? marketId = this.safeString(position, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        return new Dictionary<string, object>() {
+        string? marginMode = this.safeStringLower(position, "marginMode", "isolated");
+        double? initialMargin = this.safeNumber(position, "initialMargin");
+        // isolated positions hold exactly the initial margin posted for them
+        double? positionMargin = null;
+        if (marginMode == "isolated")
+        {
+            positionMargin = initialMargin;
+        }
+        return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
-            { "symbol", marketId },
+            { "id", this.safeString(position, "id") },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "timestamp", this.parse8601(datetime) },
             { "datetime", datetime },
-            { "initialMargin", this.safeNumber(position, "initialMargin") },
+            { "initialMargin", initialMargin },
             { "initialMarginPercentage", null },
             { "maintenanceMargin", null },
             { "maintenanceMarginPercentage", null },
@@ -2067,11 +2076,12 @@ public partial class zebpay : Exchange
             { "marginRatio", null },
             { "liquidationPrice", this.safeNumber(position, "liquidationPrice") },
             { "markPrice", null },
+            { "positionMargin", positionMargin },
             { "collateral", null },
-            { "marginMode", "isolated" },
-            { "side", this.safeString(position, "side") },
+            { "marginMode", marginMode },
+            { "side", this.safeStringLower(position, "side") },
             { "percentage", null },
-        };
+        });
     }
 
     public override Dictionary<string, object> parseLeverage(object leverage, IDictionary<string, object> market = null)

@@ -289,7 +289,7 @@ class pacifica(ccxt.async_support.pacifica):
             orderId = self.safe_string(order, 'i')
             clientOrderId = self.safe_string(order, 'I')
             status = None
-            if (error is not None) or (success is not True):
+            if (error is not None) or (not success):
                 status = 'closed'
             else:
                 status = 'canceled'

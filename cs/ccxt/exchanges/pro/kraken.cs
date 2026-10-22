@@ -128,7 +128,7 @@ public partial class kraken : ccxt.kraken
         IList<object> postOnlyparamsPostOnlyVariable = (IList<object>)this.handlePostOnly(isMarket, false, parameters);
         bool postOnly = (bool)postOnlyparamsPostOnlyVariable[0];
         IDictionary<string, object> paramsPostOnly = ((IDictionary<string, object>)postOnlyparamsPostOnlyVariable[1]);
-        if ((postOnly == true))
+        if (postOnly)
         {
             ((IDictionary<string,object>)(request != null && request.ContainsKey("params") ? request["params"] : null))["post_only"] = true;
         }
@@ -1186,17 +1186,12 @@ public partial class kraken : ccxt.kraken
     public virtual string? formatNumber(object data)
     {
         List<object> parts = ((string)data).Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
-        object integer = this.safeString(parts, 0);
+        string integer = this.safeString(parts, 0, "");
         string? decimals = this.safeString(parts, 1, "");
-        string? joinedResult = ((string)add(integer, decimals));
-        object i = 0;
-        while (isEqual(getValue(joinedResult, i), "0"))
+        string? joinedResult = (integer + decimals);
+        while (joinedResult.StartsWith("0"))
         {
-            i = add(i, 1);
-        }
-        if (isGreaterThan(i, 0))
-        {
-            joinedResult = slice(joinedResult, i, null);
+            joinedResult = ((joinedResult == null) ? null : joinedResult.Substring(Math.Min(1, joinedResult.Length)));
         }
         return ((string?)((object)(joinedResult)));
     }
@@ -1241,8 +1236,9 @@ public partial class kraken : ccxt.kraken
         object subscription = this.safeValue(client.subscriptions, authenticated);
         Int64 now = this.seconds();
         Int64? start = this.safeInteger(subscription, "start");
-        Int64? expires = this.safeInteger(subscription, "expires");
-        if (((subscription == null)) || (((subscription != null)) && isLessThanOrEqual((add(start, expires)), now)))
+        Int64? expires = this.safeInteger(subscription, "expires", -1);
+        bool expired = ((start != null)) && ((expires >= 0)) && ((start == null || start <= ((now - expires))));
+        if (((subscription == null)) || expired)
         {
             // single-flight leader election, see
             // https://github.com/ccxt/ccxt/issues/29393: the staleness gate
@@ -1551,17 +1547,18 @@ public partial class kraken : ccxt.kraken
                 Dictionary<string, object> newOrder = ccxt.BaseExchange.FromOrder(parsed);
                 if ((previousOrder != null))
                 {
-                    Dictionary<string, object> newRawOrder = this.extend(GetValue(previousOrder, "info"), GetValue(newOrder, "info"));
+                    Dictionary<string, object> newRawOrder = this.extend((previousOrder != null && previousOrder.ContainsKey("info") ? previousOrder["info"] : null), (newOrder != null && newOrder.ContainsKey("info") ? newOrder["info"] : null));
                     newOrder = ccxt.BaseExchange.FromOrder(this.parseWsOrder(newRawOrder));
                 }
                 int length = (stored?.Count ?? 0);
                 if ((length == limit) && ((previousOrder == null)))
                 {
-                    object first = getValue(stored, 0);
+                    object first = (stored != null && 0 < stored.Count ? stored[0] : null);
                     IDictionary<string, object> symbolsByOrderId = this.safeDict(this.options, "symbolsByOrderId", new Dictionary<string, object>() {});
-                    if (inOp(symbolsByOrderId, getValue(first, "id")))
+                    string? firstId = this.safeString(first, "id");
+                    if (((firstId != null)) && (((firstId != null) && symbolsByOrderId.ContainsKey(firstId))))
                     {
-                        symbolsByOrderId.Remove((string)getValue(first, "id"));
+                        symbolsByOrderId.Remove(firstId);
                     }
                 }
                 stored.append(newOrder);
@@ -1885,7 +1882,7 @@ public partial class kraken : ccxt.kraken
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});
             }
         }
-        if (isEqual(this.handleErrorMessage(client, (Dictionary<string, object>)message), true))
+        if ((this.handleErrorMessage(client, (Dictionary<string, object>)message) == true))
         {
             string? eventVar = this.safeString2(message, "event", "method");
             Dictionary<string, object> methods = new Dictionary<string, object>() {

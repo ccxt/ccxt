@@ -112,7 +112,8 @@ class lbank extends \ccxt\async\lbank {
             'pair' => $market['id'],
         );
         if ($since !== null) {
-            $message['start'] = $this->parse_to_int((int) floor($since / 1000));
+            $sinceInt = $this->parse_to_int($since);
+            $message['start'] = $this->parse_to_int($sinceInt / 1000);
         }
         if ($limit !== null) {
             $message['size'] = $limit;

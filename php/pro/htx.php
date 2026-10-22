@@ -611,18 +611,18 @@ class htx extends \ccxt\async\htx {
             $snapshotOrderBook = $this->order_book($snapshot, $snapshotLimit);
             $client->resolve($snapshotOrderBook, $id);
             if (($sequence === null) || ($nonce < $sequence)) {
-                $maxAttempts = $this->handle_option('watchOrderBook', 'maxRetries', 3);
+                $maxAttempts = $this->parse_to_int($this->handle_option('watchOrderBook', 'maxRetries', 3));
                 $numAttempts = $this->safe_integer($subscription, 'numAttempts', 0);
                 // retry to synchronize if we have not reached maxAttempts yet
                 if ($numAttempts < $maxAttempts) {
                     // safety guard
                     if (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions)) {
-                        $numAttempts = $this->sum($numAttempts, 1);
+                        $nextAttempts = $this->sum($numAttempts, 1);
                         $delayTime = 1000;
                         if (($lastTimestamp !== null) && ($snapshotTimestamp !== null)) {
                             $delayTime = $this->sum(1000, $lastTimestamp - $snapshotTimestamp);
                         }
-                        $subscription['numAttempts'] = $numAttempts;
+                        $subscription['numAttempts'] = $nextAttempts;
                         $client->subscriptions[$messageHash] = $subscription;
                         $this->delay($delayTime, array($this, 'watch_order_book_snapshot'), $client, $message, $subscription);
                     }
@@ -791,7 +791,8 @@ class htx extends \ccxt\async\htx {
             $orderbook->reset($snapshot);
             $orderbook['nonce'] = $version;
         }
-        if (($prevSeqNum !== null) && $prevSeqNum > $this->safe_integer($orderbook, 'nonce', 0)) {
+        $orderbookNonce = $this->safe_integer($orderbook, 'nonce', 0);
+        if (($prevSeqNum !== null) && $prevSeqNum > $orderbookNonce) {
             $checksum = $this->handle_option('watchOrderBook', 'checksum', true);
             if ($checksum === true) {
                 throw new ChecksumError($this->id . ' ' . $this->orderbook_checksum_message($symbol));
@@ -799,12 +800,12 @@ class htx extends \ccxt\async\htx {
         }
         $spotConditon = ($market['spot'] === true) && ($prevSeqNum === $orderbook['nonce']);
         $nonSpotCondition = ($market['contract'] === true) && ($version !== null) && ($version - 1 === $orderbook['nonce']);
-        if (($spotConditon === true) || ($nonSpotCondition === true)) {
+        if (($spotConditon) || ($nonSpotCondition)) {
             $asks = $this->safe_list($tick, 'asks', array());
             $bids = $this->safe_list($tick, 'bids', array());
             $this->handle_deltas($orderbook['asks'], $asks);
             $this->handle_deltas($orderbook['bids'], $bids);
-            $orderbook['nonce'] = ($spotConditon === true) ? $seqNum : $version;
+            $orderbook['nonce'] = ($spotConditon) ? $seqNum : $version;
             $orderbook['timestamp'] = $timestamp;
             $orderbook['datetime'] = $this->iso8601($timestamp);
         }
@@ -1639,7 +1640,7 @@ class htx extends \ccxt\async\htx {
         $aggressor = $this->safe_bool($trade, 'aggressor');
         $takerOrMaker = null;
         if ($aggressor !== null) {
-            $takerOrMaker = ($aggressor === true) ? 'taker' : 'maker';
+            $takerOrMaker = ($aggressor) ? 'taker' : 'maker';
         }
         return $this->safe_trade(array(
             'info' => $trade,
@@ -1924,7 +1925,7 @@ class htx extends \ccxt\async\htx {
             $prefix = 'accounts';
             $messageHash = $prefix;
             if ($subType === 'linear') {
-                if ($isUnifiedAccount === true) {
+                if ($isUnifiedAccount) {
                     // usdt contracts account
                     $prefix = 'accounts_unify';
                     $messageHash = $prefix;
@@ -2884,7 +2885,7 @@ class htx extends \ccxt\async\htx {
         $aggressor = $this->safe_bool($trade, 'aggressor');
         $takerOrMaker = null;
         if ($aggressor !== null) {
-            $takerOrMaker = ($aggressor === true) ? 'taker' : 'maker';
+            $takerOrMaker = ($aggressor) ? 'taker' : 'maker';
         } else {
             $takerOrMaker = $this->safe_string_lower($trade, 'role');
         }

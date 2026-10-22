@@ -350,7 +350,7 @@ public partial class PredictionExchange : BaseExchange
                     string? tagKey = this.normalizeTagKey(tagLabel);
                     for (int wi = 0; wi < (wanted?.Count ?? 0); wi++)
                     {
-                        if (getIndexOf(tagKey, wanted[wi]) >= 0)
+                        if ((tagKey?.IndexOf((string)wanted[wi], StringComparison.Ordinal) ?? -1) >= 0)
                         {
                             matched = true;
                             break;
@@ -760,7 +760,7 @@ public partial class PredictionExchange : BaseExchange
                         {
                             suffix = slice(ocId, (idLen - 6), null);
                         }
-                        ocSymbol = add(add(ocSymbol, "_"), suffix.ToUpper());
+                        ocSymbol = ((ocSymbol + "_") + suffix.ToUpper());
                     }
                 }
                 ((IDictionary<string,object>)oc)["outcome"] = ocSymbol;
@@ -848,7 +848,7 @@ public partial class PredictionExchange : BaseExchange
             int missingLength = (missing?.Count ?? 0);
             bool wasWarm = ((this.outcomes != null)) && !this.isEmpty(this.outcomes);
             bool? loadAll = this.safeBool(this.options, "loadAllOutcomes", false);
-            if ((missingLength > 0) && ((loadAll == true)) && !wasWarm && reload != true)
+            if ((missingLength > 0) && (loadAll == true) && !wasWarm && reload != true)
             {
                 await this.loadOutcomes();
                 List<object> stillMissing = new List<object>() {};
@@ -927,7 +927,7 @@ public partial class PredictionExchange : BaseExchange
                 }
             }
             bool? loadAll = this.safeBool(this.options, "loadAllOutcomes", false);
-            if (((loadAll == true)) && !wasWarm)
+            if ((loadAll == true) && !wasWarm)
             {
                 // a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
                 // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
@@ -1837,7 +1837,7 @@ public partial class PredictionExchange : BaseExchange
         }
         results = this.sortBy2(results, "timestamp", "id");
         string? outcomeHandle = this.safeString(outcomeObj, "outcome");
-        return ((IList<object>)((object)(this.filterByOutcomeSinceLimit(results, outcomeHandle, since, limit))));
+        return ((IList<object>)((object)(this.filterByValueSinceLimit(results, "outcome", outcomeHandle, since, limit, "timestamp", false))));
     }
 
     /**

@@ -71,13 +71,15 @@ function helper_test_handle_typed_options() {
             'marginMode' => 'isolated',
             'fetchX' => array(
                 'uta' => true,
+                'boolString' => 'false',
+                'boolNumber' => 1,
             ),
         ),
     ));
     [$margin_mode, $params1] = $exchange->handle_margin_mode_and_params('fetchX', array(), 'cross');
     assert($margin_mode === 'isolated');
     [$uta, $params2] = $exchange->handle_option_bool_and_params(array(), 'fetchX', 'uta', false);
-    assert($uta === true);
+    assert($uta);
     [$absent, $params3] = $exchange->handle_option_string_and_params(array(), 'fetchX', 'absentKey', 'fallback');
     assert($absent === 'fallback');
     [$from_params, $params4] = $exchange->handle_option_string_and_params(array(
@@ -85,7 +87,22 @@ function helper_test_handle_typed_options() {
     ), 'fetchX', 'absentKey', 'fallback');
     assert($from_params === 'p');
     assert(!(is_array($params4) && array_key_exists('absentKey', $params4)));
-    // a wrong-typed option is covered per language in language_specific (it throws only in C#, Java and Go)
+    // "true"/"false" strings and 1/0 numbers read as booleans; any other present non-boolean throws
+    [$bool_string, $params5] = $exchange->handle_option_bool_and_params(array(), 'fetchX', 'boolString', true);
+    assert($bool_string === false);
+    [$bool_number, $params6] = $exchange->handle_option_bool_and_params(array(
+        'boolNumber' => 1,
+    ), 'fetchX', 'boolNumber', false);
+    assert($bool_number === true);
+    assert(!(is_array($params6) && array_key_exists('boolNumber', $params6)));
+    $caught = false;
+    try {
+        $exchange->check_option_bool('fetchX', 'wrongBool', 'yes');
+    } catch(\Throwable $error) {
+        $caught = true;
+    }
+    assert($caught, 'a non-boolean option should have thrown');
+    assert($params5 !== null);
     assert($params1 !== null || $params2 !== null || $params3 !== null);
 }
 

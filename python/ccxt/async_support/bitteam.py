@@ -478,7 +478,7 @@ class bitteam(Exchange, ImplicitAPI):
         minCost = None
         currenciesValuedInUsd = self.handle_option('fetchMarkets', 'currenciesValuedInUsd', {})
         quoteInUsd = self.safe_bool(currenciesValuedInUsd, quote, False)
-        if quoteInUsd is True:
+        if quoteInUsd:
             settings = self.safe_dict(market, 'settings', {})
             minCost = self.safe_number(settings, 'limit_usd')
         return self.safe_market_structure({
@@ -1350,7 +1350,7 @@ class bitteam(Exchange, ImplicitAPI):
             'postOnly': False,
         }, marketResolved)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'accepted': 'open',
             'executed': 'closed',
@@ -1370,7 +1370,7 @@ class bitteam(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_value_to_pricision(self, valueObject: dict, valueKey: str, preciseObject: dict, precisionKey: str):
+    def parse_value_to_pricision(self, valueObject: dict, valueKey: str, preciseObject: dict, precisionKey: str) -> Str:
         valueRawString = self.safe_string(valueObject, valueKey)
         precisionRawString = self.safe_string(preciseObject, precisionKey)
         if valueRawString is None or precisionRawString is None:
@@ -2355,14 +2355,14 @@ class bitteam(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             'approving': 'pending',
             'success': 'ok',
         }
         return self.safe_string(statuses, status, status)
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
         request = self.omit(params, self.extract_params(path))
         endpoint = '/' + self.implode_params(path, params)

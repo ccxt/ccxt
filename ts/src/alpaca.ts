@@ -801,8 +801,8 @@ export default class alpaca extends Exchange {
         let paginate = false;
         let query = undefined;
         [ paginate, query ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
-        let paginationCalls = 10;
-        [ paginationCalls, query ] = this.handleOptionIntegerAndParams (query, 'fetchOHLCV', 'paginationCalls', 10);
+        const [ paginationCalls, queryPagination ] = this.handleOptionIntegerAndParams (query, 'fetchOHLCV', 'paginationCalls', 10);
+        query = queryPagination;
         const request: Dict = {
             'symbols': marketId,
             'loc': loc,
@@ -1061,7 +1061,7 @@ export default class alpaca extends Exchange {
             }, market);
             results.push (ticker);
         }
-        return this.filterByArray (results, 'symbol', symbolsNormalized);
+        return this.filterByArrayTickers (results, 'symbol', symbolsNormalized);
     }
 
     generateClientOrderId (params: Dict): Str {
@@ -1560,7 +1560,7 @@ export default class alpaca extends Exchange {
         }, marketResolved);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'pending_new': 'open',
             'accepted': 'open',
@@ -1584,7 +1584,7 @@ export default class alpaca extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTimeInForce (timeInForce: Str) {
+    parseTimeInForce (timeInForce: Str): Str {
         const timeInForces: Dict = {
             'day': 'Day', // equities-only value kept as-is deliberately: crypto orders reject it with 42210000, verified live 2026-09-13, and the unified set has no day spelling either way
             'gtc': 'GTC',
@@ -1817,7 +1817,7 @@ export default class alpaca extends Exchange {
         this.options['sandboxMode'] = enable;
     }
 
-    async fetchTransactionsHelper (type: string, code: Str, since: any, limit: any, params: any): Promise<Transaction[]> {
+    async fetchTransactionsHelper (type: string, code: Str, since: Int, limit: Int, params: any): Promise<Transaction[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1826,7 +1826,7 @@ export default class alpaca extends Exchange {
             currency = this.currency (code);
         }
         const sandboxMode = this.isSandboxModeEnabled || this.safeBool (this.options, 'sandboxMode', false);
-        if (sandboxMode === true) {
+        if (sandboxMode) {
             // paper-trading hosts do not serve the crypto wallets api at all, so route
             // through the account activities ledger instead, filtered to transfer-like
             // entries, see https://github.com/ccxt/ccxt/issues/24847
@@ -1912,7 +1912,8 @@ export default class alpaca extends Exchange {
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
-        return await this.fetchTransactionsHelper ('BOTH', code, since, limit, params);
+        const transactions = await this.fetchTransactionsHelper ('BOTH', code, since, limit, params);
+        return this.toArray (transactions);
     }
 
     /**
@@ -1927,7 +1928,8 @@ export default class alpaca extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
-        return await this.fetchTransactionsHelper ('INCOMING', code, since, limit, params);
+        const transactions = await this.fetchTransactionsHelper ('INCOMING', code, since, limit, params);
+        return this.toArray (transactions);
     }
 
     /**
@@ -1942,7 +1944,8 @@ export default class alpaca extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
-        return await this.fetchTransactionsHelper ('OUTGOING', code, since, limit, params);
+        const transactions = await this.fetchTransactionsHelper ('OUTGOING', code, since, limit, params);
+        return this.toArray (transactions);
     }
 
     override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -2056,7 +2059,7 @@ export default class alpaca extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             // crypto wallets api
             'PROCESSING': 'pending',
@@ -2219,7 +2222,7 @@ export default class alpaca extends Exchange {
         return this.safeBalance (result);
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         let endpoint = '/' + this.implodeParams (path, params);
         const baseApiUrl = this.safeString (this.urls['api'], api[0]);
         if (baseApiUrl === undefined) {
@@ -2264,7 +2267,8 @@ export default class alpaca extends Exchange {
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             const codeAsString = code.toString ();
-            if ((code < 400) || !(codeAsString in this.httpExceptions)) {
+            const statusCode = this.parseToInt (code);
+            if ((statusCode < 400) || !(codeAsString in this.httpExceptions)) {
                 // an error envelope must always throw — also for statuses the http-status handler has no entry for
                 throw new ExchangeError (feedback);
             }

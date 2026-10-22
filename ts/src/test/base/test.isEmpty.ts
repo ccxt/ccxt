@@ -8,21 +8,21 @@ function testIsEmpty () {
         'id': 'sampleexchange',
     });
 
-    assert (exchange.isEmpty (undefined) === true, 'undefined should be empty');
-    assert (exchange.isEmpty (null) === true, 'null should be empty');
-    assert (exchange.isEmpty ({}) === true, 'empty object should be empty');
-    assert (exchange.isEmpty ([]) === true, 'empty array should be empty');
-    assert (exchange.isEmpty ({ 'foo': 1 }) === false, 'non-empty object should not be empty');
-    assert (exchange.isEmpty ([ 1, 2 ]) === false, 'non-empty array should not be empty');
+    assert (exchange.isEmpty (undefined), 'undefined should be empty');
+    assert (exchange.isEmpty (null), 'null should be empty');
+    assert (exchange.isEmpty ({}), 'empty object should be empty');
+    assert (exchange.isEmpty ([]), 'empty array should be empty');
+    assert (!exchange.isEmpty ({ 'foo': 1 }), 'non-empty object should not be empty');
+    assert (!exchange.isEmpty ([ 1, 2 ]), 'non-empty array should not be empty');
     // below are scalars, so they are not checked.
     // @ts-expect-error
-    assert (exchange.isEmpty ('') === false, 'empty string should return false');
+    assert (!exchange.isEmpty (''), 'empty string should return false');
     // @ts-expect-error
-    assert (exchange.isEmpty (0) === false, 'zero should return false');
+    assert (!exchange.isEmpty (0), 'zero should return false');
     // @ts-expect-error
-    assert (exchange.isEmpty (false) === false, 'false should return false');
+    assert (!exchange.isEmpty (false), 'false should return false');
     // @ts-expect-error
-    assert (exchange.isEmpty ('non-empty string') === false, 'non-empty string should not be empty');
+    assert (!exchange.isEmpty ('non-empty string'), 'non-empty string should not be empty');
 }
 
 export default testIsEmpty;

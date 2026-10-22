@@ -614,10 +614,8 @@ class latoken extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency');
             $timestamp = $this->safe_integer($balance, 'timestamp');
             if ($timestamp !== null) {
-                if ($maxTimestamp === null) {
+                if (($maxTimestamp === null) || ($timestamp > $maxTimestamp)) {
                     $maxTimestamp = $timestamp;
-                } else {
-                    $maxTimestamp = max($maxTimestamp, $timestamp);
                 }
             }
             $code = $this->safe_currency_code($currencyId);
@@ -1108,7 +1106,7 @@ class latoken extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'ORDER_STATUS_PLACED' => 'open',
             'ORDER_STATUS_CLOSED' => 'closed',
@@ -1125,7 +1123,7 @@ class latoken extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_time_in_force(?string $timeInForce) {
+    public function parse_time_in_force(?string $timeInForce): ?string {
         $timeInForces = array(
             'ORDER_CONDITION_GOOD_TILL_CANCELLED' => 'GTC',
             'ORDER_CONDITION_IMMEDIATE_OR_CANCEL' => 'IOC',
@@ -1692,7 +1690,7 @@ class latoken extends Exchange {
         );
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'TRANSACTION_STATUS_CONFIRMED' => 'ok',
             'TRANSACTION_STATUS_EXECUTED' => 'ok',

@@ -186,8 +186,7 @@ class poloniex extends \ccxt\async\poloniex {
             if ($symbols === null) {
                 throw new ArgumentsRequired($this->id . ' subscribe() symbols is required');
             }
-            $ids = $this->market_ids($symbols);
-            $marketIds = ($ids === null) ? array() : $ids;
+            $marketIds = $this->market_ids($symbols);
         }
         $symbolsSuffix = ($symbols === null) ? '' : implode(',', $symbols);
         $symbolsHash = null;
@@ -659,7 +658,7 @@ class poloniex extends \ccxt\async\poloniex {
         $options = $this->safe_dict($this->options, 'watchBalance');
         $fetchBalanceSnapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', false);
         $awaitBalanceSnapshot = $this->safe_bool($options, 'awaitBalanceSnapshot', true);
-        if (($fetchBalanceSnapshot === true) && ($awaitBalanceSnapshot === true)) {
+        if (($fetchBalanceSnapshot) && ($awaitBalanceSnapshot)) {
             Async\await($client->future($name . ':fetchBalanceSnapshot'));
         }
         return Async\await($this->subscribe($name, $name, true, null, $params));
@@ -671,7 +670,7 @@ class poloniex extends \ccxt\async\poloniex {
         }
         $options = $this->safe_dict($this->options, 'watchBalance');
         $fetchBalanceSnapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', false);
-        if ($fetchBalanceSnapshot === true) {
+        if ($fetchBalanceSnapshot) {
             $messageHash = $type . ':fetchBalanceSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);
@@ -762,8 +761,8 @@ class poloniex extends \ccxt\async\poloniex {
         //        ]
         //    }
         //
-        $data = $this->safe_value($message, 'data');
-        $data = $this->safe_value($data, 0);
+        $dataList = $this->safe_list($message, 'data');
+        $data = $this->safe_dict($dataList, 0);
         $channel = $this->safe_string($message, 'channel');
         $marketId = $this->safe_string($data, 'symbol');
         $symbol = $this->safe_symbol($marketId);
@@ -1283,14 +1282,15 @@ class poloniex extends \ccxt\async\poloniex {
             $asks = $this->safe_list($item, 'asks');
             $bids = $this->safe_list($item, 'bids');
             if ($snapshot || $update) {
-                if ($snapshot && !(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
-                    $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
+                $orderbook = $this->safe_value($this->orderbooks, $symbol);
+                if ($snapshot && ($orderbook === null)) {
+                    $orderbook = $this->order_book(array(), $limit);
+                    $this->orderbooks[$symbol] = $orderbook;
                 }
-                if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
-                    // a delta can arrive before the snapshot, it cannot be applied without a book
+                if ($orderbook === null) {
+                    // a delta before the snapshot (or after the book was dropped) cannot be applied
                     continue;
                 }
-                $orderbook = $this->orderbooks[$symbol];
                 if ($snapshot) {
                     // reset the existing orderbook in place instead of
                     // replacing it: a consumer awakened earlier keeps a

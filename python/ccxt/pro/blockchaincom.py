@@ -705,7 +705,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         bookArray = self.parse_order_book_bid_ask(delta, 'px', 'qty', 'num')
         bookside.storeArray(bookArray)
 
-    def handle_deltas(self, bookside: object, deltas: object):
+    def handle_deltas(self, bookside: object, deltas: list[object]):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
@@ -756,5 +756,5 @@ class blockchaincom(ccxt.async_support.blockchaincom):
                 'channel': 'auth',
                 'token': self.secret,
             }
-            return self.watch(url, messageHash, self.extend(request, params), messageHash)
+            return await self.watch(url, messageHash, self.extend(request, params), messageHash)
         return await future

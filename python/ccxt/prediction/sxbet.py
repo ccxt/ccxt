@@ -252,8 +252,9 @@ class sxbet(PredictionExchange, ImplicitAPI):
         pageSize = self.safe_integer(self.options, 'marketsPageSize', 100)
         maxPages = self.safe_integer(self.options, 'maxMarketsPages', 50)
         rawMarkets = []
+        collectCap = self.safe_integer({'limit': userLimit}, 'limit')
         paginationKey = None
-        page = 0
+        page = self.parse_to_int(0)
         while(True):
             request = {'pageSize': pageSize}
             if paginationKey is not None:
@@ -265,9 +266,9 @@ class sxbet(PredictionExchange, ImplicitAPI):
             for i in range(0, pageMarketsLength):
                 rawMarkets.append(pageMarkets[i])
             paginationKey = self.safe_string(result, 'nextKey')
-            page = self.sum(page, 1)
-            collectedLength = len(rawMarkets)
-            if (pageMarketsLength < pageSize) or (page >= maxPages) or (paginationKey is None) or ((userLimit is not None) and (collectedLength >= userLimit)):
+            page = self.parse_to_int(page + 1)
+            collectedLength = self.parse_to_int(len(rawMarkets))
+            if (pageMarketsLength < pageSize) or (page >= maxPages) or (paginationKey is None) or ((collectCap is not None) and (collectedLength >= collectCap)):
                 break
         return rawMarkets
 
@@ -326,11 +327,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         # variants) whose outcomeOneName text can coincide or nearly coincide, so a text-only
         # slug isn't guaranteed unique. suffix with the market hash instead (always unique,
         # letters+digits only so it survives shortenSlug in one atomic word)
-        # parseToInt-wrapped .length: the bare `const n = str.length;` statement is the php
-        # transpiler's ARRAY hint (count()), which breaks on a string — this form emits
-        # strlen()/len() correctly in both python and php
-        hashLength = self.parse_to_int(len(marketHash))
-        hashSuffix = marketHash[hashLength - 6:]
+        hashSuffix = marketHash[-6:]
         marketSlug = self.shorten_slug(outcomeOneName) + '_' + hashSuffix
         marketSymbol = self.slug_to_market_symbol(eventSlug, marketSlug)
         status = self.safe_string_upper(raw, 'status')
@@ -542,7 +539,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
                     return True
         return False
 
-    def parse_event(self, fixtureId: str, rawMarkets: list[object]) -> object:
+    def parse_event(self, fixtureId: str, rawMarkets: list[object]) -> PredictionEvent:
         """
  @ignore
         groups a fixture's raw markets (all sharing one sportXeventId) into one unified event structure
@@ -552,7 +549,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         """
         marketsList = []
         anyActive = False
-        earliestGameTime = None
+        earliestGameTime = self.safe_integer({}, 'gameTime')
         teamOneName = None
         teamTwoName = None
         leagueLabel = None
@@ -569,9 +566,9 @@ class sxbet(PredictionExchange, ImplicitAPI):
                 teamOneName = self.safe_string(raw, 'teamOneName')
                 teamTwoName = self.safe_string(raw, 'teamTwoName')
                 leagueLabel = self.safe_string(raw, 'leagueLabel')
-            gameTime = self.safe_string(raw, 'gameTime')
+            gameTime = self.safe_integer(raw, 'gameTime')
             # skip the zero sentinel for "no scheduled game time" so it can't become the epoch
-            if (gameTime is not None) and (gameTime != '0') and ((earliestGameTime is None) or (gameTime < earliestGameTime)):
+            if (gameTime is not None) and (gameTime != 0) and ((earliestGameTime is None) or (gameTime < earliestGameTime)):
                 earliestGameTime = gameTime
         end = self.safe_timestamp({'gameTime': earliestGameTime}, 'gameTime')
         # some fixtures carry no team names on their market rows - fall back to the fixture id
@@ -674,12 +671,12 @@ class sxbet(PredictionExchange, ImplicitAPI):
         hex = self.remove0x_prefix(result)
         # dynamic ABI string return: [32-byte offset][32-byte length][utf8 bytes, right-padded]
         lengthHex = hex[64:128]
-        length = self.hex_to_int(lengthHex)
+        length = self.parse_to_int(self.hex_to_int(lengthHex))
         dataEnd = self.sum(128, length * 2)
         dataHex = hex[128:dataEnd]
         return self.decode(self.base16_to_binary(dataHex))
 
-    def hex_to_int(self, hex: str) -> float:
+    def hex_to_int(self, hex: str) -> int:
         """
  @ignore
         parses a hex string(no '0x' prefix) into an integer — plain digit-by-digit, since JS's int (hex, 16) two-argument form has no portable equivalent across languages/transpilers. Only used for small values (byte lengths, permit nonces), safe well within the float-precision range
@@ -689,11 +686,12 @@ class sxbet(PredictionExchange, ImplicitAPI):
         digits = '0123456789abcdef'
         lowerHex = hex.lower()
         hexLength = len(lowerHex)
-        result = 0
+        result = self.parse_to_int(0)
         for i in range(0, hexLength):
             ch = lowerHex[i]
-            digitValue = digits.find(ch)
-            result = (result * 16) + digitValue
+            digitValue = self.parse_to_int(digits.find(ch))
+            shifted = result * 16
+            result = self.parse_to_int(self.sum(shifted, digitValue))
         return result
 
     async def fetch_sxbet_proxy(self) -> dict:
@@ -729,7 +727,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' approve() requires params.amount - the USDC amount to move into the proxy wallet')
         proxy = await self.fetch_sxbet_proxy()
         deployed = self.safe_bool(proxy, 'deployed', False)
-        if deployed is not True:
+        if not deployed:
             await self.sxbetPrivatePostUserDeployProxy()
             # deployment is asynchronous - poll until the proxy exists
             for i in range(0, 30):
@@ -824,7 +822,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         # the venue has no post-only or trigger mechanics - reject the unified params instead
         # of forwarding fields the exchange would silently ignore
         postOnly = self.safe_bool(params, 'postOnly', False)
-        if postOnly is True:
+        if postOnly:
             raise NotSupported(self.id + ' createOrder() does not support postOnly - GTC orders may cross on entry')
         triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
         if triggerPrice is not None:
@@ -1057,13 +1055,19 @@ class sxbet(PredictionExchange, ImplicitAPI):
         chunkCount = self.parse_to_int(self.sum(idsLength, chunkSize - 1) / chunkSize)
         result = []
         for c in range(0, chunkCount):
-            start = c * chunkSize
-            end = start + chunkSize
-            if end > idsLength:
-                end = idsLength
+            chunkIndex = self.parse_to_int(c)
+            chunkWidth = self.parse_to_int(chunkSize)
+            start = chunkIndex * chunkWidth
+            nextChunkIndex = chunkIndex + 1
+            chunkEnd = nextChunkIndex * chunkWidth
+            end = chunkEnd
+            if chunkEnd > idsLength:
+                end = self.parse_to_int(idsLength)
             orderItems = []
-            for i in range(start, end):
-                orderItems.append({'orderId': ids[i]})
+            chunkIds = self.array_slice(ids, start, end)
+            chunkIdsLength = len(chunkIds)
+            for i in range(0, chunkIdsLength):
+                orderItems.append({'orderId': chunkIds[i]})
             request = {'orders': orderItems}
             response = await self.sxbetPrivateDeleteOrdersV3(self.extend(request, params))
             result = self.array_concat(result, self.parse_sxbet_cancel_response(response))
@@ -1093,11 +1097,13 @@ class sxbet(PredictionExchange, ImplicitAPI):
             response = await self.sxbetPrivateDeleteOrdersV3Event(self.extend(request, rest))
         else:
             response = await self.sxbetPrivateDeleteOrdersV3All(rest)
-        result = self.parse_sxbet_cancel_response(response)
+        result = []
+        result = self.array_concat(result, self.parse_sxbet_cancel_response(response))
         # both paths paginate their async submission - keep going on the SAME route while more remain
         hasMore = self.safe_bool(self.safe_dict(response, 'data', {}), 'hasMore', False)
-        guard = 0
-        while((hasMore is True) and (guard < 50)):
+        for guard in range(0, 50):
+            if not hasMore:
+                break
             nextResponse = None
             if isEventScoped:
                 nextRequest = {'eventId': eventId}
@@ -1106,7 +1112,6 @@ class sxbet(PredictionExchange, ImplicitAPI):
                 nextResponse = await self.sxbetPrivateDeleteOrdersV3All(rest)
             result = self.array_concat(result, self.parse_sxbet_cancel_response(nextResponse))
             hasMore = self.safe_bool(self.safe_dict(nextResponse, 'data', {}), 'hasMore', False)
-            guard = self.sum(guard, 1)
         return result
 
     def parse_prediction_order(self, order: dict, market: Market = None) -> PredictionOrder:
@@ -1201,10 +1206,12 @@ class sxbet(PredictionExchange, ImplicitAPI):
         :param int limit: the user-requested limit
         :returns int: the limit clamped to at most 100
         """
-        maxPerPage = 100
         if limit is None:
-            return None
-        return maxPerPage if (limit > maxPerPage) else limit
+            return limit
+        requested = self.parse_to_int(limit)
+        if requested >= 100:
+            return 100
+        return limit
 
     async def fetch_open_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[PredictionOrder]:
         """
@@ -1376,7 +1383,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         isMaker = self.safe_bool(fill, 'isMaker')
         takerOrMaker = None
         if isMaker is not None:
-            takerOrMaker = 'maker' if (isMaker is True) else 'taker'
+            takerOrMaker = 'maker' if (isMaker) else 'taker'
         return self.safe_prediction_trade({
             'id': self.safe_string(fill, 'id'),
             'info': fill,
@@ -1545,12 +1552,12 @@ class sxbet(PredictionExchange, ImplicitAPI):
         """
         self.check_required_credentials()
         request = {'status': 'SETTLED'}
-        wantedOutcomeId = None
+        outcomeObj = None
         if outcome is not None:
             await self.load_outcome(outcome)
             outcomeObj = self.outcome(outcome)
             request['marketHash'] = self.safe_string(outcomeObj['info'], 'marketHash', '')
-            wantedOutcomeId = self.safe_string(outcomeObj, 'outcomeId')
+        wantedOutcomeId = self.safe_string(outcomeObj, 'outcomeId')
         if since is not None:
             request['startDate'] = self.iso8601(since)
         if (limit is not None) and (outcome is None):
@@ -1600,9 +1607,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         winner = self.safe_integer(settlement, 'outcome')
         isVoid = (winner == 0)
         heldNumber = 1 if (isBettingOutcomeOne) else 2
-        won = None
-        if (winner is not None) and not isVoid:
-            won = (winner == heldNumber)
+        won = (winner == heldNumber) if ((winner is not None) and not isVoid) else None
         usdcDecimals = '1000000'
         stake = Precise.string_div(self.safe_string(trade, 'totalStake', '0'), usdcDecimals, 6)
         payout = Precise.string_div(self.safe_string(settlement, 'settleReturnAmount', '0'), usdcDecimals, 6)
@@ -1744,10 +1749,14 @@ class sxbet(PredictionExchange, ImplicitAPI):
         chunkSize = self.safe_integer(self.options, 'bestOddsBatchSize', 100)
         chunkCount = self.parse_to_int(self.sum(hashesLength, chunkSize - 1) / chunkSize)
         for c in range(0, chunkCount):
-            start = c * chunkSize
-            end = start + chunkSize
-            if end > hashesLength:
-                end = hashesLength
+            chunkIndex = self.parse_to_int(c)
+            chunkWidth = self.parse_to_int(chunkSize)
+            start = chunkIndex * chunkWidth
+            nextChunkIndex = chunkIndex + 1
+            chunkEnd = nextChunkIndex * chunkWidth
+            end = chunkEnd
+            if chunkEnd > hashesLength:
+                end = self.parse_to_int(hashesLength)
             chunk = self.array_slice(hashesOrder, start, end)
             rows = await self.fetch_sxbet_best_odds(chunk, params)
             rowsLength = len(rows)
@@ -1870,15 +1879,11 @@ class sxbet(PredictionExchange, ImplicitAPI):
         sortedAsks = self.safe_list(sides, 'asks', [])
         if limit is not None:
             bidsLength = len(sortedBids)
-            bidsEnd = limit
-            if bidsEnd > bidsLength:
-                bidsEnd = bidsLength
-            sortedBids = self.array_slice(sortedBids, 0, bidsEnd)
+            if limit < bidsLength:
+                sortedBids = self.array_slice(sortedBids, 0, limit)
             asksLength = len(sortedAsks)
-            asksEnd = limit
-            if asksEnd > asksLength:
-                asksEnd = asksLength
-            sortedAsks = self.array_slice(sortedAsks, 0, asksEnd)
+            if limit < asksLength:
+                sortedAsks = self.array_slice(sortedAsks, 0, limit)
         timestamp = self.milliseconds()
         return self.safe_prediction_order_book({
             'outcome': self.safe_string(outcomeObj, 'outcome', outcome),
@@ -2014,7 +2019,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
             return
         self.handle_centrifugo_frame(client, message)
 
-    def handle_centrifugo_frame(self, client: Client, msg: object):
+    def handle_centrifugo_frame(self, client: Client, msg: dict):
         keys = list(msg.keys())
         keysLength = len(keys)
         if keysLength == 0:
@@ -2334,7 +2339,8 @@ class sxbet(PredictionExchange, ImplicitAPI):
         #
         rowsLength = len(rows)
         for i in range(0, rowsLength):
-            row = self.safe_dict(rows[i], 'trade', rows[i])
+            rawRow = rows[i]
+            row = self.safe_dict(rawRow, 'trade', rawRow)
             trade = self.parse_sxbet_v3_public_trade(row)
             sym = self.safe_string(trade, 'outcome')
             if sym is None:
@@ -2379,7 +2385,8 @@ class sxbet(PredictionExchange, ImplicitAPI):
         #
         rowsLength = len(rows)
         for i in range(0, rowsLength):
-            row = self.safe_dict(rows[i], 'fill', rows[i])
+            rawRow = rows[i]
+            row = self.safe_dict(rawRow, 'fill', rawRow)
             trade = self.parse_sxbet_v3_fill(row)
             sym = self.safe_string(trade, 'outcome')
             if sym is None:
@@ -2422,7 +2429,8 @@ class sxbet(PredictionExchange, ImplicitAPI):
         #
         rowsLength = len(rows)
         for i in range(0, rowsLength):
-            row = self.safe_dict(rows[i], 'order', rows[i])
+            rawRow = rows[i]
+            row = self.safe_dict(rawRow, 'order', rawRow)
             order = self.parse_prediction_order(row)
             if self.orders is None:
                 cacheLimit = self.safe_integer(self.options, 'ordersLimit', 1000)
@@ -2459,7 +2467,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
             raise BadRequest(feedback)
         return None
 
-    def sign(self, path: str, api: list[str] = ['sxbet'], method='GET', params: dict = {}):
+    def sign(self, path: str, api: list[str] = ['sxbet'], method: str = 'GET', params: dict = {}):
         """
  @ignore
         builds the request url and attaches the x-sx-api-key header; every private v3 route authenticates with the apiKey credential, so its absence fails fast instead of surfacing a raw 401

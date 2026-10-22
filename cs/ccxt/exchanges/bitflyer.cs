@@ -937,12 +937,11 @@ public partial class bitflyer : Exchange
             { "count", limitVar },
         };
         List<object> response = await this.privateGetGetchildorders(this.extend(request, parameters));
-        IList<object> orders = ccxt.BaseExchange.FromOrderList(this.parseOrders(response, market, since, limitVar));
         if ((symbol != null))
         {
-            orders = this.filterBy(orders, "symbol", symbol);
+            return ccxt.BaseExchange.ToOrderList(this.filterBy(ccxt.BaseExchange.FromOrderList(this.parseOrders(response, market, since, limitVar)), "symbol", symbol));
         }
-        return ccxt.BaseExchange.ToOrderList(orders);
+        return this.parseOrders(response, market, since, limitVar);
     }
 
     /**
@@ -1419,14 +1418,14 @@ public partial class bitflyer : Exchange
         object request = (("/" + this.version) + "/");
         if ((apiName is "private"))
         {
-            request = add(request, "me/");
+            request = (request + ("me/"));
         }
-        request = add(request, path);
+        request = (request + path);
         if ((method == "GET"))
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
-                request = add(request, ("?" + this.urlencode(parameters)));
+                request = (request + (("?" + this.urlencode(parameters))));
             }
         }
         string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest");
@@ -1446,8 +1445,9 @@ public partial class bitflyer : Exchange
             {
                 if ((method != "GET"))
                 {
-                    bodySigned = this.json(parameters);
-                    auth = auth + bodySigned;
+                    string body = this.json(parameters);
+                    bodySigned = body;
+                    auth = auth + body;
                 }
             }
             headersSigned = new Dictionary<string, object>() {
