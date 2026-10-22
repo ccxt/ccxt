@@ -7923,7 +7923,7 @@ export default class binance extends Exchange {
                 request['endTime'] = untilResolved;
             }
             if (since === undefined) {
-                const oneWeek = 7 * 24 * 60 * 60 * 1000;
+                const oneWeek = 604800000; // 7 * 24 * 60 * 60 * 1000
                 request['startTime'] = untilResolved - oneWeek;
             }
         }
@@ -9182,7 +9182,7 @@ export default class binance extends Exchange {
             // The time between startTime and endTime cannot be longer than 7 days.
             // The parameter fromId cannot be sent with startTime or endTime.
             const currentTimestamp = this.milliseconds ();
-            const oneWeek = 7 * 24 * 60 * 60 * 1000;
+            const oneWeek = 604800000; // 7 * 24 * 60 * 60 * 1000
             if ((currentTimestamp - since) >= oneWeek) {
                 if ((endTime === undefined) && (this.safeBool (market, 'linear', false))) {
                     endTime = this.sum (startTime, oneWeek);
@@ -9226,7 +9226,7 @@ export default class binance extends Exchange {
                     request['endTime'] = endTimeResolved;
                 }
                 if (since === undefined) {
-                    const oneWeek = 7 * 24 * 60 * 60 * 1000;
+                    const oneWeek = 604800000; // 7 * 24 * 60 * 60 * 1000
                     request['startTime'] = endTimeResolved - oneWeek;
                 }
                 response = await this.sapiGetEquityTradeHistory (this.extend (request, paramsPaginate));
