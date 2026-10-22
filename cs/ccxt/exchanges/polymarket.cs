@@ -669,7 +669,7 @@ public partial class polymarket : Exchange
         // the tickers and statistics endpoints ignore the documented
         // instrument_id filter and always answer with every instrument, so
         // the single-market call reuses the bulk fetch and selects one row
-        object tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbolResolved}, parameters));
+        Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbolResolved}, parameters));
         IDictionary<string, object> ticker = this.safeDict(tickers, symbolResolved);
         if ((ticker == null))
         {
@@ -1091,7 +1091,7 @@ public partial class polymarket : Exchange
         // the tickers endpoint ignores the documented instrument_id filter
         // and always answers with every instrument, so the single-market call
         // reuses the bulk fetch and selects the requested row
-        object fundingRates = ccxt.BaseExchange.FromFundingRates(await this.FetchFundingRates(new List<object>() {symbolResolved}, parameters));
+        Dictionary<string, object> fundingRates = ccxt.BaseExchange.FromFundingRates(await this.FetchFundingRates(new List<object>() {symbolResolved}, parameters));
         IDictionary<string, object> fundingRate = this.safeDict(fundingRates, symbolResolved);
         if ((fundingRate == null))
         {
@@ -1251,7 +1251,7 @@ public partial class polymarket : Exchange
         // the tickers endpoint ignores the documented instrument_id filter
         // and always answers with every instrument, so the single-market call
         // reuses the bulk fetch and selects the requested row
-        object openInterests = ccxt.BaseExchange.FromOpenInterests(await this.FetchOpenInterests(new List<object>() {symbolResolved}, parameters));
+        Dictionary<string, object> openInterests = ccxt.BaseExchange.FromOpenInterests(await this.FetchOpenInterests(new List<object>() {symbolResolved}, parameters));
         IDictionary<string, object> openInterest = this.safeDict(openInterests, symbolResolved);
         if ((openInterest == null))
         {
@@ -1488,8 +1488,8 @@ public partial class polymarket : Exchange
             { "price", price },
             { "params", parameters },
         };
-        object orders = ccxt.BaseExchange.FromOrderList(await this.CreateOrders(new List<object>() {order}, parameters));
-        object first = getValue(orders, 0);
+        List<object> orders = ccxt.BaseExchange.FromOrderList(await this.CreateOrders(new List<object>() {order}, parameters));
+        object first = (orders != null && 0 < orders.Count ? orders[0] : null);
         if (isEqual(getValue(first, "status"), "rejected"))
         {
             string? errorId = this.safeString(getValue(first, "info"), "error");
@@ -1587,7 +1587,7 @@ public partial class polymarket : Exchange
     public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object orders = ccxt.BaseExchange.FromOrderList(await this.CancelOrders(new List<object>() {id}, symbol, parameters));
+        List<object> orders = ccxt.BaseExchange.FromOrderList(await this.CancelOrders(new List<object>() {id}, symbol, parameters));
         IDictionary<string, object> canceled = this.safeDict(orders, 0);
         return ccxt.BaseExchange.ToOrder(canceled);
     }
@@ -2673,8 +2673,8 @@ public partial class polymarket : Exchange
     public async override Task<ccxt.MarginMode> FetchMarginMode(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object leverage = ccxt.BaseExchange.FromLeverage(await this.FetchLeverage(symbol, parameters));
-        return ccxt.BaseExchange.ToMarginMode(new Dictionary<string, object>() {             { "info", getValue(leverage, "info") },             { "symbol", getValue(leverage, "symbol") },             { "marginMode", getValue(leverage, "marginMode") },         });
+        Dictionary<string, object> leverage = ccxt.BaseExchange.FromLeverage(await this.FetchLeverage(symbol, parameters));
+        return ccxt.BaseExchange.ToMarginMode(new Dictionary<string, object>() {             { "info", (leverage != null && leverage.ContainsKey("info") ? leverage["info"] : null) },             { "symbol", (leverage != null && leverage.ContainsKey("symbol") ? leverage["symbol"] : null) },             { "marginMode", (leverage != null && leverage.ContainsKey("marginMode") ? leverage["marginMode"] : null) },         });
     }
 
     /**

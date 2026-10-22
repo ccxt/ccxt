@@ -542,6 +542,39 @@ public partial class bitget : Exchange
                             { "v3/market/futures-account-long-short", new Dictionary<string, object>() {
                                 { "cost", 20 },
                             } },
+                            { "v3/stockplus/market/static", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/stockplus/market/quote", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/stockplus/market/intraday", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/stockplus/market/depth", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/stockplus/market/candlestick", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/stockplus/market/history-candlestick", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/stockplus/market/trade", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/stockplus/market/option-quote", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/stockplus/market/option-chain-info", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/stockplus/market/option-expiry-date", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/stockplus/market/option-volume", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
                             { "v3/reality/market/stock-info", new Dictionary<string, object>() {
                                 { "cost", 20 },
                             } },
@@ -2183,6 +2216,39 @@ public partial class bitget : Exchange
                             { "v3/position/adlRank", new Dictionary<string, object>() {
                                 { "cost", 20 },
                             } },
+                            { "v3/account/reality-orderbook", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/account/reality-fills", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/stockplus/asset/transfer-records", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/stockplus/asset/account", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/stockplus/asset/stock-position", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/stockplus/asset/cash-flow", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/stockplus/trade/today-orders", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/stockplus/trade/history-orders", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/stockplus/trade/order-detail", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/stockplus/trade/today-executions", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/stockplus/trade/history-executions", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
                             { "v3/tax/records", new Dictionary<string, object>() {
                                 { "cost", 20 },
                             } },
@@ -2247,12 +2313,6 @@ public partial class bitget : Exchange
                                 { "cost", 1 },
                             } },
                             { "v3/account/funding-financial-records", new Dictionary<string, object>() {
-                                { "cost", 2 },
-                            } },
-                            { "v3/account/reality-orderbook", new Dictionary<string, object>() {
-                                { "cost", 2 },
-                            } },
-                            { "v3/account/reality-fills", new Dictionary<string, object>() {
                                 { "cost", 2 },
                             } },
                             { "v3/copy/futures/trading-pairs", new Dictionary<string, object>() {
@@ -2355,33 +2415,6 @@ public partial class bitget : Exchange
                                 { "cost", 2 },
                             } },
                             { "v3/stockplus/market/candlestick", new Dictionary<string, object>() {
-                                { "cost", 2 },
-                            } },
-                            { "v3/stockplus/trade/today-orders", new Dictionary<string, object>() {
-                                { "cost", 20 },
-                            } },
-                            { "v3/stockplus/trade/history-orders", new Dictionary<string, object>() {
-                                { "cost", 20 },
-                            } },
-                            { "v3/stockplus/trade/order-detail", new Dictionary<string, object>() {
-                                { "cost", 20 },
-                            } },
-                            { "v3/stockplus/trade/today-executions", new Dictionary<string, object>() {
-                                { "cost", 20 },
-                            } },
-                            { "v3/stockplus/trade/history-executions", new Dictionary<string, object>() {
-                                { "cost", 20 },
-                            } },
-                            { "v3/stockplus/asset/account", new Dictionary<string, object>() {
-                                { "cost", 2 },
-                            } },
-                            { "v3/stockplus/asset/cash-flow", new Dictionary<string, object>() {
-                                { "cost", 2 },
-                            } },
-                            { "v3/stockplus/asset/stock-position", new Dictionary<string, object>() {
-                                { "cost", 2 },
-                            } },
-                            { "v3/stockplus/asset/transfer-records", new Dictionary<string, object>() {
                                 { "cost", 2 },
                             } },
                             { "v3/p2p/ad-list", new Dictionary<string, object>() {
@@ -2490,6 +2523,18 @@ public partial class bitget : Exchange
                             } },
                             { "v3/loan/revise-pledge", new Dictionary<string, object>() {
                                 { "cost", 2 },
+                            } },
+                            { "v3/stockplus/asset/transfer", new Dictionary<string, object>() {
+                                { "cost", 4 },
+                            } },
+                            { "v3/stockplus/trade/place-order", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/stockplus/trade/modify-order", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/stockplus/trade/cancel-order", new Dictionary<string, object>() {
+                                { "cost", 20 },
                             } },
                             { "v3/trade/place-order", new Dictionary<string, object>() {
                                 { "cost", 2 },
@@ -2607,18 +2652,6 @@ public partial class bitget : Exchange
                             } },
                             { "v3/user/sub-account/agent-create", new Dictionary<string, object>() {
                                 { "cost", 20 },
-                            } },
-                            { "v3/stockplus/trade/place-order", new Dictionary<string, object>() {
-                                { "cost", 20 },
-                            } },
-                            { "v3/stockplus/trade/cancel-order", new Dictionary<string, object>() {
-                                { "cost", 20 },
-                            } },
-                            { "v3/stockplus/trade/modify-order", new Dictionary<string, object>() {
-                                { "cost", 20 },
-                            } },
-                            { "v3/stockplus/asset/transfer", new Dictionary<string, object>() {
-                                { "cost", 4 },
                             } },
                             { "v3/p2p/ad-create", new Dictionary<string, object>() {
                                 { "cost", 2 },
@@ -3683,6 +3716,7 @@ public partial class bitget : Exchange
      * @see https://www.bitget.com/api-doc/uta/public/Instruments
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock markets
      * @returns {object[]} an array of objects representing market data
      */
     public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
@@ -3692,10 +3726,13 @@ public partial class bitget : Exchange
         {
             await this.loadTimeDifference();
         }
-        var utaparamsUTAVariable = await this.handleUTAAndParams(parameters, "fetchMarkets", false);
+        (bool?, object) stockparamsStockVariable = this.handleOptionBoolAndParams(parameters, "fetchMarkets", "stock", false);
+        bool? stock = stockparamsStockVariable.Item1;
+        IDictionary<string, object> paramsStock = ((IDictionary<string, object>)stockparamsStockVariable.Item2);
+        var utaparamsUTAVariable = await this.handleUTAAndParams(paramsStock, "fetchMarkets", false);
         var uta = ((IList<object>) utaparamsUTAVariable)[0];
         var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
-        if ((uta is true))
+        if (((stock == true)) || ((uta is true)))
         {
             return await this.FetchUtaMarkets(paramsUTA);
         }
@@ -4041,7 +4078,11 @@ public partial class bitget : Exchange
         //         "maxSymbolOrderNum": "400",
         //         "maxProductOrderNum": "400",
         //         "status": "online",
-        //         "maintainTime": ""
+        //         "maintainTime": "",
+        //         "areaSymbol": "yes",
+        //         "maxPositionNum": "200",
+        //         "isReality": "yes",
+        //         "launchTime": "1786698824814"
         //     }
         //
         // margin uta
@@ -4125,6 +4166,8 @@ public partial class bitget : Exchange
             {
                 continue;
             }
+            string? isRealityValue = this.safeStringLower(market, "isReality", "");
+            bool isReality = (isRealityValue == "yes");
             string? settleId = null;
             string? settle = null;
             if (category == "USDT-FUTURES")
@@ -4145,6 +4188,7 @@ public partial class bitget : Exchange
             string? type = null;
             bool swap = false;
             bool spot = false;
+            bool stock = false;
             bool future = false;
             bool contract = false;
             double? pricePrecision = null;
@@ -4157,10 +4201,11 @@ public partial class bitget : Exchange
             Dictionary<string, object> marginModes = null;
             bool isMarginTradingAllowed = false;
             bool isUtaMargin = (category == "MARGIN");
-            if (isUtaMargin || (category == "SPOT"))
+            if (isReality || isUtaMargin || (category == "SPOT"))
             {
                 type = "spot";
                 spot = true;
+                stock = isReality;
                 if (isUtaMargin)
                 {
                     string? isolatedBase = this.safeString(market, "isIsolatedBaseBorrowable");
@@ -4229,6 +4274,7 @@ public partial class bitget : Exchange
                 { "swap", swap },
                 { "future", future },
                 { "option", false },
+                { "stock", stock },
                 { "active", active },
                 { "contract", contract },
                 { "linear", linear },
@@ -5219,10 +5265,12 @@ public partial class bitget : Exchange
      * @see https://www.bitget.com/api-doc/spot/market/Get-Orderbook
      * @see https://www.bitget.com/api-doc/contract/market/Get-Merge-Depth
      * @see https://www.bitget.com/api-doc/uta/public/OrderBook
+     * @see https://www.bitget.com/api-doc/uta/reality/market/Reality-OrderBook
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock order books
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
@@ -5244,10 +5292,27 @@ public partial class bitget : Exchange
         string? productType = (string)productTypeparamsProductTypeVariable[0];
         IDictionary<string, object> paramsProductType = ((IDictionary<string, object>)productTypeparamsProductTypeVariable[1]);
         Dictionary<string, object> response = null;
-        var utaparamsUTAVariable = await this.handleUTAAndParams(paramsProductType, "fetchOrderBook", false);
+        bool? stockDefault = this.safeBool(market, "stock", false);
+        (bool?, object) stockparamsStockVariable = this.handleOptionBoolAndParams(paramsProductType, "fetchOrderBook", "stock", stockDefault);
+        bool? stock = stockparamsStockVariable.Item1;
+        IDictionary<string, object> paramsStock = ((IDictionary<string, object>)stockparamsStockVariable.Item2);
+        var utaparamsUTAVariable = await this.handleUTAAndParams(paramsStock, "fetchOrderBook", false);
         var uta = ((IList<object>) utaparamsUTAVariable)[0];
         var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
-        if ((uta is true))
+        bool isStock = ((stock == true));
+        bool isStockOrUta = (isStock || ((uta is true)));
+        if (isStock)
+        {
+            if ((limit != null))
+            {
+                throw new BadRequest ((this.id + " fetchOrderBook() does not support limit for tokenized stock markets")) ;
+            }
+            if (!this.checkRequiredCredentials(false))
+            {
+                throw new BadRequest ((this.id + " fetchOrderBook() requires a whitelisted API key for tokenized stock markets")) ;
+            }
+            response = await this.privateUtaGetV3AccountRealityOrderbook(this.extend(request, paramsUTA));
+        } else if ((uta is true))
         {
             request["category"] = productType;
             response = await this.publicUtaGetV3MarketOrderbook(this.extend(request, paramsUTA));
@@ -5271,7 +5336,7 @@ public partial class bitget : Exchange
         //       }
         //     }
         //
-        // uta
+        // uta and tokenized stocks
         //
         //     {
         //         "code": "00000",
@@ -5286,13 +5351,10 @@ public partial class bitget : Exchange
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         string bidsKey = "bids";
-        if ((uta is true))
+        string asksKey = "asks";
+        if (isStockOrUta)
         {
             bidsKey = "b";
-        }
-        string asksKey = "asks";
-        if ((uta is true))
-        {
             asksKey = "a";
         }
         Int64? timestamp = this.safeInteger(data, "ts");
@@ -5455,6 +5517,7 @@ public partial class bitget : Exchange
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock tickers
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
@@ -5472,10 +5535,16 @@ public partial class bitget : Exchange
         string? productType = (string)productTypeparamsProductTypeVariable[0];
         IDictionary<string, object> paramsProductType = ((IDictionary<string, object>)productTypeparamsProductTypeVariable[1]);
         Dictionary<string, object> response = null;
-        var utaparamsUTAVariable = await this.handleUTAAndParams(paramsProductType, "fetchTicker", false);
+        bool? stockDefault = this.safeBool(market, "stock", false);
+        (bool?, object) stockparamsStockVariable = this.handleOptionBoolAndParams(paramsProductType, "fetchTicker", "stock", stockDefault);
+        bool? stock = stockparamsStockVariable.Item1;
+        IDictionary<string, object> paramsStock = ((IDictionary<string, object>)stockparamsStockVariable.Item2);
+        var utaparamsUTAVariable = await this.handleUTAAndParams(paramsStock, "fetchTicker", false);
         var uta = ((IList<object>) utaparamsUTAVariable)[0];
         var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
-        if ((uta is true))
+        bool isStock = ((stock == true));
+        bool isStockOrUta = (isStock || ((uta is true)));
+        if (isStockOrUta)
         {
             request["category"] = productType;
             response = await this.publicUtaGetV3MarketTickers(this.extend(request, paramsUTA));
@@ -5660,6 +5729,7 @@ public partial class bitget : Exchange
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock tickers
      * @param {string} [params.subType] *contract only* 'linear', 'inverse'
      * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -5672,10 +5742,12 @@ public partial class bitget : Exchange
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
+        bool? stockDefault = null;
         if ((symbols != null))
         {
             string? symbol = this.safeString(symbols, 0);
             market = this.market(symbol);
+            stockDefault = this.safeBool(market, "stock", false);
         }
         Dictionary<string, object> response = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
@@ -5689,11 +5761,16 @@ public partial class bitget : Exchange
         IList<object> productTypeparamsProductTypeVariable = (IList<object>)this.handleProductTypeAndParams(market, paramsMarketType);
         string? productType = (string)productTypeparamsProductTypeVariable[0];
         IDictionary<string, object> paramsProductType = ((IDictionary<string, object>)productTypeparamsProductTypeVariable[1]);
+        (bool?, object) stockparamsStockVariable = this.handleOptionBoolAndParams(paramsProductType, "fetchTickers", "stock", stockDefault);
+        bool? stock = stockparamsStockVariable.Item1;
+        IDictionary<string, object> paramsStock = ((IDictionary<string, object>)stockparamsStockVariable.Item2);
         // only if passedSubType && productType is undefined, then use spot
-        var utaparamsUTAVariable = await this.handleUTAAndParams(paramsProductType, "fetchTickers", false);
+        var utaparamsUTAVariable = await this.handleUTAAndParams(paramsStock, "fetchTickers", false);
         var uta = ((IList<object>) utaparamsUTAVariable)[0];
         var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
-        if ((uta is true))
+        bool isStock = ((stock == true));
+        bool isStockOrUta = (isStock || ((uta is true)));
+        if (isStockOrUta)
         {
             if ((symbols != null))
             {
@@ -5703,7 +5780,13 @@ public partial class bitget : Exchange
                     request["symbol"] = this.safeString(market, "id");
                 }
             }
-            request["category"] = productType;
+            if (isStock)
+            {
+                request["category"] = "SPOT";
+            } else if (!(request.ContainsKey("category")))
+            {
+                request["category"] = productType;
+            }
             response = await this.publicUtaGetV3MarketTickers(this.extend(request, paramsUTA));
         } else if ((type == "spot") && (passedSubType == null))
         {
@@ -5712,6 +5795,26 @@ public partial class bitget : Exchange
         {
             request["productType"] = productType;
             response = await this.publicMixGetV2MixMarketTickers(this.extend(request, paramsUTA));
+        }
+        IList<object> symbolsResolved = symbols;
+        if (isStock && ((symbols == null)))
+        {
+            // for returning only tokenized stock symbols
+            symbolsResolved = new List<object>() {};
+            for (int i = 0; i < this.symbols.Count; i++)
+            {
+                object symbol = getValue(this.symbols, i);
+                Dictionary<string, object> entry = this.market(symbol);
+                bool? isStockMarket = this.safeBool(entry, "stock", false);
+                if ((isStockMarket == true))
+                {
+                    string? marketSymbol = this.safeString(entry, "symbol");
+                    if ((marketSymbol != null))
+                    {
+                        symbolsResolved.Add(marketSymbol);
+                    }
+                }
+            }
         }
         //
         // spot
@@ -5830,7 +5933,7 @@ public partial class bitget : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(data, symbols));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(data, symbolsResolved));
     }
 
     public override ccxt.Trade parseTrade(object trade, object market = null)
@@ -6000,11 +6103,13 @@ public partial class bitget : Exchange
      * @see https://www.bitget.com/api-doc/contract/market/Get-Recent-Fills
      * @see https://www.bitget.com/api-doc/contract/market/Get-Fills-History
      * @see https://www.bitget.com/api-doc/uta/public/Fills
+     * @see https://www.bitget.com/api-doc/uta/reality/market/Reality-Fills
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock trades
      * @param {int} [params.until] *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* the latest time in ms to fetch trades for
      * @param {boolean} [params.paginate] *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* default false, when true will automatically paginate by calling this endpoint multiple times
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
@@ -6021,21 +6126,34 @@ public partial class bitget : Exchange
         (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
         paginate = paginateparamsPaginateVariable.Item1;
         paramsPaginate = paginateparamsPaginateVariable.Item2;
+        Dictionary<string, object> market = this.market(symbol);
+        bool? stockDefault = this.safeBool(market, "stock", false);
         if ((paginate == true))
         {
+            // the recursive calls read 'stock' and 'uta' themselves, so only peek at the flag here
+            bool? stockForPagination = this.handleOptionBoolAndParams(paramsPaginate, "fetchTrades", "stock", stockDefault).Item1;
+            if ((stockForPagination == true))
+            {
+                throw new BadRequest ((this.id + " fetchTrades() does not support paginate for tokenized stock markets")) ;
+            }
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallCursor("fetchTrades", symbol, since, limit, paramsPaginate, "idLessThan", "idLessThan"));
         }
-        Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
+        bool? stock = null;
+        (bool?, object) stockparamsPaginateVariable = this.handleOptionBoolAndParams(paramsPaginate, "fetchTrades", "stock", stockDefault);
+        stock = stockparamsPaginateVariable.Item1;
+        paramsPaginate = stockparamsPaginateVariable.Item2;
         bool? uta = null;
         var utaparamsPaginateVariable = await this.handleUTAAndParams(paramsPaginate, "fetchTrades", false);
         uta = (bool?)((IList<object>)utaparamsPaginateVariable)[0];
         paramsPaginate = ((IList<object>)utaparamsPaginateVariable)[1];
+        bool isStock = ((stock == true));
+        bool isStockOrUta = (isStock || ((uta == true)));
         if ((limit != null))
         {
-            if ((uta == true))
+            if (isStockOrUta)
             {
                 request["limit"] = Math.Min(limit.Value, 100);
             } else if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true))
@@ -6052,7 +6170,19 @@ public partial class bitget : Exchange
         IList<object> productTypeparamsPaginateVariable = (IList<object>)this.handleProductTypeAndParams(market, paramsPaginate);
         productType = (string)productTypeparamsPaginateVariable[0];
         paramsPaginate = productTypeparamsPaginateVariable[1];
-        if ((uta == true))
+        if (isStock)
+        {
+            if ((since != null))
+            {
+                throw new BadRequest ((this.id + " fetchTrades() does not support since for tokenized stock markets")) ;
+            }
+            if (!this.checkRequiredCredentials(false))
+            {
+                throw new BadRequest ((this.id + " fetchTrades() requires a whitelisted API key for tokenized stock markets")) ;
+            }
+            paramsPaginate = this.omit(paramsPaginate, new List<object>() {"until", "idLessThan"});
+            response = await this.privateUtaGetV3AccountRealityFills(this.extend(request, paramsPaginate));
+        } else if ((uta == true))
         {
             if (productType == "SPOT")
             {
@@ -6146,7 +6276,7 @@ public partial class bitget : Exchange
         //         ]
         //     }
         //
-        // uta
+        // uta and tokenized stock
         //
         //     {
         //         "code": "00000",
@@ -6502,6 +6632,7 @@ public partial class bitget : Exchange
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock candlesticks
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @param {boolean} [params.useHistoryEndpoint] whether to force to use historical endpoint (it has max limit of 200, 100 for uta)
      * @param {boolean} [params.useHistoryEndpointForPagination] whether to force to use historical endpoint for pagination (default true)
@@ -6545,10 +6676,16 @@ public partial class bitget : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
+        bool? stockDefault = this.safeBool(market, "stock", false);
+        (bool?, object) stockparamsStockVariable = this.handleOptionBoolAndParams(paramsUTA, "fetchOHLCV", "stock", stockDefault);
+        bool? stock = stockparamsStockVariable.Item1;
+        IDictionary<string, object> paramsStock = ((IDictionary<string, object>)stockparamsStockVariable.Item2);
         string? marketType = null;
         object timeframes = null;
         object timeframesOption = this.handleOption("fetchOHLCV", "timeframes");
-        if ((uta is true))
+        bool isStock = ((stock == true));
+        bool isStockOrUta = (isStock || ((uta is true)));
+        if (isStockOrUta)
         {
             timeframes = getValue(timeframesOption, "uta");
             request["interval"] = this.safeString(timeframes, timeframeVar, timeframeVar);
@@ -6561,11 +6698,11 @@ public partial class bitget : Exchange
         int msInDay = 86400000;
         Int64 now = this.milliseconds();
         Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
-        Int64? until = this.safeInteger(paramsUTA, "until");
+        Int64? until = this.safeInteger(paramsStock, "until");
         bool limitDefined = (limit != null);
         bool sinceDefined = (since != null);
         bool untilDefined = (until != null);
-        object paramsOmitted = this.omit(paramsUTA, new List<object>() {"until"});
+        Dictionary<string, object> paramsOmitted = this.omit(paramsStock, new List<object>() {"until"});
         // retrievable periods listed here:
         // - https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
         // - https://www.bitget.com/api-doc/contract/market/Get-Candle-Data#description
@@ -6650,7 +6787,11 @@ public partial class bitget : Exchange
         IList<object> productTypeparamsProductTypeVariable = (IList<object>)this.handleProductTypeAndParams(market, paramsPrice);
         string? productType = (string)productTypeparamsProductTypeVariable[0];
         IDictionary<string, object> paramsProductType = ((IDictionary<string, object>)productTypeparamsProductTypeVariable[1]);
-        if ((uta is true))
+        if (isStock && ((priceType != null)))
+        {
+            throw new BadRequest ((this.id + " fetchOHLCV() for stock markets supports only market-price candles")) ;
+        }
+        if (isStockOrUta)
         {
             if ((priceType != null))
             {
@@ -6753,6 +6894,7 @@ public partial class bitget : Exchange
      * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {string} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {string} [params.type] 'funding' to fetch the uta funding-account assets (uta only, classic accounts route funding through 'spot')
+     * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock account balances
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
@@ -6766,18 +6908,23 @@ public partial class bitget : Exchange
         string? marketType = null;
         string? marginMode = null;
         Dictionary<string, object> response = null;
+        (bool?, object) stockparamsStockVariable = this.handleOptionBoolAndParams(parameters, "fetchBalance", "stock", false);
+        bool? stock = stockparamsStockVariable.Item1;
+        IDictionary<string, object> paramsStock = ((IDictionary<string, object>)stockparamsStockVariable.Item2);
         bool? uta = null;
         object paramsUTA = null;
-        var utaparamsUTAVariable = await this.handleUTAAndParams(parameters, "fetchBalance", false);
+        var utaparamsUTAVariable = await this.handleUTAAndParams(paramsStock, "fetchBalance", false);
         uta = (bool?)((IList<object>)utaparamsUTAVariable)[0];
         paramsUTA = ((IList<object>)utaparamsUTAVariable)[1];
+        bool isStock = ((stock == true));
+        bool isStockOrUta = (isStock || ((uta == true)));
         IList<object> marketTypeparamsUTAVariable = (IList<object>)this.handleMarketTypeAndParams("fetchBalance", null, paramsUTA);
         marketType = (string)marketTypeparamsUTAVariable[0];
         paramsUTA = marketTypeparamsUTAVariable[1];
         (string?, object) marginModeparamsUTAVariable = this.handleMarginModeAndParams("fetchBalance", paramsUTA);
         marginMode = marginModeparamsUTAVariable.Item1;
         paramsUTA = marginModeparamsUTAVariable.Item2;
-        if ((uta == true))
+        if (isStockOrUta)
         {
             List<object> assets = null;
             if (marketType == "funding")
@@ -7474,6 +7621,7 @@ public partial class bitget : Exchange
      * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Place-Order
      * @see https://www.bitget.com/api-doc/uta/trade/Place-Order
      * @see https://www.bitget.com/api-doc/uta/strategy/Place-Strategy-Order
+     * @see https://www.bitget.com/api-doc/uta/reality/trade/Place-Reality-Order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -7503,6 +7651,7 @@ public partial class bitget : Exchange
      * @param {bool} [params.hedged] *swap and future only* true for hedged mode, false for one way mode, default is false
      * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true if you would like to place tokenized stock orders
      * @param {string} [params.posSide] *uta only* hedged two-way position side, long or short
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -7516,23 +7665,43 @@ public partial class bitget : Exchange
         Dictionary<string, object> market = this.market(symbol);
         (string?, object) marginParams = this.handleMarginModeAndParams("createOrder", parameters);
         string? marginMode = marginParams.Item1;
-        double? triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice");
-        double? stopLossTriggerPrice = this.safeNumber(parameters, "stopLossPrice");
-        double? takeProfitTriggerPrice = this.safeNumber(parameters, "takeProfitPrice");
+        bool? stockDefault = this.safeBool(market, "stock", false);
+        (bool?, object) stockparamsStockVariable = this.handleOptionBoolAndParams(parameters, "createOrder", "stock", stockDefault);
+        bool? stock = stockparamsStockVariable.Item1;
+        IDictionary<string, object> paramsStock = ((IDictionary<string, object>)stockparamsStockVariable.Item2);
+        double? triggerPrice = this.safeNumber2(paramsStock, "stopPrice", "triggerPrice");
+        double? stopLossTriggerPrice = this.safeNumber(paramsStock, "stopLossPrice");
+        double? takeProfitTriggerPrice = this.safeNumber(paramsStock, "takeProfitPrice");
+        IDictionary<string, object> stopLoss = this.safeDict(paramsStock, "stopLoss");
+        IDictionary<string, object> takeProfit = this.safeDict(paramsStock, "takeProfit");
         string? trailingPercent = this.safeString2(parameters, "trailingPercent", "callbackRatio");
         bool isTrailingPercentOrder = (trailingPercent != null);
         bool isTriggerOrder = (triggerPrice != null);
         bool isStopLossTriggerOrder = (stopLossTriggerPrice != null);
         bool isTakeProfitTriggerOrder = (takeProfitTriggerPrice != null);
         bool isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
+        bool hasStopLoss = (stopLoss != null);
+        bool hasTakeProfit = (takeProfit != null);
         Dictionary<string, object> response = null;
-        var utaparamsUTAVariable = await this.handleUTAAndParams(parameters, "createOrder", false);
+        var utaparamsUTAVariable = await this.handleUTAAndParams(paramsStock, "createOrder", false);
         var uta = ((IList<object>) utaparamsUTAVariable)[0];
         var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
-        if ((uta is true))
+        bool isStock = ((stock == true));
+        bool isStockOrUta = (isStock || ((uta is true)));
+        if (isStock)
+        {
+            if (isTriggerOrder || isStopLossOrTakeProfitTrigger || hasStopLoss || hasTakeProfit || isTrailingPercentOrder)
+            {
+                throw new InvalidOrder ((this.id + " createOrder() only supports market and limit orders for tokenized stock markets")) ;
+            }
+        }
+        if (isStockOrUta)
         {
             Dictionary<string, object> request = this.createUtaOrderRequest(symbol, type, side, amount, price, paramsUTA);
-            if (isStopLossOrTakeProfitTrigger)
+            if (isStock)
+            {
+                response = await this.privateUtaPostV3TradePlaceRealityOrder(request);
+            } else if (isStopLossOrTakeProfitTrigger)
             {
                 response = await this.privateUtaPostV3TradePlaceStrategyOrder(request);
             } else
@@ -8584,6 +8753,7 @@ public partial class bitget : Exchange
      * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Cancel-Order
      * @see https://www.bitget.com/api-doc/uta/trade/Cancel-Order
      * @see https://www.bitget.com/api-doc/uta/strategy/Cancel-Strategy-Order
+     * @see https://www.bitget.com/api-doc/uta/reality/trade/Cancel-Reality-Order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -8592,6 +8762,7 @@ public partial class bitget : Exchange
      * @param {string} [params.planType] *swap only* either profit_plan, loss_plan, normal_plan, pos_profit, pos_loss, moving_plan or track_plan
      * @param {boolean} [params.trailing] set to true if you want to cancel a trailing order
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true if you would like to cancel tokenized stock orders
      * @param {string} [params.clientOrderId] the clientOrderId of the order, id does not need to be provided if clientOrderId is provided
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -8613,6 +8784,11 @@ public partial class bitget : Exchange
         (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("cancelOrder", parameters);
         marginMode = marginModeparamsMarginModeVariable.Item1;
         paramsMarginMode = marginModeparamsMarginModeVariable.Item2;
+        bool? stockDefault = this.safeBool(market, "stock", false);
+        bool? stock = null;
+        (bool?, object) stockparamsMarginModeVariable = this.handleOptionBoolAndParams(paramsMarginMode, "cancelOrder", "stock", stockDefault);
+        stock = stockparamsMarginModeVariable.Item1;
+        paramsMarginMode = stockparamsMarginModeVariable.Item2;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         bool? trailing = this.safeBool(paramsMarginMode, "trailing");
         bool? trigger = this.safeBool2(paramsMarginMode, "stop", "trigger");
@@ -8625,10 +8801,16 @@ public partial class bitget : Exchange
         var utaparamsMarginModeVariable = await this.handleUTAAndParams(paramsMarginMode, "cancelOrder", false);
         uta = (bool?)((IList<object>)utaparamsMarginModeVariable)[0];
         paramsMarginMode = ((IList<object>)utaparamsMarginModeVariable)[1];
+        bool isStock = ((stock == true));
+        bool isStockOrUta = (isStock || ((uta == true)));
         bool isPlanOrder = ((trigger == true)) || ((trailing == true));
         bool isContract = ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true)) || ((((market.ContainsKey("future") ? market["future"] : null) as bool?) == true));
-        bool isContractTriggerEndpoint = isContract && isPlanOrder && ((uta != true));
+        bool isContractTriggerEndpoint = isContract && isPlanOrder && !isStockOrUta;
         string? clientOrderId = this.safeString2(paramsMarginMode, "clientOrderId", "clientOid");
+        if (isStock && isPlanOrder)
+        {
+            throw new InvalidOrder ((this.id + " cancelOrder() does not support trigger or trailing orders for tokenized stock markets")) ;
+        }
         if (isContractTriggerEndpoint)
         {
             List<object> orderIdList = new List<object>() {};
@@ -8654,7 +8836,10 @@ public partial class bitget : Exchange
                 request["orderId"] = id;
             }
         }
-        if ((uta == true))
+        if (isStock)
+        {
+            response = await this.privateUtaPostV3TradeCancelRealityOrder(this.extend(request, paramsMarginMode));
+        } else if (isStockOrUta)
         {
             if ((trigger == true))
             {
@@ -8708,7 +8893,7 @@ public partial class bitget : Exchange
             throw new NotSupported ((((this.id + " cancelOrder() does not support ") + ((market.ContainsKey("type") ? market["type"] : null))) + " orders")) ;
         }
         //
-        // spot, swap, future and spot margin
+        // spot, swap, future, spot margin and tokenized stock
         //
         //     {
         //         "code": "00000",
@@ -8765,7 +8950,7 @@ public partial class bitget : Exchange
             order = this.safeDict(orderInfo, 0, new Dictionary<string, object>() {});
         } else
         {
-            if (((uta == true)) && ((trigger == true)))
+            if (isStockOrUta && ((trigger == true)))
             {
                 order = response;
             } else

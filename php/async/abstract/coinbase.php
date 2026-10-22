@@ -448,30 +448,6 @@ abstract class coinbase extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
-    public function v3_private_get_brokerage_intx_balances_portfolio_uuid($params = array()) {
-        return $this->request('brokerage/intx/balances/{portfolio_uuid}', array('v3', 'private'), 'GET', $params, array("cost" => 1));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function v3_private_get_brokerage_intx_portfolio_portfolio_uuid($params = array()) {
-        return $this->request('brokerage/intx/portfolio/{portfolio_uuid}', array('v3', 'private'), 'GET', $params, array("cost" => 1));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function v3_private_get_brokerage_intx_positions_portfolio_uuid($params = array()) {
-        return $this->request('brokerage/intx/positions/{portfolio_uuid}', array('v3', 'private'), 'GET', $params, array("cost" => 1));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function v3_private_get_brokerage_intx_positions_portfolio_uuid_symbol($params = array()) {
-        return $this->request('brokerage/intx/positions/{portfolio_uuid}/{symbol}', array('v3', 'private'), 'GET', $params, array("cost" => 1));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
     public function v3_private_get_brokerage_payment_methods($params = array()) {
         return $this->request('brokerage/payment_methods', array('v3', 'private'), 'GET', $params, array("cost" => 1));
     }
@@ -552,18 +528,6 @@ abstract class coinbase extends \ccxt\async\Exchange {
      */
     public function v3_private_post_brokerage_cfm_intraday_margin_setting($params = array()) {
         return $this->request('brokerage/cfm/intraday/margin_setting', array('v3', 'private'), 'POST', $params, array("cost" => 1));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function v3_private_post_brokerage_intx_allocate($params = array()) {
-        return $this->request('brokerage/intx/allocate', array('v3', 'private'), 'POST', $params, array("cost" => 1));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function v3_private_post_brokerage_intx_multi_asset_collateral($params = array()) {
-        return $this->request('brokerage/intx/multi_asset_collateral', array('v3', 'private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -1030,30 +994,6 @@ abstract class coinbase extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
-    public function v3PrivateGetBrokerageIntxBalancesPortfolioUuid($params = array()) {
-        return $this->request('brokerage/intx/balances/{portfolio_uuid}', array('v3', 'private'), 'GET', $params, array("cost" => 1));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function v3PrivateGetBrokerageIntxPortfolioPortfolioUuid($params = array()) {
-        return $this->request('brokerage/intx/portfolio/{portfolio_uuid}', array('v3', 'private'), 'GET', $params, array("cost" => 1));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function v3PrivateGetBrokerageIntxPositionsPortfolioUuid($params = array()) {
-        return $this->request('brokerage/intx/positions/{portfolio_uuid}', array('v3', 'private'), 'GET', $params, array("cost" => 1));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol($params = array()) {
-        return $this->request('brokerage/intx/positions/{portfolio_uuid}/{symbol}', array('v3', 'private'), 'GET', $params, array("cost" => 1));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
     public function v3PrivateGetBrokeragePaymentMethods($params = array()) {
         return $this->request('brokerage/payment_methods', array('v3', 'private'), 'GET', $params, array("cost" => 1));
     }
@@ -1134,18 +1074,6 @@ abstract class coinbase extends \ccxt\async\Exchange {
      */
     public function v3PrivatePostBrokerageCfmIntradayMarginSetting($params = array()) {
         return $this->request('brokerage/cfm/intraday/margin_setting', array('v3', 'private'), 'POST', $params, array("cost" => 1));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function v3PrivatePostBrokerageIntxAllocate($params = array()) {
-        return $this->request('brokerage/intx/allocate', array('v3', 'private'), 'POST', $params, array("cost" => 1));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function v3PrivatePostBrokerageIntxMultiAssetCollateral($params = array()) {
-        return $this->request('brokerage/intx/multi_asset_collateral', array('v3', 'private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>

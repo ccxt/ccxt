@@ -853,7 +853,7 @@ class blofin extends blofin$1["default"] {
         }
         const market = this.market(symbol);
         const request = {
-            'symbol': market['id'],
+            'instId': market['id'],
         };
         const response = await this.publicGetMarketMarkPrice(this.extend(request, params));
         const data = this.safeList(response, 'data', []);

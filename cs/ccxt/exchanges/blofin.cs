@@ -1045,7 +1045,7 @@ public partial class blofin : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
+            { "instId", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetMarketMarkPrice(this.extend(request, parameters));
         List<object> data = this.safeList(response, "data", new List<object>() {});

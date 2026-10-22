@@ -1622,6 +1622,8 @@ pub use crate::pro_typed::paradex_typed::Paradex;
 pub use crate::pro_typed::phemex_typed::Phemex;
 #[cfg(feature = "poloniex")]
 pub use crate::pro_typed::poloniex_typed::Poloniex;
+#[cfg(feature = "polymarket")]
+pub use crate::pro_typed::polymarket_typed::Polymarket;
 #[cfg(feature = "toobit")]
 pub use crate::pro_typed::toobit_typed::Toobit;
 #[cfg(feature = "upbit")]
@@ -1779,6 +1781,8 @@ pub fn from_id(id: &str, config: Option<crate::Value>) -> Option<Box<dyn TypedEx
         "phemex" => Some(Box::new(Phemex::new(config))),
         #[cfg(feature = "poloniex")]
         "poloniex" => Some(Box::new(Poloniex::new(config))),
+        #[cfg(feature = "polymarket")]
+        "polymarket" => Some(Box::new(Polymarket::new(config))),
         #[cfg(feature = "toobit")]
         "toobit" => Some(Box::new(Toobit::new(config))),
         #[cfg(feature = "upbit")]

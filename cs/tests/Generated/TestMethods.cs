@@ -2580,6 +2580,16 @@ public partial class testMainClass
                 exchange.extendExchangeOptions(globalOptions);
                 object testExchangeOptions = exchange.safeValue(result, "options", new Dictionary<string, object>() {});
                 exchange.extendExchangeOptions(testExchangeOptions);
+                object apiKey = exchange.safeString(result, "apiKey");
+                if (!isTrue(exchange.isEmptyString(apiKey)))
+                {
+                    exchange.apiKey = ((object)((string)apiKey)).ToString();
+                }
+                object secret = exchange.safeString(result, "secret");
+                if (!isTrue(exchange.isEmptyString(secret)))
+                {
+                    exchange.secret = ((object)((string)secret)).ToString();
+                }
                 object skipKeys = this.effectiveSkipKeys(exchange, exchangeData, result);
                 await this.testWsStatically(exchange, method, skipKeys, result);
                 if (!isTrue(isSync()))
@@ -4294,19 +4304,30 @@ public partial class testMainClass
     public async virtual Task<object> testCoinbaseinternational()
     {
         Exchange exchange = ((Exchange)this.initOfflineExchange("coinbaseinternational"));
+        // ECDSA (P-256) auth-token signing needs a hex-encoded secret, unlike the generic dummy one
+        exchange.secret = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
+        // pre-seed the gateway access token so createOrder signs the order directly instead of
+        // making a prior (offline-unreachable) public/auth network call
+        exchange.token = "token";
+        object tokenExpires = add(exchange.milliseconds(), 100000);
+        ((IDictionary<string,object>)exchange.options)["v2TokenExpires"] = tokenExpires;
         ((IDictionary<string,object>)exchange.options)["portfolio"] = "random";
         string id = "nfqkvdjp";
         assert(isEqual(getValue(exchange.options, "brokerId"), id), "id not in options");
-        object request = new Dictionary<string, object>() {};
+        object clientOrderId = null;
         try
         {
             await exchange.CreateOrder("BTC/USDC:USDC", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
-            request = jsonParse(exchange.last_request_body);
+            // buy/sell are GET endpoints, so the label is in the query string, not a JSON body
+            string url = ((string)exchange.last_request_url);
+            List<object> urlParts = url.Split(new [] {((string)"?")}, StringSplitOptions.None).ToList<object>();
+            assert(urlParts.Count > 1, ("last_request_url has no query string: " + url));
+            object query = this.urlencodedToDict((urlParts != null && 1 < urlParts.Count ? urlParts[1] : null));
+            clientOrderId = getValue(query, "label");
         }
-        object clientOrderId = getValue(request, "client_order_id");
-        assert((((string)clientOrderId).StartsWith(((string)((object)id).ToString())) == true), "clientOrderId does not start with id");
+        assert((clientOrderId != null) && (((string)clientOrderId).StartsWith(((string)((object)id).ToString())) == true), "clientOrderId does not start with id");
         if (!isTrue(isSync()))
         {
             await close(exchange);

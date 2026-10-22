@@ -595,6 +595,39 @@ public class Bitget extends BitgetApi
                             put( "v3/market/futures-account-long-short", new HashMap<String, Object>() {{
                                 put( "cost", 20 );
                             }} );
+                            put( "v3/stockplus/market/static", new HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/stockplus/market/quote", new HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/stockplus/market/intraday", new HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/stockplus/market/depth", new HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/stockplus/market/candlestick", new HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/stockplus/market/history-candlestick", new HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/stockplus/market/trade", new HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/stockplus/market/option-quote", new HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/stockplus/market/option-chain-info", new HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/stockplus/market/option-expiry-date", new HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/stockplus/market/option-volume", new HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
                             put( "v3/reality/market/stock-info", new HashMap<String, Object>() {{
                                 put( "cost", 20 );
                             }} );
@@ -2236,6 +2269,39 @@ public class Bitget extends BitgetApi
                             put( "v3/position/adlRank", new HashMap<String, Object>() {{
                                 put( "cost", 20 );
                             }} );
+                            put( "v3/account/reality-orderbook", new HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/account/reality-fills", new HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/stockplus/asset/transfer-records", new HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/stockplus/asset/account", new HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/stockplus/asset/stock-position", new HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/stockplus/asset/cash-flow", new HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/stockplus/trade/today-orders", new HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/stockplus/trade/history-orders", new HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/stockplus/trade/order-detail", new HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/stockplus/trade/today-executions", new HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/stockplus/trade/history-executions", new HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
                             put( "v3/tax/records", new HashMap<String, Object>() {{
                                 put( "cost", 20 );
                             }} );
@@ -2300,12 +2366,6 @@ public class Bitget extends BitgetApi
                                 put( "cost", 1 );
                             }} );
                             put( "v3/account/funding-financial-records", new HashMap<String, Object>() {{
-                                put( "cost", 2 );
-                            }} );
-                            put( "v3/account/reality-orderbook", new HashMap<String, Object>() {{
-                                put( "cost", 2 );
-                            }} );
-                            put( "v3/account/reality-fills", new HashMap<String, Object>() {{
                                 put( "cost", 2 );
                             }} );
                             put( "v3/copy/futures/trading-pairs", new HashMap<String, Object>() {{
@@ -2408,33 +2468,6 @@ public class Bitget extends BitgetApi
                                 put( "cost", 2 );
                             }} );
                             put( "v3/stockplus/market/candlestick", new HashMap<String, Object>() {{
-                                put( "cost", 2 );
-                            }} );
-                            put( "v3/stockplus/trade/today-orders", new HashMap<String, Object>() {{
-                                put( "cost", 20 );
-                            }} );
-                            put( "v3/stockplus/trade/history-orders", new HashMap<String, Object>() {{
-                                put( "cost", 20 );
-                            }} );
-                            put( "v3/stockplus/trade/order-detail", new HashMap<String, Object>() {{
-                                put( "cost", 20 );
-                            }} );
-                            put( "v3/stockplus/trade/today-executions", new HashMap<String, Object>() {{
-                                put( "cost", 20 );
-                            }} );
-                            put( "v3/stockplus/trade/history-executions", new HashMap<String, Object>() {{
-                                put( "cost", 20 );
-                            }} );
-                            put( "v3/stockplus/asset/account", new HashMap<String, Object>() {{
-                                put( "cost", 2 );
-                            }} );
-                            put( "v3/stockplus/asset/cash-flow", new HashMap<String, Object>() {{
-                                put( "cost", 2 );
-                            }} );
-                            put( "v3/stockplus/asset/stock-position", new HashMap<String, Object>() {{
-                                put( "cost", 2 );
-                            }} );
-                            put( "v3/stockplus/asset/transfer-records", new HashMap<String, Object>() {{
                                 put( "cost", 2 );
                             }} );
                             put( "v3/p2p/ad-list", new HashMap<String, Object>() {{
@@ -2543,6 +2576,18 @@ public class Bitget extends BitgetApi
                             }} );
                             put( "v3/loan/revise-pledge", new HashMap<String, Object>() {{
                                 put( "cost", 2 );
+                            }} );
+                            put( "v3/stockplus/asset/transfer", new HashMap<String, Object>() {{
+                                put( "cost", 4 );
+                            }} );
+                            put( "v3/stockplus/trade/place-order", new HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/stockplus/trade/modify-order", new HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/stockplus/trade/cancel-order", new HashMap<String, Object>() {{
+                                put( "cost", 20 );
                             }} );
                             put( "v3/trade/place-order", new HashMap<String, Object>() {{
                                 put( "cost", 2 );
@@ -2660,18 +2705,6 @@ public class Bitget extends BitgetApi
                             }} );
                             put( "v3/user/sub-account/agent-create", new HashMap<String, Object>() {{
                                 put( "cost", 20 );
-                            }} );
-                            put( "v3/stockplus/trade/place-order", new HashMap<String, Object>() {{
-                                put( "cost", 20 );
-                            }} );
-                            put( "v3/stockplus/trade/cancel-order", new HashMap<String, Object>() {{
-                                put( "cost", 20 );
-                            }} );
-                            put( "v3/stockplus/trade/modify-order", new HashMap<String, Object>() {{
-                                put( "cost", 20 );
-                            }} );
-                            put( "v3/stockplus/asset/transfer", new HashMap<String, Object>() {{
-                                put( "cost", 4 );
                             }} );
                             put( "v3/p2p/ad-create", new HashMap<String, Object>() {{
                                 put( "cost", 2 );
@@ -3743,6 +3776,7 @@ public class Bitget extends BitgetApi
      * @see https://www.bitget.com/api-doc/uta/public/Instruments
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock markets
      * @returns {object[]} an array of objects representing market data
      */
     public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
@@ -3754,10 +3788,13 @@ public class Bitget extends BitgetApi
             {
                 (this.loadTimeDifference(new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (parameters), "fetchMarkets", false)).join();
+            Pair<Boolean, Map<String, Object>> stockparamsStockVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMarkets", "stock", false);
+            Boolean stock = stockparamsStockVariable.first();
+            Map<String, Object> paramsStock = stockparamsStockVariable.second();
+            List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (paramsStock), "fetchMarkets", false)).join();
             Boolean uta = (Boolean) ((List<Object>) utaparamsUTAVariable).get(0);
             Map<String, Object> paramsUTA = (Map<String, Object>) ((List<Object>) utaparamsUTAVariable).get(1);
-            if (java.util.Objects.equals(uta, true))
+            if ((java.util.Objects.equals(stock, true)) || (java.util.Objects.equals(uta, true)))
             {
                 return (this.fetchUtaMarkets(paramsUTA)).join();
             }
@@ -4113,7 +4150,11 @@ public class Bitget extends BitgetApi
             //         "maxSymbolOrderNum": "400",
             //         "maxProductOrderNum": "400",
             //         "status": "online",
-            //         "maintainTime": ""
+            //         "maintainTime": "",
+            //         "areaSymbol": "yes",
+            //         "maxPositionNum": "200",
+            //         "isReality": "yes",
+            //         "launchTime": "1786698824814"
             //     }
             //
             // margin uta
@@ -4197,6 +4238,8 @@ public class Bitget extends BitgetApi
                 {
                     continue;
                 }
+                String isRealityValue = this.safeStringLower(market, "isReality", "");
+                Boolean isReality = (java.util.Objects.equals(isRealityValue, "yes"));
                 String settleId = null;
                 String settle = null;
                 if (java.util.Objects.equals(category, "USDT-FUTURES"))
@@ -4217,6 +4260,7 @@ public class Bitget extends BitgetApi
                 String type = null;
                 Boolean swap = false;
                 Boolean spot = false;
+                Object stock = false;
                 Boolean future = false;
                 Boolean contract = false;
                 Double pricePrecision = null;
@@ -4229,10 +4273,11 @@ public class Bitget extends BitgetApi
                 Map<String, Object> marginModes = null;
                 Boolean isMarginTradingAllowed = false;
                 Boolean isUtaMargin = (java.util.Objects.equals(category, "MARGIN"));
-                if (Boolean.TRUE.equals(isUtaMargin) || (java.util.Objects.equals(category, "SPOT")))
+                if (Boolean.TRUE.equals(isReality) || Boolean.TRUE.equals(isUtaMargin) || (java.util.Objects.equals(category, "SPOT")))
                 {
                     type = "spot";
                     spot = true;
+                    stock = isReality;
                     if (Boolean.TRUE.equals(isUtaMargin))
                     {
                         String isolatedBase = this.safeString(market, "isIsolatedBaseBorrowable");
@@ -4301,6 +4346,7 @@ public class Bitget extends BitgetApi
                     "swap", swap,
                     "future", future,
                     "option", false,
+                    "stock", stock,
                     "active", active,
                     "contract", contract,
                     "linear", linear,
@@ -5328,10 +5374,12 @@ public class Bitget extends BitgetApi
      * @see https://www.bitget.com/api-doc/spot/market/Get-Orderbook
      * @see https://www.bitget.com/api-doc/contract/market/Get-Merge-Depth
      * @see https://www.bitget.com/api-doc/uta/public/OrderBook
+     * @see https://www.bitget.com/api-doc/uta/reality/market/Reality-OrderBook
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock order books
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> parameters)
@@ -5355,10 +5403,27 @@ public class Bitget extends BitgetApi
             String productType = (String) ((List<Object>) productTypeparamsProductTypeVariable).get(0);
             Map<String, Object> paramsProductType = (Map<String, Object>) ((List<Object>) productTypeparamsProductTypeVariable).get(1);
             Map<String, Object> response = null;
-            List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (paramsProductType), "fetchOrderBook", false)).join();
+            Boolean stockDefault = (Boolean) this.safeBool(market, "stock", false);
+            Pair<Boolean, Map<String, Object>> stockparamsStockVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsProductType), "fetchOrderBook", "stock", stockDefault);
+            Boolean stock = stockparamsStockVariable.first();
+            Map<String, Object> paramsStock = stockparamsStockVariable.second();
+            List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (paramsStock), "fetchOrderBook", false)).join();
             Boolean uta = (Boolean) ((List<Object>) utaparamsUTAVariable).get(0);
             Map<String, Object> paramsUTA = (Map<String, Object>) ((List<Object>) utaparamsUTAVariable).get(1);
-            if (java.util.Objects.equals(uta, true))
+            Boolean isStock = (java.util.Objects.equals(stock, true));
+            Boolean isStockOrUta = (Boolean.TRUE.equals(isStock) || (java.util.Objects.equals(uta, true)));
+            if (Boolean.TRUE.equals(isStock))
+            {
+                if (!java.util.Objects.equals(limit, null))
+                {
+                    throw new BadRequest((this.id + " fetchOrderBook() does not support limit for tokenized stock markets")) ;
+                }
+                if (!this.checkRequiredCredentials(false))
+                {
+                    throw new BadRequest((this.id + " fetchOrderBook() requires a whitelisted API key for tokenized stock markets")) ;
+                }
+                response = (this.privateUtaGetV3AccountRealityOrderbook(this.extend(request, paramsUTA))).join();
+            } else if (java.util.Objects.equals(uta, true))
             {
                 request.put("category", productType);
                 response = (this.publicUtaGetV3MarketOrderbook(this.extend(request, paramsUTA))).join();
@@ -5382,7 +5447,7 @@ public class Bitget extends BitgetApi
             //       }
             //     }
             //
-            // uta
+            // uta and tokenized stocks
             //
             //     {
             //         "code": "00000",
@@ -5397,13 +5462,10 @@ public class Bitget extends BitgetApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String bidsKey = "bids";
-            if (java.util.Objects.equals(uta, true))
+            String asksKey = "asks";
+            if (Boolean.TRUE.equals(isStockOrUta))
             {
                 bidsKey = "b";
-            }
-            String asksKey = "asks";
-            if (java.util.Objects.equals(uta, true))
-            {
                 asksKey = "a";
             }
             Long timestamp = this.safeInteger(data, "ts");
@@ -5568,6 +5630,7 @@ public class Bitget extends BitgetApi
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock tickers
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public CompletableFuture<Ticker> fetchTicker(String symbol, Map<String, Object> parameters)
@@ -5587,10 +5650,16 @@ public class Bitget extends BitgetApi
             String productType = (String) ((List<Object>) productTypeparamsProductTypeVariable).get(0);
             Map<String, Object> paramsProductType = (Map<String, Object>) ((List<Object>) productTypeparamsProductTypeVariable).get(1);
             Map<String, Object> response = null;
-            List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (paramsProductType), "fetchTicker", false)).join();
+            Boolean stockDefault = (Boolean) this.safeBool(market, "stock", false);
+            Pair<Boolean, Map<String, Object>> stockparamsStockVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsProductType), "fetchTicker", "stock", stockDefault);
+            Boolean stock = stockparamsStockVariable.first();
+            Map<String, Object> paramsStock = stockparamsStockVariable.second();
+            List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (paramsStock), "fetchTicker", false)).join();
             Boolean uta = (Boolean) ((List<Object>) utaparamsUTAVariable).get(0);
             Map<String, Object> paramsUTA = (Map<String, Object>) ((List<Object>) utaparamsUTAVariable).get(1);
-            if (java.util.Objects.equals(uta, true))
+            Boolean isStock = (java.util.Objects.equals(stock, true));
+            Boolean isStockOrUta = (Boolean.TRUE.equals(isStock) || (java.util.Objects.equals(uta, true)));
+            if (Boolean.TRUE.equals(isStockOrUta))
             {
                 request.put("category", productType);
                 response = (this.publicUtaGetV3MarketTickers(this.extend(request, paramsUTA))).join();
@@ -5781,6 +5850,7 @@ public class Bitget extends BitgetApi
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock tickers
      * @param {string} [params.subType] *contract only* 'linear', 'inverse'
      * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -5795,10 +5865,12 @@ public class Bitget extends BitgetApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = null;
+            Object stockDefault = null;
             if (!java.util.Objects.equals(symbols, null))
             {
                 String symbol = this.safeString(symbols, 0);
                 market = this.market(symbol);
+                stockDefault = this.safeBool(market, "stock", false);
             }
             Map<String, Object> response = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -5812,11 +5884,16 @@ public class Bitget extends BitgetApi
             List<Object> productTypeparamsProductTypeVariable = (List<Object>) this.handleProductTypeAndParams(market, paramsMarketType);
             String productType = (String) ((List<Object>) productTypeparamsProductTypeVariable).get(0);
             Map<String, Object> paramsProductType = (Map<String, Object>) ((List<Object>) productTypeparamsProductTypeVariable).get(1);
+            Pair<Boolean, Map<String, Object>> stockparamsStockVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsProductType), "fetchTickers", "stock", stockDefault);
+            Boolean stock = stockparamsStockVariable.first();
+            Map<String, Object> paramsStock = stockparamsStockVariable.second();
             // only if passedSubType && productType is undefined, then use spot
-            List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (paramsProductType), "fetchTickers", false)).join();
+            List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (paramsStock), "fetchTickers", false)).join();
             Boolean uta = (Boolean) ((List<Object>) utaparamsUTAVariable).get(0);
             Map<String, Object> paramsUTA = (Map<String, Object>) ((List<Object>) utaparamsUTAVariable).get(1);
-            if (java.util.Objects.equals(uta, true))
+            Boolean isStock = (java.util.Objects.equals(stock, true));
+            Boolean isStockOrUta = (Boolean.TRUE.equals(isStock) || (java.util.Objects.equals(uta, true)));
+            if (Boolean.TRUE.equals(isStockOrUta))
             {
                 if (!java.util.Objects.equals(symbols, null))
                 {
@@ -5826,7 +5903,13 @@ public class Bitget extends BitgetApi
                         request.put("symbol", this.safeString(market, "id"));
                     }
                 }
-                request.put("category", productType);
+                if (Boolean.TRUE.equals(isStock))
+                {
+                    request.put("category", "SPOT");
+                } else if (!(request.containsKey("category")))
+                {
+                    request.put("category", productType);
+                }
                 response = (this.publicUtaGetV3MarketTickers(this.extend(request, paramsUTA))).join();
             } else if (java.util.Objects.equals(type, "spot") && java.util.Objects.equals(passedSubType, null))
             {
@@ -5835,6 +5918,26 @@ public class Bitget extends BitgetApi
             {
                 request.put("productType", productType);
                 response = (this.publicMixGetV2MixMarketTickers(this.extend(request, paramsUTA))).join();
+            }
+            List<String> symbolsResolved = symbols;
+            if (Boolean.TRUE.equals(isStock) && (java.util.Objects.equals(symbols, null)))
+            {
+                // for returning only tokenized stock symbols
+                symbolsResolved = new ArrayList<String>(Arrays.asList());
+                for (var i = 0; i < ((List<?>)this.symbols).size(); i++)
+                {
+                    Object symbol = (this.symbols == null || i < 0 || i >= ((List<?>)this.symbols).size() ? null : ((List<?>)this.symbols).get(i));
+                    Map<String, Object> entry = this.market(symbol);
+                    Boolean isStockMarket = (Boolean) this.safeBool(entry, "stock", false);
+                    if (Boolean.TRUE.equals(isStockMarket))
+                    {
+                        String marketSymbol = this.safeString(entry, "symbol");
+                        if (!java.util.Objects.equals(marketSymbol, null))
+                        {
+                            symbolsResolved.add(marketSymbol);
+                        }
+                    }
+                }
             }
             //
             // spot
@@ -5953,7 +6056,7 @@ public class Bitget extends BitgetApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTickers(data, symbols, new HashMap<String, Object>() {{}});
+            return this.parseTickers(data, symbolsResolved, new HashMap<String, Object>() {{}});
         }).thenApply(Tickers::new);
 
     }
@@ -6125,11 +6228,13 @@ public class Bitget extends BitgetApi
      * @see https://www.bitget.com/api-doc/contract/market/Get-Recent-Fills
      * @see https://www.bitget.com/api-doc/contract/market/Get-Fills-History
      * @see https://www.bitget.com/api-doc/uta/public/Fills
+     * @see https://www.bitget.com/api-doc/uta/reality/market/Reality-Fills
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock trades
      * @param {int} [params.until] *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* the latest time in ms to fetch trades for
      * @param {boolean} [params.paginate] *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* default false, when true will automatically paginate by calling this endpoint multiple times
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
@@ -6148,21 +6253,34 @@ public class Bitget extends BitgetApi
             Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTrades", "paginate", false);
             paginate = paginateparamsPaginateVariable.first();
             paramsPaginate = paginateparamsPaginateVariable.second();
+            Map<String, Object> market = this.market(symbol);
+            Boolean stockDefault = (Boolean) this.safeBool(market, "stock", false);
             if (Boolean.TRUE.equals(paginate))
             {
+                // the recursive calls read 'stock' and 'uta' themselves, so only peek at the flag here
+                Boolean stockForPagination = (Boolean) ((List<Object>)this.handleOptionBoolAndParams((Map<String, Object>) (paramsPaginate), "fetchTrades", "stock", stockDefault)).get(0);
+                if (java.util.Objects.equals(stockForPagination, true))
+                {
+                    throw new BadRequest((this.id + " fetchTrades() does not support paginate for tokenized stock markets")) ;
+                }
                 return (this.fetchPaginatedCallCursor("fetchTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "idLessThan", "idLessThan", (Long) null, (Long) null)).join();
             }
-            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
             }};
+            Boolean stock = null;
+            Pair<Boolean, Map<String, Object>> stockparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsPaginate), "fetchTrades", "stock", stockDefault);
+            stock = stockparamsPaginateVariable.first();
+            paramsPaginate = stockparamsPaginateVariable.second();
             Boolean uta = null;
             List<Object> utaparamsPaginateVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (paramsPaginate), "fetchTrades", false)).join();
             uta = (Boolean) ((List<Object>) utaparamsPaginateVariable).get(0);
             paramsPaginate = ((List<Object>) utaparamsPaginateVariable).get(1);
+            Boolean isStock = (java.util.Objects.equals(stock, true));
+            Boolean isStockOrUta = (Boolean.TRUE.equals(isStock) || (java.util.Objects.equals(uta, true)));
             if (!java.util.Objects.equals(limit, null))
             {
-                if (java.util.Objects.equals(uta, true))
+                if (Boolean.TRUE.equals(isStockOrUta))
                 {
                     request.put("limit", Math.min(limit, 100));
                 } else if (java.util.Objects.equals(market.get("contract"), true))
@@ -6179,7 +6297,19 @@ public class Bitget extends BitgetApi
             List<Object> productTypeparamsPaginateVariable = (List<Object>) this.handleProductTypeAndParams(market, Helpers.toMapArg(paramsPaginate));
             productType = (String) ((List<Object>) productTypeparamsPaginateVariable).get(0);
             paramsPaginate = ((List<Object>) productTypeparamsPaginateVariable).get(1);
-            if (java.util.Objects.equals(uta, true))
+            if (Boolean.TRUE.equals(isStock))
+            {
+                if (!java.util.Objects.equals(since, null))
+                {
+                    throw new BadRequest((this.id + " fetchTrades() does not support since for tokenized stock markets")) ;
+                }
+                if (!this.checkRequiredCredentials(false))
+                {
+                    throw new BadRequest((this.id + " fetchTrades() requires a whitelisted API key for tokenized stock markets")) ;
+                }
+                paramsPaginate = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until", "idLessThan")));
+                response = (this.privateUtaGetV3AccountRealityFills(this.extend(request, paramsPaginate))).join();
+            } else if (java.util.Objects.equals(uta, true))
             {
                 if (java.util.Objects.equals(productType, "SPOT"))
                 {
@@ -6273,7 +6403,7 @@ public class Bitget extends BitgetApi
             //         ]
             //     }
             //
-            // uta
+            // uta and tokenized stock
             //
             //     {
             //         "code": "00000",
@@ -6639,6 +6769,7 @@ public class Bitget extends BitgetApi
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock candlesticks
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @param {boolean} [params.useHistoryEndpoint] whether to force to use historical endpoint (it has max limit of 200, 100 for uta)
      * @param {boolean} [params.useHistoryEndpointForPagination] whether to force to use historical endpoint for pagination (default true)
@@ -6682,10 +6813,16 @@ public class Bitget extends BitgetApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
             }};
+            Boolean stockDefault = (Boolean) this.safeBool(market, "stock", false);
+            Pair<Boolean, Map<String, Object>> stockparamsStockVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsUTA), "fetchOHLCV", "stock", stockDefault);
+            Boolean stock = stockparamsStockVariable.first();
+            Map<String, Object> paramsStock = stockparamsStockVariable.second();
             String marketType = null;
             Object timeframes = null;
             Object timeframesOption = this.handleOption("fetchOHLCV", "timeframes", (Object) null);
-            if (java.util.Objects.equals(uta, true))
+            Boolean isStock = (java.util.Objects.equals(stock, true));
+            Boolean isStockOrUta = (Boolean.TRUE.equals(isStock) || (java.util.Objects.equals(uta, true)));
+            if (Boolean.TRUE.equals(isStockOrUta))
             {
                 timeframes = Helpers.GetValue(timeframesOption, "uta");
                 request.put("interval", this.safeString(timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")));
@@ -6698,11 +6835,11 @@ public class Bitget extends BitgetApi
             Long msInDay = 86400000L;
             Long now = this.milliseconds();
             Long duration = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L);
-            Long until = this.safeInteger(paramsUTA, "until");
+            Long until = this.safeInteger(paramsStock, "until");
             Boolean limitDefined = !java.util.Objects.equals(limit, null);
             Boolean sinceDefined = !java.util.Objects.equals(since, null);
             Boolean untilDefined = !java.util.Objects.equals(until, null);
-            Map<String, Object> paramsOmitted = this.omit(paramsUTA, new ArrayList<Object>(Arrays.asList("until")));
+            Map<String, Object> paramsOmitted = this.omit(paramsStock, new ArrayList<Object>(Arrays.asList("until")));
             // retrievable periods listed here:
             // - https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
             // - https://www.bitget.com/api-doc/contract/market/Get-Candle-Data#description
@@ -6787,7 +6924,11 @@ public class Bitget extends BitgetApi
             List<Object> productTypeparamsProductTypeVariable = (List<Object>) this.handleProductTypeAndParams(market, paramsPrice);
             String productType = (String) ((List<Object>) productTypeparamsProductTypeVariable).get(0);
             Map<String, Object> paramsProductType = (Map<String, Object>) ((List<Object>) productTypeparamsProductTypeVariable).get(1);
-            if (java.util.Objects.equals(uta, true))
+            if (Boolean.TRUE.equals(isStock) && (!java.util.Objects.equals(priceType, null)))
+            {
+                throw new BadRequest((this.id + " fetchOHLCV() for stock markets supports only market-price candles")) ;
+            }
+            if (Boolean.TRUE.equals(isStockOrUta))
             {
                 if (!java.util.Objects.equals(priceType, null))
                 {
@@ -6892,6 +7033,7 @@ public class Bitget extends BitgetApi
      * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {string} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {string} [params.type] 'funding' to fetch the uta funding-account assets (uta only, classic accounts route funding through 'spot')
+     * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock account balances
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters)
@@ -6907,18 +7049,23 @@ public class Bitget extends BitgetApi
             String marketType = null;
             String marginMode = null;
             Map<String, Object> response = null;
+            Pair<Boolean, Map<String, Object>> stockparamsStockVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchBalance", "stock", false);
+            Boolean stock = stockparamsStockVariable.first();
+            Map<String, Object> paramsStock = stockparamsStockVariable.second();
             Boolean uta = null;
             Map<String, Object> paramsUTA = null;
-            List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (parameters), "fetchBalance", false)).join();
+            List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (paramsStock), "fetchBalance", false)).join();
             uta = (Boolean) ((List<Object>) utaparamsUTAVariable).get(0);
             paramsUTA = (Map<String, Object>) ((List<Object>) utaparamsUTAVariable).get(1);
+            Boolean isStock = (java.util.Objects.equals(stock, true));
+            Boolean isStockOrUta = (Boolean.TRUE.equals(isStock) || (java.util.Objects.equals(uta, true)));
             Pair<String, Map<String, Object>> marketTypeparamsUTAVariable = this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, paramsUTA, (String) null);
             marketType = marketTypeparamsUTAVariable.first();
             paramsUTA = marketTypeparamsUTAVariable.second();
             Pair<String, Map<String, Object>> marginModeparamsUTAVariable = this.handleMarginModeAndParams("fetchBalance", paramsUTA, (String) null);
             marginMode = marginModeparamsUTAVariable.first();
             paramsUTA = marginModeparamsUTAVariable.second();
-            if (java.util.Objects.equals(uta, true))
+            if (Boolean.TRUE.equals(isStockOrUta))
             {
                 List<Object> assets = null;
                 if (java.util.Objects.equals(marketType, "funding"))
@@ -7621,6 +7768,7 @@ public class Bitget extends BitgetApi
      * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Place-Order
      * @see https://www.bitget.com/api-doc/uta/trade/Place-Order
      * @see https://www.bitget.com/api-doc/uta/strategy/Place-Strategy-Order
+     * @see https://www.bitget.com/api-doc/uta/reality/trade/Place-Reality-Order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -7650,6 +7798,7 @@ public class Bitget extends BitgetApi
      * @param {bool} [params.hedged] *swap and future only* true for hedged mode, false for one way mode, default is false
      * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true if you would like to place tokenized stock orders
      * @param {string} [params.posSide] *uta only* hedged two-way position side, long or short
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -7665,23 +7814,43 @@ public class Bitget extends BitgetApi
             Map<String, Object> market = this.market(symbol);
             List<Object> marginParams = (List<Object>) this.handleMarginModeAndParams("createOrder", parameters, (String) null);
             String marginMode = (String) ((List<Object>)marginParams).get(0);
-            Double triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice", (Object) null);
-            Double stopLossTriggerPrice = this.safeNumber(parameters, "stopLossPrice", (Object) null);
-            Double takeProfitTriggerPrice = this.safeNumber(parameters, "takeProfitPrice", (Object) null);
+            Boolean stockDefault = (Boolean) this.safeBool(market, "stock", false);
+            Pair<Boolean, Map<String, Object>> stockparamsStockVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "createOrder", "stock", stockDefault);
+            Boolean stock = stockparamsStockVariable.first();
+            Map<String, Object> paramsStock = stockparamsStockVariable.second();
+            Double triggerPrice = this.safeNumber2(paramsStock, "stopPrice", "triggerPrice", (Object) null);
+            Double stopLossTriggerPrice = this.safeNumber(paramsStock, "stopLossPrice", (Object) null);
+            Double takeProfitTriggerPrice = this.safeNumber(paramsStock, "takeProfitPrice", (Object) null);
+            Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(paramsStock, "stopLoss", (Object) null);
+            Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(paramsStock, "takeProfit", (Object) null);
             String trailingPercent = this.safeString2(parameters, "trailingPercent", "callbackRatio");
             Boolean isTrailingPercentOrder = !java.util.Objects.equals(trailingPercent, null);
             Boolean isTriggerOrder = !java.util.Objects.equals(triggerPrice, null);
             Boolean isStopLossTriggerOrder = !java.util.Objects.equals(stopLossTriggerPrice, null);
             Boolean isTakeProfitTriggerOrder = !java.util.Objects.equals(takeProfitTriggerPrice, null);
             Boolean isStopLossOrTakeProfitTrigger = Boolean.TRUE.equals(isStopLossTriggerOrder) || Boolean.TRUE.equals(isTakeProfitTriggerOrder);
+            Boolean hasStopLoss = !java.util.Objects.equals(stopLoss, null);
+            Boolean hasTakeProfit = !java.util.Objects.equals(takeProfit, null);
             Map<String, Object> response = null;
-            List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (parameters), "createOrder", false)).join();
+            List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (paramsStock), "createOrder", false)).join();
             Boolean uta = (Boolean) ((List<Object>) utaparamsUTAVariable).get(0);
             Map<String, Object> paramsUTA = (Map<String, Object>) ((List<Object>) utaparamsUTAVariable).get(1);
-            if (java.util.Objects.equals(uta, true))
+            Boolean isStock = (java.util.Objects.equals(stock, true));
+            Boolean isStockOrUta = (Boolean.TRUE.equals(isStock) || (java.util.Objects.equals(uta, true)));
+            if (Boolean.TRUE.equals(isStock))
+            {
+                if (Boolean.TRUE.equals(isTriggerOrder) || Boolean.TRUE.equals(isStopLossOrTakeProfitTrigger) || Boolean.TRUE.equals(hasStopLoss) || Boolean.TRUE.equals(hasTakeProfit) || Boolean.TRUE.equals(isTrailingPercentOrder))
+                {
+                    throw new InvalidOrder((this.id + " createOrder() only supports market and limit orders for tokenized stock markets")) ;
+                }
+            }
+            if (Boolean.TRUE.equals(isStockOrUta))
             {
                 Object request = this.createUtaOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, paramsUTA);
-                if (Boolean.TRUE.equals(isStopLossOrTakeProfitTrigger))
+                if (Boolean.TRUE.equals(isStock))
+                {
+                    response = (this.privateUtaPostV3TradePlaceRealityOrder(request)).join();
+                } else if (Boolean.TRUE.equals(isStopLossOrTakeProfitTrigger))
                 {
                     response = (this.privateUtaPostV3TradePlaceStrategyOrder(request)).join();
                 } else
@@ -8743,6 +8912,7 @@ public class Bitget extends BitgetApi
      * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Cancel-Order
      * @see https://www.bitget.com/api-doc/uta/trade/Cancel-Order
      * @see https://www.bitget.com/api-doc/uta/strategy/Cancel-Strategy-Order
+     * @see https://www.bitget.com/api-doc/uta/reality/trade/Cancel-Reality-Order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -8751,6 +8921,7 @@ public class Bitget extends BitgetApi
      * @param {string} [params.planType] *swap only* either profit_plan, loss_plan, normal_plan, pos_profit, pos_loss, moving_plan or track_plan
      * @param {boolean} [params.trailing] set to true if you want to cancel a trailing order
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true if you would like to cancel tokenized stock orders
      * @param {string} [params.clientOrderId] the clientOrderId of the order, id does not need to be provided if clientOrderId is provided
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -8774,6 +8945,11 @@ public class Bitget extends BitgetApi
             Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("cancelOrder", parameters, (String) null);
             marginMode = marginModeparamsMarginModeVariable.first();
             paramsMarginMode = marginModeparamsMarginModeVariable.second();
+            Boolean stockDefault = (Boolean) this.safeBool(market, "stock", false);
+            Boolean stock = null;
+            Pair<Boolean, Map<String, Object>> stockparamsMarginModeVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsMarginMode), "cancelOrder", "stock", stockDefault);
+            stock = stockparamsMarginModeVariable.first();
+            paramsMarginMode = stockparamsMarginModeVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Boolean trailing = (Boolean) this.safeBool(paramsMarginMode, "trailing", (Object) null);
             Boolean trigger = (Boolean) this.safeBool2(paramsMarginMode, "stop", "trigger", (Object) null);
@@ -8786,10 +8962,16 @@ public class Bitget extends BitgetApi
             List<Object> utaparamsMarginModeVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (paramsMarginMode), "cancelOrder", false)).join();
             uta = (Boolean) ((List<Object>) utaparamsMarginModeVariable).get(0);
             paramsMarginMode = ((List<Object>) utaparamsMarginModeVariable).get(1);
+            Boolean isStock = (java.util.Objects.equals(stock, true));
+            Boolean isStockOrUta = (Boolean.TRUE.equals(isStock) || (java.util.Objects.equals(uta, true)));
             Boolean isPlanOrder = (java.util.Objects.equals(trigger, true)) || (java.util.Objects.equals(trailing, true));
             Boolean isContract = (java.util.Objects.equals(market.get("swap"), true)) || (java.util.Objects.equals(market.get("future"), true));
-            Boolean isContractTriggerEndpoint = Boolean.TRUE.equals(isContract) && Boolean.TRUE.equals(isPlanOrder) && (!java.util.Objects.equals(uta, true));
+            Boolean isContractTriggerEndpoint = Boolean.TRUE.equals(isContract) && Boolean.TRUE.equals(isPlanOrder) && !Boolean.TRUE.equals(isStockOrUta);
             String clientOrderId = this.safeString2(paramsMarginMode, "clientOrderId", "clientOid");
+            if (Boolean.TRUE.equals(isStock) && Boolean.TRUE.equals(isPlanOrder))
+            {
+                throw new InvalidOrder((this.id + " cancelOrder() does not support trigger or trailing orders for tokenized stock markets")) ;
+            }
             if (Boolean.TRUE.equals(isContractTriggerEndpoint))
             {
                 List<Object> orderIdList = new ArrayList<Object>(Arrays.asList());
@@ -8815,7 +8997,10 @@ public class Bitget extends BitgetApi
                     request.put("orderId", id);
                 }
             }
-            if (java.util.Objects.equals(uta, true))
+            if (Boolean.TRUE.equals(isStock))
+            {
+                response = (this.privateUtaPostV3TradeCancelRealityOrder(this.extend(request, paramsMarginMode))).join();
+            } else if (Boolean.TRUE.equals(isStockOrUta))
             {
                 if (java.util.Objects.equals(trigger, true))
                 {
@@ -8869,7 +9054,7 @@ public class Bitget extends BitgetApi
                 throw new NotSupported((((this.id + " cancelOrder() does not support ") + market.get("type")) + " orders")) ;
             }
             //
-            // spot, swap, future and spot margin
+            // spot, swap, future, spot margin and tokenized stock
             //
             //     {
             //         "code": "00000",
@@ -8926,7 +9111,7 @@ public class Bitget extends BitgetApi
                 order = (Map<String, Object>) this.safeDict(orderInfo, 0, new HashMap<String, Object>() {{}});
             } else
             {
-                if ((java.util.Objects.equals(uta, true)) && (java.util.Objects.equals(trigger, true)))
+                if (Boolean.TRUE.equals(isStockOrUta) && (java.util.Objects.equals(trigger, true)))
                 {
                     order = response;
                 } else

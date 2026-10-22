@@ -416,18 +416,6 @@ func (this *Coinbase) Describe() any {
 						"brokerage/cfm/intraday/margin_setting": map[string]any{
 							"cost": 1,
 						},
-						"brokerage/intx/balances/{portfolio_uuid}": map[string]any{
-							"cost": 1,
-						},
-						"brokerage/intx/portfolio/{portfolio_uuid}": map[string]any{
-							"cost": 1,
-						},
-						"brokerage/intx/positions/{portfolio_uuid}": map[string]any{
-							"cost": 1,
-						},
-						"brokerage/intx/positions/{portfolio_uuid}/{symbol}": map[string]any{
-							"cost": 1,
-						},
 						"brokerage/payment_methods": map[string]any{
 							"cost": 1,
 						},
@@ -470,12 +458,6 @@ func (this *Coinbase) Describe() any {
 							"cost": 1,
 						},
 						"brokerage/cfm/intraday/margin_setting": map[string]any{
-							"cost": 1,
-						},
-						"brokerage/intx/allocate": map[string]any{
-							"cost": 1,
-						},
-						"brokerage/intx/multi_asset_collateral": map[string]any{
 							"cost": 1,
 						},
 						"brokerage/orders/close_position": map[string]any{
@@ -753,11 +735,11 @@ func (this *Coinbase) fetchAccountsBody(ch chan AsyncResult[any], optionalArgs .
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes58819 []any = ListTyped(r.Value)
-		if retRes58819 == nil {
+		var retRes58219 []any = ListTyped(r.Value)
+		if retRes58219 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes58819}
+			ch <- AsyncResult[any]{Value: retRes58219}
 		}
 		return nil
 	}
@@ -766,11 +748,11 @@ func (this *Coinbase) fetchAccountsBody(ch chan AsyncResult[any], optionalArgs .
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes59015 []any = ListTyped(r1.Value)
-	if retRes59015 == nil {
+	var retRes58415 []any = ListTyped(r1.Value)
+	if retRes58415 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes59015}
+		ch <- AsyncResult[any]{Value: retRes58415}
 	}
 	return nil
 }
@@ -798,11 +780,11 @@ func (this *Coinbase) fetchAccountsV2Body(ch chan AsyncResult[any], optionalArgs
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes59919 []any = ListTyped(r1.Value)
-		if retRes59919 == nil {
+		var retRes59319 []any = ListTyped(r1.Value)
+		if retRes59319 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes59919}
+			ch <- AsyncResult[any]{Value: retRes59319}
 		}
 		return nil
 	}
@@ -898,11 +880,11 @@ func (this *Coinbase) fetchAccountsV3Body(ch chan AsyncResult[any], optionalArgs
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes66919 []any = ListTyped(r1.Value)
-		if retRes66919 == nil {
+		var retRes66319 []any = ListTyped(r1.Value)
+		if retRes66319 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes66919}
+			ch <- AsyncResult[any]{Value: retRes66319}
 		}
 		return nil
 	}
@@ -1295,8 +1277,8 @@ func (this *Coinbase) fetchTransactionsWithMethodBody(ch chan AsyncResult[[]any]
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv1236 := r.Value
-	var requestparamsValueVariable []any = listRecv1236
+	listRecv1218 := r.Value
+	var requestparamsValueVariable []any = listRecv1218
 	var request map[string]any = MapTyped(requestparamsValueVariable[0])
 	var paramsValue map[string]any = MapTyped(requestparamsValueVariable[1])
 	if this.Markets == nil {
@@ -1380,11 +1362,11 @@ func (this *Coinbase) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArg
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes97215 []any = r1.Value
-	if retRes97215 == nil {
+	var retRes96615 []any = r1.Value
+	if retRes96615 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes97215}
+		ch <- AsyncResult[any]{Value: retRes96615}
 	}
 	return nil
 }
@@ -1435,11 +1417,11 @@ func (this *Coinbase) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs .
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes99415 []any = r1.Value
-	if retRes99415 == nil {
+	var retRes98815 []any = r1.Value
+	if retRes98815 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes99415}
+		ch <- AsyncResult[any]{Value: retRes98815}
 	}
 	return nil
 }
@@ -1822,6 +1804,10 @@ func (this *Coinbase) ParseTrade(trade any, optionalArgs ...any) Trade {
 	}
 	if (priceString != nil) && (amountString != nil) {
 		cost = Precise.StringMul(priceString, amountString)
+		var contractSize *string = this.SafeString(marketResolved, "contractSize")
+		if contractSize != nil {
+			cost = Precise.StringMul(cost, contractSize)
+		}
 	} else {
 		cost = costString
 	}
@@ -1899,12 +1885,12 @@ func (this *Coinbase) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ..
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		listRecv1797 := r1.Value
-		var retRes139219 []any = listRecv1797
-		if retRes139219 == nil {
+		listRecv1783 := r1.Value
+		var retRes139019 []any = listRecv1783
+		if retRes139019 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes139219}
+			ch <- AsyncResult[any]{Value: retRes139019}
 		}
 		return nil
 	}
@@ -1913,12 +1899,12 @@ func (this *Coinbase) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ..
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	listRecv1806 := r2.Value
-	var retRes139415 []any = listRecv1806
-	if retRes139415 == nil {
+	listRecv1792 := r2.Value
+	var retRes139215 []any = listRecv1792
+	if retRes139215 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes139415}
+		ch <- AsyncResult[any]{Value: retRes139215}
 	}
 	return nil
 }
@@ -2143,9 +2129,6 @@ func (this *Coinbase) fetchMarketsV3Body(ch chan EndpointResult[[]any], optional
 			// try block:
 			unresolvedContractPromises = []any{this.V3PublicGetBrokerageMarketProducts(this.Extend(paramsUsePrivate, map[string]any{
 				"product_type": "FUTURE",
-			})), this.V3PublicGetBrokerageMarketProducts(this.Extend(paramsUsePrivate, map[string]any{
-				"product_type":         "FUTURE",
-				"contract_expiry_type": "PERPETUAL",
 			}))}
 			return nil
 		}(this)
@@ -2497,6 +2480,9 @@ func (this *Coinbase) ParseContractMarket(market any, feeTier map[string]any) ma
 	//           }
 	//        }
 	//
+	// if (this.safeString (market, 'product_venue') === 'INTX') {
+	//     return undefined; // INTX perpetuals were retired from Advanced Trade on 2026-10-01, they trade via coinbaseinternational now
+	// }
 	var id *string = this.SafeString(market, "product_id")
 	var futureProductDetails map[string]any = SafeMapTyped(market, "future_product_details")
 	var contractExpiryType *string = this.SafeString(futureProductDetails, "contract_expiry_type")
@@ -2504,7 +2490,11 @@ func (this *Coinbase) ParseContractMarket(market any, feeTier map[string]any) ma
 	var contractExpire *string = this.SafeString(futureProductDetails, "contract_expiry")
 	var expireTimestamp *int64 = this.Parse8601(contractExpire)
 	var expireDateTime *string = this.Iso8601(expireTimestamp)
-	var isSwap bool = (contractExpiryType != nil && *contractExpiryType == "PERPETUAL")
+	// US perpetual-style futures are listed as EXPIRING with a placeholder expiry, a funding interval, and a PERP display name
+	var fundingInterval *string = this.SafeString(futureProductDetails, "funding_interval")
+	var displayName *string = this.SafeString(market, "display_name")
+	var isPerpetualDisplayName bool = (displayName != nil) && strings.HasSuffix(*displayName, "PERP")
+	var isSwap bool = (contractExpiryType != nil && *contractExpiryType == "PERPETUAL") || (fundingInterval != nil) || isPerpetualDisplayName
 	var baseId *string = this.SafeString(futureProductDetails, "contract_root_unit")
 	var quoteId *string = this.SafeString(market, "quote_currency_id")
 	var base *string = this.SafeCurrencyCode(baseId)
@@ -2544,31 +2534,41 @@ func (this *Coinbase) ParseContractMarket(market any, feeTier map[string]any) ma
 		return nil
 	}()
 	return this.SafeMarketStructure(map[string]any{
-		"id":             id,
-		"symbol":         symbol,
-		"base":           base,
-		"quote":          quote,
-		"settle":         quote,
-		"baseId":         baseId,
-		"quoteId":        quoteId,
-		"settleId":       quoteId,
-		"type":           typeVar,
-		"spot":           false,
-		"margin":         false,
-		"swap":           isSwap,
-		"future":         !isSwap,
-		"option":         false,
-		"active":         (tradingDisabled != true),
-		"contract":       true,
-		"linear":         true,
-		"inverse":        false,
-		"taker":          taker,
-		"maker":          maker,
-		"contractSize":   contractSize,
-		"expiry":         expireTimestamp,
-		"expiryDatetime": expireDateTime,
-		"strike":         nil,
-		"optionType":     nil,
+		"id":           id,
+		"symbol":       symbol,
+		"base":         base,
+		"quote":        quote,
+		"settle":       quote,
+		"baseId":       baseId,
+		"quoteId":      quoteId,
+		"settleId":     quoteId,
+		"type":         typeVar,
+		"spot":         false,
+		"margin":       false,
+		"swap":         isSwap,
+		"future":       !isSwap,
+		"option":       false,
+		"active":       (tradingDisabled != true),
+		"contract":     true,
+		"linear":       true,
+		"inverse":      false,
+		"taker":        taker,
+		"maker":        maker,
+		"contractSize": contractSize,
+		"expiry": func() any {
+			if isSwap {
+				return nil
+			}
+			return expireTimestamp
+		}(),
+		"expiryDatetime": func() any {
+			if isSwap {
+				return nil
+			}
+			return expireDateTime
+		}(),
+		"strike":     nil,
+		"optionType": nil,
 		"precision": map[string]any{
 			"amount": this.SafeNumber(market, "base_increment"),
 			"price":  this.SafeNumber2(market, "price_increment", "quote_increment"),
@@ -2843,11 +2843,11 @@ func (this *Coinbase) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ..
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes212619 map[string]any = r.Value
-		if retRes212619 == nil {
+		var retRes213219 map[string]any = r.Value
+		if retRes213219 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes212619}
+			ch <- AsyncResult[any]{Value: retRes213219}
 		}
 		return nil
 	}
@@ -2856,11 +2856,11 @@ func (this *Coinbase) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ..
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes212815 map[string]any = r1.Value
-	if retRes212815 == nil {
+	var retRes213415 map[string]any = r1.Value
+	if retRes213415 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes212815}
+		ch <- AsyncResult[any]{Value: retRes213415}
 	}
 	return nil
 }
@@ -3061,11 +3061,11 @@ func (this *Coinbase) fetchTickerBody(ch chan AsyncResult[map[string]any], symbo
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes225219 map[string]any = r.Value
-		if retRes225219 == nil {
+		var retRes225819 map[string]any = r.Value
+		if retRes225819 == nil {
 			ch <- AsyncResult[map[string]any]{Value: nil}
 		} else {
-			ch <- AsyncResult[map[string]any]{Value: retRes225219}
+			ch <- AsyncResult[map[string]any]{Value: retRes225819}
 		}
 		return nil
 	}
@@ -3074,11 +3074,11 @@ func (this *Coinbase) fetchTickerBody(ch chan AsyncResult[map[string]any], symbo
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes225415 map[string]any = r1.Value
-	if retRes225415 == nil {
+	var retRes226015 map[string]any = r1.Value
+	if retRes226015 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes225415}
+		ch <- AsyncResult[map[string]any]{Value: retRes226015}
 	}
 	return nil
 }
@@ -3346,6 +3346,35 @@ func (this *Coinbase) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 func (this *Coinbase) ParseCustomBalance(response any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
+	var summary map[string]any = SafeMapTyped(response, "balance_summary")
+	var totalUsdBalanceData map[string]any = SafeMapTyped(summary, "total_usd_balance")
+	var futuresBuyingPowerData map[string]any = SafeMapTyped(summary, "futures_buying_power")
+	var totalUsdBalance *string = this.SafeString(totalUsdBalanceData, "value")
+	var futuresBuyingPower *string = this.SafeString(futuresBuyingPowerData, "value")
+	if (totalUsdBalance != nil) || (futuresBuyingPower != nil) {
+		var total any = func() any {
+			if totalUsdBalance != nil {
+				return totalUsdBalance
+			}
+			return futuresBuyingPower
+		}()
+		var free any = func() any {
+			if futuresBuyingPower != nil {
+				return futuresBuyingPower
+			}
+			return total
+		}()
+		var used *string = Precise.StringSub(total, free)
+		var balanceResult map[string]any = map[string]any{
+			"info": response,
+		}
+		balanceResult["USD"] = map[string]any{
+			"free":  free,
+			"used":  used,
+			"total": total,
+		}
+		return this.SafeBalance(balanceResult)
+	}
 	var balances []any = SafeList2Typed(response, "data", "accounts")
 	var accounts any = this.SafeList(params, "type", GetValue(this.Options, "accounts"))
 	var v3Accounts any = this.SafeList(params, "type", GetValue(this.Options, "v3Accounts"))
@@ -3410,7 +3439,7 @@ func (this *Coinbase) ParseCustomBalance(response any, optionalArgs ...any) any 
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/accounts/list-accounts
  * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/accounts
- * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/get-futures-balance-summary
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/futures/get-futures-balance-summary
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.v3] default false, set true to use v3 api endpoint
  * @param {string} [params.type] "spot" (default) or "swap" or "future"
@@ -3440,7 +3469,7 @@ func (this *Coinbase) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ..
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"v3"})
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchBalance", nil, paramsOmitted)
 	var method *string = this.SafeString(this.Options, "fetchBalance", "v3PrivateGetBrokerageAccounts")
-	if marketType != nil && *marketType == "future" {
+	if (marketType != nil && *marketType == "future") || (marketType != nil && *marketType == "swap") {
 
 		r1 := <-this.V3PrivateGetBrokerageCfmBalanceSummary(this.Extend(request, paramsMarketType))
 		if r1.Err != nil {
@@ -3609,11 +3638,11 @@ func (this *Coinbase) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes266119 []any = ListTyped(r1.Value)
-		if retRes266119 == nil {
+		var retRes268419 []any = ListTyped(r1.Value)
+		if retRes268419 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes266119}
+			ch <- AsyncResult[any]{Value: retRes268419}
 		}
 		return nil
 	}
@@ -3625,8 +3654,8 @@ func (this *Coinbase) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	listRecv3406 := r2.Value
-	var requestparamsValueVariable []any = listRecv3406
+	listRecv3435 := r2.Value
+	var requestparamsValueVariable []any = listRecv3435
 	var request map[string]any = MapTyped(requestparamsValueVariable[0])
 	var paramsValue map[string]any = MapTyped(requestparamsValueVariable[1])
 	// for pagination use parameter 'starting_after'
@@ -4123,11 +4152,11 @@ func (this *Coinbase) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any],
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes308915 map[string]any = r1.Value
-	if retRes308915 == nil {
+	var retRes311215 map[string]any = r1.Value
+	if retRes311215 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes308915}
+		ch <- AsyncResult[any]{Value: retRes311215}
 	}
 	return nil
 }
@@ -4196,11 +4225,11 @@ func (this *Coinbase) createOrderBody(ch chan AsyncResult[map[string]any], symbo
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes313619 map[string]any = MapTyped(r1.Value)
-		if retRes313619 == nil {
+		var retRes315919 map[string]any = MapTyped(r1.Value)
+		if retRes315919 == nil {
 			ch <- AsyncResult[map[string]any]{Value: nil}
 		} else {
-			ch <- AsyncResult[map[string]any]{Value: retRes313619}
+			ch <- AsyncResult[map[string]any]{Value: retRes315919}
 		}
 		return nil
 	}
@@ -4940,11 +4969,11 @@ func (this *Coinbase) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes371019 []any = ListTyped(r1.Value)
-		if retRes371019 == nil {
+		var retRes373319 []any = ListTyped(r1.Value)
+		if retRes373319 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes371019}
+			ch <- AsyncResult[any]{Value: retRes373319}
 		}
 		return nil
 	}
@@ -5187,11 +5216,11 @@ func (this *Coinbase) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes388019 []any = ListTyped(r1.Value)
-		if retRes388019 == nil {
+		var retRes390319 []any = ListTyped(r1.Value)
+		if retRes390319 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes388019}
+			ch <- AsyncResult[any]{Value: retRes390319}
 		}
 		return nil
 	}
@@ -5200,11 +5229,11 @@ func (this *Coinbase) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var retRes388215 []any = r2.Value
-	if retRes388215 == nil {
+	var retRes390515 []any = r2.Value
+	if retRes390515 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes388215}
+		ch <- AsyncResult[any]{Value: retRes390515}
 	}
 	return nil
 }
@@ -5252,11 +5281,11 @@ func (this *Coinbase) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes390419 []any = ListTyped(r1.Value)
-		if retRes390419 == nil {
+		var retRes392719 []any = ListTyped(r1.Value)
+		if retRes392719 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes390419}
+			ch <- AsyncResult[any]{Value: retRes392719}
 		}
 		return nil
 	}
@@ -5265,11 +5294,11 @@ func (this *Coinbase) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalAr
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var retRes390615 []any = r2.Value
-	if retRes390615 == nil {
+	var retRes392915 []any = r2.Value
+	if retRes392915 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes390615}
+		ch <- AsyncResult[any]{Value: retRes392915}
 	}
 	return nil
 }
@@ -5306,11 +5335,11 @@ func (this *Coinbase) fetchCanceledOrdersBody(ch chan AsyncResult[[]any], option
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes392115 []any = r.Value
-	if retRes392115 == nil {
+	var retRes394415 []any = r.Value
+	if retRes394415 == nil {
 		ch <- AsyncResult[[]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]any]{Value: retRes392115}
+		ch <- AsyncResult[[]any]{Value: retRes394415}
 	}
 	return nil
 }
@@ -5368,11 +5397,11 @@ func (this *Coinbase) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, op
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes394819 []any = ListTyped(r1.Value)
-		if retRes394819 == nil {
+		var retRes397119 []any = ListTyped(r1.Value)
+		if retRes397119 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes394819}
+			ch <- AsyncResult[any]{Value: retRes397119}
 		}
 		return nil
 	}
@@ -5587,11 +5616,11 @@ func (this *Coinbase) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs .
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes410019 []any = ListTyped(r1.Value)
-		if retRes410019 == nil {
+		var retRes412319 []any = ListTyped(r1.Value)
+		if retRes412319 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes410019}
+			ch <- AsyncResult[any]{Value: retRes412319}
 		}
 		return nil
 	}
@@ -5970,8 +5999,8 @@ func (this *Coinbase) fetchDepositAddressesByNetworkBody(ch chan EndpointResult[
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv5567 := r1.Value
-	var requestparamsValueVariable []any = listRecv5567
+	listRecv5596 := r1.Value
+	var requestparamsValueVariable []any = listRecv5596
 	var request map[string]any = MapTyped(requestparamsValueVariable[0])
 	var paramsValue map[string]any = MapTyped(requestparamsValueVariable[1])
 
@@ -6779,11 +6808,9 @@ func (this *Coinbase) closePositionBody(ch chan AsyncResult[any], symbol string,
  * @method
  * @name coinbase#fetchPositions
  * @description fetch all open positions
- * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/list-futures-positions
- * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/international-derivatives/list-perpetuals-positions
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/futures/list-futures-positions
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.portfolio] the portfolio UUID to fetch positions for
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Coinbase) FetchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
@@ -6798,6 +6825,7 @@ func (this *Coinbase) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs 
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
+	this.CheckIntxPortfolioParam("fetchPositions", params)
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -6806,39 +6834,28 @@ func (this *Coinbase) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs 
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	var market map[string]any = nil
-	if symbolsNormalized != nil {
-		market = this.Market(func() any {
-			if 0 >= 0 && 0 < len(symbolsNormalized) {
-				return symbolsNormalized[0]
-			}
-			return nil
-		}())
-	}
-	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchPositions", market, params)
-	var response map[string]any = nil
-	if marketType != nil && *marketType == "future" {
 
-		r1 := <-this.V3PrivateGetBrokerageCfmPositions(paramsMarketType)
-		if r1.Err != nil {
-			panic(r1.Err)
-		}
-		response = r1.Value
-	} else {
-		portfolio, paramsPortfolio := this.HandleOptionStringAndParams(paramsMarketType, "fetchPositions", "portfolio")
-		if portfolio == nil {
-			panic(ArgumentsRequired(this.Id + " fetchPositions() requires a \"portfolio\" value in params (eg: dbcb91e7-2bc9-515), or set as exchange.options[\"portfolio\"]. You can get a list of portfolios with fetchPortfolios()"))
-		}
-		var request map[string]any = map[string]any{
-			"portfolio_uuid": portfolio,
-		}
-
-		r2 := <-this.V3PrivateGetBrokerageIntxPositionsPortfolioUuid(this.Extend(request, paramsPortfolio))
-		if r2.Err != nil {
-			panic(r2.Err)
-		}
-		response = r2.Value
+	r1 := <-this.V3PrivateGetBrokerageCfmPositions(params)
+	if r1.Err != nil {
+		panic(r1.Err)
 	}
+	var response map[string]any = r1.Value
+	//
+	//     {
+	//         "positions": [
+	//             {
+	//                 "product_id": "BIT-26APR24-CDE",
+	//                 "expiration_time": "2024-04-26T15:00:00Z",
+	//                 "side": "LONG",
+	//                 "number_of_contracts": "2",
+	//                 "current_price": "71145",
+	//                 "avg_entry_price": "70980",
+	//                 "unrealized_pnl": "33",
+	//                 "daily_realized_pnl": "0"
+	//             }
+	//         ]
+	//     }
+	//
 	var positions []any = SafeListTypedDefault(response, "positions", []any{})
 
 	ch <- AsyncResult[any]{Value: this.ParsePositions(positions, symbolsNormalized)}
@@ -6849,12 +6866,9 @@ func (this *Coinbase) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs 
  * @method
  * @name coinbase#fetchPosition
  * @description fetch data on a single open contract trade position
- * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/international-derivatives/get-perpetuals-position
- * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/get-futures-position
- * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/futures/get-futures-position
+ * @param {string} symbol unified market symbol of the market the position is held in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.product_id] *futures only* the product id of the position to fetch, required for futures markets only
- * @param {string} [params.portfolio] *perpetual/swaps only* the portfolio UUID to fetch the position for, required for perpetual/swaps markets only
  * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Coinbase) FetchPositionAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
@@ -6867,6 +6881,7 @@ func (this *Coinbase) fetchPositionBody(ch chan AsyncResult[any], symbol any, op
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
+	this.CheckIntxPortfolioParam("fetchPosition", params)
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -6875,171 +6890,72 @@ func (this *Coinbase) fetchPositionBody(ch chan AsyncResult[any], symbol any, op
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var response map[string]any = nil
-	if market["future"] == true {
-		var productId *string = this.SafeString(market, "product_id")
-		if productId == nil {
-			panic(ArgumentsRequired(this.Id + " fetchPosition() requires a \"product_id\" in params"))
-		}
-		var futureRequest map[string]any = map[string]any{
-			"product_id": productId,
-		}
-
-		r1 := <-this.V3PrivateGetBrokerageCfmPositionsProductId(this.Extend(futureRequest, params))
-		if r1.Err != nil {
-			panic(r1.Err)
-		}
-		response = r1.Value
-	} else {
-		portfolio, paramsPortfolio := this.HandleOptionStringAndParams(params, "fetchPositions", "portfolio")
-		if portfolio == nil {
-			panic(ArgumentsRequired(this.Id + " fetchPosition() requires a \"portfolio\" value in params (eg: dbcb91e7-2bc9-515), or set as exchange.options[\"portfolio\"]. You can get a list of portfolios with fetchPortfolios()"))
-		}
-		var request map[string]any = map[string]any{
-			"symbol":         market["id"],
-			"portfolio_uuid": portfolio,
-		}
-
-		r2 := <-this.V3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol(this.Extend(request, paramsPortfolio))
-		if r2.Err != nil {
-			panic(r2.Err)
-		}
-		response = r2.Value
+	var request map[string]any = map[string]any{
+		"product_id": market["id"],
 	}
+
+	r1 := <-this.V3PrivateGetBrokerageCfmPositionsProductId(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
 	var position map[string]any = this.SafeDictMap(response, "position", map[string]any{})
 
 	ch <- AsyncResult[any]{Value: this.ParsePosition(position, market)}
 	return nil
 }
+
+/**
+ * @ignore
+ * @method
+ * @description throws a NotSupported error pointing to coinbaseinternational when an INTX perpetuals portfolio is requested
+ * @param {string} methodName the name of the calling method
+ * @param {object} params the parameters passed to the calling method
+ */
+func (this *Coinbase) CheckIntxPortfolioParam(methodName string, params any) {
+	var portfolio *string = this.SafeString(params, "portfolio")
+	if portfolio != nil {
+		panic(NotSupported(this.Id + " " + methodName + "() INTX perpetuals were removed from Coinbase Advanced Trade on 2026-10-01, use the coinbaseinternational exchange class for international perpetuals"))
+	}
+}
 func (this *Coinbase) ParsePosition(position any, optionalArgs ...any) any {
 	//
-	// {
-	//     "product_id": "1r4njf84-0-0",
-	//     "product_uuid": "cd34c18b-3665-4ed8-9305-3db277c49fc5",
-	//     "symbol": "ADA-PERP-INTX",
-	//     "vwap": {
-	//        "value": "0.6171",
-	//        "currency": "USDC"
-	//     },
-	//     "position_side": "POSITION_SIDE_LONG",
-	//     "net_size": "20",
-	//     "buy_order_size": "0",
-	//     "sell_order_size": "0",
-	//     "im_contribution": "0.1",
-	//     "unrealized_pnl": {
-	//        "value": "0.074",
-	//        "currency": "USDC"
-	//     },
-	//     "mark_price": {
-	//        "value": "0.6208",
-	//        "currency": "USDC"
-	//     },
-	//     "liquidation_price": {
-	//        "value": "0",
-	//        "currency": "USDC"
-	//     },
-	//     "leverage": "1",
-	//     "im_notional": {
-	//        "value": "12.342",
-	//        "currency": "USDC"
-	//     },
-	//     "mm_notional": {
-	//        "value": "0.814572",
-	//        "currency": "USDC"
-	//     },
-	//     "position_notional": {
-	//        "value": "12.342",
-	//        "currency": "USDC"
-	//     },
-	//     "margin_type": "MARGIN_TYPE_CROSS",
-	//     "liquidation_buffer": "19.677828",
-	//     "liquidation_percentage": "4689.3506",
-	//     "portfolio_summary": {
-	//        "portfolio_uuid": "018ebd63-1f6d-7c8e-ada9-0761c5a2235f",
-	//        "collateral": "20.4184",
-	//        "position_notional": "12.342",
-	//        "open_position_notional": "12.342",
-	//        "pending_fees": "0",
-	//        "borrow": "0",
-	//        "accrued_interest": "0",
-	//        "rolling_debt": "0",
-	//        "portfolio_initial_margin": "0.1",
-	//        "portfolio_im_notional": {
-	//           "value": "12.342",
-	//           "currency": "USDC"
-	//        },
-	//        "portfolio_maintenance_margin": "0.066",
-	//        "portfolio_mm_notional": {
-	//           "value": "0.814572",
-	//           "currency": "USDC"
-	//        },
-	//        "liquidation_percentage": "4689.3506",
-	//        "liquidation_buffer": "19.677828",
-	//        "margin_type": "MARGIN_TYPE_CROSS",
-	//        "margin_flags": "PORTFOLIO_MARGIN_FLAGS_UNSPECIFIED",
-	//        "liquidation_status": "PORTFOLIO_LIQUIDATION_STATUS_NOT_LIQUIDATING",
-	//        "unrealized_pnl": {
-	//           "value": "0.074",
-	//           "currency": "USDC"
-	//        },
-	//        "buying_power": {
-	//           "value": "8.1504",
-	//           "currency": "USDC"
-	//        },
-	//        "total_balance": {
-	//           "value": "20.4924",
-	//           "currency": "USDC"
-	//        },
-	//        "max_withdrawal": {
-	//           "value": "8.0764",
-	//           "currency": "USDC"
-	//        }
-	//     },
-	//     "entry_vwap": {
-	//        "value": "0.6091",
-	//        "currency": "USDC"
+	//     {
+	//         "product_id": "BIT-26APR24-CDE",
+	//         "expiration_time": "2024-04-26T15:00:00Z",
+	//         "side": "LONG",
+	//         "number_of_contracts": "2",
+	//         "current_price": "71145",
+	//         "avg_entry_price": "70980",
+	//         "unrealized_pnl": "33",
+	//         "daily_realized_pnl": "0"
 	//     }
-	// }
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var marketId *string = this.SafeString(position, "symbol", "")
+	var marketId *string = this.SafeString(position, "product_id")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var rawMargin *string = this.SafeString(position, "margin_type")
-	var marginMode *string = nil
-	if rawMargin != nil {
-		marginMode = SafeStringPtr(func() string {
-			if rawMargin != nil && *rawMargin == "MARGIN_TYPE_CROSS" {
-				return "cross"
-			}
-			return "isolated"
-		}())
+	var rawSide *string = this.SafeString(position, "side")
+	var side *string = nil
+	if rawSide != nil && *rawSide == "LONG" {
+		side = SafeStringPtr("long")
+	} else if rawSide != nil && *rawSide == "SHORT" {
+		side = SafeStringPtr("short")
 	}
-	var notionalObject map[string]any = SafeMapTyped(position, "position_notional")
-	var positionSide *string = this.SafeString(position, "position_side")
-	var side string = "short"
-	if positionSide != nil && *positionSide == "POSITION_SIDE_LONG" {
-		side = "long"
-	}
-	var unrealizedPNLObject map[string]any = SafeMapTyped(position, "unrealized_pnl")
-	var liquidationPriceObject map[string]any = SafeMapTyped(position, "liquidation_price")
-	var liquidationPrice *float64 = this.SafeNumber(liquidationPriceObject, "value")
-	var vwapObject map[string]any = SafeMapTyped(position, "vwap")
-	var summaryObject map[string]any = SafeMapTyped(position, "portfolio_summary")
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          this.SafeString(position, "product_id"),
 		"symbol":                      this.SafeSymbol(marketId, marketResolved),
-		"notional":                    this.SafeNumber(notionalObject, "value"),
-		"marginMode":                  marginMode,
-		"liquidationPrice":            liquidationPrice,
-		"entryPrice":                  this.SafeNumber(vwapObject, "value"),
-		"unrealizedPnl":               this.SafeNumber(unrealizedPNLObject, "value"),
-		"realizedPnl":                 nil,
+		"notional":                    nil,
+		"marginMode":                  nil,
+		"liquidationPrice":            nil,
+		"entryPrice":                  this.SafeNumber(position, "avg_entry_price"),
+		"unrealizedPnl":               this.SafeNumber(position, "unrealized_pnl"),
+		"realizedPnl":                 this.SafeNumber(position, "daily_realized_pnl"),
 		"percentage":                  nil,
-		"contracts":                   this.SafeNumber(position, "net_size"),
+		"contracts":                   this.SafeNumber(position, "number_of_contracts"),
 		"contractSize":                marketResolved["contractSize"],
-		"markPrice":                   nil,
+		"markPrice":                   this.SafeNumber(position, "current_price"),
 		"lastPrice":                   nil,
 		"side":                        side,
 		"hedged":                      nil,
@@ -7048,10 +6964,10 @@ func (this *Coinbase) ParsePosition(position any, optionalArgs ...any) any {
 		"lastUpdateTimestamp":         nil,
 		"maintenanceMargin":           nil,
 		"maintenanceMarginPercentage": nil,
-		"collateral":                  this.SafeNumber(summaryObject, "collateral"),
+		"collateral":                  nil,
 		"initialMargin":               nil,
 		"initialMarginPercentage":     nil,
-		"leverage":                    this.SafeNumber(position, "leverage"),
+		"leverage":                    nil,
 		"marginRatio":                 nil,
 		"stopLossPrice":               nil,
 		"takeProfitPrice":             nil,
@@ -7989,7 +7905,7 @@ func (this *Coinbase) FetchTickerV3(symbol string, options ...FetchTickerV3Optio
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/accounts/list-accounts
  * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/accounts
- * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/get-futures-balance-summary
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/futures/get-futures-balance-summary
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.v3] default false, set true to use v3 api endpoint
  * @param {string} [params.type] "spot" (default) or "swap" or "future"
@@ -8691,11 +8607,9 @@ func (this *Coinbase) Transfer(code string, amount float64, fromAccount string, 
  * @method
  * @name coinbase#fetchPositions
  * @description fetch all open positions
- * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/list-futures-positions
- * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/international-derivatives/list-perpetuals-positions
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/futures/list-futures-positions
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.portfolio] the portfolio UUID to fetch positions for
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Coinbase) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -8717,12 +8631,9 @@ func (this *Coinbase) FetchPositions(options ...FetchPositionsOptions) ([]Positi
  * @method
  * @name coinbase#fetchPosition
  * @description fetch data on a single open contract trade position
- * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/international-derivatives/get-perpetuals-position
- * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/get-futures-position
- * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/futures/get-futures-position
+ * @param {string} symbol unified market symbol of the market the position is held in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.product_id] *futures only* the product id of the position to fetch, required for futures markets only
- * @param {string} [params.portfolio] *perpetual/swaps only* the portfolio UUID to fetch the position for, required for perpetual/swaps markets only
  * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Coinbase) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
