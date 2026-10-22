@@ -274835,7 +274835,7 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
         }
         const market = this.market(symbol);
         const request = {
-            'symbol': market['id']
+            'instId': market['id']
         };
         const response = await this.publicGetMarketMarkPrice(this.extend(request, params));
         const data = this.safeList(response, 'data', []);
