@@ -92,7 +92,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 put( "checksum", false );
             }})).join();
             Boolean checksum = (Boolean) this.safeBool(this.options, "checksum", true);
-            if ((java.util.Objects.equals(checksum, true)) && (java.util.Objects.equals(channel, "book")))
+            if (Boolean.TRUE.equals(checksum) && (java.util.Objects.equals(channel, "book")))
             {
                 Object sub = Helpers.GetValue(client.subscriptions, messageHash);
                 if ((!java.util.Objects.equals(sub, null)) && (!java.util.Objects.equals(Helpers.GetValue(sub, "checksum"), true)))

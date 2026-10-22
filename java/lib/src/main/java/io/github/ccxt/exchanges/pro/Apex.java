@@ -1169,7 +1169,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
                 throw new ExchangeError(feedback) ;
             }
             Boolean success = (Boolean) this.safeBool(message, "success", (Object) null);
-            if ((!java.util.Objects.equals(success, null)) && (!java.util.Objects.equals(success, true)))
+            if ((!java.util.Objects.equals(success, null)) && (!Boolean.TRUE.equals(success)))
             {
                 String ret_msg = this.safeString(message, "ret_msg");
                 Map<String, Object> request = (Map<String, Object>) this.safeDict(message, "request", new HashMap<String, Object>() {{}});

@@ -1225,7 +1225,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         if (!java.util.Objects.equals(isCancelled, null))
         {
             unparsedOrder = this.safeValue(order, "order");
-            if (java.util.Objects.equals(isCancelled, true))
+            if (Boolean.TRUE.equals(isCancelled))
             {
                 status = "cancelled";
             }

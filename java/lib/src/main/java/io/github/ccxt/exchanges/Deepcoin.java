@@ -906,9 +906,9 @@ public class Deepcoin extends DeepcoinApi
                 request.put("after", until);
             }
             Boolean calculateUntil = (Boolean) this.safeBool(paramsPaginate, "calculateUntil", false);
-            List<Object> keysToOmit = (((java.util.Objects.equals(calculateUntil, true)))) ? new ArrayList<Object>(Arrays.asList("price", "until", "calculateUntil")) : new ArrayList<Object>(Arrays.asList("price", "until"));
+            List<Object> keysToOmit = ((Boolean.TRUE.equals(calculateUntil))) ? new ArrayList<Object>(Arrays.asList("price", "until", "calculateUntil")) : new ArrayList<Object>(Arrays.asList("price", "until"));
             Map<String, Object> paramsOmitted = this.omit(paramsPaginate, keysToOmit);
-            if (java.util.Objects.equals(calculateUntil, true))
+            if (Boolean.TRUE.equals(calculateUntil))
             {
                 if (!java.util.Objects.equals(since, null))
                 {
@@ -1791,7 +1791,7 @@ public class Deepcoin extends DeepcoinApi
             Object transfer = this.parseTransfer(data, currency);
             Map<String, Object> transferOptions = (Map<String, Object>) this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
             Boolean fillResponseFromRequest = (Boolean) this.safeBool(transferOptions, "fillResponseFromRequest", true);
-            if (java.util.Objects.equals(fillResponseFromRequest, true))
+            if (Boolean.TRUE.equals(fillResponseFromRequest))
             {
                 ((Map<String, Object>)transfer).put("fromAccount", fromAccount);
                 ((Map<String, Object>)transfer).put("toAccount", toAccount);
@@ -2045,7 +2045,7 @@ public class Deepcoin extends DeepcoinApi
             request.put("mrgPosition", mrgPosition);
             String posSide = null;
             Boolean reduceOnly = (Boolean) this.safeBool(paramsMrgPosition, "reduceOnly", false);
-            if (java.util.Objects.equals(reduceOnly, true))
+            if (Boolean.TRUE.equals(reduceOnly))
             {
                 if (java.util.Objects.equals(side, "buy"))
                 {
@@ -2135,7 +2135,7 @@ public class Deepcoin extends DeepcoinApi
         request.put("tdMode", marginModeOption);
         if (java.util.Objects.equals(market.get("swap"), true))
         {
-            if (java.util.Objects.equals(reduceOnly, true))
+            if (Boolean.TRUE.equals(reduceOnly))
             {
                 if (java.util.Objects.equals(side, "buy"))
                 {
@@ -2426,7 +2426,7 @@ public class Deepcoin extends DeepcoinApi
                 request.put("limit", limit); // default 100
             }
             Map<String, Object> response = null;
-            if (java.util.Objects.equals(trigger, true))
+            if (Boolean.TRUE.equals(trigger))
             {
                 if (!java.util.Objects.equals(methodName, "fetchCanceledAndClosedOrders"))
                 {
@@ -2620,7 +2620,7 @@ public class Deepcoin extends DeepcoinApi
             Boolean trigger = (Boolean) this.safeBool(parameters, "trigger", false);
             Map<String, Object> paramsOmitted = this.omit(parameters, "trigger");
             Map<String, Object> response = null;
-            if (java.util.Objects.equals(trigger, true))
+            if (Boolean.TRUE.equals(trigger))
             {
                 request.put("instType", this.convertToInstrumentType((String) (market.get("type"))));
                 //
@@ -2745,7 +2745,7 @@ public class Deepcoin extends DeepcoinApi
             }};
             Map<String, Object> response = null;
             Boolean trigger = (Boolean) this.safeBool(parameters, "trigger", false);
-            if (java.util.Objects.equals(trigger, true))
+            if (Boolean.TRUE.equals(trigger))
             {
                 Map<String, Object> paramsOmitted = this.omit(parameters, "trigger");
                 response = (this.privatePostDeepcoinTradeCancelTriggerOrder(this.extend(request, paramsOmitted))).join();

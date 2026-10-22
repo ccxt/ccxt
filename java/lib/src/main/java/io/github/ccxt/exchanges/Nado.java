@@ -1975,7 +1975,7 @@ public class Nado extends NadoApi
                     Boolean previousWithdraw = (Boolean) this.safeBool(previous, "can_withdraw", false);
                     Boolean currentDeposit = (Boolean) this.safeBool(rawAsset, "can_deposit", false);
                     Boolean currentWithdraw = (Boolean) this.safeBool(rawAsset, "can_withdraw", false);
-                    if ((!java.util.Objects.equals(previousDeposit, true)) && (!java.util.Objects.equals(previousWithdraw, true)) && ((java.util.Objects.equals(currentDeposit, true)) || (java.util.Objects.equals(currentWithdraw, true))))
+                    if ((!Boolean.TRUE.equals(previousDeposit)) && (!Boolean.TRUE.equals(previousWithdraw)) && (Boolean.TRUE.equals(currentDeposit) || Boolean.TRUE.equals(currentWithdraw)))
                     {
                         assetsByCode.put(assetCode, rawAsset);
                     }
@@ -2122,7 +2122,7 @@ public class Nado extends NadoApi
                 {
                     Boolean previousDeposit = (Boolean) this.safeBool(previous, "deposit", false);
                     Boolean previousWithdraw = (Boolean) this.safeBool(previous, "withdraw", false);
-                    if ((!java.util.Objects.equals(previousDeposit, true)) && (!java.util.Objects.equals(previousWithdraw, true)) && ((java.util.Objects.equals(canDeposit, true)) || (java.util.Objects.equals(canWithdraw, true))))
+                    if ((!Boolean.TRUE.equals(previousDeposit)) && (!Boolean.TRUE.equals(previousWithdraw)) && (Boolean.TRUE.equals(canDeposit) || Boolean.TRUE.equals(canWithdraw)))
                     {
                         result.put(code, parsed);
                     }
@@ -3435,19 +3435,19 @@ public class Nado extends NadoApi
         {
             appendix = Precise.stringAdd(appendix, Precise.stringMul(this.numberToString(orderType), "512"));
         }
-        if (java.util.Objects.equals(reduceOnly, true))
+        if (Boolean.TRUE.equals(reduceOnly))
         {
             appendix = Precise.stringAdd(appendix, "2048");
         }
         Boolean buildFee = (Boolean) this.safeBool(this.options, "builderFee", true);
-        if (java.util.Objects.equals(buildFee, true))
+        if (Boolean.TRUE.equals(buildFee))
         {
             String builder = this.safeString(this.options, "builder", "4500");
             String builderFeeRate = this.safeString(this.options, "feeRate", "10"); // 10 units = 0.01%
             appendix = Precise.stringAdd(appendix, Precise.stringMul(builder, "281474976710656")); // 1<<48
             appendix = Precise.stringAdd(appendix, Precise.stringMul(builderFeeRate, "274877906944")); // 1<<32
         }
-        if (java.util.Objects.equals(isTriggerOrder, true))
+        if (Helpers.isTrue(isTriggerOrder))
         {
             appendix = Precise.stringAdd(appendix, "4096");
         }

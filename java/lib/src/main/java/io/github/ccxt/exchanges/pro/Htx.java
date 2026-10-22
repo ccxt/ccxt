@@ -893,13 +893,13 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         }
         Boolean spotConditon = (java.util.Objects.equals(market.get("spot"), true)) && (Helpers.isEqual(prevSeqNum, (orderbook == null ? null : orderbook.get("nonce"))));
         Boolean nonSpotCondition = (java.util.Objects.equals(market.get("contract"), true)) && (!java.util.Objects.equals(version, null)) && (Helpers.isEqual((version - 1L), (orderbook == null ? null : orderbook.get("nonce"))));
-        if ((java.util.Objects.equals(spotConditon, true)) || (java.util.Objects.equals(nonSpotCondition, true)))
+        if (Boolean.TRUE.equals(spotConditon) || Boolean.TRUE.equals(nonSpotCondition))
         {
             List<Object> asks = (List<Object>) this.safeList(tick, "asks", new ArrayList<Object>(Arrays.asList()));
             List<Object> bids = (List<Object>) this.safeList(tick, "bids", new ArrayList<Object>(Arrays.asList()));
             this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), asks);
             this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), bids);
-            orderbook.put("nonce", (((java.util.Objects.equals(spotConditon, true)))) ? seqNum : version);
+            orderbook.put("nonce", ((Boolean.TRUE.equals(spotConditon))) ? seqNum : version);
             orderbook.put("timestamp", timestamp);
             orderbook.put("datetime", this.iso8601(timestamp));
         }
@@ -1800,7 +1800,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         String takerOrMaker = null;
         if (!java.util.Objects.equals(aggressor, null))
         {
-            takerOrMaker = (((java.util.Objects.equals(aggressor, true)))) ? "taker" : "maker";
+            takerOrMaker = ((Boolean.TRUE.equals(aggressor))) ? "taker" : "maker";
         }
         HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
         mapLiteral3.put("info", trade);
@@ -2122,7 +2122,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 messageHash = prefix;
                 if (java.util.Objects.equals(subType, "linear"))
                 {
-                    if (java.util.Objects.equals(isUnifiedAccount, true))
+                    if (Boolean.TRUE.equals(isUnifiedAccount))
                     {
                         // usdt contracts account
                         prefix = "accounts_unify";
@@ -3198,7 +3198,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         String takerOrMaker = null;
         if (!java.util.Objects.equals(aggressor, null))
         {
-            takerOrMaker = (((java.util.Objects.equals(aggressor, true)))) ? "taker" : "maker";
+            takerOrMaker = ((Boolean.TRUE.equals(aggressor))) ? "taker" : "maker";
         } else
         {
             takerOrMaker = this.safeStringLower(trade, "role");

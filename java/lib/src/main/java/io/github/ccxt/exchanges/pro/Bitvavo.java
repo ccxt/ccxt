@@ -2190,7 +2190,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         //
         String messageHash = "authenticated";
         Boolean authenticated = (Boolean) this.safeBool(message, "authenticated", false);
-        if (java.util.Objects.equals(authenticated, true))
+        if (Boolean.TRUE.equals(authenticated))
         {
             // we resolve the future here permanently so authentication only happens once
             client.resolve(message, messageHash);

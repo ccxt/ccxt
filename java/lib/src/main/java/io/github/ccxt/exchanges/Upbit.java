@@ -505,16 +505,16 @@ public class Upbit extends UpbitApi
             Boolean walletLocked = (Boolean) this.safeBool(memberInfo, "wallet_locked", (Object) null);
             Boolean locked = (Boolean) this.safeBool(memberInfo, "locked", (Object) null);
             Boolean active = true;
-            if ((!java.util.Objects.equals(canWithdraw, null)) && (!java.util.Objects.equals(canWithdraw, true)))
+            if ((!java.util.Objects.equals(canWithdraw, null)) && (!Boolean.TRUE.equals(canWithdraw)))
             {
                 active = false;
             } else if (!java.util.Objects.equals(walletState, "working"))
             {
                 active = false;
-            } else if ((!java.util.Objects.equals(walletLocked, null)) && (java.util.Objects.equals(walletLocked, true)))
+            } else if ((!java.util.Objects.equals(walletLocked, null)) && Boolean.TRUE.equals(walletLocked))
             {
                 active = false;
-            } else if ((!java.util.Objects.equals(locked, null)) && (java.util.Objects.equals(locked, true)))
+            } else if ((!java.util.Objects.equals(locked, null)) && Boolean.TRUE.equals(locked))
             {
                 active = false;
             }
@@ -1667,7 +1667,7 @@ public class Upbit extends UpbitApi
             }
             Map<String, Object> response = null;
             Map<String, Object> paramsRequest = this.omit(paramsOrdType, new ArrayList<Object>(Arrays.asList("timeInForce", "time_in_force", "postOnly", "clientOrderId", "cost", "selfTradePrevention", "smp_type", "test")));
-            if (java.util.Objects.equals(test, true))
+            if (Boolean.TRUE.equals(test))
             {
                 response = (this.privatePostOrdersTest(this.extend(request, paramsRequest))).join();
             } else

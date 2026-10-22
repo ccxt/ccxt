@@ -862,12 +862,12 @@ public class Grvt extends GrvtApi
         return BaseExchange.supplyAsync(() -> {
 
             Object builderFee = this.safeBool(parameters, "builderFee", this.safeBool(this.options, "builderFee", true)); // we shouldn't omit here
-            if (!java.util.Objects.equals(builderFee, true))
+            if (!Helpers.isTrue(builderFee))
             {
                 return false;  // skip if builder fee is not enabled
             }
             Boolean approvedBuilderFee = (Boolean) this.safeBool(this.options, "approvedBuilderFee", false);
-            if (java.util.Objects.equals(approvedBuilderFee, true))
+            if (Boolean.TRUE.equals(approvedBuilderFee))
             {
                 return true;  // skip if builder fee is already approved
             }
@@ -1839,7 +1839,7 @@ public class Grvt extends GrvtApi
                 ((Map<String, Object>)requestUntilOptionString).put("start_time", this.numberToString((since * 1000000L)));
             }
             Boolean useTransfersEndpoint = (Boolean) this.safeBool(this.options, "useTransfersEndpointForDepositsWithdrawals", true);
-            if (java.util.Objects.equals(useTransfersEndpoint, true))
+            if (Boolean.TRUE.equals(useTransfersEndpoint))
             {
                 Object transfers = (this.internalFetchTransfers((Map<String, Object>) (this.extend(requestUntilOptionString, paramsUntilOptionString)), currency, since, limit)).join();
                 Object filteredResults = this.filterTransfersByType(transfers, "deposit", true);
@@ -1910,7 +1910,7 @@ public class Grvt extends GrvtApi
                 ((Map<String, Object>)requestUntilOptionString).put("start_time", this.numberToString((since * 1000000L)));
             }
             Boolean useTransfersEndpoint = (Boolean) this.safeBool(this.options, "useTransfersEndpointForDepositsWithdrawals", true);
-            if (java.util.Objects.equals(useTransfersEndpoint, true))
+            if (Boolean.TRUE.equals(useTransfersEndpoint))
             {
                 Object transfers = (this.internalFetchTransfers((Map<String, Object>) (this.extend(requestUntilOptionString, paramsUntilOptionString)), currency, since, limit)).join();
                 Object filteredResults = this.filterTransfersByType(transfers, "withdrawal", true);
@@ -2634,7 +2634,7 @@ public class Grvt extends GrvtApi
             }
             String eipType = "EIP712_ORDER_TYPE";
             Object builderFee = this.safeBool(paramsTrigger, "builderFee", this.safeBool(this.options, "builderFee", true));
-            if (java.util.Objects.equals(builderFee, true))
+            if (Helpers.isTrue(builderFee))
             {
                 eipType = "EIP712_ORDER_WITH_BUILDER_TYPE";
                 orderRequest.put("builder", this.safeString(this.options, "builder"));
@@ -3986,7 +3986,7 @@ public class Grvt extends GrvtApi
             }
         }
         Boolean isPrivate = ((String)apiName).startsWith("private");
-        if (java.util.Objects.equals(isPrivate, true))
+        if (Boolean.TRUE.equals(isPrivate))
         {
             this.checkRequiredCredentials(true);
             if (!java.util.Objects.equals(queryString, ""))

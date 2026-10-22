@@ -1595,7 +1595,7 @@ public class Lbank extends LbankApi
         }
         // from spotPrivatePostSupplementUserInfo
         Boolean isArray = (data instanceof List);
-        if (java.util.Objects.equals(isArray, true))
+        if (Boolean.TRUE.equals(isArray))
         {
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
@@ -1960,7 +1960,7 @@ public class Lbank extends LbankApi
             }};
             Boolean ioc = (java.util.Objects.equals(timeInForce, "IOC"));
             Boolean fok = (java.util.Objects.equals(timeInForce, "FOK"));
-            Boolean maker = ((java.util.Objects.equals(postOnly, true)) || (java.util.Objects.equals(timeInForce, "PO")));
+            Boolean maker = (Boolean.TRUE.equals(postOnly) || (java.util.Objects.equals(timeInForce, "PO")));
             if ((java.util.Objects.equals(type, "market")) && (Boolean.TRUE.equals(ioc) || Boolean.TRUE.equals(fok) || Boolean.TRUE.equals(maker)))
             {
                 throw new InvalidOrder((this.id + " createOrder () does not allow market FOK, IOC, or postOnly orders. Only limit IOC, FOK, and postOnly orders are allowed")) ;
@@ -3137,7 +3137,7 @@ public class Lbank extends LbankApi
             }
             Boolean isAuthorized = this.checkRequiredCredentials(false);
             Object result = null;
-            if (java.util.Objects.equals(isAuthorized, true))
+            if (Boolean.TRUE.equals(isAuthorized))
             {
                 Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchTransactionFees", new HashMap<String, Object>() {{}});
                 String defaultMethod = this.safeString(options, "method", "fetchPrivateTransactionFees");
@@ -3339,7 +3339,7 @@ public class Lbank extends LbankApi
             }
             Boolean isAuthorized = this.checkRequiredCredentials(false);
             Object response = null;
-            if (java.util.Objects.equals(isAuthorized, true))
+            if (Boolean.TRUE.equals(isAuthorized))
             {
                 Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchDepositWithdrawFees", new HashMap<String, Object>() {{}});
                 String defaultMethod = this.safeString(options, "method", "fetchPrivateDepositWithdrawFees");
@@ -3639,7 +3639,7 @@ public class Lbank extends LbankApi
             {
                 Boolean cacheSecretAsPem = (Boolean) this.safeBool(this.options, "cacheSecretAsPem", true);
                 Object pem = null;
-                if (java.util.Objects.equals(cacheSecretAsPem, true))
+                if (Boolean.TRUE.equals(cacheSecretAsPem))
                 {
                     pem = this.safeString(this.options, "pem");
                     if (java.util.Objects.equals(pem, null))

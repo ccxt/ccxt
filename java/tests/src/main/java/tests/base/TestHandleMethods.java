@@ -97,7 +97,7 @@ public class TestHandleMethods extends BaseTest
             Pair<Boolean, Map<String, Object>> utaparams2Variable = exchange.handleOptionBoolAndParams(new HashMap<String, Object>() {{}}, "fetchX", "uta", false);
             Boolean uta = utaparams2Variable.first();
             Map<String, Object> params2 = utaparams2Variable.second();
-            Assert(java.util.Objects.equals(uta, true));
+            Assert(uta);
             Pair<String, Map<String, Object>> absentparams3Variable = exchange.handleOptionStringAndParams(new HashMap<String, Object>() {{}}, "fetchX", "absentKey", "fallback");
             String absent = absentparams3Variable.first();
             Map<String, Object> params3 = absentparams3Variable.second();

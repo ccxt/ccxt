@@ -3866,13 +3866,13 @@ public class Bitget extends BitgetApi
                         Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, j, new HashMap<String, Object>() {{}});
                         String entrySymbol = this.safeString(entry, "symbol");
                         Boolean entryBorrowable = (Boolean) this.safeBool(entry, "isBorrowable", true);
-                        if ((java.util.Objects.equals(entryBorrowable, true)) && Boolean.TRUE.equals(this.safeBool(entry, "isCrossBorrowable", true)))
+                        if (Boolean.TRUE.equals(entryBorrowable) && Boolean.TRUE.equals(this.safeBool(entry, "isCrossBorrowable", true)))
                         {
                             crossKeys.add(entrySymbol);
                         }
                         Boolean isolatedBase = (Boolean) this.safeBool(entry, "isIsolatedBaseBorrowable", true);
                         Boolean isolatedQuote = (Boolean) this.safeBool2(entry, "isIsolatedQuotedBorrowable", "isIsolatedQuoteBorrowable", true);
-                        if ((java.util.Objects.equals(entryBorrowable, true)) && ((java.util.Objects.equals(isolatedBase, true)) || (java.util.Objects.equals(isolatedQuote, true))))
+                        if (Boolean.TRUE.equals(entryBorrowable) && (Boolean.TRUE.equals(isolatedBase) || Boolean.TRUE.equals(isolatedQuote)))
                         {
                             isolatedKeys.add(entrySymbol);
                         }
@@ -4979,7 +4979,7 @@ public class Bitget extends BitgetApi
             ((Map<String, Object>)result).put("type", "withdrawal");
             Map<String, Object> withdrawOptions = (Map<String, Object>) this.safeDict(this.options, "withdraw", new HashMap<String, Object>() {{}});
             Boolean fillResponseFromRequest = (Boolean) this.safeBool(withdrawOptions, "fillResponseFromRequest", true);
-            if (java.util.Objects.equals(fillResponseFromRequest, true))
+            if (Boolean.TRUE.equals(fillResponseFromRequest))
             {
                 ((Map<String, Object>)result).put("currency", code);
                 ((Map<String, Object>)result).put("amount", amount);
@@ -6557,7 +6557,7 @@ public class Bitget extends BitgetApi
                 Map<String, Object> request = new HashMap<String, Object>() {{}};
                 if (java.util.Objects.equals(marketType, "spot"))
                 {
-                    if ((!java.util.Objects.equals(marginMode, null)) || (java.util.Objects.equals(utaMargin, true)))
+                    if ((!java.util.Objects.equals(marginMode, null)) || Boolean.TRUE.equals(utaMargin))
                     {
                         request.put("category", "MARGIN");
                     } else
@@ -6614,7 +6614,7 @@ public class Bitget extends BitgetApi
             {
                 Boolean margin = (Boolean) this.safeBool(paramsMarginMode, "margin", false);
                 paramsMarginMode = this.omit(paramsMarginMode, "margin");
-                if ((!java.util.Objects.equals(marginMode, null)) || (java.util.Objects.equals(margin, true)))
+                if ((!java.util.Objects.equals(marginMode, null)) || Boolean.TRUE.equals(margin))
                 {
                     response = (this.publicMarginGetV2MarginCurrencies(paramsMarginMode)).join();
                 } else
@@ -6803,7 +6803,7 @@ public class Bitget extends BitgetApi
             }
             if (Boolean.TRUE.equals(paginate))
             {
-                Object limitForPagination = (((java.util.Objects.equals(useHistoryEndpointForPagination, true)))) ? maxLimitForHistoryEndpoint : maxLimitForRecentEndpoint;
+                Object limitForPagination = ((Boolean.TRUE.equals(useHistoryEndpointForPagination))) ? maxLimitForHistoryEndpoint : maxLimitForRecentEndpoint;
                 HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
                 mapLiteral4.put("uta", uta);
                 Map<String, Object> paramsWithUta = this.extend(paramsUTA, mapLiteral4);
@@ -6894,7 +6894,7 @@ public class Bitget extends BitgetApi
             }
             // if historical endpoint is needed, we should re-set the variables
             Boolean historicalEndpointNeeded = false;
-            if ((!java.util.Objects.equals(calculatedStartTime, null) && Helpers.isLessThanOrEqual(calculatedStartTime, recentEndpointBoundaryTs)) || (java.util.Objects.equals(useHistoryEndpoint, true)))
+            if ((!java.util.Objects.equals(calculatedStartTime, null) && Helpers.isLessThanOrEqual(calculatedStartTime, recentEndpointBoundaryTs)) || Boolean.TRUE.equals(useHistoryEndpoint))
             {
                 historicalEndpointNeeded = true;
                 // only for "historical-candles" - ensure we use correct max limit
@@ -8032,7 +8032,7 @@ public class Bitget extends BitgetApi
             {
                 timeInForce = timeInForce.toUpperCase();
             }
-            if (java.util.Objects.equals(postOnly, true))
+            if (Boolean.TRUE.equals(postOnly))
             {
                 request.put("timeInForce", "post_only");
             } else if (java.util.Objects.equals(timeInForce, "GTC"))
@@ -8051,7 +8051,7 @@ public class Bitget extends BitgetApi
         List<Object> hedgedparamsProductTypeVariable = (List<Object>) this.handleParamBool(paramsProductType, "hedged", false);
         hedged = (Boolean) ((List<Object>) hedgedparamsProductTypeVariable).get(0);
         paramsProductType = ((List<Object>) hedgedparamsProductTypeVariable).get(1);
-        if (java.util.Objects.equals(reduceOnly, true))
+        if (Boolean.TRUE.equals(reduceOnly))
         {
             if ((java.util.Objects.equals(hedged, true)) || Boolean.TRUE.equals(isStopLossOrTakeProfitTrigger))
             {
@@ -8164,7 +8164,7 @@ public class Bitget extends BitgetApi
         {
             timeInForce = timeInForce.toUpperCase();
         }
-        if (java.util.Objects.equals(postOnly, true))
+        if (Boolean.TRUE.equals(postOnly))
         {
             request.put("force", "post_only");
         } else if (java.util.Objects.equals(timeInForce, "GTC"))
@@ -8306,7 +8306,7 @@ public class Bitget extends BitgetApi
                 }
                 request.put("marginMode", marginModeRequest);
                 String requestSide = side;
-                if (java.util.Objects.equals(reduceOnly, true))
+                if (Boolean.TRUE.equals(reduceOnly))
                 {
                     if (!java.util.Objects.equals(hedged, true))
                     {
@@ -8753,7 +8753,7 @@ public class Bitget extends BitgetApi
                 String cost = this.safeString(paramsOmitted, "cost");
                 paramsOmitted = this.omit(paramsOmitted, "cost");
                 Boolean editMarketBuyOrderRequiresPrice = (Boolean) this.safeBool(this.options, "editMarketBuyOrderRequiresPrice", true);
-                if (((java.util.Objects.equals(editMarketBuyOrderRequiresPrice, true)) || (!java.util.Objects.equals(cost, null))) && Boolean.TRUE.equals(isMarketOrder) && (java.util.Objects.equals(side, "buy")))
+                if ((Boolean.TRUE.equals(editMarketBuyOrderRequiresPrice) || (!java.util.Objects.equals(cost, null))) && Boolean.TRUE.equals(isMarketOrder) && (java.util.Objects.equals(side, "buy")))
                 {
                     if (java.util.Objects.equals(price, null) && java.util.Objects.equals(cost, null))
                     {
@@ -11588,7 +11588,7 @@ public class Bitget extends BitgetApi
             }
             String method = null;
             Boolean useHistoryEndpoint = (Boolean) this.safeBool(paramsPaginate, "useHistoryEndpoint", false);
-            if (java.util.Objects.equals(useHistoryEndpoint, true))
+            if (Boolean.TRUE.equals(useHistoryEndpoint))
             {
                 method = "privateMixGetV2MixPositionHistoryPosition";
             } else
@@ -15070,7 +15070,7 @@ public class Bitget extends BitgetApi
         }
         Map<String, Object> headersResult = requestHeaders;
         Boolean sandboxMode = (Boolean) this.safeBool2(this.options, "sandboxMode", "sandbox", false);
-        if ((java.util.Objects.equals(sandboxMode, true)) && (!java.util.Objects.equals(path, "v2/public/time")) && (!java.util.Objects.equals(path, "v3/market/current-fund-rate")))
+        if (Boolean.TRUE.equals(sandboxMode) && (!java.util.Objects.equals(path, "v2/public/time")) && (!java.util.Objects.equals(path, "v3/market/current-fund-rate")))
         {
             // https://github.com/ccxt/ccxt/issues/25252#issuecomment-2662742336
             if (java.util.Objects.equals(headersResult, null))

@@ -2369,7 +2369,7 @@ public class Bitso extends BitsoApi
                     success = false;
                 }
             }
-            if (!java.util.Objects.equals(success, true))
+            if (!Helpers.isTrue(success))
             {
                 String feedback = ((this.id + " ") + this.json(response));
                 Map<String, Object> error = (Map<String, Object>) this.safeDict(response, "error", (Object) null);

@@ -2227,7 +2227,7 @@ public class Kucoin extends KucoinApi
             {
                 ((List<Object>)promises).add(this.publicGetSymbols(paramsRequest));
             }
-            if (java.util.Objects.equals(requestMarginables, true))
+            if (Boolean.TRUE.equals(requestMarginables))
             {
                 ((List<Object>)promises).add(this.privateGetMarginSymbols(paramsRequest)); // cross margin symbols
                 //
@@ -2292,7 +2292,7 @@ public class Kucoin extends KucoinApi
             {
                 nextIndex = 1;
             }
-            if (java.util.Objects.equals(requestMarginables, true))
+            if (Boolean.TRUE.equals(requestMarginables))
             {
                 crossIndex = nextIndex;
                 nextIndex = this.sum(nextIndex, 2);
@@ -2307,10 +2307,10 @@ public class Kucoin extends KucoinApi
             {
                 contractIndex = nextIndex;
             }
-            Map<String, Object> crossData = (Map<String, Object>) ((((java.util.Objects.equals(requestMarginables, true)))) ? this.safeDict(Helpers.GetValue(responses, crossIndex), "data", new HashMap<String, Object>() {{}}) : new HashMap<String, Object>() {{}});
+            Map<String, Object> crossData = (Map<String, Object>) (((Boolean.TRUE.equals(requestMarginables))) ? this.safeDict(Helpers.GetValue(responses, crossIndex), "data", new HashMap<String, Object>() {{}}) : new HashMap<String, Object>() {{}});
             List<Object> crossItems = (List<Object>) this.safeList(crossData, "items", new ArrayList<Object>(Arrays.asList()));
             Map<String,Object> crossById = this.indexBy(crossItems, "symbol");
-            Object isolatedData = (((java.util.Objects.equals(requestMarginables, true)))) ? Helpers.GetValue(responses, isolatedIndex) : new HashMap<String, Object>() {{}};
+            Object isolatedData = ((Boolean.TRUE.equals(requestMarginables))) ? Helpers.GetValue(responses, isolatedIndex) : new HashMap<String, Object>() {{}};
             List<Object> isolatedItems = (List<Object>) this.safeList(isolatedData, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String,Object> isolatedById = this.indexBy(isolatedItems, "symbol");
             Map<String, Object> tickersResponse = (Map<String, Object>) (((Boolean.TRUE.equals(fetchTickersFees))) ? this.safeDict(responses, tickersIndex, new HashMap<String, Object>() {{}}) : new HashMap<String, Object>() {{}});
@@ -4864,7 +4864,7 @@ public class Kucoin extends KucoinApi
             // don't omit anything before calling createOrderRequest
             Map<String, Object> orderRequest = this.createSpotOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, paramsSync);
             Map<String, Object> response = null;
-            if (java.util.Objects.equals(testOrder, true))
+            if (Boolean.TRUE.equals(testOrder))
             {
                 if (Boolean.TRUE.equals(isMarginOrder))
                 {
@@ -5001,7 +5001,7 @@ public class Kucoin extends KucoinApi
         List<Object> postOnlyparamsOmittedVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), false, Helpers.toMapArg(paramsOmitted));
         postOnly = (Boolean) ((List<Object>) postOnlyparamsOmittedVariable).get(0);
         paramsOmitted = ((List<Object>) postOnlyparamsOmittedVariable).get(1);
-        if (java.util.Objects.equals(postOnly, true))
+        if (Boolean.TRUE.equals(postOnly))
         {
             request.put("postOnly", true);
         }
@@ -5071,7 +5071,7 @@ public class Kucoin extends KucoinApi
             Boolean hasTpOrSlOrder = (!java.util.Objects.equals(this.safeValue(paramsOmitted, "stopLoss"), null)) || (!java.util.Objects.equals(this.safeValue(paramsOmitted, "takeProfit"), null));
             Object orderRequest = this.createContractOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, paramsOmitted);
             Map<String, Object> response = null;
-            if (java.util.Objects.equals(testOrder, true))
+            if (Boolean.TRUE.equals(testOrder))
             {
                 response = (this.futuresPrivatePostOrdersTest(orderRequest)).join();
             } else
@@ -5219,12 +5219,12 @@ public class Kucoin extends KucoinApi
         List<Object> postOnlyparamsOmittedVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), false, Helpers.toMapArg(paramsOmitted));
         postOnly = (Boolean) ((List<Object>) postOnlyparamsOmittedVariable).get(0);
         paramsOmitted = ((List<Object>) postOnlyparamsOmittedVariable).get(1);
-        if (java.util.Objects.equals(postOnly, true))
+        if (Boolean.TRUE.equals(postOnly))
         {
             request.put("postOnly", true);
         }
         Object hidden = this.safeValue(paramsOmitted, "hidden");
-        if ((java.util.Objects.equals(postOnly, true)) && (!java.util.Objects.equals(hidden, null)))
+        if (Boolean.TRUE.equals(postOnly) && (!java.util.Objects.equals(hidden, null)))
         {
             throw new BadRequest((this.id + " createOrder() does not support the postOnly parameter together with a hidden parameter")) ;
         }
@@ -5242,7 +5242,7 @@ public class Kucoin extends KucoinApi
         List<Object> hedgedparamsOmittedVariable = (List<Object>) this.handleParamBool(paramsOmitted, "hedged", false);
         hedged = (Boolean) ((List<Object>) hedgedparamsOmittedVariable).get(0);
         paramsOmitted = ((List<Object>) hedgedparamsOmittedVariable).get(1);
-        if (java.util.Objects.equals(reduceOnly, true))
+        if (Boolean.TRUE.equals(reduceOnly))
         {
             request.put("reduceOnly", reduceOnly);
             if (java.util.Objects.equals(hedged, true))
@@ -5412,7 +5412,7 @@ public class Kucoin extends KucoinApi
         {
             request.put("timeInForce", timeInForce);
         }
-        if (java.util.Objects.equals(postOnly, true))
+        if (Boolean.TRUE.equals(postOnly))
         {
             request.put("postOnly", true);
         }
@@ -5444,7 +5444,7 @@ public class Kucoin extends KucoinApi
                     {
                         positionSide = "LONG";
                     }
-                    if (java.util.Objects.equals(reduceOnly, true))
+                    if (Boolean.TRUE.equals(reduceOnly))
                     {
                         positionSide = (((java.util.Objects.equals(positionSide, "LONG")))) ? "SHORT" : "LONG";
                     }
@@ -6009,7 +6009,7 @@ public class Kucoin extends KucoinApi
             Boolean isMarginOrder = java.util.Objects.equals(tradeType, "MARGIN_TRADE") || !java.util.Objects.equals(marginMode, null);
             if ((java.util.Objects.equals(hf, true)) || Boolean.TRUE.equals(useSync) || Boolean.TRUE.equals(isMarginOrder))
             {
-                if (!java.util.Objects.equals(trigger, true))
+                if (!Boolean.TRUE.equals(trigger))
                 {
                     if (java.util.Objects.equals(symbol, null))
                     {
@@ -6024,7 +6024,7 @@ public class Kucoin extends KucoinApi
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 request.put("clientOid", clientOrderId);
-                if (java.util.Objects.equals(trigger, true))
+                if (Boolean.TRUE.equals(trigger))
                 {
                     if (Boolean.TRUE.equals(isMarginOrder))
                     {
@@ -6067,7 +6067,7 @@ public class Kucoin extends KucoinApi
             } else
             {
                 request.put("orderId", id);
-                if (java.util.Objects.equals(trigger, true))
+                if (Boolean.TRUE.equals(trigger))
                 {
                     if (Boolean.TRUE.equals(isMarginOrder))
                     {
@@ -6346,20 +6346,20 @@ public class Kucoin extends KucoinApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 request.put("symbol", this.marketId((String) (symbol)));
-            } else if ((!java.util.Objects.equals(trigger, true)) && Boolean.TRUE.equals(isMarginOrders))
+            } else if ((!Boolean.TRUE.equals(trigger)) && Boolean.TRUE.equals(isMarginOrders))
             {
                 throw new ArgumentsRequired((this.id + " cancelAllOrders() requires a symbol argument for margin non-trigger orders")) ;
             }
             if (Boolean.TRUE.equals(isMarginOrders))
             {
                 request.put("tradeType", Helpers.GetValue(this.options.get("marginModes"), marginMode));
-                if (java.util.Objects.equals(marginMode, "isolated") && (java.util.Objects.equals(trigger, true)))
+                if (java.util.Objects.equals(marginMode, "isolated") && Boolean.TRUE.equals(trigger))
                 {
                     throw new BadRequest((this.id + " cancelAllOrders does not support isolated margin for stop orders")) ;
                 }
             }
             Map<String, Object> response = null;
-            if (java.util.Objects.equals(trigger, true))
+            if (Boolean.TRUE.equals(trigger))
             {
                 if (Boolean.TRUE.equals(isMarginOrders))
                 {
@@ -6660,7 +6660,7 @@ public class Kucoin extends KucoinApi
             }
             request.put("tradeType", this.safeString(this.options.get("marginModes"), marginMode, "TRADE"));
             Map<String, Object> response = null;
-            if (Boolean.TRUE.equals(isMarginOrder) && java.util.Objects.equals(lowercaseStatus, "active") && (!java.util.Objects.equals(trigger, true)))
+            if (Boolean.TRUE.equals(isMarginOrder) && java.util.Objects.equals(lowercaseStatus, "active") && (!Boolean.TRUE.equals(trigger)))
             {
                 // hf margin open non-trigger orders require only symbol and tradeType params
                 response = (this.privateGetHfMarginOrdersActive(this.extend(request, query))).join();
@@ -6688,7 +6688,7 @@ public class Kucoin extends KucoinApi
                 {
                     request.put("endAt", until);
                 }
-                if (java.util.Objects.equals(trigger, true))
+                if (Boolean.TRUE.equals(trigger))
                 {
                     if (Boolean.TRUE.equals(isMarginOrder))
                     {
@@ -7215,7 +7215,7 @@ public class Kucoin extends KucoinApi
             }
             if ((java.util.Objects.equals(hf, true)) || Boolean.TRUE.equals(isMarginOrder))
             {
-                if (!java.util.Objects.equals(trigger, true))
+                if (!Boolean.TRUE.equals(trigger))
                 {
                     if (java.util.Objects.equals(symbol, null))
                     {
@@ -7229,7 +7229,7 @@ public class Kucoin extends KucoinApi
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 request.put("clientOid", clientOrderId);
-                if (java.util.Objects.equals(trigger, true))
+                if (Boolean.TRUE.equals(trigger))
                 {
                     if (Boolean.TRUE.equals(isMarginOrder))
                     {
@@ -7262,7 +7262,7 @@ public class Kucoin extends KucoinApi
                     throw new InvalidOrder((this.id + " fetchOrder() requires an order id")) ;
                 }
                 request.put("orderId", id);
-                if (java.util.Objects.equals(trigger, true))
+                if (Boolean.TRUE.equals(trigger))
                 {
                     if (Boolean.TRUE.equals(isMarginOrder))
                     {
@@ -7630,9 +7630,9 @@ public class Kucoin extends KucoinApi
         Object status = null;
         if (!java.util.Objects.equals(isActive, null))
         {
-            status = (((java.util.Objects.equals(isActive, true)))) ? "open" : "closed";
+            status = ((Boolean.TRUE.equals(isActive))) ? "open" : "closed";
         }
-        status = (((java.util.Objects.equals(cancelExist, true)))) ? "canceled" : status;
+        status = ((Boolean.TRUE.equals(cancelExist))) ? "canceled" : status;
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
@@ -7808,7 +7808,7 @@ public class Kucoin extends KucoinApi
         String status = null;
         if (!java.util.Objects.equals(isActive, null))
         {
-            if (java.util.Objects.equals(isActive, true))
+            if (Boolean.TRUE.equals(isActive))
             {
                 status = "open";
             } else
@@ -7821,12 +7821,12 @@ public class Kucoin extends KucoinApi
             if (java.util.Objects.equals(responseStatus, "NEW"))
             {
                 status = "open";
-            } else if ((!java.util.Objects.equals(isActive, true)) && (!java.util.Objects.equals(stopTriggered, true)))
+            } else if ((!java.util.Objects.equals(isActive, true)) && (!Boolean.TRUE.equals(stopTriggered)))
             {
                 status = "cancelled";
             }
         }
-        if (java.util.Objects.equals(cancelExist, true))
+        if (Boolean.TRUE.equals(cancelExist))
         {
             status = "canceled";
         }
@@ -10260,7 +10260,7 @@ public class Kucoin extends KucoinApi
             Object transfer = this.parseTransfer(data, currency);
             Map<String, Object> transferOptions = (Map<String, Object>) this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
             Boolean fillResponseFromRequest = (Boolean) this.safeBool(transferOptions, "fillResponseFromRequest", true);
-            if (java.util.Objects.equals(fillResponseFromRequest, true))
+            if (Boolean.TRUE.equals(fillResponseFromRequest))
             {
                 ((Map<String, Object>)transfer).put("amount", amount);
                 ((Map<String, Object>)transfer).put("fromAccount", fromAccount);
@@ -10366,7 +10366,7 @@ public class Kucoin extends KucoinApi
             Object transfer = this.parseTransfer(data, currency);
             Map<String, Object> transferOptions = (Map<String, Object>) this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
             Boolean fillResponseFromRequest = (Boolean) this.safeBool(transferOptions, "fillResponseFromRequest", true);
-            if (java.util.Objects.equals(fillResponseFromRequest, true))
+            if (Boolean.TRUE.equals(fillResponseFromRequest))
             {
                 ((Map<String, Object>)transfer).put("amount", amount);
                 ((Map<String, Object>)transfer).put("fromAccount", fromAccount);
@@ -12842,7 +12842,7 @@ public class Kucoin extends KucoinApi
         String marginMode = this.safeStringLower(position, "marginMode");
         if (!java.util.Objects.equals(crossMode, null))
         {
-            marginMode = (((java.util.Objects.equals(crossMode, true)))) ? "cross" : "isolated";
+            marginMode = ((Boolean.TRUE.equals(crossMode))) ? "cross" : "isolated";
         }
         String collateralString = this.safeString(position, "maintMargin");
         String marginString = null;
@@ -13458,7 +13458,7 @@ public class Kucoin extends KucoinApi
                 request.put("marginMode", marginMode);
             }
             Map<String, Object> response = null;
-            if (java.util.Objects.equals(testOrder, true))
+            if (Boolean.TRUE.equals(testOrder))
             {
                 response = (this.futuresPrivatePostOrdersTest(this.extend(request, paramsOmitted))).join();
             } else

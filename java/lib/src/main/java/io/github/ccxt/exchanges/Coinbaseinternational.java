@@ -843,6 +843,57 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         });
 
     }
+    //                 },
+    //                 "quotes": {
+    //                 "burst": 500,
+    //                 "rate": 500
+    //                 },
+    //                 "spot": {
+    //                 "burst": 250,
+    //                 "rate": 200
+    //                 },
+    //                 "trading": {
+    //                 "total": {
+    //                     "burst": 250,
+    //                     "rate": 200
+    //                 }
+    //                 }
+    //             },
+    //             "non_matching_engine": {
+    //                 "burst": 1500,
+    //                 "rate": 1000
+    //             }
+    //             },
+    //             "maintenance_margin": 0,
+    //             "margin_balance": 100,
+    //             "margin_model": "segregated_sm",
+    //             "options_delta": 0,
+    //             "options_gamma": 0,
+    //             "options_gamma_map": {},
+    //             "options_pl": 0,
+    //             "options_session_rpl": 0,
+    //             "options_session_upl": 0,
+    //             "options_theta": 0,
+    //             "options_theta_map": {},
+    //             "options_value": 0,
+    //             "options_vega": 0,
+    //             "options_vega_map": {},
+    //             "portfolio_margining_enabled": false,
+    //             "projected_delta_total": 0,
+    //             "projected_initial_margin": 0.0002,
+    //             "projected_maintenance_margin": 0,
+    //             "session_rpl": 0,
+    //             "session_upl": 0,
+    //             "spot_reserve": 0.0002,
+    //             "total_pl": 0
+    //         }
+    //         ],
+    //         "system_name": "user",
+    //         "type": "main",
+    //         "username": "user"
+    //     }
+    // }
+    //
     public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
     {
         return this.fetchMarkets((Object) (parameters));
@@ -1022,74 +1073,6 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         });
 
     }
-    //             "futures_session_rpl": 0,
-    //             "futures_session_upl": 0,
-    //             "initial_margin": 0.000402,
-    //             "limits": {
-    //             "limits_per_currency": false,
-    //             "matching_engine": {
-    //                 "cancel_all": {
-    //                 "burst": 250,
-    //                 "rate": 200
-    //                 },
-    //                 "guaranteed_quotes": {
-    //                 "burst": 2,
-    //                 "rate": 2
-    //                 },
-    //                 "max_quotes": {
-    //                 "burst": 10,
-    //                 "rate": 10
-    //                 },
-    //                 "quotes": {
-    //                 "burst": 500,
-    //                 "rate": 500
-    //                 },
-    //                 "spot": {
-    //                 "burst": 250,
-    //                 "rate": 200
-    //                 },
-    //                 "trading": {
-    //                 "total": {
-    //                     "burst": 250,
-    //                     "rate": 200
-    //                 }
-    //                 }
-    //             },
-    //             "non_matching_engine": {
-    //                 "burst": 1500,
-    //                 "rate": 1000
-    //             }
-    //             },
-    //             "maintenance_margin": 0,
-    //             "margin_balance": 100,
-    //             "margin_model": "segregated_sm",
-    //             "options_delta": 0,
-    //             "options_gamma": 0,
-    //             "options_gamma_map": {},
-    //             "options_pl": 0,
-    //             "options_session_rpl": 0,
-    //             "options_session_upl": 0,
-    //             "options_theta": 0,
-    //             "options_theta_map": {},
-    //             "options_value": 0,
-    //             "options_vega": 0,
-    //             "options_vega_map": {},
-    //             "portfolio_margining_enabled": false,
-    //             "projected_delta_total": 0,
-    //             "projected_initial_margin": 0.0002,
-    //             "projected_maintenance_margin": 0,
-    //             "session_rpl": 0,
-    //             "session_upl": 0,
-    //             "spot_reserve": 0.0002,
-    //             "total_pl": 0
-    //         }
-    //         ],
-    //         "system_name": "user",
-    //         "type": "main",
-    //         "username": "user"
-    //     }
-    // }
-    //
     public CompletableFuture<Object> fetchCurrencies(Map<String, Object> parameters)
     {
         return this.fetchCurrencies((Object) (parameters));

@@ -1210,7 +1210,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             }
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
             String topic = "executionreport";
-            if (java.util.Objects.equals(trigger, true))
+            if (Boolean.TRUE.equals(trigger))
             {
                 topic = "algoexecutionreportv2";
             }
@@ -1260,7 +1260,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             }
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
             String topic = "executionreport";
-            if (java.util.Objects.equals(trigger, true))
+            if (Boolean.TRUE.equals(trigger))
             {
                 topic = "algoexecutionreportv2";
             }

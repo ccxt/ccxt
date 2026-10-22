@@ -3481,7 +3481,7 @@ public class Aster extends AsterApi
             triggerPriceIsRequired = true;
         } else if ((java.util.Objects.equals(uppercaseType, "STOP_MARKET")) || (java.util.Objects.equals(uppercaseType, "TAKE_PROFIT_MARKET")))
         {
-            if (!java.util.Objects.equals(closePosition, true))
+            if (!Boolean.TRUE.equals(closePosition))
             {
                 quantityIsRequired = true;
             }
@@ -5360,12 +5360,12 @@ public class Aster extends AsterApi
         return BaseExchange.supplyAsync(() -> {
 
             Object builderFee = this.safeBool(parameters, "builderFee", this.safeBool(this.options, "builderFee", true)); // we shouldn't omit here
-            if (!java.util.Objects.equals(builderFee, true))
+            if (!Helpers.isTrue(builderFee))
             {
                 return false;  // skip if builder fee is not enabled
             }
             Boolean approvedBuilderFee = (Boolean) this.safeBool(this.options, "approvedBuilderFee", false);
-            if (java.util.Objects.equals(approvedBuilderFee, true))
+            if (Boolean.TRUE.equals(approvedBuilderFee))
             {
                 return true;  // skip if builder fee is already approved
             }

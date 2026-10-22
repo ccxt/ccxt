@@ -2201,15 +2201,15 @@ public class Mexc extends MexcApi
                 Boolean buyerMaker = (Boolean) this.safeBool2(trade, "isBuyerMaker", "m", (Object) null);
                 if (!java.util.Objects.equals(isMaker, null))
                 {
-                    takerOrMaker = (((java.util.Objects.equals(isMaker, true)))) ? "maker" : "taker";
+                    takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
                 }
                 if (!java.util.Objects.equals(isBuyer, null))
                 {
-                    side = (((java.util.Objects.equals(isBuyer, true)))) ? "buy" : "sell";
+                    side = ((Boolean.TRUE.equals(isBuyer))) ? "buy" : "sell";
                 }
                 if (!java.util.Objects.equals(buyerMaker, null))
                 {
-                    side = (((java.util.Objects.equals(buyerMaker, true)))) ? "sell" : "buy";
+                    side = ((Boolean.TRUE.equals(buyerMaker))) ? "sell" : "buy";
                     takerOrMaker = "taker";
                 }
                 String feeAsset = this.safeString(trade, "commissionAsset");
@@ -2903,7 +2903,7 @@ public class Mexc extends MexcApi
         List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), java.util.Objects.equals(type, "LIMIT_MAKER"), Helpers.toMapArg(paramsWithoutClientOrderId));
         Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
         Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
-        if (java.util.Objects.equals(postOnly, true))
+        if (Boolean.TRUE.equals(postOnly))
         {
             request.put("type", "LIMIT_MAKER");
         }
@@ -2951,7 +2951,7 @@ public class Mexc extends MexcApi
             Object paramsOmitted = this.omit(parameters, "test");
             Object request = this.createSpotOrderRequest(market, (String) (type), (String) (side), amount, price, marginMode, paramsOmitted);
             Map<String, Object> response = null;
-            if (java.util.Objects.equals(test, true))
+            if (Boolean.TRUE.equals(test))
             {
                 response = (this.spotPrivatePostOrderTest(request)).join();
             } else
@@ -3054,7 +3054,7 @@ public class Mexc extends MexcApi
             Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
             Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
             Object orderType = null;
-            if (java.util.Objects.equals(postOnly, true))
+            if (Boolean.TRUE.equals(postOnly))
             {
                 orderType = 2;
             } else if (java.util.Objects.equals(type, "limit"))
@@ -3097,9 +3097,9 @@ public class Mexc extends MexcApi
             Boolean reduceOnly = (Boolean) this.safeBool(paramsPostOnly, "reduceOnly", false);
             Boolean hedged = (Boolean) this.safeBool(paramsPostOnly, "hedged", false);
             Object sideInteger = null;
-            if (java.util.Objects.equals(hedged, true))
+            if (Boolean.TRUE.equals(hedged))
             {
-                if (java.util.Objects.equals(reduceOnly, true))
+                if (Boolean.TRUE.equals(reduceOnly))
                 {
                     sideInteger = (((java.util.Objects.equals(side, "buy")))) ? 4 : 2; // close short, close long
                 } else
@@ -3109,7 +3109,7 @@ public class Mexc extends MexcApi
                 request.put("positionMode", 1);
             } else
             {
-                if (java.util.Objects.equals(reduceOnly, true))
+                if (Boolean.TRUE.equals(reduceOnly))
                 {
                     sideInteger = (((java.util.Objects.equals(side, "buy")))) ? 2 : 4;
                 } else
@@ -3118,7 +3118,7 @@ public class Mexc extends MexcApi
                 }
             }
             request.put("side", sideInteger);
-            Map<String, Object> paramsReduceOnly = (((java.util.Objects.equals(reduceOnly, true)))) ? this.omit(paramsPostOnly, "reduceOnly") : paramsPostOnly; // hedged mode does not accept this parameter
+            Map<String, Object> paramsReduceOnly = ((Boolean.TRUE.equals(reduceOnly))) ? this.omit(paramsPostOnly, "reduceOnly") : paramsPostOnly; // hedged mode does not accept this parameter
             String clientOrderId = this.safeString2(paramsReduceOnly, "clientOrderId", "externalOid");
             if (!java.util.Objects.equals(clientOrderId, null))
             {
@@ -4723,7 +4723,7 @@ public class Mexc extends MexcApi
             Boolean isMargin = (Boolean) this.safeBool(paramsMarketType, "margin", false);
             Map<String, Object> paramsOmitted2 = this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("margin", "marginMode")));
             Map<String, Object> response = null;
-            if ((!java.util.Objects.equals(marginMode, null)) || (java.util.Objects.equals(isMargin, true)) || (java.util.Objects.equals(marketType, "margin")))
+            if ((!java.util.Objects.equals(marginMode, null)) || Boolean.TRUE.equals(isMargin) || (java.util.Objects.equals(marketType, "margin")))
             {
                 Object parsedSymbols = null;
                 String symbol = this.safeString(paramsOmitted2, "symbol");
@@ -6654,7 +6654,7 @@ public class Mexc extends MexcApi
             String tagResolved = (String) ((List<Object>) tagResolvedparamsWithdrawTagVariable).get(0);
             Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagResolvedparamsWithdrawTagVariable).get(1);
             Boolean intern = (Boolean) this.safeBool(paramsWithdrawTag, "internal", false);
-            if (java.util.Objects.equals(intern, true))
+            if (Boolean.TRUE.equals(intern))
             {
                 Map<String, Object> paramsInternal = this.omit(paramsWithdrawTag, "internal");
                 Map<String, Object> requestForInternal = new HashMap<String, Object>() {{
@@ -7092,7 +7092,7 @@ public class Mexc extends MexcApi
         Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = super.handleMarginModeAndParams(methodName, parameters, defaultValue);
         String marginMode = marginModeparamsMarginModeVariable.first();
         Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
-        if ((java.util.Objects.equals(defaultType, "margin")) || (java.util.Objects.equals(isMargin, true)))
+        if ((java.util.Objects.equals(defaultType, "margin")) || Boolean.TRUE.equals(isMargin))
         {
             return new Pair<>("isolated", paramsMarginMode);
         }
@@ -7384,7 +7384,7 @@ public class Mexc extends MexcApi
         //     {"success":true, "code":0, "data":1634095541710}
         //
         Boolean success = (Boolean) this.safeBool(response, "success", false); // v1
-        if (java.util.Objects.equals(success, true))
+        if (Boolean.TRUE.equals(success))
         {
             return null;
         }

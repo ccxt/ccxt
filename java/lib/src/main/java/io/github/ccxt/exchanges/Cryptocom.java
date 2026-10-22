@@ -1801,7 +1801,7 @@ public class Cryptocom extends CryptocomApi
             }
         }
         Boolean postOnly = (Boolean) this.safeBool(paramsValue, "postOnly", false);
-        if ((java.util.Objects.equals(postOnly, true)) || (java.util.Objects.equals(timeInForce, "PO")))
+        if (Boolean.TRUE.equals(postOnly) || (java.util.Objects.equals(timeInForce, "PO")))
         {
             request.put("exec_inst", new ArrayList<Object>(Arrays.asList("POST_ONLY")));
             request.put("time_in_force", "GOOD_TILL_CANCEL");
@@ -2070,7 +2070,7 @@ public class Cryptocom extends CryptocomApi
             }
         }
         Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", false);
-        if ((java.util.Objects.equals(postOnly, true)) || (java.util.Objects.equals(timeInForce, "PO")))
+        if (Boolean.TRUE.equals(postOnly) || (java.util.Objects.equals(timeInForce, "PO")))
         {
             request.put("exec_inst", new ArrayList<Object>(Arrays.asList("POST_ONLY")));
             request.put("time_in_force", "GOOD_TILL_CANCEL");
@@ -3328,7 +3328,7 @@ public class Cryptocom extends CryptocomApi
             }
         } else
         {
-            if ((java.util.Objects.equals(defaultType, "margin")) || (java.util.Objects.equals(isMargin, true)))
+            if ((java.util.Objects.equals(defaultType, "margin")) || Boolean.TRUE.equals(isMargin))
             {
                 marginMode = "cross";
             }

@@ -5772,7 +5772,7 @@ public Object describe()
         this.initRestRateLimiter();
         // sanbox mode
         Boolean isSandbox = (Boolean) this.safeBool2(this.options, "sandbox", "testnet", false);
-        if (java.util.Objects.equals(isSandbox, true))
+        if (Boolean.TRUE.equals(isSandbox))
         {
             this.setSandboxMode(isSandbox);
         }
@@ -6791,7 +6791,7 @@ public Object describe()
             if ((!java.util.Objects.equals(filled, null)) && (!java.util.Objects.equals(cost, null)) && Precise.stringGt(filled, "0"))
             {
                 Object filledTimesContractSize = Precise.stringMul(filled, contractSize);
-                if (java.util.Objects.equals(inverse, true))
+                if (Boolean.TRUE.equals(inverse))
                 {
                     average = Precise.stringDiv(filledTimesContractSize, cost);
                 } else
@@ -6819,7 +6819,7 @@ public Object describe()
             }
             // contract trading
             Object filledTimesContractSize = Precise.stringMul(filled, contractSize);
-            if (java.util.Objects.equals(inverse, true))
+            if (Boolean.TRUE.equals(inverse))
             {
                 cost = Precise.stringDiv(filledTimesContractSize, multiplyPrice);
             } else
@@ -7076,7 +7076,7 @@ public Object describe()
             if (!java.util.Objects.equals(contractSize, null))
             {
                 Boolean inverse = (Boolean) this.safeBool(market, "inverse", false);
-                if (java.util.Objects.equals(inverse, true))
+                if (Boolean.TRUE.equals(inverse))
                 {
                     multiplyPrice = Precise.stringDiv("1", price);
                 }
@@ -7701,7 +7701,7 @@ public Object describe()
             {
                 errorMessage = (((this.id + " ") + method) + "() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.");
             }
-            if (java.util.Objects.equals(muteOnFailure, true))
+            if (Boolean.TRUE.equals(muteOnFailure))
             {
                 return null;
             } else
@@ -8136,7 +8136,7 @@ public Object describe()
                 Map<String, Object> market = this.safeMarket(id, (Map<String, Object>) null, (String) null, "swap");
                 String symbol = (String) market.get("symbol");
                 Boolean contract = (Boolean) this.safeBool(market, "contract", false);
-                if ((java.util.Objects.equals(contract, true)) && (Boolean.TRUE.equals(noSymbols) || ((!java.util.Objects.equals(symbolsNormalized, null)) && this.inArray(symbol, symbolsNormalized))))
+                if (Helpers.isTrue(Boolean.TRUE.equals(contract) && (Boolean.TRUE.equals(noSymbols) || ((!java.util.Objects.equals(symbolsNormalized, null)) && this.inArray(symbol, symbolsNormalized)))))
                 {
                     tiers.put(symbol, this.parseMarketLeverageTiers(item, market));
                 }
@@ -8151,7 +8151,7 @@ public Object describe()
                 Map<String, Object> market = this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, "swap");
                 String symbol = (String) market.get("symbol");
                 Boolean contract = (Boolean) this.safeBool(market, "contract", false);
-                if ((java.util.Objects.equals(contract, true)) && (Boolean.TRUE.equals(noSymbols) || ((!java.util.Objects.equals(symbolsNormalized, null)) && this.inArray(symbol, symbolsNormalized))))
+                if (Helpers.isTrue(Boolean.TRUE.equals(contract) && (Boolean.TRUE.equals(noSymbols) || ((!java.util.Objects.equals(symbolsNormalized, null)) && this.inArray(symbol, symbolsNormalized)))))
                 {
                     tiers.put(symbol, this.parseMarketLeverageTiers(item, market));
                 }
@@ -9085,7 +9085,7 @@ public Object describe()
             {
                 throw new ArgumentsRequired((this.id + " buildOHLCVC() requires a price argument")) ;
             }
-            if ((java.util.Objects.equals(skipZeroPrices, true)) && !(Helpers.isGreaterThan(price, 0)) && !(Helpers.isLessThan(price, 0)))
+            if (Helpers.isTrue(Helpers.isTrue(Boolean.TRUE.equals(skipZeroPrices) && !(Helpers.isGreaterThan(price, 0))) && !(Helpers.isLessThan(price, 0))))
             {
                 continue;
             }
@@ -10878,15 +10878,15 @@ public Object describe()
         Boolean ioc = java.util.Objects.equals(timeInForce, "IOC");
         Boolean fok = java.util.Objects.equals(timeInForce, "FOK");
         Boolean timeInForcePostOnly = java.util.Objects.equals(timeInForce, "PO");
-        if (!java.util.Objects.equals(postOnly, true))
+        if (!Helpers.isTrue(postOnly))
         {
             postOnly = timeInForcePostOnly;
         }
-        if (!java.util.Objects.equals(postOnly, true))
+        if (!Helpers.isTrue(postOnly))
         {
             postOnly = exchangeSpecificParam;
         }
-        if (java.util.Objects.equals(postOnly, true))
+        if (Helpers.isTrue(postOnly))
         {
             if (Boolean.TRUE.equals(ioc) || Boolean.TRUE.equals(fok))
             {
@@ -10919,15 +10919,15 @@ public Object describe()
         Boolean ioc = java.util.Objects.equals(timeInForce, "IOC");
         Boolean fok = java.util.Objects.equals(timeInForce, "FOK");
         Boolean po = java.util.Objects.equals(timeInForce, "PO");
-        if (!java.util.Objects.equals(postOnly, true))
+        if (!Helpers.isTrue(postOnly))
         {
             postOnly = po;
         }
-        if (!java.util.Objects.equals(postOnly, true))
+        if (!Helpers.isTrue(postOnly))
         {
             postOnly = exchangeSpecificPostOnlyOption;
         }
-        if (java.util.Objects.equals(postOnly, true))
+        if (Helpers.isTrue(postOnly))
         {
             if (Boolean.TRUE.equals(ioc) || Boolean.TRUE.equals(fok))
             {

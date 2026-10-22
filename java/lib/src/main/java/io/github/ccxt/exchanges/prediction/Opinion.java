@@ -1367,7 +1367,7 @@ public class Opinion extends OpinionApi
             // a false result does NOT mean the order is still open — it may already be filled,
             // already cancelled, or unknown; don't invent a status the venue didn't report.
             // error responses with an errno never reach this line, handleErrors throws on them
-            String status = (((java.util.Objects.equals(canceled, true)))) ? "canceled" : null;
+            String status = ((Boolean.TRUE.equals(canceled))) ? "canceled" : null;
             return this.safePredictionOrder(new HashMap<String, Object>() {{
                 put( "id", id );
                 put( "status", status );

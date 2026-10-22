@@ -5231,7 +5231,7 @@ public class Bybit extends BybitApi
         String amount = null;
         String cost = null;
         Boolean qtyIsQuote = (java.util.Objects.equals(marketResolved.get("spot"), true)) && (java.util.Objects.equals(type, "market")) && ((java.util.Objects.equals(marketUnit, "quoteCoin")) || ((java.util.Objects.equals(marketUnit, null)) && (java.util.Objects.equals(side, "buy"))));
-        if (java.util.Objects.equals(qtyIsQuote, true))
+        if (Boolean.TRUE.equals(qtyIsQuote))
         {
             // qty is denominated in the quote currency, safeOrder derives amount from filled + remaining
             cost = this.safeString(order, "cumExecValue");
@@ -5452,7 +5452,7 @@ public class Bybit extends BybitApi
             Map<String, Object> orderRequest = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters, enableUnifiedAccount);
             Boolean switchToOco = (Boolean.TRUE.equals(isStopLossOrder) && Boolean.TRUE.equals(isTakeProfitOrder)) || Boolean.TRUE.equals(this.safeBool(parameters, "tradingStopEndpoint", false));
             String defaultMethod = null;
-            if ((Boolean.TRUE.equals(isTrailingOrder) || (java.util.Objects.equals(switchToOco, true))) && (!java.util.Objects.equals(market.get("spot"), true)))
+            if ((Boolean.TRUE.equals(isTrailingOrder) || Boolean.TRUE.equals(switchToOco)) && (!java.util.Objects.equals(market.get("spot"), true)))
             {
                 defaultMethod = "privatePostV5PositionTradingStop";
             } else
@@ -5522,7 +5522,7 @@ public class Bybit extends BybitApi
         Boolean isBuy = java.util.Objects.equals(side, "buy");
         Boolean switchToOco = (Boolean.TRUE.equals(isStopLossOrder) && Boolean.TRUE.equals(isTakeProfitOrder)) || Boolean.TRUE.equals(this.safeBool(parameters, "tradingStopEndpoint", false));
         String defaultMethod = null;
-        if (Boolean.TRUE.equals(isTrailingOrder) || (java.util.Objects.equals(switchToOco, true)))
+        if (Boolean.TRUE.equals(isTrailingOrder) || Boolean.TRUE.equals(switchToOco))
         {
             defaultMethod = "privatePostV5PositionTradingStop";
         } else
@@ -5625,7 +5625,7 @@ public class Bybit extends BybitApi
             List<Object> postOnlyqueryVariable = (List<Object>) this.handlePostOnly(isMarket, java.util.Objects.equals(timeInForce, "postonly"), Helpers.toMapArg(query));
             postOnly = (Boolean) ((List<Object>) postOnlyqueryVariable).get(0);
             query = ((List<Object>) postOnlyqueryVariable).get(1);
-            if (java.util.Objects.equals(postOnly, true))
+            if (Boolean.TRUE.equals(postOnly))
             {
                 request.put("timeInForce", "PostOnly");
             } else if (java.util.Objects.equals(timeInForce, "gtc"))
@@ -5834,7 +5834,7 @@ public class Bybit extends BybitApi
                 }
             }
         }
-        if ((!java.util.Objects.equals(market.get("spot"), true)) && (java.util.Objects.equals(hedged, true)))
+        if ((!java.util.Objects.equals(market.get("spot"), true)) && Boolean.TRUE.equals(hedged))
         {
             if (java.util.Objects.equals(reduceOnly, true))
             {
@@ -6218,7 +6218,7 @@ public class Bybit extends BybitApi
         {
             // only works for spot market
             Boolean isTrigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
-            request.put("orderFilter", (((java.util.Objects.equals(isTrigger, true)))) ? "StopOrder" : "Order");
+            request.put("orderFilter", ((Boolean.TRUE.equals(isTrigger))) ? "StopOrder" : "Order");
         }
         if (!java.util.Objects.equals(id, null))
         {
@@ -6586,7 +6586,7 @@ public class Bybit extends BybitApi
             }
             Boolean isTrigger = (Boolean) this.safeBool2(paramsValue, "stop", "trigger", false);
             Map<String, Object> paramsOmitted = this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
-            if (java.util.Objects.equals(isTrigger, true))
+            if (Boolean.TRUE.equals(isTrigger))
             {
                 request.put("orderFilter", "StopOrder");
             }
@@ -6668,7 +6668,7 @@ public class Bybit extends BybitApi
             if (java.util.Objects.equals(length, 0))
             {
                 Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
-                String extra = (((java.util.Objects.equals(isTrigger, true)))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
+                String extra = ((Boolean.TRUE.equals(isTrigger))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
                 throw new OrderNotFound(((("Order " + String.valueOf(id)) + " was not found.") + extra)) ;
             }
             if ((length != null && length > 1))
@@ -6852,7 +6852,7 @@ public class Bybit extends BybitApi
             request.put("category", type);
             Boolean isTrigger = (Boolean) this.safeBool2(paramsValue, "trigger", "stop", false);
             Map<String, Object> paramsOmitted = this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
-            if (java.util.Objects.equals(isTrigger, true))
+            if (Boolean.TRUE.equals(isTrigger))
             {
                 request.put("orderFilter", "StopOrder");
             }
@@ -6960,7 +6960,7 @@ public class Bybit extends BybitApi
             if (java.util.Objects.equals(length, 0))
             {
                 Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
-                String extra = (((java.util.Objects.equals(isTrigger, true)))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
+                String extra = ((Boolean.TRUE.equals(isTrigger))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
                 throw new OrderNotFound(((("Order " + String.valueOf(id)) + " was not found.") + extra)) ;
             }
             if ((length != null && length > 1))
@@ -7006,7 +7006,7 @@ public class Bybit extends BybitApi
             if (java.util.Objects.equals(length, 0))
             {
                 Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
-                String extra = (((java.util.Objects.equals(isTrigger, true)))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
+                String extra = ((Boolean.TRUE.equals(isTrigger))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
                 throw new OrderNotFound(((("Order " + String.valueOf(id)) + " was not found.") + extra)) ;
             }
             if ((length != null && length > 1))
@@ -7065,7 +7065,7 @@ public class Bybit extends BybitApi
             request.put("category", type);
             Boolean isTrigger = (Boolean) this.safeBool2(paramsValue, "trigger", "stop", false);
             Map<String, Object> paramsOmitted = this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
-            if (java.util.Objects.equals(isTrigger, true))
+            if (Boolean.TRUE.equals(isTrigger))
             {
                 request.put("orderFilter", "StopOrder");
             }
@@ -7283,7 +7283,7 @@ public class Bybit extends BybitApi
             request.put("category", type);
             Boolean isTrigger = (Boolean) this.safeBool2(paramsValue, "stop", "trigger", false);
             Map<String, Object> paramsOmitted = this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
-            if (java.util.Objects.equals(isTrigger, true))
+            if (Boolean.TRUE.equals(isTrigger))
             {
                 request.put("orderFilter", "StopOrder");
             }

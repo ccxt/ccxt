@@ -413,7 +413,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         String side = null;
         if (!java.util.Objects.equals(isSellerMaker, null))
         {
-            side = (((java.util.Objects.equals(isSellerMaker, true)))) ? "sell" : "buy";
+            side = ((Boolean.TRUE.equals(isSellerMaker))) ? "sell" : "buy";
         }
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "qty");

@@ -749,7 +749,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, 1000));
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
-        if (java.util.Objects.equals(full, true))
+        if (Boolean.TRUE.equals(full))
         {
             Map<String, Object> snapshopt = (Map<String, Object>) this.parseOrderBook(result, symbol, (Long) null, "b", "a", 0, 1, 2);
             snapshopt.put("nonce", this.safeInteger(result, "u"));

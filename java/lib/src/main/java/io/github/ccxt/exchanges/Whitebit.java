@@ -1487,7 +1487,7 @@ public class Whitebit extends WhitebitApi
                 Boolean hasAmountLimits = (!java.util.Objects.equals(amountLimits, null)) && (!java.util.Objects.equals(amountLimits, null)) && !java.util.Objects.equals(this.safeNumber(amountLimits, "min", (Object) null), null) && !java.util.Objects.equals(this.safeNumber(amountLimits, "max", (Object) null), null);
                 Boolean hasPriceLimits = (!java.util.Objects.equals(priceLimits, null)) && (!java.util.Objects.equals(priceLimits, null)) && !java.util.Objects.equals(this.safeNumber(priceLimits, "min", (Object) null), null) && !java.util.Objects.equals(this.safeNumber(priceLimits, "max", (Object) null), null);
                 Boolean hasCostLimits = (!java.util.Objects.equals(costLimits, null)) && (!java.util.Objects.equals(costLimits, null)) && !java.util.Objects.equals(this.safeNumber(costLimits, "min", (Object) null), null) && !java.util.Objects.equals(this.safeNumber(costLimits, "max", (Object) null), null);
-                if ((java.util.Objects.equals(hasAmountLimits, true)) && (java.util.Objects.equals(hasPriceLimits, true)) && (java.util.Objects.equals(hasCostLimits, true)))
+                if (Boolean.TRUE.equals(hasAmountLimits) && Boolean.TRUE.equals(hasPriceLimits) && Boolean.TRUE.equals(hasCostLimits))
                 {
                     HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
                     mapLiteral4.put("info", market);
@@ -1879,7 +1879,7 @@ public class Whitebit extends WhitebitApi
                 request.put("market", market.get("id"));
             }
             // Try active orders first (if enabled)
-            if (java.util.Objects.equals(checkActive, true))
+            if (Boolean.TRUE.equals(checkActive))
             {
                 try
                 {
@@ -1906,7 +1906,7 @@ public class Whitebit extends WhitebitApi
                 }
             }
             // Try executed orders (if enabled)
-            if (java.util.Objects.equals(checkExecuted, true))
+            if (Boolean.TRUE.equals(checkExecuted))
             {
                 try
                 {
@@ -5258,7 +5258,7 @@ public class Whitebit extends WhitebitApi
             }
             // {"success":false,"message":{"limit":["limit must be less than or equal to 100"]},"result":null}
             Boolean success = (Boolean) this.safeBool(response, "success", true);
-            if (!java.util.Objects.equals(success, true))
+            if (!Boolean.TRUE.equals(success))
             {
                 Map<String, Object> errMsg = (Map<String, Object>) this.safeDict(response, "message", new HashMap<String, Object>() {{}});
                 List<String> errKeys = new ArrayList<String>(errMsg.keySet());

@@ -1877,7 +1877,7 @@ public class Dydx extends DydxApi
 
             Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
-            if ((!java.util.Objects.equals(isTrigger, true)) && (java.util.Objects.equals(symbol, null)))
+            if ((!Boolean.TRUE.equals(isTrigger)) && (java.util.Objects.equals(symbol, null)))
             {
                 throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
             }
@@ -1902,7 +1902,7 @@ public class Dydx extends DydxApi
             Long goodTillBlockTimeInSecondsOption = (Long) ((List<Object>) goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable).get(0);
             Map<String, Object> paramsGoodTillBlockTimeInSeconds = (Map<String, Object>) ((List<Object>) goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable).get(1); // default is 30 days
             Object goodTillBlockTime = null;
-            Integer defaultOrderFlags = (((java.util.Objects.equals(isTrigger, true)))) ? 32 : 64;
+            Integer defaultOrderFlags = ((Boolean.TRUE.equals(isTrigger))) ? 32 : 64;
             Long orderFlags = this.safeInteger(paramsGoodTillBlockTimeInSeconds, "orderFlags", defaultOrderFlags);
             Long subAccountId = 0L;
             Long subAccountIdOption = (Long) ((List<Object>)this.handleOptionIntegerAndParams(paramsGoodTillBlockTimeInSeconds, "cancelOrder", "subAccountId", subAccountId)).get(0);

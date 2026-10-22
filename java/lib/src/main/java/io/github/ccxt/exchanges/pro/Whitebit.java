@@ -1104,7 +1104,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                 Map<String, Object> market = this.market(symbol);
                 String marketId = (String) market.get("id");
                 Boolean isSubscribed = (Boolean) this.safeBool(subscription, marketId, false);
-                if (!java.util.Objects.equals(isSubscribed, true))
+                if (!Boolean.TRUE.equals(isSubscribed))
                 {
                     if (!java.util.Objects.equals(marketId, null))
                     {

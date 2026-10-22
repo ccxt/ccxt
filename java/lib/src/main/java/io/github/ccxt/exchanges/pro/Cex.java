@@ -899,7 +899,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         }
         Helpers.addElementToObject(order, "remaining", remains);
         Boolean canceled = (Boolean) this.safeBool(data, "cancel", false);
-        if (java.util.Objects.equals(canceled, true))
+        if (Boolean.TRUE.equals(canceled))
         {
             Helpers.addElementToObject(order, "status", "canceled");
         }
@@ -1007,7 +1007,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         }
         Boolean canceled = (Boolean) this.safeBool(order, "cancel", false);
         String status = "open";
-        if (java.util.Objects.equals(canceled, true))
+        if (Boolean.TRUE.equals(canceled))
         {
             status = "canceled";
         } else if (Boolean.TRUE.equals(isTransaction))
