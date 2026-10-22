@@ -2412,7 +2412,7 @@ function hx4G36Template (helper: string): { head: string, body: string[] } {
         'return 0' ] };
 }
 
-function hx4G36AddImport (content: string, pkg: string): string {
+export function hx4G36AddImport (content: string, pkg: string): string {
     if (new RegExp ('^import "' + pkg + '"$', 'm').test (content) || new RegExp ('^\\s+"' + pkg + '"$', 'm').test (content)) {
         return content;
     }
