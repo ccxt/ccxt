@@ -3559,7 +3559,7 @@ function hx5X23CollapseDup (text: string): string {
     let prev = '';
     while (prev !== text) {
         prev = text;
-        text = text.replace (/(\(?)(\w+ [!=]= nil)(\)?) (&&|\|\|) \1\2\3(?![\w.\[(])/g, '$1$2$3');
+        text = text.replace (/(?<![\w.)\]])(\(?)(\w+ [!=]= nil)(\)?) (&&|\|\|) \1\2\3(?![\w.\[(])/g, '$1$2$3');
     }
     return text;
 }
@@ -3583,6 +3583,11 @@ export function hx4G40Check (aligner?: unknown): string[] {
         'func F(a []any) any {\n\tq := &a\n\treturn IsEqual(a, nil)\n}\n', 'func F(a any) any {\n\tvar s []any = nil\n\treturn func(s any) bool {\n\t\treturn IsEqual(s, nil)\n\t}(a)\n}\n' ]) {
         if (hx4G40InlineIsEqual (head + keep) !== head + keep) {
             problems.push ('hx5 X23: unproven nil rewritten: ' + hx4G40InlineIsEqual (head + keep));
+        }
+    }
+    for (const keep of [ 'a.x != nil && x != nil', 'f(x != nil) && (x != nil)' ]) {
+        if (hx5X23CollapseDup (keep) !== keep) {
+            problems.push ('hx5 X23: wrong collapse: ' + keep);
         }
     }
     const once = hx4G40InlineIsEqual (head + 'func F(m map[string]any) any {\n\treturn IsEqual(m, nil)\n}\n');
