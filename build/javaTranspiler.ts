@@ -9897,8 +9897,25 @@ function j40X14Type (e: string, ctx: J40Ctx): 'boolean' | 'Boolean' | undefined 
     // requireNonNullElse(<Boolean>, <boolean literal>) is a non-null Boolean
     const r = /^java\.util\.Objects\.requireNonNullElse\(([A-Za-z_]\w*), (?:true|false)\)$/.exec(t);
     if (r !== null && j40X14Type(r[1], ctx) !== undefined) { return 'Boolean'; }
-    if (j35JavaBoolean(t)) { return 'boolean'; }
+    if (j35JavaBoolean(t) || j40X14TopLogic(t)) { return 'boolean'; }
     return undefined;
+}
+
+// a top-level `&&` / `||` (no top-level `?:` or assignment) is a Java boolean: both operands must be boolean
+function j40X14TopLogic (e: string): boolean {
+    let depth = 0, logic = false;
+    for (let k = 0; k < e.length; k++) {
+        const c = e[k];
+        if (c === '"' || c === '\'') { for (k++; k < e.length && e[k] !== c; k++) if (e[k] === '\\') k++; continue; }
+        if (c === '(' || c === '[' || c === '{') depth++;
+        else if (c === ')' || c === ']' || c === '}') depth--;
+        else if (depth === 0) {
+            if (c === '?' || (c === '=' && e[k + 1] !== '=' && !'=!<>'.includes (e[k - 1]))) return false;
+            if (e.startsWith ('&&', k) || e.startsWith ('||', k)) logic = true;
+        }
+        if (depth < 0) return false;
+    }
+    return logic && depth === 0;
 }
 
 function j40X14IsTrue (x: string, ctx: J40Ctx): string | undefined {
@@ -9918,6 +9935,8 @@ function j40X14SelfTest (): string[] {
         [ 'paren Boolean', '        if (Helpers.isTrue((q))) {}', 'if (Boolean.TRUE.equals((q))) {}' ],
         [ 'requireNonNullElse', '        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(q, false))) {}', 'if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(q, false))) {}' ],
         [ 'java boolean expr', '        if (Helpers.isTrue(p == null)) {}', 'if ((p == null)) {}' ],
+        [ 'TRUE.equals && call', '        if (Helpers.isTrue(Boolean.TRUE.equals(q) && this.inArray(p, p))) {}', 'if ((Boolean.TRUE.equals(q) && this.inArray(p, p))) {}' ],
+        [ 'ternary', '        if (Helpers.isTrue(r ? p : q)) {}', undefined ],
         // helper left alone: Object param, Object local, mixed declarations, requireNonNullElse on Object, call result
         [ 'Object param', '        if (Helpers.isTrue(p)) {}', undefined ],
         [ 'Object local', '        Object b = p;\n        if (Helpers.isTrue(b)) {}', undefined ],
