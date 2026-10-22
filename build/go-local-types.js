@@ -10852,6 +10852,24 @@ function installHx5X32StringPtrParams (goTranspiler) {
             proving--;
         }
     };
+    const probeParam = (self, param) => {
+        const caches = [ self.goNativeParameterTypeCache, self.goDeclaredTypeCache ].filter ((c) => c instanceof Map);
+        if ((proving === 0) || (caches.length === 0) || self.goNativeParameterTypeCache?.has?.(param)) {
+            return self.goNativeParameterType (param);
+        }
+        const before = caches.map ((c) => new Set (c.keys ()));
+        try {
+            return self.goNativeParameterType (param);
+        } finally {
+            caches.forEach ((c, i) => {
+                for (const key of [ ...c.keys () ]) {
+                    if (!before[i].has (key)) {
+                        c.delete (key);
+                    }
+                }
+            });
+        }
+    };
     const upstreamArgs = goTranspiler.printArgsForCallExpression;
     goTranspiler.printArgsForCallExpression = function (node, identation) {
         const printed = upstreamArgs.call (this, node, identation);
@@ -10864,20 +10882,18 @@ function installHx5X32StringPtrParams (goTranspiler) {
         if ((typeof calleeName === 'string') && Object.prototype.hasOwnProperty.call (this.unifiedStringParams ?? {}, calleeName)) {
             return printed; // unified string args keep their StringArg/deref printing
         }
-        if (proving > 0) {
-            return printed;
-        }
         const decl = hx5X32CallDeclaration (this, node);
         if (decl === undefined) {
             return printed;
         }
-        // never probe while a parameter proof is in flight: that print only feeds type inference,
-        // and a nested proof would cache the in-flight parameter's re-entry answer (`any`)
+        // a probe made while another parameter proof is in flight can see that proof's re-entry
+        // answer (`any`) and cache a wrong verdict for other parameters: such probes are scratch,
+        // so every cache entry they add is dropped again (see probeParam)
         const wrap = args.map ((a, i) => {
             const param = decl.parameters?.[i];
             return (param !== undefined) && (param.dotDotDotToken === undefined) && (param.initializer === undefined)
                 && hx5X32NullableStringParam (this, param)
-                && (upstreamArgType.call (this, a) === 'string') && (this.goNativeParameterType (param) === '*string');
+                && (upstreamArgType.call (this, a) === 'string') && (probeParam (this, param) === '*string');
         });
         if (!wrap.some ((w) => w)) {
             return printed;
