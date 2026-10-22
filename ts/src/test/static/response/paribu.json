@@ -1,0 +1,395 @@
+{
+    "exchange": "paribu",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "recent trades with limit",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/TRY",
+                    null,
+                    5
+                ],
+                "httpResponse": [
+                    {
+                        "price": "4066701.00000000",
+                        "amount": "0.10659700",
+                        "time": "2026-10-22T10:15:38.855370974Z",
+                        "trade": "buy"
+                    },
+                    {
+                        "price": "4066686.00000000",
+                        "amount": "0.00048600",
+                        "time": "2026-10-22T10:15:33.210029214Z",
+                        "trade": "buy"
+                    },
+                    {
+                        "price": "4065666.00000000",
+                        "amount": "0.01217500",
+                        "time": "2026-10-22T10:14:28.814958037Z",
+                        "trade": "buy"
+                    },
+                    {
+                        "price": "4061560.00000000",
+                        "amount": "0.09851400",
+                        "time": "2026-10-22T10:11:47.976702774Z",
+                        "trade": "buy"
+                    },
+                    {
+                        "price": "4059974.00000000",
+                        "amount": "0.00985200",
+                        "time": "2026-10-22T10:09:24.186012747Z",
+                        "trade": "buy"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "price": "4059974.00000000",
+                            "amount": "0.00985200",
+                            "time": "2026-10-22T10:09:24.186012747Z",
+                            "trade": "buy"
+                        },
+                        "id": null,
+                        "order": null,
+                        "timestamp": 1792663764186,
+                        "datetime": "2026-10-22T10:09:24.186Z",
+                        "symbol": "BTC/TRY",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 4059974,
+                        "amount": 0.009852,
+                        "cost": 39998.863848,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "price": "4061560.00000000",
+                            "amount": "0.09851400",
+                            "time": "2026-10-22T10:11:47.976702774Z",
+                            "trade": "buy"
+                        },
+                        "id": null,
+                        "order": null,
+                        "timestamp": 1792663907976,
+                        "datetime": "2026-10-22T10:11:47.976Z",
+                        "symbol": "BTC/TRY",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 4061560,
+                        "amount": 0.098514,
+                        "cost": 400120.52184,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "price": "4065666.00000000",
+                            "amount": "0.01217500",
+                            "time": "2026-10-22T10:14:28.814958037Z",
+                            "trade": "buy"
+                        },
+                        "id": null,
+                        "order": null,
+                        "timestamp": 1792664068814,
+                        "datetime": "2026-10-22T10:14:28.814Z",
+                        "symbol": "BTC/TRY",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 4065666,
+                        "amount": 0.012175,
+                        "cost": 49499.48355,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "price": "4066686.00000000",
+                            "amount": "0.00048600",
+                            "time": "2026-10-22T10:15:33.210029214Z",
+                            "trade": "buy"
+                        },
+                        "id": null,
+                        "order": null,
+                        "timestamp": 1792664133210,
+                        "datetime": "2026-10-22T10:15:33.210Z",
+                        "symbol": "BTC/TRY",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 4066686,
+                        "amount": 0.000486,
+                        "cost": 1976.409396,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "price": "4066701.00000000",
+                            "amount": "0.10659700",
+                            "time": "2026-10-22T10:15:38.855370974Z",
+                            "trade": "buy"
+                        },
+                        "id": null,
+                        "order": null,
+                        "timestamp": 1792664138855,
+                        "datetime": "2026-10-22T10:15:38.855Z",
+                        "symbol": "BTC/TRY",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 4066701,
+                        "amount": 0.106597,
+                        "cost": 433498.126497,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "order book with limit",
+                "method": "fetchOrderBook",
+                "input": [
+                    "BTC/TRY",
+                    5
+                ],
+                "httpResponse": {
+                    "bids": [
+                        [
+                            "4065835",
+                            "0.199203"
+                        ],
+                        [
+                            "4065603",
+                            "0.017957"
+                        ],
+                        [
+                            "4061729",
+                            "0.036487"
+                        ],
+                        [
+                            "4061728",
+                            "0.000036"
+                        ],
+                        [
+                            "4061702",
+                            "0.036437"
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            "4066908",
+                            "0.036487"
+                        ],
+                        [
+                            "4066909",
+                            "0.012171"
+                        ],
+                        [
+                            "4066932",
+                            "0.018869"
+                        ],
+                        [
+                            "4066957",
+                            "0.016618"
+                        ],
+                        [
+                            "4066991",
+                            "0.00038"
+                        ]
+                    ],
+                    "timestamp": 1792664199,
+                    "last_offset": 394566922,
+                    "seq": 47088762
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/TRY",
+                    "bids": [
+                        [
+                            4065835,
+                            0.199203
+                        ],
+                        [
+                            4065603,
+                            0.017957
+                        ],
+                        [
+                            4061729,
+                            0.036487
+                        ],
+                        [
+                            4061728,
+                            0.000036
+                        ],
+                        [
+                            4061702,
+                            0.036437
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            4066908,
+                            0.036487
+                        ],
+                        [
+                            4066909,
+                            0.012171
+                        ],
+                        [
+                            4066932,
+                            0.018869
+                        ],
+                        [
+                            4066957,
+                            0.016618
+                        ],
+                        [
+                            4066991,
+                            0.00038
+                        ]
+                    ],
+                    "timestamp": 1792664199000,
+                    "datetime": "2026-10-22T10:16:39.000Z",
+                    "nonce": 47088762
+                }
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "spot ticker BTC/USDT",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "average": "83558.04",
+                        "change": "-1107.47",
+                        "first": "83120.17",
+                        "high": "84804.34",
+                        "last": "82012.7",
+                        "low": "81731.66",
+                        "market": "btc_usdt",
+                        "pair_volume": "611303.55",
+                        "percentage": "-1.33",
+                        "volume": "7.315915"
+                    }
+                ],
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": null,
+                    "datetime": null,
+                    "high": 84804.34,
+                    "low": 81731.66,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": 83558.04,
+                    "open": 83120.17,
+                    "close": 82012.7,
+                    "last": 82012.7,
+                    "previousClose": null,
+                    "change": -1107.47,
+                    "percentage": -1.33,
+                    "average": 82566.43,
+                    "baseVolume": 7.315915,
+                    "quoteVolume": 611303.55,
+                    "info": {
+                        "average": "83558.04",
+                        "change": "-1107.47",
+                        "first": "83120.17",
+                        "high": "84804.34",
+                        "last": "82012.7",
+                        "low": "81731.66",
+                        "market": "btc_usdt",
+                        "pair_volume": "611303.55",
+                        "percentage": "-1.33",
+                        "volume": "7.315915"
+                    },
+                    "indexPrice": null,
+                    "markPrice": null
+                }
+            },
+            {
+                "description": "spot ticker BTC/TRY",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/TRY"
+                ],
+                "httpResponse": [
+                    {
+                        "average": "4132920",
+                        "change": "-49773",
+                        "first": "4116474",
+                        "high": "4189139",
+                        "last": "4066701",
+                        "low": "4045585",
+                        "market": "btc_tl",
+                        "pair_volume": "161705612",
+                        "percentage": "-1.2",
+                        "volume": "39.126233"
+                    }
+                ],
+                "parsedResponse": {
+                    "symbol": "BTC/TRY",
+                    "timestamp": null,
+                    "datetime": null,
+                    "high": 4189139,
+                    "low": 4045585,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": 4132920,
+                    "open": 4116474,
+                    "close": 4066701,
+                    "last": 4066701,
+                    "previousClose": null,
+                    "change": -49773,
+                    "percentage": -1.2,
+                    "average": 4091587,
+                    "baseVolume": 39.126233,
+                    "quoteVolume": 161705612,
+                    "info": {
+                        "average": "4132920",
+                        "change": "-49773",
+                        "first": "4116474",
+                        "high": "4189139",
+                        "last": "4066701",
+                        "low": "4045585",
+                        "market": "btc_tl",
+                        "pair_volume": "161705612",
+                        "percentage": "-1.2",
+                        "volume": "39.126233"
+                    },
+                    "indexPrice": null,
+                    "markPrice": null
+                }
+            }
+        ]
+  }
+}
