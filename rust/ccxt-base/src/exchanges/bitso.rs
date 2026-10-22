@@ -1955,8 +1955,7 @@ impl BitsoCore {
         let __ws_arg_10 = self.extend(request, &[paramsMarker]);
         let mut response: Value = self.private_get_open_orders(&[__ws_arg_10]).await;
         let mut payload: Value = self.safe_list_k(response, "payload", &[Value::from(vec![])]);
-        let mut orders: Value = self.parse_orders(payload, &[market, since, limit]);
-        return orders;
+        return self.parse_orders(payload, &[market, since, limit]);
 
     Value::Null
 }

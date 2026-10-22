@@ -2283,7 +2283,7 @@ impl ToobitCore {
         }
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        return self.filter_by_array(results, Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array_tickers(results, Value::Str("symbol".into()), &[symbolsNormalized]);
 
     Value::Null
 }

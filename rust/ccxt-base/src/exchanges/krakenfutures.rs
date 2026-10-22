@@ -79,10 +79,6 @@ impl crate::exchange::DerivedExchange for KrakenfuturesCore {
         // Forward to the inherent method on KrakenfuturesCore.
         KrakenfuturesCore::parse_transfer(self, transfer, &[currency])
     }
-    fn parse_account(&self, account: crate::Value) -> crate::Value {
-        // Forward to the inherent method on KrakenfuturesCore.
-        KrakenfuturesCore::parse_account(self, account)
-    }
     fn parse_income(&self, info: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on KrakenfuturesCore.
         KrakenfuturesCore::parse_income(self, info, &[market])
@@ -143,10 +139,10 @@ impl crate::exchange_generated::ExchangeBase for KrakenfuturesCore {
                 "fetch_trades" => self.fetch_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "fetch_trading_fees" => self.fetch_trading_fees(&args[..]).await,
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
-                "parse_account" => self.parse_account(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_funding_rate" => self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_income" => self.parse_income(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_kraken_account_name" => self.parse_kraken_account_name(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_leverage" => self.parse_leverage(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_market_leverage_tiers" => self.parse_market_leverage_tiers(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -3827,7 +3823,7 @@ impl KrakenfuturesCore {
                 type_var = symbol.clone();
             }
         }
-        let mut accountName: Value = self.parse_account(type_var.clone());
+        let mut accountName: Value = self.parse_kraken_account_name(type_var.clone());
         let mut accounts: Value = self.safe_dict_k(response.clone(), "accounts", &[]);
         let mut account: Value = self.safe_dict(accounts, accountName, &[]);
         if (account == Value::Null) {
@@ -4613,7 +4609,7 @@ impl KrakenfuturesCore {
     Value::Null
 }
 
-    pub fn parse_account(&self, mut account: Value) -> Value {
+    pub fn parse_kraken_account_name(&self, mut account: Value) -> Value {
         let mut accountByType: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("main".to_string(), Value::Str("cash".into()));
@@ -4627,7 +4623,7 @@ impl KrakenfuturesCore {
             m
         });
         if (in_op(&accountByType, &account)) {
-            return get_value(&accountByType, &account);
+            return accountByType.as_map().and_then(|__m| account.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         }  else if (self.markets.clone() != Value::Null) && (in_op(&self.markets, &account)) {
             let mut market: Value = self.market(account.clone());
             let mut marketId: Value = market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
@@ -4695,15 +4691,15 @@ impl KrakenfuturesCore {
         });
         let mut response: Value = Value::Null;
         if (toAccount.as_str() == Some("spot")) {
-            if (self.parse_account(fromAccount.clone()).as_str() != Some("cash")) {
+            if (self.parse_kraken_account_name(fromAccount.clone()).as_str() != Some("cash")) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" transfer cannot transfer from ".into())).into()), fromAccount).into()), Value::Str(" to ".into())).into()), toAccount)));
             }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("currency".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
             let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_post_withdrawal(&[__ws_arg_20]).await;
         }  else {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("fromAccount".into(), self.parse_account(fromAccount.clone())); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("toAccount".into(), self.parse_account(toAccount.clone())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("fromAccount".into(), self.parse_kraken_account_name(fromAccount.clone())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("toAccount".into(), self.parse_kraken_account_name(toAccount.clone())); }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("unit".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
             let __ws_arg_21 = self.extend(request, &[params]);
             response = self.private_post_transfer(&[__ws_arg_21]).await;

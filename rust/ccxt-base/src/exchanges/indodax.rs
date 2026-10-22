@@ -971,7 +971,7 @@ impl IndodaxCore {
             if let Value::Dict(__d) = &mut parsedTickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&marketId), parsed); }
         }
         }
-        return self.filter_by_array(parsedTickers, Value::Str("symbol".into()), &[symbols]);
+        return self.filter_by_array_tickers(parsedTickers, Value::Str("symbol".into()), &[symbols]);
 
     Value::Null
 }
@@ -1952,16 +1952,12 @@ impl IndodaxCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut networks: Value = self.safe_dict_k(data.clone(), "network", &[Value::Map({
+        let mut networks: Value = self.safe_dict_k(data, "network", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
         let mut addressKeys: Value = object_keys(&addresses);
-        let mut result: Value = Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("info".to_string(), data);
-            m
-        });
+        let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_844: bool = true;
@@ -2002,23 +1998,23 @@ impl IndodaxCore {
                 }
                 let mut finalNetwork: Value = network; // java req
                 if (code != Value::Null) {
-                    if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Map({
+                    append_to_array(&mut result, Value::Map({
+                        let mut m = indexmap::IndexMap::new();
+                            m.insert("info".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        m.insert("currency".to_string(), code.clone());
-        m.insert("network".to_string(), finalNetwork);
-        m.insert("address".to_string(), address);
-        m.insert("tag".to_string(), Value::Null);
-    m
-})); }
+                            m.insert("currency".to_string(), code);
+                            m.insert("network".to_string(), finalNetwork);
+                            m.insert("address".to_string(), address);
+                            m.insert("tag".to_string(), Value::Null);
+                        m
+                    }));
                 }
             }
         }
         }
-        return result;
+        return self.to_array(result);
 
     Value::Null
 }

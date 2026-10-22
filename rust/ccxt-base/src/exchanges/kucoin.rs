@@ -14899,7 +14899,8 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         let mut paramsUta: Value = utaOptionparamsUtaVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if is_true(&utaOption) {
             let mut result: Value = self.fetch_leverage_tiers(&[Value::from(vec![symbol.clone()]), paramsUta.clone()]).await;
-            return self.safe_list(result, symbol, &[Value::from(vec![])]);
+            let mut tiers: Value = self.safe_list(result, symbol, &[Value::from(vec![])]);
+            return tiers;
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -15253,17 +15254,16 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut uta: Value = self.safe_bool_k(self.options.clone(), "uta", &[]);
-        if (uta == Value::Null) {
+        if (self.safe_bool_k(self.options.clone(), "uta", &[]) == Value::Null) {
             let mut response: Value = self.uta_private_get_account_mode(&[params]).await;
             let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
             let mut accountMode: Option<String> = self.safe_string_k(data, "selfAccountMode", &[]).as_str().map(str::to_owned);
-            uta = (Value::Bool(accountMode.as_deref() == Some("UNIFIED")));
-            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("uta".into(), uta.clone()); }
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("uta".into(), (Value::Bool(accountMode.as_deref() == Some("UNIFIED")))); }
         }
+        let mut uta: Value = Value::Bool(self.safe_bool_k(self.options.clone(), "uta", &[]).as_bool() == Some(true));
         return uta;
 
     Value::Null

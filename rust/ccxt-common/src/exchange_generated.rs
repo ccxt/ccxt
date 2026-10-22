@@ -6069,7 +6069,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositWithdrawFee() is not supported yet".into()))));
         }
         let mut fees: Value = self.fetch_deposit_withdraw_fees(&[Value::from(vec![code.clone()]), params]).await;
-        return self.safe_value(fees, code, &[]);
+        return self.safe_dict(fees, code, &[]);
 
     Value::Null
 } }
@@ -6964,13 +6964,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     m
 }));
         if (self.has.as_map().and_then(|__m| __m.get("fetchDepositAddresses")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchDepositAddresses")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
-            let mut depositAddresses: Value = self.fetch_deposit_addresses(&[Value::from(vec![code.clone()]), params.clone()]).await;
-            let mut depositAddress: Value = self.safe_value(depositAddresses, code.clone(), &[]);
-            if (depositAddress == Value::Null) {
+            let mut depositAddressesList: Value = self.fetch_deposit_addresses(&[Value::from(vec![code.clone()]), params.clone()]).await;
+            let mut depositAddresses: Value = self.index_by(depositAddressesList, Value::Str("currency".into()));
+            if (self.safe_dict(depositAddresses.clone(), code.clone(), &[]) == Value::Null) {
                 panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() could not find a deposit address for ".into())).into()), code).into()), Value::Str(", make sure you have created a corresponding deposit address in your wallet on the exchange website".into()))));
-            }  else {
-                return depositAddress;
             }
+            return self.safe_dict(depositAddresses, code.clone(), &[]);
         }  else if (self.has.as_map().and_then(|__m| __m.get("fetchDepositAddressesByNetwork")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchDepositAddressesByNetwork")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             let mut network: Value = self.safe_string_k(params.clone(), "network", &[]);
             let mut paramsOmitted: Value = self.omit(params, Value::Str("network".into()), &[]);
@@ -7358,7 +7357,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" loadTimeDifference() missing serverTime".into()))));
         }
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("timeDifference".into(), (match (&(after), &(serverTime)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })); }
-        return self.options.as_map().and_then(|__m| __m.get("timeDifference")).cloned().unwrap_or(Value::Null);
+        return self.parse_to_int(self.options.as_map().and_then(|__m| __m.get("timeDifference")).cloned().unwrap_or(Value::Null));
 
     Value::Null
 } }
@@ -7389,7 +7388,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" fetchMarketLeverageTiers() supports contract markets only".into()))));
             }
             let mut tiers: Value = self.fetch_leverage_tiers(&[Value::from(vec![symbol.clone()])]).await;
-            return self.safe_value(tiers, symbol, &[]);
+            let mut marketTiers: Value = self.safe_list(tiers, symbol, &[]);
+            return marketTiers;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchMarketLeverageTiers() is not supported yet".into()))));
         }
@@ -7495,7 +7495,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        return self.filter_by_array(results, Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.index_by(self.filter_by_array(results, Value::Str("symbol".into()), &[symbolsNormalized, Value::Bool(false)]), Value::Str("symbol".into()));
 
     Value::Null
 }
@@ -7576,10 +7576,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         }
         if (codes != Value::Null) {
-            result = self.filter_by_array(result.clone(), Value::Str("currency".into()), &[codes, Value::Bool(false)]);
+            result = self.to_array(self.filter_by_array(result.clone(), Value::Str("currency".into()), &[codes, Value::Bool(false)]));
         }
         if is_true(&indexed) {
-            result = self.filter_by_array(result.clone(), Value::Str("currency".into()), &[Value::Null, indexed.clone()]);
+            result = self.to_array(self.filter_by_array(result.clone(), Value::Str("currency".into()), &[Value::Null, indexed.clone()]));
         }
         return result;
 
@@ -7982,7 +7982,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
         }
         }
-        return self.filter_by_array(result, Value::Str("symbol".into()), &[symbols]);
+        return self.index_by(self.filter_by_array(result, Value::Str("symbol".into()), &[symbols, Value::Bool(false)]), Value::Str("symbol".into()));
 
     Value::Null
 }
@@ -8496,7 +8496,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     fn filter_by_array_adl_ranks(&self, mut objects: Value, mut key: Value, optional_args: &[Value]) -> Value {
         let mut values = get_arg(optional_args, 0, Value::Null);
         let mut indexed = get_arg(optional_args, 1, Value::Bool(true));
-        return self.filter_by_array(objects, key, &[values, indexed]);
+        return self.to_array(self.filter_by_array(objects, key, &[values, indexed]));
 
     Value::Null
 }
@@ -9168,7 +9168,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        return self.filter_by_array(results, Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.index_by(self.filter_by_array(results, Value::Str("symbol".into()), &[symbolsNormalized, Value::Bool(false)]), Value::Str("symbol".into()));
 
     Value::Null
 }
@@ -9809,8 +9809,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
          * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
          */
         if (self.has.as_map().and_then(|__m| __m.get("fetchPositionsHistory")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchPositionsHistory")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
-            let mut positions: Value = self.fetch_positions_history(&[Value::from(vec![symbol]), since, limit, params]).await;
-            return positions;
+            return self.fetch_positions_history(&[Value::from(vec![symbol]), since, limit, params]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchPositionHistory () is not supported yet".into()))));
         }
@@ -10991,7 +10990,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         // TODO: TypeScript: change method signature by replacing
         // Promise<string> with Promise<Order['status']>.
         let mut order: Value = self.fetch_order(id, &[symbol, params]).await;
-        return order.as_map().and_then(|__m| __m.get("status")).cloned().unwrap_or(Value::Null);
+        return self.safe_string_k(order, "status", &[]);
 
     Value::Null
 } }

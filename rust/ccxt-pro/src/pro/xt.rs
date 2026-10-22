@@ -766,11 +766,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only".into()))));
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe::".into()), name).into());
-        let mut tickers: Value = self.un_subscribe(messageHash, name, Value::Str("public".into()), Value::Str("unWatchTickers".into()), Value::Str("ticker".into()), &[Value::Null, symbols.clone(), params]).await;
-        if is_true(&self.newUpdates) {
-            return tickers;
-        }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbols]);
+        return self.un_subscribe(messageHash, name, Value::Str("public".into()), Value::Str("unWatchTickers".into()), Value::Str("ticker".into()), &[Value::Null, symbols, params]).await;
 
     Value::Null
 }

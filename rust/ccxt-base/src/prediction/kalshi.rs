@@ -2393,10 +2393,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut positions: Value = self.safe_list_k(response, "market_positions", &[Value::from(vec![])]);
         // filter by the requested outcomes' market tickers — a kalshi position is per market
         // ticker and covers both the YES and the NO leg
-        let mut parsed: Value = self.parse_prediction_positions(positions, &[]);
         if (outcomesLength.as_f64() == Some(0.0)) {
-            return parsed;
+            return self.parse_prediction_positions(positions.clone(), &[]);
         }
+        let mut parsed: Value = self.parse_prediction_positions(positions, &[]);
         let mut wantedTickers: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3235,16 +3235,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut parsedEvent: Value = self.parse_event(rawEvents.as_array().and_then(|__arr| match &di { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
             append_to_array(&mut result, parsedEvent.clone());
             // register the parsed markets so populateOutcomes can index their outcomes
-            let mut parsedMarketsRaw: Value = crate::value::get_value_k(&parsedEvent, "markets");
+            let mut parsedMarketsRaw: Value = parsedEvent.as_map().and_then(|__m| __m.get("markets")).cloned().unwrap_or(Value::Null);
             let mut parsedMarkets: Value = (if (parsedMarketsRaw != Value::Null) { parsedMarketsRaw } else { Value::from(vec![]) });
-            let mut parsedMarketsLength: Value = get_array_length(&parsedMarkets);
+            let mut parsedMarketsLength: f64 = ((parsedMarkets.len() as i64) as f64);
             {
                                 let mut mi: Value = Value::Int(0);
                 let mut __for_first_1277: bool = true;
-                while { if !__for_first_1277 { mi = (match (&(mi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1277 = false; mi.as_f64().unwrap_or(f64::NAN) < parsedMarketsLength.as_f64().unwrap_or(f64::NAN) } {
-                let mut m: Value = get_value(&parsedMarkets, &mi);
-                let mut m: Value = get_value(&parsedMarkets, &mi);
-                add_element_to_object(&mut self.markets, &crate::value::get_value_k(&m, "market"), m.clone());
+                while { if !__for_first_1277 { mi = (match (&(mi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1277 = false; mi.as_f64().unwrap_or(f64::NAN) < parsedMarketsLength } {
+                let mut m: Value = parsedMarkets.as_array().and_then(|__arr| match &mi { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                add_element_to_object(&mut self.markets, &m.as_map().and_then(|__m| __m.get("market")).cloned().unwrap_or(Value::Null), m.clone());
             }
             }
         }
@@ -3359,7 +3358,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         let __ws_arg_15 = self.extend(request, &[params]);
         let mut response: Value = self.kalshi_public_get_events_event_ticker(&[__ws_arg_15]).await;
-        let mut fullEvent: Value = self.safe_dict_k(response.clone(), "event", &[response.clone()]);
+        // a typed copy of the event row: the caller-facing dict is never the raw response
+        let __ws_arg_16 = self.safe_dict_k(response.clone(), "event", &[response.clone()]);
+        let mut fullEvent: Value = self.extend(Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        }), &[__ws_arg_16]);
         let mut nestedMarkets: Value = self.safe_list_k(fullEvent.clone(), "markets", &[]);
         if (nestedMarkets == Value::Null) {
             add_element_to_object(&mut fullEvent, &Value::Str("markets".into()), self.safe_list_k(response, "markets", &[Value::from(vec![])]));
@@ -3522,8 +3526,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if (cursor != Value::Null) {
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("cursor".into(), cursor.clone()); }
                 }
-                let __ws_arg_16 = self.extend(request, &[rest.clone()]);
-                let mut response: Value = self.kalshi_public_get_events(&[__ws_arg_16]).await;
+                let __ws_arg_17 = self.extend(request, &[rest.clone()]);
+                let mut response: Value = self.kalshi_public_get_events(&[__ws_arg_17]).await;
                 let mut pageEvents: Value = self.safe_list_k(response.clone(), "events", &[Value::from(vec![])]);
                 let mut pageEventsLength: f64 = ((pageEvents.len() as i64) as f64);
                 {
@@ -3709,14 +3713,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (created == Value::Null) {
             created = earliestCreated;
         }
-        let __ws_arg_17 = self.safe_string_k(rawEvent.clone(), "url", &[]);
-        let __ws_arg_18 = self.safe_string_k(rawEvent.clone(), "image_url", &[]);
-        let __ws_arg_19 = self.safe_string_k(rawEvent.clone(), "created_date_iso", &[]);
-        let __ws_arg_20 = self.iso8601(end.clone());
-        let __ws_arg_21 = self.safe_string_k(rawEvent.clone(), "category", &[]);
-        let __ws_arg_22 = self.parse8601(self.safe_string_k(rawEvent.clone(), "last_updated_date_iso", &[]));
-        let __ws_arg_23 = self.safe_string_k(rawEvent.clone(), "last_updated_date_iso", &[]);
-        let __ws_arg_24 = self.safe_string_k(rawEvent.clone(), "resolution_source", &[]);
+        let __ws_arg_18 = self.safe_string_k(rawEvent.clone(), "url", &[]);
+        let __ws_arg_19 = self.safe_string_k(rawEvent.clone(), "image_url", &[]);
+        let __ws_arg_20 = self.safe_string_k(rawEvent.clone(), "created_date_iso", &[]);
+        let __ws_arg_21 = self.iso8601(end.clone());
+        let __ws_arg_22 = self.safe_string_k(rawEvent.clone(), "category", &[]);
+        let __ws_arg_23 = self.parse8601(self.safe_string_k(rawEvent.clone(), "last_updated_date_iso", &[]));
+        let __ws_arg_24 = self.safe_string_k(rawEvent.clone(), "last_updated_date_iso", &[]);
+        let __ws_arg_25 = self.safe_string_k(rawEvent.clone(), "resolution_source", &[]);
         return self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), ticker.clone());
@@ -3726,16 +3730,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("markets".to_string(), marketsList);
         m.insert("volume".to_string(), totalVolume);
         m.insert("liquidity".to_string(), totalLiquidity);
-        m.insert("url".to_string(), __ws_arg_17);
-        m.insert("image".to_string(), __ws_arg_18);
+        m.insert("url".to_string(), __ws_arg_18);
+        m.insert("image".to_string(), __ws_arg_19);
         m.insert("created".to_string(), created);
-        m.insert("createdDatetime".to_string(), __ws_arg_19);
+        m.insert("createdDatetime".to_string(), __ws_arg_20);
         m.insert("end".to_string(), end);
-        m.insert("endDatetime".to_string(), __ws_arg_20);
-        m.insert("category".to_string(), __ws_arg_21);
-        m.insert("lastUpdatedAt".to_string(), __ws_arg_22);
-        m.insert("lastUpdatedAtDatetime".to_string(), __ws_arg_23);
-        m.insert("resolutionSource".to_string(), __ws_arg_24);
+        m.insert("endDatetime".to_string(), __ws_arg_21);
+        m.insert("category".to_string(), __ws_arg_22);
+        m.insert("lastUpdatedAt".to_string(), __ws_arg_23);
+        m.insert("lastUpdatedAtDatetime".to_string(), __ws_arg_24);
+        m.insert("resolutionSource".to_string(), __ws_arg_25);
         m.insert("active".to_string(), active);
         m.insert("resolved".to_string(), resolved);
         m.insert("info".to_string(), rawEvent);

@@ -3482,8 +3482,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // }
         //
         let mut data: Value = self.add_pagination_cursor_to_result(response);
-        let mut orders: Value = self.parse_orders(data, &[market, since, limit]);
-        return orders;
+        return self.parse_orders(data, &[market, since, limit]);
 
     Value::Null
 }

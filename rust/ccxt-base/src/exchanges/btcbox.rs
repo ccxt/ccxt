@@ -1110,19 +1110,16 @@ impl BtcboxCore {
         //      },
         // ]
         //
-        let mut orders: Value = self.parse_orders(response, &[market, since, limit]);
         // status (open/closed/canceled) is undefined
         // btcbox does not return status, but we know it's 'open' as we queried for open orders
+        let mut extra: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         if (type_var.as_str() == Some("open")) {
-            {
-                                let mut i: Value = Value::Int(0);
-                let mut __for_first_468: bool = true;
-                while { if !__for_first_468 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_468 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
-                add_element_to_object(get_value_mut(&mut orders, &i), &Value::Str("status".into()), Value::Str("open".into()));
-            }
-            }
+            if let Value::Dict(__d) = &mut extra { std::sync::Arc::make_mut(__d).insert("status".into(), Value::Str("open".into())); }
         }
-        return orders;
+        return self.parse_orders(response, &[market, since, limit, extra]);
 
     Value::Null
 }

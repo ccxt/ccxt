@@ -1533,7 +1533,7 @@ impl PolymarketCore {
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
         let mut response: Value = self.public_get_info_tickers(&[params]).await;
         let mut result: Value = self.parse_funding_rates(response, &[]);
-        return self.filter_by_array(result, Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.index_by(self.filter_by_array(result, Value::Str("symbol".into()), &[symbolsNormalized, Value::Bool(false)]), Value::Str("symbol".into()));
 
     Value::Null
 }
@@ -1714,7 +1714,7 @@ impl PolymarketCore {
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
         let mut response: Value = self.public_get_info_tickers(&[params]).await;
         let mut result: Value = self.parse_open_interests(response, &[]);
-        return self.filter_by_array(result, Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.index_by(self.filter_by_array(result, Value::Str("symbol".into()), &[symbolsNormalized, Value::Bool(false)]), Value::Str("symbol".into()));
 
     Value::Null
 }

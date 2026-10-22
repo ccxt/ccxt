@@ -5006,8 +5006,11 @@ impl WeexCore {
         });
         let __ws_arg_40 = self.extend(request, &[params]);
         let mut response: Value = self.contract_private_post_capi_v3_close_positions(&[__ws_arg_40]).await;
-        let mut orders: Value = self.parse_orders(response, &[market]);
-        return self.safe_dict(orders, Value::Int(0), &[]);
+        let mut order: Value = self.safe_dict(response, Value::Int(0), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        return self.parse_order(order, &[market]);
 
     Value::Null
 }

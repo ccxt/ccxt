@@ -1799,10 +1799,10 @@ impl BinanceCore {
         // }
         //
         let mut data: Value = self.safe_list_k(response, "positions", &[Value::from(vec![])]);
-        let mut positions: Value = self.parse_prediction_positions(data, &[]);
         if (outcomes == Value::Null) {
-            return positions;
+            return self.parse_prediction_positions(data.clone(), &[]);
         }
+        let mut positions: Value = self.parse_prediction_positions(data, &[]);
         let mut filtered: Value = Value::from(vec![]);
         let mut positionsLength: f64 = ((positions.len() as i64) as f64);
         {
@@ -2134,9 +2134,8 @@ impl BinanceCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut cachedWallet: Value = self.safe_dict_k(self.options.clone(), "wallet", &[]);
-        if (cachedWallet != Value::Null) {
-            return cachedWallet;
+        if (self.safe_dict_k(self.options.clone(), "wallet", &[]) != Value::Null) {
+            return self.safe_dict_k(self.options.clone(), "wallet", &[]);
         }
         let mut walletAddress: Value = self.handle_option_string_and_params(params, methodName, Value::Str("walletAddress".into()), &[self.walletAddress.clone()]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut response: Value = self.sapi_private_get_wallet_list(&[]).await;
@@ -2153,9 +2152,8 @@ impl BinanceCore {
         //
         let mut wallets: Value = self.safe_list_k(response, "wallets", &[Value::from(vec![])]);
         if (walletAddress == Value::Null) {
-            cachedWallet = self.safe_dict(wallets.clone(), Value::Int(0), &[]);
-            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wallet".into(), cachedWallet.clone()); }
-            return cachedWallet;
+            { let __be_tmp = self.safe_dict(wallets.clone(), Value::Int(0), &[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wallet".into(), __be_tmp); } }
+            return self.safe_dict_k(self.options.clone(), "wallet", &[]);
         }
         let mut walletLength: f64 = ((wallets.len() as i64) as f64);
         {
@@ -2164,16 +2162,12 @@ impl BinanceCore {
             while { if !__for_first_1216 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1216 = false; i.as_f64().unwrap_or(f64::NAN) < walletLength } {
             let mut w: Value = self.safe_string(wallets.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("walletAddress".into()), &[Value::Str("".into())]);
             if (w.as_str() == walletAddress.as_str()) {
-                cachedWallet = wallets.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-                break;
+                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wallet".into(), wallets.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)); }
+                return self.safe_dict_k(self.options.clone(), "wallet", &[]);
             }
         }
         }
-        if (cachedWallet == Value::Null) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str("fetchWallet could'n find wallet ".into())).into()), walletAddress)));
-        }
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wallet".into(), cachedWallet.clone()); }
-        return cachedWallet;
+        panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str("fetchWallet could'n find wallet ".into())).into()), walletAddress)));
 
     Value::Null
 }

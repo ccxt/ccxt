@@ -8836,7 +8836,7 @@ impl BinanceCore {
             append_to_array(&mut results, parsedTicker);
         }
         }
-        return self.filter_by_array(results, Value::Str("symbol".into()), &[symbols]);
+        return self.filter_by_array_tickers(results, Value::Str("symbol".into()), &[symbols]);
 
     Value::Null
 }
@@ -9134,34 +9134,7 @@ impl BinanceCore {
             let __ws_arg_39 = self.extend(request, &[paramsOmitted]);
             response = self.public_get_klines(&[__ws_arg_39]).await;
         }
-        //
-        //     [
-        //         [1591478520000,"0.02501300","0.02501800","0.02500000","0.02500000","22.19000000",1591478579999,"0.55490906",40,"10.92900000","0.27336462","0"],
-        //         [1591478580000,"0.02499600","0.02500900","0.02499400","0.02500300","21.34700000",1591478639999,"0.53370468",24,"7.53800000","0.18850725","0"],
-        //         [1591478640000,"0.02500800","0.02501100","0.02500300","0.02500800","154.14200000",1591478699999,"3.85405839",97,"5.32300000","0.13312641","0"],
-        //     ]
-        //
-        // options (eapi)
-        //
-        //     [
-        //         {
-        //             "open": "32.2",
-        //             "high": "32.2",
-        //             "low": "32.2",
-        //             "close": "32.2",
-        //             "volume": "0",
-        //             "interval": "5m",
-        //             "tradeCount": 0,
-        //             "takerVolume": "0",
-        //             "takerAmount": "0",
-        //             "amount": "0",
-        //             "openTime": 1677096900000,
-        //             "closeTime": 1677097200000
-        //         }
-        //     ]
-        //
-        let mut candles: Value = self.parse_ohlc_vs(self.to_array(response), &[market, timeframe, since, limitValue]);
-        return candles;
+        return self.parse_ohlc_vs(self.to_array(response), &[market, timeframe, since, limitValue]);
 
     Value::Null
 }
@@ -15054,7 +15027,7 @@ impl BinanceCore {
             //       },
             //    ]
             //
-            let mut result: Value = Value::Map({
+            let mut spotFees: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
@@ -15069,11 +15042,11 @@ impl BinanceCore {
                 let mut fee: Value = self.parse_trading_fee(fees.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[]);
                 let mut symbol: Value = fee.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
                 if (symbol != Value::Null) {
-                    if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), fee); }
+                    if let Value::Dict(__d) = &mut spotFees { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), fee); }
                 }
             }
             }
-            return result;
+            return spotFees;
         }  else if is_true(&isLinear) {
             //
             //     {
@@ -15101,7 +15074,7 @@ impl BinanceCore {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" markets not loaded".into()))));
             }
             let mut symbols: Value = object_keys(&markets);
-            let mut result: Value = Value::Map({
+            let mut linearFees: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
@@ -15117,7 +15090,7 @@ impl BinanceCore {
                 let mut market: Value = get_value(&markets, &symbol);
                 let mut market: Value = get_value(&markets, &symbol);
                 if matches!(self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
-                    if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
+                    if let Value::Dict(__d) = &mut linearFees { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -15132,7 +15105,7 @@ impl BinanceCore {
                 }
             }
             }
-            return result;
+            return linearFees;
         }  else if is_true(&isInverse) {
             //
             //     {
@@ -15148,7 +15121,7 @@ impl BinanceCore {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" markets not loaded".into()))));
             }
             let mut symbols: Value = object_keys(&markets);
-            let mut result: Value = Value::Map({
+            let mut inverseFees: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
@@ -15164,7 +15137,7 @@ impl BinanceCore {
                 let mut market: Value = get_value(&markets, &symbol);
                 let mut market: Value = get_value(&markets, &symbol);
                 if matches!(self.safe_bool_k(market, "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
-                    if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
+                    if let Value::Dict(__d) = &mut inverseFees { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -15179,7 +15152,7 @@ impl BinanceCore {
                 }
             }
             }
-            return result;
+            return inverseFees;
         }
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTradingFees() is not supported for ".into())).into()), type_var).into()), Value::Str(" markets".into()))));
 

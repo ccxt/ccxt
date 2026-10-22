@@ -2198,7 +2198,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         results = self.sort_by2(results.clone(), Value::Str("timestamp".into()), Value::Str("id".into()), &[]);
         let mut outcomeHandle: Value = self.safe_string_k(outcomeObj, "outcome", &[]);
-        return self.filter_by_outcome_since_limit(results, &[outcomeHandle, since, limit]);
+        return self.filter_by_value_since_limit(results, Value::Str("outcome".into()), &[outcomeHandle, since, limit, Value::Str("timestamp".into()), Value::Bool(false)]);
 
     Value::Null
 }

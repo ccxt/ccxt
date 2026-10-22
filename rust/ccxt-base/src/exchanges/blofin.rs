@@ -4555,7 +4555,11 @@ impl BlofinCore {
         }
         let __ws_arg_31 = self.extend(request, &[paramsMarginMode]);
         let mut response: Value = self.private_post_trade_close_position(&[__ws_arg_31]).await;
-        return self.safe_dict_k(response, "data", &[]);
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        return self.parse_order(data, &[market]);
 
     Value::Null
 }

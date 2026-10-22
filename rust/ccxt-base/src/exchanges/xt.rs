@@ -3128,7 +3128,7 @@ impl XtCore {
             }
         }
         }
-        return self.filter_by_array(result, Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array_tickers(result, Value::Str("symbol".into()), &[symbolsNormalized]);
 
     Value::Null
 }
@@ -3243,7 +3243,7 @@ impl XtCore {
             }
         }
         }
-        return self.filter_by_array(result, Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array_tickers(result, Value::Str("symbol".into()), &[symbolsNormalized]);
 
     Value::Null
 }

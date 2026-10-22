@@ -3251,7 +3251,7 @@ impl BitfinexCore {
         });
         let __ws_arg_10 = self.extend(request, &[params]);
         let mut orders: Value = self.fetch_open_orders(&[symbol, Value::Null, Value::Null, __ws_arg_10]).await;
-        let mut order: Value = self.safe_value(orders, Value::Int(0), &[]);
+        let mut order: Value = self.safe_dict(orders, Value::Int(0), &[]);
         if (order == Value::Null) {
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" order ".into())).into()), id).into()), Value::Str(" not found".into()))));
         }
@@ -3284,7 +3284,7 @@ impl BitfinexCore {
         });
         let __ws_arg_11 = self.extend(request, &[params]);
         let mut orders: Value = self.fetch_closed_orders(&[symbol, Value::Null, Value::Null, __ws_arg_11]).await;
-        let mut order: Value = self.safe_value(orders, Value::Int(0), &[]);
+        let mut order: Value = self.safe_dict(orders, Value::Int(0), &[]);
         if (order == Value::Null) {
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" order ".into())).into()), id).into()), Value::Str(" not found".into()))));
         }

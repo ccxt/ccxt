@@ -9244,7 +9244,7 @@ impl HtxCore {
         let mut paramsOmited: Value = networkCodeparamsOmitedVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut indexedAddresses: Value = self.fetch_deposit_addresses_by_network(code, &[paramsOmited]).await;
         let mut selectedNetworkCode: Value = self.select_network_key_from_networks(currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null), networkCode, indexedAddresses.clone(), &[Value::Bool(true)]);
-        return self.safe_value(indexedAddresses, selectedNetworkCode, &[]);
+        return self.safe_dict(indexedAddresses, selectedNetworkCode, &[]);
 
     Value::Null
 }
@@ -12441,7 +12441,7 @@ impl HtxCore {
     m
 }));
             }
-            result = self.assign_default_deposit_withdraw_fees(result.clone(), &[currency.clone()]);
+            self.assign_default_deposit_withdraw_fees(result.clone(), &[currency.clone()]);
         }
         }
         return result;

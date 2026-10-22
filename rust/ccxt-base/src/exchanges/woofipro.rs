@@ -2440,7 +2440,7 @@ impl WoofiproCore {
             append_to_array(&mut result, self.parse_open_interest(interest, &[]));
         }
         }
-        return self.filter_by_array(result, Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.index_by(self.filter_by_array(result, Value::Str("symbol".into()), &[symbolsNormalized, Value::Bool(false)]), Value::Str("symbol".into()));
 
     Value::Null
 }

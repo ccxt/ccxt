@@ -1773,10 +1773,10 @@ impl MudrexCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
+        let mut market: Value = self.market(symbol.clone());
         let mut positionId: Value = self.safe_string_k(params.clone(), "position_id", &[]);
         let mut amount: Value = self.safe_value_k(params.clone(), "amount", &[]);
         if (positionId == Value::Null) {
-            let mut market: Value = self.market(symbol.clone());
             let mut positions: Value = self.fetch_positions(&[Value::from(vec![symbol.clone()]), params.clone()]).await;
             {
                                 let mut i: Value = Value::Int(0);
@@ -1812,12 +1812,14 @@ impl MudrexCore {
             let mut partialParams: Value = self.omit(params.clone(), Value::from(vec![Value::Str("order_type".into()), Value::Str("limit_price".into()), Value::Str("amount".into()), Value::Str("position_id".into())]), &[]);
             let __ws_arg_16 = self.extend(request.clone(), &[partialParams]);
             let mut partialResponse: Value = self.private_post_futures_positions_position_id_close_partial(&[__ws_arg_16]).await;
-            return partialResponse;
+            let mut partialData: Value = self.safe_dict_k(partialResponse.clone(), "data", &[partialResponse.clone()]);
+            return self.parse_order(partialData, &[market.clone()]);
         }
         let mut closeParams: Value = self.omit(params, Value::from(vec![Value::Str("position_id".into())]), &[]);
         let __ws_arg_17 = self.extend(request, &[closeParams]);
         let mut response: Value = self.private_post_futures_positions_position_id_close(&[__ws_arg_17]).await;
-        return response;
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[response.clone()]);
+        return self.parse_order(data, &[market]);
 
     Value::Null
 }

@@ -1753,7 +1753,7 @@ impl AlpacaCore {
             append_to_array(&mut results, ticker);
         }
         }
-        return self.filter_by_array(results, Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array_tickers(results, Value::Str("symbol".into()), &[symbolsNormalized]);
 
     Value::Null
 }
@@ -2681,7 +2681,8 @@ impl AlpacaCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.fetch_transactions_helper(Value::Str("BOTH".into()), code, since, limit, params).await;
+        let mut transactions: Value = self.fetch_transactions_helper(Value::Str("BOTH".into()), code, since, limit, params).await;
+        return self.to_array(transactions);
 
     Value::Null
 }
@@ -2705,7 +2706,8 @@ impl AlpacaCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.fetch_transactions_helper(Value::Str("INCOMING".into()), code, since, limit, params).await;
+        let mut transactions: Value = self.fetch_transactions_helper(Value::Str("INCOMING".into()), code, since, limit, params).await;
+        return self.to_array(transactions);
 
     Value::Null
 }
@@ -2729,7 +2731,8 @@ impl AlpacaCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.fetch_transactions_helper(Value::Str("OUTGOING".into()), code, since, limit, params).await;
+        let mut transactions: Value = self.fetch_transactions_helper(Value::Str("OUTGOING".into()), code, since, limit, params).await;
+        return self.to_array(transactions);
 
     Value::Null
 }

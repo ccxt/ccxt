@@ -2265,10 +2265,10 @@ impl OpinionCore {
     m
 })]);
         let mut positions: Value = self.safe_list_k(result, "list", &[Value::from(vec![])]);
-        let mut parsed: Value = self.parse_prediction_positions(positions, &[]);
         if (outcomesLength.as_f64() == Some(0.0)) {
-            return parsed;
+            return self.parse_prediction_positions(positions.clone(), &[]);
         }
+        let mut parsed: Value = self.parse_prediction_positions(positions, &[]);
         let mut wantedTokenIds: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m

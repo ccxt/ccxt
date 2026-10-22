@@ -6341,25 +6341,23 @@ impl MexcCore {
 }));
         let mut network: Value = self.safe_string_k(params.clone(), "network", &[]);
         let mut addressStructures: Value = self.fetch_deposit_addresses_by_network(code.clone(), &[params]).await;
-        let mut result: Value = Value::Null;
+        let mut key: Value = Value::Null;
         if (network != Value::Null) {
-            let mut netCode: Value = self.network_id_to_code(&[network.clone(), code.clone()]);
-            result = (if (netCode == Value::Null) { Value::Null } else { self.safe_dict(addressStructures.clone(), netCode, &[]) });
+            key = self.network_id_to_code(&[network.clone(), code.clone()]);
         }  else {
             let mut options: Value = self.safe_dict_k(self.options.clone(), "defaultNetworks", &[]);
             let mut defaultNetworkForCurrency: Value = self.safe_string(options, code.clone(), &[]);
             if (defaultNetworkForCurrency != Value::Null) {
-                result = self.safe_dict(addressStructures.clone(), defaultNetworkForCurrency, &[]);
+                key = defaultNetworkForCurrency;
             }  else {
                 let mut keys: Value = object_keys(&addressStructures);
-                let mut key: Value = self.safe_string(keys, Value::Int(0), &[]);
-                result = self.safe_dict(addressStructures, key, &[]);
+                key = self.safe_string(keys, Value::Int(0), &[]);
             }
         }
-        if (result == Value::Null) {
+        if (key == Value::Null) || (self.safe_dict(addressStructures.clone(), key.clone(), &[]) == Value::Null) {
             panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() cannot find a deposit address for ".into())).into()), code).into()), Value::Str(", and network".into())).into()), network).into()), Value::Str("consider creating one using .createDepositAddress() method or in MEXC website".into()))));
         }
-        return result;
+        return self.safe_dict(addressStructures, key, &[]);
 
     Value::Null
 }

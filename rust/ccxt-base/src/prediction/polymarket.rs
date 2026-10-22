@@ -1709,9 +1709,8 @@ impl PolymarketCore {
                 }
                 }
                 self.populate_outcomes();
-                let mut byId: Value = self.safe_value(self.exchange.outcomes_by_id.clone(), outcomeSymbol.clone(), &[]);
-                if (byId != Value::Null) {
-                    return byId;
+                if (self.safe_dict(self.exchange.outcomes_by_id.clone(), outcomeSymbol.clone(), &[]) != Value::Null) {
+                    return self.safe_dict(self.exchange.outcomes_by_id.clone(), outcomeSymbol.clone(), &[]);
                 }
             }
         }
@@ -2787,10 +2786,10 @@ impl PolymarketCore {
         let mut positions: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         // parse without the base outcome filter (it resolves standard markets, not outcome tokens),
         // then filter by the requested outcomes' token ids ourselves
-        let mut parsed: Value = self.parse_prediction_positions(positions, &[]);
         if (outcomesLength.as_f64() == Some(0.0)) {
-            return parsed;
+            return self.parse_prediction_positions(positions.clone(), &[]);
         }
+        let mut parsed: Value = self.parse_prediction_positions(positions, &[]);
         let mut wantedIds: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m

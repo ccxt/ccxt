@@ -1862,7 +1862,7 @@ impl ApexCore {
             let mut accountData: Value = self.fetch_account(&[]).await;
             { let __be_tmp = self.safe_string_k(accountData, "id", &[Value::Str("0".into())]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("accountId".into(), __be_tmp); } }
         }
-        return self.options.as_map().and_then(|__m| __m.get("accountId")).cloned().unwrap_or(Value::Null);
+        return self.safe_string_k(self.options.clone(), "accountId", &[]);
 
     Value::Null
 }

@@ -1986,7 +1986,6 @@ impl NadoCore {
         let mut subscriptionParams = get_arg(optional_args, 1, Value::Null);
         let mut url: Value = get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &Value::Str("subscriptions".into()));
         let mut client: Value = self.client(&[url.clone()]);
-        let mut results: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_518: bool = true;
@@ -2008,10 +2007,10 @@ impl NadoCore {
         m.insert("unsubscribeHash".to_string(), unsubscribeHash.clone());
     m
 }));
-            append_to_array(&mut results, self.watch_multiple(url.clone(), Value::from(vec![unsubscribeHash.clone()]), &[request, Value::from(vec![unsubscribeHash]), subscription]).await);
+            self.watch_multiple(url.clone(), Value::from(vec![unsubscribeHash.clone()]), &[request, Value::from(vec![unsubscribeHash]), subscription]).await;
         }
         }
-        return results;
+        return Value::Bool(true);
 
     Value::Null
 }
@@ -2638,9 +2637,9 @@ impl NadoCore {
 }
 
     pub fn handle_unsubscription(&mut self, mut client: Value, mut message: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
-        let mut id: Value = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
+        let mut id: Value = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut unsubscription: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), Value::Str(format!("{}{}", Value::Str("unsubscription:".into()), id).into()), &[]);
         if (unsubscription != Value::Null) {
             let mut messageHash: Value = self.safe_string_k(unsubscription.clone(), "messageHash", &[]);
@@ -2650,7 +2649,7 @@ impl NadoCore {
                 self.clean_unsubscription(client.clone(), messageHash.clone(), unsubscribeHash.clone(), &[]);
                 self.handle_unsubscription_cache(messageHash.clone());
             }
-            client.resolve(&[message.clone(), unsubscribeHash.clone()]);
+            client.resolve(&[Value::Bool(true), unsubscribeHash.clone()]);
             return;
         }
         let mut subscriptions: Value = object_keys(&get_value(&client, &Value::Str("subscriptions".into())));
@@ -2669,7 +2668,7 @@ impl NadoCore {
                 self.clean_unsubscription(client.clone(), messageHash.clone(), unsubscribeHash.clone(), &[]);
                 self.handle_unsubscription_cache(messageHash);
             }
-            client.resolve(&[message.clone(), unsubscribeHash]);
+            client.resolve(&[Value::Bool(true), unsubscribeHash]);
             return;
         }
         }

@@ -1922,7 +1922,7 @@ impl BittradeCore {
             self.load_markets(&[]).await;
         }
         let mut response: Value = self.private_get_account_accounts(&[params]).await;
-        return self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        return self.to_array(self.safe_list_k(response, "data", &[Value::from(vec![])]));
 
     Value::Null
 }

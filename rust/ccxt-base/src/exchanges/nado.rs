@@ -3986,23 +3986,23 @@ impl NadoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut cachedContracts: Value = self.safe_dict_k(self.options.clone(), "gatewayContracts", &[]);
-        if (cachedContracts != Value::Null) {
-            return cachedContracts;
+        if (self.safe_dict_k(self.options.clone(), "gatewayContracts", &[]) == Value::Null) {
+            let mut request: Value = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("type".to_string(), Value::Str("contracts".into()));
+                m
+            });
+            let __ws_arg_19 = self.extend(request, &[params]);
+            let mut response: Value = self.gateway_public_get_query(&[__ws_arg_19]).await;
+            { let __be_tmp = self.safe_dict_k(response, "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("gatewayContracts".into(), __be_tmp); } }
         }
-        let mut request: Value = Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("type".to_string(), Value::Str("contracts".into()));
-            m
-        });
-        let __ws_arg_19 = self.extend(request, &[params]);
-        let mut response: Value = self.gateway_public_get_query(&[__ws_arg_19]).await;
-        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
+        return self.safe_dict_k(self.options.clone(), "gatewayContracts", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("gatewayContracts".into(), data.clone()); }
-        return data;
 
     Value::Null
 }

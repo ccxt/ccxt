@@ -4367,7 +4367,31 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         let __ws_arg_24 = self.extend(request, &[params]);
         let mut response: Value = self.private_post_deposit_methods(&[__ws_arg_24]).await;
-        return self.safe_value_k(response, "result", &[]);
+        //
+        //     {
+        //         "error":[],
+        //         "result":[
+        //             {"method":"Ether (Hex)","limit":false,"gen-address":true}
+        //         ]
+        //     }
+        //
+        //     {
+        //         "error":[],
+        //         "result":[
+        //             {"method":"Tether USD (ERC20)","limit":false,"address-setup-fee":"0.00000000","gen-address":true},
+        //             {"method":"Tether USD (TRC20)","limit":false,"address-setup-fee":"0.00000000","gen-address":true}
+        //         ]
+        //     }
+        //
+        //     {
+        //         "error":[],
+        //         "result":[
+        //             {"method":"Bitcoin","limit":false,"fee":"0.0000000000","gen-address":true}
+        //         ]
+        //     }
+        //
+        let mut result: Value = self.safe_list_k(response, "result", &[Value::from(vec![])]);
+        return result;
 
     Value::Null
 }

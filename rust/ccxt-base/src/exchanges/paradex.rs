@@ -2385,40 +2385,10 @@ impl ParadexCore {
 }
 
     pub async fn get_system_config(&mut self) -> Value {
-        let mut cachedConfig: Value = self.safe_dict_k(self.options.clone(), "systemConfig", &[]);
-        if (cachedConfig != Value::Null) {
-            return cachedConfig;
+        if (self.safe_dict_k(self.options.clone(), "systemConfig", &[]) == Value::Null) {
+            let mut response: Value = self.public_get_system_config(&[]).await;
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("systemConfig".into(), response); }
         }
-        let mut response: Value = self.public_get_system_config(&[]).await;
-        //
-        // {
-        //     "starknet_gateway_url": "https://potc-testnet-sepolia.starknet.io",
-        //     "starknet_fullnode_rpc_url": "https://pathfinder.api.testnet.paradex.trade/rpc/v0_7",
-        //     "starknet_chain_id": "PRIVATE_SN_POTC_SEPOLIA",
-        //     "block_explorer_url": "https://voyager.testnet.paradex.trade/",
-        //     "paraclear_address": "0x286003f7c7bfc3f94e8f0af48b48302e7aee2fb13c23b141479ba00832ef2c6",
-        //     "paraclear_decimals": 8,
-        //     "paraclear_account_proxy_hash": "0x3530cc4759d78042f1b543bf797f5f3d647cde0388c33734cf91b7f7b9314a9",
-        //     "paraclear_account_hash": "0x41cb0280ebadaa75f996d8d92c6f265f6d040bb3ba442e5f86a554f1765244e",
-        //     "oracle_address": "0x2c6a867917ef858d6b193a0ff9e62b46d0dc760366920d631715d58baeaca1f",
-        //     "bridged_tokens": [
-        //         {
-        //             "name": "TEST USDC",
-        //             "symbol": "USDC",
-        //             "decimals": 6,
-        //             "l1_token_address": "0x29A873159D5e14AcBd63913D4A7E2df04570c666",
-        //             "l1_bridge_address": "0x8586e05adc0C35aa11609023d4Ae6075Cb813b4C",
-        //             "l2_token_address": "0x6f373b346561036d98ea10fb3e60d2f459c872b1933b50b21fe6ef4fda3b75e",
-        //             "l2_bridge_address": "0x46e9237f5408b5f899e72125dd69bd55485a287aaf24663d3ebe00d237fc7ef"
-        //         }
-        //     ],
-        //     "l1_core_contract_address": "0x582CC5d9b509391232cd544cDF9da036e55833Af",
-        //     "l1_operator_address": "0x11bACdFbBcd3Febe5e8CEAa75E0Ef6444d9B45FB",
-        //     "l1_chain_id": "11155111",
-        //     "liquidation_fee": "0.2"
-        // }
-        //
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("systemConfig".into(), response); }
         return self.safe_dict_k(self.options.clone(), "systemConfig", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2453,33 +2423,34 @@ impl ParadexCore {
 }
 
     pub async fn retrieve_account(&mut self) -> Value {
-        let mut cachedAccount: Value = self.safe_dict_k(self.options.clone(), "paradexAccount", &[]);
-        if (cachedAccount != Value::Null) {
-            return cachedAccount;
-        }
-        self.check_required_credentials(&[]);
-        let mut systemConfig: Value = self.get_system_config().await;
-        let mut domain: Value = self.prepare_paradex_domain(&[Value::Bool(true)]).await;
-        let mut messageTypes: Value = Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("Constant".to_string(), Value::from(vec![Value::Map({
+        if (self.safe_dict_k(self.options.clone(), "paradexAccount", &[]) == Value::Null) {
+            self.check_required_credentials(&[]);
+            let mut systemConfig: Value = self.get_system_config().await;
+            let mut domain: Value = self.prepare_paradex_domain(&[Value::Bool(true)]).await;
+            let mut messageTypes: Value = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("Constant".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("action".into()));
         m.insert("type".to_string(), Value::Str("string".into()));
     m
 })]));
-            m
-        });
-        let mut message: Value = Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("action".to_string(), Value::Str("STARK Key".into()));
-            m
-        });
-        let mut msg: Value = self.eth_encode_structured_data(domain, messageTypes, message);
-        let mut signature: Value = self.sign_message(msg, self.privateKey.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        let mut account: Value = self.retrieve_stark_account(signature, systemConfig.as_map().and_then(|__m| __m.get("paraclear_account_hash")).cloned().unwrap_or(Value::Null), systemConfig.as_map().and_then(|__m| __m.get("paraclear_account_proxy_hash")).cloned().unwrap_or(Value::Null));
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("paradexAccount".into(), account.clone()); }
-        return account;
+                m
+            });
+            let mut message: Value = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("action".to_string(), Value::Str("STARK Key".into()));
+                m
+            });
+            let mut msg: Value = self.eth_encode_structured_data(domain, messageTypes, message);
+            let mut signature: Value = self.sign_message(msg, self.privateKey.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
+            let mut account: Value = self.retrieve_stark_account(signature, systemConfig.as_map().and_then(|__m| __m.get("paraclear_account_hash")).cloned().unwrap_or(Value::Null), systemConfig.as_map().and_then(|__m| __m.get("paraclear_account_proxy_hash")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("paradexAccount".into(), account); }
+        }
+        return self.safe_dict_k(self.options.clone(), "paradexAccount", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
 
     Value::Null
 }
@@ -2919,9 +2890,13 @@ impl ParadexCore {
         let mut domain: Value = self.prepare_paradex_domain(&[]).await;
         let mut msg: Value = self.starknet_encode_structured_data(domain, messageTypes, orderReq.clone(), account.as_map().and_then(|__m| __m.get("address")).cloned().unwrap_or(Value::Null));
         let mut signature: Value = self.starknet_sign(msg, account.as_map().and_then(|__m| __m.get("privateKey")).cloned().unwrap_or(Value::Null));
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("signature".into(), signature); }
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("signature_timestamp".into(), match &orderReq { Value::Dict(__m15) => __m15.get("timestamp").cloned().unwrap_or(Value::Null), _ => Value::Null }); }
-        return request;
+        let mut signedRequest: Value = self.extend(request, &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("signature".to_string(), signature);
+                m.insert("signature_timestamp".to_string(), match &orderReq { Value::Dict(__m15) => __m15.get("timestamp").cloned().unwrap_or(Value::Null), _ => Value::Null });
+            m
+        })]);
+        return signedRequest;
 
     Value::Null
 }
@@ -3104,12 +3079,13 @@ impl ParadexCore {
         let mut responseOrders: Value = self.safe_list_k(response.clone(), "orders", &[Value::from(vec![])]);
         let mut parsedOrders: Value = self.parse_orders(responseOrders, &[]);
         let mut errors: Value = self.safe_list_k(response, "errors", &[Value::from(vec![])]);
+        let mut rejected: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1057: bool = true;
             while { if !__for_first_1057 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1057 = false; i.as_f64().unwrap_or(f64::NAN) < ((errors.len() as i64) as f64) } {
             let mut error: Value = errors.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            append_to_array(&mut parsedOrders, self.safe_order(Value::Map({
+            append_to_array(&mut rejected, self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), error);
         m.insert("status".to_string(), Value::Str("rejected".into()));
@@ -3117,7 +3093,7 @@ impl ParadexCore {
 }), &[]));
         }
         }
-        return parsedOrders;
+        return self.array_concat(parsedOrders, rejected);
 
     Value::Null
 }

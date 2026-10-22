@@ -8432,7 +8432,7 @@ impl OkxCore {
         }
         let mut codeNetwork: Value = self.network_id_to_code(&[codeValue.clone(), codeValue.clone()]);
         if (codeNetwork != Value::Null) && (in_op(&response, &codeNetwork)) {
-            return response.as_map().and_then(|__m| codeNetwork.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            return self.safe_dict(response.clone(), codeNetwork.clone(), &[]);
         }
         // if the network is not specified, return the first address
         let mut keys: Value = object_keys(&response);
@@ -12080,7 +12080,7 @@ impl OkxCore {
         //     }
         //
         let mut underlyings: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        return underlyings.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        return self.to_array(self.safe_list(underlyings, Value::Int(0), &[Value::from(vec![])]));
 
     Value::Null
 }

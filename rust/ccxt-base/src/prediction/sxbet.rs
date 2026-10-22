@@ -1790,7 +1790,8 @@ impl SxbetCore {
         }  else {
             response = self.sxbet_private_delete_orders_v3_all(&[rest.clone()]).await;
         }
-        let mut result: Value = self.parse_sxbet_cancel_response(response.clone());
+        let mut result: Value = Value::from(vec![]);
+        result = self.array_concat(result.clone(), self.parse_sxbet_cancel_response(response.clone()));
         // both paths paginate their async submission - keep going on the SAME route while more remain
         let mut hasMore: Value = self.safe_bool(self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();

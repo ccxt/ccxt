@@ -1359,8 +1359,8 @@ impl DydxCore {
         let mut rows: Value = self.safe_list_k(response, "historicalFunding", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_659: bool = true;
-            while { if !__for_first_659 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_659 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
+            let mut __for_first_658: bool = true;
+            while { if !__for_first_658 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_658 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
             let mut entry: Value = rows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut timestamp: Value = self.parse8601(self.safe_string_k(entry.clone(), "effectiveAt", &[]));
             let mut marketId: Value = self.safe_string_k(entry.clone(), "ticker", &[]);
@@ -1890,7 +1890,10 @@ impl DydxCore {
         self.load_dydx_protos().await;
         let mut dydxAccount: Value = self.safe_dict_k(self.options.clone(), "dydxAccount", &[]);
         if (dydxAccount != Value::Null) {
-            return dydxAccount;
+            return self.safe_dict_k(self.options.clone(), "dydxAccount", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         }
         if (self.walletAddress.clone() == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchDydxAccount() requires the walletAddress to be set using the dydx chain address eg: dydx1cpb4tedmwq304c2kc9pwzjwq0sc6z2a4tasxrz".into()))));
@@ -1926,8 +1929,11 @@ impl DydxCore {
         m.insert("key".to_string(), crate::value::get_value_k(&crate::value::get_value_k(&account, "pub_key"), "key"));
     m
 }); if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("pub_key".into(), __be_tmp); } }
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("dydxAccount".into(), account.clone()); }
-        return account;
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("dydxAccount".into(), account); }
+        return self.safe_dict_k(self.options.clone(), "dydxAccount", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
 
     Value::Null
 }
@@ -1937,8 +1943,8 @@ impl DydxCore {
         let mut c: Value = self.parse_to_int(m);
         {
                         let mut i: Value = Value::Int(1);
-            let mut __for_first_660: bool = true;
-            while { if !__for_first_660 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_660 = false; i.as_f64().unwrap_or(f64::NAN) < c.as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_659: bool = true;
+            while { if !__for_first_659 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_659 = false; i.as_f64().unwrap_or(f64::NAN) < c.as_f64().unwrap_or(f64::NAN) } {
             r = crate::precise::Precise::stringMul(&r, &n);
         }
         }
@@ -3138,7 +3144,31 @@ impl DydxCore {
         });
         let __ws_arg_15 = self.extend(request, &[paramsSubAccountNumber]);
         let mut response: Value = self.indexer_get_transfers(&[__ws_arg_15]).await;
-        return self.safe_list_k(response, "transfers", &[Value::from(vec![])]);
+        //
+        // {
+        //     "transfers": [
+        //         {
+        //             "id": "6a6075bc-7183-5fd9-bc9d-894e238aa527",
+        //             "sender": {
+        //                 "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+        //                 "subaccountNumber": 0
+        //             },
+        //             "recipient": {
+        //                 "address": "dydx1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
+        //                 "subaccountNumber": 1
+        //             },
+        //             "size": "0.000001",
+        //             "createdAt": "2025-07-29T09:43:02.105Z",
+        //             "createdAtHeight": "45116125",
+        //             "symbol": "USDC",
+        //             "type": "TRANSFER_OUT",
+        //             "transactionHash": "92B4744BA1B783CF37C79A50BEBC47FFD59C8D5197D62A8485D3DCCE9AF220AF"
+        //         }
+        //     ]
+        // }
+        //
+        let mut transfers: Value = self.safe_list_k(response, "transfers", &[Value::from(vec![])]);
+        return transfers;
 
     Value::Null
 }
@@ -3215,8 +3245,8 @@ impl DydxCore {
         let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_661: bool = true;
-            while { if !__for_first_661 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_661 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
+            let mut __for_first_660: bool = true;
+            while { if !__for_first_660 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_660 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
             let mut account: Value = rows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut accountId: Value = self.safe_string_k(account.clone(), "subaccountNumber", &[]);
             append_to_array(&mut result, Value::Map({

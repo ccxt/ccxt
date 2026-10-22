@@ -2388,29 +2388,7 @@ impl PoloniexCore {
         }
         let __ws_arg_7 = self.extend(requestUntil, &[paramsUntil]);
         let mut response: Value = self.private_get_trades(&[__ws_arg_7]).await;
-        //
-        //     [
-        //         {
-        //             "id": "32164924331503616",
-        //             "symbol": "LINK_USDT",
-        //             "accountType": "SPOT",
-        //             "orderId": "32164923987566592",
-        //             "side": "SELL",
-        //             "type": "MARKET",
-        //             "matchRole": "TAKER",
-        //             "createTime": 1648635115525,
-        //             "price": "11",
-        //             "quantity": "0.5",
-        //             "amount": "5.5",
-        //             "feeCurrency": "USDT",
-        //             "feeAmount": "0.007975",
-        //             "pageId": "32164924331503616",
-        //             "clientOrderId": "myOwnId-321"
-        //         }
-        //     ]
-        //
-        let mut result: Value = self.parse_trades(response, &[market, since, limit]);
-        return result;
+        return self.parse_trades(response, &[market, since, limit]);
 
     Value::Null
 }
@@ -3495,7 +3473,14 @@ impl PoloniexCore {
         self.load_markets(&[]).await;
         let mut orders: Value = self.fetch_open_orders(&[symbol, Value::Null, Value::Null, params]).await;
         let mut indexed: Value = self.index_by(orders, Value::Str("id".into()));
-        return (if (in_op(&indexed, &id)) { Value::Str("open".into()) } else { Value::Str("closed".into()) });
+        let mut statuses: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("true".to_string(), Value::Str("open".into()));
+                m.insert("false".to_string(), Value::Str("closed".into()));
+            m
+        });
+        let mut found: Value = (if (in_op(&indexed, &id)) { Value::Str("true".into()) } else { Value::Str("false".into()) });
+        return self.safe_string(statuses, found, &[]);
 
     Value::Null
 }

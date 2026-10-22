@@ -3589,7 +3589,6 @@ impl LbankCore {
             self.load_markets(&[]).await;
         }
         let mut isAuthorized: Value = self.check_required_credentials(&[Value::Bool(false)]);
-        let mut result: Value = Value::Null;
         if is_true(&isAuthorized) {
             let mut options: Value = self.safe_dict_k(self.options.clone(), "fetchTransactionFees", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3599,14 +3598,11 @@ impl LbankCore {
             let mut method: Option<String> = self.safe_string_k(params.clone(), "method", &[defaultMethod]).as_str().map(str::to_owned);
             let mut paramsOmitted: Value = self.omit(params.clone(), Value::Str("method".into()), &[]);
             if (method.as_deref() == Some("fetchPublicTransactionFees")) {
-                result = self.fetch_public_transaction_fees(&[paramsOmitted.clone()]).await;
-            }  else {
-                result = self.fetch_private_transaction_fees(&[paramsOmitted]).await;
+                return self.fetch_public_transaction_fees(&[paramsOmitted.clone()]).await;
             }
-        }  else {
-            result = self.fetch_public_transaction_fees(&[params]).await;
+            return self.fetch_private_transaction_fees(&[paramsOmitted]).await;
         }
-        return result;
+        return self.fetch_public_transaction_fees(&[params]).await;
 
     Value::Null
 }
@@ -3813,7 +3809,6 @@ impl LbankCore {
             self.load_markets(&[]).await;
         }
         let mut isAuthorized: Value = self.check_required_credentials(&[Value::Bool(false)]);
-        let mut response: Value = Value::Null;
         if is_true(&isAuthorized) {
             let mut options: Value = self.safe_dict_k(self.options.clone(), "fetchDepositWithdrawFees", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3823,14 +3818,11 @@ impl LbankCore {
             let mut method: Option<String> = self.safe_string_k(params.clone(), "method", &[defaultMethod]).as_str().map(str::to_owned);
             let mut paramsOmitted: Value = self.omit(params.clone(), Value::Str("method".into()), &[]);
             if (method.as_deref() == Some("fetchPublicDepositWithdrawFees")) {
-                response = self.fetch_public_deposit_withdraw_fees(&[codes.clone(), paramsOmitted.clone()]).await;
-            }  else {
-                response = self.fetch_private_deposit_withdraw_fees(&[codes.clone(), paramsOmitted]).await;
+                return self.fetch_public_deposit_withdraw_fees(&[codes.clone(), paramsOmitted.clone()]).await;
             }
-        }  else {
-            response = self.fetch_public_deposit_withdraw_fees(&[codes, params]).await;
+            return self.fetch_private_deposit_withdraw_fees(&[codes.clone(), paramsOmitted]).await;
         }
-        return response;
+        return self.fetch_public_deposit_withdraw_fees(&[codes, params]).await;
 
     Value::Null
 }

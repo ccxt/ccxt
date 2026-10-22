@@ -950,7 +950,8 @@ impl LighterCore {
         }
         signer = self.load_account(self.options.as_map().and_then(|__m| __m.get("chainId")).cloned().unwrap_or(Value::Null), self.get_lighter_private_key(strAccountIndex.clone(), strApiKeyIndex.clone()), strApiKeyIndex, strAccountIndex, &[]).await;
         self.handle_builder_fee_approval(accountIndex, apiKeyIndex).await;
-        return (Value::Bool(signer != Value::Null));
+        let mut loaded: Value = (Value::Bool(signer != Value::Null));
+        return loaded;
 
     Value::Null
 }
@@ -1206,7 +1207,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut accountIndexStr: Value = to_string_val(&accountIndex);
         let mut isStandardTier: Value = self.safe_bool(tiersForAccountIndexes.clone(), accountIndexStr.clone(), &[]);
         if (isStandardTier != Value::Null) {
-            return isStandardTier;
+            let mut cachedIsStandard: Value = (Value::Bool(isStandardTier.as_bool() == Some(true)));
+            return cachedIsStandard;
         }
         let mut accountLimits: Value = self.private_get_account_limits(&[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1539,11 +1541,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchNonce() requires accountIndex and apiKeyIndex.".into()))));
         }
         if (matches!(&params, Value::Dict(__d) if __d.contains_key("nonce"))) {
-            return self.safe_integer_k(params.clone(), "nonce", &[]);
+            return self.parse_to_int(self.safe_integer_k(params.clone(), "nonce", &[]));
         }
         let mut nonceInOptions: Value = self.safe_integer_k(self.options.clone(), "nonce", &[]);
         if (nonceInOptions != Value::Null) {
-            return nonceInOptions;
+            return self.parse_to_int(nonceInOptions);
         }
         // avoid skipNonce for l1 operations
         let mut skipNonce: Value = self.handle_option_bool_and_params(params, Value::Str("fetchNonce".into()), Value::Str("skipNonce".into()), &[Value::Bool(true)]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
@@ -1556,7 +1558,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("api_key_index".to_string(), apiKeyIndex);
             m
         })]).await;
-        return self.safe_integer_k(response, "nonce", &[]);
+        return self.parse_to_int(self.safe_integer_k(response, "nonce", &[]));
 
     Value::Null
 }

@@ -1244,11 +1244,10 @@ impl BitflyerCore {
         });
         let __ws_arg_6 = self.extend(request, &[params]);
         let mut response: Value = self.private_get_getchildorders(&[__ws_arg_6]).await;
-        let mut orders: Value = self.parse_orders(response, &[market, since, limit]);
         if (symbol != Value::Null) {
-            orders = self.filter_by(orders.clone(), Value::Str("symbol".into()), symbol, &[]);
+            return self.filter_by(self.parse_orders(response.clone(), &[market.clone(), since.clone(), limit.clone()]), Value::Str("symbol".into()), symbol, &[]);
         }
-        return orders;
+        return self.parse_orders(response, &[market, since, limit]);
 
     Value::Null
 }

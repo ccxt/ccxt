@@ -2770,7 +2770,7 @@ impl AsterCore {
         }
         }
         let mut symbolsNormalized2: Value = self.market_symbols(&[symbolsNormalized]);
-        return self.filter_by_array(results, Value::Str("symbol".into()), &[symbolsNormalized2]);
+        return self.index_by(self.filter_by_array(results, Value::Str("symbol".into()), &[symbolsNormalized2, Value::Bool(false)]), Value::Str("symbol".into()));
 
     Value::Null
 }

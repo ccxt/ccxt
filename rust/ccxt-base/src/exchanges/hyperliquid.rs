@@ -2703,15 +2703,15 @@ impl HyperliquidCore {
                 m.insert("signature".to_string(), signature);
             m
         });
-        let mut response: Value = Value::Null;
+        let mut success: Value = Value::Bool(false);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            response = self.private_post_exchange(&[request]).await;
-            return response.clone();
+            self.private_post_exchange(&[request]).await;
+            success = Value::Bool(true);
          #[allow(unreachable_code)] { Value::Null }})).await;
-match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: Value = panic_to_value(_try_err); 
-            response = Value::Null; // ignore this
-         } }
-        return response;
+if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+            success = Value::Bool(false); // ignore this
+        }
+        return success;
 
     Value::Null
 }

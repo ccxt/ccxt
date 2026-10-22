@@ -2177,7 +2177,12 @@ impl BitstampCore {
     m
 })]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("fetchMarkets".into(), __be_tmp); } }
         }
-        return self.safe_value(self.options.as_map().and_then(|__m| __m.get("fetchMarkets")).cloned().unwrap_or(Value::Null), Value::Str("response".into()), &[]);
+        let mut cache: Value = self.safe_dict_k(self.options.clone(), "fetchMarkets", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        let mut markets: Value = self.safe_list_k(cache, "response", &[Value::from(vec![])]);
+        return markets;
 
     Value::Null
 }

@@ -1539,8 +1539,9 @@ impl BinanceCore {
                 m.insert("method".to_string(), Value::Str("handle_fetch_order_book".into()).clone());
             m
         });
-        let mut orderbook: Value = self.watch(url, messageHash.clone(), &[message, messageHash.clone(), subscription]).await;
-        add_element_to_object(&mut orderbook, &Value::Str("symbol".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        let mut snapshot: Value = self.watch(url, messageHash.clone(), &[message, messageHash.clone(), subscription]).await;
+        add_element_to_object(&mut snapshot, &Value::Str("symbol".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        let mut orderbook: Value = self.order_book(&[snapshot]);
         return orderbook;
 
     Value::Null

@@ -3479,7 +3479,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut sortedOrders: Value = self.sort_by(allOrders, Value::Str("timestamp".into()), &[Value::Bool(true)]);
         // Apply limit if specified (since and symbol filtering already handled by individual methods)
         if (limit != Value::Null) && ((sortedOrders.len() as i64) as f64) > limit.as_f64().unwrap_or(f64::NAN) {
-            return slice(&sortedOrders, &Value::Int(0), &limit);
+            return self.array_slice(sortedOrders.clone(), Value::Int(0), &[limit]);
         }
         return sortedOrders;
 
@@ -3732,9 +3732,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
         }
         }
-        results = self.sort_by(results.clone(), Value::Str("timestamp".into()), &[]);
-        results = self.filter_by_symbol_since_limit(results.clone(), &[symbolResolved, since, limit]);
-        return results;
+        return self.filter_by_symbol_since_limit(self.sort_by(results, Value::Str("timestamp".into()), &[]), &[symbolResolved, since, limit]);
 
     Value::Null
 }

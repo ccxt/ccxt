@@ -4564,12 +4564,11 @@ impl BackpackCore {
             self.load_markets(&[]).await;
         }
         let mut response: Value = self.private_get_api_v1_position(&[params]).await;
-        let mut positions: Value = self.parse_positions(response, &[]);
         if self.is_empty(symbols.clone()).as_bool() == Some(true) {
-            return positions;
+            return self.parse_positions(response.clone(), &[]);
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        return self.filter_by_array_positions(positions, Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.parse_positions(response, &[symbolsNormalized]);
 
     Value::Null
 }

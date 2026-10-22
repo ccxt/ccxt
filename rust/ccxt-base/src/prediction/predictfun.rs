@@ -2819,10 +2819,10 @@ impl PredictfunCore {
         //     }
         //
         let mut rows: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        let mut parsed: Value = self.parse_prediction_positions(rows, &[]);
         if (outcomesLength.as_f64() == Some(0.0)) {
-            return parsed;
+            return self.parse_prediction_positions(rows.clone(), &[]);
         }
+        let mut parsed: Value = self.parse_prediction_positions(rows, &[]);
         // the venue filters by marketId only, so a set of outcome handles is applied here
         let mut wanted: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
