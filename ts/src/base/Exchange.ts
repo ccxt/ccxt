@@ -340,7 +340,7 @@ export class BaseExchange {
     accountId!: string;
 
     balance: Dict = {};
-    liquidations: any = undefined;
+    liquidations: ArrayCache | undefined = undefined;
     orderbooks: Dictionary<WsOrderBook> = {};
     tickers: Dictionary<Ticker> = {};
     fundingRates: Dictionary<FundingRate> = {};
@@ -350,7 +350,7 @@ export class BaseExchange {
     trades: Dictionary<ArrayCache>;
     transactions: Dictionary<Transaction> = {};
     ohlcvs: Dictionary<Dictionary<ArrayCacheByTimestamp>>;
-    myLiquidations: any = undefined;
+    myLiquidations: ArrayCache | undefined = undefined;
     myTrades: ArrayCache | undefined;
     positions: any;
     urls!: {
