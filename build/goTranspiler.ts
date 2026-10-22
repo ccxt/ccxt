@@ -4103,7 +4103,6 @@ function overwriteFileAndFolder (path: string, content: string) {
     if (path.endsWith ('.go')) {
         content = hx4G05DropRedundantTyped (goStructReturnsPass (content));
         content = hx4G37InlineComparisons (content);  // hx4 G37: last, after every typed comparison pass
-        content = hx4G41InlineInOp (content);  // hx4 G41: after every typed InOp pass
     }
     content = path.endsWith ('.go') ? hx4G35InlineMulSub (content) : content;  // hx4 G35
     // layout last: the passes above splice operands (derefs, natives) after spacing and the
@@ -6379,7 +6378,7 @@ ${constStatements.join('\n')}
             // this is the one generated .go write that does not go through
             // overwriteFileAndFolder()/formatGoSource(), so guard its async cores here
             // (and add the element-access assertions formatGoSource would have added)
-            fs.writeFileSync (goPredictionBase, hx4G41InlineInOp (hx4G37InlineComparisons (alignGoTrailingComments (hx4G40InlineIsEqual (hx4G42InlineTypeChecks (hx4G46InlineParse (hx4G45InlineStr (hx4G44StringHelpers (hx4G43Inline (hx4G36Inline (hx4G35InlineMulSub (goGofmtSplicedText (goGofmtNestedParens (hx4G20BaseNativePasses (hx4G07FieldInOp (goChan3Pass (goErrValuePass (goChanCarrierPass (assertTypedElementAccess (guardMultiSendCores (retypeGoProvenParseMethods (normalizeGoFileHeader (file)))))))))))), hx4G36Aligner ()), hx4G36Aligner ()), hx4G36Aligner ()), hx4G36Aligner ()), hx4G36Aligner ()), hx4G36Aligner ()), hx4G36Aligner ())))))
+            fs.writeFileSync (goPredictionBase, (hx4G37InlineComparisons (alignGoTrailingComments (hx4G40InlineIsEqual (hx4G42InlineTypeChecks (hx4G46InlineParse (hx4G45InlineStr (hx4G44StringHelpers (hx4G43Inline (hx4G36Inline (hx4G35InlineMulSub (goGofmtSplicedText (goGofmtNestedParens (hx4G20BaseNativePasses (hx4G07FieldInOp (goChan3Pass (goErrValuePass (goChanCarrierPass (assertTypedElementAccess (guardMultiSendCores (retypeGoProvenParseMethods (normalizeGoFileHeader (file)))))))))))), hx4G36Aligner ()), hx4G36Aligner ()), hx4G36Aligner ()), hx4G36Aligner ()), hx4G36Aligner ()), hx4G36Aligner ()), hx4G36Aligner ())))))
             log.green ('Transpiled prediction base methods to', (goPredictionBase as any).yellow)
         }
     }
@@ -14162,209 +14161,6 @@ function hx4G40Wired (): string[] {
     }
 }
 
-// hx4 G41
-// Last tier for InOp: every call no typed pass proved becomes `func(a, b any) bool {..}(X, Y)`, the helper's
-// own dispatch inlined (derefScalar, numeric-key veto, map/sync.Map/order-book/cache-map arms, same map lock).
-// IsZero equals IsNil on the pointer/map/slice kinds it sees; spelled so census regexes skip it.
-function hx4G41InOpBody (pkg: string): string {
-    const lock = (s: string) => [ '\t' + pkg + 'AddElementMu.Lock()', '\t' + s, '\t' + pkg + 'AddElementMu.Unlock()' ];
-    const cacheArm = (t: string) => [ 'case ' + t + ':', '\tif s, ok := b.(string); ok {', ...lock ('_, ok = v[s]').map ((l) => '\t' + l), '\t\treturn ok', '\t}' ];
-    return [
-        'for _, p := range []*any{&a, &b} {',
-        '\tfor {',
-        '\t\tswitch (*p).(type) {',
-        '\t\tcase *string, *int64, *float64, *bool, *int, *[]string, *[]any, *map[string]any, *any:',
-        '\t\t\tr := reflect.ValueOf(*p)',
-        '\t\t\t_, again := (*p).(*any)',
-        '\t\t\tif *p = nil; !r.IsZero() {',
-        '\t\t\t\t*p = r.Elem().Interface()',
-        '\t\t\t}',
-        '\t\t\tif again && *p != nil {',
-        '\t\t\t\tcontinue',
-        '\t\t\t}',
-        '\t\tcase map[string]any, []any, []string:',
-        '\t\t\tif reflect.ValueOf(*p).IsZero() {',
-        '\t\t\t\t*p = nil',
-        '\t\t\t}',
-        '\t\t}',
-        '\t\tbreak',
-        '\t}',
-        '}',
-        'if a == nil || b == nil {',
-        '\treturn false',
-        '}',
-        'switch b.(type) {',
-        'case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64:',
-        '\treturn false',
-        '}',
-        'switch v := a.(type) {',
-        'case map[string]any:',
-        ...lock ('_, ok := v[b.(string)]'),
-        '\treturn ok',
-        'case *sync.Map:',
-        '\tif s, ok := b.(string); ok && v != nil {',
-        '\t\t_, ok = v.Load(s)',
-        '\t\treturn ok',
-        '\t}',
-        'case ' + pkg + 'OrderBookInterface:',
-        '\tread := v.GetValue',
-        '\tswitch b {',
-        '\tcase "asks", "bids", "timestamp", "datetime", "nonce":',
-        '\t\treturn true',
-        '\tcase "outcome", "outcomeId", "market":',
-        '\t\treturn read("outcome", nil) != nil',
-        '\tcase "symbol":',
-        '\t\treturn read("outcome", nil) == nil',
-        '\t}',
-        ...cacheArm ('map[string]map[string]*' + pkg + 'ArrayCacheByTimestamp'),
-        ...cacheArm ('map[string]*' + pkg + 'ArrayCacheByTimestamp'),
-        ...cacheArm ('map[string]*' + pkg + 'ArrayCache'),
-        ...cacheArm ('map[string]*' + pkg + 'ArrayCacheBySymbolBySide'),
-        '}',
-        'return false',
-    ].join ('\n');
-}
-
-function hx4G41AddImport (content: string, name: string): string {
-    if (new RegExp ('^import "' + name + '"$|^\\s*"' + name + '"$', 'm').test (content)) {
-        return content;
-    }
-    const lines = content.split ('\n');
-    const at = lines.findIndex ((l) => l.startsWith ('// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md'));
-    if (at < 0) {
-        return content;
-    }
-    lines.splice (at + 2, 0, 'import "' + name + '"', '');
-    return lines.join ('\n');
-}
-
-// a parameter named like a predeclared type shadows it in the whole function, so every bare use of
-// that identifier there is the parameter: rename it (`string` -> `stringParam`) so the inlined body can name the type
-function hx4G41RenameShadowParams (content: string): string {
-    const masked = goTextMaskLiteralsAndComments (content);
-    const out: string[] = [];
-    let last = 0;
-    for (const m of masked.matchAll (/^func [^\n]*\{$/gm)) {
-        const start = m.index as number;
-        const end = masked.indexOf ('\n}', start);
-        if (end < 0) {
-            continue;
-        }
-        const params = /^func (?:\([^)]*\) )?\w+\(([^)]*)\)/.exec (m[0]);
-        if (params === null) {
-            continue;
-        }
-        const shadowed = [ ...params[1].matchAll (/(?:^|,)\s*(string|bool|any|int|int64|float64)\s+[\w*[\]]/g) ].map ((p) => p[1]);
-        let fnText = content.slice (start, end);
-        const fnMasked = masked.slice (start, end);
-        for (const name of shadowed) {
-            const fresh = name + 'Param';
-            if (new RegExp ('\\b' + fresh + '\\b').test (fnMasked)) {
-                continue;
-            }
-            const rx = new RegExp ('(?<![\\w.])' + name + '(?!\\w)', 'g');
-            let rebuilt = '';
-            let at = 0;
-            for (const r of fnMasked.matchAll (rx)) {
-                rebuilt += fnText.slice (at, r.index) + fresh;
-                at = (r.index as number) + name.length;
-            }
-            fnText = rebuilt + fnText.slice (at);
-        }
-        if (shadowed.length > 0) {
-            out.push (content.slice (last, start), fnText);
-            last = end;
-        }
-    }
-    out.push (content.slice (last));
-    return out.join ('');
-}
-
-function hx4G41InlineInOp (content: string): string {
-    const rx = /(?<![\w.])(?:ccxt\.)?InOp\(/g;
-    if ((content.indexOf ('PLEASE DO NOT EDIT THIS FILE') < 0) || !rx.test (content)) {
-        return content;
-    }
-    rx.lastIndex = 0;
-    const local = /^package ccxt$/m.test (content);
-    const pkg = local ? '' : 'ccxt.';
-    if (!local && !/^import (?:ccxt )?"github\.com\/ccxt\/ccxt\/go\/v4"$/m.test (content)) {
-        return content;
-    }
-    content = hx4G41RenameShadowParams (content);
-    let masked = goTextMaskLiteralsAndComments (content);
-    // a local/param named like a package or predeclared type the inlined body uses would shadow it
-    const names = '(?:sync|reflect|ccxt|AddElementMu|OrderBookInterface|ArrayCache\\w*|string|bool|any|u?int(?:8|16|32|64)?|float(?:32|64)|nil|true|false)';
-    const shadowRx = new RegExp ('(?<![\\w.])' + names + '[ \\t]*(?::=|,[\\w \\t,]*:=)|\\bvar[ \\t]+' + names + '\\b|[(,][ \\t]*' + names + '[ \\t]+[\\w*[\\]]');
-    const original = masked;
-    const funcOf = (at: number) => {
-        const s = original.lastIndexOf ('\nfunc ', at);
-        const e = original.indexOf ('\n}', at);
-        return original.slice (s < 0 ? 0 : s, e < 0 ? original.length : e);
-    };
-    const calls = [ ...masked.matchAll (rx) ].map ((m) => ({ 'start': m.index as number, 'open': (m.index as number) + m[0].length - 1 }));
-    calls.sort ((x, y) => y.start - x.start);
-    let text = content;
-    let changed = false;
-    for (const call of calls) {
-        let depth = 0;
-        let close = -1;
-        const commas: number[] = [];
-        for (let i = call.open; i < masked.length; i++) {
-            const c = masked[i];
-            if ((c === '(') || (c === '[') || (c === '{')) { depth++; }
-            else if ((c === ')') || (c === ']') || (c === '}')) { depth--; if (depth === 0) { close = i; break; } }
-            else if ((c === ',') && (depth === 1)) { commas.push (i); }
-        }
-        if ((close < 0) || (commas.length !== 1) || shadowRx.test (funcOf (call.start))) {
-            continue;
-        }
-        const x = text.slice (call.open + 1, commas[0]).trim ();
-        const y = text.slice (commas[0] + 1, close).trim ();
-        const lineStart = text.lastIndexOf ('\n', call.start) + 1;
-        const indent = (/^\t*/.exec (text.slice (lineStart)) as RegExpExecArray)[0];
-        const body = hx4G41InOpBody (pkg).split ('\n').map ((l) => indent + '\t' + l).join ('\n');
-        const native = 'func(a, b any) bool {\n' + body + '\n' + indent + '}(' + x + ', ' + y + ')';
-        text = text.slice (0, call.start) + native + text.slice (close + 1);
-        masked = masked.slice (0, call.start) + goTextMaskLiteralsAndComments (native) + masked.slice (close + 1);
-        changed = true;
-    }
-    return changed ? hx4G41AddImport (hx4G41AddImport (text, 'sync'), 'reflect') : text;
-}
-
-function hx4G41Check (): string[] {
-    const problems: string[] = [];
-    const head = 'package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n\n';
-    const out = hx4G41InlineInOp (head + 'func (this *K) F(o any, n any) any {\n\tif InOp(o, "a, b") && !InOp(GetValue(o, n), n) {\n\t}\n\treturn nil\n}\n');
-    if (/InOp\(/.test (out.replace (/\/\/[^\n]*/g, '')) || !out.includes ('import "reflect"\n') || !out.includes ('import "sync"\n') || !out.includes ('\t}(o, "a, b") && !func(a, b any) bool {\n') || !out.includes ('\t\t\tAddElementMu.Lock()\n') || out.includes ('ccxt.')) {
-        problems.push ('hx4 G41: ccxt package shape: ' + out);
-    }
-    const pro = hx4G41InlineInOp ('package ccxtpro\n\nimport ccxt "github.com/ccxt/ccxt/go/v4"\nimport "sync"\n\n' + head.slice (14) + 'func (this *K) F(c any, h any) bool {\n\treturn ccxt.InOp(this.Orderbooks, h)\n}\n');
-    if (pro.includes ('InOp(') || !pro.includes ('\t\t\tccxt.AddElementMu.Lock()\n') || !pro.includes ('case ccxt.OrderBookInterface:') || !pro.includes ('}(this.Orderbooks, h)') || (pro.split ('import "sync"').length !== 2)) {
-        problems.push ('hx4 G41: pro shape: ' + pro);
-    }
-    const shadow = head + 'func F(m any) any {\n\tvar sync bool = true\n\treturn InOp(m, "x") && sync\n}\n';
-    if (hx4G41InlineInOp (shadow) !== shadow) {
-        problems.push ('hx4 G41: shadowed sync rewritten');
-    }
-    const param = hx4G41InlineInOp (head + 'func (this *X) F(m any, string any) any {\n\tif IsEqual(string, nil) {\n\t\treturn "string"\n\t}\n\treturn InOp(m, string)\n}\n');
-    if (param.includes ('InOp(') || !param.includes ('F(m any, stringParam any)') || !param.includes ('IsEqual(stringParam, nil)') || !param.includes ('return "string"') || !param.includes ('}(m, stringParam)')) {
-        problems.push ('hx4 G41: parameter named string not renamed: ' + param);
-    }
-    const dir = fs.mkdtempSync (path.join (os.tmpdir (), 'hx4-G41-'));
-    try {
-        const file = path.join (dir, 'x.go');
-        overwriteFileAndFolder (file, head + 'func (this *X) F(a any) any {\n\treturn InOp(a, "k")\n}\n');
-        const wired = fs.readFileSync (file, 'utf8');
-        if (wired.includes ('InOp(')) {
-            problems.push ('hx4 G41: not wired into overwriteFileAndFolder: ' + wired);
-        }
-    } finally {
-        fs.rmSync (dir, { 'recursive': true, 'force': true });
-    }
-    return problems;
-}
-
 // hx4 G43
 function hx4G43Wired (): string[] {
     const dir = fs.mkdtempSync (path.join (os.tmpdir (), 'hx4-G43-'));
@@ -14669,4 +14465,33 @@ function hx4G46Wired (): string[] {
     } finally {
         fs.rmSync (dir, { 'recursive': true, 'force': true });
     }
+}
+
+// hx5 X24
+// InOp has exactly two outcomes: goNativeInOp / g10kInopClientMaps / hx4G07FieldInOp emit `_, ok := m[k]`
+// on a proven map[string]any read receiver with a proven string key; every other site keeps the
+// InOp(dict, key) helper call (nil/numeric keys, *sync.Map, order books, cache maps, addElementMu lock).
+// The hx4 G41 inline `func(a, b any) bool {..}(X, Y)` closure is gone: no pass may paste the helper body.
+function hx4G41Check (): string[] {
+    const problems: string[] = [];
+    const head = 'package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n\n';
+    const dir = fs.mkdtempSync (path.join (os.tmpdir (), 'hx5-X24-'));
+    try {
+        const cases = [
+            head + 'func (this *X) F(a any) any {\n\treturn InOp(a, "k")\n}\n',
+            'package ccxtpro\n\nimport ccxt "github.com/ccxt/ccxt/go/v4"\n\n' + head.slice (14) + 'func (this *K) F(c any, h any) bool {\n\treturn ccxt.InOp(this.Orderbooks, h)\n}\n',
+            head + 'func (this *K) F(o any, n any) any {\n\tif InOp(o, "a, b") && !InOp(GetValue(o, n), n) {\n\t}\n\treturn nil\n}\n',
+        ];
+        for (const [ i, src ] of cases.entries ()) {
+            const file = path.join (dir, 'x' + i + '.go');
+            overwriteFileAndFolder (file, src);
+            const out = fs.readFileSync (file, 'utf8');
+            if (/func\(a, b any\) bool|AddElementMu|import "reflect"/.test (out) || !/InOp\(/.test (out)) {
+                problems.push ('hx5 X24: unproven InOp must stay a helper call: ' + out);
+            }
+        }
+    } finally {
+        fs.rmSync (dir, { 'recursive': true, 'force': true });
+    }
+    return problems;
 }
