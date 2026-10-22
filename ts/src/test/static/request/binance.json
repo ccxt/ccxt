@@ -1536,7 +1536,7 @@
             {
                 "description": "Savings fetchBalance",
                 "method": "fetchBalance",
-                "url": "https://testnet.binancefuture.com/sapi/v1/lending/union/account?timestamp=1699385163596&recvWindow=10000&signature=f8a952f41e186866660fa44ef11e22e69fd54145638964c6e79034e2fa83eb58",
+                "url": "https://testnet.binancefuture.com/sapi/v1/simple-earn/flexible/position?timestamp=1699385163596&recvWindow=10000&signature=f8a952f41e186866660fa44ef11e22e69fd54145638964c6e79034e2fa83eb58",
                 "input": [
                     {
                         "type": "savings"
@@ -4293,7 +4293,7 @@
                   "XRP/USDT:USDT",
                   5.243432
                 ],
-                "output": "timestamp=1712047896974&type=1&symbol=XRPUSDT&amount=5.2&recvWindow=10000&signature=ab7e4525180db9134418a3b410029cc1a055a4542cb4ebe1d60cc6f0134a2fce"
+                "output": "timestamp=1712047896974&type=1&symbol=XRPUSDT&amount=5.24343&recvWindow=10000&signature=ab7e4525180db9134418a3b410029cc1a055a4542cb4ebe1d60cc6f0134a2fce"
             },
             {
                 "description": "add small amount of margin",
@@ -4315,7 +4315,7 @@
                   "XRP/USDT:USDT",
                   5.243432
                 ],
-                "output": "timestamp=1712047923923&type=2&symbol=XRPUSDT&amount=5.2&recvWindow=10000&signature=db336b746bf1266fbe2f3d8887e105ce714f1a8ebbab733610722ee22b9a6fe7"
+                "output": "timestamp=1712047923923&type=2&symbol=XRPUSDT&amount=5.24343&recvWindow=10000&signature=db336b746bf1266fbe2f3d8887e105ce714f1a8ebbab733610722ee22b9a6fe7"
             },
             {
                 "description": "reduce small amount of margin",

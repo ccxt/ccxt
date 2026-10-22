@@ -579,36 +579,38 @@ func NewTrade(data any) Trade {
 
 // Order struct
 type Order struct {
-	Id                  *string
-	ClientOrderId       *string
-	Timestamp           *int64
-	Datetime            *string
-	LastTradeTimestamp  *int64
-	Symbol              *string
-	Type                *string
-	Side                *string
-	Price               *float64
-	Cost                *float64
-	Average             *float64
-	Amount              *float64
-	Filled              *float64
-	Remaining           *float64
-	Status              *string
-	ReduceOnly          *bool
-	PostOnly            *bool
-	MarginMode          *string
-	Leverage            *float64
-	Hedged              *bool
-	Fee                 Fee
-	Fees                []Fee
-	Trades              []Trade
-	TriggerPrice        *float64
-	StopLossPrice       *float64
-	TakeProfitPrice     *float64
-	LastUpdateTimestamp *int64
-	TimeInForce         *string
-	StopPrice           *float64
-	Info                any
+	Id                   *string
+	ClientOrderId        *string
+	Timestamp            *int64
+	Datetime             *string
+	LastTradeTimestamp   *int64
+	Symbol               *string
+	Type                 *string
+	Side                 *string
+	Price                *float64
+	Cost                 *float64
+	Average              *float64
+	Amount               *float64
+	Filled               *float64
+	Remaining            *float64
+	Status               *string
+	ReduceOnly           *bool
+	PostOnly             *bool
+	MarginMode           *string
+	Leverage             *float64
+	Hedged               *bool
+	Fee                  Fee
+	Fees                 []Fee
+	Trades               []Trade
+	TriggerPrice         *float64
+	StopLossPrice        *float64
+	TrailingPercent      *float64
+	TrailingTriggerPrice *float64
+	TakeProfitPrice      *float64
+	LastUpdateTimestamp  *int64
+	TimeInForce          *string
+	StopPrice            *float64
+	Info                 any
 }
 
 func NewOrder(data any) Order {
@@ -623,36 +625,38 @@ func NewOrder(data any) Order {
 	}
 
 	return Order{
-		Id:                  SafeStringTyped(m, "id"),
-		ClientOrderId:       SafeStringTyped(m, "clientOrderId"),
-		Timestamp:           SafeInt64Typed(m, "timestamp"),
-		Datetime:            SafeStringTyped(m, "datetime"),
-		LastTradeTimestamp:  SafeInt64Typed(m, "lastTradeTimestamp"),
-		Symbol:              SafeStringTyped(m, "symbol"),
-		Type:                SafeStringTyped(m, "type"),
-		Side:                SafeStringTyped(m, "side"),
-		Price:               SafeFloatTyped(m, "price"),
-		Cost:                SafeFloatTyped(m, "cost"),
-		Average:             SafeFloatTyped(m, "average"),
-		Amount:              SafeFloatTyped(m, "amount"),
-		Filled:              SafeFloatTyped(m, "filled"),
-		Remaining:           SafeFloatTyped(m, "remaining"),
-		Status:              SafeStringTyped(m, "status"),
-		ReduceOnly:          SafeBoolTyped(m, "reduceOnly"),
-		PostOnly:            SafeBoolTyped(m, "postOnly"),
-		MarginMode:          SafeStringTyped(m, "marginMode"),
-		Leverage:            SafeFloatTyped(m, "leverage"),
-		Hedged:              SafeBoolTyped(m, "hedged"),
-		Fee:                 NewFee(MapOrEmpty(SafeValue(m, "fee", map[string]any{}))),
-		Fees:                NewFeeArray(m["fees"]),
-		Trades:              trades,
-		TriggerPrice:        SafeFloatTyped(m, "triggerPrice"),
-		StopLossPrice:       SafeFloatTyped(m, "stopLossPrice"),
-		TakeProfitPrice:     SafeFloatTyped(m, "takeProfitPrice"),
-		LastUpdateTimestamp: SafeInt64Typed(m, "lastUpdateTimestamp"),
-		TimeInForce:         SafeStringTyped(m, "timeInForce"),
-		StopPrice:           SafeFloatTyped(m, "stopPrice"),
-		Info:                SafeValue(m, "info", nil),
+		Id:                   SafeStringTyped(m, "id"),
+		ClientOrderId:        SafeStringTyped(m, "clientOrderId"),
+		Timestamp:            SafeInt64Typed(m, "timestamp"),
+		Datetime:             SafeStringTyped(m, "datetime"),
+		LastTradeTimestamp:   SafeInt64Typed(m, "lastTradeTimestamp"),
+		Symbol:               SafeStringTyped(m, "symbol"),
+		Type:                 SafeStringTyped(m, "type"),
+		Side:                 SafeStringTyped(m, "side"),
+		Price:                SafeFloatTyped(m, "price"),
+		Cost:                 SafeFloatTyped(m, "cost"),
+		Average:              SafeFloatTyped(m, "average"),
+		Amount:               SafeFloatTyped(m, "amount"),
+		Filled:               SafeFloatTyped(m, "filled"),
+		Remaining:            SafeFloatTyped(m, "remaining"),
+		Status:               SafeStringTyped(m, "status"),
+		ReduceOnly:           SafeBoolTyped(m, "reduceOnly"),
+		PostOnly:             SafeBoolTyped(m, "postOnly"),
+		MarginMode:           SafeStringTyped(m, "marginMode"),
+		Leverage:             SafeFloatTyped(m, "leverage"),
+		Hedged:               SafeBoolTyped(m, "hedged"),
+		Fee:                  NewFee(MapOrEmpty(SafeValue(m, "fee", map[string]any{}))),
+		Fees:                 NewFeeArray(m["fees"]),
+		Trades:               trades,
+		TriggerPrice:         SafeFloatTyped(m, "triggerPrice"),
+		StopLossPrice:        SafeFloatTyped(m, "stopLossPrice"),
+		TrailingPercent:      SafeFloatTyped(m, "trailingPercent"),
+		TrailingTriggerPrice: SafeFloatTyped(m, "trailingTriggerPrice"),
+		TakeProfitPrice:      SafeFloatTyped(m, "takeProfitPrice"),
+		LastUpdateTimestamp:  SafeInt64Typed(m, "lastUpdateTimestamp"),
+		TimeInForce:          SafeStringTyped(m, "timeInForce"),
+		StopPrice:            SafeFloatTyped(m, "stopPrice"),
+		Info:                 SafeValue(m, "info", nil),
 	}
 }
 

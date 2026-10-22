@@ -517,6 +517,8 @@ export interface Order {
     triggerPrice?: Num;
     takeProfitPrice?: Num;
     stopLossPrice?: Num;
+    trailingPercent?: Num;
+    trailingTriggerPrice?: Num;
     cost: Num;
     trades: Trade[];
     fee: Fee;
