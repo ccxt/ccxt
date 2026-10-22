@@ -1509,6 +1509,112 @@
                     "takeProfitPrice": null,
                     "stopLossPrice": null
                 }
+            },
+            {
+                "description": "capped reduce-only order: orderStatus terminates with sz 0, so filled is recovered from the order's userFills instead of origSz - sz, see #30839",
+                "method": "fetchOrder",
+                "input": [
+                    "3991946566",
+                    "ETH/USDC:USDC"
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "order": {
+                            "children": [],
+                            "cloid": null,
+                            "coin": "ETH",
+                            "isPositionTpsl": false,
+                            "isTrigger": true,
+                            "limitPx": "20.0",
+                            "oid": 3991946566,
+                            "orderType": "Stop Market",
+                            "origSz": "8.33",
+                            "reduceOnly": true,
+                            "side": "A",
+                            "sz": "0.0",
+                            "tif": null,
+                            "timestamp": 1760313600000,
+                            "triggerCondition": "Price below 20.0",
+                            "triggerPx": "20.0"
+                        },
+                        "status": "filled",
+                        "statusTimestamp": "1760313612000"
+                    },
+                    "id": "3991946566",
+                    "clientOrderId": null,
+                    "timestamp": 1760313600000,
+                    "datetime": "2025-10-13T00:00:00.000Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1760313612000,
+                    "symbol": "ETH/USDC:USDC",
+                    "type": "market",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": true,
+                    "side": "sell",
+                    "price": 20.0,
+                    "triggerPrice": 20.0,
+                    "stopLossPrice": 20.0,
+                    "takeProfitPrice": null,
+                    "amount": 8.33,
+                    "cost": 145.8729,
+                    "average": 20.01,
+                    "filled": 7.29,
+                    "remaining": 0.0,
+                    "status": "closed",
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": 20.0
+                },
+                "httpResponseQueueByUrl": {
+                    "/info": [
+                        {
+                            "order": {
+                                "order": {
+                                    "children": [],
+                                    "cloid": null,
+                                    "coin": "ETH",
+                                    "isPositionTpsl": false,
+                                    "isTrigger": true,
+                                    "limitPx": "20.0",
+                                    "oid": 3991946566,
+                                    "orderType": "Stop Market",
+                                    "origSz": "8.33",
+                                    "reduceOnly": true,
+                                    "side": "A",
+                                    "sz": "0.0",
+                                    "tif": null,
+                                    "timestamp": 1760313600000,
+                                    "triggerCondition": "Price below 20.0",
+                                    "triggerPx": "20.0"
+                                },
+                                "status": "filled",
+                                "statusTimestamp": "1760313612000"
+                            },
+                            "status": "order"
+                        },
+                        [
+                            {
+                                "closedPnl": "1.23",
+                                "coin": "ETH",
+                                "crossed": true,
+                                "dir": "Close Long",
+                                "fee": "0.065",
+                                "feeToken": "USDC",
+                                "hash": "0xabc123",
+                                "liquidationMarkPx": null,
+                                "oid": 3991946566,
+                                "px": "20.01",
+                                "side": "A",
+                                "startPosition": "7.29",
+                                "sz": "7.29",
+                                "tid": 987654321012345,
+                                "time": 1760313611000
+                            }
+                        ]
+                    ]
+                }
             }
         ],
         "fetchPositions": [

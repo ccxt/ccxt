@@ -3438,7 +3438,56 @@ export default class hyperliquid extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'order');
-        return this.parseOrder ((data as Dict), market);
+        const parsedOrder = this.parseOrder ((data as Dict), market);
+        // a reduce-only order capped by the exchange terminates with sz = 0, so the
+        // default filled = origSz - sz reports the requested size instead of the
+        // executed one; recover the true fill from the order's fills, see #30839
+        const orderStatus = this.safeString (parsedOrder, 'status');
+        const isTerminal = (orderStatus === 'closed') || (orderStatus === 'canceled');
+        if ((parsedOrder['reduceOnly'] === true) && isTerminal) {
+            const fillsRequest: Dict = {
+                'user': userAddress,
+                'type': 'userFills',
+            };
+            const fillsResponse = await this.publicPostInfo (fillsRequest);
+            //
+            //     [
+            //         {
+            //             "oid": 3929354691,
+            //             "sz": "0.0841",
+            //             ...
+            //         },
+            //     ]
+            //
+            if (Array.isArray (fillsResponse)) {
+                const orderId = this.safeString (parsedOrder, 'id');
+                const amountString = this.safeString (parsedOrder, 'amount');
+                let filledString = '0';
+                let costString = '0';
+                let hasFills = false;
+                for (let i = 0; i < fillsResponse.length; i++) {
+                    const fill = fillsResponse[i];
+                    if (this.safeString (fill, 'oid') === orderId) {
+                        const fillSize = this.safeString (fill, 'sz');
+                        filledString = Precise.stringAdd (filledString, fillSize);
+                        costString = Precise.stringAdd (costString, Precise.stringMul (this.safeString (fill, 'px'), fillSize));
+                        hasFills = true;
+                    }
+                }
+                if (hasFills) {
+                    // the fills window is bounded, so clamp at the ordered amount
+                    if (amountString !== undefined) {
+                        filledString = Precise.stringMin (filledString, amountString);
+                    }
+                    parsedOrder['filled'] = this.parseNumber (filledString);
+                    parsedOrder['cost'] = this.parseNumber (costString);
+                    if (filledString !== '0') {
+                        parsedOrder['average'] = this.parseNumber (Precise.stringDiv (costString, filledString));
+                    }
+                }
+            }
+        }
+        return parsedOrder;
     }
 
     override parseOrder (order: Dict, market: Market = undefined): Order {
