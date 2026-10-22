@@ -84,7 +84,7 @@ export default class polymarket extends polymarketRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the raw request frame to send
      */
-    sendSubscription (action: string, channels: string[], messageHashes: string[], subMessageHashes: string[], context: Dict = {}, params = {}, checkHashes: Strings = undefined) {
+    sendSubscription (action: string, channels: string[], messageHashes: string[], subMessageHashes: string[], context: Dict = {}, params: Dict = {}, checkHashes: Strings = undefined) {
         const url = this.urls['api']['ws'];
         const client = this.client (url);
         // the base watch only sends the request when one of the hashes is not
@@ -640,7 +640,7 @@ export default class polymarket extends polymarketRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} resolves once the connection is authenticated
      */
-    async authenticate (params = {}): Promise<any> {
+    async authenticate (params: Dict = {}): Promise<any> {
         const credentials = await this.loadProxyCredentials ();
         const url = this.urls['api']['ws'];
         const client = this.client (url);

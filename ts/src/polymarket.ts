@@ -1266,7 +1266,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dict with the signable row and the body entry
      */
-    createOrderRequest (market: Market, type: OrderType, side: OrderSide, amount: any, price: any = undefined, params = {}): Dict {
+    createOrderRequest (market: Market, type: OrderType, side: OrderSide, amount: any, price: any = undefined, params: Dict = {}): Dict {
         const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingPercent', 'trailingAmount' ]);
         const attached = this.safeValueN (params, [ 'stopLoss', 'takeProfit' ]);
         if ((triggerPrice !== undefined) || (attached !== undefined)) {
@@ -2527,7 +2527,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
      */
-    async modifyMarginHelper (symbol: string, amount: any, type: string, params = {}): Promise<MarginModification> {
+    async modifyMarginHelper (symbol: string, amount: any, type: string, params: Dict = {}): Promise<MarginModification> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const instrumentId = this.parseToInt (market['id']);
@@ -2617,7 +2617,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the session credentials, holding the proxy address, the proxy private key, the secret and the expiry timestamp
      */
-    async createProxyCredentials (params = {}): Promise<Dict> {
+    async createProxyCredentials (params: Dict = {}): Promise<Dict> {
         this.checkRequiredCredentials ();
         // the session key derives from an ecdsa signature under the wallet
         // key over a timestamped nonce - unpredictable without the wallet
@@ -2688,7 +2688,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the session credentials, holding the proxy address, the proxy private key, the secret and the expiry timestamp
      */
-    async loadProxyCredentials (params = {}): Promise<Dict> {
+    async loadProxyCredentials (params: Dict = {}): Promise<Dict> {
         const credentials = this.safeDict (this.options, 'proxyCredentials');
         if (credentials !== undefined) {
             const expires = this.safeInteger (credentials, 'expires');
@@ -2713,7 +2713,7 @@ export default class polymarket extends Exchange {
      * @param {object} bodyOp the structured operation object transmitted to the venue
      * @returns {object} the signed request body with the op, sig, salt and ts fields
      */
-    async signPerpsOp (signable: any, bodyOp: any, params = {}): Promise<Dict> {
+    async signPerpsOp (signable: any, bodyOp: any, params: Dict = {}): Promise<Dict> {
         const credentials = await this.loadProxyCredentials ();
         const packed = this.packb (signable);
         const dataHash = this.hashMessage (packed);
