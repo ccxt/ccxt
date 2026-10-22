@@ -346,7 +346,7 @@ export class BaseExchange {
     fundingRates: Dictionary<FundingRate> = {};
     bidsasks: Dictionary<Ticker> = {};
     orders: ArrayCache | undefined = undefined;
-    triggerOrders!: ArrayCache;
+    triggerOrders: ArrayCache | undefined;
     trades: Dictionary<ArrayCache>;
     transactions: Dictionary<Transaction> = {};
     ohlcvs: Dictionary<Dictionary<ArrayCacheByTimestamp>>;
@@ -389,7 +389,7 @@ export class BaseExchange {
 
     id: string = 'Exchange';
 
-    markets!: Dictionary<any> | undefined;
+    markets!: Dictionary<MarketInterface> | undefined;
     has!: Dictionary<boolean | 'emulated' | undefined>;
     features!: Dictionary<Dictionary<any> | undefined>;
     status!: {
@@ -5153,7 +5153,7 @@ export class BaseExchange {
             key = 'base';
         }
         // for derivatives, the fee is in 'settle' currency
-        if (market['spot'] !== true) {
+        if (this.safeBool (market, 'spot') !== true) {
             key = 'settle';
         }
         // even if `takerOrMaker` argument was set to 'maker', for 'market' orders we should forcefully override it to 'taker'
@@ -5162,7 +5162,7 @@ export class BaseExchange {
         cost = Precise.stringMul (cost, rate);
         return {
             'type': takerOrMakerResolved,
-            'currency': market[key as string],
+            'currency': this.safeString (market, key),
             'rate': this.parseNumber (rate),
             'cost': this.parseNumber (cost),
         };
@@ -5790,7 +5790,7 @@ export class BaseExchange {
                 throw new BadRequest (this.id + ' symbols must be of the same type ' + type + '. If the type is incorrect you can change it in options or the params of the request');
             }
             marketType = this.safeString (market, 'type');
-            if (market['spot'] !== true) {
+            if (this.safeBool (market, 'spot') !== true) {
                 isLinearSubType = this.safeBool (market, 'linear');
             }
             const symbol = this.safeString (market, 'symbol', symbols[i]);
@@ -6657,7 +6657,7 @@ export class BaseExchange {
     }
 
     getSymbolsForMarketType (marketType: Str = undefined, subType: Str = undefined, symbolWithActiveStatus: boolean = true, symbolWithUnknownStatus: boolean = true): string[] {
-        let filteredMarkets = this.markets;
+        let filteredMarkets: any = this.markets;
         if (marketType !== undefined) {
             filteredMarkets = this.filterBy (filteredMarkets, 'type', marketType);
         }

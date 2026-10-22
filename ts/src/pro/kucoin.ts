@@ -2282,9 +2282,11 @@ export default class kucoin extends kucoinRest {
         const orderId = this.safeString (parsed, 'id');
         const triggerPrice = this.safeString (parsed, 'triggerPrice');
         const isTriggerOrder = (triggerPrice !== undefined);
+        const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
         if (this.orders === undefined) {
-            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
+        }
+        if (this.triggerOrders === undefined) {
             this.triggerOrders = new ArrayCacheBySymbolById (limit);
         }
         const cachedOrders = isTriggerOrder ? this.triggerOrders : this.orders;
