@@ -51,7 +51,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             },
         })
 
-    def authenticate(self):
+    def authenticate(self) -> dict:
         self.check_required_credentials()
         path = '/users/self/verify'
         nonce = self.nonce()
@@ -922,8 +922,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             'done': self.handle_order,
             'error': self.handle_error_message,
         }
-        length = len(client.url) - 0
-        authenticated = client.url[length - 1] == '?'
+        authenticated = client.url.endswith('?')
         method = self.safe_value(methods, type)
         if method is None:
             if type == 'match':

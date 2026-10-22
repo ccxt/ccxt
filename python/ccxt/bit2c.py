@@ -838,7 +838,7 @@ class bit2c(Exchange, ImplicitAPI):
             responseList = self.to_array(response)
         return self.parse_trades(responseList, market, since, limit)
 
-    def remove_comma_from_value(self, str: str):
+    def remove_comma_from_value(self, str: str) -> str:
         newString = ''
         strParts = str.split(',')
         for i in range(0, len(strParts)):

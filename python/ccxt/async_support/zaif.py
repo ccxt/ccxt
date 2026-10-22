@@ -805,7 +805,7 @@ class zaif(Exchange, ImplicitAPI):
             'info': transaction,
         }
 
-    def custom_nonce(self):
+    def custom_nonce(self) -> str:
         num = self.number_to_string(self.milliseconds() / 1000)
         nonce = float(num)
         return format(nonce, '.8f')

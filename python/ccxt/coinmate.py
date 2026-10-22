@@ -649,7 +649,7 @@ class coinmate(Exchange, ImplicitAPI):
         items = self.safe_list(response, 'data', [])
         return self.parse_transactions(items, None, since, limit)
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             'COMPLETED': 'ok',
             'WAITING': 'pending',
@@ -1020,7 +1020,7 @@ class coinmate(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'FILLED': 'closed',
             'CANCELLED': 'canceled',
@@ -1029,7 +1029,7 @@ class coinmate(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type(self, type: Str):
+    def parse_order_type(self, type: Str) -> Str:
         types = {
             'LIMIT': 'limit',
             'MARKET': 'market',

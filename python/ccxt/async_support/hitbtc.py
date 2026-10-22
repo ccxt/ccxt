@@ -863,8 +863,9 @@ class hitbtc(Exchange, ImplicitAPI):
             if contract:
                 contractSize = self.parse_number('1')
                 settleId = feeCurrencyId
-                settle = self.safe_currency_code(settleId)
-                linear = ((quote is not None) and (quote == settle))
+                settleCode = self.safe_currency_code(settleId)
+                settle = settleCode
+                linear = (quote == settleCode)
                 inverse = not linear
                 symbol = symbol + ':' + settle
                 if future:
@@ -994,8 +995,8 @@ class hitbtc(Exchange, ImplicitAPI):
         for j in range(0, len(rawNetworks)):
             rawNetwork = rawNetworks[j]
             networkId = self.safe_string_2(rawNetwork, 'protocol', 'network')
-            networkCode = self.network_id_to_code(networkId, code)
-            networkCodeUpper = networkCode.upper() if (networkCode is not None) else None
+            rawNetworkCode = self.network_id_to_code(networkId, code)
+            networkCodeUpper = rawNetworkCode.upper() if (rawNetworkCode is not None) else None
             networkCode = self.safe_string(self.networkAliases, networkCodeUpper, networkCodeUpper) if (networkCodeUpper is not None) else code  # as hitbtc is white label, ensure we safeguard from possible bugs
             if networkCode is not None:
                 networks[networkCode] = {
@@ -1508,7 +1509,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit, params)
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             'CREATED': 'pending',
             'PENDING': 'pending',
@@ -2394,7 +2395,7 @@ class hitbtc(Exchange, ImplicitAPI):
             request['margin_mode'] = 'cross' if (marginMode is None) else marginMode
         return [request, paramsOmitted]
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'new': 'open',
             'suspended': 'open',
@@ -2653,7 +2654,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'info': transfer,
         }
 
-    async def convert_currency_network(self, code: str, amount: Num, fromNetwork: object, toNetwork: object, params: dict = {}) -> dict:
+    async def convert_currency_network(self, code: str, amount: Num, fromNetwork: str, toNetwork: str, params: dict = {}) -> dict:
         if self.markets is None:
             await self.load_markets()
         if code != 'USDT':
@@ -3257,7 +3258,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'interval': None,
         }
 
-    async def modify_margin_helper(self, symbol: str, amount: object, type: Str, params: dict = {}) -> MarginModification:
+    async def modify_margin_helper(self, symbol: str, amount: float, type: Str, params: dict = {}) -> MarginModification:
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
@@ -3557,8 +3558,8 @@ class hitbtc(Exchange, ImplicitAPI):
             networkEntry = self.safe_dict(networks, j)
             networkId = self.safe_string(networkEntry, 'network')
             code = self.safe_string(currency, 'code')
-            networkCode = self.network_id_to_code(networkId, code)
-            networkCodeUpper = networkCode.upper() if (networkCode is not None) else None
+            rawNetworkCode = self.network_id_to_code(networkId, code)
+            networkCodeUpper = rawNetworkCode.upper() if (rawNetworkCode is not None) else None
             networkCode = self.safe_string(self.networkAliases, networkCodeUpper, networkCodeUpper) if (networkCodeUpper is not None) else None
             withdrawFee = self.safe_number(networkEntry, 'payout_fee')
             isDefault = self.safe_bool(networkEntry, 'default')

@@ -3438,10 +3438,10 @@ class BaseExchange(object):
             if arrayLength > 0:
                 ascending = True
                 if (key in array[0]):
-                    first = array[0][key]
-                    last = array[arrayLength - 1][key]
+                    first = self.safe_float(array[0], key)
+                    last = self.safe_float(array[arrayLength - 1], key)
                     if first is not None and last is not None:
-                        ascending = first <= last  # true if array is sorted in ascending order based on 'timestamp'
+                        ascending = last >= first  # true if array is sorted in ascending order based on 'timestamp'
                 if fromStart:
                     limitResolved = arrayLength if (limit > arrayLength) else limit
                     if ascending:
@@ -3462,8 +3462,8 @@ class BaseExchange(object):
             result = []
             for i in range(0, len(parsedArray)):
                 entry = parsedArray[i]
-                value = self.safe_value(entry, key)
-                if (value is not None) and (value is not None) and (value != 0) and (value >= since):
+                value = self.safe_integer(entry, key)
+                if (value is not None) and (value != 0) and (value >= since):
                     result.append(entry)
         if tail and limit is not None:
             return self.array_slice(result, -limit)
@@ -3486,8 +3486,8 @@ class BaseExchange(object):
                 # KeyError in python/php — prediction structures key on outcome, not symbol
                 entryFiledEqualValue = self.safe_value(entry, field) == value
                 firstCondition = entryFiledEqualValue if valueIsDefined else True
-                entryKeyValue = self.safe_value(entry, key)
-                entryKeyGESince = (entryKeyValue is not None) and (entryKeyValue is not None) and (entryKeyValue != 0) and (since is not None) and (entryKeyValue >= since)
+                entryKeyValue = self.safe_integer(entry, key)
+                entryKeyGESince = (entryKeyValue is not None) and (entryKeyValue != 0) and (since is not None) and (entryKeyValue >= since)
                 secondCondition = entryKeyGESince if sinceIsDefined else True
                 if firstCondition and secondCondition:
                     result.append(entry)
@@ -4343,7 +4343,7 @@ class BaseExchange(object):
                     if (currentPrecision is None) or (highestPrecision is None):
                         continue
                     if self.precisionMode == TICK_SIZE:
-                        if currentPrecision < highestPrecision:
+                        if highestPrecision > currentPrecision:
                             highestPrecisionCurrency = currentCurrency
                     elif currentPrecision > highestPrecision:
                         highestPrecisionCurrency = currentCurrency
@@ -5560,7 +5560,9 @@ class BaseExchange(object):
                     position['initialMargin'] = self.parse_number(derivedEntryMargin)
                     marginString = derivedEntryMargin
                     position['positionMargin'] = self.parse_number(derivedEntryMargin)
-                    derivedCollateral = Precise.string_add(derivedEntryMargin, unrealizedPnlString) if (unrealizedPnlString is not None) else derivedEntryMargin
+                    derivedCollateral = derivedEntryMargin
+                    if unrealizedPnlString is not None:
+                        derivedCollateral = Precise.string_add(derivedEntryMargin, unrealizedPnlString)
                     if Precise.string_gt(derivedCollateral, '0'):
                         collateralString = derivedCollateral
                         position['collateral'] = self.parse_number(derivedCollateral)
@@ -5569,14 +5571,17 @@ class BaseExchange(object):
                 totalSize = Precise.string_mul(contractsString, contractSizeString)
                 if Precise.string_gt(marginBuffer, '0') and Precise.string_gt(totalSize, '0'):
                     bufferPerUnit = Precise.string_div(marginBuffer, totalSize)
-                    derivedLp = None
+                    derivedLp = Precise.string_add(entryPriceString, bufferPerUnit)
+                    if side == 'long':
+                        derivedLp = Precise.string_sub(entryPriceString, bufferPerUnit)
                     if isInverse:
                         invEntry = Precise.string_div('1', entryPriceString)
-                        invLp = Precise.string_add(invEntry, bufferPerUnit) if (side == 'long') else Precise.string_sub(invEntry, bufferPerUnit)
-                        if Precise.string_gt(invLp, '0'):
-                            derivedLp = Precise.string_div('1', invLp)
-                    else:
-                        derivedLp = Precise.string_sub(entryPriceString, bufferPerUnit) if (side == 'long') else Precise.string_add(entryPriceString, bufferPerUnit)
+                        invDerivedLp = Precise.string_sub(invEntry, bufferPerUnit)
+                        if side == 'long':
+                            invDerivedLp = Precise.string_add(invEntry, bufferPerUnit)
+                        # 1 / invDerivedLp keeps its sign (undefined at 0), so the > 0 guard below
+                        # rejects exactly the values a separate invDerivedLp > 0 check would
+                        derivedLp = Precise.string_div('1', invDerivedLp)
                     if (derivedLp is not None) and Precise.string_gt(derivedLp, '0'):
                         liquidationPriceString = derivedLp
                         position['liquidationPrice'] = self.parse_number(derivedLp)
@@ -5585,14 +5590,17 @@ class BaseExchange(object):
                 totalSize = Precise.string_mul(contractsString, contractSizeString)
                 if Precise.string_gt(marginBuffer, '0') and Precise.string_gt(totalSize, '0'):
                     bufferPerUnit = Precise.string_div(marginBuffer, totalSize)
-                    derivedEp = None
+                    derivedEp = Precise.string_sub(liquidationPriceString, bufferPerUnit)
+                    if side == 'long':
+                        derivedEp = Precise.string_add(liquidationPriceString, bufferPerUnit)
                     if isInverse:
                         invLp = Precise.string_div('1', liquidationPriceString)
-                        invEp = Precise.string_sub(invLp, bufferPerUnit) if (side == 'long') else Precise.string_add(invLp, bufferPerUnit)
-                        if Precise.string_gt(invEp, '0'):
-                            derivedEp = Precise.string_div('1', invEp)
-                    else:
-                        derivedEp = Precise.string_add(liquidationPriceString, bufferPerUnit) if (side == 'long') else Precise.string_sub(liquidationPriceString, bufferPerUnit)
+                        invEp = Precise.string_add(invLp, bufferPerUnit)
+                        if side == 'long':
+                            invEp = Precise.string_sub(invLp, bufferPerUnit)
+                        # 1 / invEp keeps its sign (undefined at 0), so the > 0 guard below
+                        # rejects exactly the values a separate invEp > 0 check would
+                        derivedEp = Precise.string_div('1', invEp)
                     if (derivedEp is not None) and Precise.string_gt(derivedEp, '0'):
                         entryPriceString = derivedEp
                         position['entryPrice'] = self.parse_number(derivedEp)
@@ -5627,26 +5635,34 @@ class BaseExchange(object):
             # 1. notional <-> markPrice / contracts / contractSize
             if (notionalString is None) and hasMarkPrice and hasContracts and hasContractSize:
                 totalSize = Precise.string_mul(contractsString, contractSizeString)
-                derivedNotional = Precise.string_div(totalSize, markPriceString) if isInverse else Precise.string_mul(totalSize, markPriceString)
+                derivedNotional = Precise.string_mul(totalSize, markPriceString)
+                if isInverse:
+                    derivedNotional = Precise.string_div(totalSize, markPriceString)
                 if Precise.string_gt(derivedNotional, '0'):
                     notionalString = derivedNotional
                     position['notional'] = self.parse_number(derivedNotional)
             elif (markPriceString is None) and (entryPriceString is None) and (lastPriceString is None) and hasNotional and hasContracts and hasContractSize:
                 totalSize = Precise.string_mul(contractsString, contractSizeString)
-                derivedMark = Precise.string_div(totalSize, notionalString) if isInverse else Precise.string_div(notionalString, totalSize)
+                derivedMark = Precise.string_div(notionalString, totalSize)
+                if isInverse:
+                    derivedMark = Precise.string_div(totalSize, notionalString)
                 if Precise.string_gt(derivedMark, '0'):
                     markPriceString = derivedMark
                     position['markPrice'] = self.parse_number(derivedMark)
             elif (contractsString is None) and hasNotional and hasMarkPrice and hasContractSize:
-                derivedContracts = Precise.string_div(Precise.string_mul(notionalString, markPriceString), contractSizeString) if isInverse else Precise.string_div(notionalString, Precise.string_mul(markPriceString, contractSizeString))
-                if Precise.string_gt(derivedContracts, '0'):
-                    contractsString = derivedContracts
-                    position['contracts'] = self.parse_number(derivedContracts)
+                notionalContracts = Precise.string_div(notionalString, Precise.string_mul(markPriceString, contractSizeString))
+                if isInverse:
+                    notionalContracts = Precise.string_div(Precise.string_mul(notionalString, markPriceString), contractSizeString)
+                if Precise.string_gt(notionalContracts, '0'):
+                    contractsString = notionalContracts
+                    position['contracts'] = self.parse_number(notionalContracts)
             elif (contractSizeString is None) and hasNotional and hasMarkPrice and hasContracts:
-                derivedContractSize = Precise.string_div(Precise.string_mul(notionalString, markPriceString), contractsString) if isInverse else Precise.string_div(notionalString, Precise.string_mul(markPriceString, contractsString))
-                if Precise.string_gt(derivedContractSize, '0'):
-                    contractSizeString = derivedContractSize
-                    position['contractSize'] = self.parse_number(derivedContractSize)
+                notionalContractSize = Precise.string_div(notionalString, Precise.string_mul(markPriceString, contractsString))
+                if isInverse:
+                    notionalContractSize = Precise.string_div(Precise.string_mul(notionalString, markPriceString), contractsString)
+                if Precise.string_gt(notionalContractSize, '0'):
+                    contractSizeString = notionalContractSize
+                    position['contractSize'] = self.parse_number(notionalContractSize)
             # 2. unrealizedPnl from entryPrice, markPrice, contracts, contractSize, side
             if (unrealizedPnlString is None) and (entryPriceString is not None) and (markPriceString is not None) and (contractsString is not None) and (contractSizeString is not None):
                 if Precise.string_gt(entryPriceString, '0') and Precise.string_gt(markPriceString, '0') and Precise.string_gt(contractsString, '0') and Precise.string_gt(contractSizeString, '0'):
@@ -6026,7 +6042,7 @@ class BaseExchange(object):
         skipZeroPrices = self.safe_bool(options, 'skipZeroPrices', True)
         for i in range(0, oldest):
             trade = trades[i]
-            ts = trade['timestamp']
+            ts = self.safe_integer(trade, 'timestamp')
             price = trade['price']
             if (ts is None) or (price is None):
                 continue
@@ -6317,7 +6333,7 @@ class BaseExchange(object):
         return [self.check_option_string(methodName, optionName1, value), newParams]
 
     def handle_option_bool_and_params(self, params: dict, methodName: Str, optionName: str, defaultValue: Bool = None):
-        # handleOptionAndParams read as a boolean; the statically typed ports throw on another type
+        # handleOptionAndParams read as a boolean (see checkOptionBool)
         value, newParams = self.handle_option_and_params(params, methodName, optionName, defaultValue)
         return [self.check_option_bool(methodName, optionName, value), newParams]
 
@@ -6801,7 +6817,7 @@ class BaseExchange(object):
             return parsedPrecision + '1'
         else:
             parsedPrecision = '1'
-            for i in range(0, precisionNumber * -1 - 1):
+            for i in range(0, -1 - precisionNumber):
                 parsedPrecision = parsedPrecision + '0'
             return parsedPrecision + '0'
 
@@ -7583,7 +7599,7 @@ class BaseExchange(object):
         tasks = []
         time = self.parse_timeframe(timeframe) * 1000
         maxEntriesPerRequestValue = self.require_value(maxEntriesPerRequestOption, 'fetchPaginatedCallDeterministic() maxEntriesPerRequest is required')
-        step = time * maxEntriesPerRequestValue
+        step = time * self.parse_to_int(maxEntriesPerRequestValue)
         until = self.safe_integer_2(paramsOmitted, 'until', 'till')  # do not omit it here
         currentSince = current - (maxCallsPaginationCalls * step) - 1
         if since is not None:
@@ -8186,23 +8202,24 @@ class BaseExchange(object):
                         del self.bidsasks[bidsaskSymbol]
 
     def timeframe_from_milliseconds(self, ms: float):
-        if ms <= 0:
+        msInt = self.parse_to_int(ms)
+        if msInt <= 0:
             return ''
         second = 1000
         minute = 60 * second
         hour = 60 * minute
         day = 24 * hour
         week = 7 * day
-        if ms % week == 0:
-            return(ms / week) + 'w'
-        if ms % day == 0:
-            return(ms / day) + 'd'
-        if ms % hour == 0:
-            return(ms / hour) + 'h'
-        if ms % minute == 0:
-            return(ms / minute) + 'm'
-        if ms % second == 0:
-            return(ms / second) + 's'
+        if msInt % week == 0:
+            return self.parse_to_int(msInt / str(week)) + 'w'
+        if msInt % day == 0:
+            return self.parse_to_int(msInt / str(day)) + 'd'
+        if msInt % hour == 0:
+            return self.parse_to_int(msInt / str(hour)) + 'h'
+        if msInt % minute == 0:
+            return self.parse_to_int(msInt / str(minute)) + 'm'
+        if msInt % 1000 == 0:
+            return self.parse_to_int(msInt / str(1000)) + 's'
         return ''
 
     def is_uta_enabled(self, params: dict = {}):

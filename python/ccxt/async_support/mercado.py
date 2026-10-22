@@ -631,7 +631,7 @@ class mercado(Exchange, ImplicitAPI):
         order = self.safe_dict(responseData, 'order', {})
         return self.parse_order(order, market)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             '2': 'open',
             '3': 'canceled',

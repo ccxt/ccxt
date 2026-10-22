@@ -866,7 +866,7 @@ class coincheck(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit, {'type': 'withdrawal'})
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             # withdrawals
             'pending': 'pending',

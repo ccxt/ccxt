@@ -282,24 +282,16 @@ class mudrex(Exchange, ImplicitAPI):
         }
         # the endpoint requires an explicit time window (in seconds)
         duration = self.parse_timeframe(timeframe)
-        requestLimit = limit
-        if requestLimit is None:
-            requestLimit = 500
+        requestLimit = 500 if (limit is None) else limit
         now = self.seconds()
-        startTime = None
-        if since is not None:
-            startTime = self.parse_to_int(since / 1000)
-        else:
-            startTime = now - duration * requestLimit
-        if startTime is None:
-            raise ExchangeError(self.id + ' fetchOHLCV() missing startTime')
-        endTime = startTime + duration * requestLimit
+        windowLength = duration * requestLimit
+        defaultStart = now - windowLength
+        startTime = self.parse_to_int((since / 1000) if (since is not None) else defaultStart)
+        windowEnd = self.parse_to_int(startTime + duration * requestLimit)
         until = self.safe_integer(params, 'until')
         paramsOmitted = self.omit(params, ['price', 'until'])
-        if until is not None:
-            endTime = self.parse_to_int(until / 1000)
-        elif endTime > now:
-            endTime = now
+        cappedEnd = now if (windowEnd > now) else windowEnd
+        endTime = self.parse_to_int((until / 1000) if (until is not None) else cappedEnd)
         request['start_time'] = startTime
         request['end_time'] = endTime
         response: dict
@@ -1173,10 +1165,8 @@ class mudrex(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
         maxCalls, paramsPaginationCalls = self.handle_option_integer_and_params(params, 'fetchMyTrades', 'paginationCalls', 10)
-        pageSize = 0
-        if limit is not None:
-            # every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
-            pageSize = limit * 2
+        # every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
+        pageSize = 0 if (limit is None) else limit * 2
         allRows = []
         transactionsCount = 0
         calls = 0
@@ -1184,26 +1174,27 @@ class mudrex(Exchange, ImplicitAPI):
         paging = True
         while(paging):
             request = {}
-            if pageSize > 0:
+            if (limit is not None) and (limit > 0):
                 request['limit'] = pageSize
                 request['offset'] = offset
             response = await self.privateGetFuturesFeeHistory(self.extend(request, paramsPaginationCalls))
             data = self.safe_list(response, 'data', [])
             dataLength = len(data)
-            for i in range(0, dataLength):
+            for i in range(0, len(data)):
                 entry = data[i]
                 allRows.append(entry)
                 if self.safe_string(entry, 'fee_type') == 'TRANSACTION':
                     # count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
                     if (market is None) or (self.safe_string(entry, 'symbol') == market['id']):
-                        transactionsCount = self.sum(transactionsCount, 1)
-            calls = self.sum(calls, 1)
+                        transactionsCount = transactionsCount + 1
+            calls = calls + 1
             paging = False
             # the page cap bounds the walk when the requested symbol has few or no rows anywhere near the top of the history
-            if (limit is not None) and (dataLength == pageSize) and (transactionsCount < limit) and (calls < maxCalls):
-                # this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
-                offset = self.sum(offset, pageSize)
-                paging = True
+            if (limit is not None) and (dataLength == pageSize):
+                if (transactionsCount < limit) and (calls < maxCalls):
+                    # this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
+                    offset = self.sum(offset, pageSize)
+                    paging = True
         # a REBATE row is a partial refund of one fill's TRANSACTION fee, matched by symbol, time and notional - each rebate is consumed once, so equal fills sharing a key net exactly one refund apiece
         rebateKeys = []
         rebateAmounts = []

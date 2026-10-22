@@ -738,8 +738,7 @@ class blofin(Exchange, ImplicitAPI):
             'instId': market['id'],
         }
         limitValue = 50 if (limit is None) else limit
-        if limitValue is not None:
-            request['size'] = limitValue  # max 100
+        request['size'] = limitValue  # max 100
         response = self.publicGetMarketBooks(self.extend(request, params))
         #
         #     {
@@ -1202,7 +1201,7 @@ class blofin(Exchange, ImplicitAPI):
 
     def parse_balance_by_type(self, response: dict) -> Balances:
         data = self.safe_list(response, 'data')
-        if (data is not None) and isinstance(data, list):
+        if data is not None:
             return self.parse_funding_balance(response)
         else:
             return self.parse_balance(response)
@@ -1392,7 +1391,7 @@ class blofin(Exchange, ImplicitAPI):
             query = self.omit(query, ['stopLossPrice', 'takeProfitPrice', 'triggerPrice'])
         return self.extend(request, query)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'canceled': 'canceled',
             'order_failed': 'canceled',
@@ -1693,8 +1692,8 @@ class blofin(Exchange, ImplicitAPI):
             marketId = self.safe_string(rawOrder, 'symbol')
             type = self.safe_string(rawOrder, 'type')
             side = self.safe_string(rawOrder, 'side')
-            amount = self.safe_value(rawOrder, 'amount')
-            price = self.safe_value(rawOrder, 'price')
+            amount = self.safe_number(rawOrder, 'amount')
+            price = self.safe_number(rawOrder, 'price')
             orderParams = self.safe_dict(rawOrder, 'params', {})
             extendedParams = self.extend(orderParams, params)  # the request does not accept extra params since it's a list, so we're extending each order with the common params
             orderRequest = self.create_order_request(marketId, type, side, amount, price, extendedParams)
@@ -2050,9 +2049,9 @@ class blofin(Exchange, ImplicitAPI):
         request = {
             'currency': currency['id'],
         }
-        networkCode = None
-        query = None
-        networkCode, query = self.handle_network_code_and_params(params)
+        # same reads as handleNetworkCodeAndParams, kept as typed locals
+        networkCode = self.safe_string_2(params, 'networkCode', 'network')
+        query = self.omit(params, ['networkCode', 'network'])
         chain = self.safe_string(query, 'chain')
         if chain is None:
             if networkCode is None:
@@ -2429,7 +2428,7 @@ class blofin(Exchange, ImplicitAPI):
             },
         }
 
-    def parse_transaction_withdrawal_status(self, status: Str):
+    def parse_transaction_withdrawal_status(self, status: Str) -> Str:
         statuses = {
             '0': 'pending',
             '2': 'failed',
@@ -2440,7 +2439,7 @@ class blofin(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction_deposit_status(self, status: Str):
+    def parse_transaction_deposit_status(self, status: Str) -> Str:
         statuses = {
             '0': 'pending',
             '1': 'ok',

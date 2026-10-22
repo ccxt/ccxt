@@ -232,10 +232,10 @@ class binance(ccxt.async_support.binance):
         streamBySubscriptionsHash = self.safe_dict(self.options, 'streamBySubscriptionsHash', self.create_safe_dictionary())
         stream = self.safe_string(streamBySubscriptionsHash, subscriptionHash)
         if stream is None:
-            streamIndex = self.safe_integer(self.options, 'streamIndex', -1)
+            previousStreamIndex = self.safe_integer(self.options, 'streamIndex', -1)
             streamLimits = self.safe_dict(self.options, 'streamLimits')
             streamLimit = self.safe_integer(streamLimits, type)
-            streamIndex = streamIndex + 1
+            streamIndex = previousStreamIndex + 1
             normalizedIndex = streamIndex % streamLimit
             self.options['streamIndex'] = streamIndex
             stream = self.number_to_string(normalizedIndex)
@@ -252,7 +252,7 @@ class binance(ccxt.async_support.binance):
             self.options['numSubscriptionsByStream'][stream] = subscriptionsByStream + numSubscriptions
         return stream
 
-    def get_ws_url(self, type: object, category: str) -> str:
+    def get_ws_url(self, type: str, category: str) -> str:
         if (type == 'option') or (type == 'optionMarket') or (type == 'optionPrivate'):
             # eOptions urls are stored as full public/market/private paths, no category rewrite needed,
             # see https://github.com/ccxt/ccxt/pull/27982 and https://github.com/ccxt/ccxt/issues/26333
@@ -276,7 +276,7 @@ class binance(ccxt.async_support.binance):
             return baseUrl
         return baseUrl
 
-    def get_future_ws_category(self, channel: Str):
+    def get_future_ws_category(self, channel: Str) -> str:
         if channel == 'depth' or channel == 'rpiDepth' or channel == 'bookTicker' or channel == 'trade':
             return 'public'
         return 'market'
@@ -291,7 +291,7 @@ class binance(ccxt.async_support.binance):
             raise ExchangeError(self.id + ' getPrivateWsUrl() has no websocket url for self market type')
         return wsUrl + '/' + listenKey
 
-    def get_stock_ws_url(self, streamType: Str = 'market'):
+    def get_stock_ws_url(self, streamType: Str = 'market') -> str:
         baseUrl = self.urls['api']['ws']['stock']
         if streamType == 'combined':
             return baseUrl.replace('/ws', '/stream')
@@ -961,19 +961,25 @@ class binance(ccxt.async_support.binance):
                 if (U is None) or (u is None):
                     continue
                 pu = self.safe_integer(messageItem, 'pu')
+                snapshotNonce = self.safe_integer(orderbook, 'nonce')
+                if snapshotNonce is None:
+                    # every comparison against an undefined nonce is false, only pu === undefined matches
+                    if (type == 'linear') and (pu is None):
+                        self.handle_order_book_message(client, messageItem, orderbook)
+                    continue
                 if type == 'linear':
                     # 4. Drop any event where u is < lastUpdateId in the snapshot
-                    if u < orderbook['nonce']:
+                    if u < snapshotNonce:
                         continue
                     # 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
-                    if (U <= orderbook['nonce']) and (u >= orderbook['nonce']) or (pu == orderbook['nonce']):
+                    if (U <= snapshotNonce) and (u >= snapshotNonce) or (pu == snapshotNonce):
                         self.handle_order_book_message(client, messageItem, orderbook)
                 else:
                     # 4. Drop any event where u is <= lastUpdateId in the snapshot
-                    if u <= orderbook['nonce']:
+                    if u <= snapshotNonce:
                         continue
                     # 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
-                    if ((U - 1) <= orderbook['nonce']) and ((u - 1) >= orderbook['nonce']):
+                    if ((U - 1) <= snapshotNonce) and ((u - 1) >= snapshotNonce):
                         self.handle_order_book_message(client, messageItem, orderbook)
             if symbol is not None:
                 self.orderbooks[symbol] = orderbook
@@ -1001,7 +1007,7 @@ class binance(ccxt.async_support.binance):
         orderbook['datetime'] = self.iso8601(timestamp)
         return orderbook
 
-    def handle_order_book(self, client: Client, message: object):
+    def handle_order_book(self, client: Client, message: dict):
         #
         # initial snapshot is fetched with ccxt's fetchOrderBook
         # the feed does not include a snapshot, just the deltas
@@ -1071,7 +1077,8 @@ class binance(ccxt.async_support.binance):
                             conditional = ((U - 1) == nonce)
                         if conditional:
                             self.handle_order_book_message(client, message, orderbook)
-                            if nonce < self.safe_integer(orderbook, 'nonce', 0):
+                            newNonce = self.safe_integer(orderbook, 'nonce', 0)
+                            if nonce < newNonce:
                                 client.resolve(orderbook, messageHash)
                         else:
                             checksum = self.handle_option('watchOrderBook', 'checksum', True)
@@ -1086,7 +1093,8 @@ class binance(ccxt.async_support.binance):
                         # 6. While listening to the stream, each new event's pu should be equal to the previous event's u, otherwise initialize the process from step 3
                         if (U <= nonce) or (pu == nonce):
                             self.handle_order_book_message(client, message, orderbook)
-                            if nonce <= self.safe_integer(orderbook, 'nonce', 0):
+                            newNonce = self.safe_integer(orderbook, 'nonce', 0)
+                            if nonce <= newNonce:
                                 client.resolve(orderbook, messageHash)
                         else:
                             checksum = self.handle_option('watchOrderBook', 'checksum', True)
@@ -1100,7 +1108,7 @@ class binance(ccxt.async_support.binance):
                     del client.subscriptions[messageHash]
                 client.reject(e, messageHash)
 
-    def handle_order_book_subscription(self, client: Client, message: object, subscription: object):
+    def handle_order_book_subscription(self, client: Client, message: object, subscription: dict):
         defaultLimit = self.safe_integer(self.options, 'watchOrderBookLimit', 1000)
         # const messageHash = this.safeString (subscription, 'messageHash');
         symbolOfSubscription = self.safe_string(subscription, 'symbol')  # watchOrderBook
@@ -2328,7 +2336,7 @@ class binance(ccxt.async_support.binance):
                 newDict[resultSymbol] = result
             return newDict
 
-    def parse_ws_ticker(self, message: object, marketType: object) -> Ticker:
+    def parse_ws_ticker(self, message: dict, marketType: Str) -> Ticker:
         # markPrice
         #   {
         #       "e": "markPriceUpdate",   // Event type
@@ -3275,7 +3283,7 @@ class binance(ccxt.async_support.binance):
         message = None
         return await self.watch(url, messageHash, message, type)
 
-    def handle_balance(self, client: Client, message: object):
+    def handle_balance(self, client: Client, message: dict):
         #
         # sent upon a balance update not related to orders
         #
@@ -3416,7 +3424,7 @@ class binance(ccxt.async_support.binance):
         # index it positionally instead, so no receiver is declared-but-unread
         return [type, subType, paramsSubType]
 
-    def get_market_type(self, method: object, market: object, params: dict = {}) -> str:
+    def get_market_type(self, method: str, market: Market, params: dict = {}) -> str:
         type = None
         paramsMarketType = {}
         type, paramsMarketType = self.handle_market_type_and_params(method, market, params)
@@ -4331,7 +4339,7 @@ class binance(ccxt.async_support.binance):
             'trades': None,
         })
 
-    def handle_order_update(self, client: Client, message: object):
+    def handle_order_update(self, client: Client, message: dict):
         #
         # spot
         #
@@ -4821,7 +4829,7 @@ class binance(ccxt.async_support.binance):
             'marginRatio': None,
         })
 
-    def parse_ws_options_position(self, position: object, market: object = None):
+    def parse_ws_options_position(self, position: dict, market: Market = None) -> Position:
         #
         #  from BALANCE_POSITION_UPDATE event P[] array:
         #  {
@@ -5068,8 +5076,7 @@ class binance(ccxt.async_support.binance):
         if executionType == 'TRADE':
             trade = self.parse_ws_trade(message)
             orderId = self.safe_string(trade, 'order')
-            tradeFee = self.safe_dict(trade, 'fee', {})
-            tradeFee = self.extend({}, tradeFee)
+            tradeFee = self.extend({}, self.safe_dict(trade, 'fee', {}))
             symbol = self.safe_string(trade, 'symbol')
             if orderId is not None and tradeFee is not None and symbol is not None:
                 cachedOrders = self.orders
@@ -5078,9 +5085,9 @@ class binance(ccxt.async_support.binance):
                     order = self.safe_dict(orders, orderId)
                     if order is not None:
                         # accumulate order fees
-                        fees = self.safe_value(order, 'fees')
+                        fees = self.safe_list(order, 'fees')
                         fee = self.safe_dict(order, 'fee')
-                        if not self.is_empty(fees):
+                        if (fees is not None) and not self.is_empty(fees):
                             insertNewFeeCurrency = True
                             for i in range(0, len(fees)):
                                 orderFee = fees[i]
@@ -5159,7 +5166,7 @@ class binance(ccxt.async_support.binance):
             client.resolve(cachedOrders, messageHash)
             client.resolve(cachedOrders, symbolSpecificMessageHash)
 
-    def handle_acount_update(self, client: Client, message: object):
+    def handle_acount_update(self, client: Client, message: dict):
         self.handle_balance(client, message)
         self.handle_positions(client, message)
 

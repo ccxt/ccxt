@@ -5,7 +5,6 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.pacifica import ImplicitAPI
-import math
 from ccxt.base.types import Balances, Currency, FundingHistory, Int, LedgerEntry, Leverage, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OpenInterests, Trade, TradingFeeInterface, TradingFees, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1171,7 +1170,8 @@ class pacifica(Exchange, ImplicitAPI):
         oraclePx = self.safe_number(info, 'oracle')
         nextFundingRate = self.safe_number(info, 'next_funding')
         timestamp = self.safe_integer(info, 'timestamp')
-        fundingTimestamp = (int(math.floor(self.milliseconds()) / 60 / 60 / 1000) + 1) * 60 * 60 * 1000
+        currentHour = self.parse_to_int(self.milliseconds() / 60 / 60 / 1000)
+        fundingTimestamp = (currentHour + 1) * 60 * 60 * 1000
         return {
             'info': info,
             'symbol': symbol,
@@ -1227,15 +1227,14 @@ class pacifica(Exchange, ImplicitAPI):
         }
         requestUntil, paramsUntil = self.handle_until_option('end_time', request, paramsPaginate)
         nowMillis = self.milliseconds()
-        until = self.safe_integer(requestUntil, 'end_time')
-        if until is None:
-            if limit is not None:
-                until = since + (limit * (self.parse_timeframe(tf) * 1000)) - 1
-            if until is None:
-                until = since + (defaultMaxLimit * (self.parse_timeframe(tf) * 1000)) - 1
-            if until > nowMillis:
-                until = nowMillis
-            requestUntil['end_time'] = until
+        requestedUntil = self.safe_integer(requestUntil, 'end_time')
+        if requestedUntil is None:
+            durationMillis = self.parse_timeframe(tf) * 1000
+            candleCount = defaultMaxLimit if (limit is None) else limit
+            if since is not None:
+                windowEnd = self.parse_to_int(self.sum(since - 1, candleCount * durationMillis))
+                until = nowMillis if (windowEnd > nowMillis) else windowEnd
+                requestUntil['end_time'] = until
         response = self.publicGetKline(self.extend(requestUntil, paramsUntil))
         #
         # {
@@ -1618,7 +1617,7 @@ class pacifica(Exchange, ImplicitAPI):
         request = self.post_action_request(operationType, sigPayload, paramsClientOrderId)
         return [request, operationType]
 
-    def batch_orders_request(self, actions: list[object]):
+    def batch_orders_request(self, actions: list[object]) -> dict:
         #
         # [
         #     {
@@ -1654,8 +1653,9 @@ class pacifica(Exchange, ImplicitAPI):
         #  Cancel (Only common (limit) orders)
         #
         lenActions = len(actions)
-        maxLen = self.handle_option('batchOrdersRequest', 'batchOrdersMax')
-        if maxLen is not None:
+        maxLenOption = self.handle_option('batchOrdersRequest', 'batchOrdersMax')
+        if maxLenOption is not None:
+            maxLen = self.parse_to_int(maxLenOption)
             if lenActions > maxLen:
                 raise ExchangeError(self.id + ' batchOrdersRequest() too many orders to create/cancel. Limit is ' + self.number_to_string(maxLen))
         return {
@@ -2379,7 +2379,7 @@ class pacifica(Exchange, ImplicitAPI):
             lastInfo = sorted[0]
         return self.parse_order(lastInfo, market)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'open': 'open',
             'partially_filled': 'open',
@@ -2404,14 +2404,14 @@ class pacifica(Exchange, ImplicitAPI):
             tif = tifRaw.upper()
         return self.safe_string(tifMap, tif, 'GTC')
 
-    def map_side(self, sideRaw: Str):
+    def map_side(self, sideRaw: Str) -> Str:
         sideMap = {
             'sell': 'ask',
             'buy': 'bid',
         }
         return self.safe_string(sideMap, sideRaw, sideRaw)
 
-    def parse_order_type(self, status: Str):
+    def parse_order_type(self, status: Str) -> Str:
         statuses = {
             'stop_limit': 'limit',
             'stop_market': 'market',
@@ -3462,8 +3462,9 @@ class pacifica(Exchange, ImplicitAPI):
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorId, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)  # documented message prefixes are more specific than the http-status echo
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+            statusCode = self.parse_to_int(code)
             codeAsString = str(code)
-            if (code < 400) or not (codeAsString in self.httpExceptions):
+            if (statusCode < 400) or not (codeAsString in self.httpExceptions):
                 raise ExchangeError(feedback)  # unknown message
         return None
 

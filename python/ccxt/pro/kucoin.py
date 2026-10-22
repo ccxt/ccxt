@@ -244,8 +244,7 @@ class kucoin(ccxt.async_support.kucoin):
         self.check_required_credentials()
         utaToken = self.safe_string(self.options, 'utaToken')
         lastUpdate = self.safe_integer(self.options, 'utaTokenLastUpdate', 0)
-        refreshInterval = 1000 * 60 * 60 * 24  # 24 hours
-        refreshInterval = self.safe_integer(self.options, 'utaTokenRefreshInterval', refreshInterval)
+        refreshInterval = self.safe_integer(self.options, 'utaTokenRefreshInterval', 86400000)  # 24 hours
         now = self.milliseconds()
         expired = (now - lastUpdate) >= refreshInterval
         messageHash = 'utaToken'
@@ -270,7 +269,7 @@ class kucoin(ccxt.async_support.kucoin):
                     client.reject(e, messageHash)
         return self.safe_string(self.options, 'utaToken')
 
-    def un_subscribe(self, url: object, messageHash: object, topic: object, subscriptionHash: object, params={}, subscription: dict = None) -> object:
+    def un_subscribe(self, url: str, messageHash: str, topic: str, subscriptionHash: str, params: dict = {}, subscription: dict = None) -> object:
         return self.un_subscribe_multiple(url, [messageHash], topic, [subscriptionHash], params, subscription)
 
     async def subscribe_multiple(self, url: str, messageHashes: list[str], topic: str, subscriptionHashes: list[str], params: dict = {}, subscription: dict = None):
@@ -1579,7 +1578,7 @@ class kucoin(ccxt.async_support.kucoin):
                     self.spawn(self.load_order_book, client, messageHash, symbol, limit, {})
                 (orderbook.cache).append(data)
                 return
-            elif nonce >= deltaEnd:
+            elif (deltaEnd is not None) and (nonce >= deltaEnd):
                 return
         self.handle_book_delta(self.orderbooks[symbol], data)
         client.resolve(self.orderbooks[symbol], messageHash)
@@ -1633,7 +1632,7 @@ class kucoin(ccxt.async_support.kucoin):
                     self.spawn(self.load_order_book, client, messageHash, symbol, limit, utaParams)
                 (orderbook.cache).append(data)
                 return
-            elif nonce >= deltaEnd:
+            elif (deltaEnd is not None) and (nonce >= deltaEnd):
                 return
         self.handle_book_delta(self.orderbooks[symbol], data)
         client.resolve(self.orderbooks[symbol], messageHash)
@@ -1811,7 +1810,9 @@ class kucoin(ccxt.async_support.kucoin):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        symbolResolved = self.safe_string(market, 'symbol') if (market is not None) else symbol
+        symbolResolved = symbol
+        if market is not None:
+            symbolResolved = self.safe_string(market, 'symbol')
         messageHash = 'orders'
         if symbolResolved is not None:
             messageHash = messageHash + ':' + symbolResolved
@@ -2210,7 +2211,9 @@ class kucoin(ccxt.async_support.kucoin):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        symbolResolved = self.safe_string(market, 'symbol') if (market is not None) else symbol
+        symbolResolved = symbol
+        if market is not None:
+            symbolResolved = self.safe_string(market, 'symbol')
         if market is not None:
             messageHash = messageHash + ':' + market['symbol']
         marketType, paramsMarketType = self.handle_market_type_and_params('watchMyTrades', market, params)
@@ -2714,7 +2717,7 @@ class kucoin(ccxt.async_support.kucoin):
             return newPositions
         return self.filter_by_symbols_since_limit(cache, symbolsNormalized, since, limit, True)
 
-    def get_current_position(self, symbol: str):
+    def get_current_position(self, symbol: str) -> dict:
         if self.positions is None:
             return None
         cache = self.positions.hashmap
@@ -2741,7 +2744,7 @@ class kucoin(ccxt.async_support.kucoin):
         for i in range(0, len(positions)):
             position = positions[i]
             contracts = self.safe_number(position, 'contracts', 0)
-            if contracts > 0:
+            if (contracts is not None) and (contracts > 0):
                 cache.append(position)
         # don't remove the future from the .futures cache
         if messageHash in client.futures:

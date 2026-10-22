@@ -217,7 +217,7 @@ class ndax(ccxt.async_support.ndax):
         payload = {
             'OMSId': omsId,
             'InstrumentId': self.safe_integer(market, 'id'),  # conditionally optional
-            'Interval': int(self.safe_string(self.timeframes, timeframe, timeframe)),
+            'Interval': self.parse_to_int(self.safe_string(self.timeframes, timeframe, timeframe)),
             'IncludeLastCount': 100,  # the number of previous candles to retrieve in the immediate snapshot, 100 by default
         }
         request = {
@@ -272,12 +272,13 @@ class ndax(ccxt.async_support.ndax):
             for j in range(0, len(keys)):
                 timeframe = keys[j]
                 interval = self.safe_string(self.timeframes, timeframe, timeframe)
-                duration = int(interval) * 1000
+                duration = self.parse_to_int(interval) * 1000
                 timestamp = self.safe_integer(ohlcv, 0)
                 if timestamp is None:
                     continue
+                candleTimestamp = self.parse_to_int((timestamp / duration) * duration)
                 parsed = [
-                    self.parse_to_int((timestamp / duration) * duration),
+                    candleTimestamp,
                     self.safe_float(ohlcv, 3),
                     self.safe_float(ohlcv, 1),
                     self.safe_float(ohlcv, 2),
@@ -286,18 +287,22 @@ class ndax(ccxt.async_support.ndax):
                 ]
                 stored = self.safe_value(self.ohlcvs[symbol], timeframe, [])
                 length = len(stored)
-                if (length > 0) and (parsed[0] == stored[length - 1][0]):
+                if (length > 0) and (candleTimestamp == self.safe_integer(stored[length - 1], 0)):
                     previous = stored[length - 1]
-                    high = parsed[1]
-                    if parsed[1] is None:
-                        high = previous[1]
-                    elif previous[1] is not None:
-                        high = max(parsed[1], previous[1])
-                    low = parsed[2]
-                    if parsed[2] is None:
-                        low = previous[2]
-                    elif previous[2] is not None:
-                        low = min(parsed[2], previous[2])
+                    parsedHigh = self.safe_float(ohlcv, 1)
+                    previousHigh = self.safe_float(previous, 1)
+                    high = previousHigh
+                    if parsedHigh is not None:
+                        high = parsedHigh
+                        if (previousHigh is not None) and (previousHigh > parsedHigh):
+                            high = previousHigh
+                    parsedLow = self.safe_float(ohlcv, 2)
+                    previousLow = self.safe_float(previous, 2)
+                    low = previousLow
+                    if parsedLow is not None:
+                        low = parsedLow
+                        if (previousLow is not None) and (parsedLow > previousLow):
+                            low = previousLow
                     stored[length - 1] = [
                         parsed[0],
                         previous[1],
@@ -309,15 +314,16 @@ class ndax(ccxt.async_support.ndax):
                     if marketId is not None:
                         updates[marketId][timeframe] = True
                 else:
-                    if (length > 0) and (self.parse_to_int(parsed[0]) < self.parse_to_int(stored[length - 1][0])):
-                        continue
-                    else:
-                        stored.append(parsed)
-                        limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
-                        if length >= limit:
-                            stored.pop(0)
-                        if marketId is not None:
-                            updates[marketId][timeframe] = True
+                    if length > 0:
+                        lastTimestamp = self.safe_integer(stored[length - 1], 0)
+                        if (lastTimestamp is not None) and (lastTimestamp > candleTimestamp):
+                            continue
+                    stored.append(parsed)
+                    limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
+                    if length >= limit:
+                        stored.pop(0)
+                    if marketId is not None:
+                        updates[marketId][timeframe] = True
                 self.ohlcvs[symbol][timeframe] = stored
         name = 'SubscribeTicker'
         marketIds = list(updates.keys())
@@ -412,24 +418,23 @@ class ndax(ccxt.async_support.ndax):
         orderbook = self.safe_value(self.orderbooks, symbol)
         if orderbook is None:
             return
-        timestamp = None
-        nonce = None
+        # seeded from the first entry so the locals keep a typed initializer (the loop re-reads it as a no-op)
+        timestamp = self.safe_integer(firstBidAsk, 2)
+        nonce = self.safe_integer(firstBidAsk, 0)
         for i in range(0, len(payload)):
             bidask = self.safe_list(payload, i)
             if timestamp is None:
                 timestamp = self.safe_integer(bidask, 2)
             else:
                 newTimestamp = self.safe_integer(bidask, 2)
-                currentTimestampValue = 0 if (timestamp is None) else timestamp
-                newTimestampValue = 0 if (newTimestamp is None) else newTimestamp
-                timestamp = max(currentTimestampValue, newTimestampValue)
+                if (newTimestamp is not None) and (newTimestamp > timestamp):
+                    timestamp = newTimestamp
             if nonce is None:
                 nonce = self.safe_integer(bidask, 0)
             else:
                 newNonce = self.safe_integer(bidask, 0)
-                currentNonceValue = 0 if (nonce is None) else nonce
-                newNonceValue = 0 if (newNonce is None) else newNonce
-                nonce = max(currentNonceValue, newNonceValue)
+                if (newNonce is not None) and (newNonce > nonce):
+                    nonce = newNonce
             # 0 new, 1 update, 2 remove
             type = self.safe_integer(bidask, 3)
             price = self.safe_float(bidask, 6)

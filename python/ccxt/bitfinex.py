@@ -578,9 +578,10 @@ class bitfinex(Exchange, ImplicitAPI):
         })
 
     def is_fiat(self, code: object) -> bool:
-        return(code in self.options['fiat'])
+        fiat = self.safe_dict(self.options, 'fiat', {})
+        return(code in fiat)
 
-    def get_currency_name(self, code: str):
+    def get_currency_name(self, code: str) -> str:
         # temporary fix for transpiler recognition, even though this is in parent class
         if code in self.options['currencyNames']:
             return self.options['currencyNames'][code]
@@ -659,7 +660,7 @@ class bitfinex(Exchange, ImplicitAPI):
         for i in range(0, len(markets)):
             pairObj = self.safe_list(markets, i)
             id = self.safe_string_upper(pairObj, 0)
-            market = self.safe_value(pairObj, 1, {})
+            market = self.safe_list(pairObj, 1, [])
             spot = True
             type = None
             if id.find('F0') >= 0:
@@ -904,7 +905,8 @@ class bitfinex(Exchange, ImplicitAPI):
         name = self.safe_string(label, 1)
         pool = self.safe_list(indexed['pool'], id, [])
         rawType = self.safe_string(pool, 1)
-        isCryptoCoin = (rawType is not None) or (id in indexed['explorer'])  # "hacky" solution
+        explorer = self.safe_dict(indexed, 'explorer', {})
+        isCryptoCoin = (rawType is not None) or (id in explorer)  # "hacky" solution
         type = 'crypto' if isCryptoCoin else None
         feeValues = self.safe_list(indexed['fees'], id, [])
         fees = self.safe_list(feeValues, 1, [])
@@ -1000,8 +1002,7 @@ class bitfinex(Exchange, ImplicitAPI):
                 account['debt'] = interest
             type = self.safe_string(balance, 0)
             currencyId = self.safe_string_lower(balance, 1, '')
-            start = len(currencyId) - 2
-            isDerivativeCode = currencyId[start:] == 'f0'
+            isDerivativeCode = (currencyId is not None) and (currencyId.endswith('f0') is True)
             # this will only filter the derivative codes if the requestedType is 'derivatives'
             derivativeCondition = (not isDerivative or isDerivativeCode)
             if (accountType == type) and derivativeCondition:
@@ -1143,8 +1144,7 @@ class bitfinex(Exchange, ImplicitAPI):
         currencyId = None
         if type == 'derivatives':
             currencyId = self.safe_string(underlying, 0, transferId)
-            start = len(currencyId) - 2
-            isDerivativeCode = currencyId[start:] == 'F0'
+            isDerivativeCode = currencyId.endswith('F0')
             if not isDerivativeCode:
                 currencyId = currencyId + 'F0'
         elif type != 'margin':
@@ -1185,7 +1185,7 @@ class bitfinex(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
             'nonce': None,
         }
-        priceIndex = 1 if (fullRequest['precision'] == 'R0') else 0
+        priceIndex = 1 if (self.safe_string(fullRequest, 'precision') == 'R0') else 0
         orders = self.to_array(orderbook)
         for i in range(0, len(orders)):
             order = orders[i]
@@ -1584,7 +1584,7 @@ class bitfinex(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         if status is None:
             return None
         parts = status.split(' ')
@@ -1603,7 +1603,7 @@ class bitfinex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, state, status)
 
-    def parse_order_flags(self, flags: Str):
+    def parse_order_flags(self, flags: Str) -> Strings:
         # flags can be added to each other...
         flagValues = {
             '1024': ['reduceOnly'],
@@ -1757,10 +1757,12 @@ class bitfinex(Exchange, ImplicitAPI):
         request['type'] = orderType
         # flag values may be summed to combine flags
         flags = 0
-        if postOnly:
-            flags = self.sum(flags, 4096)
-        if reduceOnly:
-            flags = self.sum(flags, 1024)
+        if postOnly and reduceOnly:
+            flags = 5120
+        elif postOnly:
+            flags = 4096
+        elif reduceOnly:
+            flags = 1024
         if flags != 0:
             request['flags'] = flags
         if clientOrderId is not None:
@@ -1954,7 +1956,7 @@ class bitfinex(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
         if cid is not None:
-            cidDate = self.safe_value(params, 'cidDate')  # client order id date
+            cidDate = self.safe_string(params, 'cidDate')  # client order id date
             if cidDate is None:
                 raise InvalidOrder(self.id + " canceling an order by clientOrderId ('cid') requires both 'cid' and 'cid_date' ('YYYY-MM-DD')")
             request = {
@@ -2382,7 +2384,7 @@ class bitfinex(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             'SUCCESS': 'ok',
             'COMPLETED': 'ok',
@@ -2473,9 +2475,10 @@ class bitfinex(Exchange, ImplicitAPI):
             if feeCost is not None:
                 feeCost = Precise.string_abs(feeCost)
             amount = self.safe_number(data, 5)
-            id = self.safe_integer(data, 0)
+            withdrawId = self.safe_integer(data, 0)
+            id = withdrawId
             status = 'ok'
-            if id == 0:
+            if withdrawId == 0:
                 id = None
                 status = 'failed'
             tag = self.safe_string(data, 3)
@@ -2972,7 +2975,7 @@ class bitfinex(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' ' + errorText + ' (#' + errorCode + ')')
         return response
 
-    def parse_ledger_entry_type(self, type: Str):
+    def parse_ledger_entry_type(self, type: Str) -> Str:
         if type is None:
             return None
         elif type.find('fee') >= 0 or type.find('charged') >= 0:
@@ -3675,7 +3678,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #         ]
         #     ]
         #
-        marginStatusRaw = data[0]
+        marginStatusRaw = self.safe_integer(data, 0)
         marginStatus = 'failed'
         if marginStatusRaw == 1:
             marginStatus = 'ok'
@@ -3809,10 +3812,12 @@ class bitfinex(Exchange, ImplicitAPI):
             request['price'] = self.price_to_precision(symbol, price)
         # flag values may be summed to combine flags
         flags = 0
-        if postOnly:
-            flags = self.sum(flags, 4096)
-        if reduceOnly:
-            flags = self.sum(flags, 1024)
+        if postOnly and reduceOnly:
+            flags = 5120
+        elif postOnly:
+            flags = 4096
+        elif reduceOnly:
+            flags = 1024
         if flags != 0:
             request['flags'] = flags
         if clientOrderId is not None:

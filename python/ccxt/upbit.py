@@ -854,7 +854,7 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_tickers(tickers, symbolsNormalized)
 
-    def ids_query_strings(self, ids: Strings, maxQueryLength: float) -> list[str]:
+    def ids_query_strings(self, ids: Strings, maxQueryLength: int) -> list[str]:
         if ids is None:
             return []
         idsString = ''
@@ -1183,7 +1183,7 @@ class upbit(Exchange, ImplicitAPI):
         ohlcvs = self.to_array(response)
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limitResolved)
 
-    def calc_order_price(self, symbol: str, amount: Num, price: Num = None, params={}) -> Str:
+    def calc_order_price(self, symbol: str, amount: Num, price: Num = None, params: dict = {}) -> Str:
         quoteAmount = None
         createMarketBuyOrderRequiresPrice = self.safe_bool(self.options, 'createMarketBuyOrderRequiresPrice')
         cost = self.safe_string(params, 'cost')
@@ -1510,7 +1510,7 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    def fetch_deposit(self, id: str, code: Str = None, params={}) -> Transaction:
+    def fetch_deposit(self, id: str, code: Str = None, params: dict = {}) -> Transaction:
         """
         fetch information on a deposit
 
@@ -1594,7 +1594,7 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    def fetch_withdrawal(self, id: str, code: Str = None, params={}) -> Transaction:
+    def fetch_withdrawal(self, id: str, code: Str = None, params: dict = {}) -> Transaction:
         """
         fetch data on a currency withdrawal via the withdrawal id
 
@@ -1634,7 +1634,7 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             'submitting': 'pending',  # 처리 중
             'submitted': 'pending',  # 처리 완료
@@ -1713,7 +1713,7 @@ class upbit(Exchange, ImplicitAPI):
             },
         }
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'wait': 'open',
             'done': 'closed',

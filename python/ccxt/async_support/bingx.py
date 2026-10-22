@@ -1370,8 +1370,8 @@ class bingx(Exchange, ImplicitAPI):
         }
         response: dict
         marketType, paramsMarketType = self.handle_market_type_and_params('fetchTrades', market, params)
+        maxLimit = 500 if (marketType == 'spot') else 1000
         if limit is not None:
-            maxLimit = 500 if (marketType == 'spot') else 1000
             request['limit'] = min(limit, maxLimit)
         if marketType == 'spot':
             response = await self.spotV1PublicGetMarketTrades(self.extend(request, paramsMarketType))
@@ -3185,7 +3185,9 @@ class bingx(Exchange, ImplicitAPI):
                 paramsTakeProfit = self.omit(paramsStopLoss, 'takeProfit')
             if ((typeValue == 'LIMIT') or (typeValue == 'TRIGGER_LIMIT') or (typeValue == 'STOP') or (typeValue == 'TAKE_PROFIT')) and not isTrailing:
                 request['price'] = self.parse_to_numeric(self.price_to_precision(symbol, price))
-            reduceOnly = self.safe_bool(paramsTakeProfit, 'reduceOnly', False)
+            reduceOnlyParam = self.safe_bool(paramsTakeProfit, 'reduceOnly', False)
+            # stop loss / take profit price orders are always reduce only
+            reduceOnly = (reduceOnlyParam is True) or (not isTriggerOrder and (isStopLossPriceOrder or isTakeProfitPriceOrder))
             if isTriggerOrder:
                 request['stopPrice'] = self.parse_to_numeric(self.price_to_precision(symbol, triggerPrice))
                 if isMarketOrder or (typeValue == 'TRIGGER_MARKET'):
@@ -3194,7 +3196,6 @@ class bingx(Exchange, ImplicitAPI):
                     request['type'] = 'TRIGGER_LIMIT'
             elif isStopLossPriceOrder or isTakeProfitPriceOrder:
                 # This can be used to set the stop loss and take profit, but the position needs to be opened first
-                reduceOnly = True
                 if isStopLossPriceOrder:
                     request['stopPrice'] = self.parse_to_numeric(self.price_to_precision(symbol, stopLossPrice))
                     if isMarketOrder or (typeValue == 'STOP_MARKET'):
@@ -3539,7 +3540,7 @@ class bingx(Exchange, ImplicitAPI):
         }
         return self.safe_string(sides, side, side)
 
-    def parse_order_type(self, type: Str):
+    def parse_order_type(self, type: Str) -> Str:
         types = {
             'trigger_market': 'market',
             'trigger_limit': 'limit',
@@ -3860,11 +3861,12 @@ class bingx(Exchange, ImplicitAPI):
         if (feeCurrencyCode is None):
             if marketResolved['spot'] is True:
                 if side == 'buy':
-                    feeCurrencyCode = marketResolved['base']
+                    feeCurrencyCode = self.safe_string(marketResolved, 'base')
                 else:
-                    feeCurrencyCode = marketResolved['quote']
+                    feeCurrencyCode = self.safe_string(marketResolved, 'quote')
             else:
-                feeCurrencyCode = marketResolved['settle'] if (marketResolved['inverse'] is True) else marketResolved['quote']
+                feeKey = 'settle' if (marketResolved['inverse'] is True) else 'quote'
+                feeCurrencyCode = self.safe_string(marketResolved, feeKey)
         stopLoss = self.safe_value(orderData, 'stopLoss')
         stopLossPrice = None
         if (stopLoss is not None) and (stopLoss != ''):
@@ -3927,7 +3929,7 @@ class bingx(Exchange, ImplicitAPI):
             'reduceOnly': self.safe_bool_2(orderData, 'reduceOnly', 'ro'),
         }, marketResolved)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'NEW': 'open',
             'PENDING': 'open',
@@ -5323,16 +5325,17 @@ class bingx(Exchange, ImplicitAPI):
         currencyId = self.safe_string(depositAddress, 'coin')
         currencyResolved = self.safe_currency(currencyId, currency)
         code = currencyResolved['code']
-        address = self.safe_string_2(depositAddress, 'addressWithPrefix', 'address')
+        rawAddress = self.safe_string_2(depositAddress, 'addressWithPrefix', 'address')
         networkId = self.safe_string(depositAddress, 'network')
         networkCode = self.network_id_to_code(networkId, code)
         # despite its name the addressWithPrefix field sometimes arrives without
         # the 0x prefix on the evm networks, see https://github.com/ccxt/ccxt/issues/24331
-        if address is not None:
-            isPrefixed = address.startswith('0x') or address.startswith('0X')
+        address = rawAddress
+        if rawAddress is not None:
+            isPrefixed = rawAddress.startswith('0x') or rawAddress.startswith('0X')
             evmNetworks = ['BEP20', 'ERC20', 'HECO', 'MATIC', 'POLYGON', 'ARBITRUM', 'OPTIMISM', 'AVAXC', 'BASE', 'FTM', 'LINEA', 'ZKSYNC', 'OPBNB']
             if not isPrefixed and self.in_array(networkCode, evmNetworks):
-                address = '0x' + address
+                address = '0x' + rawAddress
         self.check_address(address)
         return {
             'info': depositAddress,
@@ -5535,7 +5538,7 @@ class bingx(Exchange, ImplicitAPI):
             'internal': internal,
         }
 
-    def parse_transaction_status(self, status: Str, type: Str = None):
+    def parse_transaction_status(self, status: Str, type: Str = None) -> Str:
         statusesByType = {
             'deposit': {
                 '0': 'pending',

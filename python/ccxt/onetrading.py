@@ -1069,7 +1069,8 @@ class onetrading(Exchange, ImplicitAPI):
         timestamp = self.parse8601(self.safe_string(ohlcv, 'time'))
         if timestamp is None:
             raise ExchangeError(self.id + ' parseOHLCV() missing timestamp')
-        alignedTimestamp = duration * self.parse_to_int(timestamp / duration)
+        periods = self.parse_to_int(timestamp / duration)
+        alignedTimestamp = duration * periods
         options = self.safe_dict(self.options, 'fetchOHLCV', {})
         volumeField = self.safe_string(options, 'volume', 'total_amount')
         return [
@@ -1252,7 +1253,7 @@ class onetrading(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'OPEN': 'open',
             'BOOKED': 'open',
@@ -1374,7 +1375,7 @@ class onetrading(Exchange, ImplicitAPI):
             'trades': rawTrades,
         }, market)
 
-    def parse_time_in_force(self, timeInForce: Str):
+    def parse_time_in_force(self, timeInForce: Str) -> Str:
         timeInForces = {
             'GOOD_TILL_CANCELLED': 'GTC',
             'GOOD_TILL_TIME': 'GTT',

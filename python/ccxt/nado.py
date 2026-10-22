@@ -568,8 +568,9 @@ class nado(Exchange, ImplicitAPI):
                 },
             }
             placeOrder['trigger'] = trigger
-        appendix = self.safe_string(paramsRecvWindow, 'appendix')
-        if appendix is None:
+        rawAppendix = self.safe_string(paramsRecvWindow, 'appendix')
+        appendix = rawAppendix
+        if rawAppendix is None:
             appendix = self.create_order_appendix(isTriggerOrder, paramsRecvWindow)
         order['appendix'] = appendix
         contracts = self.query_contracts()
@@ -663,8 +664,9 @@ class nado(Exchange, ImplicitAPI):
         recvWindow, paramsRecvWindow = self.handle_option_integer_and_params(paramsExpiration, 'editOrder', 'recvWindow', 5000)
         cancelNonce = self.create_order_nonce(recvWindow)
         orderNonce = Precise.string_add(cancelNonce, '1')
-        appendix = self.safe_string(paramsRecvWindow, 'appendix')
-        if appendix is None:
+        rawAppendix = self.safe_string(paramsRecvWindow, 'appendix')
+        appendix = rawAppendix
+        if rawAppendix is None:
             appendix = self.create_order_appendix(False, paramsRecvWindow)
         requestId = self.safe_integer(paramsRecvWindow, 'id')
         spotLeverage = self.safe_bool_2(paramsRecvWindow, 'spotLeverage', 'spot_leverage')
@@ -1403,6 +1405,11 @@ class nado(Exchange, ImplicitAPI):
         if code is not None:
             currency = self.currency(code)
         subaccount, paramsSubaccount = self.handle_option_string_and_params(params, methodName, 'subaccount', 'default')
+        limitRequest = {
+            'raw': 100,
+        }
+        if limit is not None:
+            limitRequest['raw'] = min(limit, 500)
         eventsRequest = {
             'subaccounts': [
                 self.create_subaccount(self.walletAddress, subaccount),
@@ -1410,9 +1417,7 @@ class nado(Exchange, ImplicitAPI):
             'event_types': [
                 eventType,
             ],
-            'limit': {
-                'raw': 100 if (limit is None) else min(limit, 500),
-            },
+            'limit': limitRequest,
         }
         if currency is not None:
             eventsRequest['product_ids'] = [
@@ -1881,14 +1886,17 @@ class nado(Exchange, ImplicitAPI):
         if market['swap'] is not True:
             raise BadSymbol(self.id + ' fetchFundingHistory() supports swap contracts only')
         subaccount, paramsSubaccount = self.handle_option_string_and_params(params, 'fetchFundingHistory', 'subaccount', 'default')
+        fundingRequest = {
+            'subaccount': self.create_subaccount(self.walletAddress, subaccount),
+            'product_ids': [
+                self.parse_to_int(market['id']),
+            ],
+            'limit': 100,
+        }
+        if limit is not None:
+            fundingRequest['limit'] = min(limit, 100)
         request = {
-            'interest_and_funding': {
-                'subaccount': self.create_subaccount(self.walletAddress, subaccount),
-                'product_ids': [
-                    self.parse_to_int(market['id']),
-                ],
-                'limit': 100 if (limit is None) else min(limit, 100),
-            },
+            'interest_and_funding': fundingRequest,
         }
         response = self.archivePost(self.deep_extend(request, paramsSubaccount))
         #
@@ -2238,10 +2246,12 @@ class nado(Exchange, ImplicitAPI):
                 side = 'sell'
             else:
                 side = 'buy'
-        price = self.safe_string(trade, 'price')
-        if price is None:
-            parsedPrice = self.parse_x18(self.safe_string(order, 'priceX18'))
-            price = None if (parsedPrice is None) else self.number_to_string(parsedPrice)
+        tradePrice = self.safe_string(trade, 'price')
+        price = tradePrice
+        if tradePrice is None:
+            orderPriceX18 = self.safe_string(order, 'priceX18')
+            if orderPriceX18 is not None:
+                price = self.number_to_string(self.parse_x18(orderPriceX18))
         takerOrMaker = None
         isTaker = self.safe_bool(trade, 'is_taker')
         if isTaker is not None:
@@ -2784,8 +2794,9 @@ class nado(Exchange, ImplicitAPI):
                 else:
                     status = 'canceled'
             else:
-                status = self.safe_string(order, 'status', 'rejected')
-                if (status == 'success') or (status.find('waiting') >= 0):
+                rawStatus = self.safe_string(order, 'status', 'rejected')
+                status = rawStatus
+                if (rawStatus == 'success') or (rawStatus.find('waiting') >= 0):
                     status = 'open'
             price = self.parse_x18(self.safe_string(rawOrder, 'priceX18'))
         return self.safe_order({
@@ -2814,7 +2825,7 @@ class nado(Exchange, ImplicitAPI):
             'trades': None,
         }, marketResolved)
 
-    def parse_order_time_in_force(self, timeInForce: Str):
+    def parse_order_time_in_force(self, timeInForce: Str) -> Str:
         timeInForces = {
             'default': 'GTC',
             'ioc': 'IOC',
@@ -2873,7 +2884,7 @@ class nado(Exchange, ImplicitAPI):
             appendix = Precise.string_add(appendix, '4096')
         return appendix
 
-    def create_subaccount(self, walletAddress: Str, subaccount: Str = 'default'):
+    def create_subaccount(self, walletAddress: Str, subaccount: Str = 'default') -> str:
         if walletAddress is None:
             raise ArgumentsRequired(self.id + ' createSubaccount() requires walletAddress')
         subaccountName = 'default' if (subaccount is None) else subaccount
@@ -2894,22 +2905,19 @@ class nado(Exchange, ImplicitAPI):
             self.options['gatewayContracts'] = self.safe_dict(response, 'data', {})
         return self.safe_dict(self.options, 'gatewayContracts', {})
 
-    def order_verifying_contract(self, productId: Int):
+    def order_verifying_contract(self, productId: Int) -> str:
         return '0x' + self.pad_hex(self.int_to_base16(productId), 40)
 
     def pad_hex(self, value: str, length: Int, left: bool = True) -> str:
         if length is None:
             raise ArgumentsRequired(self.id + ' padHex() requires length')
         zeros = '00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
-        padded = None
         if left:
-            padded = (zeros + value)
-        else:
-            padded = (value + zeros)
-        if left:
-            start = len(padded) - length
-            return padded[start:len(padded)]
-        return padded[0:length]
+            paddedLeft = zeros + value
+            start = len(paddedLeft) - self.parse_to_int(length)
+            return paddedLeft[start:len(paddedLeft)]
+        paddedRight = value + zeros
+        return paddedRight[0:length]
 
     def sign_order(self, order: dict, productId: Int, chainId: Str) -> str:
         domain = {
@@ -2986,7 +2994,7 @@ class nado(Exchange, ImplicitAPI):
         hash = '0x' + self.hash(encoded, 'keccak', 'hex')
         return self.sign_hash(hash, self.privateKey)
 
-    def sign_hash(self, hash: str, privateKey: Str):
+    def sign_hash(self, hash: str, privateKey: Str) -> str:
         if privateKey is None:
             raise ArgumentsRequired(self.id + ' signHash() requires privateKey')
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
@@ -2995,7 +3003,7 @@ class nado(Exchange, ImplicitAPI):
         v = self.int_to_base16(self.sum(27, signature['v'])).lower()
         return '0x' + self.pad_hex(r, 64) + self.pad_hex(s, 64) + v
 
-    def remove_market_suffix(self, marketId: Str):
+    def remove_market_suffix(self, marketId: Str) -> Str:
         if marketId is None:
             return None
         if marketId.endswith('-PERP'):
@@ -3008,9 +3016,8 @@ class nado(Exchange, ImplicitAPI):
         baseApiUrl = self.safe_string(self.urls['api'], endpoint)
         if baseApiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-        url = baseApiUrl
-        if path != '':
-            url += '/' + self.implode_params(path, params)
+        pathSuffix = ('/' + self.implode_params(path, params)) if (path != '') else ''
+        url = baseApiUrl + pathSuffix
         query = self.omit(params, self.extract_params(path))
         headersValue = {}
         if (endpoint == 'gateway') or (endpoint == 'archive'):

@@ -795,7 +795,7 @@ class coinbase(Exchange, ImplicitAPI):
             self.load_accounts()
             for i in range(0, len(self.accounts)):
                 account = self.accounts[i]
-                if account['code'] == code and account['type'] == 'wallet':
+                if (self.safe_string(account, 'code') == code) and (self.safe_string(account, 'type') == 'wallet'):
                     accountId = self.safe_string(account, 'id')
                     break
         if accountId is None:
@@ -965,7 +965,7 @@ class coinbase(Exchange, ImplicitAPI):
         results = self.fetch_transactions_with_method('v2PrivateGetAccountsAccountIdTransactions', code, since, limit, params)
         return self.to_array(self.filter_by_array(results, 'type', ['deposit', 'withdrawal'], False))
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             'created': 'pending',
             'completed': 'ok',
@@ -2900,7 +2900,7 @@ class coinbase(Exchange, ImplicitAPI):
         self.load_accounts(False, params)
         for i in range(0, len(self.accounts)):
             account = self.accounts[i]
-            if account['code'] == code:
+            if self.safe_string(account, 'code') == code:
                 return self.safe_string(account, 'id')
         return None
 
@@ -3311,7 +3311,7 @@ class coinbase(Exchange, ImplicitAPI):
             'trades': None,
         }, marketResolved)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'OPEN': 'open',
             'FILLED': 'closed',
@@ -3322,7 +3322,7 @@ class coinbase(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type(self, type: Str):
+    def parse_order_type(self, type: Str) -> Str:
         if type == 'UNKNOWN_ORDER_TYPE':
             return None
         types = {
@@ -3333,7 +3333,7 @@ class coinbase(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_time_in_force(self, timeInForce: Str):
+    def parse_time_in_force(self, timeInForce: Str) -> Str:
         timeInForces = {
             'GOOD_UNTIL_CANCELLED': 'GTC',
             'GOOD_UNTIL_DATE_TIME': 'GTD',
@@ -3733,10 +3733,12 @@ class coinbase(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         maxLimit = 300
-        limitValue = maxLimit if (limit is None) else min(limit, maxLimit)
+        limitValue = self.parse_to_int(maxLimit)
+        if (limit is not None) and (limit < maxLimit):
+            limitValue = self.parse_to_int(limit)
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
-            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limitValue, timeframe, paramsPaginate, maxLimit - 1)
+            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limitValue, timeframe, paramsPaginate, 299)
         market = self.market(symbol)
         request = {
             'product_id': market['id'],
@@ -4881,7 +4883,9 @@ class coinbase(Exchange, ImplicitAPI):
             availableBalance = self.parse_number(availableBalanceStr)
             totalBalanceFiatStr = self.safe_string(position, 'total_balance_fiat', '0')
             totalBalanceFiat = self.parse_number(totalBalanceFiatStr)
-            holdAmount = totalBalanceFiat - availableBalance
+            holdAmount = 0
+            if (totalBalanceFiat is not None) and (availableBalance is not None) and (totalBalanceFiat > availableBalance):
+                holdAmount = totalBalanceFiat - availableBalance
             costBasisDict = self.safe_dict(position, 'cost_basis', {})
             costBasisStr = self.safe_string(costBasisDict, 'value', '0')
             averageEntryPriceDict = self.safe_dict(position, 'average_entry_price', {})
@@ -4889,7 +4893,7 @@ class coinbase(Exchange, ImplicitAPI):
             positionData = {
                 'currency': currencyCode,
                 'available_balance': availableBalance,
-                'hold_amount': holdAmount > holdAmount if 0 else 0,
+                'hold_amount': holdAmount,
                 'wallet_name': portfolioName,
                 'account_id': portfolioUuid,
                 'account_uuid': self.safe_string(position, 'account_uuid', ''),
@@ -4913,7 +4917,7 @@ class coinbase(Exchange, ImplicitAPI):
             parsedPositions.append(positionData)
         return parsedPositions
 
-    def create_auth_token(self, seconds: Int, method: Str = None, url: Str = None, useEddsa=False):
+    def create_auth_token(self, seconds: Int, method: Str = None, url: Str = None, useEddsa=False) -> str:
         # v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2
         # v2  https://docs.cdp.coinbase.com/api-reference/v2/authentication
         uri = None
@@ -5029,7 +5033,7 @@ class coinbase(Exchange, ImplicitAPI):
                     # const token = jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
                     authorizationString = 'Bearer ' + token
                 else:
-                    nonce = self.nonce()
+                    nonce = self.parse_to_int(self.nonce())
                     timestamp = self.parse_to_int(nonce / 1000)
                     timestampString = str(timestamp)
                     auth = timestampString + method + savedPath + payload
