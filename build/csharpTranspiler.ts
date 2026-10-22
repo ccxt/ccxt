@@ -13126,13 +13126,14 @@ export function hx4C33NativeHelperCalls (objectNull: boolean, content: string): 
     if (!objectNull || !helperRe.test (content) || /^namespace Tests\b/m.test (content)) {
         return content;
     }
-    const isTrueArms = 'null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false';
     const sw = (x: string, arms: string) => `(((object)(${x})) switch { ${arms} })`;
     // Double.TryParse can never read it: isEqual answers false at its isNumber gate unless both are equal strings
     const neverNumeric = (body: string) => /^[\x20-\x7e]*$/.test (body) && !/[\\"]/.test (body) && !/nan|inf/i.test (body)
         && (!/[0-9]/.test (body) || /[A-DF-Za-df-z]/.test (body));
     const rewrite = (helper: string, args: string[], masks: string[]): string | undefined => {
-        if (helper === 'isTrue' && args.length === 1) return sw (args[0], isTrueArms);
+        // hx5 X02: isTrue is never inlined. A declared bool / bool? operand is made native upstream
+        // (csharpHelperTruthEdits, nativeC07Line); every other operand keeps the plain isTrue(x) helper call
+        if (helper === 'isTrue') return undefined;
         // hx5 X01: no inline switch for getArrayLength. A receiver whose printed declaration proves a
         // list/string was already rewritten to `.Count` / `.Length` by nativeDeclaredHelperCallsBase;
         // every site reaching here is unproven (an `object` box) and keeps the helper call.
@@ -13196,14 +13197,13 @@ function hx4C33SnippetChecks (): string[] {
     const problems: string[] = [];
     const wrap = (body: string, ns = 'ccxt') => `namespace ${ns};\npublic partial class t : Exchange\n{\n    public virtual object f(object x, object y)\n    {\n${body}\n    }\n}\n`;
     const cases: [string, string, string][] = [
-        [ 'isTrue', '        if (isTrue(x)) { }', 'if ((((object)(x)) switch { null => false, bool c33b => c33b,' ],
         [ 'isEqual null', '        if (!isEqual(x, null)) { }', 'if (!(((object)(x)) == null)) { }' ],
         [ 'isEqual true', '        if (isEqual(getValue(x, "a"), true)) { }', 'if ((((object)(getValue(x, "a"))) is true)) { }' ],
         [ 'isEqual word', '        if (isEqual(x, "buy")) { }', 'if ((((object)(x)) is "buy")) { }' ],
         [ 'isEqual int', '        if (isEqual(x, -1)) { }', 'Int64 c33l => c33l == -1, int c33i => c33i == -1,' ],
         [ 'isEqual int ulong', '        if (isEqual(x, 0)) { }', 'ulong c33z => c33z == 0UL, _ => false' ],
         [ 'getIndexOf', '        int p = getIndexOf(x, "?");', 'string c33s => c33s.IndexOf((string)(object)"?"), _ => -1 })' ],
-        [ 'nested', '        if (isTrue(isEqual(x, null))) { }', 'if ((((object)((((object)(x)) == null))) switch {' ],
+        [ 'nested', '        if (isTrue(isEqual(x, null))) { }', 'if (isTrue((((object)(x)) == null))) { }' ], // hx5 X02: helper call kept
     ];
     const keeps: [string, string][] = [
         [ 'isEqual numeric string', '        if (isEqual(x, "1")) { }' ],
@@ -13214,6 +13214,8 @@ function hx4C33SnippetChecks (): string[] {
         [ 'inOp lit keeps helper (hx5 X03)', '        if (inOp(x, "k")) { }' ],
         [ 'inOp nested lit keeps helper (hx5 X03)', '        if (inOp(getValue(x, "a"), "k")) { }' ],
         [ 'getIndexOf call target', '        int p = getIndexOf(x, this.f(x, y));' ],
+        [ 'isTrue object', '        if (isTrue(x)) { }' ], // hx5 X02: unproven operand keeps the helper call
+        [ 'isTrue call', '        if (isTrue(this.isDictionary(x))) { }' ], // hx5 X02
         [ 'in string', '        string s = "isTrue(x)"; // isTrue(x)' ],
         // hx5 X01: an unproven getArrayLength keeps the helper call (never an inline switch)
         [ 'getArrayLength object', '        for (int i = 0; i < getArrayLength(x); i++) { }' ],
