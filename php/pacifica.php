@@ -1194,7 +1194,8 @@ class pacifica extends Exchange {
         $oraclePx = $this->safe_number($info, 'oracle');
         $nextFundingRate = $this->safe_number($info, 'next_funding');
         $timestamp = $this->safe_integer($info, 'timestamp');
-        $fundingTimestamp = ((int) floor($this->milliseconds() / 60 / 60 / 1000) + 1) * 60 * 60 * 1000;
+        $currentHour = $this->parse_to_int($this->milliseconds() / 60 / 60 / 1000);
+        $fundingTimestamp = ($currentHour + 1) * 60 * 60 * 1000;
         return array(
             'info' => $info,
             'symbol' => $symbol,
@@ -1255,18 +1256,15 @@ class pacifica extends Exchange {
         );
         list($requestUntil, $paramsUntil) = $this->handle_until_option('end_time', $request, $paramsPaginate);
         $nowMillis = $this->milliseconds();
-        $until = $this->safe_integer($requestUntil, 'end_time');
-        if ($until === null) {
-            if ($limit !== null) {
-                $until = $since . ($limit * ($this->parse_timeframe($tf) * 1000)) - 1;
+        $requestedUntil = $this->safe_integer($requestUntil, 'end_time');
+        if ($requestedUntil === null) {
+            $durationMillis = $this->parse_timeframe($tf) * 1000;
+            $candleCount = ($limit === null) ? $defaultMaxLimit : $limit;
+            if ($since !== null) {
+                $windowEnd = $this->parse_to_int($this->sum($since - 1, $candleCount * $durationMillis));
+                $until = ($windowEnd > $nowMillis) ? $nowMillis : $windowEnd;
+                $requestUntil['end_time'] = $until;
             }
-            if ($until === null) {
-                $until = $since . ($defaultMaxLimit * ($this->parse_timeframe($tf) * 1000)) - 1;
-            }
-            if ($until > $nowMillis) {
-                $until = $nowMillis;
-            }
-            $requestUntil['end_time'] = $until;
         }
         $response = $this->publicGetKline($this->extend($requestUntil, $paramsUntil));
         //
@@ -1682,7 +1680,7 @@ class pacifica extends Exchange {
         return array( $request, $operationType );
     }
 
-    public function batch_orders_request(array $actions) {
+    public function batch_orders_request(array $actions): array {
         //
         // [
         //     {
@@ -1718,8 +1716,9 @@ class pacifica extends Exchange {
         //  Cancel (Only common (limit) orders)
         //
         $lenActions = count($actions);
-        $maxLen = $this->handle_option('batchOrdersRequest', 'batchOrdersMax');
-        if ($maxLen !== null) {
+        $maxLenOption = $this->handle_option('batchOrdersRequest', 'batchOrdersMax');
+        if ($maxLenOption !== null) {
+            $maxLen = $this->parse_to_int($maxLenOption);
             if ($lenActions > $maxLen) {
                 throw new ExchangeError($this->id . ' batchOrdersRequest() too many orders to create/cancel. Limit is ' . $this->number_to_string($maxLen));
             }
@@ -2513,7 +2512,7 @@ class pacifica extends Exchange {
         return $this->parse_order($lastInfo, $market);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'open' => 'open',
             'partially_filled' => 'open',
@@ -2541,7 +2540,7 @@ class pacifica extends Exchange {
         return $this->safe_string($tifMap, $tif, 'GTC');
     }
 
-    public function map_side(?string $sideRaw) {
+    public function map_side(?string $sideRaw): ?string {
         $sideMap = array(
             'sell' => 'ask',
             'buy' => 'bid',
@@ -2549,7 +2548,7 @@ class pacifica extends Exchange {
         return $this->safe_string($sideMap, $sideRaw, $sideRaw);
     }
 
-    public function parse_order_type(?string $status) {
+    public function parse_order_type(?string $status): ?string {
         $statuses = array(
             'stop_limit' => 'limit',
             'stop_market' => 'market',
@@ -3671,8 +3670,9 @@ class pacifica extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorId, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback); // documented message prefixes are more specific than the http-status echo
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
+            $statusCode = $this->parse_to_int($code);
             $codeAsString = (string) $code;
-            if (($code < 400) || !(is_array($this->httpExceptions) && array_key_exists($codeAsString ?? '', $this->httpExceptions))) {
+            if (($statusCode < 400) || !(is_array($this->httpExceptions) && array_key_exists($codeAsString ?? '', $this->httpExceptions))) {
                 throw new ExchangeError($feedback); // unknown message
             }
         }

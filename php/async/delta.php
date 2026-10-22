@@ -353,20 +353,20 @@ class delta extends Exchange {
         $quote = 'USDT';
         $optionParts = explode('-', $symbol);
         $symbolBase = explode('/', $symbol);
+        $hasSlash = mb_strpos($symbol, '/') > -1;
         $base = null;
-        $expiry = null;
         $optionType = null;
-        if (mb_strpos($symbol, '/') > -1) {
+        if ($hasSlash) {
             $base = $this->safe_string($symbolBase, 0);
-            $expiry = $this->safe_string($optionParts, 1);
             $optionType = $this->safe_string($optionParts, 3);
         } else {
             $base = $this->safe_string($optionParts, 1);
-            $expiry = $this->safe_string($optionParts, 3);
             $optionType = $this->safe_string($optionParts, 0);
         }
-        if ($expiry !== null) {
-            $expiry = mb_substr($expiry, 4) . mb_substr($expiry, 2, 4 - 2) . mb_substr($expiry, 0, 2 - 0);
+        $rawExpiry = $this->safe_string($optionParts, $hasSlash ? 1 : 3);
+        $expiry = null;
+        if ($rawExpiry !== null) {
+            $expiry = mb_substr($rawExpiry, 4) . mb_substr($rawExpiry, 2, 4 - 2) . mb_substr($rawExpiry, 0, 2 - 0);
         }
         $settle = $quote;
         $strike = $this->safe_string($optionParts, 2);
@@ -666,7 +666,7 @@ class delta extends Exchange {
         return $markets;
     }
 
-    public function index_by_stringified_numeric_id(?array $input) {
+    public function index_by_stringified_numeric_id(?array $input): ?array {
         $result = array();
         if ($input === null) {
             return null;
@@ -1703,25 +1703,30 @@ class delta extends Exchange {
         );
         $duration = $this->parse_timeframe($timeframe);
         $limitValue = 2000;
+        $windowSeconds = 2000 * $duration;
         if ($limit !== null && $limit !== null && $limit !== 0) {
             $limitValue = $limit; // max 2000
+            $windowSeconds = $limit * $duration;
         }
         $until = $this->safe_integer_product($params, 'until', 0.001);
-        $untilIsDefined = ($until !== null);
+        $untilIsDefined = $until !== null;
         if ($untilIsDefined) {
             $until = $this->parse_to_int($until);
         }
         if ($since === null) {
-            $end = $untilIsDefined ? $until : $this->seconds();
+            $end = $this->seconds();
+            if ($untilIsDefined) {
+                $end = $this->parse_to_int($until);
+            }
             $request['end'] = $end;
             if ($end === null) {
                 throw new ExchangeError($this->id . ' fetchOHLCV() missing end');
             }
-            $request['start'] = $end - $limitValue * $duration;
+            $request['start'] = $end - $windowSeconds;
         } else {
             $start = $this->parse_to_int($since / 1000);
             $request['start'] = $start;
-            $request['end'] = $untilIsDefined ? $until : $this->sum($start, $limitValue * $duration);
+            $request['end'] = $untilIsDefined ? $until : $this->sum($start, $windowSeconds);
         }
         $price = $this->safe_string($params, 'price');
         if ($price === 'mark') {
@@ -1949,7 +1954,7 @@ class delta extends Exchange {
         ));
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'open' => 'open',
             'pending' => 'open',
@@ -2636,7 +2641,7 @@ class delta extends Exchange {
         return $this->parse_ledger($result, $currency, $since, $limit);
     }
 
-    public function parse_ledger_entry_type(?string $type) {
+    public function parse_ledger_entry_type(?string $type): ?string {
         $types = array(
             'pnl' => 'pnl',
             'deposit' => 'transaction',

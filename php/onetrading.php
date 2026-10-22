@@ -1088,7 +1088,8 @@ class onetrading extends Exchange {
         if ($timestamp === null) {
             throw new ExchangeError($this->id . ' parseOHLCV() missing timestamp');
         }
-        $alignedTimestamp = $duration * $this->parse_to_int($timestamp / $duration);
+        $periods = $this->parse_to_int($timestamp / $duration);
+        $alignedTimestamp = $duration * $periods;
         $options = $this->safe_dict($this->options, 'fetchOHLCV', array());
         $volumeField = $this->safe_string($options, 'volume', 'total_amount');
         return array(
@@ -1284,7 +1285,7 @@ class onetrading extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'OPEN' => 'open',
             'BOOKED' => 'open',
@@ -1408,7 +1409,7 @@ class onetrading extends Exchange {
         ), $market);
     }
 
-    public function parse_time_in_force(?string $timeInForce) {
+    public function parse_time_in_force(?string $timeInForce): ?string {
         $timeInForces = array(
             'GOOD_TILL_CANCELLED' => 'GTC',
             'GOOD_TILL_TIME' => 'GTT',

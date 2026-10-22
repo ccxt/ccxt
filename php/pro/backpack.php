@@ -1255,7 +1255,7 @@ class backpack extends \ccxt\async\backpack {
             $storedOrderBook->cache[] = $data;
             // stock streams can be quiet, so do not wait for more deltas to fetch their snapshot
             $market = $this->market($symbol);
-            $isStockMarket = ($market['stock'] === true) || (($marketId !== null) && ((mb_strpos($marketId, '.US_') !== -1) || (mb_strpos($marketId, '.HK_') !== -1)));
+            $isStockMarket = ($market['stock'] === true) || (($marketId !== null) && ((mb_strpos($marketId, '.US_') !== false) || (mb_strpos($marketId, '.HK_') !== false)));
             $defaultSnapshotDelay = $isStockMarket ? 0 : 10;
             $snapshotDelay = $this->handle_option('watchOrderBook', 'snapshotDelay', $defaultSnapshotDelay);
             if ($cacheLength === $snapshotDelay) {
@@ -1270,7 +1270,8 @@ class backpack extends \ccxt\async\backpack {
     }
 
     public function handle_book_delta(mixed $orderbook, mixed $delta) {
-        $timestamp = $this->parse_to_int($this->safe_integer($delta, 'T', 0) / 1000);
+        $microseconds = $this->safe_integer($delta, 'T', 0);
+        $timestamp = $this->parse_to_int($microseconds / 1000);
         $orderbook['timestamp'] = $timestamp;
         $orderbook['datetime'] = $this->iso8601($timestamp);
         $orderbook['nonce'] = $this->safe_integer($delta, 'u');
@@ -1470,7 +1471,8 @@ class backpack extends \ccxt\async\backpack {
          */
         $event = $this->safe_string($data, 'e', '');
         $quoteEvent = mb_strpos($event, 'quote') === 0;
-        $timestamp = $this->parse_to_int($this->safe_integer($data, 'E', 0) / 1000);
+        $microseconds = $this->safe_integer($data, 'E', 0);
+        $timestamp = $this->parse_to_int($microseconds / 1000);
         $request = array(
             'rfqId' => $this->safe_string($data, 'R'),
             'clientId' => $this->safe_string($data, 'C'),
@@ -1492,7 +1494,8 @@ class backpack extends \ccxt\async\backpack {
         $parsed = $this->parse_order($request, $marketResolved);
         $parsed['info'] = $data;
         if ($event === 'rfqFilled') {
-            $parsed['lastTradeTimestamp'] = $this->parse_to_int($this->safe_integer($data, 'T', 0) / 1000);
+            $tradeMicroseconds = $this->safe_integer($data, 'T', 0);
+            $parsed['lastTradeTimestamp'] = $this->parse_to_int($tradeMicroseconds / 1000);
         }
         return $parsed;
     }
@@ -1573,7 +1576,8 @@ class backpack extends \ccxt\async\backpack {
         $this->options['wsBalanceAssets'] = $assets;
         $response = $this->parse_balance($assets);
         $parsed = $this->safe_dict(array( 'balances' => $response ), 'balances', array());
-        $timestamp = $this->parse_to_int($this->safe_integer($data, 'E', 0) / 1000);
+        $microseconds = $this->safe_integer($data, 'E', 0);
+        $timestamp = $this->parse_to_int($microseconds / 1000);
         $parsed['timestamp'] = $timestamp;
         $parsed['datetime'] = $this->iso8601($timestamp);
         $parsed['info'] = $assets;
@@ -1828,7 +1832,7 @@ class backpack extends \ccxt\async\backpack {
         $hedged = false;
         $side = 'long';
         if ($netQuantity !== null) {
-            if ($netQuantity < 0) {
+            if (0 > $netQuantity) {
                 $side = 'short';
             }
         } else {

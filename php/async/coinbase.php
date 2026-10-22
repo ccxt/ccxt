@@ -831,7 +831,7 @@ class coinbase extends Exchange {
             Async\await($this->load_accounts());
             for ($i = 0; $i < count($this->accounts); $i++) {
                 $account = $this->accounts[$i];
-                if ($account['code'] === $code && $account['type'] === 'wallet') {
+                if (($this->safe_string($account, 'code') === $code) && ($this->safe_string($account, 'type') === 'wallet')) {
                     $accountId = $this->safe_string($account, 'id');
                     break;
                 }
@@ -1043,7 +1043,7 @@ class coinbase extends Exchange {
         return $this->to_array($this->filter_by_array($results, 'type', array( 'deposit', 'withdrawal' ), false));
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'created' => 'pending',
             'completed' => 'ok',
@@ -3139,7 +3139,7 @@ class coinbase extends Exchange {
         Async\await($this->load_accounts(false, $params));
         for ($i = 0; $i < count($this->accounts); $i++) {
             $account = $this->accounts[$i];
-            if ($account['code'] === $code) {
+            if ($this->safe_string($account, 'code') === $code) {
                 return $this->safe_string($account, 'id');
             }
         }
@@ -3603,7 +3603,7 @@ class coinbase extends Exchange {
         ), $marketResolved);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'OPEN' => 'open',
             'FILLED' => 'closed',
@@ -3615,7 +3615,7 @@ class coinbase extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_type(?string $type) {
+    public function parse_order_type(?string $type): ?string {
         if ($type === 'UNKNOWN_ORDER_TYPE') {
             return null;
         }
@@ -3628,7 +3628,7 @@ class coinbase extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_time_in_force(?string $timeInForce) {
+    public function parse_time_in_force(?string $timeInForce): ?string {
         $timeInForces = array(
             'GOOD_UNTIL_CANCELLED' => 'GTC',
             'GOOD_UNTIL_DATE_TIME' => 'GTD',
@@ -4108,10 +4108,13 @@ class coinbase extends Exchange {
             Async\await($this->load_markets());
         }
         $maxLimit = 300;
-        $limitValue = ($limit === null) ? $maxLimit : min($limit, $maxLimit);
+        $limitValue = $this->parse_to_int($maxLimit);
+        if (($limit !== null) && ($limit < $maxLimit)) {
+            $limitValue = $this->parse_to_int($limit);
+        }
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limitValue, $timeframe, $paramsPaginate, $maxLimit - 1));
+            return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limitValue, $timeframe, $paramsPaginate, 299));
         }
         $market = $this->market($symbol);
         $request = array(
@@ -5416,7 +5419,10 @@ class coinbase extends Exchange {
             $availableBalance = $this->parse_number($availableBalanceStr);
             $totalBalanceFiatStr = $this->safe_string($position, 'total_balance_fiat', '0');
             $totalBalanceFiat = $this->parse_number($totalBalanceFiatStr);
-            $holdAmount = $totalBalanceFiat - $availableBalance;
+            $holdAmount = 0;
+            if (($totalBalanceFiat !== null) && ($availableBalance !== null) && ($totalBalanceFiat > $availableBalance)) {
+                $holdAmount = $totalBalanceFiat - $availableBalance;
+            }
             $costBasisDict = $this->safe_dict($position, 'cost_basis', array());
             $costBasisStr = $this->safe_string($costBasisDict, 'value', '0');
             $averageEntryPriceDict = $this->safe_dict($position, 'average_entry_price', array());
@@ -5424,7 +5430,7 @@ class coinbase extends Exchange {
             $positionData = array(
                 'currency' => $currencyCode,
                 'available_balance' => $availableBalance,
-                'hold_amount' => $holdAmount > 0 ? $holdAmount : 0,
+                'hold_amount' => $holdAmount,
                 'wallet_name' => $portfolioName,
                 'account_id' => $portfolioUuid,
                 'account_uuid' => $this->safe_string($position, 'account_uuid', ''),
@@ -5450,7 +5456,7 @@ class coinbase extends Exchange {
         return $parsedPositions;
     }
 
-    public function create_auth_token(?int $seconds, ?string $method = null, ?string $url = null, $useEddsa = false) {
+    public function create_auth_token(?int $seconds, ?string $method = null, ?string $url = null, $useEddsa = false): string {
         // v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2
         // v2  https://docs.cdp.coinbase.com/api-reference/v2/authentication
         $uri = null;
@@ -5585,7 +5591,7 @@ class coinbase extends Exchange {
                     // const token = jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
                     $authorizationString = 'Bearer ' . $token;
                 } else {
-                    $nonce = $this->nonce();
+                    $nonce = $this->parse_to_int($this->nonce());
                     $timestamp = $this->parse_to_int($nonce / 1000);
                     $timestampString = (string) $timestamp;
                     $auth = $timestampString . $method . $savedPath . $payload;

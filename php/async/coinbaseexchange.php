@@ -1336,16 +1336,18 @@ class coinbaseexchange extends Exchange {
         $until = $this->safe_value_2($paramsPaginate, 'until', 'end');
         $paramsOmitted = $this->omit($paramsPaginate, array( 'until' ));
         // https://docs.pro.coinbase.com/#get-historic-rates max = 300
-        $cappedLimit = ($limit === null) ? 300 : min(300, $limit);
+        $cappedLimit = $this->parse_to_int(($limit === null) ? 300 : min($limit, 300));
         $limitResolved = ($since !== null) ? $cappedLimit : $limit;
         if ($since !== null) {
             $request['start'] = $this->iso8601($since);
             if ($until === null) {
-                $parsedTimeframeMilliseconds = $parsedTimeframe * 1000;
-                if ($this->is_round_number(fmod($since, $parsedTimeframeMilliseconds))) {
-                    $request['end'] = $this->iso8601($this->sum(($cappedLimit - 1) * $parsedTimeframeMilliseconds, $since));
-                } else {
-                    $request['end'] = $this->iso8601($this->sum($cappedLimit * $parsedTimeframeMilliseconds, $since));
+                if ($parsedTimeframe !== null) {
+                    $parsedTimeframeMilliseconds = $parsedTimeframe * 1000;
+                    if ($this->is_round_number(fmod($since, $parsedTimeframeMilliseconds))) {
+                        $request['end'] = $this->iso8601($this->sum(($cappedLimit * $parsedTimeframeMilliseconds) - $parsedTimeframeMilliseconds, $since));
+                    } else {
+                        $request['end'] = $this->iso8601($this->sum($cappedLimit * $parsedTimeframeMilliseconds, $since));
+                    }
                 }
             } else {
                 $request['end'] = $this->iso8601($until);
@@ -1382,7 +1384,7 @@ class coinbaseexchange extends Exchange {
         return $this->safe_timestamp($response, 'epoch');
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'pending' => 'open',
             'active' => 'open',
@@ -2197,7 +2199,8 @@ class coinbaseexchange extends Exchange {
         $timestamp = $this->parse8601($this->safe_string($transaction, 'created_at'));
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $amount = $this->safe_number($transaction, 'amount');
+        $amountRaw = $this->safe_number($transaction, 'amount');
+        $amount = $amountRaw;
         $type = $this->safe_string($transaction, 'type');
         $address = $this->safe_string($details, 'crypto_address');
         $address = $this->safe_string($transaction, 'crypto_address', $address);
@@ -2211,8 +2214,8 @@ class coinbaseexchange extends Exchange {
             $address = $this->safe_string($details, 'sent_to_address', $address);
             $feeCost = $this->safe_number($details, 'fee');
             if ($feeCost !== null) {
-                if ($amount !== null) {
-                    $amount -= $feeCost;
+                if ($amountRaw !== null) {
+                    $amount = $amountRaw - $feeCost;
                 }
                 $fee['cost'] = $feeCost;
                 $fee['currency'] = $code;

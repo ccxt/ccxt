@@ -332,7 +332,8 @@ class woo extends \ccxt\async\woo {
                 if ($ts === null) {
                     continue;
                 }
-                if ($ts < $orderbook['timestamp']) {
+                $orderbookTimestamp = $this->safe_integer($orderbook, 'timestamp');
+                if (($orderbookTimestamp !== null) && ($ts < $orderbookTimestamp)) {
                     continue;
                 } else {
                     $this->handle_order_book_message($client, $messageItem, $orderbook);
@@ -570,7 +571,7 @@ class woo extends \ccxt\async\woo {
         //     }
         //
         $topic = $this->safe_string($message, 'topic');
-        $data = $this->safe_value($message, 'data');
+        $data = $this->safe_list($message, 'data', array());
         $timestamp = $this->safe_integer($message, 'ts');
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
@@ -1077,7 +1078,7 @@ class woo extends \ccxt\async\woo {
         }
         $paramsOmitted = $this->omit($params, array( 'stop', 'trigger' ));
         $messageHash = $topic;
-        $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : $symbol;
+        $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : null;
         if ($symbolResolved !== null) {
             $messageHash .= ':' . $symbolResolved;
         }
@@ -1122,7 +1123,7 @@ class woo extends \ccxt\async\woo {
         }
         $paramsOmitted = $this->omit($params, array( 'stop', 'trigger' ));
         $messageHash = 'myTrades';
-        $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : $symbol;
+        $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : null;
         if ($symbolResolved !== null) {
             $messageHash .= ':' . $symbolResolved;
         }
@@ -1580,7 +1581,7 @@ class woo extends \ccxt\async\woo {
         //    }
         //
         $data = $this->safe_dict($message, 'data');
-        $balances = $this->safe_value($data, 'balances');
+        $balances = $this->safe_dict($data, 'balances', array());
         $keys = is_array($balances) ? array_keys($balances) : array();
         $ts = $this->safe_integer($message, 'ts');
         $this->balance['info'] = $data;

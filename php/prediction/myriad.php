@@ -279,8 +279,7 @@ class myriad extends Exchange {
                 'limit' => $limit,
             ), $rest)));
             $responseIsArray = (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)));
-            $foundList = ($responseIsArray) ? $response : $this->safe_list($response, 'data', array());
-            $found = ($foundList !== null) ? $foundList : array();
+            $found = ($responseIsArray) ? $response : $this->safe_list($response, 'data', array());
             for ($j = 0; $j < count($found); $j++) {
                 $raw = $found[$j];
                 $networkId = $this->safe_string($raw, 'networkId');
@@ -331,8 +330,7 @@ class myriad extends Exchange {
                 'trading_model' => $tradingModel,
             ), $rest)));
             $responseIsArray = (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)));
-            $rawMarketsList = ($responseIsArray) ? $response : $this->safe_list($response, 'data', array());
-            $rawMarkets = ($rawMarketsList !== null) ? $rawMarketsList : array();
+            $rawMarkets = ($responseIsArray) ? $response : $this->safe_list($response, 'data', array());
             $rawMarketsLength = count($rawMarkets);
             if ($rawMarketsLength === 0) {
                 break;
@@ -340,7 +338,7 @@ class myriad extends Exchange {
             for ($i = 0; $i < $rawMarketsLength; $i++) {
                 if ($collected < $maxMarkets) {
                     $allRawMarkets[] = $rawMarkets[$i];
-                    $collected = $this->sum($collected, 1);
+                    $collected = count($allRawMarkets);
                 }
             }
             $page = $this->sum($page, 1);
@@ -471,8 +469,7 @@ class myriad extends Exchange {
                 'limit' => $limit,
             ), $rest)));
             $responseIsArray = (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)));
-            $foundList = ($responseIsArray) ? $response : $this->safe_list($response, 'data', array());
-            $found = ($foundList !== null) ? $foundList : array();
+            $found = ($responseIsArray) ? $response : $this->safe_list($response, 'data', array());
             for ($j = 0; $j < count($found); $j++) {
                 $raw = $found[$j];
                 $questionId = $this->safe_string($raw, 'id');
@@ -515,8 +512,7 @@ class myriad extends Exchange {
             }
             $response = Async\await($this->myriadPublicGetQuestions($this->extend($request, $rest)));
             $responseIsArray = (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)));
-            $rawQuestionsList = ($responseIsArray) ? $response : $this->safe_list($response, 'data', array());
-            $rawQuestions = ($rawQuestionsList !== null) ? $rawQuestionsList : array();
+            $rawQuestions = ($responseIsArray) ? $response : $this->safe_list($response, 'data', array());
             $rawQuestionsLength = count($rawQuestions);
             if ($rawQuestionsLength === 0) {
                 break;
@@ -532,7 +528,7 @@ class myriad extends Exchange {
                 }
                 if ($collected < $maxQuestions) {
                     $allRawQuestions[] = $rawQuestion;
-                    $collected = $this->sum($collected, 1);
+                    $collected = count($allRawQuestions);
                 }
             }
             $page = $this->sum($page, 1);
@@ -974,14 +970,11 @@ class myriad extends Exchange {
             $defaultTif = 'FOK';
         }
         $timeInForce = $this->safe_string_upper($params, 'timeInForce', $defaultTif);
-        $priceValue = $price;
-        if ($priceValue === null) {
-            if ($isMarket) {
-                $priceValue = ($sideInt === 0) ? 1 : 0;
-            } else {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a price for limit orders');
-            }
+        if (($price === null) && !$isMarket) {
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a price for limit orders');
         }
+        $marketPrice = ($sideInt === 0) ? 1 : 0;
+        $priceValue = ($price !== null) ? $price : $marketPrice;
         $priceWei = $this->to_orderbook_wei($priceValue);
         if (Precise::string_lt($priceWei, '1')) {
             $priceWei = '1';
@@ -1270,7 +1263,7 @@ class myriad extends Exchange {
         );
     }
 
-    public function get_order_response_from_params(?string $id, $params = array()): mixed {
+    public function get_order_response_from_params(?string $id, $params = array()): ?array {
         /**
          * @ignore
          * extracts an optional pre-fetched order response from $params for static tests and higher-level callers that already resolved the original order
@@ -1430,14 +1423,10 @@ class myriad extends Exchange {
         $outcomeObj = $this->safe_outcome($composite, $market);
         $marketSlug = $this->safe_string($trade, 'marketSlug', $marketId);
         $outcomeTitle = $this->safe_string($trade, 'outcomeTitle', $rawOutcomeId);
-        $outcome = $this->safe_string($outcomeObj, 'outcome');
-        if ($outcome === null) {
-            $outcome = $this->slug_to_outcome_symbol($marketSlug, $marketSlug, $outcomeTitle);
-        }
-        $marketSymbol = $this->safe_string($outcomeObj, 'market');
-        if ($marketSymbol === null) {
-            $marketSymbol = $this->slug_to_market_symbol($marketSlug, $marketSlug);
-        }
+        $outcomeValue = $this->safe_string($outcomeObj, 'outcome');
+        $outcome = ($outcomeValue !== null) ? $outcomeValue : $this->slug_to_outcome_symbol($marketSlug, $marketSlug, $outcomeTitle);
+        $marketSymbolValue = $this->safe_string($outcomeObj, 'market');
+        $marketSymbol = ($marketSymbolValue !== null) ? $marketSymbolValue : $this->slug_to_market_symbol($marketSlug, $marketSlug);
         $label = $this->safe_string($outcomeObj, 'label');
         if ($label === null) {
             $label = $outcomeTitle;
@@ -1498,10 +1487,8 @@ class myriad extends Exchange {
         if (($requestedStatus === 'open') || ($requestedStatus === 'cancelled') || ($requestedStatus === 'canceled') || ($requestedStatus === 'expired')) {
             return array();
         }
-        $trader = $this->safe_string_2($params, 'trader', 'address');
-        if ($trader === null) {
-            $trader = $this->wallet_address_or_undefined();
-        }
+        $traderParam = $this->safe_string_2($params, 'trader', 'address');
+        $trader = ($traderParam !== null) ? $traderParam : $this->wallet_address_or_undefined();
         if ($trader === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrders() for AMM history requires a trader address or wallet/privateKey');
         }
@@ -2104,7 +2091,8 @@ class myriad extends Exchange {
         if ($decimals === null) {
             throw new ExchangeError($this->id . ' fromWeiWithDecimals() missing decimals');
         }
-        for ($i = 0; $i < $decimals; $i++) {
+        $decimalsCount = $this->parse_to_int($decimals);
+        for ($i = 0; $i < $decimalsCount; $i++) {
             $scale = $scale . '0';
         }
         return Precise::string_div($decimalString, $scale);
@@ -2543,25 +2531,24 @@ class myriad extends Exchange {
         $outcomes = $this->safe_list($raw, 'outcomes', array());
         $price = null;
         $change = null;
+        // priceChange24h is an ABSOLUTE price delta; derive the previous close and the TRUE percentage from it
+        $previousClose = null;
+        $percentage = null;
         for ($i = 0; $i < count($outcomes); $i++) {
             $o = $this->safe_dict($outcomes, $i);
             if ($this->safe_string($o, 'outcomeId', $this->safe_string($o, 'id')) === $outcomeId) {
-                $price = $this->safe_number($o, 'price');
-                $change = $this->safe_number($o, 'priceChange24h');
+                $priceValue = $this->safe_number($o, 'price');
+                $changeValue = $this->safe_number($o, 'priceChange24h');
+                $price = $priceValue;
+                $change = $changeValue;
+                if (($priceValue !== null) && ($changeValue !== null)) {
+                    $previousCloseValue = $priceValue - $changeValue;
+                    $previousClose = $previousCloseValue;
+                    if ($previousCloseValue !== 0) {
+                        $percentage = $changeValue / $previousCloseValue * 100;
+                    }
+                }
                 break;
-            }
-        }
-        // priceChange24h is an ABSOLUTE price delta; derive the previous close and the TRUE
-        // percentage from it — setting percentage = the absolute change (as before) was wrong
-        $previousClose = null;
-        $percentage = null;
-        if (($price !== null) && ($change !== null)) {
-            $previousClose = $price - $change;
-            if ($previousClose === null) {
-                throw new ExchangeError($this->id . ' method() missing previousClose');
-            }
-            if ($previousClose !== 0) {
-                $percentage = $change / $previousClose * 100;
             }
         }
         return $this->safe_prediction_ticker(array(
@@ -2708,23 +2695,22 @@ class myriad extends Exchange {
         //     }
         //
         $outcomes = $this->safe_list($response, 'outcomes', array());
-        $price = null;
+        // AMM: synthesize a single bid/ask pair around the current implied price, clamped into the valid (0, 1) range
+        $bid = null;
+        $ask = null;
         for ($i = 0; $i < count($outcomes); $i++) {
             $o = $this->safe_dict($outcomes, $i);
             if ($this->safe_string($o, 'outcomeId', $this->safe_string($o, 'id')) === $outcomeId) {
                 $price = $this->safe_number($o, 'price');
+                if ($price !== null) {
+                    if ($price > 0.001) {
+                        $bid = $this->parse_number(Precise::string_sub($this->number_to_string($price), '0.001'));
+                    }
+                    if (0.999 > $price) {
+                        $ask = $this->parse_number(Precise::string_add($this->number_to_string($price), '0.001'));
+                    }
+                }
                 break;
-            }
-        }
-        // AMM: synthesize a single bid/ask pair around the current implied price, clamped into the valid (0, 1) range
-        $bid = null;
-        $ask = null;
-        if ($price !== null) {
-            if ($price > 0.001) {
-                $bid = $this->parse_number(Precise::string_sub($this->number_to_string($price), '0.001'));
-            }
-            if ($price < 0.999) {
-                $ask = $this->parse_number(Precise::string_add($this->number_to_string($price), '0.001'));
             }
         }
         // the synthetic size must be a parsed float, an int literal breaks the typed go wrapper conversion
@@ -2881,7 +2867,7 @@ class myriad extends Exchange {
         $pointsLength = count($points);
         if ($pointsLength === 0) {
             $priceCharts = $this->safe_dict($response, 'price_charts', array());
-            $bucket = $this->safe_value($priceCharts, $bucketKey, array());
+            $bucket = $this->safe_dict($priceCharts, $bucketKey, array());
             $points = $this->safe_list($bucket, $outcomeId, $this->safe_list($bucket, 'data', array()));
         }
         $usablePoints = array();
@@ -3048,8 +3034,7 @@ class myriad extends Exchange {
         //     }
         //
         $responseIsArray = (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)));
-        $rowsList = ($responseIsArray) ? $response : $this->safe_list($response, 'data', array());
-        $rows = ($rowsList !== null) ? $rowsList : array();
+        $rows = ($responseIsArray) ? $response : $this->safe_list($response, 'data', array());
         $trades = array();
         for ($i = 0; $i < count($rows); $i++) {
             $row = $this->safe_dict($rows, $i);
@@ -3468,7 +3453,7 @@ class myriad extends Exchange {
         $this->orderbooks[$sym] = $orderbook;
     }
 
-    public function handle_order_book(mixed $client, array $data) {
+    public function handle_order_book(Client $client, array $data) {
         $networkId = $this->safe_string($data, 'networkId');
         $marketId = $this->safe_string($data, 'marketId');
         $ts = $this->safe_integer($data, 'ts');
@@ -3572,7 +3557,7 @@ class myriad extends Exchange {
         return null;
     }
 
-    public function handle_trades(mixed $client, array $data) {
+    public function handle_trades(Client $client, array $data) {
         $networkId = $this->safe_string($data, 'networkId');
         $marketId = $this->safe_string($data, 'marketId');
         $ts = $this->safe_integer($data, 'ts');
@@ -3731,7 +3716,7 @@ class myriad extends Exchange {
             $marketId = $this->safe_string($info, 'marketId');
             $channel = 'prices:' . $networkId . ':' . $marketId;
             $resolvedSymbols[] = $this->safe_outcome_symbol($outcomes[$i], $outcomeObj);
-            if ($this->safe_value($seenChannels, $channel) === null) {
+            if (!(is_array($seenChannels) && array_key_exists($channel ?? '', $seenChannels))) {
                 $seenChannels[$channel] = true;
                 $requestId = $this->request_id($url);
                 $subscribeMsg = array( 'subscribe' => array( 'channel' => $channel ), 'id' => $requestId );
@@ -3771,7 +3756,7 @@ class myriad extends Exchange {
         return $this->filter_by_since_limit($result, $since, $limit, 0, true);
     }
 
-    public function handle_ticker(mixed $client, array $data) {
+    public function handle_ticker(Client $client, array $data) {
         $networkId = $this->safe_string($data, 'networkId');
         $marketId = $this->safe_string($data, 'marketId');
         $ts = $this->safe_integer($data, 'ts');
@@ -3852,7 +3837,7 @@ class myriad extends Exchange {
         return $this->filter_by_value_since_limit($orders, 'outcome', $outcomeResolved, $since, $limit, 'timestamp', true);
     }
 
-    public function handle_order(mixed $client, array $data) {
+    public function handle_order(Client $client, array $data) {
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             $this->orders = new ArrayCacheByOutcomeById($limit);
@@ -3959,7 +3944,7 @@ class myriad extends Exchange {
         $this->options['positionBalances'] = $balances;
     }
 
-    public function handle_position(mixed $client, array $data) {
+    public function handle_position(Client $client, array $data) {
         if ($this->positions === null) {
             $limit = $this->safe_integer($this->options, 'positionsLimit', 1000);
             $this->positions = new ArrayCacheByOutcomeById($limit);

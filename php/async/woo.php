@@ -1867,8 +1867,12 @@ class woo extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
+        $triggerAfter = 0;
+        if (($timeout !== null) && ($timeout > 0)) {
+            $triggerAfter = ($timeout > 900000) ? 900000 : $timeout;
+        }
         $request = array(
-            'triggerAfter' => ($timeout > 0) ? min($timeout, 900000) : 0,
+            'triggerAfter' => $triggerAfter,
         );
         $response = Async\await($this->v3PrivatePostTradeCancelAllAfter($this->extend($request, $params)));
         //
@@ -2199,7 +2203,7 @@ class woo extends Exchange {
         return Async\await($this->fetch_orders($symbol, $since, $limit, $extendedParams));
     }
 
-    public function parse_time_in_force(?string $timeInForce) {
+    public function parse_time_in_force(?string $timeInForce): ?string {
         $timeInForces = array(
             'ioc' => 'IOC',
             'fok' => 'FOK',
@@ -2364,7 +2368,7 @@ class woo extends Exchange {
         ), $marketResolved);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         if ($status !== null) {
             $statuses = array(
                 'NEW' => 'open',
@@ -3018,7 +3022,7 @@ class woo extends Exchange {
         return $this->parse_deposit_address($this->extend($data, array( 'network' => $this->safe_string($request, 'network') )), $currency);
     }
 
-    public function get_dedicated_network_id(mixed $currency, array $params): mixed {
+    public function get_dedicated_network_id(mixed $currency, array $params): array {
         list($networkCodeRaw, $paramsNetworkCode) = $this->handle_network_code_and_params($params);
         $networkCode = $this->network_id_to_code($networkCodeRaw, $currency['code']);
         $networkEntry = ($networkCode === null) ? null : $this->safe_dict($currency['networks'], $networkCode);
@@ -3195,7 +3199,7 @@ class woo extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function get_currency_from_chaincode(mixed $networkizedCode, mixed $currency) {
+    public function get_currency_from_chaincode(mixed $networkizedCode, mixed $currency): array {
         if ($currency !== null) {
             return $currency;
         } else {

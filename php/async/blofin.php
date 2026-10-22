@@ -744,9 +744,7 @@ class blofin extends Exchange {
             'instId' => $market['id'],
         );
         $limitValue = ($limit === null) ? 50 : $limit;
-        if ($limitValue !== null) {
-            $request['size'] = $limitValue; // max 100
-        }
+        $request['size'] = $limitValue; // max 100
         $response = Async\await($this->publicGetMarketBooks($this->extend($request, $params)));
         //
         //     {
@@ -1271,7 +1269,7 @@ class blofin extends Exchange {
 
     public function parse_balance_by_type(array $response): array {
         $data = $this->safe_list($response, 'data');
-        if (($data !== null) && (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
+        if ($data !== null) {
             return $this->parse_funding_balance($response);
         } else {
             return $this->parse_balance($response);
@@ -1487,7 +1485,7 @@ class blofin extends Exchange {
         return $this->extend($request, $query);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'canceled' => 'canceled',
             'order_failed' => 'canceled',
@@ -1829,8 +1827,8 @@ class blofin extends Exchange {
             $marketId = $this->safe_string($rawOrder, 'symbol');
             $type = $this->safe_string($rawOrder, 'type');
             $side = $this->safe_string($rawOrder, 'side');
-            $amount = $this->safe_value($rawOrder, 'amount');
-            $price = $this->safe_value($rawOrder, 'price');
+            $amount = $this->safe_number($rawOrder, 'amount');
+            $price = $this->safe_number($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
             $extendedParams = $this->extend($orderParams, $params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $extendedParams);
@@ -2249,9 +2247,9 @@ class blofin extends Exchange {
         $request = array(
             'currency' => $currency['id'],
         );
-        $networkCode = null;
-        $query = null;
-        list($networkCode, $query) = $this->handle_network_code_and_params($params);
+        // same reads as handleNetworkCodeAndParams, kept as typed locals
+        $networkCode = $this->safe_string_2($params, 'networkCode', 'network');
+        $query = $this->omit($params, array( 'networkCode', 'network' ));
         $chain = $this->safe_string($query, 'chain');
         if ($chain === null) {
             if ($networkCode === null) {
@@ -2685,7 +2683,7 @@ class blofin extends Exchange {
         );
     }
 
-    public function parse_transaction_withdrawal_status(?string $status) {
+    public function parse_transaction_withdrawal_status(?string $status): ?string {
         $statuses = array(
             '0' => 'pending',
             '2' => 'failed',
@@ -2697,7 +2695,7 @@ class blofin extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction_deposit_status(?string $status) {
+    public function parse_transaction_deposit_status(?string $status): ?string {
         $statuses = array(
             '0' => 'pending',
             '1' => 'ok',

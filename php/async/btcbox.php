@@ -666,7 +666,7 @@ class btcbox extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             // TODO: complete list
             'part' => 'open', // partially or not at all executed

@@ -879,7 +879,6 @@ class paradex extends Exchange {
             'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             'symbol' => $market['id'],
         );
-        $maxLimit = 1000; // exchange has undocumented limit slightly above, but this is reliable limit
         $duration = $this->parse_timeframe($timeframe);
         $price = $this->safe_string($params, 'price');
         if ($price !== null) {
@@ -888,17 +887,20 @@ class paradex extends Exchange {
         list($requestUntil, $paramsUntil) = $this->handle_until_option('end_at', $request, $params);
         $hasEnd = (is_array($request) && array_key_exists('end_at' ?? '', $request));
         $paramsOmitted = $this->omit($paramsUntil, array( 'price' ));
-        $limitResolved = ($limit === null) ? $maxLimit : min($limit, $maxLimit);
+        // exchange has undocumented limit slightly above, but 1000 is reliable limit
+        $limitResolved = (($limit === null) || ($limit > 1000)) ? 1000 : $limit;
+        $windowLength = $this->parse_to_int($duration * ($this->parse_to_int($limitResolved) + 1) * 1000);
         if ($since !== null) {
             $requestUntil['start_at'] = $since;
             if (!$hasEnd) {
-                $requestUntil['end_at'] = $since . $duration * ($limitResolved + 1) * 1000 - 1;
+                $sinceInt = $this->parse_to_int($since);
+                $requestUntil['end_at'] = $sinceInt . $windowLength - 1;
             }
         } else {
-            if (!$hasEnd) {
-                $requestUntil['end_at'] = $this->milliseconds();
-            }
-            $requestUntil['start_at'] = $requestUntil['end_at'] - $duration * ($limitResolved + 1) * 1000 + 1;
+            $endAtRaw = $hasEnd ? $this->safe_integer($requestUntil, 'end_at', 0) : $this->milliseconds();
+            $endAt = $this->parse_to_int($endAtRaw);
+            $requestUntil['end_at'] = $endAt;
+            $requestUntil['start_at'] = $endAt - $windowLength + 1;
         }
         $response = Async\await($this->publicGetMarketsKlines($this->extend($requestUntil, $paramsOmitted)));
         //
@@ -1467,7 +1469,7 @@ class paradex extends Exchange {
         ), $marketResolved);
     }
 
-    public function hash_message(mixed $message) {
+    public function hash_message(mixed $message): string {
         $hashed = $this->hash($message, 'keccak', 'hex');
         return '0x' . $hashed;
     }
@@ -1577,7 +1579,7 @@ class paradex extends Exchange {
 
     private function do_authenticate_rest($params = array()) {
         $cachedToken = $this->safe_string($this->options, 'authToken');
-        $now = $this->nonce();
+        $now = $this->parse_to_int($this->nonce());
         if ($cachedToken !== null) {
             $cachedExpires = $this->safe_integer($this->options, 'expires');
             if ($cachedExpires === null) {
@@ -1718,7 +1720,7 @@ class paradex extends Exchange {
         ), $marketResolved);
     }
 
-    public function parse_time_in_force(?string $timeInForce) {
+    public function parse_time_in_force(?string $timeInForce): ?string {
         $timeInForces = array(
             'IOC' => 'IOC',
             'GTC' => 'GTC',
@@ -1727,7 +1729,7 @@ class paradex extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         if ($status !== null) {
             $statuses = array(
                 'NEW' => 'open',
@@ -1740,7 +1742,7 @@ class paradex extends Exchange {
         return null;
     }
 
-    public function parse_order_type(?string $type) {
+    public function parse_order_type(?string $type): ?string {
         $types = array(
             'LIMIT' => 'limit',
             'MARKET' => 'market',
@@ -1750,7 +1752,7 @@ class paradex extends Exchange {
         return $this->safe_string_lower($types, $type, $type);
     }
 
-    public function scale_number(string $num) {
+    public function scale_number(string $num): ?string {
         return Precise::string_mul($num, '100000000');
     }
 
@@ -1849,7 +1851,7 @@ class paradex extends Exchange {
 
     private function do_sign_order_request(array $request, bool $modify = false) {
         $account = Async\await($this->retrieve_account());
-        $now = $this->nonce();
+        $now = $this->parse_to_int($this->nonce());
         $orderType = $this->safe_string($request, 'type');
         if ($orderType === null) {
             throw new ExchangeError($this->id . ' signOrderRequest() missing orderType');
@@ -3080,7 +3082,7 @@ class paradex extends Exchange {
         );
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'PENDING' => 'pending',
             'AVAILABLE' => 'pending',

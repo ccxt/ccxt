@@ -1198,10 +1198,16 @@ class lbank extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        $limitResolved = ($limit === null) ? 100 : min($limit, 2000);
+        $limitResolved = $this->parse_to_int(($limit === null) ? 100 : min($limit, 2000));
         $duration = $this->parse_timeframe($timeframe);
-        $sinceResolved = ($since === null) ? ($this->milliseconds() - ($duration * 1000 * $limitResolved)) : $since;
-        $parsedSince = $this->parse_to_int($sinceResolved / 1000);
+        $now = $this->milliseconds();
+        $defaultSince = $now - ($duration * 1000 * $limitResolved);
+        $sinceResolved = $defaultSince;
+        $parsedSince = $this->parse_to_int($defaultSince / 1000);
+        if ($since !== null) {
+            $sinceResolved = $since;
+            $parsedSince = $this->parse_to_int($since / 1000);
+        }
         $parsedLimit = min($limitResolved + 1, 2000); // max 2000;
         $request = array(
             'symbol' => $market['id'],
@@ -1321,7 +1327,7 @@ class lbank extends Exchange {
         );
         $data = $this->safe_dict($response, 'data');
         // from spotPrivatePostUserInfo
-        $toBtc = $this->safe_value($data, 'toBtc');
+        $toBtc = $this->safe_dict($data, 'toBtc');
         if ($toBtc !== null) {
             $used = $this->safe_dict($data, 'freeze', array());
             $free = $this->safe_dict($data, 'free', array());
@@ -1732,7 +1738,7 @@ class lbank extends Exchange {
         ), $market);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             '-1' => 'canceled', // canceled
             '0' => 'open', // not traded
@@ -3100,10 +3106,12 @@ class lbank extends Exchange {
                 $cacheSecretAsPem = $this->safe_bool($this->options, 'cacheSecretAsPem', true);
                 $pem = null;
                 if ($cacheSecretAsPem) {
-                    $pem = $this->safe_string($this->options, 'pem');
-                    if ($pem === null) {
+                    $cachedPem = $this->safe_string($this->options, 'pem');
+                    if ($cachedPem === null) {
                         $pem = $this->convert_secret_to_pem($this->encode($this->secret));
                         $this->options['pem'] = $pem;
+                    } else {
+                        $pem = $cachedPem;
                     }
                 } else {
                     $pem = $this->convert_secret_to_pem($this->encode($this->secret));
@@ -3125,15 +3133,13 @@ class lbank extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
-    public function convert_secret_to_pem(mixed $secret) {
-        $lineLength = 64;
+    public function convert_secret_to_pem(mixed $secret): string {
         $secretLength = strlen($secret) - 0;
-        $numLines = $this->parse_to_int($secretLength / $lineLength);
-        $numLines = $this->sum($numLines, 1);
+        $fullLines = $this->parse_to_int($secretLength / 64);
         $pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
-        for ($i = 0; $i < $numLines; $i++) {
-            $start = $i * $lineLength;
-            $end = $this->sum($start, $lineLength);
+        for ($i = 0; $i <= $fullLines; $i++) {
+            $start = $i * 64;
+            $end = $this->sum($start, 64);
             $pem .= mb_substr($this->secret, $start, $end - $start) . "\n"; // eslint-disable-line
         }
         return $pem . '-----END PRIVATE KEY-----';

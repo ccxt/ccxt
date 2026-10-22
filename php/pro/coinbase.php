@@ -298,7 +298,8 @@ class coinbase extends \ccxt\async\coinbase {
             $currentToken = $this->safe_string($this->options, 'wsToken');
             $tokenTimestamp = $this->safe_integer($this->options, 'wsTokenTimestamp', 0);
             $seconds = $this->seconds();
-            if ($currentToken === null || $tokenTimestamp + 120 < $seconds) {
+            $tokenExpiry = $tokenTimestamp + 120;
+            if ($currentToken === null || $tokenExpiry < $seconds) {
                 // we should generate new token
                 $token = $this->create_auth_token($seconds);
                 $this->options['wsToken'] = $token;
@@ -793,7 +794,7 @@ class coinbase extends \ccxt\async\coinbase {
         return $orderbook->limit();
     }
 
-    public function handle_trade(mixed $client, array $message) {
+    public function handle_trade(Client $client, array $message) {
         //
         //    {
         //        "channel": "market_trades",
@@ -850,7 +851,7 @@ class coinbase extends \ccxt\async\coinbase {
         $this->try_resolve_usdc($client, $messageHash, $tradesArray);
     }
 
-    public function handle_order(mixed $client, array $message) {
+    public function handle_order(Client $client, array $message) {
         //
         //    {
         //        "channel": "user",
@@ -968,7 +969,7 @@ class coinbase extends \ccxt\async\coinbase {
         ));
     }
 
-    public function handle_order_book_helper(mixed $orderbook, mixed $updates) {
+    public function handle_order_book_helper(mixed $orderbook, array $updates) {
         for ($i = 0; $i < count($updates); $i++) {
             $trade = $this->safe_dict($updates, $i);
             $sideId = $this->safe_string($trade, 'side');
@@ -980,7 +981,7 @@ class coinbase extends \ccxt\async\coinbase {
         }
     }
 
-    public function handle_order_book(mixed $client, array $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         //    {
         //        "channel": "l2_data",

@@ -857,10 +857,6 @@ class woofipro extends Exchange {
         $amount = $this->safe_string($trade, 'executed_quantity');
         $order_id = $this->safe_string($trade, 'order_id');
         $fee = $this->parse_token_and_fee_temp($trade, 'fee_asset', 'fee');
-        $feeCost = $this->safe_string($fee, 'cost');
-        if (($fee !== null) && ($feeCost !== null)) {
-            $fee['cost'] = $feeCost;
-        }
         $cost = Precise::string_mul($price, $amount);
         $side = $this->safe_string_lower($trade, 'side');
         $id = $this->safe_string($trade, 'id');
@@ -1780,7 +1776,7 @@ class woofipro extends Exchange {
         ), $marketResolved);
     }
 
-    public function parse_time_in_force(?string $timeInForce) {
+    public function parse_time_in_force(?string $timeInForce): ?string {
         $timeInForces = array(
             'ioc' => 'IOC',
             'fok' => 'FOK',
@@ -1789,7 +1785,7 @@ class woofipro extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         if ($status !== null) {
             $statuses = array(
                 'NEW' => 'open',
@@ -1807,7 +1803,7 @@ class woofipro extends Exchange {
         return null;
     }
 
-    public function parse_order_type(?string $type) {
+    public function parse_order_type(?string $type): ?string {
         $types = array(
             'LIMIT' => 'limit',
             'MARKET' => 'market',
@@ -2837,7 +2833,7 @@ class woofipro extends Exchange {
         );
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'NEW' => 'pending',
             'CONFIRMING' => 'pending',
@@ -2933,7 +2929,7 @@ class woofipro extends Exchange {
         return $this->safe_number($data, 'withdraw_nonce');
     }
 
-    public function hash_message(mixed $message) {
+    public function hash_message(mixed $message): string {
         $hashed = $this->hash($message, 'keccak', 'hex');
         return '0x' . $hashed;
     }
@@ -3543,8 +3539,9 @@ class woofipro extends Exchange {
                 }
             }
             $secret = $this->secret;
-            if (mb_strpos($secret, 'ed25519:') !== false) {
-                $parts = explode('ed25519:', $secret);
+            $rawSecret = $this->secret;
+            if (mb_strpos($rawSecret, 'ed25519:') !== false) {
+                $parts = explode('ed25519:', $rawSecret);
                 $secret = $parts[1];
             }
             $signature = $this->eddsa($this->encode($auth), $this->base58_to_binary($secret), 'ed25519');

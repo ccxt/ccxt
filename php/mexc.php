@@ -1873,19 +1873,23 @@ class mexc extends Exchange {
         if ($omitUntil) {
             $paramsUntil = $this->omit($paramsPaginate, array( 'until' ));
         }
-        $start = $since;
-        if ($omitUntil) {
-            $usedLimit = ($limit !== null && $limit !== null && $limit !== 0) ? $limit : $maxLimit;
-            $start = $until - ($usedLimit * $duration);
-        }
         if ($market['spot'] === true) {
-            if ($start !== null) {
-                $request['startTime'] = $start;
-                if ($until === null) {
-                    // we have to calculate it assuming we can get at most 2000 entries per request
-                    $end = $this->sum($since, $maxLimit * $duration);
-                    $now = $this->milliseconds();
-                    $request['endTime'] = min($end, $now);
+            if ($since !== null) {
+                $request['startTime'] = $since;
+            }
+            if (($since !== null) && ($until === null)) {
+                // we have to calculate it assuming we can get at most 2000 entries per request
+                $spotWindow = 500 * $duration; // maxLimit is 500 for spot
+                $now = $this->milliseconds();
+                $latestStart = $now - $spotWindow;
+                $request['endTime'] = ($since < $latestStart) ? $this->sum($since, $spotWindow) : $now;
+            }
+            if ($omitUntil && ($until !== null)) {
+                if ($limit !== null && $limit !== null && $limit !== 0) {
+                    $request['startTime'] = $until - ($limit * $duration);
+                } else {
+                    $spotWindow = 500 * $duration; // maxLimit is 500 for spot
+                    $request['startTime'] = $until - $spotWindow;
                 }
             }
             if ($limit !== null) {
@@ -1917,7 +1921,12 @@ class mexc extends Exchange {
             if ($until !== null) {
                 $request['end'] = $this->parse_to_int($until / 1000);
                 if ($since === null) {
-                    $request['start'] = $this->parse_to_int($start / 1000);
+                    if ($limit !== null && $limit !== null && $limit !== 0) {
+                        $request['start'] = $this->parse_to_int(($until - ($limit * $duration)) / 1000);
+                    } else {
+                        $swapWindow = 2000 * $duration; // maxLimit is 2000 for swap
+                        $request['start'] = $this->parse_to_int(($until - $swapWindow) / 1000);
+                    }
                 }
             }
             $priceType = $this->safe_string($paramsUntil, 'price', 'default');
@@ -2545,17 +2554,15 @@ class mexc extends Exchange {
             $this->load_markets();
         }
         $symbol = $market['symbol'];
-        $openType = null;
+        $openType = $this->safe_integer($params, 'openType', 2); // defaulting to cross margin
         if ($marginMode !== null) {
             if ($marginMode === 'cross') {
-                $openType = 2;
+                $openType = $this->parse_to_int(2);
             } elseif ($marginMode === 'isolated') {
-                $openType = 1;
+                $openType = $this->parse_to_int(1);
             } else {
                 throw new ArgumentsRequired($this->id . ' createSwapOrder() marginMode parameter should be either "cross" or "isolated"');
             }
-        } else {
-            $openType = $this->safe_integer($params, 'openType', 2); // defaulting to cross margin
         }
         if (($type !== 'limit') && ($type !== 'market') && ($type !== 1) && ($type !== 2) && ($type !== 3) && ($type !== 4) && ($type !== 5) && ($type !== 6)) {
             throw new InvalidOrder($this->id . ' createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price');
@@ -2965,7 +2972,7 @@ class mexc extends Exchange {
                 if ($end === null) {
                     $request['end_time'] = $this->sum($since, $maxTimeTillEnd);
                 } else {
-                    if (($end - $since) > $maxTimeTillEnd) {
+                    if (($maxTimeTillEnd !== null) && (($end - $since) > $maxTimeTillEnd)) {
                         throw new BadRequest($this->id . ' end is invalid, i.e. exceeds allowed 90 days.');
                     } else {
                         $request['end_time'] = $until;
@@ -2976,7 +2983,7 @@ class mexc extends Exchange {
                 if ($maxTimeTillEnd === null) {
                     throw new ExchangeError($this->id . ' fetchOrders() requires a numeric options["maxTimeTillEnd"]');
                 }
-                $request['start_time'] = $this->sum($until, $maxTimeTillEnd * -1);
+                $request['start_time'] = $until - $maxTimeTillEnd;
                 $request['end_time'] = $until;
             }
             if ($limit !== null) {
@@ -3764,7 +3771,7 @@ class mexc extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'NEW' => 'open',
             'FILLED' => 'closed',
@@ -6392,7 +6399,9 @@ class mexc extends Exchange {
                 );
             }
             if (($method === 'POST') || ($method === 'PUT') || ($method === 'DELETE')) {
-                $requestHeaders = ($requestHeaders === null) ? array() : $requestHeaders;
+                if ($requestHeaders === null) {
+                    $requestHeaders = array();
+                }
                 $requestHeaders['Content-Type'] = 'application/json';
             }
         } elseif ($section === 'contract' || $section === 'spot2') {

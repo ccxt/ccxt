@@ -413,9 +413,9 @@ class deepcoin extends Exchange {
         for ($i = 0; $i < count($types); $i++) {
             $promises[] = $this->fetch_markets_by_type($types[$i], $params);
         }
-        $promises = $promises;
-        for ($i = 0; $i < count($promises); $i++) {
-            $result = $this->array_concat($result, $promises[$i]);
+        $responses = $promises;
+        for ($i = 0; $i < count($responses); $i++) {
+            $result = $this->array_concat($result, $responses[$i]);
         }
         return $result;
     }
@@ -932,7 +932,7 @@ class deepcoin extends Exchange {
         ), $marketResolved);
     }
 
-    public function parse_taker_or_maker(?string $execType) {
+    public function parse_taker_or_maker(?string $execType): ?string {
         $types = array(
             'T' => 'taker',
             'M' => 'maker',

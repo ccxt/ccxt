@@ -295,8 +295,7 @@ class kucoin extends \ccxt\async\kucoin {
         $this->check_required_credentials();
         $utaToken = $this->safe_string($this->options, 'utaToken');
         $lastUpdate = $this->safe_integer($this->options, 'utaTokenLastUpdate', 0);
-        $refreshInterval = 1000 * 60 * 60 * 24; // 24 hours
-        $refreshInterval = $this->safe_integer($this->options, 'utaTokenRefreshInterval', $refreshInterval);
+        $refreshInterval = $this->safe_integer($this->options, 'utaTokenRefreshInterval', 86400000); // 24 hours
         $now = $this->milliseconds();
         $expired = ($now - $lastUpdate) >= $refreshInterval;
         $messageHash = 'utaToken';
@@ -325,7 +324,7 @@ class kucoin extends \ccxt\async\kucoin {
         return $this->safe_string($this->options, 'utaToken');
     }
 
-    public function un_subscribe(mixed $url, mixed $messageHash, mixed $topic, mixed $subscriptionHash, $params = array(), ?array $subscription = null): PromiseInterface {
+    public function un_subscribe(string $url, string $messageHash, string $topic, string $subscriptionHash, $params = array(), ?array $subscription = null): PromiseInterface {
         return $this->un_subscribe_multiple($url, array( $messageHash ), $topic, array( $subscriptionHash ), $params, $subscription);
     }
 
@@ -1827,7 +1826,7 @@ class kucoin extends \ccxt\async\kucoin {
                 }
                 ($orderbook->cache)[] = $data;
                 return;
-            } elseif ($nonce >= $deltaEnd) {
+            } elseif (($deltaEnd !== null) && ($nonce >= $deltaEnd)) {
                 return;
             }
         }
@@ -1886,7 +1885,7 @@ class kucoin extends \ccxt\async\kucoin {
                 }
                 ($orderbook->cache)[] = $data;
                 return;
-            } elseif ($nonce >= $deltaEnd) {
+            } elseif (($deltaEnd !== null) && ($nonce >= $deltaEnd)) {
                 return;
             }
         }
@@ -2100,7 +2099,10 @@ class kucoin extends \ccxt\async\kucoin {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $symbolResolved = ($market !== null) ? $this->safe_string($market, 'symbol') : $symbol;
+        $symbolResolved = $symbol;
+        if ($market !== null) {
+            $symbolResolved = $this->safe_string($market, 'symbol');
+        }
         $messageHash = 'orders';
         if ($symbolResolved !== null) {
             $messageHash = $messageHash . ':' . $symbolResolved;
@@ -2531,7 +2533,10 @@ class kucoin extends \ccxt\async\kucoin {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $symbolResolved = ($market !== null) ? $this->safe_string($market, 'symbol') : $symbol;
+        $symbolResolved = $symbol;
+        if ($market !== null) {
+            $symbolResolved = $this->safe_string($market, 'symbol');
+        }
         if ($market !== null) {
             $messageHash = $messageHash . ':' . $market['symbol'];
         }
@@ -3101,7 +3106,7 @@ class kucoin extends \ccxt\async\kucoin {
         return $this->filter_by_symbols_since_limit($cache, $symbolsNormalized, $since, $limit, true);
     }
 
-    public function get_current_position(string $symbol) {
+    public function get_current_position(string $symbol): ?array {
         if ($this->positions === null) {
             return null;
         }
@@ -3138,7 +3143,7 @@ class kucoin extends \ccxt\async\kucoin {
         for ($i = 0; $i < count($positions); $i++) {
             $position = $positions[$i];
             $contracts = $this->safe_number($position, 'contracts', 0);
-            if ($contracts > 0) {
+            if (($contracts !== null) && ($contracts > 0)) {
                 $cache->append($position);
             }
         }

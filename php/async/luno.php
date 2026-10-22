@@ -796,7 +796,7 @@ class luno extends Exchange {
         return $this->parse_order_book($response, $market['symbol'], $timestamp, 'bids', 'asks', 'price', 'volume');
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             // todo add other statuses
             'PENDING' => 'open',
@@ -1512,8 +1512,8 @@ class luno extends Exchange {
         Async\await($this->load_accounts());
         $currency = null;
         $id = $this->safe_string($params, 'id'); // account id
-        $min_row = $this->safe_value($params, 'min_row');
-        $max_row = $this->safe_value($params, 'max_row');
+        $minRowParam = $this->safe_integer($params, 'min_row');
+        $maxRowParam = $this->safe_integer($params, 'max_row');
         if ($id === null) {
             if ($code === null) {
                 throw new ArgumentsRequired($this->id . ' fetchLedger() requires a currency code argument if no account id specified in params');
@@ -1526,20 +1526,16 @@ class luno extends Exchange {
             }
             $id = $this->safe_string($account, 'id');
         }
-        if ($min_row === null && $max_row === null) {
-            $max_row = 0; // Default to most recent transactions
-            $min_row = -1000; // Maximum number of records supported
-        } elseif ($min_row === null || $max_row === null) {
+        if (($minRowParam === null || $maxRowParam === null) && ($minRowParam !== null || $maxRowParam !== null)) {
             throw new ExchangeError($this->id . " fetchLedger() require both params 'max_row' and 'min_row' or neither to be defined");
         }
-        if ($limit !== null && $max_row - $min_row > $limit) {
-            if ($max_row <= 0) {
-                $min_row = $max_row - $limit;
-            } elseif ($min_row > 0) {
-                $max_row = $min_row . $limit;
-            }
-        }
-        if ($max_row - $min_row > 1000) {
+        $maxRowBase = $this->safe_integer($params, 'max_row', 0); // Default to most recent transactions
+        $minRowBase = $this->safe_integer($params, 'min_row', -1000); // Maximum number of records supported
+        $limitApplies = ($limit !== null) && ($maxRowBase - $minRowBase > $limit);
+        $min_row = ($limitApplies && ($limit !== null) && $maxRowBase <= 0) ? $maxRowBase - $limit : $minRowBase;
+        $max_row = ($limitApplies && $maxRowBase > 0 && $minRowBase > 0) ? $minRowBase . $limit : $maxRowBase;
+        $limitAdjusts = $limitApplies && ($maxRowBase <= 0 || $minRowBase > 0); // max_row - min_row becomes limit
+        if (($limitAdjusts && $limit > 1000) || (!$limitAdjusts && $maxRowBase - $minRowBase > 1000)) {
             throw new ExchangeError($this->id . " fetchLedger() requires the params 'max_row' - 'min_row' <= 1000");
         }
         $request = array(

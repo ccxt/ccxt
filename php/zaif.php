@@ -840,7 +840,7 @@ class zaif extends Exchange {
         );
     }
 
-    public function custom_nonce() {
+    public function custom_nonce(): string {
         $num = $this->number_to_string($this->milliseconds() / 1000);
         $nonce = floatval($num);
         return sprintf('%.8f', $nonce);
