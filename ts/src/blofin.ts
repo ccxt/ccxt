@@ -1867,6 +1867,9 @@ export default class blofin extends Exchange {
             market = this.market (symbol);
             request['instId'] = market['id'];
         }
+        if (since !== undefined) {
+            request['begin'] = since;
+        }
         const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end', request, paramsPaginate);
         if (limit !== undefined) {
             requestUntil['limit'] = limit; // default 100, max 100

@@ -351,6 +351,16 @@
         ],
         "fetchMyTrades": [
             {
+                "description": "swap trades with since send begin",
+                "method": "fetchMyTrades",
+                "url": "https://openapi.blofin.com/api/v1/trade/fills-history?instId=LTC-USDT&begin=1760522400000&limit=5",
+                "input": [
+                    "LTC/USDT:USDT",
+                    1760522400000,
+                    5
+                ]
+            },
+            {
                 "description": "fetch my spot trades",
                 "method": "fetchMyTrades",
                 "url": "https://openapi.blofin.com/api/v1/spot/trade/fills-history?instType=SPOT",
