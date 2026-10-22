@@ -6033,7 +6033,7 @@ class htx(Exchange, ImplicitAPI):
         networkCode, paramsOmited = self.handle_network_code_and_params(params)
         indexedAddresses = await self.fetch_deposit_addresses_by_network(code, paramsOmited)
         selectedNetworkCode = self.select_network_key_from_networks(currency['code'], networkCode, indexedAddresses, True)
-        return self.safe_value(indexedAddresses, selectedNetworkCode)
+        return self.safe_dict(indexedAddresses, selectedNetworkCode)
 
     async def fetch_withdraw_addresses(self, code: str, note: Str = None, networkCode: Str = None, params: dict = {}) -> list[DepositAddress]:
         if self.markets is None:
@@ -8846,7 +8846,7 @@ class htx(Exchange, ImplicitAPI):
                         'percentage': None,
                     },
                 }
-            result = self.assign_default_deposit_withdraw_fees(result, currency)
+            self.assign_default_deposit_withdraw_fees(result, currency)
         return result
 
     def parse_settlements(self, settlements: object, market: MarketInterface):

@@ -2860,7 +2860,7 @@ class digifinex(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        addresses = self.parse_deposit_addresses(data, [currency['code']])
+        addresses = self.index_by(self.parse_deposit_addresses(data, [currency['code']], False), 'currency')
         address = self.safe_dict(addresses, code)
         if address is None:
             raise InvalidAddress(self.id + ' fetchDepositAddress() did not return an address for ' + code + ' - create the deposit address in the user settings on the exchange website first.')

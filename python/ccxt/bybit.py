@@ -5006,7 +5006,7 @@ class bybit(Exchange, ImplicitAPI):
             raise OrderNotFound('Order ' + str(id) + ' was not found.' + extra)
         if length > 1:
             raise InvalidOrder(self.id + ' returned more than one order')
-        return self.safe_value(result, 0)
+        return self.safe_dict(result, 0)
 
     def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -5231,7 +5231,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
             raise OrderNotFound('Order ' + str(id) + ' was not found.' + extra)
         if length > 1:
             raise InvalidOrder(self.id + ' returned more than one order')
-        return self.safe_value(result, 0)
+        order = self.safe_dict(result, 0)
+        return order
 
     def fetch_open_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -5264,7 +5265,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
             raise OrderNotFound('Order ' + str(id) + ' was not found.' + extra)
         if length > 1:
             raise InvalidOrder(self.id + ' returned more than one order')
-        return self.safe_value(result, 0)
+        order = self.safe_dict(result, 0)
+        return order
 
     def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -5727,7 +5729,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         networkCode, paramsOmited = self.handle_network_code_and_params(params)
         indexedAddresses = self.fetch_deposit_addresses_by_network(code, paramsOmited)
         selectedNetworkCode = self.select_network_key_from_networks(currency['code'], networkCode, indexedAddresses, True)
-        return self.safe_value(indexedAddresses, selectedNetworkCode)
+        return self.safe_dict(indexedAddresses, selectedNetworkCode)
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
@@ -8395,7 +8397,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'nextPageCursor': cursorValue,
         }
         result[lastIndex] = last
-        return result
+        return self.to_array(result)
 
     def fetch_leverage_tiers(self, symbols: Strings = None, params: dict = {}) -> LeverageTiers:
         """

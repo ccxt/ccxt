@@ -2067,7 +2067,7 @@ class bitfinex(Exchange, ImplicitAPI):
             'id': [int(id)],
         }
         orders = await self.fetch_open_orders(symbol, None, None, self.extend(request, params))
-        order = self.safe_value(orders, 0)
+        order = self.safe_dict(orders, 0)
         if order is None:
             raise OrderNotFound(self.id + ' order ' + id + ' not found')
         return order
@@ -2088,7 +2088,7 @@ class bitfinex(Exchange, ImplicitAPI):
             'id': [int(id)],
         }
         orders = await self.fetch_closed_orders(symbol, None, None, self.extend(request, params))
-        order = self.safe_value(orders, 0)
+        order = self.safe_dict(orders, 0)
         if order is None:
             raise OrderNotFound(self.id + ' order ' + id + ' not found')
         return order

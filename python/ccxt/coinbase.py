@@ -925,7 +925,7 @@ class coinbase(Exchange, ImplicitAPI):
         currencyType, paramsCurrencyType = self.handle_option_string_and_params(params, 'fetchWithdrawals', 'currencyType')
         if currencyType == 'crypto':
             results = self.fetch_transactions_with_method('v2PrivateGetAccountsAccountIdTransactions', code, since, limit, paramsCurrencyType)
-            return self.filter_by_array(results, 'type', 'withdrawal', False)
+            return self.to_array(self.filter_by_array(results, 'type', 'withdrawal', False))
         return self.fetch_transactions_with_method('v2PrivateGetAccountsAccountIdWithdrawals', code, since, limit, paramsCurrencyType)
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
@@ -945,7 +945,7 @@ class coinbase(Exchange, ImplicitAPI):
         currencyType, paramsCurrencyType = self.handle_option_string_and_params(params, 'fetchDeposits', 'currencyType')
         if currencyType == 'crypto':
             results = self.fetch_transactions_with_method('v2PrivateGetAccountsAccountIdTransactions', code, since, limit, paramsCurrencyType)
-            return self.filter_by_array(results, 'type', 'deposit', False)
+            return self.to_array(self.filter_by_array(results, 'type', 'deposit', False))
         return self.fetch_transactions_with_method('v2PrivateGetAccountsAccountIdDeposits', code, since, limit, paramsCurrencyType)
 
     def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
@@ -963,7 +963,7 @@ class coinbase(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         results = self.fetch_transactions_with_method('v2PrivateGetAccountsAccountIdTransactions', code, since, limit, params)
-        return self.filter_by_array(results, 'type', ['deposit', 'withdrawal'], False)
+        return self.to_array(self.filter_by_array(results, 'type', ['deposit', 'withdrawal'], False))
 
     def parse_transaction_status(self, status: Str):
         statuses = {
@@ -2559,16 +2559,15 @@ class coinbase(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         ledger = self.parse_ledger(data, currency, since, limit)
         length = len(ledger)
-        if length == 0:
-            return ledger
-        lastIndex = length - 1
-        last = self.safe_dict(ledger, lastIndex)
-        pagination = self.safe_dict(response, 'pagination', {})
-        cursor = self.safe_string(pagination, 'next_starting_after')
-        if (cursor is not None) and (cursor != ''):
-            last['info']['next_starting_after'] = cursor
-            ledger[lastIndex] = last
-        return ledger
+        if length > 0:
+            lastIndex = length - 1
+            last = self.safe_dict(ledger, lastIndex)
+            pagination = self.safe_dict(response, 'pagination', {})
+            cursor = self.safe_string(pagination, 'next_starting_after')
+            if (cursor is not None) and (cursor != ''):
+                last['info']['next_starting_after'] = cursor
+                ledger[lastIndex] = last
+        return self.to_array(ledger)
 
     def parse_ledger_entry_status(self, status: Str) -> Str:
         types = {
@@ -2902,7 +2901,7 @@ class coinbase(Exchange, ImplicitAPI):
         for i in range(0, len(self.accounts)):
             account = self.accounts[i]
             if account['code'] == code:
-                return account['id']
+                return self.safe_string(account, 'id')
         return None
 
     def prepare_account_request(self, limit: Int = None, params: dict = {}) -> dict:
@@ -4868,7 +4867,7 @@ class coinbase(Exchange, ImplicitAPI):
         result = self.parse_portfolio_details(response)
         return result
 
-    def parse_portfolio_details(self, portfolioData: dict):
+    def parse_portfolio_details(self, portfolioData: dict) -> list[dict]:
         breakdown = self.safe_dict(portfolioData, 'breakdown')
         portfolioInfo = self.safe_dict(breakdown, 'portfolio', {})
         portfolioName = self.safe_string(portfolioInfo, 'name', 'Unknown')

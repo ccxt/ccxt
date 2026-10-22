@@ -1331,8 +1331,7 @@ class bitso(Exchange, ImplicitAPI):
         }
         response = await self.privateGetOpenOrders(self.extend(request, paramsMarker))
         payload = self.safe_list(response, 'payload', [])
-        orders = self.parse_orders(payload, market, since, limit)
-        return orders
+        return self.parse_orders(payload, market, since, limit)
 
     async def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """

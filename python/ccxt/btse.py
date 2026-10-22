@@ -870,8 +870,7 @@ class btse(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        result = self.parse_ohlcvs(data, market, timeframe, since, limit)
-        return result
+        return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
@@ -986,9 +985,9 @@ class btse(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        rates = self.parse_funding_rate_histories(data, market, since, limit)
         if until is None:
-            return rates
+            return self.parse_funding_rate_histories(data, market, since, limit)
+        rates = self.parse_funding_rate_histories(data, market, since, limit)
         result = []
         for i in range(0, len(rates)):
             rate = rates[i]
@@ -1217,7 +1216,8 @@ class btse(Exchange, ImplicitAPI):
         if market['contract'] is not True:
             raise BadRequest(self.id + ' fetchMarketLeverageTiers() supports contract markets only')
         result = self.fetch_leverage_tiers([symbol], params)
-        return result[symbol]
+        tiers = self.safe_list(result, symbol)
+        return tiers
 
     def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
@@ -1546,9 +1546,9 @@ class btse(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        trades = self.parse_trades(data, market, since, limit)
         if until is None:
-            return trades
+            return self.parse_trades(data, market, since, limit)
+        trades = self.parse_trades(data, market, since, limit)
         result = []
         for i in range(0, len(trades)):
             trade = trades[i]

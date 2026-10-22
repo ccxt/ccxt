@@ -1177,13 +1177,14 @@ class deepcoin(Exchange, ImplicitAPI):
         paramsOmitted = self.omit(params, 'network') if (network is not None) else params
         addressess = await self.fetch_deposit_addresses([code], paramsOmitted)
         length = len(addressess)
-        address = self.safe_dict(addressess, 0, {})
+        index = 0
         if (network is not None) and (length > 1):
+            # the last entry on the requested network wins
             for i in range(0, length):
-                entry = addressess[i]
-                if entry['network'] == network:
-                    address = entry
-        return address
+                entryNetwork = self.safe_string(self.safe_dict(addressess, i, {}), 'network')
+                if entryNetwork == network:
+                    index = i
+        return self.safe_dict(addressess, index, {})
 
     def parse_deposit_address(self, response: dict, currency: Currency = None) -> DepositAddress:
         #

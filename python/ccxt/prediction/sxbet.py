@@ -542,7 +542,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
                     return True
         return False
 
-    def parse_event(self, fixtureId: str, rawMarkets: list[object]) -> object:
+    def parse_event(self, fixtureId: str, rawMarkets: list[object]) -> PredictionEvent:
         """
  @ignore
         groups a fixture's raw markets (all sharing one sportXeventId) into one unified event structure
@@ -1093,7 +1093,8 @@ class sxbet(PredictionExchange, ImplicitAPI):
             response = await self.sxbetPrivateDeleteOrdersV3Event(self.extend(request, rest))
         else:
             response = await self.sxbetPrivateDeleteOrdersV3All(rest)
-        result = self.parse_sxbet_cancel_response(response)
+        result = []
+        result = self.array_concat(result, self.parse_sxbet_cancel_response(response))
         # both paths paginate their async submission - keep going on the SAME route while more remain
         hasMore = self.safe_bool(self.safe_dict(response, 'data', {}), 'hasMore', False)
         guard = 0

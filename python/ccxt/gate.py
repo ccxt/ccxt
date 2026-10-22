@@ -1278,7 +1278,8 @@ class gate(Exchange, ImplicitAPI):
             except Exception as e:
                 # if the request fails, the unifiedAccount is disabled
                 self.options['unifiedAccount'] = False
-        return self.options['unifiedAccount']
+        unified = self.safe_bool(self.options, 'unifiedAccount') is True
+        return unified
 
     def upgrade_unified_trade_account(self, params: dict = {}) -> dict:
         return self.privateUnifiedPutUnifiedMode(params)
@@ -2396,7 +2397,7 @@ class gate(Exchange, ImplicitAPI):
         chainsIndexedByIdRaw = self.fetch_deposit_addresses_by_network(code, paramsNetworkCode)
         chainsIndexedById = chainsIndexedByIdRaw
         selectedNetworkIdOrCode = self.select_network_key_from_networks(code, networkCode, chainsIndexedById, True)
-        return chainsIndexedById[selectedNetworkIdOrCode]
+        return self.safe_dict(chainsIndexedById, selectedNetworkIdOrCode)
 
     def parse_deposit_address(self, depositAddress: dict, currency: Currency = None) -> DepositAddress:
         #
@@ -3674,8 +3675,7 @@ class gate(Exchange, ImplicitAPI):
         #          }
         #      ]
         #
-        response = self.fetch_my_trades(symbol, since, limit, {'order_id': id})
-        return response
+        return self.fetch_my_trades(symbol, since, limit, {'order_id': id})
 
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """

@@ -1836,7 +1836,7 @@ class xt(Exchange, ImplicitAPI):
             symbol = ticker['symbol']
             if symbol is not None:
                 result[symbol] = ticker
-        return self.filter_by_array(result, 'symbol', symbolsNormalized)
+        return self.filter_by_array_tickers(result, 'symbol', symbolsNormalized)
 
     async def fetch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
@@ -1920,7 +1920,7 @@ class xt(Exchange, ImplicitAPI):
             symbol = ticker['symbol']
             if symbol is not None:
                 result[symbol] = ticker
-        return self.filter_by_array(result, 'symbol', symbolsNormalized)
+        return self.filter_by_array_tickers(result, 'symbol', symbolsNormalized)
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #

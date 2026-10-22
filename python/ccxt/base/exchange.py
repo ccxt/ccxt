@@ -6228,7 +6228,7 @@ class BaseExchange(object):
         if self.has['fetchDepositWithdrawFees'] is None or self.has['fetchDepositWithdrawFees'] is False:
             raise NotSupported(self.id + ' fetchDepositWithdrawFee() is not supported yet')
         fees = self.fetch_deposit_withdraw_fees([code], params)
-        return self.safe_value(fees, code)
+        return self.safe_dict(fees, code)
 
     def get_supported_mapping(self, key: Str, mapping: dict = {}):
         if key is None:
@@ -6591,12 +6591,11 @@ class BaseExchange(object):
 
     def fetch_deposit_address(self, code: str, params: dict = {}):
         if self.has['fetchDepositAddresses'] is not None and self.has['fetchDepositAddresses'] is not False:
-            depositAddresses = self.fetch_deposit_addresses([code], params)
-            depositAddress = self.safe_value(depositAddresses, code)
-            if depositAddress is None:
+            depositAddressesList = self.fetch_deposit_addresses([code], params)
+            depositAddresses = self.index_by(depositAddressesList, 'currency')
+            if self.safe_dict(depositAddresses, code) is None:
                 raise InvalidAddress(self.id + ' fetchDepositAddress() could not find a deposit address for ' + code + ', make sure you have created a corresponding deposit address in your wallet on the exchange website')
-            else:
-                return depositAddress
+            return self.safe_dict(depositAddresses, code)
         elif self.has['fetchDepositAddressesByNetwork'] is not None and self.has['fetchDepositAddressesByNetwork'] is not False:
             network = self.safe_string(params, 'network')
             paramsOmitted = self.omit(params, 'network')
@@ -6826,7 +6825,7 @@ class BaseExchange(object):
         if serverTime is None:
             raise ExchangeError(self.id + ' loadTimeDifference() missing serverTime')
         self.options['timeDifference'] = after - serverTime
-        return self.options['timeDifference']
+        return self.parse_to_int(self.options['timeDifference'])
 
     def implode_hostname(self, url: str):
         return self.implode_params(url, {'hostname': self.hostname})
@@ -6837,7 +6836,8 @@ class BaseExchange(object):
             if market['contract'] is not True:
                 raise BadSymbol(self.id + ' fetchMarketLeverageTiers() supports contract markets only')
             tiers = self.fetch_leverage_tiers([symbol])
-            return self.safe_value(tiers, symbol)
+            marketTiers = self.safe_list(tiers, symbol)
+            return marketTiers
         else:
             raise NotSupported(self.id + ' fetchMarketLeverageTiers() is not supported yet')
 
@@ -6891,7 +6891,7 @@ class BaseExchange(object):
                 priceData = self.extend(self.parse_last_price(pricesData[marketId], market), params)
                 results.append(priceData)
         symbolsNormalized = self.market_symbols(symbols)
-        return self.filter_by_array(results, 'symbol', symbolsNormalized)
+        return self.index_by(self.filter_by_array(results, 'symbol', symbolsNormalized, False), 'symbol')
 
     def parse_tickers(self, tickers: object, symbols: Strings = None, params: dict = {}):
         #
@@ -6939,9 +6939,9 @@ class BaseExchange(object):
             address = self.extend(self.parse_deposit_address(addresses[i]), params)
             result.append(address)
         if codes is not None:
-            result = self.filter_by_array(result, 'currency', codes, False)
+            result = self.to_array(self.filter_by_array(result, 'currency', codes, False))
         if indexed:
-            result = self.filter_by_array(result, 'currency', None, indexed)
+            result = self.to_array(self.filter_by_array(result, 'currency', None, indexed))
         return result
 
     def parse_borrow_interests(self, response: object, market: Market = None):
@@ -7147,7 +7147,7 @@ class BaseExchange(object):
             parsed = self.parse_open_interest(entry)
             if parsed['symbol'] is not None:
                 result[parsed['symbol']] = parsed
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.index_by(self.filter_by_array(result, 'symbol', symbols, False), 'symbol')
 
     def parse_open_interests_history(self, response: object, market: Market = None, since: Int = None, limit: Int = None):
         interests = []
@@ -7449,7 +7449,7 @@ class BaseExchange(object):
  @ignore
         Typed wrapper for filterByArray that returns a list of ADL Ranks
         """
-        return self.filter_by_array(objects, key, values, indexed)
+        return self.to_array(self.filter_by_array(objects, key, values, indexed))
 
     def create_ohlcv_object(self, symbol: str, timeframe: str, data: object):
         res = {}
@@ -7850,7 +7850,7 @@ class BaseExchange(object):
                 greek = self.extend(parsed, params)
                 results.append(greek)
         symbolsNormalized = self.market_symbols(symbols)
-        return self.filter_by_array(results, 'symbol', symbolsNormalized)
+        return self.index_by(self.filter_by_array(results, 'symbol', symbolsNormalized, False), 'symbol')
 
     def parse_option(self, chain: dict, currency: Currency = None, market: Market = None):
         raise NotSupported(self.id + ' parseOption () is not supported yet')
@@ -8226,8 +8226,7 @@ class Exchange(BaseExchange):
         :returns dict[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
         """
         if self.has['fetchPositionsHistory'] is not None and self.has['fetchPositionsHistory'] is not False:
-            positions = self.fetchPositionsHistory([symbol], since, limit, params)
-            return positions
+            return self.fetchPositionsHistory([symbol], since, limit, params)
         else:
             raise NotSupported(self.id + ' fetchPositionHistory () is not supported yet')
 
@@ -8695,7 +8694,7 @@ class Exchange(BaseExchange):
         # TODO: TypeScript: change method signature by replacing
         # Promise<string> with Promise<Order['status']>.
         order = self.fetchOrder(id, symbol, params)
-        return order['status']
+        return self.safe_string(order, 'status')
 
     def fetch_unified_order(self, order: object, params: dict = {}):
         return self.fetchOrder(self.safe_string(order, 'id'), self.safe_string(order, 'symbol'), params)

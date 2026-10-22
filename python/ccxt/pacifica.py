@@ -2290,8 +2290,7 @@ class pacifica(Exchange, ImplicitAPI):
         # }
         #
         data = self.add_pagination_cursor_to_result(response)
-        orders = self.parse_orders(data, market, since, limit)
-        return orders
+        return self.parse_orders(data, market, since, limit)
 
     def add_pagination_cursor_to_result(self, response: dict) -> list[dict]:
         data = self.safe_list(response, 'data', [])

@@ -2194,7 +2194,7 @@ class whitebit(Exchange, ImplicitAPI):
         sortedOrders = self.sort_by(allOrders, 'timestamp', True)
         # Apply limit if specified (since and symbol filtering already handled by individual methods)
         if limit is not None and len(sortedOrders) > limit:
-            return sortedOrders[0:limit]
+            return self.array_slice(sortedOrders, 0, limit)
         return sortedOrders
 
     def cancel_all_orders_after(self, timeout: Int, params: dict = {}):
@@ -2400,9 +2400,7 @@ class whitebit(Exchange, ImplicitAPI):
             for j in range(0, len(orders)):
                 order = self.parse_order(orders[j], marketNew)
                 results.append(self.extend(order, {'status': 'closed'}))
-        results = self.sort_by(results, 'timestamp')
-        results = self.filter_by_symbol_since_limit(results, symbolResolved, since, limit)
-        return results
+        return self.filter_by_symbol_since_limit(self.sort_by(results, 'timestamp'), symbolResolved, since, limit)
 
     def parse_order_type(self, type: Str):
         types = {

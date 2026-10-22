@@ -562,7 +562,7 @@ class limitless(PredictionExchange, ImplicitAPI):
                 result.append(raw)
         return result
 
-    def parse_event(self, event: dict) -> object:
+    def parse_event(self, event: dict) -> PredictionEvent:
         # {
         #    "groupId":"trump-out-as-president-before-2027-1768933068297",
         #    "title":"💎 Trump out as President before 2027?",

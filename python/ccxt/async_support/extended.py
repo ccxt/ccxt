@@ -2375,14 +2375,13 @@ class extended(Exchange, ImplicitAPI):
             result = Precise.string_add(result, '1')
         return result
 
-    async def fetch_extended_account(self, params={}) -> object:
+    async def fetch_extended_account(self, params={}) -> dict:
         account = self.safe_dict(self.options, 'account')
         if account is not None:
-            return account
+            return self.safe_dict(self.options, 'account', {})
         accountData = await self.fetch_account(params)
-        account = accountData['info']
-        self.options['account'] = account
-        return account
+        self.options['account'] = accountData['info']
+        return self.safe_dict(self.options, 'account', {})
 
     def create_order_settlement_data(self, isBuy: bool, amountString: str, priceString: str, params: dict = {}) -> dict:
         totalFee = self.safe_string(params, 'totalFee')

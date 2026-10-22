@@ -1298,7 +1298,7 @@ class woofipro(Exchange, ImplicitAPI):
                 continue  # the endpoint returns entries for markets missing from public/info, e.g. pre-TGE symbols
             interest = self.extend({'timestamp': timestamp}, row)
             result.append(self.parse_open_interest(interest))
-        return self.filter_by_array(result, 'symbol', symbolsNormalized)
+        return self.index_by(self.filter_by_array(result, 'symbol', symbolsNormalized, False), 'symbol')
 
     async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingRateHistory]:
         """

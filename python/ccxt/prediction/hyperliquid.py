@@ -1768,7 +1768,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         # so getEvent() resolves these events by any of the three keys
         return self.apply_event_fetch_params(events, params, queries)
 
-    def parse_event(self, raw: dict) -> object:
+    def parse_event(self, raw: dict) -> PredictionEvent:
         """
  @ignore
         parses a grouped set of outcome markets into a unified prediction event object

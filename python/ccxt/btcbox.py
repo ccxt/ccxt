@@ -738,13 +738,12 @@ class btcbox(Exchange, ImplicitAPI):
         #      },
         # ]
         #
-        orders = self.parse_orders(response, market, since, limit)
         # status (open/closed/canceled) is undefined
         # btcbox does not return status, but we know it's 'open' as we queried for open orders
+        extra = {}
         if type == 'open':
-            for i in range(0, len(orders)):
-                orders[i]['status'] = 'open'
-        return orders
+            extra['status'] = 'open'
+        return self.parse_orders(response, market, since, limit, extra)
 
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """

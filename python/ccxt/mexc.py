@@ -4749,22 +4749,20 @@ class mexc(Exchange, ImplicitAPI):
         """
         network = self.safe_string(params, 'network')
         addressStructures = self.fetch_deposit_addresses_by_network(code, params)
-        result: NullableDict
+        key = None
         if network is not None:
-            netCode = self.network_id_to_code(network, code)
-            result = None if (netCode is None) else self.safe_dict(addressStructures, netCode)
+            key = self.network_id_to_code(network, code)
         else:
             options = self.safe_dict(self.options, 'defaultNetworks')
             defaultNetworkForCurrency = self.safe_string(options, code)
             if defaultNetworkForCurrency is not None:
-                result = self.safe_dict(addressStructures, defaultNetworkForCurrency)
+                key = defaultNetworkForCurrency
             else:
                 keys = list(addressStructures.keys())
                 key = self.safe_string(keys, 0)
-                result = self.safe_dict(addressStructures, key)
-        if result is None:
+        if (key is None) or (self.safe_dict(addressStructures, key) is None):
             raise InvalidAddress(self.id + ' fetchDepositAddress() cannot find a deposit address for ' + code + ', and network' + network + 'consider creating one using .createDepositAddress() method or in MEXC website')
-        return result
+        return self.safe_dict(addressStructures, key)
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """

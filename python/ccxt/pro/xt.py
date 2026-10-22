@@ -374,10 +374,7 @@ class xt(ccxt.async_support.xt):
         if symbols is not None:
             raise NotSupported(self.id + ' unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only')
         messageHash = 'unsubscribe::' + name
-        tickers = await self.un_subscribe(messageHash, name, 'public', 'unWatchTickers', 'ticker', None, symbols, params)
-        if self.newUpdates:
-            return tickers
-        return self.filter_by_array(self.tickers, 'symbol', symbols)
+        return await self.un_subscribe(messageHash, name, 'public', 'unWatchTickers', 'ticker', None, symbols, params)
 
     async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """

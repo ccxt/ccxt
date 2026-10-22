@@ -3122,7 +3122,8 @@ class kraken(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        return self.safe_value(response, 'result')
+        result = self.safe_list(response, 'result', [])
+        return result
 
     async def fetch_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
         """

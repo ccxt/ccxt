@@ -1623,7 +1623,8 @@ class hitbtc(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        return self.fetch_transactions_helper('DEPOSIT,WITHDRAW', code, since, limit, params)
+        transactions = self.fetch_transactions_helper('DEPOSIT,WITHDRAW', code, since, limit, params)
+        return self.to_array(transactions)
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
@@ -1637,7 +1638,8 @@ class hitbtc(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        return self.fetch_transactions_helper('DEPOSIT', code, since, limit, params)
+        transactions = self.fetch_transactions_helper('DEPOSIT', code, since, limit, params)
+        return self.to_array(transactions)
 
     def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
@@ -1651,7 +1653,8 @@ class hitbtc(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        return self.fetch_transactions_helper('WITHDRAW', code, since, limit, params)
+        transactions = self.fetch_transactions_helper('WITHDRAW', code, since, limit, params)
+        return self.to_array(transactions)
 
     def fetch_order_books(self, symbols: Strings = None, limit: Int = None, params: dict = {}) -> OrderBooks:
         """
@@ -1946,7 +1949,12 @@ class hitbtc(Exchange, ImplicitAPI):
             else:
                 raise NotSupported(self.id + ' fetchClosedOrders() not support self market type')
         parsed = self.parse_orders(response, market, since, limit)
-        return self.filter_by_array(parsed, 'status', ['closed', 'canceled'], False)
+        result = []
+        for i in range(0, len(parsed)):
+            status = self.safe_string(parsed[i], 'status')
+            if (status == 'closed') or (status == 'canceled'):
+                result.append(parsed[i])
+        return result
 
     def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -2771,7 +2779,7 @@ class hitbtc(Exchange, ImplicitAPI):
             symbol = marketInner['symbol']
             fundingRate = self.parse_funding_rate(rawFundingRate, marketInner)
             fundingRates[symbol] = fundingRate
-        return self.filter_by_array(fundingRates, 'symbol', symbolsNormalized)
+        return self.index_by(self.filter_by_array(fundingRates, 'symbol', symbolsNormalized, False), 'symbol')
 
     def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingRateHistory]:
         """
@@ -3136,7 +3144,7 @@ class hitbtc(Exchange, ImplicitAPI):
             marketInner = self.safe_market(marketId)
             openInterest = self.safe_dict(response, marketId, {})
             results.append(self.parse_open_interest(openInterest, marketInner))
-        return self.filter_by_array(results, 'symbol', symbolsNormalized)
+        return self.index_by(self.filter_by_array(results, 'symbol', symbolsNormalized, False), 'symbol')
 
     def fetch_open_interest(self, symbol: str, params: dict = {}) -> OpenInterest:
         """

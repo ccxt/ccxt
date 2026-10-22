@@ -1291,7 +1291,7 @@ class PredictionExchange(BaseExchange):
             results.append(trade)
         results = self.sort_by_2(results, 'timestamp', 'id')
         outcomeHandle = self.safe_string(outcomeObj, 'outcome')
-        return self.filter_by_outcome_since_limit(results, outcomeHandle, since, limit)
+        return self.filter_by_value_since_limit(results, 'outcome', outcomeHandle, since, limit, 'timestamp', False)
 
     def parse_prediction_orders(self, orders: list[object], outcomeObj: object = None, since: Int = None, limit: Int = None, params: dict = {}):
         """

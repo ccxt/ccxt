@@ -2887,16 +2887,13 @@ class nado(Exchange, ImplicitAPI):
         return '0x' + address + self.pad_hex(encoded, 24, False)
 
     async def query_contracts(self, params: dict = {}) -> dict:
-        cachedContracts = self.safe_dict(self.options, 'gatewayContracts')
-        if cachedContracts is not None:
-            return cachedContracts
-        request = {
-            'type': 'contracts',
-        }
-        response = await self.gatewayPublicGetQuery(self.extend(request, params))
-        data = self.safe_dict(response, 'data', {})
-        self.options['gatewayContracts'] = data
-        return data
+        if self.safe_dict(self.options, 'gatewayContracts') is None:
+            request = {
+                'type': 'contracts',
+            }
+            response = await self.gatewayPublicGetQuery(self.extend(request, params))
+            self.options['gatewayContracts'] = self.safe_dict(response, 'data', {})
+        return self.safe_dict(self.options, 'gatewayContracts', {})
 
     def order_verifying_contract(self, productId: Int):
         return '0x' + self.pad_hex(self.int_to_base16(productId), 40)

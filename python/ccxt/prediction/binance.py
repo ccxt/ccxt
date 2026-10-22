@@ -1203,9 +1203,9 @@ class binance(PredictionExchange, ImplicitAPI):
         # }
         #
         data = self.safe_list(response, 'positions', [])
-        positions = self.parse_prediction_positions(data)
         if outcomes is None:
-            return positions
+            return self.parse_prediction_positions(data)
+        positions = self.parse_prediction_positions(data)
         filtered = []
         positionsLength = len(positions)
         for i in range(0, positionsLength):
@@ -1465,9 +1465,8 @@ class binance(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a wallet
         """
-        cachedWallet = self.safe_dict(self.options, 'wallet')
-        if cachedWallet is not None:
-            return cachedWallet
+        if self.safe_dict(self.options, 'wallet') is not None:
+            return self.safe_dict(self.options, 'wallet')
         walletAddress = self.handle_option_string_and_params(params, methodName, 'walletAddress', self.walletAddress)[0]
         response = await self.sapiPrivateGetWalletList()
         #
@@ -1483,19 +1482,15 @@ class binance(PredictionExchange, ImplicitAPI):
         #
         wallets = self.safe_list(response, 'wallets', [])
         if walletAddress is None:
-            cachedWallet = self.safe_dict(wallets, 0)
-            self.options['wallet'] = cachedWallet
-            return cachedWallet
+            self.options['wallet'] = self.safe_dict(wallets, 0)
+            return self.safe_dict(self.options, 'wallet')
         walletLength = len(wallets)
         for i in range(0, walletLength):
             w = self.safe_string(wallets[i], 'walletAddress', '')
             if w == walletAddress:
-                cachedWallet = wallets[i]
-                break
-        if cachedWallet is None:
-            raise NotSupported(self.id + 'fetchWallet could\'n find wallet ' + walletAddress)
-        self.options['wallet'] = cachedWallet
-        return cachedWallet
+                self.options['wallet'] = wallets[i]
+                return self.safe_dict(self.options, 'wallet')
+        raise NotSupported(self.id + 'fetchWallet could\'n find wallet ' + walletAddress)
 
     async def fetch_quote(self, request: dict, params: dict = {}) -> object:
         """

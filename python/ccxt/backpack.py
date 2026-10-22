@@ -2938,11 +2938,10 @@ class backpack(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         response = self.privateGetApiV1Position(params)
-        positions = self.parse_positions(response)
         if self.is_empty(symbols):
-            return positions
+            return self.parse_positions(response)
         symbolsNormalized = self.market_symbols(symbols)
-        return self.filter_by_array_positions(positions, 'symbol', symbolsNormalized)
+        return self.parse_positions(response, symbolsNormalized)
 
     def parse_position(self, position: dict, market: Market = None) -> Position:
         #

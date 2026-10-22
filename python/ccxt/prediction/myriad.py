@@ -541,8 +541,10 @@ class myriad(PredictionExchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         result = []
         for i in range(0, len(data)):
-            result.append(self.parse_prediction_position(data[i]))
-        return self.filter_by_array(result, 'outcome', outcomes, False)
+            position = self.parse_prediction_position(data[i])
+            if (outcomes is None) or self.in_array(position['outcome'], outcomes):
+                result.append(position)
+        return result
 
     def parse_prediction_position(self, position: dict, market: Market = None) -> PredictionPosition:
         """
@@ -1840,7 +1842,7 @@ class myriad(PredictionExchange, ImplicitAPI):
             'fee': None,
         }, market)
 
-    def parse_market_to_event(self, raw: dict, market: object) -> object:
+    def parse_market_to_event(self, raw: dict, market: object) -> PredictionEvent:
         """
  @ignore
         wraps a parsed myriad market into a unified event structure
@@ -2852,7 +2854,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         postParams = self.omit(params, ['tags'])
         return self.apply_event_fetch_params(result, postParams, queries)
 
-    def parse_event(self, rawEvent: dict) -> object:
+    def parse_event(self, rawEvent: dict) -> PredictionEvent:
         """
  @ignore
         parses a raw myriad question object into the unified event shape with a nested markets list

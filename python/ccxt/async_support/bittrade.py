@@ -1068,7 +1068,7 @@ class bittrade(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         response = await self.privateGetAccountAccounts(params)
-        return self.safe_list(response, 'data', [])
+        return self.to_array(self.safe_list(response, 'data', []))
 
     async def fetch_currencies(self, params: dict = {}) -> Currencies:
         """

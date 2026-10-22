@@ -3634,8 +3634,8 @@ class weex(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         response = await self.contractPrivatePostCapiV3ClosePositions(self.extend(request, params))
-        orders = self.parse_orders(response, market)
-        return self.safe_dict(orders, 0)
+        order = self.safe_dict(response, 0, {})
+        return self.parse_order(order, market)
 
     async def fetch_trading_fee(self, symbol: str, params: dict = {}) -> TradingFeeInterface:
         """

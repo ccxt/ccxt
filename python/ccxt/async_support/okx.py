@@ -5383,7 +5383,7 @@ class okx(Exchange, ImplicitAPI):
             return result
         codeNetwork = self.network_id_to_code(codeValue, codeValue)
         if (codeNetwork is not None) and (codeNetwork in response):
-            return response[codeNetwork]
+            return self.safe_dict(response, codeNetwork)
         # if the network is not specified, return the first address
         keys = list(response.keys())
         first = self.safe_string(keys, 0, '')
@@ -8270,7 +8270,7 @@ class okx(Exchange, ImplicitAPI):
         #     }
         #
         underlyings = self.safe_list(response, 'data', [])
-        return underlyings[0]
+        return self.to_array(self.safe_list(underlyings, 0, []))
 
     async def fetch_greeks(self, symbol: str, params: dict = {}) -> Greeks:
         """

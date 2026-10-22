@@ -1035,7 +1035,7 @@ class alpaca(Exchange, ImplicitAPI):
                 'quoteVolume': Precise.string_mul(self.safe_string(dailyBar, 'v'), self.safe_string(dailyBar, 'vw')),
             }, market)
             results.append(ticker)
-        return self.filter_by_array(results, 'symbol', symbolsNormalized)
+        return self.filter_by_array_tickers(results, 'symbol', symbolsNormalized)
 
     def generate_client_order_id(self, params: dict) -> Str:
         clientOrderIdprefix = self.safe_string(self.options, 'clientOrderId')
@@ -1817,7 +1817,8 @@ class alpaca(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        return await self.fetch_transactions_helper('BOTH', code, since, limit, params)
+        transactions = await self.fetch_transactions_helper('BOTH', code, since, limit, params)
+        return self.to_array(transactions)
 
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
@@ -1831,7 +1832,8 @@ class alpaca(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        return await self.fetch_transactions_helper('INCOMING', code, since, limit, params)
+        transactions = await self.fetch_transactions_helper('INCOMING', code, since, limit, params)
+        return self.to_array(transactions)
 
     async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
@@ -1845,7 +1847,8 @@ class alpaca(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        return await self.fetch_transactions_helper('OUTGOING', code, since, limit, params)
+        transactions = await self.fetch_transactions_helper('OUTGOING', code, since, limit, params)
+        return self.to_array(transactions)
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #

@@ -1898,7 +1898,7 @@ class gemini(Exchange, ImplicitAPI):
             self.load_markets()
         indexedByNetwork = self.fetch_deposit_addresses_by_network(code, params)
         networkCode = self.handle_network_code_and_params(params)[0]
-        return self.safe_value(indexedByNetwork, networkCode)
+        return self.safe_dict(indexedByNetwork, networkCode)
 
     def fetch_deposit_addresses_by_network(self, code: str, params: dict = {}) -> DepositAddresses:
         """

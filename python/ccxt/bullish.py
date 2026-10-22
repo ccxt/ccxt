@@ -2175,7 +2175,7 @@ class bullish(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def load_account(self, params: dict = {}) -> str:
+    def load_account(self, params: dict = {}) -> Str:
         tradingAccountId = None
         paramsTradingAccountId = None
         tradingAccountId, paramsTradingAccountId = self.handle_option_string_and_params(params, 'loadAccount', 'tradingAccountId')
@@ -2191,7 +2191,7 @@ class bullish(Exchange, ImplicitAPI):
         if tradingAccountId is None:
             raise ArgumentsRequired(self.id + ' loadAccount() requires a tradingAccountId parameter in options["tradingAccountId"] or params["tradingAccountId"], fetchAccounts() was not able to find the Primary account')
         self.options['tradingAccountId'] = tradingAccountId
-        return tradingAccountId
+        return self.safe_string(self.options, 'tradingAccountId')
 
     def fetch_accounts(self, params: dict = {}) -> list[Account]:
         """

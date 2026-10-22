@@ -1510,7 +1510,7 @@ class toobit(Exchange, ImplicitAPI):
             ticker = self.extend(parsedTicker, params)
             results.append(ticker)
         symbolsNormalized = self.market_symbols(symbols)
-        return self.filter_by_array(results, 'symbol', symbolsNormalized)
+        return self.filter_by_array_tickers(results, 'symbol', symbolsNormalized)
 
     def parse_bid_ask_custom(self, ticker: dict) -> dict:
         # 's' is the exchange id and 't' a millisecond integer, the pair parseTicker

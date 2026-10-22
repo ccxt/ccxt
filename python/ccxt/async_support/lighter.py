@@ -464,7 +464,8 @@ class lighter(Exchange, ImplicitAPI):
             return True
         signer = await self.load_account(self.options['chainId'], self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex)
         await self.handle_builder_fee_approval(accountIndex, apiKeyIndex)
-        return(signer is not None)
+        loaded = (signer is not None)
+        return loaded
 
     def handle_api_key_index(self, params: object, methodName1: str, optionName1: str, optionName2: str, defaultValue: object = None) -> list:
         apiKeyIndexOption, paramsApiKeyIndex = self.handle_option_and_params_2(params, methodName1, optionName1, optionName2, defaultValue)
@@ -628,12 +629,13 @@ class lighter(Exchange, ImplicitAPI):
             return False
         return True
 
-    async def check_if_standard_tier(self, accountIndex: float):
+    async def check_if_standard_tier(self, accountIndex: float) -> bool:
         tiersForAccountIndexes = self.safe_dict(self.options, 'tiersForAccountIndexes', {})
         accountIndexStr = str(accountIndex)
         isStandardTier = self.safe_bool(tiersForAccountIndexes, accountIndexStr)
         if isStandardTier is not None:
-            return isStandardTier
+            cachedIsStandard = (isStandardTier is True)
+            return cachedIsStandard
         accountLimits = await self.privateGetAccountLimits({'account_index': accountIndex})
         #
         #    {
@@ -859,16 +861,16 @@ class lighter(Exchange, ImplicitAPI):
         if (accountIndex is None) or (apiKeyIndex is None):
             raise ArgumentsRequired(self.id + ' fetchNonce() requires accountIndex and apiKeyIndex.')
         if 'nonce' in params:
-            return self.safe_integer(params, 'nonce')
+            return self.parse_to_int(self.safe_integer(params, 'nonce'))
         nonceInOptions = self.safe_integer(self.options, 'nonce')
         if nonceInOptions is not None:
-            return nonceInOptions
+            return self.parse_to_int(nonceInOptions)
         # avoid skipNonce for l1 operations
         skipNonce = self.handle_option_bool_and_params(params, 'fetchNonce', 'skipNonce', True)[0]
         if skipNonce:
             return self.milliseconds()
         response = await self.publicGetNextNonce({'account_index': accountIndex, 'api_key_index': apiKeyIndex})
-        return self.safe_integer(response, 'nonce')
+        return self.parse_to_int(self.safe_integer(response, 'nonce'))
 
     async def sign_and_create_order(self, method: str, symbol: Str, type: OrderType, side: OrderSide, amount: Num, price: Num = None, params: dict = {}) -> list[object]:
         if self.markets is None:

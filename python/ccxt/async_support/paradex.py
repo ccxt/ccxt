@@ -1379,39 +1379,9 @@ class paradex(Exchange, ImplicitAPI):
         return self.sign_hash(self.hash_message(message), privateKey[-64:])
 
     async def get_system_config(self) -> dict:
-        cachedConfig = self.safe_dict(self.options, 'systemConfig')
-        if cachedConfig is not None:
-            return cachedConfig
-        response = await self.publicGetSystemConfig()
-        #
-        # {
-        #     "starknet_gateway_url": "https://potc-testnet-sepolia.starknet.io",
-        #     "starknet_fullnode_rpc_url": "https://pathfinder.api.testnet.paradex.trade/rpc/v0_7",
-        #     "starknet_chain_id": "PRIVATE_SN_POTC_SEPOLIA",
-        #     "block_explorer_url": "https://voyager.testnet.paradex.trade/",
-        #     "paraclear_address": "0x286003f7c7bfc3f94e8f0af48b48302e7aee2fb13c23b141479ba00832ef2c6",
-        #     "paraclear_decimals": 8,
-        #     "paraclear_account_proxy_hash": "0x3530cc4759d78042f1b543bf797f5f3d647cde0388c33734cf91b7f7b9314a9",
-        #     "paraclear_account_hash": "0x41cb0280ebadaa75f996d8d92c6f265f6d040bb3ba442e5f86a554f1765244e",
-        #     "oracle_address": "0x2c6a867917ef858d6b193a0ff9e62b46d0dc760366920d631715d58baeaca1f",
-        #     "bridged_tokens": [
-        #         {
-        #             "name": "TEST USDC",
-        #             "symbol": "USDC",
-        #             "decimals": 6,
-        #             "l1_token_address": "0x29A873159D5e14AcBd63913D4A7E2df04570c666",
-        #             "l1_bridge_address": "0x8586e05adc0C35aa11609023d4Ae6075Cb813b4C",
-        #             "l2_token_address": "0x6f373b346561036d98ea10fb3e60d2f459c872b1933b50b21fe6ef4fda3b75e",
-        #             "l2_bridge_address": "0x46e9237f5408b5f899e72125dd69bd55485a287aaf24663d3ebe00d237fc7ef"
-        #         }
-        #     ],
-        #     "l1_core_contract_address": "0x582CC5d9b509391232cd544cDF9da036e55833Af",
-        #     "l1_operator_address": "0x11bACdFbBcd3Febe5e8CEAa75E0Ef6444d9B45FB",
-        #     "l1_chain_id": "11155111",
-        #     "liquidation_fee": "0.2"
-        # }
-        #
-        self.options['systemConfig'] = response
+        if self.safe_dict(self.options, 'systemConfig') is None:
+            response = await self.publicGetSystemConfig()
+            self.options['systemConfig'] = response
         return self.safe_dict(self.options, 'systemConfig', {})
 
     async def prepare_paradex_domain(self, l1: bool = False) -> dict:
@@ -1431,29 +1401,27 @@ class paradex(Exchange, ImplicitAPI):
         return domain
 
     async def retrieve_account(self) -> dict:
-        cachedAccount = self.safe_dict(self.options, 'paradexAccount')
-        if cachedAccount is not None:
-            return cachedAccount
-        self.check_required_credentials()
-        systemConfig = await self.get_system_config()
-        domain = await self.prepare_paradex_domain(True)
-        messageTypes = {
-            'Constant': [
-                {'name': 'action', 'type': 'string'},
-            ],
-        }
-        message = {
-            'action': 'STARK Key',
-        }
-        msg = self.eth_encode_structured_data(domain, messageTypes, message)
-        signature = self.sign_message(msg, self.privateKey)
-        account = self.retrieve_stark_account(
-            signature,
-            systemConfig['paraclear_account_hash'],
-            systemConfig['paraclear_account_proxy_hash']
-        )
-        self.options['paradexAccount'] = account
-        return account
+        if self.safe_dict(self.options, 'paradexAccount') is None:
+            self.check_required_credentials()
+            systemConfig = await self.get_system_config()
+            domain = await self.prepare_paradex_domain(True)
+            messageTypes = {
+                'Constant': [
+                    {'name': 'action', 'type': 'string'},
+                ],
+            }
+            message = {
+                'action': 'STARK Key',
+            }
+            msg = self.eth_encode_structured_data(domain, messageTypes, message)
+            signature = self.sign_message(msg, self.privateKey)
+            account = self.retrieve_stark_account(
+                signature,
+                systemConfig['paraclear_account_hash'],
+                systemConfig['paraclear_account_proxy_hash']
+            )
+            self.options['paradexAccount'] = account
+        return self.safe_dict(self.options, 'paradexAccount', {})
 
     async def onboarding(self, params: dict = {}):
         account = await self.retrieve_account()
@@ -1752,9 +1720,11 @@ class paradex(Exchange, ImplicitAPI):
         domain = await self.prepare_paradex_domain()
         msg = self.starknet_encode_structured_data(domain, messageTypes, orderReq, account['address'])
         signature = self.starknet_sign(msg, account['privateKey'])
-        request['signature'] = signature
-        request['signature_timestamp'] = orderReq['timestamp']
-        return request
+        signedRequest = self.extend(request, {
+            'signature': signature,
+            'signature_timestamp': orderReq['timestamp'],
+        })
+        return signedRequest
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
@@ -1934,13 +1904,14 @@ class paradex(Exchange, ImplicitAPI):
         responseOrders = self.safe_list(response, 'orders', [])
         parsedOrders = self.parse_orders(responseOrders)
         errors = self.safe_list(response, 'errors', [])
+        rejected = []
         for i in range(0, len(errors)):
             error = errors[i]
-            parsedOrders.append(self.safe_order({
+            rejected.append(self.safe_order({
                 'info': error,
                 'status': 'rejected',
             }))
-        return parsedOrders
+        return self.array_concat(parsedOrders, rejected)
 
     async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """

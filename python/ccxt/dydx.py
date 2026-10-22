@@ -1228,7 +1228,7 @@ class dydx(Exchange, ImplicitAPI):
         self.load_dydx_protos()
         dydxAccount = self.safe_dict(self.options, 'dydxAccount')
         if dydxAccount is not None:
-            return dydxAccount
+            return self.safe_dict(self.options, 'dydxAccount', {})
         if self.walletAddress is None:
             raise ArgumentsRequired(self.id + ' fetchDydxAccount() requires the walletAddress to be set using the dydx chain address eg: dydx1cpb4tedmwq304c2kc9pwzjwq0sc6z2a4tasxrz')
         if not self.walletAddress.startswith('dydx'):
@@ -1256,7 +1256,7 @@ class dydx(Exchange, ImplicitAPI):
             'key': account['pub_key']['key'],
         }
         self.options['dydxAccount'] = account
-        return account
+        return self.safe_dict(self.options, 'dydxAccount', {})
 
     def pow(self, n: str, m: Str):
         r = Precise.string_mul(n, '1')
@@ -2173,7 +2173,8 @@ class dydx(Exchange, ImplicitAPI):
         #     ]
         # }
         #
-        return self.safe_list(response, 'transfers', [])
+        transfers = self.safe_list(response, 'transfers', [])
+        return transfers
 
     def fetch_accounts(self, params: dict = {}) -> list[Account]:
         """

@@ -4838,7 +4838,7 @@ class binance(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' fetchTickers() does not support ' + type + ' markets yet')
         return self.parse_tickers(response, symbolsNormalized)
 
-    def parse_tickers_for_rolling(self, response: object, symbols: object):
+    def parse_tickers_for_rolling(self, response: object, symbols: Strings) -> Tickers:
         results = []
         for i in range(0, len(response)):
             marketId = self.safe_string(response[i], 'symbol')
@@ -4846,7 +4846,7 @@ class binance(Exchange, ImplicitAPI):
             parsedTicker = self.parse_ticker(response[i])
             parsedTicker['symbol'] = tickerMarket['symbol']
             results.append(parsedTicker)
-        return self.filter_by_array(results, 'symbol', symbols)
+        return self.filter_by_array_tickers(results, 'symbol', symbols)
 
     def fetch_mark_price(self, symbol: str, params: dict = {}) -> Ticker:
         """
@@ -5097,8 +5097,7 @@ class binance(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        candles = self.parse_ohlcvs(self.to_array(response), market, timeframe, since, limitValue)
-        return candles
+        return self.parse_ohlcvs(self.to_array(response), market, timeframe, since, limitValue)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         if 'isDustTrade' in trade:
@@ -10305,7 +10304,7 @@ class binance(Exchange, ImplicitAPI):
             #       },
             #    ]
             #
-            result = {}
+            spotFees = {}
             if response is None:
                 raise NullResponse(self.id + ' method() returned empty response')
             fees = self.to_array(response)
@@ -10313,8 +10312,8 @@ class binance(Exchange, ImplicitAPI):
                 fee = self.parse_trading_fee(fees[i])
                 symbol = fee['symbol']
                 if symbol is not None:
-                    result[symbol] = fee
-            return result
+                    spotFees[symbol] = fee
+            return spotFees
         elif isLinear:
             #
             #     {
@@ -10341,7 +10340,7 @@ class binance(Exchange, ImplicitAPI):
             if markets is None:
                 raise ExchangeError(self.id + ' markets not loaded')
             symbols = list(markets.keys())
-            result = {}
+            linearFees = {}
             feeTier = self.safe_integer(response, 'feeTier')
             feeTiers = (self.fees)['linear']['trading']['tiers']
             maker = feeTiers['maker'][feeTier][1]
@@ -10350,7 +10349,7 @@ class binance(Exchange, ImplicitAPI):
                 symbol = symbols[i]
                 market = markets[symbol]
                 if self.safe_bool(market, 'linear', False):
-                    result[symbol] = {
+                    linearFees[symbol] = {
                         'info': {
                             'feeTier': feeTier,
                         },
@@ -10358,7 +10357,7 @@ class binance(Exchange, ImplicitAPI):
                         'maker': maker,
                         'taker': taker,
                     }
-            return result
+            return linearFees
         elif isInverse:
             #
             #     {
@@ -10373,7 +10372,7 @@ class binance(Exchange, ImplicitAPI):
             if markets is None:
                 raise ExchangeError(self.id + ' markets not loaded')
             symbols = list(markets.keys())
-            result = {}
+            inverseFees = {}
             feeTier = self.safe_integer(response, 'feeTier')
             feeTiers = (self.fees)['inverse']['trading']['tiers']
             maker = feeTiers['maker'][feeTier][1]
@@ -10382,7 +10381,7 @@ class binance(Exchange, ImplicitAPI):
                 symbol = symbols[i]
                 market = markets[symbol]
                 if self.safe_bool(market, 'inverse', False):
-                    result[symbol] = {
+                    inverseFees[symbol] = {
                         'info': {
                             'feeTier': feeTier,
                         },
@@ -10390,7 +10389,7 @@ class binance(Exchange, ImplicitAPI):
                         'maker': maker,
                         'taker': taker,
                     }
-            return result
+            return inverseFees
         raise NotSupported(self.id + ' fetchTradingFees() is not supported for ' + type + ' markets')
 
     def futures_transfer(self, code: str, amount: object, type: float, params: dict = {}) -> TransferEntry:

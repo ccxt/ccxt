@@ -2049,9 +2049,9 @@ class cryptocom(Exchange, ImplicitAPI):
         if networkParam is not None:
             network = self.safe_string(self.networkAliases, networkParam, networkParam)
             if network in depositAddresses:
-                return depositAddresses[network]
+                return self.safe_dict(depositAddresses, network)
         keys = list(depositAddresses.keys())
-        return depositAddresses[keys[0]]
+        return self.safe_dict(depositAddresses, self.safe_string(keys, 0))
 
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """

@@ -898,8 +898,9 @@ class binance(ccxt.async_support.binance):
         subscription = {
             'method': self.handle_fetch_order_book,
         }
-        orderbook = await self.watch(url, messageHash, message, messageHash, subscription)
-        orderbook['symbol'] = market['symbol']
+        snapshot = await self.watch(url, messageHash, message, messageHash, subscription)
+        snapshot['symbol'] = market['symbol']
+        orderbook = self.order_book(snapshot)
         return orderbook
 
     def handle_fetch_order_book(self, client: Client, message: dict):

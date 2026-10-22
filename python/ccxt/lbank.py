@@ -2561,19 +2561,15 @@ class lbank(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         isAuthorized = self.check_required_credentials(False)
-        result: dict
         if isAuthorized:
             options = self.safe_dict(self.options, 'fetchTransactionFees', {})
             defaultMethod = self.safe_string(options, 'method', 'fetchPrivateTransactionFees')
             method = self.safe_string(params, 'method', defaultMethod)
             paramsOmitted = self.omit(params, 'method')
             if method == 'fetchPublicTransactionFees':
-                result = self.fetch_public_transaction_fees(paramsOmitted)
-            else:
-                result = self.fetch_private_transaction_fees(paramsOmitted)
-        else:
-            result = self.fetch_public_transaction_fees(params)
-        return result
+                return self.fetch_public_transaction_fees(paramsOmitted)
+            return self.fetch_private_transaction_fees(paramsOmitted)
+        return self.fetch_public_transaction_fees(params)
 
     def fetch_private_transaction_fees(self, params: dict = {}) -> dict:
         # complete response
@@ -2704,19 +2700,15 @@ class lbank(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         isAuthorized = self.check_required_credentials(False)
-        response: dict
         if isAuthorized:
             options = self.safe_dict(self.options, 'fetchDepositWithdrawFees', {})
             defaultMethod = self.safe_string(options, 'method', 'fetchPrivateDepositWithdrawFees')
             method = self.safe_string(params, 'method', defaultMethod)
             paramsOmitted = self.omit(params, 'method')
             if method == 'fetchPublicDepositWithdrawFees':
-                response = self.fetch_public_deposit_withdraw_fees(codes, paramsOmitted)
-            else:
-                response = self.fetch_private_deposit_withdraw_fees(codes, paramsOmitted)
-        else:
-            response = self.fetch_public_deposit_withdraw_fees(codes, params)
-        return response
+                return self.fetch_public_deposit_withdraw_fees(codes, paramsOmitted)
+            return self.fetch_private_deposit_withdraw_fees(codes, paramsOmitted)
+        return self.fetch_public_deposit_withdraw_fees(codes, params)
 
     def fetch_private_deposit_withdraw_fees(self, codes: Strings = None, params: dict = {}) -> DepositWithdrawFees:
         # complete response

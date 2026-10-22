@@ -1787,13 +1787,13 @@ class hyperliquid(Exchange, ImplicitAPI):
             'nonce': nonce,
             'signature': signature,
         }
-        response = None
+        success = False
         try:
-            response = self.privatePostExchange(request)
-            return response
+            self.privatePostExchange(request)
+            success = True
         except Exception as e:
-            response = None  # ignore this
-        return response
+            success = False  # ignore this
+        return success
 
     def approve_builder_fee(self, builder: str, maxFeeRate: str):
         nonce = self.incrementing_nonce()

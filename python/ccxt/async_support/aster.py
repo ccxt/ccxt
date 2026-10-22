@@ -1720,7 +1720,7 @@ class aster(Exchange, ImplicitAPI):
             priceData = self.extend(self.parse_last_price(rows[i], safeMarket), paramsMarketType)
             results.append(priceData)
         symbolsNormalized2 = self.market_symbols(symbolsNormalized)
-        return self.filter_by_array(results, 'symbol', symbolsNormalized2)
+        return self.index_by(self.filter_by_array(results, 'symbol', symbolsNormalized2, False), 'symbol')
 
     def parse_last_price(self, entry: dict, market: Market = None) -> LastPrice:
         #

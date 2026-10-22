@@ -10768,7 +10768,8 @@ class kucoin(Exchange, ImplicitAPI):
         utaOption, paramsUta = self.handle_option_bool_and_params(params, 'fetchMarketLeverageTiers', 'uta', uta)
         if utaOption:
             result = self.fetch_leverage_tiers([symbol], paramsUta)
-            return self.safe_list(result, symbol, [])
+            tiers = self.safe_list(result, symbol, [])
+            return tiers
         request = {
             'symbol': market['id'],
         }
@@ -11026,13 +11027,12 @@ class kucoin(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns boolean: True if unified account is enabled, False otherwise
         """
-        uta = self.safe_bool(self.options, 'uta')
-        if uta is None:
+        if self.safe_bool(self.options, 'uta') is None:
             response = self.utaPrivateGetAccountMode(params)
             data = self.safe_dict(response, 'data', {})
             accountMode = self.safe_string(data, 'selfAccountMode')
-            uta = (accountMode == 'UNIFIED')
-            self.options['uta'] = uta
+            self.options['uta'] = (accountMode == 'UNIFIED')
+        uta = self.safe_bool(self.options, 'uta') is True
         return uta
 
     def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:

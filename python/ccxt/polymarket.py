@@ -1004,7 +1004,7 @@ class polymarket(Exchange, ImplicitAPI):
         symbolsNormalized = self.market_symbols(symbols)
         response = self.publicGetInfoTickers(params)
         result = self.parse_funding_rates(response)
-        return self.filter_by_array(result, 'symbol', symbolsNormalized)
+        return self.index_by(self.filter_by_array(result, 'symbol', symbolsNormalized, False), 'symbol')
 
     def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
         #
@@ -1139,7 +1139,7 @@ class polymarket(Exchange, ImplicitAPI):
         symbolsNormalized = self.market_symbols(symbols)
         response = self.publicGetInfoTickers(params)
         result = self.parse_open_interests(response)
-        return self.filter_by_array(result, 'symbol', symbolsNormalized)
+        return self.index_by(self.filter_by_array(result, 'symbol', symbolsNormalized, False), 'symbol')
 
     def parse_open_interest(self, interest: object, market: Market = None):
         #

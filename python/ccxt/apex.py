@@ -1285,12 +1285,12 @@ class apex(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' the "seeds" key is required in the options to access private endpoints. You can find it in API Management > Omni Key, and then set it as exchange.options["seeds"] = XXXX')
         return seeds
 
-    def get_account_id(self):
+    def get_account_id(self) -> Str:
         accountId = self.safe_string(self.options, 'accountId', '0')
         if accountId == '0':
             accountData = self.fetch_account()
             self.options['accountId'] = self.safe_string(accountData, 'id', '0')
-        return self.options['accountId']
+        return self.safe_string(self.options, 'accountId')
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """

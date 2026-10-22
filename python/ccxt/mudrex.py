@@ -1075,10 +1075,10 @@ class mudrex(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
+        market = self.market(symbol)
         positionId = self.safe_string(params, 'position_id')
         amount = self.safe_value(params, 'amount')
         if positionId is None:
-            market = self.market(symbol)
             positions = self.fetch_positions([symbol], params)
             for i in range(0, len(positions)):
                 p = positions[i]
@@ -1101,10 +1101,12 @@ class mudrex(Exchange, ImplicitAPI):
                 request['limit_price'] = lp
             partialParams = self.omit(params, ['order_type', 'limit_price', 'amount', 'position_id'])
             partialResponse = self.privatePostFuturesPositionsPositionIdClosePartial(self.extend(request, partialParams))
-            return partialResponse
+            partialData = self.safe_dict(partialResponse, 'data', partialResponse)
+            return self.parse_order(partialData, market)
         closeParams = self.omit(params, ['position_id'])
         response = self.privatePostFuturesPositionsPositionIdClose(self.extend(request, closeParams))
-        return response
+        data = self.safe_dict(response, 'data', response)
+        return self.parse_order(data, market)
 
     def add_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
         """

@@ -3022,7 +3022,8 @@ class blofin(Exchange, ImplicitAPI):
         if clientOrderId is not None:
             request['clientOrderId'] = clientOrderId
         response = self.privatePostTradeClosePosition(self.extend(request, paramsMarginMode))
-        return self.safe_dict(response, 'data')
+        data = self.safe_dict(response, 'data', {})
+        return self.parse_order(data, market)
 
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """

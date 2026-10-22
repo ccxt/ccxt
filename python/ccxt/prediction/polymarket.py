@@ -843,9 +843,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
                         raise ExchangeError(self.id + ' fetchOutcome() could not resolve mkt')
                     self.markets[mkt['market']] = mkt
                 self.populate_outcomes()
-                byId = self.safe_value(self.outcomes_by_id, outcomeSymbol)
-                if byId is not None:
-                    return byId
+                if self.safe_dict(self.outcomes_by_id, outcomeSymbol) is not None:
+                    return self.safe_dict(self.outcomes_by_id, outcomeSymbol)
         return await super(polymarket, self).fetch_outcome(outcomeSymbol)
 
     async def fetch_outcomes(self, outcomeSymbols: list[str]) -> object:
@@ -1592,9 +1591,9 @@ class polymarket(PredictionExchange, ImplicitAPI):
         positions = self.safe_list(response, 'data', [])
         # parse without the base outcome filter (it resolves standard markets, not outcome tokens),
         # then filter by the requested outcomes' token ids ourselves
-        parsed = self.parse_prediction_positions(positions)
         if outcomesLength == 0:
-            return parsed
+            return self.parse_prediction_positions(positions)
+        parsed = self.parse_prediction_positions(positions)
         wantedIds = {}
         if outcomes is None:
             raise ExchangeError(self.id + ' fetchPositions() missing outcomes')
@@ -2347,7 +2346,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         self.index_event_outcomes(event)
         return event
 
-    def parse_event(self, rawEvent: dict) -> dict:
+    def parse_event(self, rawEvent: dict) -> PredictionEvent:
         # {
         #     "id": "73113",
         #     "ticker": "ukraine-agrees-not-to-join-nato-before-2027",

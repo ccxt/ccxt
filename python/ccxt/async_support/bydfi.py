@@ -836,7 +836,7 @@ class bydfi(Exchange, ImplicitAPI):
         maxLimit = 500  # docs says max 1500, but in practice only 500 works
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
-            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit)
+            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit)
         market = self.market(symbol)
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
         request = {
@@ -888,8 +888,7 @@ class bydfi(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        result = self.parse_ohlcvs(data, market, timeframe, since, limit)
-        return result
+        return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
@@ -2651,7 +2650,8 @@ class bydfi(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        return await self.fetch_transactions_helper('deposit', code, since, limit, params)
+        transactions = await self.fetch_transactions_helper('deposit', code, since, limit, params)
+        return self.to_array(transactions)
 
     async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
@@ -2665,7 +2665,8 @@ class bydfi(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        return await self.fetch_transactions_helper('withdrawal', code, since, limit, params)
+        transactions = await self.fetch_transactions_helper('withdrawal', code, since, limit, params)
+        return self.to_array(transactions)
 
     async def fetch_transactions_helper(self, type: str, code: Str, since: Int, limit: Int, params: object) -> list[Transaction]:
         methodName = 'fetchWithdrawals'
