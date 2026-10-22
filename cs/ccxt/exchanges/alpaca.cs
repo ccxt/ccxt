@@ -2111,7 +2111,7 @@ public partial class alpaca : Exchange
             currency = this.currency(code);
         }
         bool sandboxMode = this.isSandboxModeEnabled || (this.safeBool(this.options, "sandboxMode", false) == true);
-        if ((sandboxMode == true))
+        if (sandboxMode)
         {
             // paper-trading hosts do not serve the crypto wallets api at all, so route
             // through the account activities ledger instead, filtered to transfer-like

@@ -1021,7 +1021,7 @@ public partial class zaif : Exchange
             throw new ExchangeError (feedback) ;
         }
         bool? success = this.safeBool(response, "success", true);
-        if ((success != true))
+        if (success != true)
         {
             throw new ExchangeError (feedback) ;
         }

@@ -379,7 +379,7 @@ public partial class coinone : ccxt.coinone
         string? side = null;
         if ((isSellerMaker != null))
         {
-            side = ((isSellerMaker == true)) ? "sell" : "buy";
+            side = isSellerMaker == true ? "sell" : "buy";
         }
         string? priceString = this.safeString(trade, "price");
         string? amountString = this.safeString(trade, "qty");

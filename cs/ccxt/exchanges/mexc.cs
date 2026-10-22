@@ -2121,15 +2121,15 @@ public partial class mexc : Exchange
                 bool? buyerMaker = this.safeBool2(trade, "isBuyerMaker", "m");
                 if ((isMaker != null))
                 {
-                    takerOrMaker = ((isMaker == true)) ? "maker" : "taker";
+                    takerOrMaker = isMaker == true ? "maker" : "taker";
                 }
                 if ((isBuyer != null))
                 {
-                    side = ((isBuyer == true)) ? "buy" : "sell";
+                    side = isBuyer == true ? "buy" : "sell";
                 }
                 if ((buyerMaker != null))
                 {
-                    side = ((buyerMaker == true)) ? "sell" : "buy";
+                    side = buyerMaker == true ? "sell" : "buy";
                     takerOrMaker = "taker";
                 }
                 string? feeAsset = this.safeString(trade, "commissionAsset");
@@ -2799,7 +2799,7 @@ public partial class mexc : Exchange
         IList<object> postOnlyparamsPostOnlyVariable = (IList<object>)this.handlePostOnly((type == "market"), (type == "LIMIT_MAKER"), paramsWithoutClientOrderId);
         bool postOnly = (bool)postOnlyparamsPostOnlyVariable[0];
         IDictionary<string, object> paramsPostOnly = ((IDictionary<string, object>)postOnlyparamsPostOnlyVariable[1]);
-        if ((postOnly == true))
+        if (postOnly)
         {
             request["type"] = "LIMIT_MAKER";
         }
@@ -2944,7 +2944,7 @@ public partial class mexc : Exchange
         bool postOnly = (bool)postOnlyparamsPostOnlyVariable[0];
         IDictionary<string, object> paramsPostOnly = ((IDictionary<string, object>)postOnlyparamsPostOnlyVariable[1]);
         object orderType = null;
-        if ((postOnly == true))
+        if (postOnly)
         {
             orderType = 2;
         } else if ((type == "limit"))
@@ -3009,7 +3009,7 @@ public partial class mexc : Exchange
             }
         }
         request["side"] = sideInteger;
-        object paramsReduceOnly = ((reduceOnly == true)) ? this.omit(paramsPostOnly, "reduceOnly") : paramsPostOnly; // hedged mode does not accept this parameter
+        object paramsReduceOnly = reduceOnly == true ? this.omit(paramsPostOnly, "reduceOnly") : paramsPostOnly; // hedged mode does not accept this parameter
         string? clientOrderId = this.safeString2(paramsReduceOnly, "clientOrderId", "externalOid");
         if ((clientOrderId != null))
         {
@@ -4539,7 +4539,7 @@ public partial class mexc : Exchange
         bool? isMargin = this.safeBool(paramsMarketType, "margin", false);
         object paramsOmitted2 = this.omit(paramsMarketType, new List<object>() {"margin", "marginMode"});
         Dictionary<string, object> response = null;
-        if (((marginMode != null)) || ((isMargin == true)) || (marketType == "margin"))
+        if (((marginMode != null)) || (isMargin == true) || (marketType == "margin"))
         {
             object parsedSymbols = null;
             string? symbol = this.safeString(paramsOmitted2, "symbol");
@@ -6780,7 +6780,7 @@ public partial class mexc : Exchange
         (string?, object) marginModeparamsMarginModeVariable = base.handleMarginModeAndParams(methodName, parameters, defaultValue);
         string? marginMode = marginModeparamsMarginModeVariable.Item1;
         IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
-        if ((defaultType == "margin") || ((isMargin == true)))
+        if ((defaultType == "margin") || (isMargin == true))
         {
             return ("isolated", paramsMarginMode);
         }

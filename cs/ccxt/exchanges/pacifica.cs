@@ -731,7 +731,7 @@ public partial class pacifica : Exchange
             return false;
         }
         bool? buildFee = this.safeBool(this.options, "builderFee", true);
-        if ((buildFee != true))
+        if (buildFee != true)
         {
             return false;  // skip if builder fee is not enabled
         }
@@ -891,7 +891,7 @@ public partial class pacifica : Exchange
             contractSize = this.parseNumber("1");
             minLeverage = 1;
             maxLeverage = this.safeInteger(market, "max_leverage");
-            crossMargin = (isolatedOnly != true);
+            crossMargin = isolatedOnly != true;
             isolatedMargin = true;
         }
         string? bs = this.safeCurrencyCode(baseId);
@@ -1180,7 +1180,7 @@ public partial class pacifica : Exchange
         refresh ??= false;
         parameters ??= new Dictionary<string, object>();
         object settings = this.handleOption("loadAccountSettings", "settings");
-        if (((settings == null)) || ((refresh == true)))
+        if (((settings == null)) || isTrue((refresh)))
         {
             this.options["settings"] = this.createSafeDictionary();
             settings = ccxt.BaseExchange.FromDict(await this.FetchAccountSettings(parameters));
@@ -1822,7 +1822,7 @@ public partial class pacifica : Exchange
         //
         bool? success = this.safeBool(response, "success", false);
         string? status = null;
-        if ((success != true))
+        if (success != true)
         {
             status = "rejected";
         } else
@@ -2088,7 +2088,7 @@ public partial class pacifica : Exchange
             string? error = this.safeString(order, "error");
             bool? success = this.safeBool(order, "success", false);
             string? status = null;
-            if (((error != null)) || ((success != true)))
+            if (((error != null)) || (success != true))
             {
                 status = "rejected";
             } else
@@ -2160,7 +2160,7 @@ public partial class pacifica : Exchange
             string? error = this.safeString(order, "error");
             bool? success = this.safeBool(order, "success", false);
             string? status = null;
-            if (((error != null)) || ((success != true)))
+            if (((error != null)) || (success != true))
             {
                 status = "closed";
             } else
@@ -3909,7 +3909,7 @@ public partial class pacifica : Exchange
         string? status = null;
         if ((success != null))
         {
-            status = ((success == true)) ? "ok" : "failed";
+            status = success == true ? "ok" : "failed";
         }
         return new Dictionary<string, object>() {
             { "info", transfer },

@@ -2187,11 +2187,11 @@ public partial class digifinex : Exchange
             int? orderType = null;
             if ((side is "buy"))
             {
-                int requestType = ((reduceOnly == true)) ? 4 : 1;
+                int requestType = reduceOnly == true ? 4 : 1;
                 request["type"] = requestType;
             } else
             {
-                int requestType = ((reduceOnly == true)) ? 3 : 2;
+                int requestType = reduceOnly == true ? 3 : 2;
                 request["type"] = requestType;
             }
             if (isLimitOrder)
@@ -2220,7 +2220,7 @@ public partial class digifinex : Exchange
             paramsRequest = this.omit(paramsMarginMode, new List<object>() {"reduceOnly", "timeInForce", "postOnly"});
         } else
         {
-            postOnlyParsed = ((postOnly == true)) ? 1 : 2;
+            postOnlyParsed = postOnly ? 1 : 2;
             request["market"] = marketType;
             string suffix = "";
             if ((type == "market"))
@@ -5000,7 +5000,7 @@ public partial class digifinex : Exchange
             {
                 throw new NotSupported ((this.id + " only cross margin is supported")) ;
             }
-        } else if ((defaultType == "margin") || ((isMargin == true)))
+        } else if ((defaultType == "margin") || (isMargin == true))
         {
             return ("cross", paramsMarginMode);
         }

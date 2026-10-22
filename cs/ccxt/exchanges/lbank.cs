@@ -1522,7 +1522,7 @@ public partial class lbank : Exchange
         }
         // from spotPrivatePostSupplementUserInfo
         bool isArray = ((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
-        if ((isArray == true))
+        if (isArray)
         {
             for (int i = 0; i < data.Count; i++)
             {
@@ -1857,7 +1857,7 @@ public partial class lbank : Exchange
         };
         bool ioc = (timeInForce == "IOC");
         bool fok = (timeInForce == "FOK");
-        bool maker = (((postOnly == true)) || (timeInForce == "PO"));
+        bool maker = ((postOnly == true) || (timeInForce == "PO"));
         if (((type == "market")) && (ioc || fok || maker))
         {
             throw new InvalidOrder ((this.id + " createOrder () does not allow market FOK, IOC, or postOnly orders. Only limit IOC, FOK, and postOnly orders are allowed")) ;
@@ -2953,7 +2953,7 @@ public partial class lbank : Exchange
         }
         bool isAuthorized = this.checkRequiredCredentials(false);
         object result = null;
-        if ((isAuthorized == true))
+        if (isAuthorized)
         {
             IDictionary<string, object> options = this.safeDict(this.options, "fetchTransactionFees", new Dictionary<string, object>() {});
             string? defaultMethod = this.safeString(options, "method", "fetchPrivateTransactionFees");
@@ -3135,7 +3135,7 @@ public partial class lbank : Exchange
         }
         bool isAuthorized = this.checkRequiredCredentials(false);
         object response = null;
-        if ((isAuthorized == true))
+        if (isAuthorized)
         {
             IDictionary<string, object> options = this.safeDict(this.options, "fetchDepositWithdrawFees", new Dictionary<string, object>() {});
             string? defaultMethod = this.safeString(options, "method", "fetchPrivateDepositWithdrawFees");

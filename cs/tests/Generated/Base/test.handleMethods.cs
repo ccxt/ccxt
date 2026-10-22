@@ -91,7 +91,7 @@ public partial class BaseTest
             (bool?, object) utaparams2Variable = exchange.handleOptionBoolAndParams(new Dictionary<string, object>() {}, "fetchX", "uta", false);
             object uta = utaparams2Variable.Item1;
             object params2 = utaparams2Variable.Item2;
-            Assert(isEqual(uta, true));
+            Assert(uta);
             (string?, object) absentparams3Variable = exchange.handleOptionStringAndParams(new Dictionary<string, object>() {}, "fetchX", "absentKey", "fallback");
             object absent = absentparams3Variable.Item1;
             object params3 = absentparams3Variable.Item2;

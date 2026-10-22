@@ -2752,7 +2752,7 @@ public partial class binance : ccxt.binance
         string suffix = "";
         if (isMarkPrice && !isOptionMarkPrice)
         {
-            suffix = ((use1sFreq == true)) ? "@1s" : "";
+            suffix = use1sFreq == true ? "@1s" : "";
         }
         string? unifiedPrefix = null;
         if (isBidAsk)
@@ -3809,7 +3809,7 @@ public partial class binance : ccxt.binance
         Dictionary<string, object> parameters = new Dictionary<string, object>() {
             { "type", type },
         };
-        if ((isPortfolioMargin is true))
+        if (isTrue(isPortfolioMargin))
         {
             parameters["portfolioMargin"] = true;
         }
@@ -4123,7 +4123,7 @@ public partial class binance : ccxt.binance
             } else if ((type is "option"))
             {
                 bool? demoMode = this.safeBool(this.options, "enableDemoTrading", false);
-                if (((demoMode == true)) || this.isSandboxModeEnabled)
+                if ((demoMode == true) || this.isSandboxModeEnabled)
                 {
                     throw new NotSupported ((this.id + " watchBalance() does not support option markets in demo/testnet mode")) ;
                 }
@@ -4137,7 +4137,7 @@ public partial class binance : ccxt.binance
         IDictionary<string, object> options = this.safeDict(this.options, "watchBalance");
         bool? fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
         bool? awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
-        if (((fetchBalanceSnapshot == true)) && ((awaitBalanceSnapshot == true)))
+        if ((fetchBalanceSnapshot == true) && (awaitBalanceSnapshot == true))
         {
             await client.future(add(type, ":fetchBalanceSnapshot"));
         }
@@ -4749,7 +4749,7 @@ public partial class binance : ccxt.binance
         bool shouldUseAlgoOrder = ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true)) && (((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true)) || ((((market.ContainsKey("future") ? market["future"] : null) as bool?) == true))) && ((isConditional == true));
         if ((clientOrderId != null))
         {
-            if ((shouldUseAlgoOrder == true))
+            if (shouldUseAlgoOrder)
             {
                 payload["clientAlgoId"] = clientOrderId;
             } else
@@ -4758,7 +4758,7 @@ public partial class binance : ccxt.binance
             }
         } else
         {
-            if ((shouldUseAlgoOrder == true))
+            if (shouldUseAlgoOrder)
             {
                 payload["algoId"] = this.numberToString(id);
             } else
@@ -4772,7 +4772,7 @@ public partial class binance : ccxt.binance
             { "method", "order.cancel" },
             { "params", this.signParams(this.extend(payload, paramsOmitted)) },
         };
-        if ((shouldUseAlgoOrder == true))
+        if (shouldUseAlgoOrder)
         {
             message["method"] = "algoOrder.cancel";
         }
@@ -5141,7 +5141,7 @@ public partial class binance : ccxt.binance
             } else if ((type == "option"))
             {
                 bool? demoMode = this.safeBool(this.options, "enableDemoTrading", false);
-                if (((demoMode == true)) || this.isSandboxModeEnabled)
+                if ((demoMode == true) || this.isSandboxModeEnabled)
                 {
                     throw new NotSupported ((this.id + " watchOrders() does not support option markets in demo/testnet mode")) ;
                 }
@@ -5820,7 +5820,7 @@ public partial class binance : ccxt.binance
         } else if ((type is "option"))
         {
             bool? demoMode = this.safeBool(this.options, "enableDemoTrading", false);
-            if (((demoMode == true)) || this.isSandboxModeEnabled)
+            if ((demoMode == true) || this.isSandboxModeEnabled)
             {
                 throw new NotSupported ((this.id + " watchPositions() does not support option markets in demo/testnet mode")) ;
             }
@@ -5881,7 +5881,7 @@ public partial class binance : ccxt.binance
         Dictionary<string, object> parameters = new Dictionary<string, object>() {
             { "type", type },
         };
-        if ((isPortfolioMargin is true))
+        if (isTrue(isPortfolioMargin))
         {
             parameters["portfolioMargin"] = true;
         }
@@ -6331,7 +6331,7 @@ public partial class binance : ccxt.binance
             } else if ((type == "option"))
             {
                 bool? demoMode = this.safeBool(this.options, "enableDemoTrading", false);
-                if (((demoMode == true)) || this.isSandboxModeEnabled)
+                if ((demoMode == true) || this.isSandboxModeEnabled)
                 {
                     throw new NotSupported ((this.id + " watchMyTrades() does not support option markets in demo/testnet mode")) ;
                 }

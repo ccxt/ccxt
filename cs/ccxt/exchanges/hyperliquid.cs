@@ -1187,7 +1187,7 @@ public partial class hyperliquid : Exchange
         string? dex = this.safeString(paramsValue, "dex");
         bool isSpot = (((type == "spot")) || ((isUnifiedEnabled is true))) && ((dex == null));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "type", ((isSpot == true)) ? "spotClearinghouseState" : "clearinghouseState" },
+            { "type", isSpot ? "spotClearinghouseState" : "clearinghouseState" },
             { "user", userAddress },
         };
         object response = await this.publicPostInfo(this.extend(request, paramsValue));
@@ -1236,7 +1236,7 @@ public partial class hyperliquid : Exchange
             {
                 IDictionary<string, object> balance = this.safeDict(balances, i);
                 string? unifiedCode = this.safeCurrencyCode(this.safeString(balance, "coin"));
-                string? code = ((isSpot == true)) ? this.updateSpotCurrencyCode(unifiedCode) : unifiedCode;
+                string? code = isSpot ? this.updateSpotCurrencyCode(unifiedCode) : unifiedCode;
                 Dictionary<string, object> account = this.account();
                 string? total = this.safeString(balance, "total");
                 string? used = this.safeString(balance, "hold");
@@ -2074,7 +2074,7 @@ public partial class hyperliquid : Exchange
         Int64? nonce = this.incrementingNonce();
         bool? isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
         Dictionary<string, object> payload = new Dictionary<string, object>() {
-            { "hyperliquidChain", ((isSandboxMode == true)) ? "Testnet" : "Mainnet" },
+            { "hyperliquidChain", isSandboxMode == true ? "Testnet" : "Mainnet" },
             { "maxFeeRate", maxFeeRate },
             { "builder", builder },
             { "nonce", nonce },
@@ -2131,7 +2131,7 @@ public partial class hyperliquid : Exchange
             // when the user disables the builder fee (builderFee = false) we still approve and attach the builder,
             // but with a 0% fee rate, so orders remain attributed to the builder for statistics purposes only and the user is not charged
             string? maxFeeRate = this.safeString(this.options, "feeRate", "0.01%");
-            if ((buildFee != true))
+            if (buildFee != true)
             {
                 maxFeeRate = "0%";
             }
@@ -2232,7 +2232,7 @@ public partial class hyperliquid : Exchange
         bool? isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
         string? type = this.safeString(paramsPublicAddress, "type", "userSetAbstraction");
         Dictionary<string, object> payload = new Dictionary<string, object>() {
-            { "hyperliquidChain", ((isSandboxMode == true)) ? "Testnet" : "Mainnet" },
+            { "hyperliquidChain", isSandboxMode == true ? "Testnet" : "Mainnet" },
             { "user", userAddress },
             { "abstraction", abstraction },
             { "nonce", nonce },
@@ -2282,7 +2282,7 @@ public partial class hyperliquid : Exchange
         bool? isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
         string? type = this.safeString(paramsPublicAddress, "type", "userDexAbstraction");
         Dictionary<string, object> payload = new Dictionary<string, object>() {
-            { "hyperliquidChain", ((isSandboxMode == true)) ? "Testnet" : "Mainnet" },
+            { "hyperliquidChain", isSandboxMode == true ? "Testnet" : "Mainnet" },
             { "user", userAddress },
             { "enabled", enabled },
             { "nonce", nonce },
@@ -5038,7 +5038,7 @@ public partial class hyperliquid : Exchange
         {
             bool? isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
             Dictionary<string, object> payload = new Dictionary<string, object>() {
-                { "hyperliquidChain", ((isSandboxMode == true)) ? "Testnet" : "Mainnet" },
+                { "hyperliquidChain", isSandboxMode == true ? "Testnet" : "Mainnet" },
                 { "destination", address },
                 { "amount", amount.ToString() },
                 { "time", nonce },

@@ -183,7 +183,7 @@ public partial class testMainClass : BaseTest
         } else
         {
             // if not spot, any of the below should be true
-            assert(((contract == true)) && (((future == true)) || ((swap == true)) || ((option == true)) || ((isIndex == true))), ("for non-spot markets, any of (future/swap/option/index) should be set" + (logText)));
+            assert(((contract == true)) && (((future == true)) || ((swap == true)) || ((option == true)) || (isIndex)), ("for non-spot markets, any of (future/swap/option/index) should be set" + (logText)));
         }
         string? contractSize = exchange.safeString(market, "contractSize");
         // contract fields
@@ -218,7 +218,7 @@ public partial class testMainClass : BaseTest
         // future, swap and option should be mutually exclusive
         if (isEqual(getValue(market, "future"), true))
         {
-            assert((!isEqual(getValue(market, "swap"), true)) && (!isEqual(getValue(market, "option"), true)) && ((isIndex != true)), ("market swap and option must be false when \"future\" is true" + (logText)));
+            assert((!isEqual(getValue(market, "swap"), true)) && (!isEqual(getValue(market, "option"), true)) && (!isIndex), ("market swap and option must be false when \"future\" is true" + (logText)));
         } else if (isEqual(getValue(market, "swap"), true))
         {
             assert(((future != true)) && ((option != true)), ("market future and option must be false when \"swap\" is true" + (logText)));

@@ -878,7 +878,7 @@ public partial class sxbet : PredictionExchange
         }
         IDictionary<string, object> proxy = await this.fetchSxbetProxy();
         bool? deployed = this.safeBool(proxy, "deployed", false);
-        if ((deployed != true))
+        if (deployed != true)
         {
             await this.sxbetPrivatePostUserDeployProxy();
             // deployment is asynchronous - poll until the proxy exists
@@ -1355,7 +1355,7 @@ public partial class sxbet : PredictionExchange
         // both paths paginate their async submission - keep going on the SAME route while more remain
         bool? hasMore = this.safeBool(this.safeDict(response, "data", new Dictionary<string, object>() {}), "hasMore", false);
         object guard = 0;
-        while (((hasMore == true)) && (isLessThan(guard, 50)))
+        while ((hasMore == true) && (isLessThan(guard, 50)))
         {
             Dictionary<string, object> nextResponse = null;
             if (isEventScoped)
@@ -1709,7 +1709,7 @@ public partial class sxbet : PredictionExchange
         string? takerOrMaker = null;
         if ((isMaker != null))
         {
-            takerOrMaker = ((isMaker == true)) ? "maker" : "taker";
+            takerOrMaker = isMaker == true ? "maker" : "taker";
         }
         return this.safePredictionTrade(new Dictionary<string, object>() {
             { "id", this.safeString(fill, "id") },

@@ -2497,7 +2497,7 @@ public partial class hyperliquid : PredictionExchange
         Int64? nonce = this.incrementingNonce();
         bool? isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
         Dictionary<string, object> payload = new Dictionary<string, object>() {
-            { "hyperliquidChain", ((isSandboxMode == true)) ? "Testnet" : "Mainnet" },
+            { "hyperliquidChain", isSandboxMode == true ? "Testnet" : "Mainnet" },
             { "maxFeeRate", maxFeeRate },
             { "builder", builder },
             { "nonce", nonce },
@@ -2527,7 +2527,7 @@ public partial class hyperliquid : PredictionExchange
         // async for the PHP and typed transpilers, which mishandle an async body that never suspends
         await this.loadMarkets();
         bool? buildFee = this.safeBool(this.options, "builderFee", false);
-        if ((buildFee != true))
+        if (buildFee != true)
         {
             return null;
         }

@@ -3799,13 +3799,13 @@ public partial class bitget : Exchange
                     IDictionary<string, object> entry = this.safeDict(data, j, new Dictionary<string, object>() {});
                     string? entrySymbol = this.safeString(entry, "symbol");
                     bool? entryBorrowable = this.safeBool(entry, "isBorrowable", true);
-                    if (((entryBorrowable == true)) && (this.safeBool(entry, "isCrossBorrowable", true) == true))
+                    if ((entryBorrowable == true) && (this.safeBool(entry, "isCrossBorrowable", true) == true))
                     {
                         crossKeys.Add(entrySymbol);
                     }
                     bool? isolatedBase = this.safeBool(entry, "isIsolatedBaseBorrowable", true);
                     bool? isolatedQuote = this.safeBool2(entry, "isIsolatedQuotedBorrowable", "isIsolatedQuoteBorrowable", true);
-                    if (((entryBorrowable == true)) && (((isolatedBase == true)) || ((isolatedQuote == true))))
+                    if ((entryBorrowable == true) && ((isolatedBase == true) || (isolatedQuote == true)))
                     {
                         isolatedKeys.Add(entrySymbol);
                     }
@@ -6422,7 +6422,7 @@ public partial class bitget : Exchange
             Dictionary<string, object> request = new Dictionary<string, object>() {};
             if (marketType == "spot")
             {
-                if (((marginMode != null)) || ((utaMargin == true)))
+                if (((marginMode != null)) || (utaMargin == true))
                 {
                     request["category"] = "MARGIN";
                 } else
@@ -6479,7 +6479,7 @@ public partial class bitget : Exchange
         {
             bool? margin = this.safeBool(paramsMarginMode, "margin", false);
             paramsMarginMode = this.omit(paramsMarginMode, "margin");
-            if (((marginMode != null)) || ((margin == true)))
+            if (((marginMode != null)) || (margin == true))
             {
                 response = await this.publicMarginGetV2MarginCurrencies(paramsMarginMode);
             } else
@@ -6666,7 +6666,7 @@ public partial class bitget : Exchange
         }
         if ((paginate == true))
         {
-            int limitForPagination = ((useHistoryEndpointForPagination == true)) ? maxLimitForHistoryEndpoint : maxLimitForRecentEndpoint;
+            int limitForPagination = useHistoryEndpointForPagination == true ? maxLimitForHistoryEndpoint : maxLimitForRecentEndpoint;
             Dictionary<string, object> paramsWithUta = this.extend(paramsUTA, new Dictionary<string, object>() {
                 { "uta", uta },
             });
@@ -6757,7 +6757,7 @@ public partial class bitget : Exchange
         }
         // if historical endpoint is needed, we should re-set the variables
         bool historicalEndpointNeeded = false;
-        if ((!(calculatedStartTime == null) && isLessThanOrEqual(calculatedStartTime, recentEndpointBoundaryTs)) || ((useHistoryEndpoint == true)))
+        if ((!(calculatedStartTime == null) && isLessThanOrEqual(calculatedStartTime, recentEndpointBoundaryTs)) || (useHistoryEndpoint == true))
         {
             historicalEndpointNeeded = true;
             // only for "historical-candles" - ensure we use correct max limit
@@ -8596,7 +8596,7 @@ public partial class bitget : Exchange
             string? cost = this.safeString(paramsOmitted, "cost");
             paramsOmitted = this.omit(paramsOmitted, "cost");
             bool? editMarketBuyOrderRequiresPrice = this.safeBool(this.options, "editMarketBuyOrderRequiresPrice", true);
-            if ((((editMarketBuyOrderRequiresPrice == true)) || ((cost != null))) && isMarketOrder && ((side == "buy")))
+            if (((editMarketBuyOrderRequiresPrice == true) || ((cost != null))) && isMarketOrder && ((side == "buy")))
             {
                 if ((price == null) && (cost == null))
                 {
@@ -14709,7 +14709,7 @@ public partial class bitget : Exchange
         }
         Dictionary<string, object> headersResult = requestHeaders;
         bool? sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
-        if (((sandboxMode == true)) && ((path != "v2/public/time")) && ((path != "v3/market/current-fund-rate")))
+        if ((sandboxMode == true) && ((path != "v2/public/time")) && ((path != "v3/market/current-fund-rate")))
         {
             // https://github.com/ccxt/ccxt/issues/25252#issuecomment-2662742336
             if ((headersResult == null))

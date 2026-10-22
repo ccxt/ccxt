@@ -300,7 +300,7 @@ public partial class binance : PredictionExchange
                 collected.Add((pageTopics != null && i < pageTopics.Count ? pageTopics[i] : null));
             }
             bool? hasMore = this.safeBool(response, "hasMore", false);
-            if (((hasMore != true)) || (isLessThan(pageTopicsLength, reqLimit)))
+            if ((hasMore != true) || (isLessThan(pageTopicsLength, reqLimit)))
             {
                 break;
             }
@@ -391,7 +391,7 @@ public partial class binance : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         bool? allowUnscopedFetchEvents = this.safeBool(this.options, "allowUnscopedFetchEvents", false);
-        if ((allowUnscopedFetchEvents != true))
+        if (allowUnscopedFetchEvents != true)
         {
             this.requireEventQuery(parameters);
         }

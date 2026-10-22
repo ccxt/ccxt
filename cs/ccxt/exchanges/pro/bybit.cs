@@ -213,7 +213,7 @@ public partial class bybit : ccxt.bybit
             List<object> unified = await this.isUnifiedEnabled();
             bool? isUnifiedMargin = this.safeBool(unified, 0, false);
             bool? isUnifiedAccount = this.safeBool(unified, 1, false);
-            if ((isUsdcSettled == true) && ((isUnifiedMargin != true)) && ((isUnifiedAccount != true)))
+            if ((isUsdcSettled == true) && (isUnifiedMargin != true) && (isUnifiedAccount != true))
             {
                 url = getValue(getValue(url, accessibility), "usdc");
             } else
@@ -2331,7 +2331,7 @@ public partial class bybit : ccxt.bybit
                 messageHash = messageHash + ":unified";
             }
         }
-        if (((isUnifiedMargin != true)) && ((isUnifiedAccount != true)))
+        if ((isUnifiedMargin != true) && (isUnifiedAccount != true))
         {
             // normal account using v5
             if ((type == "spot"))
@@ -2800,7 +2800,7 @@ public partial class bybit : ccxt.bybit
                 throw new ExchangeError (feedback) ;
             }
             bool? success = this.safeBool(message, "success");
-            if (((success != null)) && ((success != true)))
+            if (((success != null)) && (success != true))
             {
                 string? ret_msg = this.safeString(message, "ret_msg");
                 IDictionary<string, object> request = this.safeDict(message, "request", new Dictionary<string, object>() {});
