@@ -9664,25 +9664,9 @@ function j40SelfTest (): string[] {
     return problems;
 }
 
-// hx4 J41
-// Helpers.slice / Helpers.getIndexOf -> non-capturing inline lambdas that replay Helpers.Slice / getIndexOf
-// (and Helpers.toInt) exactly; operands are evaluated once, left to right, and the static types stay String / int.
-function j41Inline (name: string, args: string[]): string | undefined {
-    if (name === 'getIndexOf' && args.length === 2) {
-        return '((java.util.function.ToIntBiFunction<Object, Object>) (hx4J41s, hx4J41t) -> (hx4J41s instanceof java.util.List<?> hx4J41l) ? hx4J41l.indexOf(hx4J41t) : (hx4J41s instanceof String hx4J41x && hx4J41t instanceof String hx4J41y) ? hx4J41x.indexOf(hx4J41y) : -1).applyAsInt(' + args[0] + ', ' + args[1] + ')';
-    }
-    if (name === 'slice' && args.length === 3) {
-        const toInt = 'java.util.function.ToIntFunction<Object> hx4J41i = (hx4J41o) -> (hx4J41o instanceof Integer hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Long hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Double hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Float hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof java.math.BigDecimal hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof String hx4J41n) ? Integer.parseInt(hx4J41n) : Integer.parseInt(String.valueOf(hx4J41o)); ';
-        const body = 'if (hx4J41a[0] == null) return null; String hx4J41s = (String) hx4J41a[0]; ' + toInt
-            + 'int hx4J41b = (hx4J41a[1] != null) ? hx4J41i.applyAsInt(hx4J41a[1]) : -1; '
-            + 'if (hx4J41a[2] == null) { if (hx4J41b < 0) return hx4J41s.substring(Math.max(hx4J41s.length() + hx4J41b, 0)); if (hx4J41b > hx4J41s.length()) return \"\"; return hx4J41s.substring(hx4J41b); } '
-            + 'int hx4J41e = hx4J41i.applyAsInt(hx4J41a[2]); if (hx4J41b < 0) hx4J41b = hx4J41s.length() + hx4J41b; if (hx4J41e < 0) hx4J41e = hx4J41s.length() + hx4J41e; '
-            + 'if (hx4J41b < 0) hx4J41b = 0; if (hx4J41e > hx4J41s.length()) hx4J41e = hx4J41s.length(); if (hx4J41b > hx4J41e) hx4J41b = hx4J41e; return hx4J41s.substring(hx4J41b, hx4J41e);';
-        return '((java.util.function.Function<Object[], String>) (hx4J41a) -> { ' + body + ' }).apply(new Object[] { ' + args.join(', ') + ' })';
-    }
-    return undefined;
-}
-
+// hx4 J41 -> hx5 X16: the inline lambdas that replayed Helpers.slice / Helpers.getIndexOf are gone.
+// A call collapses to a plain String op only when the generator proves it equivalent (see the hx5 X16 block
+// at the end of the file); every other site keeps the helper call exactly as master emitted it.
 export function nativeJavaJ41 (content: string): string {
     if (!/Helpers\.(?:slice|getIndexOf)\(/.test(content)) { return content; }
     let masked = j05Mask(content);
@@ -9700,7 +9684,7 @@ export function nativeJavaJ41 (content: string): string {
         const argsM = splitTopLevelArgs(masked.slice(open + 1, end - 1));
         const args: string[] = []; let p = open + 1;
         for (const m of argsM) { args.push(content.slice(p, p + m.length).trim()); p += m.length + 1; }
-        const repl = j41Inline(head[1], args);
+        const repl = hx5X16Native(head[1], args, content);
         if (repl === undefined) { continue; }
         content = content.slice(0, at) + repl + content.slice(end);
         masked = j05Mask(content);
@@ -9708,20 +9692,9 @@ export function nativeJavaJ41 (content: string): string {
     return content;
 }
 
-// hx4 J41: snippet checks (`--audit-string-types --self-test`)
+// hx5 X16: snippet checks (`--audit-string-types --self-test`)
 function j41SelfTest (): string[] {
-    const problems: string[] = [];
-    const cases: [string, string][] = [
-        [ '        String b = Helpers.slice(id, 0, Helpers.getIndexOf(id, "/"));', '.applyAsInt(id, "/") })' ],
-        [ '        String b = Helpers.slice(Helpers.slice(h, -64, null), 1, null);', '.apply(new Object[] { ((java.util.function.Function' ],
-        [ '        // Helpers.slice(a, 0, 1)', '// Helpers.slice(a, 0, 1)' ],
-        [ '        String q = "Helpers.slice(a, 0, 1)";', '"Helpers.slice(a, 0, 1)"' ],
-    ];
-    for (const [ body, expect ] of cases) {
-        const out = nativeJavaJ41 (body);
-        if (!out.includes (expect) || /Helpers\.(?:slice|getIndexOf)\(/.test (out.replace (/\/\/.*|"[^"]*"/g, ''))) problems.push (`hx4 J41: ${body}\n${out}`);
-    }
-    return problems;
+    return hx5X16SelfTest();
 }
 
 // hx4 J42: Helpers.parseInt/parseFloat become inline pattern switches replaying Helpers.toLong/toDouble
@@ -10072,6 +10045,96 @@ function j40X15SelfTest (): string[] {
         const out = nativeJavaJ40 (cls (body));
         const ok = expect === undefined ? out === cls (body) : out.includes (expect) && !out.includes ('Helpers.') && !out.includes ('switch') && nativeJavaJ40 (out) === out;
         if (!ok) problems.push (`hx5 X15: ${name}\n${out}`);
+    }
+    return problems;
+}
+
+// hx5 X16
+// Proof for nativeJavaJ41. Native only when equivalent to the helper:
+//  - getIndexOf(s, t) -> s.indexOf(t): s a proven non-null String (literal, or a local declared
+//    `String s = "lit"` exactly once in the file and never reassigned), t a string literal (non-null String,
+//    so indexOf neither NPEs nor diverges from the helper's String/String branch).
+//  - slice(s, b, e) -> s.substring(b[, e]): s a string literal and b/e integer literals (or null end) whose
+//    clamped bounds equal the raw ones, so substring cannot throw and returns what Helpers.Slice returns.
+// Anything else returns undefined: the helper call stays.
+function hx5X16Literal (x: string): string | undefined {
+    const m = /^"((?:[^"\\]|\\.)*)"$/.exec(x.trim());
+    if (m === null || m[1].includes('\\')) { return undefined; }
+    return m[1];
+}
+
+function hx5X16StringLocal (name: string, content: string): boolean {
+    if (!/^[A-Za-z_]\w*$/.test(name)) { return false; }
+    const masked = content.replace(/"(?:[^"\\\n]|\\.)*"/g, '""');
+    const decl = new RegExp('(^|[^\\w.])String\\s+' + name + '\\s*=\\s*""\\s*;', 'g');
+    const anyDecl = new RegExp('(^|[^\\w.])[\\w.<>,?\\[\\] ]+\\s' + name + '\\s*[=;,):]', 'g');
+    const assign = new RegExp('(^|[^\\w.])' + name + '\\s*(=(?!=)|\\+=|\\+\\+|--)', 'g');
+    const decls = (masked.match(decl) || []).length;
+    if (decls !== 1) { return false; }
+    if ((masked.match(anyDecl) || []).length !== 1) { return false; }
+    // untyped lambda parameters of the same name would shadow the proof in another scope
+    if (new RegExp('(^|[^\\w.])' + name + '\\s*->|[(,]\\s*' + name + '\\s*[,)][^;{]*->').test(masked)) { return false; }
+    return (masked.match(assign) || []).length === 1;
+}
+
+function hx5X16NonNullString (x: string, content: string): boolean {
+    return hx5X16Literal(x) !== undefined || hx5X16StringLocal(x.trim(), content);
+}
+
+function hx5X16Native (name: string, args: string[], content: string): string | undefined {
+    if (name === 'getIndexOf' && args.length === 2) {
+        if (hx5X16Literal(args[1]) === undefined) { return undefined; }
+        if (!hx5X16NonNullString(args[0], content)) { return undefined; }
+        return args[0] + '.indexOf(' + args[1] + ')';
+    }
+    if (name === 'slice' && args.length === 3) {
+        const s = hx5X16Literal(args[0]);
+        if (s === undefined) { return undefined; }
+        const len = s.length;
+        if (!/^\d+$/.test(args[1])) { return undefined; }
+        const b = Number(args[1]);
+        if (args[2] === 'null') {
+            if (b > len) { return undefined; }
+            return args[0] + '.substring(' + b + ')';
+        }
+        if (!/^\d+$/.test(args[2])) { return undefined; }
+        const e = Number(args[2]);
+        if (e > len || b > e) { return undefined; }
+        return args[0] + '.substring(' + b + ', ' + e + ')';
+    }
+    return undefined;
+}
+
+function hx5X16SelfTest (): string[] {
+    const problems: string[] = [];
+    const cases: [string, string][] = [
+        // unproven receivers keep the helper call verbatim
+        [ '        String b = Helpers.slice(id, 0, Helpers.getIndexOf(id, "/"));', '        String b = Helpers.slice(id, 0, Helpers.getIndexOf(id, "/"));' ],
+        [ '        String b = Helpers.slice(Helpers.slice(h, -64, null), 1, null);', '        String b = Helpers.slice(Helpers.slice(h, -64, null), 1, null);' ],
+        [ '        if (Helpers.getIndexOf(topic, (keys == null ? null : keys.get(i))) >= 0) {}', '        if (Helpers.getIndexOf(topic, (keys == null ? null : keys.get(i))) >= 0) {}' ],
+        // a reassigned String local is not proven
+        [ '        String d = "0123";\n        d = x;\n        int v = Helpers.getIndexOf(d, "1");', 'Helpers.getIndexOf(d, "1")' ],
+        // a same-named lambda parameter elsewhere defeats the proof
+        [ '        String d = "0123";\n        f((d) -> Helpers.getIndexOf(d, "1"));', 'Helpers.getIndexOf(d, "1")' ],
+        // non-literal target stays (null target / non-String target differ from indexOf)
+        [ '        String d = "0123";\n        int v = Helpers.getIndexOf(d, c);', 'Helpers.getIndexOf(d, c)' ],
+        // proven: single-assignment String local + literal target
+        [ '        String d = "0123";\n        int v = Helpers.getIndexOf(d, "1");', 'int v = d.indexOf("1");' ],
+        [ '        int v = Helpers.getIndexOf("abc", "b");', 'int v = "abc".indexOf("b");' ],
+        // literal slices with in-range bounds
+        [ '        String v = Helpers.slice("abcdef", 1, 3);', 'String v = "abcdef".substring(1, 3);' ],
+        [ '        String v = Helpers.slice("abcdef", 2, null);', 'String v = "abcdef".substring(2);' ],
+        // out-of-range / negative bounds stay (helper clamps, substring throws)
+        [ '        String v = Helpers.slice("abc", 1, 9);', 'Helpers.slice("abc", 1, 9)' ],
+        [ '        String v = Helpers.slice("abc", -2, null);', 'Helpers.slice("abc", -2, null)' ],
+        // masked text untouched
+        [ '        // Helpers.slice(a, 0, 1)', '// Helpers.slice(a, 0, 1)' ],
+        [ '        String q = "Helpers.slice(a, 0, 1)";', '"Helpers.slice(a, 0, 1)"' ],
+    ];
+    for (const [ body, expect ] of cases) {
+        const out = nativeJavaJ41 (body);
+        const again = nativeJavaJ41 (out);
+        if (!out.includes (expect) || again !== out || /hx4J41|java\.util\.function/.test (out)) problems.push (`hx5 X16: ${body}\n${out}`);
     }
     return problems;
 }
