@@ -12622,15 +12622,11 @@ impl std::ops::DerefMut for ${coreName} {
             if (name === 'to_string_val' && a.length === 1) {
                 return `({ let __r31v: &Value = ${a[0]}; Value::Str(${str('__r31v')}.into()) })`;
             }
-            if (name === 'join' && a.length === 2) {
-                return `({ let __r31a: &Value = ${a[0]}; let __r31d: &Value = ${a[1]}; let __r31j: String = ${str('__r31d')}; match __r31a { Value::Arr(__a) => Value::Str(__a.iter().map(|__r31e| ${str('__r31e')}).collect::<Vec<String>>().join(&__r31j).into()), _ => Value::Str(String::new().into()) } })`;
-            }
-            if (name === 'split' && a.length === 2) {
-                return `({ let __r31a: &Value = ${a[0]}; let __r31d: &Value = ${a[1]}; match (__r31a, __r31d) { (Value::Str(__s), Value::Str(__d)) => Value::Array(__s.split(__d.as_ref()).map(|__x| Value::Str(__x.to_string().into())).collect()), _ => Value::Array(vec![]) } })`;
-            }
-            if (name === 'replace_str' && a.length === 3) {
-                return `({ let __r31a: &Value = ${a[0]}; let __r31o: &Value = ${a[1]}; let __r31n: &Value = ${a[2]}; match (__r31a, __r31o, __r31n) { (Value::Str(__s), Value::Str(__o), Value::Str(__n)) => Value::Str(__s.replace(__o.as_ref(), __n.as_ref()).into()), _ => __r31a.clone() } })`;
-            }
+            // hx5 X40: split/join/replace_str are never inlined. Every r31 site reaches this pass as a
+            // `&Value` operand that no emitted declaration proves to be a `Value::Str` / `Value::Arr` of
+            // strings (and the runtime differs from a bare `.split`/`.join`/`.replace` on non-Str, null and
+            // element type), so the plain `runtime::*` helper call master emitted stays.
+            if (name === 'join' || name === 'split' || name === 'replace_str') return undefined;
             if ((name === 'starts_with' || name === 'ends_with') && a.length === 2) {
                 return `({ let __r31a: &Value = ${a[0]}; let __r31b: &Value = ${a[1]}; match (__r31a, __r31b) { (Value::Str(__h), Value::Str(__x)) => __h.${name}(__x.as_ref()), _ => false } })`;
             }
@@ -12652,7 +12648,7 @@ impl std::ops::DerefMut for ${coreName} {
                 const close = this.closeParenAt(content, open);
                 if (close < 0) continue;
                 const inner = content.slice(open + 1, close);
-                if (new RegExp(re.source).test(this.maskStringsAndComments(inner))) continue;
+                if (/(?<![A-Za-z0-9_:.])(to_string_val|ends_with|starts_with|pad_end|pad_start|to_fixed)\(/.test(this.maskStringsAndComments(inner))) continue; // hx5 X40: helper-call args do not block the outer site
                 const text = build(name, this.splitTopLevelCommas(inner));
                 if (text === undefined) continue;
                 rewrites.push({ start, end: close + 1, text });
