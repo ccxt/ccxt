@@ -3079,7 +3079,7 @@ export default class myriad extends Exchange {
             const evMarketsLength = evMarkets.length;
             const filteredMarkets: any[] = [];
             for (let j = 0; j < evMarketsLength; j++) {
-                const m = this.safeDict (evMarkets, j, {});
+                const m: any = this.safeDict (evMarkets, j, {}); // prediction rows carry no symbol, cached as-is
                 const marketHandle = this.safeString (m, 'market');
                 if (marketHandle !== undefined) {
                     if (marketHandle in seenMarketHandles) {
@@ -3101,7 +3101,7 @@ export default class myriad extends Exchange {
         const rawMarketsLength = rawMarkets.length;
         for (let i = 0; i < rawMarketsLength; i++) {
             const raw = rawMarkets[i];
-            const m = this.parseMyriadMarket (raw);
+            const m: any = this.parseMyriadMarket (raw); // prediction rows carry no symbol, cached as-is
             const marketHandle = this.safeString (m, 'market');
             if ((marketHandle !== undefined) && (marketHandle in seenMarketHandles)) {
                 this.markets[marketHandle] = m;

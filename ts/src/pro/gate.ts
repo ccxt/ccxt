@@ -1723,6 +1723,8 @@ export default class gate extends gateRest {
         const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
         if (this.orders === undefined) {
             this.orders = new ArrayCacheBySymbolById (limit);
+        }
+        if (this.triggerOrders === undefined) {
             this.triggerOrders = new ArrayCacheBySymbolById (limit);
         }
         const stored = isTrigger ? this.triggerOrders : this.orders;

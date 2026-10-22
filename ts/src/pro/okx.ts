@@ -2150,6 +2150,8 @@ export default class okx extends okxRest {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             if (this.orders === undefined) {
                 this.orders = new ArrayCacheBySymbolById (limit);
+            }
+            if (this.triggerOrders === undefined) {
                 this.triggerOrders = new ArrayCacheBySymbolById (limit);
             }
             const stored = (channel === 'orders-algo') ? this.triggerOrders : this.orders;

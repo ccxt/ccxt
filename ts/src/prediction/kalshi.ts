@@ -2245,7 +2245,7 @@ export default class kalshi extends Exchange {
             const parsedMarkets = parsedEvent['markets'];
             const parsedMarketsLength = parsedMarkets.length;
             for (let mi = 0; mi < parsedMarketsLength; mi++) {
-                const m = parsedMarkets[mi];
+                const m: any = parsedMarkets[mi]; // prediction rows carry no symbol, cached as-is
                 this.markets[m['market']] = m;
             }
         }

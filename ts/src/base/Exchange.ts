@@ -346,7 +346,7 @@ export class BaseExchange {
     fundingRates: Dictionary<FundingRate> = {};
     bidsasks: Dictionary<Ticker> = {};
     orders: ArrayCache | undefined = undefined;
-    triggerOrders!: ArrayCache;
+    triggerOrders: ArrayCache | undefined;
     trades: Dictionary<ArrayCache>;
     transactions: Dictionary<Transaction> = {};
     ohlcvs: Dictionary<Dictionary<ArrayCacheByTimestamp>>;
@@ -389,7 +389,7 @@ export class BaseExchange {
 
     id: string = 'Exchange';
 
-    markets!: Dictionary<any> | undefined;
+    markets!: Dictionary<MarketInterface> | undefined;
     has!: Dictionary<boolean | 'emulated' | undefined>;
     features!: Dictionary<Dictionary<any> | undefined>;
     status!: {
@@ -444,7 +444,7 @@ export class BaseExchange {
         },
     };
 
-    markets_by_id!: Dictionary<any> | undefined;
+    markets_by_id!: Dictionary<MarketInterface[]> | undefined;
     symbols: string[] = [];
     ids: Strings = undefined;
     currencies: Currencies = {};
@@ -5162,7 +5162,7 @@ export class BaseExchange {
         cost = Precise.stringMul (cost, rate);
         return {
             'type': takerOrMakerResolved,
-            'currency': market[key as string],
+            'currency': this.safeString (market, key),
             'rate': this.parseNumber (rate),
             'cost': this.parseNumber (cost),
         };
@@ -6657,7 +6657,7 @@ export class BaseExchange {
     }
 
     getSymbolsForMarketType (marketType: Str = undefined, subType: Str = undefined, symbolWithActiveStatus: boolean = true, symbolWithUnknownStatus: boolean = true): string[] {
-        let filteredMarkets = this.markets;
+        let filteredMarkets: any = this.markets;
         if (marketType !== undefined) {
             filteredMarkets = this.filterBy (filteredMarkets, 'type', marketType);
         }
@@ -6944,7 +6944,7 @@ export class BaseExchange {
                     const marketTypeResolved: string = (marketType === undefined) ? this.safeString (market, 'type', '') : marketType;
                     for (let i = 0; i < markets.length; i++) {
                         const currentMarket = markets[i];
-                        if (currentMarket[marketTypeResolved] === true) {
+                        if (this.safeBool (currentMarket, marketTypeResolved) === true) {
                             return currentMarket;
                         }
                     }
@@ -7693,7 +7693,7 @@ export class BaseExchange {
             const defaultType = this.safeString2 (this.options, 'defaultType', 'defaultSubType', 'spot');
             for (let i = 0; i < marketsList.length; i++) {
                 const market = marketsList[i];
-                if (market[defaultType] === true) {
+                if (this.safeBool (market, defaultType) === true) {
                     return market;
                 }
             }
