@@ -19762,3 +19762,105 @@ function x21BaseOnlyDispatch (call) {
     return declarations !== undefined && declarations.length > 0
         && declarations.every ((d) => BASE_SOURCE_FILE.test (d.getSourceFile ().fileName));
 }
+
+// ===== hx7 H1: nullable-Long locals feeding a number-conversion slot =====
+// Text pass over one generated class, run right before the hx4 J40 pass. `Object x = <init>;` becomes
+// `Long x = <init>;` when the init and every `x = ...` write print a Java long/Long/null value
+// (Long-declared names, long arithmetic, Math.min/max over those, ternaries of those, bare copies of
+// other proven locals). The runtime box is unchanged (always a Long or null), so only the static type
+// moves; int literal / Integer writes (an Integer box today) are never admitted. Every other mention
+// must be box-neutral: a plain call argument, a null test, Objects.equals, or a `(Number)` cast. A
+// ternary arm / return / operator use is rejected (a Long arm beside a primitive arm unboxes and NPEs).
+// The local must reach a Helpers.toLongOrNull / toInt64 argument, which J40 then prints natively.
+const H1_DECL = /^(\s*)Object ([A-Za-z_]\w*) = (.*?);(\s*\/\/.*)?$/;
+const H1_KEYWORDS = /^(?:if|while|for|switch|return|synchronized|catch|new|throw|else|case)$/;
+
+function h1UseOk (code, name) {
+    const re = new RegExp (`(?<![\\w$.])${name}\\b(?!\\s*\\()`, 'g');
+    let m;
+    while ((m = re.exec (code)) !== null) {
+        const before = code.slice (0, m.index);
+        const after = code.slice (m.index + name.length);
+        if (/^\s*[!=]= null\b/.test (after) || /\bnull [!=]= $/.test (before)) continue;
+        if (/\(Number\) \(?$/.test (before)) continue;
+        if (/[(,]\s*$/.test (before) && /^\s*[,)]/.test (after) && !/^\s*\)\s*[?:]/.test (after)) {
+            const callee = longLimitCallee (code, m.index);
+            if (callee !== undefined && /^[\w$.]*[\w$]$/.test (callee) && !H1_KEYWORDS.test (callee)
+                && !/^Math\./.test (callee) && !/\b(?:return|new)\s*$/.test (callee)) {
+                // the enclosing argument list must not itself be a ternary arm head `? f(x)` is fine
+                continue;
+            }
+        }
+        return false;
+    }
+    return true;
+}
+
+function h1RetypeMember (lines, from, to) {
+    const cands = new Map ();
+    for (let i = from + 1; i < to; i++) {
+        const d = H1_DECL.exec (lines[i]);
+        if (d === null || longLimitDeclarations (lines, from, to, d[2]).length !== 1) continue;
+        cands.set (d[2], { decl: i, writes: [ d[3].trim () ], lines: new Set ([ i ]) });
+    }
+    if (cands.size === 0) return false;
+    for (let j = from; j < to; j++) {
+        const w = /^\s*([A-Za-z_]\w*) = (.*?);(\s*\/\/.*)?$/.exec (lines[j]);
+        if (w !== null && cands.has (w[1])) { cands.get (w[1]).writes.push (w[2].trim ()); cands.get (w[1]).lines.add (j); }
+    }
+    const typeCache = new Map ();
+    const ctx = { declType: (n) => {
+        if (!typeCache.has (n)) {
+            const d = longLimitDeclarations (lines, from, to, n);
+            typeCache.set (n, d.length === 1 ? d[0].type.replace (/^final\s+/, '') : undefined);
+        }
+        return typeCache.get (n);
+    } };
+    const group = new Set (cands.keys ());
+    const writeOk = (rhs) => {
+        const x = longLimitType (ctx, rhs, group, false);
+        if (x === undefined || ![ 'Long', 'long', 'null' ].includes (x.kind)) return false;
+        // group names only as a bare copy: never inside a ternary/arithmetic where unboxing could move
+        return x.atoms.length === 0 || (x.atoms.length === 1 && longLimitStrip (rhs) === x.atoms[0]);
+    };
+    const mention = (n) => new RegExp (`(?<![\\w$.])${n}\\b(?!\\s*\\()`);
+    let fixed = false;
+    while (!fixed) {
+        fixed = true;
+        for (const [ name, info ] of cands) {
+            if (!group.has (name)) continue;
+            let ok = info.writes.every (writeOk) && info.writes.some ((w) => longLimitStrip (w) !== 'null');
+            let fed = false;
+            for (let j = from; ok && j < to; j++) {
+                const code = longLimitCodeOnly (lines[j]);
+                if (!mention (name).test (code)) continue;
+                if (new RegExp (`Helpers\\.(?:toLongOrNull|toInt64)\\(${name}\\)`).test (code)) fed = true;
+                if (info.lines.has (j)) {
+                    // LHS of the declaration / write; its RHS was judged by writeOk
+                    const rhs = code.replace (/^\s*(?:Object\s+)?[A-Za-z_]\w*\s*=/, '');
+                    if (mention (name).test (rhs)) ok = false;
+                    continue;
+                }
+                if (j === from || /\b(?:catch|->)\b/.test (code) || !h1UseOk (code, name)) ok = false;
+            }
+            if (!ok || !fed) { group.delete (name); fixed = false; }
+        }
+    }
+    for (const name of group) {
+        const i = cands.get (name).decl;
+        lines[i] = lines[i].replace (/^(\s*)Object /, '$1Long ');
+    }
+    return group.size > 0;
+}
+
+export function nativeJavaH1LongLocals (content) {
+    if (!/Helpers\.(?:toLongOrNull|toInt64)\(/.test (content)) return content;
+    const lines = content.split ('\n');
+    const starts = [];
+    for (let i = 0; i < lines.length; i++) if (LONG_LIMIT_MEMBER_START.test (lines[i])) starts.push (i);
+    let changed = false;
+    for (let s = 0; s < starts.length; s++) {
+        if (h1RetypeMember (lines, starts[s], s + 1 < starts.length ? starts[s + 1] : lines.length)) changed = true;
+    }
+    return changed ? lines.join ('\n') : content;
+}

@@ -37,6 +37,7 @@ import { installJ13ListLocals } from './java-local-types.js';
 import { installJ14ScalarLocals } from './java-local-types.js';
 import { installJ15J12PreScan } from './java-local-types.js';
 import { installJ17StringReturns } from './java-local-types.js';
+import { nativeJavaH1LongLocals } from './java-local-types.js'; // hx7 H1
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 import { typeCoreReturns, typedReturnTable, JAVA_ASYNC_SUPPLIER, JAVA_ASYNC_SUPPLIER_IMPORT, isAsyncLambdaClose } from "./javaTypedCore.js";
 import { applyJavaImports, shortenJavaReferences, ensureJavaImports } from "./javaUtilImports.js";
@@ -3628,6 +3629,7 @@ class NewTranspiler {
         content = nativeJavaJ04Arithmetic(content); // hx4 J04
         // hx4 J19: re-run the long-limit + compare passes over J04's native arithmetic
         content = nativeJavaJ19Compare(h2kJ10NativeComparisons(nativeJavaLongLimitLocals(content)));
+        content = nativeJavaH1LongLocals(content); // hx7 H1
         content = nativeJavaJ20ParamCompare(content); // hx4 J20
         content = nativeJavaJ24Arithmetic(nativeJavaJ23Arithmetic(content)); // hx4 J23, J24
         content = nativeJavaJ27Arithmetic(content); // hx4 J27
@@ -5772,7 +5774,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), h2kJ02SelfTest(), j10CounterSelfTest(), j11MapLocalsSelfTest(), j04ArithmeticSelfTest(), j12ParamTypesSelfTest(), j13ListLocalsSelfTest(), j14ScalarLocalsSelfTest(), j15SelfTest(), j17ReturnsSelfTest(), j19CompareSelfTest(), j20ParamCompareSelfTest(), j22CoreArgsSelfTest(), j23ArithmeticSelfTest(), j24ArithmeticSelfTest(), j25CompareSelfTest(), j26MapLocalsSelfTest(), j27ArithmeticSelfTest(), j28CompareSelfTest(), j29ContainersSelfTest(), j30SelfTest(), j31ArithmeticSelfTest(), j36SelfTest(), j32DivModNegSelfTest(), j37SelfTest(), j38SelfTest(), j39SelfTest(), j40SelfTest(), j40X15SelfTest(), j41SelfTest(), j42SelfTest(), j43SelfTest(), j44SelfTest(), x21SelfTest(), x22SelfTest());
+    return problems.concat(mapLocalsSelfTest(), h2kJ02SelfTest(), j10CounterSelfTest(), j11MapLocalsSelfTest(), j04ArithmeticSelfTest(), j12ParamTypesSelfTest(), j13ListLocalsSelfTest(), j14ScalarLocalsSelfTest(), j15SelfTest(), j17ReturnsSelfTest(), j19CompareSelfTest(), j20ParamCompareSelfTest(), j22CoreArgsSelfTest(), j23ArithmeticSelfTest(), j24ArithmeticSelfTest(), j25CompareSelfTest(), j26MapLocalsSelfTest(), j27ArithmeticSelfTest(), j28CompareSelfTest(), j29ContainersSelfTest(), j30SelfTest(), j31ArithmeticSelfTest(), j36SelfTest(), j32DivModNegSelfTest(), j37SelfTest(), j38SelfTest(), j39SelfTest(), j40SelfTest(), j40X15SelfTest(), j41SelfTest(), j42SelfTest(), j43SelfTest(), j44SelfTest(), x21SelfTest(), x22SelfTest(), h1SelfTest());
 }
 
 // section 50 is fail-closed: a nested, closure or Object-returning (safeDict / safeValue) write keeps `Object`
@@ -7463,6 +7465,7 @@ function hx4J21BaseNativePasses (transpiler: any, body: string): string {
     content = nativeJavaArrayLength(content);
     content = h2kJ07NativeDeclaredLength(content);
     content = nativeJavaLongLimitLocals(content);
+    content = nativeJavaH1LongLocals(content); // hx7 H1
     content = nativeJavaTopLevelNewMap(content);
     content = nativeJavaReassignedNewMap(content);
     content = nativeJavaEqualTruthy(content);
@@ -9524,13 +9527,10 @@ function j40Rewrite (name: string, args: string[], argsM: string[], n: number, i
         const [ t, w, msg ] = name === 'toMapArg' ? [ 'java.util.Map<String, Object>', 'java.util.Map<?, ?>', 'a dictionary' ] : [ 'java.util.List<String>', 'java.util.List<?>', 'a list of strings' ];
         return `((${t}) (switch ((Object) (${x})) { case null -> (${t}) null; case ${w} ${v} -> (${t}) ${v}; case Object ${v} -> throw new ClassCastException("ccxt: expected ${msg}, got " + ${v}.getClass().getName()); }))`;
     }
-    if (name === 'toLongOrNull') {
+    if (name === 'toLongOrNull' || name === 'toInt64') {
+        // hx7 H1: native only on a proven Long / long operand, else the plain helper call stays
         if (args.length !== 1) { return undefined; }
-        return `((Long) (switch ((Object) (${x})) { case null -> (Long) null; case Long ${v} -> ${v}; case Number ${v} -> Long.valueOf(${v}.longValue()); case Object ${v} -> throw new ClassCastException("ccxt: expected a number, got " + ${v}.getClass().getName()); }))`;
-    }
-    if (name === 'toInt64') {
-        if (args.length !== 1) { return undefined; }
-        return `((long) (switch ((Object) (${x})) { case null -> Long.parseLong("null"); case Long ${v} -> ${v}.longValue(); case Integer ${v} -> ${v}.longValue(); case Double ${v} -> ${v}.longValue(); case Float ${v} -> ${v}.longValue(); case java.math.BigDecimal ${v} -> ${v}.longValue(); case String ${v} -> Long.parseLong(${v}); case Object ${v} -> Long.parseLong(String.valueOf(${v})); }))`;
+        return h1NumberConversion(name, x, ctx);
     }
     if (name === 'isTrue') {
         // hx5 X14: native only on a proven boolean/Boolean operand, else the helper call stays
@@ -10350,6 +10350,57 @@ function x22SelfTest (): string[] {
         const ok = expect === undefined ? out === cls (body) : out.includes (expect) && !/j39|switch|synchronized/.test (out);
         if (!ok) problems.push (`hx5 X22: ${name}\n${out}`);
         if (nativeJavaJ39Containers (out) !== out) problems.push (`hx5 X22: ${name} not idempotent`);
+    }
+    return problems;
+}
+
+// hx7 H1: Helpers.toLongOrNull / toInt64 sites. A bare name declared Long (nullable box) or long in the
+// member prints natively: toLongOrNull(Long x) is x itself; toInt64(long x) is x. A Long operand of
+// toInt64 keeps the helper (null throws NumberFormatException there, unboxing would throw NPE), and so
+// does every unproven operand: the plain Helpers call, never an inlined body.
+function h1NumberConversion (name: string, x: string, ctx: J40Ctx): string | undefined {
+    if (!/^[A-Za-z_]\w*$/.test(x)) { return undefined; }
+    const t = j40DeclType(ctx.masked, x, ctx.pos);
+    if (name === 'toLongOrNull' && t === 'Long') { return x; }
+    if (name === 'toInt64' && t === 'long') { return x; }
+    return undefined;
+}
+
+// hx7 H1: snippet checks (`--audit-string-types --self-test`)
+function h1SelfTest (): string[] {
+    const problems: string[] = [];
+    const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Object p, Long limit, Long since, long k)\n    {\n${body}\n    }\n}`;
+    // J40 conversion sites: native on proven Long/long, plain helper otherwise
+    const j40: [string, string, string][] = [
+        [ 'toLongOrNull Long param', '        return this.f(Helpers.toLongOrNull(limit));', '        return this.f(limit);' ],
+        [ 'toInt64 long', '        return this.f(Helpers.toInt64(k));', '        return this.f(k);' ],
+        [ 'toLongOrNull Object', '        return this.f(Helpers.toLongOrNull(p));', '        return this.f(Helpers.toLongOrNull(p));' ],
+        [ 'toInt64 Long nullable', '        return this.f(Helpers.toInt64(limit));', '        return this.f(Helpers.toInt64(limit));' ],
+        [ 'toLongOrNull expr', '        return this.f(Helpers.toLongOrNull(this.g(p)));', '        return this.f(Helpers.toLongOrNull(this.g(p)));' ],
+    ];
+    for (const [ name, body, expect ] of j40) {
+        const out = nativeJavaJ40 (cls (body));
+        if (!out.includes (expect) || out.includes ('switch')) problems.push (`hx7 H1 J40: ${name}\n${out}`);
+    }
+    // local typer: [name, body, expected declaration (undefined = stays Object)]
+    const loc: [string, string, string | undefined][] = [
+        [ 'ternary Long arms', '        Object v = (((java.util.Objects.equals(since, null)))) ? (this.milliseconds() - 1000L) : since;\n        return this.f(Helpers.toLongOrNull(v));', 'Long v = ' ],
+        [ 'copy then long write', '        Object v = since;\n        if (p != null)\n        {\n            v = (limit * 60L);\n        }\n        request.put("a", v);\n        return this.f(Helpers.toLongOrNull(v));', 'Long v = ' ],
+        [ 'null init Long write', '        Object v = null;\n        v = since;\n        return this.f(Helpers.toLongOrNull(v));', 'Long v = ' ],
+        // negatives: int literal (Integer box), Object source, unboxing ternary use, operator use, no feed
+        [ 'int literal', '        Object v = 0;\n        return this.f(Helpers.toLongOrNull(v));', undefined ],
+        [ 'int literal write', '        Object v = since;\n        v = 5;\n        return this.f(Helpers.toLongOrNull(v));', undefined ],
+        [ 'Object source', '        Object v = p;\n        return this.f(Helpers.toLongOrNull(v));', undefined ],
+        [ 'ternary use', '        Object v = since;\n        Object w = (p != null) ? 100L : v;\n        return this.f(Helpers.toLongOrNull(v));', undefined ],
+        [ 'all null', '        Object v = null;\n        return this.f(Helpers.toLongOrNull(v));', undefined ],
+        [ 'not fed', '        Object v = since;\n        return this.f(v);', undefined ],
+        [ 'return use', '        Object v = since;\n        this.f(Helpers.toLongOrNull(v));\n        return v;', undefined ],
+    ];
+    for (const [ name, body, expect ] of loc) {
+        const src = cls (body);
+        const out = nativeJavaH1LongLocals (src);
+        const ok = expect === undefined ? out === src : out.includes (expect) && nativeJavaH1LongLocals (out) === out;
+        if (!ok) problems.push (`hx7 H1 local: ${name}\n${out}`);
     }
     return problems;
 }
