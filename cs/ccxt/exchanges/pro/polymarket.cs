@@ -1067,7 +1067,7 @@ public partial class polymarket : ccxt.polymarket
 
     public async virtual Task loadBalanceSnapshot(WebSocketClient client, object messageHash)
     {
-        object balance = ccxt.BaseExchange.FromBalances(await this.FetchBalance());
+        Dictionary<string, object> balance = ccxt.BaseExchange.FromBalances(await this.FetchBalance());
         this.balance = this.extend(this.balance, balance);
         // don't remove the future from the .futures cache
         if (inOp(client.futures, messageHash))

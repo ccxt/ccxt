@@ -1141,7 +1141,7 @@ func (this *Blofin) fetchMarkPriceBody(ch chan AsyncResult[map[string]any], symb
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"instId": market["id"],
 	}
 
 	r1 := <-this.PublicGetMarketMarkPrice(this.Extend(request, params))

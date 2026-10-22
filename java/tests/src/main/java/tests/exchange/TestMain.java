@@ -2697,6 +2697,16 @@ public class TestMain extends BaseTest
                     exchange.extendExchangeOptions((Map<String, Object>) (globalOptions));
                     Object testExchangeOptions = exchange.safeValue(result, "options", new HashMap<String, Object>() {{}});
                     exchange.extendExchangeOptions((Map<String, Object>) (testExchangeOptions));
+                    String apiKey = exchange.safeString(result, "apiKey");
+                    if (!Helpers.isTrue(exchange.isEmptyString(apiKey)))
+                    {
+                        exchange.apiKey = String.valueOf(apiKey);
+                    }
+                    String secret = exchange.safeString(result, "secret");
+                    if (!Helpers.isTrue(exchange.isEmptyString(secret)))
+                    {
+                        exchange.secret = String.valueOf(secret);
+                    }
                     Object skipKeys = this.effectiveSkipKeys(exchange, exchangeData, result);
                     (this.testWsStatically(exchange, method, skipKeys, result)).join();
                     if (!Helpers.isTrue(isSync()))
@@ -4525,19 +4535,30 @@ public class TestMain extends BaseTest
         return BaseExchange.supplyAsync(() -> {
 
             BaseExchange exchange = this.initOfflineExchange("coinbaseinternational", false);
+            // ECDSA (P-256) auth-token signing needs a hex-encoded secret, unlike the generic dummy one
+            exchange.secret = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
+            // pre-seed the gateway access token so createOrder signs the order directly instead of
+            // making a prior (offline-unreachable) public/auth network call
+            exchange.token = "token";
+            Object tokenExpires = Helpers.add(exchange.milliseconds(), 100000);
+            ((Map<String, Object>)exchange.options).put("v2TokenExpires", tokenExpires);
             ((Map<String, Object>)exchange.options).put("portfolio", "random");
             String id = "nfqkvdjp";
             Assert(java.util.Objects.equals(((Map<String, Object>)exchange.options).get("brokerId"), id), "id not in options");
-            Object request = new HashMap<String, Object>() {{}};
+            Object clientOrderId = null;
             try
             {
                 ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDC:USDC", "limit", "buy", 1, 20000, new HashMap<String, Object>() {{}}})).join();
             } catch(Exception e)
             {
-                request = jsonParse(exchange.last_request_body);
+                // buy/sell are GET endpoints, so the label is in the query string, not a JSON body
+                Object url = ((String)exchange.last_request_url);
+                List<Object> urlParts = new ArrayList<Object>(Arrays.asList(((String)url).split(java.util.regex.Pattern.quote("?"))));
+                Assert(((List<?>)urlParts).size() > 1, ("last_request_url has no query string: " + url));
+                Object query = this.urlencodedToDict(Helpers.GetValue(urlParts, 1));
+                clientOrderId = ((Map<String, Object>)query).get("label");
             }
-            Object clientOrderId = ((Map<String, Object>)request).get("client_order_id");
-            Assert(java.util.Objects.equals(((String)clientOrderId).startsWith(((String)String.valueOf(id))), true), "clientOrderId does not start with id");
+            Assert(!java.util.Objects.equals(clientOrderId, null) && java.util.Objects.equals(((String)clientOrderId).startsWith(((String)String.valueOf(id))), true), "clientOrderId does not start with id");
             if (!Helpers.isTrue(isSync()))
             {
                 (close(exchange)).join();

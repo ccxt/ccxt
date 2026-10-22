@@ -4591,18 +4591,19 @@ export class BaseExchange {
 
     setMarkets (markets: any, currencies: any = undefined): Dictionary<Market> {
         const values: Dict[] = [];
-        this.markets_by_id = this.createSafeDictionary ();
+        // build the id index locally and publish it in one swap, so ws handlers never see a half-built table
+        const marketsById: Dict = {};
         // handle marketId conflicts
         // we insert spot markets first
         const marketValues = this.sortBy (this.toArray (markets), 'spot', true, true);
         for (let i = 0; i < marketValues.length; i++) {
             const value = marketValues[i];
-            if (value['id'] in this.markets_by_id) {
-                const marketsByIdArray = (this.markets_by_id[value['id']] as any);
+            if (value['id'] in marketsById) {
+                const marketsByIdArray = (marketsById[value['id']] as any);
                 marketsByIdArray.push (value);
-                this.markets_by_id[value['id']] = marketsByIdArray;
+                marketsById[value['id']] = marketsByIdArray;
             } else {
-                this.markets_by_id[value['id']] = [ value ];
+                marketsById[value['id']] = [ value ];
             }
             // strip undefined-valued keys from the parsed market before deepExtend,
             // otherwise an explicit `taker: undefined` (from safeMarketStructure)
@@ -4629,6 +4630,7 @@ export class BaseExchange {
             values.push (market);
         }
         this.markets = this.mapToSafeMap (this.indexBy (values, 'symbol'));
+        this.markets_by_id = this.mapToSafeMap (marketsById);
         const marketsSortedBySymbol = this.keysort (this.markets);
         const marketsSortedById = this.keysort (this.markets_by_id);
         this.symbols = Object.keys (marketsSortedBySymbol);
@@ -8804,7 +8806,8 @@ export class BaseExchange {
                 break;
             }
             tasks.push (this.safeDeterministicCall (method, symbol, currentSince, maxEntriesPerRequestValue, timeframe, paramsOmitted));
-            currentSince = currentSince + step - 1;
+            // this.sum keeps it numeric in PHP, where the regex transpiler turns `a + b` into string concatenation
+            currentSince = this.sum (currentSince, step) - 1;
         }
         const results = await Promise.all (tasks);
         let result: any[] = [];
@@ -8835,7 +8838,7 @@ export class BaseExchange {
             try {
                 if (cursorValue !== undefined) {
                     if (cursorIncrement !== undefined) {
-                        cursorValue = this.parseToInt (cursorValue) + cursorIncrement;
+                        cursorValue = this.sum (this.parseToInt (cursorValue), cursorIncrement);
                     }
                     paramsOmitted[cursorSent as string] = cursorValue;
                 }
@@ -8931,8 +8934,8 @@ export class BaseExchange {
                 errors = 0;
                 const responseLength: number = response.length;
                 if (this.verbose) {
-                    const iteration = (i + 1).toString ();
-                    const incrementalMessage = 'Incremental pagination call ' + iteration + ' method ' + method + ' response length ' + responseLength.toString ();
+                    const iteration = (i + 1);
+                    const incrementalMessage = 'Incremental pagination call ' + iteration.toString () + ' method ' + method + ' response length ' + responseLength.toString ();
                     this.log (incrementalMessage);
                 }
                 if (responseLength === 0) {

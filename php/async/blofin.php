@@ -879,7 +879,7 @@ class blofin extends Exchange {
         }
         $market = $this->market($symbol);
         $request = array(
-            'symbol' => $market['id'],
+            'instId' => $market['id'],
         );
         $response = Async\await($this->publicGetMarketMarkPrice($this->extend($request, $params)));
         $data = $this->safe_list($response, 'data', array());

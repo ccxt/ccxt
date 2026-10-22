@@ -2145,21 +2145,22 @@ public partial class BaseExchange
     public virtual object setMarkets(object markets, object currencies = null)
     {
         List<object> values = new List<object>() {};
-        this.markets_by_id = this.createSafeDictionary();
+        // build the id index locally and publish it in one swap, so ws handlers never see a half-built table
+        Dictionary<string, object> marketsById = new Dictionary<string, object>() {};
         // handle marketId conflicts
         // we insert spot markets first
         List<object> marketValues = this.sortBy(this.toArray(markets), "spot", true, true);
         for (int i = 0; i < (marketValues?.Count ?? 0); i++)
         {
             object value = marketValues[i];
-            if (inOp(this.markets_by_id, getValue(value, "id")))
+            if (inOp(marketsById, getValue(value, "id")))
             {
-                object marketsByIdArray = ((object)getValue(this.markets_by_id, getValue(value, "id")));
+                object marketsByIdArray = ((object)getValue(marketsById, getValue(value, "id")));
                 ((IList<object>)marketsByIdArray).Add(value);
-                this.markets_by_id[(string)getValue(value, "id")] = marketsByIdArray;
+                marketsById[(string)getValue(value, "id")] = marketsByIdArray;
             } else
             {
-                this.markets_by_id[(string)getValue(value, "id")] = new List<object>() {value};
+                marketsById[(string)getValue(value, "id")] = new List<object>() {value};
             }
             // strip undefined-valued keys from the parsed market before deepExtend,
             // otherwise an explicit `taker: undefined` (from safeMarketStructure)
@@ -2191,6 +2192,7 @@ public partial class BaseExchange
             values.Add(market);
         }
         this.markets = this.mapToSafeMap(this.indexBy(values, "symbol"));
+        this.markets_by_id = this.mapToSafeMap(marketsById);
         Dictionary<string, object> marketsSortedBySymbol = this.keysort(this.markets);
         Dictionary<string, object> marketsSortedById = this.keysort(this.markets_by_id);
         this.symbols = new List<object>(marketsSortedBySymbol.Keys);
@@ -7428,7 +7430,8 @@ public partial class BaseExchange
                 break;
             }
             tasks.Add(this.safeDeterministicCall(method,((string)symbol), currentSince, maxEntriesPerRequestValue,timeframe, paramsOmitted));
-            currentSince = subtract(add(currentSince, step), 1);
+            // this.sum keeps it numeric in PHP, where the regex transpiler turns `a + b` into string concatenation
+            currentSince = subtract(this.sum(currentSince, step), 1);
         }
         List<object> results = await promiseAll(tasks);
         List<object> result = new List<object>() {};
@@ -7472,7 +7475,7 @@ public partial class BaseExchange
                 {
                     if ((cursorIncrement != null))
                     {
-                        cursorValue = add(this.parseToInt(cursorValue), cursorIncrement);
+                        cursorValue = this.sum(this.parseToInt(cursorValue), cursorIncrement);
                     }
                     paramsOmitted[(string)cursorSent] = cursorValue;
                 }
@@ -7596,8 +7599,8 @@ public partial class BaseExchange
                 int responseLength = getArrayLength(response);
                 if (this.verbose)
                 {
-                    string iteration = ((object)(add(i, 1))).ToString();
-                    string incrementalMessage = ((((("Incremental pagination call " + iteration) + " method ") + method) + " response length ") + ((object)responseLength).ToString());
+                    object iteration = (add(i, 1));
+                    string incrementalMessage = ((((("Incremental pagination call " + ((object)iteration).ToString()) + " method ") + method) + " response length ") + ((object)responseLength).ToString());
                     this.log(incrementalMessage);
                 }
                 if ((responseLength == 0))
