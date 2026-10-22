@@ -1476,7 +1476,7 @@ public partial class weex : Exchange
         string? marketId = this.safeString(ticker, "symbol");
         string? markPrice = this.safeString(ticker, "markPrice");
         string marketType = "spot";
-        if (((markPrice != null)) || (((market != null)) && (isEqual(getValue(market, "contract"), true))))
+        if (((markPrice != null)) || (((market != null)) && ((getValue(market, "contract") is true))))
         {
             // 24hr swap tickers carry markPrice, but book tickers do not, so also honor the market resolved by the caller
             marketType = "swap";
@@ -1829,7 +1829,7 @@ public partial class weex : Exchange
         Dictionary<string, object> paramsOmitted = this.omit(paramsHistorical, new List<object>() {"historical", "until", "price"});
         List<object> response = null;
         // hardcap threshold
-        object limitResolved = ((limit == null)) ? null : mathMin(limit, 1000);
+        object limitResolved = ((limit == null)) ? null : (((((object)(limit)) is var c31v0) && (((object)(1000)) is var c31v1)) ? (((c31v0 == null) || (c31v1 == null)) ? null : ((Convert.ToDouble(c31v0) < Convert.ToDouble(c31v1)) ? c31v0 : c31v1)) : null);
         if ((historical == true))
         {
             if ((priceType != null))
@@ -1842,23 +1842,28 @@ public partial class weex : Exchange
             {
                 Int64 now = this.milliseconds();
                 Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
-                object numberOfCandles = maxHistoricalLimit;
-                if (!(limitResolved == null) && !(limitResolved == null) && !isEqual(limitResolved, 0))
+                Int64? timeDelta = (maxHistoricalLimit * duration);
+                if ((limit != null) && (limit != null) && (limit != 0))
                 {
-                    numberOfCandles = limitResolved;
+                    if ((limit > 1000))
+                    {
+                        timeDelta = (1000 * duration);
+                    } else
+                    {
+                        timeDelta = (limit * duration);
+                    }
                 }
-                object timeDelta = multiply(numberOfCandles, duration);
                 if (((since == null)) && ((until == null)))
                 {
                     endTime = now;
-                    startTime = subtract(now, timeDelta);
+                    startTime = (now - timeDelta);
                 } else if ((since == null))
                 {
                     if ((until == null))
                     {
                         throw new ArgumentsRequired ((this.id + " fetchOHLCV() requires a since or until argument")) ;
                     }
-                    startTime = subtract(until, timeDelta);
+                    startTime = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(until, timeDelta);
                 } else
                 {
                     endTime = add(since, timeDelta);
@@ -2567,7 +2572,7 @@ public partial class weex : Exchange
             request["price"] = this.priceToPrecision(symbol, price);
         }
         string? clientOrderId = this.safeString(parameters, "clientOrderId");
-        object paramsOmitted = this.omit(parameters, "clientOrderId");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "clientOrderId"));
         if ((clientOrderId == null))
         {
             string partner = this.safeString(paramsOmitted, "partner", "b-WEEX111125");
@@ -2642,7 +2647,7 @@ public partial class weex : Exchange
         return this.parseOrder(response, market);
     }
 
-    public virtual Dictionary<string, object> createContractOrderRequest(object symbol, string? type, string? side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createContractOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -2682,11 +2687,7 @@ public partial class weex : Exchange
             throw new BadRequest ((this.id + " createOrder() cannot use the triggerPrice parameter together with the stopLossPrice or takeProfitPrice parameters")) ;
         }
         bool? reduceOnly = this.safeBool(query, "reduceOnly");
-        if (isStopLoss || isTakeProfit)
-        {
-            reduceOnly = true;
-        }
-        bool isReduceOnly = ((reduceOnly == true));
+        bool isReduceOnly = isStopLoss || isTakeProfit || ((reduceOnly == true));
         string positionSide = "LONG";
         if (isReduceOnly)
         {
@@ -2704,11 +2705,11 @@ public partial class weex : Exchange
         IDictionary<string, object> stopLoss = this.safeDict(parameters, "stopLoss");
         bool hasStopLoss = ((stopLoss != null));
         // the exchange accepts but silently ignores execution prices for attached take profit / stop loss, they always execute at market price
-        if (hasTakeProfit && (!isEqual(this.safeNumber(takeProfit, "price"), null)))
+        if (hasTakeProfit && (!(this.safeNumber(takeProfit, "price") == null)))
         {
             throw new NotSupported ((this.id + " createOrder() does not support the price field inside the takeProfit params, the attached take profit executes at market price")) ;
         }
-        if (hasStopLoss && (!isEqual(this.safeNumber(stopLoss, "price"), null)))
+        if (hasStopLoss && (!(this.safeNumber(stopLoss, "price") == null)))
         {
             throw new NotSupported ((this.id + " createOrder() does not support the price field inside the stopLoss params, the attached stop loss executes at market price")) ;
         }
@@ -2841,7 +2842,7 @@ public partial class weex : Exchange
                 }
             }
         }
-        object paramsOmitted = this.omit(parameters, new List<object>() {"takeProfit", "stopLoss", "stopLossPrice", "takeProfitPrice", "triggerPriceType", "stopLossPriceType", "takeProfitPriceType", "clientOrderId", "callerMethodName"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"takeProfit", "stopLoss", "stopLossPrice", "takeProfitPrice", "triggerPriceType", "stopLossPriceType", "takeProfitPriceType", "clientOrderId", "callerMethodName"}));
         return this.extend(request, paramsOmitted);
     }
 
@@ -3426,7 +3427,7 @@ public partial class weex : Exchange
         }
         if ((limit != null))
         {
-            request["limit"] = mathMin(limit, maxLimit);
+            request["limit"] = Math.Min(limit.Value, maxLimit);
         }
         IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("endTime", request, paramsPaginate);
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
@@ -3755,7 +3756,7 @@ public partial class weex : Exchange
     {
         object errorCodeValue = ((errorCode == null)) ? "" : errorCode;
         object errorMessageValue = ((errorMessage == null)) ? "" : errorMessage;
-        if (((errorCodeValue is "")) && ((errorMessageValue is "")))
+        if ((((errorCode == null)) || ((errorCode == ""))) && (((errorMessage == null)) || ((errorMessage == ""))))
         {
             // some endpoints could return an empty string if there is no error
             return;
@@ -4092,7 +4093,7 @@ public partial class weex : Exchange
         }, currencyResolved);
     }
 
-    public virtual string? parseLedgerType(object type)
+    public virtual string? parseLedgerType(string? type)
     {
         Dictionary<string, object> types = new Dictionary<string, object>() {
             { "transfer_in", "transfer" },
@@ -4106,7 +4107,7 @@ public partial class weex : Exchange
             { "position_close_long", "trade" },
             { "position_close_short", "trade" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     /**
@@ -4161,8 +4162,9 @@ public partial class weex : Exchange
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
         // the exchange rejects startTime and endTime when either is sent alone, they only work as a pair
-        bool hasSince = ((requestUntil != null && requestUntil.ContainsKey("startTime")));
-        bool hasUntil = ((requestUntil != null && requestUntil.ContainsKey("endTime")));
+        bool hasSince = ((since != null));
+        Int64? until = this.safeInteger2(paramsPaginate, "until", "till");
+        bool hasUntil = ((until != null));
         if (hasSince && !hasUntil)
         {
             requestUntil["endTime"] = this.milliseconds();
@@ -4877,7 +4879,7 @@ public partial class weex : Exchange
         {
             throw new ArgumentsRequired ((this.id + " modifyMarginHelper() requires a positionId parameter")) ;
         }
-        object paramsOmitted = this.omit(parameters, new List<object>() {"positionId", "id"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"positionId", "id"}));
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "isolatedPositionId", isolatedPositionId },
@@ -4885,7 +4887,7 @@ public partial class weex : Exchange
             { "type", type },
         };
         string parsedType = "reduce";
-        if (isEqual(type, 1))
+        if ((((object)(type)) switch { Int64 c33l => c33l == 1, int c33i => c33i == 1, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 1, decimal c33m => c33m == 1, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 1, uint c33u => (Int64)c33u == 1, short c33h => (Int64)c33h == 1, ushort c33v => (Int64)c33v == 1, byte c33y => (Int64)c33y == 1, sbyte c33e => (Int64)c33e == 1, ulong c33z => c33z == 1UL, _ => false }))
         {
             parsedType = "add";
         }
@@ -5002,7 +5004,7 @@ public partial class weex : Exchange
         if (marketId.EndsWith("SUSDT"))
         {
             int baseLength = (marketId.Length - 5);
-            return (slice(marketId, 0, baseLength) + "USDT");
+            return (((Func<object, object, object, string>)(static (s36s, s36a, s36b) => { if (s36s == null) { return null; } var s36str = (string)s36s; var s36start = s36a != null ? Convert.ToInt32(s36a) : -1; if (s36b == null) { if (s36start < 0) { var s36inner = s36str.Length + s36start; s36inner = s36inner < 0 ? 0 : s36inner; return s36str[(s36inner)..]; } else { return s36str[s36start..]; } } else { var s36end = Convert.ToInt32(s36b); if (s36start < 0) { s36start = s36str.Length + s36start; } if (s36end < 0) { s36end = s36str.Length + s36end; } if (s36end > s36str.Length) { s36end = s36str.Length; } return s36str[s36start..s36end]; } }))(marketId, 0, baseLength) + "USDT");
         }
         return ((string?)((object)(marketId)));
     }

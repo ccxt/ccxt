@@ -94,9 +94,9 @@ public partial class polymarket : ccxt.polymarket
         // private channels register a shared hash next to narrowed ones
         object hashesToCheck = ((checkHashes == null)) ? messageHashes : checkHashes;
         bool willSend = false;
-        for (int i = 0; i < getArrayLength(hashesToCheck); i++)
+        for (int i = 0; i < (((object)(hashesToCheck)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
-            if (!(inOp(client.subscriptions, getValue(hashesToCheck, i))))
+            if (!((client.subscriptions != null && getValue(hashesToCheck, i) is string inOpKey3 && client.subscriptions.ContainsKey(inOpKey3))))
             {
                 willSend = true;
             }
@@ -497,7 +497,7 @@ public partial class polymarket : ccxt.polymarket
         {
             ((IList<object>)rows).Add(data);
         }
-        int rowsLength = getArrayLength(rows);
+        int rowsLength = (((object)(rows)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
         if ((rowsLength == 0))
         {
             return;
@@ -513,7 +513,7 @@ public partial class polymarket : ccxt.polymarket
             this.trades[(string)symbol] = stored;
         }
         ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)(this.trades != null && symbol != null && this.trades.ContainsKey(symbol) ? this.trades[symbol] : null));
-        for (int i = 0; i < getArrayLength(rows); i++)
+        for (int i = 0; i < (((object)(rows)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             IDictionary<string, object> row = this.safeDict(rows, i, new Dictionary<string, object>() {});
             ccxt.Trade trade = this.parseWsTrade(row, market);
@@ -672,7 +672,7 @@ public partial class polymarket : ccxt.polymarket
         {
             this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
         }
-        if (!(inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe)))
+        if (!(((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe)))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             var stored = new ArrayCacheByTimestamp(limit);
@@ -799,7 +799,7 @@ public partial class polymarket : ccxt.polymarket
         {
             ((IList<object>)rows).Add(data);
         }
-        int rowsLength = getArrayLength(rows);
+        int rowsLength = (((object)(rows)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
         if ((rowsLength == 0))
         {
             return;
@@ -811,7 +811,7 @@ public partial class polymarket : ccxt.polymarket
         }
         ccxt.pro.ArrayCache stored = this.orders;
         Dictionary<string, object> symbols = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(rows); i++)
+        for (int i = 0; i < (((object)(rows)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             IDictionary<string, object> row = this.safeDict(rows, i, new Dictionary<string, object>() {});
             ccxt.Order parsed = this.parseOrder(row);
@@ -904,7 +904,7 @@ public partial class polymarket : ccxt.polymarket
         {
             ((IList<object>)rows).Add(data);
         }
-        int rowsLength = getArrayLength(rows);
+        int rowsLength = (((object)(rows)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
         if ((rowsLength == 0))
         {
             return;
@@ -916,7 +916,7 @@ public partial class polymarket : ccxt.polymarket
         }
         ccxt.pro.ArrayCache stored = this.myTrades;
         Dictionary<string, object> symbols = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(rows); i++)
+        for (int i = 0; i < (((object)(rows)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             IDictionary<string, object> row = this.safeDict(rows, i, new Dictionary<string, object>() {});
             ccxt.Trade parsed = this.parseTrade(row);
@@ -1007,7 +1007,7 @@ public partial class polymarket : ccxt.polymarket
             cache.append(positions[i]);
         }
         // don't remove the future from the .futures cache
-        if (inOp(client.futures, messageHash))
+        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
         {
             Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(cache);
@@ -1070,7 +1070,7 @@ public partial class polymarket : ccxt.polymarket
         Dictionary<string, object> balance = ccxt.BaseExchange.FromBalances(await this.FetchBalance());
         this.balance = this.extend(this.balance, balance);
         // don't remove the future from the .futures cache
-        if (inOp(client.futures, messageHash))
+        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
         {
             Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(this.balance);
@@ -1222,7 +1222,7 @@ public partial class polymarket : ccxt.polymarket
         List<object> subMessageHashes = this.safeList(pending, "subMessageHashes", new List<object>() {});
         string? action = this.safeString(pending, "method");
         string? errorMessage = null;
-        for (int i = 0; i < getArrayLength(data); i++)
+        for (int i = 0; i < (((object)(data)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             IDictionary<string, object> entry = this.safeDict(data, i, new Dictionary<string, object>() {});
             string? status = this.safeString(entry, "status");
@@ -1286,7 +1286,7 @@ public partial class polymarket : ccxt.polymarket
                     string? timeframe = this.safeString(pending, "timeframe");
                     if (((timeframe != null)) && (((symbol != null) && ((IDictionary<string, object>)this.ohlcvs).ContainsKey(symbol))))
                     {
-                        if (inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe))
+                        if (((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe))
                         {
                             ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)).Remove(timeframe);
                         }

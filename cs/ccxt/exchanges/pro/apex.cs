@@ -156,7 +156,7 @@ public partial class apex : ccxt.apex
         for (Int64 j = 0; j < length; j++)
         {
             Int64 index = ((length - j) - 1);
-            ccxt.Trade parsed = this.parseWsTrade(getValue(trades, index), market);
+            ccxt.Trade parsed = this.parseWsTrade((trades != null && index < trades.Count ? trades[(int)index] : null), market);
             stored.append(ccxt.BaseExchange.FromTrade(parsed));
         }
         string messageHash = (("trade" + ":") + symbol);
@@ -269,17 +269,16 @@ public partial class apex : ccxt.apex
         parameters ??= new Dictionary<string, object>();
         var client = this.client(url);
         List<object> newTopics = new List<object>() {};
-        object newTopicsCount = 0;
         for (int i = 0; i < (topics?.Count ?? 0); i++)
         {
-            if (!(inOp(client.subscriptions, (messageHashes != null && i < messageHashes.Count ? messageHashes[i] : null))))
+            if (!((client.subscriptions != null && (messageHashes != null && i < messageHashes.Count ? messageHashes[i] : null) is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0))))
             {
                 newTopics.Add((topics != null && i < topics.Count ? topics[i] : null));
-                newTopicsCount = add(newTopicsCount, 1);
             }
         }
+        int newTopicsLength = (newTopics?.Count ?? 0);
         Dictionary<string, object> message = null;
-        if (isGreaterThan(newTopicsCount, 0))
+        if (newTopicsLength > 0)
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "op", "subscribe" },
@@ -627,7 +626,7 @@ public partial class apex : ccxt.apex
         {
             this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
         }
-        if (!(inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe)))
+        if (!(((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe)))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = new ArrayCacheByTimestamp(limit);
@@ -814,7 +813,7 @@ public partial class apex : ccxt.apex
         }
         ccxt.pro.ArrayCache trades = this.myTrades;
         Dictionary<string, object> symbols = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(lists); i++)
+        for (int i = 0; i < (((object)(lists)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             object rawTrade = getValue(lists, i);
             ccxt.Trade parsed = this.parseWsTrade(rawTrade);
@@ -871,7 +870,7 @@ public partial class apex : ccxt.apex
         }
         ccxt.pro.ArrayCache orders = this.orders;
         Dictionary<string, object> symbols = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(lists); i++)
+        for (int i = 0; i < (((object)(lists)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             ccxt.Order parsed = this.parseOrder(getValue(lists, i));
             string? symbol = parsed.symbol;
@@ -912,14 +911,14 @@ public partial class apex : ccxt.apex
         for (int i = 0; i < (promises?.Count ?? 0); i++)
         {
             object positions = promises[i];
-            for (int ii = 0; ii < getArrayLength(positions); ii++)
+            for (int ii = 0; ii < (((object)(positions)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); ii++)
             {
                 IDictionary<string, object> position = ((IDictionary<string, object>)getValue(positions, ii));
                 cache.append(position);
             }
         }
         // don't remove the future from the .futures cache
-        if (inOp(client.futures, messageHash))
+        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
         {
             Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(cache);
@@ -957,7 +956,7 @@ public partial class apex : ccxt.apex
         }
         ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.positions);
         List<object> newPositions = new List<object>() {};
-        for (int i = 0; i < getArrayLength(lists); i++)
+        for (int i = 0; i < (((object)(lists)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             object rawPosition = getValue(lists, i);
             Dictionary<string, object> position = this.parsePosition(rawPosition);
@@ -1133,7 +1132,7 @@ public partial class apex : ccxt.apex
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        if (isEqual(this.handleErrorMessage(client, message), true))
+        if ((this.handleErrorMessage(client, message) == true))
         {
             return;
         }
@@ -1169,7 +1168,7 @@ public partial class apex : ccxt.apex
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            if (getIndexOf(topic, keys[i]) >= 0)
+            if ((topic?.IndexOf((string)keys[i], StringComparison.Ordinal) ?? -1) >= 0)
             {
                 object method = (key != null && methods.ContainsKey(key) ? methods[key] : null);
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});

@@ -265,7 +265,7 @@ public partial class cex : ccxt.cex
         for (Int64 i = 0; i < dataLength; i++)
         {
             Int64 index = ((dataLength - 1) - i);
-            object rawTrade = getValue(data, index);
+            object rawTrade = (data != null && index < data.Count ? data[(int)index] : null);
             Dictionary<string, object> parsed = this.parseWsOldTrade(rawTrade, market);
             stored.append(parsed);
         }
@@ -403,13 +403,13 @@ public partial class cex : ccxt.cex
             return;
         }
         this.tickers[(string)symbol] = ticker;
-        string? messageHash = ("ticker:" + symbol);
+        string messageHash = ("ticker:" + symbol);
         client.resolve(ticker, messageHash);
         client.resolve(ticker, "tickers");
-        messageHash = this.safeString(message, "oid");
-        if ((messageHash != null))
+        string? oid = this.safeString(message, "oid");
+        if ((oid != null))
         {
-            client.resolve(ticker, messageHash);
+            client.resolve(ticker, oid);
         }
     }
 
@@ -456,11 +456,7 @@ public partial class cex : ccxt.cex
         {
             symbol = ((bs + "/") + quote);
         }
-        Int64? timestamp = this.safeInteger(ticker, "timestamp");
-        if ((timestamp != null))
-        {
-            timestamp = (timestamp * 1000);
-        }
+        Int64? timestamp = this.safeTimestamp(ticker, "timestamp");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
@@ -1175,7 +1171,7 @@ public partial class cex : ccxt.cex
         ccxt.pro.IOrderBook storedOrderBook = this.safeOrderBook(this.orderbooks, symbol);
         string messageHash = ("orderbook:" + symbol);
         Int64? nonce = this.safeInteger(storedOrderBook, "nonce");
-        if (((nonce == null)) || (!isEqual(incrementalId, (nonce + 1))))
+        if (((nonce == null)) || (!(incrementalId == (nonce + 1))))
         {
             ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
             var error = new InvalidNonce((this.id + " watchOrderBook() skipped a message"));

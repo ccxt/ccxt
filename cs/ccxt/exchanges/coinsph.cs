@@ -810,33 +810,35 @@ public partial class coinsph : Exchange
     public override object calculateRateLimiterCost(object api, object method, object path, object parameters, object config = null)
     {
         config ??= new Dictionary<string, object>();
-        if ((((IDictionary<string, object>)config).ContainsKey("noSymbol")) && !(inOp(parameters, "symbol")))
+        if ((((IDictionary<string, object>)config).ContainsKey("noSymbol")) && !((((object)(parameters)) switch { null => false, IList<object> c33a => c33a.Contains("symbol"), IList<string> c33t => c33t.Contains("symbol"), List<Int64> c33g => c33g.Contains((Int64)(object)"symbol"), IDictionary<string, object> c33d => c33d.ContainsKey("symbol"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("symbol"), _ => false })))
         {
             return ((IDictionary<string,object>)config)["noSymbol"];
-        } else if ((((IDictionary<string, object>)config).ContainsKey("noSymbolAndNoSymbols")) && !(inOp(parameters, "symbol")) && !(inOp(parameters, "symbols")))
+        } else if ((((IDictionary<string, object>)config).ContainsKey("noSymbolAndNoSymbols")) && !((((object)(parameters)) switch { null => false, IList<object> c33a => c33a.Contains("symbol"), IList<string> c33t => c33t.Contains("symbol"), List<Int64> c33g => c33g.Contains((Int64)(object)"symbol"), IDictionary<string, object> c33d => c33d.ContainsKey("symbol"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("symbol"), _ => false })) && !((((object)(parameters)) switch { null => false, IList<object> c33a => c33a.Contains("symbols"), IList<string> c33t => c33t.Contains("symbols"), List<Int64> c33g => c33g.Contains((Int64)(object)"symbols"), IDictionary<string, object> c33d => c33d.ContainsKey("symbols"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("symbols"), _ => false })))
         {
             return ((IDictionary<string,object>)config)["noSymbolAndNoSymbols"];
-        } else if ((((IDictionary<string, object>)config).ContainsKey("byNumberOfSymbols")) && (inOp(parameters, "symbols")))
+        } else if ((((IDictionary<string, object>)config).ContainsKey("byNumberOfSymbols")) && ((((object)(parameters)) switch { null => false, IList<object> c33a => c33a.Contains("symbols"), IList<string> c33t => c33t.Contains("symbols"), List<Int64> c33g => c33g.Contains((Int64)(object)"symbols"), IDictionary<string, object> c33d => c33d.ContainsKey("symbols"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("symbols"), _ => false })))
         {
             object symbols = getValue(parameters, "symbols");
-            int symbolsAmount = getArrayLength(symbols);
+            int symbolsAmount = (((object)(symbols)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
             List<object> byNumberOfSymbols = this.safeList(config, "byNumberOfSymbols", new List<object>() {});
             for (int i = 0; i < byNumberOfSymbols.Count; i++)
             {
                 object entry = byNumberOfSymbols[i];
-                if (isGreaterThanOrEqual(symbolsAmount, getValue(entry, 0)))
+                Int64? threshold = this.safeInteger(entry, 0);
+                if (!(threshold == null) && (threshold == null || symbolsAmount >= threshold))
                 {
                     return getValue(entry, 1);
                 }
             }
-        } else if ((((IDictionary<string, object>)config).ContainsKey("byLimit")) && (inOp(parameters, "limit")))
+        } else if ((((IDictionary<string, object>)config).ContainsKey("byLimit")) && ((((object)(parameters)) switch { null => false, IList<object> c33a => c33a.Contains("limit"), IList<string> c33t => c33t.Contains("limit"), List<Int64> c33g => c33g.Contains((Int64)(object)"limit"), IDictionary<string, object> c33d => c33d.ContainsKey("limit"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("limit"), _ => false })))
         {
-            object limit = getValue(parameters, "limit");
+            Int64? limit = this.safeInteger(parameters, "limit");
             List<object> byLimit = this.safeList(config, "byLimit", new List<object>() {});
             for (int i = 0; i < byLimit.Count; i++)
             {
                 object entry = byLimit[i];
-                if (isGreaterThanOrEqual(limit, getValue(entry, 0)))
+                Int64? threshold = this.safeInteger(entry, 0);
+                if ((limit != null) && !(threshold == null) && (threshold == null || limit >= threshold))
                 {
                     return getValue(entry, 1);
                 }
@@ -1272,20 +1274,18 @@ public partial class coinsph : Exchange
                 request["endTime"] = until;
             } else
             {
-                Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
-                object endTimeByLimit = this.sum(since, multiply(duration, ((limitResolved - 1))));
+                object endTimeByLimit = this.sum(since, ((this.parseTimeframe(timeframeVar) * 1000L) * ((limitResolved - 1))));
                 Int64 now = this.milliseconds();
-                request["endTime"] = mathMin(endTimeByLimit, now);
+                request["endTime"] = (((((object)(endTimeByLimit)) is var c31v0) && (((object)(now)) is var c31v1)) ? (((c31v0 == null) || (c31v1 == null)) ? null : ((Convert.ToDouble(c31v0) < Convert.ToDouble(c31v1)) ? c31v0 : c31v1)) : null);
             }
         } else if ((until != null))
         {
             request["endTime"] = until;
             // since work properly only when it is "younger" than last "limit" candle
-            Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
-            request["startTime"] = subtract(until, (multiply(duration, ((limitResolved - 1)))));
+            request["startTime"] = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(until, (((this.parseTimeframe(timeframeVar) * 1000L) * ((limitResolved - 1)))));
         }
         request["limit"] = limitResolved;
-        object paramsOmitted = this.omit(parameters, "until");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "until"));
         List<object> response = await this.publicGetOpenapiQuoteV1Klines(this.extend(request, paramsOmitted));
         //
         //     [
@@ -1608,10 +1608,10 @@ public partial class coinsph : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         bool? testOrder = this.safeBool(parameters, "test", false);
-        object paramsOmitted = this.omit(parameters, "test");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "test"));
         string? orderType = this.safeString(paramsOmitted, "type", type);
         orderType = this.encodeOrderType(orderType);
-        object paramsType = this.omit(paramsOmitted, "type");
+        Dictionary<string, object> paramsType = this.omit(paramsOmitted, "type");
         object paramsQuote = null;
         string? orderSide = this.encodeOrderSide(side);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1747,7 +1747,7 @@ public partial class coinsph : Exchange
         {
             request["orderId"] = id;
         }
-        object paramsOmitted = this.omit(parameters, new List<object>() {"clientOrderId", "origClientOrderId"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"clientOrderId", "origClientOrderId"}));
         Dictionary<string, object> response = await this.privateGetOpenapiV1Order(this.extend(request, paramsOmitted));
         return this.parseOrder(response);
     }
@@ -1846,7 +1846,7 @@ public partial class coinsph : Exchange
         {
             request["orderId"] = id;
         }
-        object paramsOmitted = this.omit(parameters, new List<object>() {"clientOrderId", "origClientOrderId"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"clientOrderId", "origClientOrderId"}));
         Dictionary<string, object> response = await this.privateDeleteOpenapiV1Order(this.extend(request, paramsOmitted));
         return this.parseOrder(response);
     }
@@ -2512,7 +2512,7 @@ public partial class coinsph : Exchange
             { "coin", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "network", networkId },
         };
-        object paramsOmitted = this.omit(parameters, "network");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "network"));
         Dictionary<string, object> response = await this.privateGetOpenapiWalletV1DepositAddress(this.extend(request, paramsOmitted));
         //
         //     {
@@ -2553,13 +2553,13 @@ public partial class coinsph : Exchange
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            if (((getValue(query, key) is IList<object>) || (getValue(query, key).GetType().IsGenericType && getValue(query, key).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+            if ((((key != null && ((IDictionary<string, object>)query).ContainsKey(key) ? ((IDictionary<string, object>)query)[key] : null) is IList<object>) || ((key != null && ((IDictionary<string, object>)query).ContainsKey(key) ? ((IDictionary<string, object>)query)[key] : null).GetType().IsGenericType && (key != null && ((IDictionary<string, object>)query).ContainsKey(key) ? ((IDictionary<string, object>)query)[key] : null).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
                 if ((i != 0))
                 {
                     encodedArrayParams = encodedArrayParams + "&";
                 }
-                object innerArray = getValue(query, key);
+                object innerArray = (key != null && ((IDictionary<string, object>)query).ContainsKey(key) ? ((IDictionary<string, object>)query)[key] : null);
                 remainingQuery = this.omit(remainingQuery, key);
                 string? encodedArrayParam = this.parseArrayParam(innerArray, key);
                 encodedArrayParams = encodedArrayParams + encodedArrayParam;

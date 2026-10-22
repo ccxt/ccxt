@@ -510,7 +510,7 @@ public partial class independentreserve : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (int i = 0; i < getArrayLength(response); i++)
+        for (int i = 0; i < (((object)(response)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             IDictionary<string, object> balance = this.safeDict(response, i);
             string? currencyId = this.safeString(balance, "CurrencyCode");
@@ -861,11 +861,7 @@ public partial class independentreserve : Exchange
             request["primaryCurrencyCode"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
             request["secondaryCurrencyCode"] = (market.ContainsKey("quoteId") ? market["quoteId"] : null);
         }
-        Int64? limitResolved = limit;
-        if ((limitResolved == null))
-        {
-            limitResolved = ((Int64?)50);
-        }
+        Int64? limitResolved = ((limit == null)) ? 50 : limit;
         request["pageIndex"] = 1;
         request["pageSize"] = limitResolved;
         Dictionary<string, object> response = await this.privatePostGetOpenOrders(this.extend(request, parameters));
@@ -898,11 +894,7 @@ public partial class independentreserve : Exchange
             request["primaryCurrencyCode"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
             request["secondaryCurrencyCode"] = (market.ContainsKey("quoteId") ? market["quoteId"] : null);
         }
-        Int64? limitResolved = limit;
-        if ((limitResolved == null))
-        {
-            limitResolved = ((Int64?)50);
-        }
+        Int64? limitResolved = ((limit == null)) ? 50 : limit;
         request["pageIndex"] = 1;
         request["pageSize"] = limitResolved;
         Dictionary<string, object> response = await this.privatePostGetClosedOrders(this.extend(request, parameters));
@@ -1119,7 +1111,7 @@ public partial class independentreserve : Exchange
         {
             response = await this.privatePostPlaceMarketOrder(this.extend(request, parameters));
         }
-        return this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", GetValue(response, "OrderGuid") },         }, market);
+        return this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", (response != null && response.ContainsKey("OrderGuid") ? response["OrderGuid"] : null) },         }, market);
     }
 
     /**

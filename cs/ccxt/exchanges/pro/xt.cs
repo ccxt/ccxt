@@ -97,7 +97,7 @@ public partial class xt : ccxt.xt
                 // a flight is already in progress - wake when the leader
                 // settles it: the token is then in the bucket
                 await client.future(messageHash);
-                return ((string?)((object)(getValue(client.subscriptions, "token"))));
+                return ((string?)((object)((client.subscriptions != null && client.subscriptions.ContainsKey("token") ? client.subscriptions["token"] : null))));
             }
             // client.futures is the same registry Exchange.watch () dedupes on, so registering
             // the flight here, before any suspension point, makes concurrent callers wait
@@ -149,7 +149,7 @@ public partial class xt : ccxt.xt
             }
             await future;
         }
-        return ((string?)((object)(getValue(client.subscriptions, "token"))));
+        return ((string?)((object)((client.subscriptions != null && client.subscriptions.ContainsKey("token") ? client.subscriptions["token"] : null))));
     }
 
     public override object getCacheIndex(object orderbook, IList<object> cache)
@@ -594,7 +594,7 @@ public partial class xt : ccxt.xt
         }
         Dictionary<string, object> market = this.market(symbol);
         string? levels = this.safeString(parameters, "levels");
-        object paramsOmitted = this.omit(parameters, "levels");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "levels"));
         string name = ("depth_update@" + ((market.ContainsKey("id") ? market["id"] : null)));
         if ((levels != null))
         {
@@ -626,7 +626,7 @@ public partial class xt : ccxt.xt
         }
         Dictionary<string, object> market = this.market(symbol);
         string? levels = this.safeString(parameters, "levels");
-        object paramsOmitted = this.omit(parameters, "levels");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "levels"));
         string name = ("depth_update@" + ((market.ContainsKey("id") ? market["id"] : null)));
         if ((levels != null))
         {
@@ -883,7 +883,7 @@ public partial class xt : ccxt.xt
             }
         }
         // don't remove the future from the .futures cache
-        if (inOp(client.futures, messageHash))
+        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
         {
             Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(cache);
@@ -1356,7 +1356,7 @@ public partial class xt : ccxt.xt
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             List<object> obAsks = this.safeList(data, "a");
             List<object> obBids = this.safeList(data, "b");
-            string? messageHash = ((string)add(add(eventVar, "::"), tradeType));
+            string? messageHash = ((string)((eventVar + "::") + tradeType));
             if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
             {
                 IDictionary<string, object> subscription = this.safeDict(client.subscriptions, messageHash, new Dictionary<string, object>() {});
@@ -1369,7 +1369,7 @@ public partial class xt : ccxt.xt
             {
                 int cacheLength = ((orderbook as ccxt.pro.OrderBook).cache?.Count ?? 0);
                 object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 25);
-                if (isEqual(cacheLength, snapshotDelay))
+                if (((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))(cacheLength, snapshotDelay))
                 {
                     this.spawn(this.loadOrderBook, new object[] { client, messageHash, symbol});
                 }
@@ -1805,11 +1805,10 @@ public partial class xt : ccxt.xt
         //
         string? id = this.safeString(message, "id");
         Dictionary<string, object> subscriptionsById = this.indexBy(client.subscriptions, "id");
-        bool? unsubscribe = false;
         if ((id != null))
         {
             IDictionary<string, object> subscription = this.safeDict(subscriptionsById, id, new Dictionary<string, object>() {});
-            unsubscribe = this.safeBool(subscription, "unsubscribe", false);
+            bool? unsubscribe = this.safeBool(subscription, "unsubscribe", false);
             if ((unsubscribe == true))
             {
                 this.handleUnSubscription(client, subscription);

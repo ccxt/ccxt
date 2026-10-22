@@ -558,10 +558,10 @@ public partial class deepcoin : Exchange
         {
             promises.Add(this.FetchMarketsByType(types[i], parameters));
         }
-        promises = await promiseAll(promises);
-        for (int i = 0; i < (promises?.Count ?? 0); i++)
+        List<object> responses = await promiseAll(promises);
+        for (int i = 0; i < (responses?.Count ?? 0); i++)
         {
-            result = this.arrayConcat(result, promises[i]);
+            result = this.arrayConcat(result, responses[i]);
         }
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
@@ -744,7 +744,7 @@ public partial class deepcoin : Exchange
         {
             string? symbol = ((string)symbols[i]);
             object market = getValue(result, symbol);
-            if (((market != null)) && (isEqual(getValue(market, "swap"), true)))
+            if (((market != null)) && ((getValue(market, "swap") is true)))
             {
                 string additionalId = (this.safeString(market, "baseId", "") + this.safeString(market, "quoteId", ""));
                 if ((this.markets_by_id != null))
@@ -850,7 +850,7 @@ public partial class deepcoin : Exchange
         };
         if ((limit != null))
         {
-            request["limit"] = mathMin(limit, maxLimit);
+            request["limit"] = Math.Min(limit.Value, maxLimit);
         }
         Int64? until = this.safeInteger(paramsPaginate, "until");
         if ((until != null))
@@ -871,10 +871,10 @@ public partial class deepcoin : Exchange
                 object endTime = add(since, (((duration * numberOfCandles)) * 1000));
                 if ((until != null))
                 {
-                    endTime = mathMin(endTime, until);
+                    endTime = (((((object)(endTime)) is var c31v0) && (((object)(until)) is var c31v1)) ? (((c31v0 == null) || (c31v1 == null)) ? null : ((Convert.ToDouble(c31v0) < Convert.ToDouble(c31v1)) ? c31v0 : c31v1)) : null);
                 }
                 Int64 now = this.milliseconds();
-                request["after"] = mathMin(endTime, now);
+                request["after"] = (((((object)(endTime)) is var c31v2) && (((object)(now)) is var c31v3)) ? (((c31v2 == null) || (c31v3 == null)) ? null : ((Convert.ToDouble(c31v2) < Convert.ToDouble(c31v3)) ? c31v2 : c31v3)) : null);
             }
         }
         Dictionary<string, object> response = null;
@@ -2501,7 +2501,7 @@ public partial class deepcoin : Exchange
             request["limit"] = limit;
         }
         bool? trigger = this.safeBool(parameters, "trigger", false);
-        object paramsOmitted = this.omit(parameters, "trigger");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "trigger"));
         Dictionary<string, object> response = null;
         if ((trigger == true))
         {
@@ -2624,7 +2624,7 @@ public partial class deepcoin : Exchange
         bool? trigger = this.safeBool(parameters, "trigger", false);
         if ((trigger == true))
         {
-            object paramsOmitted = this.omit(parameters, "trigger");
+            IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "trigger"));
             response = await this.privatePostDeepcoinTradeCancelTriggerOrder(this.extend(request, paramsOmitted));
         } else
         {
@@ -2736,7 +2736,7 @@ public partial class deepcoin : Exchange
             {
                 request["tpTriggerPx"] = (!(symbolResolved is "")) ? this.priceToPrecision(symbolResolved, takeProfitPrice) : this.numberToString(takeProfitPrice);
             }
-            object paramsOmitted = this.omit(parameters, new List<object>() {"stopLossPrice", "takeProfitPrice"});
+            IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"stopLossPrice", "takeProfitPrice"}));
             response = await this.privatePostDeepcoinTradeReplaceOrderSltp(this.extend(request, paramsOmitted));
         } else
         {
@@ -3649,7 +3649,7 @@ public partial class deepcoin : Exchange
         {
             sCode = retCode;
         }
-        if ((!isEqual(code, 200)) || (messageCode != "0") || ((sCode != null) && sCode != "0"))
+        if ((!(((object)(code)) switch { Int64 c33l => c33l == 200, int c33i => c33i == 200, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 200, decimal c33m => c33m == 200, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 200, uint c33u => (Int64)c33u == 200, short c33h => (Int64)c33h == 200, ushort c33v => (Int64)c33v == 200, byte c33y => (Int64)c33y == 200, sbyte c33e => (Int64)c33e == 200, ulong c33z => c33z == 200UL, _ => false })) || (messageCode != "0") || ((sCode != null) && sCode != "0"))
         {
             this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), messageCode, feedback);
             this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), sCode, feedback);

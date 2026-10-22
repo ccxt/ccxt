@@ -1128,7 +1128,7 @@ public partial class coinone : Exchange
         return this.parseOrder(response, market);
     }
 
-    public virtual string? parseOrderStatus(object status)
+    public virtual string? parseOrderStatus(string? status)
     {
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "live", "open" },
@@ -1137,7 +1137,7 @@ public partial class coinone : Exchange
             { "filled", "closed" },
             { "canceled", "canceled" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
@@ -1508,8 +1508,8 @@ public partial class coinone : Exchange
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string url = (apiUrl + "/");
-        bool isPublic = ((apiName is "public")) || (isEqual(apiName, "v2Public"));
-        if (isEqual(apiName, "v2Public"))
+        bool isPublic = ((apiName is "public")) || ((apiName is "v2Public"));
+        if ((apiName is "v2Public"))
         {
             string? apiUrl2 = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "v2Public");
             if ((apiUrl2 == null))
@@ -1517,7 +1517,7 @@ public partial class coinone : Exchange
                 throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
             }
             url = (apiUrl2 + "/");
-        } else if (isEqual(apiName, "v2Private"))
+        } else if ((apiName is "v2Private"))
         {
             string? apiUrl3 = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "v2Private");
             if ((apiUrl3 == null))
@@ -1525,7 +1525,7 @@ public partial class coinone : Exchange
                 throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
             }
             url = (apiUrl3 + "/");
-        } else if (isEqual(apiName, "v2_1Private"))
+        } else if ((apiName is "v2_1Private"))
         {
             string? apiUrl4 = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "v2_1Private");
             if ((apiUrl4 == null))
@@ -1549,7 +1549,7 @@ public partial class coinone : Exchange
             url = url + request;
             // the v2.1 api requires a uuid nonce, the older apis use a numeric one
             string? nonce = null;
-            if (isEqual(apiName, "v2_1Private"))
+            if ((apiName is "v2_1Private"))
             {
                 nonce = this.uuid();
             } else

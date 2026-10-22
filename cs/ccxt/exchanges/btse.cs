@@ -852,8 +852,8 @@ public partial class btse : Exchange
             { "contract", isSwap || isFuture },
             { "linear", isSpot ? null : true },
             { "inverse", isSpot ? null : false },
-            { "taker", GetValue(fees, "taker") },
-            { "maker", GetValue(fees, "maker") },
+            { "taker", (fees != null && fees.ContainsKey("taker") ? fees["taker"] : null) },
+            { "maker", (fees != null && fees.ContainsKey("maker") ? fees["maker"] : null) },
             { "contractSize", this.parseNumber(contractSize) },
             { "expiry", expiry },
             { "expiryDatetime", this.iso8601(expiry) },
@@ -922,7 +922,7 @@ public partial class btse : Exchange
         };
         if ((limit != null))
         {
-            request["limit"] = mathMin(limit, maxLimit);
+            request["limit"] = Math.Min(limit.Value, maxLimit);
         } else
         {
             // the endpoint returns only 10 candles when the limit is omitted
@@ -943,9 +943,8 @@ public partial class btse : Exchange
                 // check if the requested time range is too large for one request
                 // if so, just omit until for correct paginated calls for not to get an error from the exchange
                 int duration = this.parseTimeframe(timeframeVar);
-                Int64 maxDelta = multiply(multiply(duration, maxLimit), 1000); // parseTimeframe returns seconds, the difference below is in milliseconds
-                object difference = (until - since);
-                if (isLessThan(difference, maxDelta))
+                Int64 maxDelta = (((Int64)duration * maxLimit) * 1000); // parseTimeframe returns seconds, the difference below is in milliseconds
+                if ((((until - since)) < maxDelta))
                 {
                     request["end"] = this.parseToInt(((double?)until / 1000));
                 }
@@ -1073,12 +1072,13 @@ public partial class btse : Exchange
             period = "7D";
             if ((since != null))
             {
-                object age = (this.milliseconds() - since);
-                int day = 86400000;
-                if (isGreaterThan(age, (14L * day)))
+                Int64 now = this.milliseconds();
+                Int64 twoWeeksAgo = (now - 1209600000); // 14 days in ms
+                Int64 oneWeekAgo = (now - 604800000); // 7 days in ms
+                if ((since < twoWeeksAgo))
                 {
                     period = "1M";
-                } else if (isGreaterThan(age, (7L * day)))
+                } else if ((since < oneWeekAgo))
                 {
                     period = "2W";
                 }
@@ -1113,7 +1113,7 @@ public partial class btse : Exchange
         }
         object rates = this.parseFundingRateHistories(data, market, since, limit);
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(rates); i++)
+        for (int i = 0; i < (((object)(rates)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             object rate = getValue(rates, i);
             Int64? timestamp = this.safeInteger(rate, "timestamp");
@@ -1205,7 +1205,7 @@ public partial class btse : Exchange
         Dictionary<string, object> totals = new Dictionary<string, object>() {};
         Dictionary<string, object> frees = new Dictionary<string, object>() {};
         Dictionary<string, object> useds = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(response); i++)
+        for (int i = 0; i < (((object)(response)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             IDictionary<string, object> row = this.safeDict(response, i);
             List<object> assets = this.safeList(row, "assets");
@@ -1306,14 +1306,10 @@ public partial class btse : Exchange
         //
         // a single-symbol request returns the entry directly in data
         //
-        List<object> data = this.safeList(response, "data");
-        if ((data == null))
-        {
-            IDictionary<string, object> single = this.safeDict(response, "data", new Dictionary<string, object>() {});
-            data = new List<object>() {single};
-        }
+        IDictionary<string, object> single = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        List<object> data = this.safeList(response, "data", new List<object>() {single});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; i < (data?.Count ?? 0); i++)
+        for (int i = 0; i < data.Count; i++)
         {
             IDictionary<string, object> entry = this.safeDict(data, i);
             string? marketId = this.safeString(entry, "symbol");
@@ -1323,45 +1319,28 @@ public partial class btse : Exchange
             {
                 List<object> levels = this.safeList(entry, "riskLimits", new List<object>() {});
                 List<object> tiers = new List<object>() {};
+                // each tier's floor is the previous tier's cap (0 for the first)
+                double? minNotional = null;
                 for (int j = 0; j < levels.Count; j++)
                 {
                     object level = levels[j];
+                    double? maxNotional = this.safeNumber(level, "value");
                     // the endpoint only reports the notional ladder, the
                     // per-tier leverage and margin rates are not available
                     tiers.Add(new Dictionary<string, object>() {
                         { "tier", this.safeInteger(level, "level") },
                         { "symbol", symbol },
                         { "currency", (market.ContainsKey("settle") ? market["settle"] : null) },
-                        { "minNotional", null },
-                        { "maxNotional", this.safeNumber(level, "value") },
+                        { "minNotional", ((j == 0)) ? 0 : minNotional },
+                        { "maxNotional", maxNotional },
                         { "maintenanceMarginRate", null },
                         { "maxLeverage", null },
                         { "info", level },
                     });
+                    minNotional = maxNotional;
                 }
                 result[(string)symbol] = tiers; // rows arrive ordered by level ascending, avoid sortBy which compares numeric keys lexicographically in some transpiled runtimes
             }
-        }
-        // the exchange only provides the cap of each risk tier, so the floor
-        // is derived from the previous tier: 0 for the first tier, and the
-        // previous tier's maxNotional for every subsequent tier
-        List<object> symbolKeys = new List<object>(result.Keys);
-        for (int i = 0; i < symbolKeys.Count; i++)
-        {
-            string? symbolKey = ((string)symbolKeys[i]);
-            object tiersList = (symbolKey != null && result.ContainsKey(symbolKey) ? result[symbolKey] : null);
-            for (object j = 0; isLessThan(j, getArrayLength(tiersList)); postFixIncrement(ref j))
-            {
-                if (isEqual(j, 0))
-                {
-                    ((IDictionary<string,object>)getValue(tiersList, j))["minNotional"] = 0;
-                } else
-                {
-                    ((IDictionary<string,object>)getValue(tiersList, j))["minNotional"] = getValue(getValue(tiersList, subtract(j, 1)), "maxNotional");
-                }
-            }
-            // php copies arrays by value, so the mutated list must be written back explicitly
-            result[(string)symbolKey] = tiersList;
         }
         return ccxt.BaseExchange.ToLeverageTiers(result);
     }
@@ -1404,7 +1383,7 @@ public partial class btse : Exchange
         await this.loadMarkets();
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true);
         // the unified endpoint serves all market types in one call, the legacy type param is accepted and ignored
-        object paramsOmitted = this.omit(parameters, "type");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "type"));
         Dictionary<string, object> response = await this.publicGetPublicApiMarketV1Ticker24hr(paramsOmitted);
         List<object> data = this.safeList(response, "data", new List<object>() {});
         return ccxt.BaseExchange.ToTickers(this.parseTickers(data, symbolsNormalized));
@@ -1461,12 +1440,8 @@ public partial class btse : Exchange
         //     }
         //
         // a single-symbol query returns data as one object, a multi-symbol or bare query returns an array
-        IDictionary<string, object> data = this.safeDict(response, "data");
-        if ((data == null))
-        {
-            List<object> rows = this.safeList(response, "data", new List<object>() {});
-            data = this.safeDict(rows, 0, new Dictionary<string, object>() {});
-        }
+        List<object> rows = this.safeList(response, "data", new List<object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", this.safeDict(rows, 0, new Dictionary<string, object>() {}));
         return this.parseTicker(data, market);
     }
 
@@ -1480,11 +1455,11 @@ public partial class btse : Exchange
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? last = this.safeString(ticker, "lastPrice");
         string? baseVolume = this.safeString(ticker, "amount");
-        if (((baseVolume != null)) && ((marketResolved != null)) && (((GetValue(marketResolved, "contract") as bool?) == true)))
+        if (((baseVolume != null)) && ((marketResolved != null)) && ((((marketResolved != null && marketResolved.ContainsKey("contract") ? marketResolved["contract"] : null) as bool?) == true)))
         {
             // for contract markets the amount field is denominated in contracts, verified live -
             // scaling by contractSize converts it into base currency units
-            string? contractSizeString = this.numberToString(GetValue(marketResolved, "contractSize"));
+            string? contractSizeString = this.numberToString((marketResolved != null && marketResolved.ContainsKey("contractSize") ? marketResolved["contractSize"] : null));
             if ((contractSizeString != null))
             {
                 baseVolume = Precise.stringMul(baseVolume, contractSizeString);
@@ -1539,12 +1514,8 @@ public partial class btse : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetPublicApiMarketV1Ticker24hr(this.extend(request, parameters));
-        IDictionary<string, object> interest = this.safeDict(response, "data");
-        if ((interest == null))
-        {
-            List<object> rows = this.safeList(response, "data", new List<object>() {});
-            interest = this.safeDict(rows, 0, new Dictionary<string, object>() {});
-        }
+        List<object> rows = this.safeList(response, "data", new List<object>() {});
+        IDictionary<string, object> interest = this.safeDict(response, "data", this.safeDict(rows, 0, new Dictionary<string, object>() {}));
         return ccxt.BaseExchange.ToOpenInterest(this.parseOpenInterest(interest, market));
     }
 
@@ -1617,12 +1588,8 @@ public partial class btse : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetPublicApiMarketV1Ticker24hr(this.extend(request, parameters));
-        IDictionary<string, object> data = this.safeDict(response, "data");
-        if ((data == null))
-        {
-            List<object> rows = this.safeList(response, "data", new List<object>() {});
-            data = this.safeDict(rows, 0, new Dictionary<string, object>() {});
-        }
+        List<object> rows = this.safeList(response, "data", new List<object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", this.safeDict(rows, 0, new Dictionary<string, object>() {}));
         return ccxt.BaseExchange.ToFundingRate(this.parseFundingRate(data, market));
     }
 
@@ -1913,11 +1880,7 @@ public partial class btse : Exchange
             //
             response = await this.privateGetFuturesApiV3TradeTradeHistory(this.extend(request, paramsMarketType));
         }
-        object rows = this.safeList(response, "data");
-        if ((rows == null))
-        {
-            rows = response;
-        }
+        List<object> rows = this.safeList(response, "data", ((object)response));
         return this.parseTrades(rows, market, since, limit);
     }
 
@@ -3182,7 +3145,7 @@ public partial class btse : Exchange
         // the endpoint applies a server side history type filter sent as a
         // json encoded array in the query string, verified live
         request["historyTypes"] = this.json(typesList);
-        object paramsOmitted = this.omit(parameters, "walletType");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "walletType"));
         IDictionary<string, object> currency = null;
         if ((code != null))
         {
@@ -3424,7 +3387,7 @@ public partial class btse : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         string? walletType = this.safeString(parameters, "walletType", "SPOT");
         request["walletType"] = walletType;
-        object paramsOmitted = this.omit(parameters, "walletType");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "walletType"));
         IDictionary<string, object> currency = null;
         if ((code != null))
         {
@@ -3622,11 +3585,7 @@ public partial class btse : Exchange
         //
         // the response is a bare array of position rows
         //
-        List<object> rows = this.safeList(response, "data");
-        if ((rows == null))
-        {
-            rows = response;
-        }
+        List<object> rows = this.safeList(response, "data", ((object)response));
         return ccxt.BaseExchange.ToPositionList(this.parsePositions(rows, symbolsNormalized));
     }
 
@@ -3932,7 +3891,7 @@ public partial class btse : Exchange
         {
             positionMode = "ISOLATED";
         }
-        object paramsOmitted = this.omit(parameters, "hedged");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "hedged"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", this.futuresRequestId(market) },
             { "positionMode", positionMode },
@@ -3983,11 +3942,7 @@ public partial class btse : Exchange
         }
         object paramsOmitted = (typeUpper == "LIMIT") ? this.omit(paramsOrderType, "price") : paramsOrderType;
         object response = await this.privateDeleteFuturesApiV3TradePositions(this.extend(request, paramsOmitted));
-        object order = this.safeDict(response, 0);
-        if ((order == null))
-        {
-            order = response;
-        }
+        IDictionary<string, object> order = this.safeDict(response, 0, response);
         return this.parseOrder(order, market);
     }
 
@@ -4167,7 +4122,7 @@ public partial class btse : Exchange
         {
             rows = new List<object>() {response};
         }
-        for (int i = 0; i < getArrayLength(rows); i++)
+        for (int i = 0; i < (((object)(rows)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             IDictionary<string, object> row = this.safeDict(rows, i);
             string? status = this.safeString(row, "status");

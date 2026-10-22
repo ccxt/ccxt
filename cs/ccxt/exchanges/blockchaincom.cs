@@ -684,7 +684,7 @@ public partial class blockchaincom : Exchange
         string? orderType = this.safeString(parameters, "ordType", type);
         string uppercaseOrderType = orderType.ToUpper();
         string? clientOrderId = this.safeString2(parameters, "clientOrderId", "clOrdId", this.uuid16());
-        object paramsOmitted = this.omit(parameters, new List<object>() {"ordType", "clientOrderId", "clOrdId"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"ordType", "clientOrderId", "clOrdId"}));
         this.checkRequiredArgument("createOrder", side, "side");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "ordType", uppercaseOrderType },
@@ -694,7 +694,7 @@ public partial class blockchaincom : Exchange
             { "clOrdId", clientOrderId },
         };
         object triggerPrice = this.safeValueN(paramsOmitted, new List<object>() {"triggerPrice", "stopPx", "stopPrice"});
-        object paramsOmitted2 = this.omit(paramsOmitted, new List<object>() {"triggerPrice", "stopPx", "stopPrice"});
+        Dictionary<string, object> paramsOmitted2 = this.omit(paramsOmitted, new List<object>() {"triggerPrice", "stopPx", "stopPrice"});
         if (uppercaseOrderType == "STOP" || uppercaseOrderType == "STOPLIMIT")
         {
             if ((triggerPrice == null))
@@ -1280,7 +1280,7 @@ public partial class blockchaincom : Exchange
             await this.loadMarkets();
         }
         string? accountName = this.safeString(parameters, "account", "primary");
-        object paramsOmitted = this.omit(parameters, "account");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "account"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "account", accountName },
         };

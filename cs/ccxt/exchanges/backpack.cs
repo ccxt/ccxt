@@ -683,9 +683,9 @@ public partial class backpack : Exchange
     public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        IList<object> stockqueryVariable = (IList<object>)this.handleStockParams("fetchCurrencies", parameters);
-        var stock = stockqueryVariable[0];
-        var query = stockqueryVariable[1];
+        object selection = this.handleStockParams("fetchCurrencies", parameters);
+        bool? stock = this.safeBool(selection, 0, false);
+        IDictionary<string, object> query = this.safeDict(selection, 1, new Dictionary<string, object>() {});
         List<object> response = await this.publicGetApiV1Assets(query);
         //
         //     [
@@ -714,7 +714,7 @@ public partial class backpack : Exchange
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
             Dictionary<string, object> currency = this.parseCurrency(response[i]);
-            if ((!(stock is true)) || ((((currency.ContainsKey("type") ? currency["type"] : null) as string) == "stock")))
+            if (((stock != true)) || ((this.safeString(currency, "type") == "stock")))
             {
                 currencies[(string)(currency.ContainsKey("code") ? currency["code"] : null)] = currency;
             }
@@ -812,9 +812,9 @@ public partial class backpack : Exchange
         {
             await this.loadTimeDifference();
         }
-        IList<object> stockqueryVariable = (IList<object>)this.handleStockParams("fetchMarkets", parameters);
-        var stock = stockqueryVariable[0];
-        var query = stockqueryVariable[1];
+        object selection = this.handleStockParams("fetchMarkets", parameters);
+        bool? stock = this.safeBool(selection, 0, false);
+        IDictionary<string, object> query = this.safeDict(selection, 1, new Dictionary<string, object>() {});
         string? marketType = this.safeString(query, "marketType");
         List<object> defaultTypes = ((marketType == null)) ? new List<object>() {"SPOT", "PERP", "RFQ"} : new List<object>() {marketType};
         List<object> requestedTypes = this.safeList(query, "marketType", defaultTypes);
@@ -839,10 +839,10 @@ public partial class backpack : Exchange
             }
         }
         bool includeRfq = this.inArray("RFQ", marketTypes);
-        object marketQuery = this.omit(query, "marketType");
-        if (inOp(query, "marketType"))
+        Dictionary<string, object> marketQuery = this.omit(query, "marketType");
+        if (query.ContainsKey("marketType"))
         {
-            ((IDictionary<string,object>)marketQuery)["marketType"] = marketTypes;
+            marketQuery["marketType"] = marketTypes;
         }
         List<object> response = await this.publicGetApiV1Markets(marketQuery);
         object securities = new List<object>() {};
@@ -874,7 +874,7 @@ public partial class backpack : Exchange
                     continue;
                 }
                 marketIds[(string)marketId] = true;
-                if ((!(stock is true)) || ((((market.ContainsKey("stock") ? market["stock"] : null) as bool?) == true)))
+                if (((stock != true)) || ((((market.ContainsKey("stock") ? market["stock"] : null) as bool?) == true)))
                 {
                     markets.Add(market);
                 }
@@ -882,7 +882,7 @@ public partial class backpack : Exchange
         }
         if (includeRfq)
         {
-            for (int i = 0; i < getArrayLength(securities); i++)
+            for (int i = 0; i < (((object)(securities)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
             {
                 object security = getValue(securities, i);
                 string? assetId = this.safeString(security, "asset");
@@ -1278,7 +1278,7 @@ public partial class backpack : Exchange
         object quoteCode = fromIsStock ? toCode : fromCode;
         object symbol = add(add(stockCode, ".RFQ/"), quoteCode);
         IDictionary<string, object> market = this.safeDict(this.markets, symbol);
-        if (((market == null)) || (!isEqual((market.ContainsKey("executionModel") ? market["executionModel"] : null), "rfq")) || (!isEqual((market.ContainsKey("stock") ? market["stock"] : null), true)))
+        if (((market == null)) || ((this.safeString(market, "executionModel") != "rfq")) || !(this.safeBool(market, "stock", false) == true))
         {
             throw new BadSymbol ((string)((this.id + " conversion requires a listed stock RFQ market: ") + (symbol))) ;
         }
@@ -1304,7 +1304,7 @@ public partial class backpack : Exchange
             throw new ArgumentsRequired ((this.id + " parseConversion() requires source and destination currencies")) ;
         }
         object market = this.rfqConversionMarket(fromCode, toCode);
-        bool fromIsBase = isEqual(fromCode, getValue(market, "base"));
+        bool fromIsBase = (fromCode == this.safeString(market, "base"));
         double? filled = this.safeNumber(order, "filled");
         double? cost = this.safeNumber(order, "cost");
         IDictionary<string, object> fee = this.safeDict(order, "fee");
@@ -1345,7 +1345,7 @@ public partial class backpack : Exchange
         }
         await this.loadMarkets();
         object market = this.rfqConversionMarket(fromCode, toCode);
-        bool fromIsBase = isEqual(fromCode, getValue(market, "base"));
+        bool fromIsBase = ((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))(fromCode, getValue(market, "base"));
         string side = fromIsBase ? "sell" : "buy";
         if (!fromIsBase)
         {
@@ -1454,7 +1454,7 @@ public partial class backpack : Exchange
         {
             throw new ArgumentsRequired ((this.id + " createConvertTrade() requires a positive amount")) ;
         }
-        bool fromIsBase = isEqual(fromCode, getValue(market, "base"));
+        bool fromIsBase = ((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))(fromCode, getValue(market, "base"));
         string side = fromIsBase ? "sell" : "buy";
         string? quantity = this.numberToString(amount);
         double? price = this.safeNumber(query, "price");
@@ -1576,7 +1576,7 @@ public partial class backpack : Exchange
             {
                 throw new BadRequest ((((this.id + " ") + (methodName)) + "() External provider data requires a stock market symbol or params.stock=true when no symbol is provided")) ;
             }
-            if (((market != null)) && (!isEqual(getValue(market, "stock"), true)))
+            if (((market != null)) && (!(getValue(market, "stock") is true)))
             {
                 throw new BadSymbol ((((this.id + " ") + (methodName)) + "() External data requires a stock market")) ;
             }
@@ -1623,7 +1623,7 @@ public partial class backpack : Exchange
     public virtual object filterStockStructures(object entries)
     {
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(entries); i++)
+        for (int i = 0; i < (((object)(entries)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             object entry = getValue(entries, i);
             string? symbol = this.safeString(entry, "symbol");
@@ -1692,7 +1692,7 @@ public partial class backpack : Exchange
                 }
             }
         }
-        bool stockExplicitlyDisabled = isEqual(this.safeValue2(parameters, "stock", "defaultStock"), false);
+        bool stockExplicitlyDisabled = (this.safeValue2(parameters, "stock", "defaultStock") is false);
         bool needsExternalRfqTickers = (source == "Venue") && ((this.safeString(query, "source") == null)) && hasRfqSymbol && !stockExplicitlyDisabled;
         IDictionary<string, object> requestParams = query;
         if ((source == "External") && ((stockOnly == true) || hasStockSymbol) && !stockExplicitlyDisabled)
@@ -1869,9 +1869,10 @@ public partial class backpack : Exchange
             requestLimit = 500;
             for (int i = 0; i < (supportedLimits?.Count ?? 0); i++)
             {
-                if (isLessThanOrEqual(limit, supportedLimits[i]))
+                Int64? supportedLimit = this.safeInteger(supportedLimits, i, 0);
+                if ((limit == null || limit <= supportedLimit))
                 {
-                    requestLimit = supportedLimits[i];
+                    requestLimit = supportedLimit;
                     break;
                 }
             }
@@ -1941,22 +1942,26 @@ public partial class backpack : Exchange
         {
             limitResolved = defaultLimit;
         }
+        Int64? windowLimit = ((limit == null)) ? defaultLimit : limit;
+        object startTime = null;
         if ((since == null))
         {
-            Int64? endTime = (!(until == null) && !(until == null) && !(until == 0)) ? this.parseToInt(((double?)until / 1000)) : this.seconds();
-            Int64? windowLimit = ((limit == null)) ? defaultLimit : limit;
-            object startTime = subtract(endTime, ((windowLimit * duration)));
-            request["startTime"] = startTime;
+            Int64? endTime = this.seconds();
+            if (!(until == null) && !(until == null) && !(until == 0))
+            {
+                endTime = this.parseToInt(((double?)until / 1000));
+            }
+            startTime = (endTime - ((windowLimit * duration)));
         } else
         {
-            request["startTime"] = this.parseToInt(((double?)since / 1000)); // convert milliseconds to seconds
+            startTime = this.parseToInt(((double?)since / 1000)); // convert milliseconds to seconds
         }
+        request["startTime"] = startTime;
         if ((until == null))
         {
             Int64 currentMs = this.seconds(); // default to current time in seconds
-            Int64? windowLimit = ((limit == null)) ? defaultLimit : limit;
-            object windowEnd = this.sum((request != null && request.ContainsKey("startTime") ? request["startTime"] : null), (windowLimit * duration)); // sum (): `+` on a dict value is string concatenation in php
-            object minTimestamp = mathMin(currentMs, windowEnd);
+            object windowEnd = this.sum(startTime, (windowLimit * duration));
+            object minTimestamp = (((((object)(currentMs)) is var c31v0) && (((object)(windowEnd)) is var c31v1)) ? (((c31v0 == null) || (c31v1 == null)) ? null : ((Convert.ToDouble(c31v0) < Convert.ToDouble(c31v1)) ? c31v0 : c31v1)) : null);
             request["endTime"] = this.parseToInt(minTimestamp); // default to current time in seconds if until is not specified
         }
         string? price = this.safeString(paramsUntil, "price");
@@ -2288,7 +2293,7 @@ public partial class backpack : Exchange
                 rfqTrades = this.filterStockStructures(rfqTrades);
             }
             List<object> filtered = new List<object>() {};
-            for (int i = 0; i < getArrayLength(rfqTrades); i++)
+            for (int i = 0; i < (((object)(rfqTrades)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
             {
                 IDictionary<string, object> trade = ((IDictionary<string, object>)getValue(rfqTrades, i));
                 Int64? timestamp = this.safeInteger(trade, "timestamp");
@@ -2969,7 +2974,7 @@ public partial class backpack : Exchange
         }
         string? quantity = this.numberToString(amount);
         IDictionary<string, object> precision = this.safeDict(market, "precision", new Dictionary<string, object>() {});
-        if (!isEqual(this.safeNumber(precision, "amount"), null))
+        if (!(this.safeNumber(precision, "amount") == null))
         {
             string? preciseQuantity = this.amountToPrecision(symbol, amount);
             if (!Precise.stringEq(quantity, preciseQuantity))
@@ -3019,7 +3024,7 @@ public partial class backpack : Exchange
         {
             throw new InvalidOrder ((this.id + " createOrder() RFQ price must be positive")) ;
         }
-        if ((!isEqual(this.safeInteger(parameters, "orderExpiryTime"), null)) && (executionMode != "Immediate"))
+        if ((!(this.safeInteger(parameters, "orderExpiryTime") == null)) && (executionMode != "Immediate"))
         {
             throw new InvalidOrder ((this.id + " createOrder() resting RFQs require Immediate execution")) ;
         }
@@ -3348,7 +3353,7 @@ public partial class backpack : Exchange
             for (int i = 0; i < (rfqResponse?.Count ?? 0); i++)
             {
                 ccxt.Order order = this.parseOrder(rfqResponse[i], market);
-                if (isEqual((((object)order.id)), id))
+                if (((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))((((object)order.id)), id))
                 {
                     return order;
                 }
@@ -3409,7 +3414,7 @@ public partial class backpack : Exchange
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
             ccxt.Order order = this.parseOrder(response[i], market);
-            if (isEqual((((object)order.id)), id))
+            if (((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))((((object)order.id)), id))
             {
                 return order;
             }
@@ -3948,7 +3953,6 @@ public partial class backpack : Exchange
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        string url = apiUrl;
         object requestParams = ((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? parameters : this.omit(parameters, new List<object>() {"stock", "defaultStock", "rfq", "callerMethodName"});
         object sortedParams = ((requestParams is IList<object>) || (requestParams.GetType().IsGenericType && requestParams.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? requestParams : this.keysort(requestParams);
         Dictionary<string, object> headersSigned = null;
@@ -3998,7 +4002,7 @@ public partial class backpack : Exchange
                 endpoint = endpoint + ("?" + query);
             }
         }
-        url = url + endpoint;
+        string url = (apiUrl + endpoint);
         Dictionary<string, object> headersResolved = ((apiName is "private")) ? headersSigned : null;
         string? bodyResolved = null;
         if (((apiName is "private")) && ((method != "GET")))
@@ -4016,13 +4020,13 @@ public partial class backpack : Exchange
     public virtual string generateBatchPayload(object parameters, string? ts, string? recvWindow, string? instruction)
     {
         string payload = "";
-        for (int i = 0; i < getArrayLength(parameters); i++)
+        for (int i = 0; i < (((object)(parameters)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             IDictionary<string, object> order = this.safeDict(parameters, i, new Dictionary<string, object>() {});
             Dictionary<string, object> sortedOrder = this.keysort(order);
             string orderQuery = this.urlencode(sortedOrder);
             payload = payload + (((("instruction=" + instruction) + "&") + orderQuery) + "&");
-            if (isEqual(i, ((getArrayLength(parameters) - 1))))
+            if ((i == (((((object)(parameters)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }) - 1))))
             {
                 payload = payload + ((("timestamp=" + ts) + "&window=") + recvWindow);
             }

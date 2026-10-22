@@ -91,7 +91,7 @@ public partial class phemex : ccxt.phemex
         return requestId;
     }
 
-    public virtual Dictionary<string, object> parseSwapTicker(object ticker, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseSwapTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -296,11 +296,11 @@ public partial class phemex : ccxt.phemex
         List<object> tickers = new List<object>() {};
         if ((message != null && message.ContainsKey("market24h")))
         {
-            object ticker = this.safeValue(message, "market24h");
+            IDictionary<string, object> ticker = this.safeDict(message, "market24h", new Dictionary<string, object>() {});
             tickers.Add(this.parseSwapTicker(ticker));
         } else if ((message != null && message.ContainsKey("spot_market24h")))
         {
-            object ticker = this.safeValue(message, "spot_market24h");
+            IDictionary<string, object> ticker = this.safeDict(message, "spot_market24h", new Dictionary<string, object>() {});
             tickers.Add(ccxt.BaseExchange.FromTicker(this.parseTicker(ticker)));
         } else if ((message != null && message.ContainsKey("data")))
         {
@@ -313,7 +313,7 @@ public partial class phemex : ccxt.phemex
         for (int i = 0; i < (tickers?.Count ?? 0); i++)
         {
             Dictionary<string, object> ticker = ((Dictionary<string, object>)tickers[i]);
-            object symbol = (ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null);
+            object symbol = (ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null);
             string messageHash = ("ticker:" + (symbol));
             Int64? timestamp = this.safeIntegerProduct(message, "timestamp", 0.000001);
             ticker["timestamp"] = timestamp;
@@ -395,7 +395,7 @@ public partial class phemex : ccxt.phemex
         //    ]
         //
         this.balance["info"] = message;
-        for (int i = 0; i < getArrayLength(message); i++)
+        for (int i = 0; i < (((object)(message)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             IDictionary<string, object> balance = this.safeDict(message, i);
             string? currencyId = this.safeString(balance, "currency");
@@ -1026,7 +1026,7 @@ public partial class phemex : ccxt.phemex
         //    ]
         //
         string channel = "trades";
-        int tradesLength = getArrayLength(message);
+        int tradesLength = (((object)(message)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
         if ((tradesLength == 0))
         {
             return;
@@ -1039,7 +1039,7 @@ public partial class phemex : ccxt.phemex
         }
         Dictionary<string, object> marketIds = new Dictionary<string, object>() {};
         object type = null;
-        for (int i = 0; i < getArrayLength(message); i++)
+        for (int i = 0; i < (((object)(message)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             object rawTrade = getValue(message, i);
             string? marketId = this.safeString(rawTrade, "symbol");
@@ -1049,7 +1049,8 @@ public partial class phemex : ccxt.phemex
             string? symbol = parsed.symbol;
             if ((type == null))
             {
-                type = ((((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDT")) ? "perpetual" : (market.ContainsKey("type") ? market["type"] : null);
+                string? marketSettle = this.safeString(market, "settle");
+                type = (marketSettle == "USDT") ? "perpetual" : (market.ContainsKey("type") ? market["type"] : null);
             }
             if ((symbol != null))
             {
@@ -1280,7 +1281,7 @@ public partial class phemex : ccxt.phemex
         //
         List<object> trades = new List<object>() {};
         List<object> parsedOrders = new List<object>() {};
-        if ((inOp(message, "closed")) || (inOp(message, "fills")) || (inOp(message, "open")))
+        if (((((object)(message)) switch { null => false, IList<object> c33a => c33a.Contains("closed"), IList<string> c33t => c33t.Contains("closed"), List<Int64> c33g => c33g.Contains((Int64)(object)"closed"), IDictionary<string, object> c33d => c33d.ContainsKey("closed"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("closed"), _ => false })) || ((((object)(message)) switch { null => false, IList<object> c33a => c33a.Contains("fills"), IList<string> c33t => c33t.Contains("fills"), List<Int64> c33g => c33g.Contains((Int64)(object)"fills"), IDictionary<string, object> c33d => c33d.ContainsKey("fills"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("fills"), _ => false })) || ((((object)(message)) switch { null => false, IList<object> c33a => c33a.Contains("open"), IList<string> c33t => c33t.Contains("open"), List<Int64> c33g => c33g.Contains((Int64)(object)"open"), IDictionary<string, object> c33d => c33d.ContainsKey("open"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("open"), _ => false })))
         {
             List<object> closed = this.safeList(message, "closed", new List<object>() {});
             List<object> open = this.safeList(message, "open", new List<object>() {});
@@ -1299,12 +1300,12 @@ public partial class phemex : ccxt.phemex
             }
         } else
         {
-            int messageLength = getArrayLength(message);
+            int messageLength = (((object)(message)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
             if ((messageLength == 0))
             {
                 return;
             }
-            for (int i = 0; i < getArrayLength(message); i++)
+            for (int i = 0; i < (((object)(message)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
             {
                 object update = getValue(message, i);
                 string? action = this.safeString(update, "action");
@@ -1713,7 +1714,7 @@ public partial class phemex : ccxt.phemex
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Int64 requestId = this.seconds();
         bool settleIsUSDT = ((this.safeString(parameters, "settle", "") == "USDT"));
-        object paramsOmitted = this.omit(parameters, "settle");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "settle"));
         string channel = "aop.subscribe";
         if ((type is "spot"))
         {
@@ -1744,7 +1745,7 @@ public partial class phemex : ccxt.phemex
         if ((future == null))
         {
             Int64? expiryDelta = this.safeInteger(this.options, "expires", 120);
-            object expiration = add(this.seconds(), expiryDelta);
+            object expiration = (this.seconds() + expiryDelta);
             string payload = (this.apiKey + expiration.ToString());
             string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256);
             string method = "user.auth";

@@ -581,7 +581,7 @@ public partial class polymarket : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         IList<object> queries = (IList<object>)(this.parseSearchQueries(parameters));
-        object rest = this.omit(parameters, new List<object>() {"query", "queries"});
+        IDictionary<string, object> rest = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"query", "queries"}));
         int queriesLength = (queries?.Count ?? 0);
         object rawEvents = new List<object>() {};
         if (queriesLength > 0)
@@ -593,7 +593,7 @@ public partial class polymarket : PredictionExchange
         }
         List<object> flatMarkets = new List<object>() {};
         Dictionary<string, object> eventsDict = new Dictionary<string, object>() {};
-        for (int rei = 0; rei < getArrayLength(rawEvents); rei++)
+        for (int rei = 0; rei < (((object)(rawEvents)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); rei++)
         {
             object rawEvent = getValue(rawEvents, rei);
             List<object> ccxtMarkets = this.parseEventToMarkets(rawEvent);
@@ -624,7 +624,7 @@ public partial class polymarket : PredictionExchange
      * @param {int} [params.limit] page size per search query, defaults to 50
      * @returns {object[]} an array of raw gamma event objects
      */
-    public async virtual Task<List<Dictionary<string, object>>> FetchRawEventsBySearch(IList<object> queries, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchRawEventsBySearch(IList<object> queries, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64? resultLimit = this.safeInteger(parameters, "limit");
@@ -652,7 +652,7 @@ public partial class polymarket : PredictionExchange
         {
             eventsStatus = null;
         }
-        object rest = this.omit(parameters, new List<object>() {"limit", "sort", "status", "searchIn", "eventId", "slug", "query", "queries", "searchPageSize", "maxSearchPages"});
+        IDictionary<string, object> rest = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"limit", "sort", "status", "searchIn", "eventId", "slug", "query", "queries", "searchPageSize", "maxSearchPages"}));
         Dictionary<string, object> seen = new Dictionary<string, object>() {};
         List<object> rawEvents = new List<object>() {};
         for (int qi = 0; qi < (queries?.Count ?? 0); qi++)
@@ -677,13 +677,13 @@ public partial class polymarket : PredictionExchange
             int firstEventsLength = (firstEvents?.Count ?? 0);
             IDictionary<string, object> pagination = this.safeDict(first, "pagination", new Dictionary<string, object>() {});
             Int64? totalResults = this.safeInteger(pagination, "totalResults", firstEventsLength);
-            object totalPages = Math.Ceiling(Convert.ToDouble(((double?)totalResults / pageSize)));
+            Int64? totalPages = this.parseToInt(Math.Ceiling(Convert.ToDouble(((double?)totalResults / pageSize))));
             // only page as far as `limit` needs (applyEventFetchParams slices to it afterwards);
             // with no limit, cap the fan-out at options.maxSearchPages so a broad query stays bounded
             if ((resultLimit != null))
             {
-                double limitPages = Math.Ceiling(Convert.ToDouble(((double?)resultLimit / pageSize)));
-                if (isLessThan(limitPages, totalPages))
+                Int64? limitPages = this.parseToInt(Math.Ceiling(Convert.ToDouble(((double?)resultLimit / pageSize))));
+                if ((totalPages != null && (limitPages == null || limitPages < totalPages)))
                 {
                     totalPages = limitPages;
                 }
@@ -691,13 +691,13 @@ public partial class polymarket : PredictionExchange
             {
                 Int64? optionMaxPages = this.safeInteger(this.options, "maxSearchPages", 5);
                 Int64? maxSearchPages = this.safeInteger(parameters, "maxSearchPages", optionMaxPages);
-                if (isLessThan(maxSearchPages, totalPages))
+                if ((totalPages != null && (maxSearchPages == null || maxSearchPages < totalPages)))
                 {
                     totalPages = maxSearchPages;
                 }
             }
             List<object> remainingPages = new List<object>() {};
-            for (int p = 2; isLessThanOrEqual(p, totalPages); p++)
+            for (int p = 2; (p <= totalPages); p++)
             {
                 remainingPages.Add(p);
             }
@@ -788,7 +788,7 @@ public partial class polymarket : PredictionExchange
      * @param {int} [params.limit] max number of events to fetch (default options.fetchMarketsLimit); the listing is ordered by 24h volume so the most active markets come first
      * @returns {object[]} an array of raw gamma event objects
      */
-    public async virtual Task<List<Dictionary<string, object>>> FetchRawEventsList(object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchRawEventsList(IDictionary<string, object>? parameters = null)
     {
         // gamma hard-caps each response at 100 events regardless of the requested limit, so the
         // page size must be that cap or pagination never advances (the > check below stays false)
@@ -809,7 +809,7 @@ public partial class polymarket : PredictionExchange
         {
             order = "startDate";
         }
-        object rest = this.omit(parameters, new List<object>() {"status", "limit", "sort", "searchIn", "eventId", "slug", "query", "queries", "tags"});
+        IDictionary<string, object> rest = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"status", "limit", "sort", "searchIn", "eventId", "slug", "query", "queries", "tags"}));
         Dictionary<string, object> baseRequest = new Dictionary<string, object>() {
             { "limit", pageSize },
             { "order", order },
@@ -876,7 +876,7 @@ public partial class polymarket : PredictionExchange
         if ((pageSize == null || firstPageLength >= pageSize))
         {
             List<object> offsets = new List<object>() {};
-            for (int p = 1; isLessThan(p, maxPages); p++)
+            for (int p = 1; (maxPages > p); p++)
             {
                 offsets.Add((p * pageSize));
             }
@@ -892,11 +892,11 @@ public partial class polymarket : PredictionExchange
             List<object> restPages = await promiseAll(restPromises);
             for (int ri = 0; ri < (restPages?.Count ?? 0); ri++)
             {
-                object page = (!isEqual(restPages[ri], null)) ? restPages[ri] : new List<object>() {};
-                int pageLength = getArrayLength(page);
+                List<object> page = this.safeList(restPages, ri, new List<object>() {});
+                int pageLength = page.Count;
                 for (int pi = 0; pi < pageLength; pi++)
                 {
-                    allRawEvents.Add(getValue(page, pi));
+                    allRawEvents.Add((page != null && pi < page.Count ? page[pi] : null));
                 }
             }
         }
@@ -1084,7 +1084,7 @@ public partial class polymarket : PredictionExchange
                         winnerRaw = true;
                         settleFractionRaw = 1;
                         resolvedOutcome = outcomeHandle;
-                    } else if (isLessThanOrEqual(outcomePrice, 0.01))
+                    } else if (((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } bool c32Int(object v) { Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } bool c32Eq(object x, object y) { if (x == null && y == null) return true; if (x == null || y == null) return false; try { if (x.GetType() != y.GetType() && (!Double.TryParse(x.ToString(), out _) || !Double.TryParse(y.ToString(), out _))) return false; if (c32Int(x) && c32Int(y)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(decimal) || y.GetType() == typeof(decimal)) return Convert.ToDecimal(x) == Convert.ToDecimal(y); if (x.GetType() == typeof(int)) return (int)x == (int)y; if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) == Convert.ToDouble(y); if (x.GetType() == typeof(Single) || y.GetType() == typeof(Single)) return Convert.ToSingle(x) == Convert.ToSingle(y); if (x.GetType() == typeof(string)) return ((string)x) == ((string)y); if (x.GetType() == typeof(bool)) return ((bool)x) == ((bool)y); return false; } catch { return false; } } return c32Gt(c32a, c32b) || c32Eq(c32a, c32b); }))(0.01, outcomePrice))
                     {
                         winnerRaw = false;
                         settleFractionRaw = 0;
@@ -1199,7 +1199,7 @@ public partial class polymarket : PredictionExchange
         // non-ids) and falls through to the search path and its local BadSymbol below.
         // absence must be `< 0` — the php transpiler maps that to `=== false`, while a literal
         // `=== -1` passes through and never matches mb_strpos's false return
-        if ((((string)outcomeSymbol).IndexOf(":", StringComparison.Ordinal) < 0) && (isEqual(this.outcomeSearchQuery(outcomeSymbol), null)))
+        if ((((string)outcomeSymbol).IndexOf(":", StringComparison.Ordinal) < 0) && ((this.outcomeSearchQuery(outcomeSymbol) == null)))
         {
             List<object> response = await this.gammaPublicGetMarkets(new Dictionary<string, object>() {
                 { "clob_token_ids", outcomeSymbol },
@@ -1218,7 +1218,7 @@ public partial class polymarket : PredictionExchange
                 int ccxtMarketsLength = (ccxtMarkets?.Count ?? 0);
                 for (int i = 0; i < ccxtMarketsLength; i++)
                 {
-                    object mkt = getValue(ccxtMarkets, i);
+                    object mkt = (ccxtMarkets != null && i < ccxtMarkets.Count ? ccxtMarkets[i] : null);
                     if ((mkt == null))
                     {
                         throw new ExchangeError ((this.id + " fetchOutcome() could not resolve mkt")) ;
@@ -1247,14 +1247,14 @@ public partial class polymarket : PredictionExchange
     public async override Task<Dictionary<string, object>> FetchOutcomes(object outcomeSymbols)
     {
         List<object> tokenIds = new List<object>() {};
-        for (int i = 0; i < getArrayLength(outcomeSymbols); i++)
+        for (int i = 0; i < (((object)(outcomeSymbols)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             object outcomeSymbol = getValue(outcomeSymbols, i);
             // only id-like symbols (no ':', no searchable words) belong in the by-id batch —
             // see the same gate in fetchOutcome. absence must be `< 0` — the php transpiler
             // maps that to `=== false`, while a literal `=== -1` passes through and never
             // matches mb_strpos's false return
-            if ((getIndexOf(outcomeSymbol, ":") < 0) && (isEqual(this.outcomeSearchQuery(outcomeSymbol), null)))
+            if (((((object)(outcomeSymbol)) switch { IList<object> c33a => c33a.IndexOf(":"), IList<string> c33t => c33t.IndexOf((string)(object)":"), string c33s => c33s.IndexOf((string)(object)":"), _ => -1 }) < 0) && ((this.outcomeSearchQuery(outcomeSymbol) == null)))
             {
                 tokenIds.Add(outcomeSymbol);
             }
@@ -1268,18 +1268,18 @@ public partial class polymarket : PredictionExchange
             }
             // token ids are ~78 chars each, so cap the batch to keep the URL under common limits
             Int64? chunkSize = this.safeInteger(this.options, "fetchOutcomesBatchSize", 50);
-            object startIndex = 0;
-            while (isLessThan(startIndex, tokenIdsLength))
+            Int64 startIndex = 0;
+            while ((startIndex < tokenIdsLength))
             {
                 object endIndex = this.sum(startIndex, chunkSize);
-                if (isGreaterThan(endIndex, tokenIdsLength))
+                if (((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } return c32Gt(c32a, c32b); }))(endIndex, tokenIdsLength))
                 {
                     endIndex = tokenIdsLength;
                 }
                 List<object> chunk = new List<object>() {};
-                for (object i = startIndex; isLessThan(i, endIndex); postFixIncrement(ref i))
+                for (Int64 i = startIndex; ((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } bool c32Int(object v) { Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } bool c32Eq(object x, object y) { if (x == null && y == null) return true; if (x == null || y == null) return false; try { if (x.GetType() != y.GetType() && (!Double.TryParse(x.ToString(), out _) || !Double.TryParse(y.ToString(), out _))) return false; if (c32Int(x) && c32Int(y)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(decimal) || y.GetType() == typeof(decimal)) return Convert.ToDecimal(x) == Convert.ToDecimal(y); if (x.GetType() == typeof(int)) return (int)x == (int)y; if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) == Convert.ToDouble(y); if (x.GetType() == typeof(Single) || y.GetType() == typeof(Single)) return Convert.ToSingle(x) == Convert.ToSingle(y); if (x.GetType() == typeof(string)) return ((string)x) == ((string)y); if (x.GetType() == typeof(bool)) return ((bool)x) == ((bool)y); return false; } catch { return false; } } return !c32Gt(c32a, c32b) && !c32Eq(c32a, c32b); }))(i, endIndex); i++)
                 {
-                    chunk.Add(getValue(tokenIds, i));
+                    chunk.Add((tokenIds != null && i < tokenIds.Count ? tokenIds[(int)i] : null));
                 }
                 // gamma matches repeated clob_token_ids params — comma-joined ids are rejected
                 // with a validation error, so the list rides through urlencodeWithArrayRepeat
@@ -1304,7 +1304,7 @@ public partial class polymarket : PredictionExchange
             }
             this.populateOutcomes();
         }
-        for (int i = 0; i < getArrayLength(outcomeSymbols); i++)
+        for (int i = 0; i < (((object)(outcomeSymbols)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             if (!this.hasOutcome(getValue(outcomeSymbols, i)))
             {
@@ -1422,19 +1422,19 @@ public partial class polymarket : PredictionExchange
         Int64? chunkSize = this.safeInteger(this.options, "fetchTickersBatchSize", 200);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         int tokenIdsLength = (tokenIds?.Count ?? 0);
-        object startIndex = 0;
-        while (isLessThan(startIndex, tokenIdsLength))
+        Int64 startIndex = 0;
+        while ((startIndex < tokenIdsLength))
         {
             object endIndex = this.sum(startIndex, chunkSize);
-            if (isGreaterThan(endIndex, tokenIdsLength))
+            if (((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } return c32Gt(c32a, c32b); }))(endIndex, tokenIdsLength))
             {
                 endIndex = tokenIdsLength;
             }
             List<object> bookParams = new List<object>() {};
-            for (object i = startIndex; isLessThan(i, endIndex); postFixIncrement(ref i))
+            for (Int64 i = startIndex; ((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } bool c32Int(object v) { Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } bool c32Eq(object x, object y) { if (x == null && y == null) return true; if (x == null || y == null) return false; try { if (x.GetType() != y.GetType() && (!Double.TryParse(x.ToString(), out _) || !Double.TryParse(y.ToString(), out _))) return false; if (c32Int(x) && c32Int(y)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(decimal) || y.GetType() == typeof(decimal)) return Convert.ToDecimal(x) == Convert.ToDecimal(y); if (x.GetType() == typeof(int)) return (int)x == (int)y; if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) == Convert.ToDouble(y); if (x.GetType() == typeof(Single) || y.GetType() == typeof(Single)) return Convert.ToSingle(x) == Convert.ToSingle(y); if (x.GetType() == typeof(string)) return ((string)x) == ((string)y); if (x.GetType() == typeof(bool)) return ((bool)x) == ((bool)y); return false; } catch { return false; } } return !c32Gt(c32a, c32b) && !c32Eq(c32a, c32b); }))(i, endIndex); i++)
             {
                 bookParams.Add(new Dictionary<string, object>() {
-                    { "token_id", getValue(tokenIds, i) },
+                    { "token_id", (tokenIds != null && i < tokenIds.Count ? tokenIds[(int)i] : null) },
                 });
             }
             List<object> promises = new List<object> {this.clobPublicPostBooks(bookParams), this.clobPublicPostMidpoints(bookParams), this.clobPublicPostLastTradesPrices(bookParams)};
@@ -1447,7 +1447,7 @@ public partial class polymarket : PredictionExchange
             bool lastTradesIsArray = ((lastTradesResponse is IList<object>) || (lastTradesResponse.GetType().IsGenericType && lastTradesResponse.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
             object lastTrades = lastTradesIsArray ? lastTradesResponse : new List<object>() {};
             Dictionary<string, object> lastTradesByTokenId = new Dictionary<string, object>() {};
-            int lastTradesLength = getArrayLength(lastTrades);
+            int lastTradesLength = (((object)(lastTrades)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
             for (int li = 0; li < lastTradesLength; li++)
             {
                 object lastTradeEntry = getValue(lastTrades, li);
@@ -1457,7 +1457,7 @@ public partial class polymarket : PredictionExchange
                     lastTradesByTokenId[(string)lastTradeTokenId] = lastTradeEntry;
                 }
             }
-            int booksLength = getArrayLength(books);
+            int booksLength = (((object)(books)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
             for (int i = 0; i < booksLength; i++)
             {
                 object book = getValue(books, i);
@@ -1536,8 +1536,8 @@ public partial class polymarket : PredictionExchange
         int bidsLength = (bids?.Count ?? 0);
         int asksLength = (asks?.Count ?? 0);
         // the CLOB book endpoint returns levels sorted away from the touch (bids ascending, asks descending), so the best level is the last entry
-        object bestBid = (bidsLength > 0) ? getValue(bids, (bidsLength - 1)) : null;
-        object bestAsk = (asksLength > 0) ? getValue(asks, (asksLength - 1)) : null;
+        object bestBid = (bidsLength > 0) ? (bids != null && (bidsLength - 1) < bids.Count ? bids[(bidsLength - 1)] : null) : null;
+        object bestAsk = (asksLength > 0) ? (asks != null && (asksLength - 1) < asks.Count ? asks[(asksLength - 1)] : null) : null;
         // book.last_trade_price is market-level and denominated in whichever token traded last —
         // on the complementary token it is the OTHER side's price, so only the per-token
         // last-trade-price endpoint value is usable here; that endpoint reports "0" for a
@@ -1661,27 +1661,27 @@ public partial class polymarket : PredictionExchange
             startS = this.parseToInt(((double?)since / 1000));
             if ((limitVar != null))
             {
-                object endBound = this.sum(startS, multiply(multiply(limitVar, fidelityMin), 60));
-                endS = (isLessThan(endBound, nowS)) ? endBound : nowS;
+                object endBound = this.sum(startS, ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(limitVar, fidelityMin), 60));
+                endS = (((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } bool c32Int(object v) { Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } bool c32Eq(object x, object y) { if (x == null && y == null) return true; if (x == null || y == null) return false; try { if (x.GetType() != y.GetType() && (!Double.TryParse(x.ToString(), out _) || !Double.TryParse(y.ToString(), out _))) return false; if (c32Int(x) && c32Int(y)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(decimal) || y.GetType() == typeof(decimal)) return Convert.ToDecimal(x) == Convert.ToDecimal(y); if (x.GetType() == typeof(int)) return (int)x == (int)y; if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) == Convert.ToDouble(y); if (x.GetType() == typeof(Single) || y.GetType() == typeof(Single)) return Convert.ToSingle(x) == Convert.ToSingle(y); if (x.GetType() == typeof(string)) return ((string)x) == ((string)y); if (x.GetType() == typeof(bool)) return ((bool)x) == ((bool)y); return false; } catch { return false; } } return !c32Gt(c32a, c32b) && !c32Eq(c32a, c32b); }))(endBound, nowS)) ? endBound : nowS;
             }
         } else
         {
             object barCount = ((limitVar != null)) ? limitVar : 100;
-            startS = subtract(nowS, (multiply(multiply(barCount, fidelityMin), 60)));
+            startS = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(nowS, (((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(barCount, fidelityMin), 60)));
         }
         // the venue rejects startTs/endTs spans over 15 days ("interval is too long")
         // regardless of fidelity, so clamp the window to the cap: keep the requested
         // `since` anchor (oldest chunk first, consistent with since/limitVar paging),
         // or the most recent window when no `since` was given
         Int64? maxWindow = this.safeInteger(this.options, "maxPricesHistoryWindow", 1296000);
-        if (isGreaterThan((subtract(endS, startS)), maxWindow))
+        if (((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } return c32Gt(c32a, c32b); }))((((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(endS, startS)), maxWindow))
         {
             if ((since != null))
             {
                 endS = this.sum(startS, maxWindow);
             } else
             {
-                startS = subtract(endS, maxWindow);
+                startS = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(endS, maxWindow);
             }
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1713,7 +1713,7 @@ public partial class polymarket : PredictionExchange
                 continue;
             }
             Int64? rawMs = (t * 1000);
-            object snappedMs = multiply((Math.Floor(Double.Parse((((double?)rawMs / resolutionMs)).ToString()))), resolutionMs);
+            Int64? snappedMs = (this.parseToInt(((double?)rawMs / resolutionMs)) * resolutionMs);
             // the venue supplies no candle volume ({t, p} ticks only) — leave it undefined
             // rather than fabricating a 0, probing s/v in case the field ever appears
             double? vol = this.safeNumber(item, "s");
@@ -1721,15 +1721,15 @@ public partial class polymarket : PredictionExchange
             {
                 vol = this.safeNumber(item, "v");
             }
-            string bucketKey = snappedMs.ToString();
+            string bucketKey = ((object)snappedMs).ToString();
             if (!(buckets.ContainsKey(bucketKey)))
             {
                 buckets[(string)bucketKey] = new List<object>() {snappedMs, price, price, price, price, vol};
             } else
             {
                 object candle = (bucketKey != null && buckets.ContainsKey(bucketKey) ? buckets[bucketKey] : null);
-                ((List<object>)candle)[Convert.ToInt32(2)] = mathMax(getValue(candle, 2), price); // high
-                ((List<object>)candle)[Convert.ToInt32(3)] = mathMin(getValue(candle, 3), price); // low
+                ((List<object>)candle)[Convert.ToInt32(2)] = (((((object)(getValue(candle, 2))) is var c31v0) && (((object)(price)) is var c31v1)) ? (((c31v0 == null) || (c31v1 == null)) ? null : ((Convert.ToDouble(c31v0) > Convert.ToDouble(c31v1)) ? c31v0 : c31v1)) : null); // high
+                ((List<object>)candle)[Convert.ToInt32(3)] = (((((object)(getValue(candle, 3))) is var c31v2) && (((object)(price)) is var c31v3)) ? (((c31v2 == null) || (c31v3 == null)) ? null : ((Convert.ToDouble(c31v2) < Convert.ToDouble(c31v3)) ? c31v2 : c31v3)) : null); // low
                 ((List<object>)candle)[Convert.ToInt32(4)] = price; // close (last tick wins)
                 if ((vol != null))
                 {
@@ -1743,13 +1743,13 @@ public partial class polymarket : PredictionExchange
         List<object> unsortedCandles = new List<object>() {};
         for (int i = 0; i < bucketKeys.Count; i++)
         {
-            unsortedCandles.Add(getValue(buckets, bucketKeys[i]));
+            unsortedCandles.Add((buckets != null && bucketKeys[i] != null && buckets.ContainsKey((string)bucketKeys[i]) ? buckets[(string)bucketKeys[i]] : null));
         }
         List<object> candles = this.sortBy(unsortedCandles, 0);
         int candlesLength = (candles?.Count ?? 0);
-        if (((limitVar != null)) && (isGreaterThan(candlesLength, limitVar)))
+        if (((limitVar != null)) && (((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } return c32Gt(c32a, c32b); }))(candlesLength, limitVar)))
         {
-            return ccxt.BaseExchange.ToOHLCVList(this.arraySlice(candles, prefixUnaryNeg(ref limitVar)));
+            return ccxt.BaseExchange.ToOHLCVList(this.arraySlice(candles, (-limit)));
         }
         return ccxt.BaseExchange.ToOHLCVList(candles);
     }
@@ -1953,7 +1953,7 @@ public partial class polymarket : PredictionExchange
         if ((outcome != null))
         {
             outcomeObj = await this.loadOutcome(outcome);
-            request["asset_id"] = GetValue(outcomeObj, "outcomeId");
+            request["asset_id"] = (outcomeObj != null && outcomeObj.ContainsKey("outcomeId") ? outcomeObj["outcomeId"] : null);
         }
         Dictionary<string, object> response = await this.clobPrivateGetDataTrades(this.extend(request, parameters));
         object rawTrades = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? response : this.safeList(response, "data", new List<object>() {});
@@ -1987,7 +1987,8 @@ public partial class polymarket : PredictionExchange
             List<object> makerOrders = this.safeList(info, "maker_orders", new List<object>() {});
             for (int j = 0; j < makerOrders.Count; j++)
             {
-                if ((this.safeString(makerOrders[j], "order_id") == id))
+                IDictionary<string, object> makerOrder = this.safeDict(makerOrders, j);
+                if ((this.safeString(makerOrder, "order_id") == id))
                 {
                     belongs = true;
                 }
@@ -2087,7 +2088,7 @@ public partial class polymarket : PredictionExchange
         await this.loadApiCredentials();
         // the collateral balance is tied to the signature type / funder that holds the USDC
         Int64? signatureType = this.safeInteger2(parameters, "signatureType", "signature_type", this.safeInteger(this.options, "signatureType", 3));
-        object rest = this.omit(parameters, new List<object>() {"signatureType", "signature_type"});
+        IDictionary<string, object> rest = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"signatureType", "signature_type"}));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "asset_type", "COLLATERAL" },
             { "signature_type", signatureType },
@@ -2219,7 +2220,7 @@ public partial class polymarket : PredictionExchange
         object notional = null;
         if (((size != null)) && ((curPrice != null)))
         {
-            notional = multiply(size, curPrice);
+            notional = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(size, curPrice);
         }
         return this.safePredictionPosition(new Dictionary<string, object>() {
             { "id", this.safeString(position, "id") },
@@ -2274,7 +2275,7 @@ public partial class polymarket : PredictionExchange
         if ((outcome != null))
         {
             outcomeObj = await this.loadOutcome(outcome);
-            request["asset_id"] = GetValue(outcomeObj, "outcomeId");
+            request["asset_id"] = (outcomeObj != null && outcomeObj.ContainsKey("outcomeId") ? outcomeObj["outcomeId"] : null);
         }
         Dictionary<string, object> response = await this.clobPrivateGetDataOrders(this.extend(request, parameters));
         IList<object> orders = (IList<object>)(this.safeList(response, "data", new List<object>() {}));
@@ -2569,7 +2570,7 @@ public partial class polymarket : PredictionExchange
         string? expiration = this.safeString(parameters, "expiration", "0");
         // a market buy can be sized by USDC cost instead of shares (see createMarketBuyOrderWithCost)
         double? cost = this.safeNumber(parameters, "cost");
-        object rest = this.omit(parameters, new List<object>() {"signatureType", "signature_type", "funder", "maker", "orderType", "timeInForce", "postOnly", "tickSize", "negRisk", "salt", "timestamp", "expiration", "cost", "builder", "builderCode"});
+        IDictionary<string, object> rest = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"signatureType", "signature_type", "funder", "maker", "orderType", "timeInForce", "postOnly", "tickSize", "negRisk", "salt", "timestamp", "expiration", "cost", "builder", "builderCode"}));
         Dictionary<string, object> amounts = this.polymarketOrderRawAmounts(sideStr, amount, priceResolved, tickSize, cost);
         string? makerAmount = this.safeString(amounts, "makerAmount");
         string? takerAmount = this.safeString(amounts, "takerAmount");
@@ -2583,8 +2584,8 @@ public partial class polymarket : PredictionExchange
         string builderBytes32 = bytes32Zero;
         if ((builderRaw != null))
         {
-            object builderHex = this.remove0xPrefix(builderRaw);
-            if (((string)builderHex).Length <= 40)
+            string builderHex = this.remove0xPrefix(builderRaw);
+            if (builderHex.Length <= 40)
             {
                 bool? builderFeeEnabled = this.safeBool(this.options, "builderFee", true);
                 object feeRate = 0;
@@ -2594,14 +2595,14 @@ public partial class polymarket : PredictionExchange
                 }
                 object feeHex = this.intToBase16(feeRate);
                 feeHex = (feeHex as String).PadLeft(Convert.ToInt32(24), Convert.ToChar("0"));
-                object addressHex = builderHex;
-                addressHex = (addressHex as String).PadLeft(Convert.ToInt32(40), Convert.ToChar("0"));
-                builderHex = add(feeHex, addressHex);
+                string addressHex = (builderHex as String).PadLeft(Convert.ToInt32(40), Convert.ToChar("0"));
+                object packedHex = add(feeHex, addressHex);
+                builderBytes32 = ("0x" + (packedHex));
             } else
             {
-                builderHex = (builderHex as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
+                string paddedHex = (builderHex as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
+                builderBytes32 = ("0x" + paddedHex);
             }
-            builderBytes32 = ("0x" + (builderHex));
         }
         // POLY_1271 (type 3): the order signer is the deposit wallet itself — the exchange calls
         // wallet.isValidSignature and the inner ERC-7739 domain's verifyingContract is the wallet (the EOA
@@ -3010,7 +3011,7 @@ public partial class polymarket : PredictionExchange
         string? requestedEventId = this.safeString(parameters, "eventId");
         string? requestedSlug = this.safeString(parameters, "slug");
         List<object> queries = this.parseSearchQueries(parameters);
-        object rest = this.omit(parameters, new List<object>() {"query", "queries", "eventId", "slug"});
+        IDictionary<string, object> rest = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"query", "queries", "eventId", "slug"}));
         if ((queries == null))
         {
             throw new ExchangeError ((this.id + " fetchEvents() missing queries")) ;
@@ -3048,7 +3049,7 @@ public partial class polymarket : PredictionExchange
             this.markets = this.createSafeDictionary();
         }
         List<object> result = new List<object>() {};
-        for (int rei = 0; rei < getArrayLength(rawEvents); rei++)
+        for (int rei = 0; rei < (((object)(rawEvents)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); rei++)
         {
             object rawEvent = getValue(rawEvents, rei);
             object eventForParsing = rawEvent;
@@ -3266,7 +3267,7 @@ public partial class polymarket : PredictionExchange
     public virtual List<object> parseEvents(object rawEvents)
     {
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(rawEvents); i++)
+        for (int i = 0; i < (((object)(rawEvents)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             object rawEvent = getValue(rawEvents, i);
             result.Add(this.parseEvent(rawEvent));
@@ -3429,14 +3430,13 @@ public partial class polymarket : PredictionExchange
                 object auth = ((timestamp + method) + requestPath);
                 if ((bodyValue != null))
                 {
-                    auth = add(auth, bodyValue);
+                    auth = (auth + bodyValue);
                 }
                 // the L2 api secret is base64url-encoded; decode it to raw bytes for the HMAC key.
                 // unchained replaceAll: the php transpiler only converts the outermost .replaceAll
                 // in a chain, leaving the inner call as an (invalid) method call
-                string normalizedSecret = secret;
-                normalizedSecret = normalizedSecret.Replace("-", (string)"+");
-                normalizedSecret = normalizedSecret.Replace("_", (string)"/");
+                string plusSecret = secret.Replace("-", (string)"+");
+                string normalizedSecret = plusSecret.Replace("_", (string)"/");
                 byte[] secretBytes = this.base64ToBinary(normalizedSecret);
                 string signature = this.hmac(this.encode(auth), secretBytes, sha256, "base64");
                 // url-safe base64, preserving '=' padding (matches the reference client)
@@ -3459,9 +3459,9 @@ public partial class polymarket : PredictionExchange
         };
     }
 
-    public virtual object hashMessage(object message)
+    public virtual string? hashMessage(object message)
     {
-        return ("0x" + (this.hash(message, keccak, "hex")));
+        return ((string?)((object)(("0x" + (this.hash(message, keccak, "hex"))))));
     }
 
     public virtual string ethChecksumAddress(string? address)
@@ -3477,7 +3477,8 @@ public partial class polymarket : PredictionExchange
         for (int i = 0; i < (addrChars?.Count ?? 0); i++)
         {
             string? ch = ((string)addrChars[i]);
-            if (upperNibbles.IndexOf(((string)(hashChars != null && i < hashChars.Count ? hashChars[i] : null)), StringComparison.Ordinal) >= 0)
+            string? hashCh = ((string)(hashChars != null && i < hashChars.Count ? hashChars[i] : null));
+            if (upperNibbles.IndexOf(hashCh, StringComparison.Ordinal) >= 0)
             {
                 result = (result + ch.ToUpper());
             } else
@@ -3674,7 +3675,7 @@ public partial class polymarket : PredictionExchange
             return;
         }
         object events = ((message is IList<object>) || (message.GetType().IsGenericType && message.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? message : new List<object>() {message};
-        for (int i = 0; i < getArrayLength(events); i++)
+        for (int i = 0; i < (((object)(events)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             object eventVar = getValue(events, i);
             if (((eventVar == null)) || ((eventVar == null)) || (!(eventVar is IDictionary<string, object>)))
@@ -3762,7 +3763,7 @@ public partial class polymarket : PredictionExchange
             double? price = this.safeNumber(change, "price");
             double? size = this.safeNumber(change, "size");
             bool isBuy = (this.safeStringUpper(change, "side", "") == "BUY");
-            object side = isBuy ? getValue(orderbook, "bids") : getValue(orderbook, "asks");
+            object side = isBuy ? (orderbook != null && orderbook.ContainsKey("bids") ? orderbook["bids"] : null) : (orderbook != null && orderbook.ContainsKey("asks") ? orderbook["asks"] : null);
             // storeArray([price, size]) inserts/updates or removes (size=0) the level
             object sideRef = side;
             (sideRef as IOrderBookSide).storeArray(new List<object>() {price, size});
@@ -3919,7 +3920,7 @@ public partial class polymarket : PredictionExchange
         int bidsLength = 0;
         if ((bids != null))
         {
-            bidsLength = getArrayLength(bids);
+            bidsLength = (((object)(bids)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
         }
         if (((bids != null)) && (bidsLength > 0))
         {
@@ -3931,7 +3932,7 @@ public partial class polymarket : PredictionExchange
         int asksLength = 0;
         if ((asks != null))
         {
-            asksLength = getArrayLength(asks);
+            asksLength = (((object)(asks)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
         }
         if (((asks != null)) && (asksLength > 0))
         {

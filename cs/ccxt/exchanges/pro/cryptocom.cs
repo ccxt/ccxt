@@ -301,8 +301,7 @@ public partial class cryptocom : ccxt.cryptocom
         string? marketId = this.safeString(message, "instrument_name");
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        object data = this.safeValue(message, "data");
-        data = this.safeDict(data, 0);
+        IDictionary<string, object> data = this.safeDict(this.safeList(message, "data"), 0);
         Int64? timestamp = this.safeInteger(data, "t");
         if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
         {
@@ -312,7 +311,7 @@ public partial class cryptocom : ccxt.cryptocom
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         string? channel = this.safeString(message, "channel");
         Int64? nonce = this.safeInteger2(data, "u", "s");
-        object books = data;
+        IDictionary<string, object> books = data;
         if (channel == "book")
         {
             (orderbook as IOrderBook).reset(new Dictionary<string, object>() {});
@@ -324,8 +323,8 @@ public partial class cryptocom : ccxt.cryptocom
         {
             books = this.safeDict(data, "update", new Dictionary<string, object>() {});
             Int64? previousNonce = this.safeInteger(data, "pu");
-            object currentNonce = getValue(orderbook, "nonce");
-            if (!isEqual(currentNonce, previousNonce))
+            object currentNonce = (orderbook != null && orderbook.ContainsKey("nonce") ? orderbook["nonce"] : null);
+            if (!((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))(currentNonce, previousNonce))
             {
                 bool checksum = ((bool)this.handleOption("watchOrderBook", "checksum", true));
                 if ((checksum == true))
@@ -919,8 +918,8 @@ public partial class cryptocom : ccxt.cryptocom
                 ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
             }
         }
-        List<object> data = ((List<object>)this.safeValue(message, "data"));
-        for (int i = 0; i < (data?.Count ?? 0); i++)
+        List<object> data = this.safeList(message, "data", new List<object>() {});
+        for (int i = 0; i < data.Count; i++)
         {
             IDictionary<string, object> tick = this.safeDict(data, i);
             IList<object> parsed = this.parseOHLCV(tick, market);
@@ -1108,7 +1107,7 @@ public partial class cryptocom : ccxt.cryptocom
             }
         }
         // don't remove the future from the .futures cache
-        if (inOp(client.futures, messageHash))
+        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
         {
             Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(cache);
@@ -1501,7 +1500,7 @@ public partial class cryptocom : ccxt.cryptocom
         return await this.watch(url, messageHash, message, messageHash);
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //    {
@@ -1526,7 +1525,7 @@ public partial class cryptocom : ccxt.cryptocom
                 }
                 throw new ExchangeError (feedback) ;
             }
-            return ((bool?)((object)(false)));
+            return false;
         } catch(Exception e)
         {
             if (e is AuthenticationError)
@@ -1541,7 +1540,7 @@ public partial class cryptocom : ccxt.cryptocom
             {
                 client.reject(e, id);
             }
-            return ((bool?)((object)(true)));
+            return true;
         }
     }
 
@@ -1612,7 +1611,7 @@ public partial class cryptocom : ccxt.cryptocom
         // handle unsubscribe
         // {"id":1725448572836,"method":"unsubscribe","code":0}
         //
-        if (isEqual(this.handleErrorMessage(client, message), true))
+        if (this.handleErrorMessage(client, message))
         {
             return;
         }
@@ -1691,7 +1690,7 @@ public partial class cryptocom : ccxt.cryptocom
             }
             if (messageHash.StartsWith("unsubscribe"))
             {
-                object subscription = getValue(client.subscriptions, messageHash);
+                object subscription = (client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash) ? client.subscriptions[messageHash] : null);
                 string? subId = this.safeString(subscription, "id");
                 if ((id != subId))
                 {

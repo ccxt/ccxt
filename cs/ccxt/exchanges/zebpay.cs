@@ -855,7 +855,7 @@ public partial class zebpay : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Int64? until = this.safeInteger2(parameters, "until", "endtime");
-        object paramsOmitted = this.omit(parameters, new List<object>() {"until", "endtime", "endTime", "interval", "startTime"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"until", "endtime", "endTime", "interval", "startTime"}));
         Dictionary<string, object> response = null;
         Int64? limitResolved = limit;
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
@@ -877,7 +877,7 @@ public partial class zebpay : Exchange
             {
                 throw new ArgumentsRequired ((this.id + " fetchOHLCV() requires a both a since and until/endtime parameter for spot markets")) ;
             }
-            object paramsSpot = this.omit(paramsOmitted, "priceType");
+            Dictionary<string, object> paramsSpot = this.omit(paramsOmitted, "priceType");
             response = await this.publicSpotGetV2MarketKlines(this.extend(request, paramsSpot));
         } else
         {
@@ -1282,7 +1282,7 @@ public partial class zebpay : Exchange
         string? quoteOrderQty = this.safeString2(parameters, "quoteOrderQty", "cost", null);
         string? timeInForce = this.safeString(parameters, "timeInForce", "GTC");
         string? clientOrderId = this.safeString(parameters, "clientOrderId", this.uuid());
-        object paramsOmitted = this.omit(parameters, new List<object>() {"stopLossPrice", "cost", "timeInForce", "clientOrderId"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"stopLossPrice", "cost", "timeInForce", "clientOrderId"}));
         request["type"] = upperCaseType;
         request["clientOrderId"] = clientOrderId;
         request["timeInForce"] = timeInForce;

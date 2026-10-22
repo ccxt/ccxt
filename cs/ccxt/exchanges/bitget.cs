@@ -3611,7 +3611,7 @@ public partial class bitget : Exchange
         if (((productType == null)) && ((market != null)))
         {
             string? settle = ((string)(market != null && market.ContainsKey("settle") ? market["settle"] : null));
-            if (isEqual((market != null && market.ContainsKey("spot") ? market["spot"] : null), true))
+            if (((market != null && market.ContainsKey("spot") ? market["spot"] : null) is true))
             {
                 string? marginMode = null;
                 (string?, object) marginModeparamsSubTypeVariable = this.handleMarginModeAndParams("handleProductTypeAndParams", paramsSubType);
@@ -3756,8 +3756,8 @@ public partial class bitget : Exchange
         bool fetchMargins = false;
         for (int i = 0; i < (types?.Count ?? 0); i++)
         {
-            object type = types[i];
-            if ((isEqual(type, "swap")) || (isEqual(type, "future")))
+            string? type = this.safeString(types, i);
+            if (((type == "swap")) || ((type == "future")))
             {
                 List<object> subTypes = new List<object>() {"USDT-FUTURES", "COIN-FUTURES", "USDC-FUTURES", "SUSDT-FUTURES", "SCOIN-FUTURES", "SUSDC-FUTURES"};
                 for (int j = 0; j < (subTypes?.Count ?? 0); j++)
@@ -3766,14 +3766,14 @@ public partial class bitget : Exchange
                         { "productType", subTypes[j] },
                     })));
                 }
-            } else if (isEqual(type, "spot"))
+            } else if ((type == "spot"))
             {
                 promises.Add(this.publicSpotGetV2SpotPublicSymbols(parameters));
                 fetchMargins = true;
                 promises.Add(this.publicMarginGetV2MarginCurrencies(parameters));
             } else
             {
-                throw new NotSupported ((((this.id + " does not support ") + (type)) + " market")) ;
+                throw new NotSupported ((((this.id + " does not support ") + type) + " market")) ;
             }
         }
         List<object> results = await promiseAll(promises);
@@ -3938,8 +3938,9 @@ public partial class bitget : Exchange
                 } else if (symbolType == "delivery")
                 {
                     expiry = this.safeInteger(market, "deliveryTime");
-                    expiryDatetime = this.iso8601(expiry);
-                    List<object> expiryParts = expiryDatetime.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
+                    string expiryIso = ((string)this.iso8601(expiry));
+                    expiryDatetime = expiryIso;
+                    List<object> expiryParts = expiryIso.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
                     string? yearPart = this.safeString(expiryParts, 0, "");
                     string? dayPart = this.safeString(expiryParts, 2, "");
                     object year = ((yearPart == null) ? null : yearPart.Substring(Math.Min(2, yearPart.Length), Math.Min(4, yearPart.Length) - Math.Min(2, yearPart.Length)));
@@ -3958,12 +3959,12 @@ public partial class bitget : Exchange
                 string? priceStep = this.safeString(market, "priceEndStep");
                 string? amountStep = this.safeString(market, "sizeMultiplier");
                 var precise = new Precise(priceStep);
-                precise.decimals = mathMax(precise.decimals, priceDecimals);
+                precise.decimals = (((((object)(precise.decimals)) is var c31v0) && (((object)(priceDecimals)) is var c31v1)) ? (((c31v0 == null) || (c31v1 == null)) ? null : ((Convert.ToDouble(c31v0) > Convert.ToDouble(c31v1)) ? c31v0 : c31v1)) : null);
                 precise.reduce();
                 string priceString = ((object)precise).ToString();
                 pricePrecision = this.parseNumber(priceString);
                 var preciseAmount = new Precise(amountStep);
-                preciseAmount.decimals = mathMax(preciseAmount.decimals, amountDecimals);
+                preciseAmount.decimals = (((((object)(preciseAmount.decimals)) is var c31v2) && (((object)(amountDecimals)) is var c31v3)) ? (((c31v2 == null) || (c31v3 == null)) ? null : ((Convert.ToDouble(c31v2) > Convert.ToDouble(c31v3)) ? c31v2 : c31v3)) : null);
                 preciseAmount.reduce();
                 string amountString = ((object)preciseAmount).ToString();
                 amountPrecision = this.parseNumber(amountString);
@@ -4169,7 +4170,6 @@ public partial class bitget : Exchange
             string? isRealityValue = this.safeStringLower(market, "isReality", "");
             bool isReality = (isRealityValue == "yes");
             string? settleId = null;
-            string? settle = null;
             if (category == "USDT-FUTURES")
             {
                 settleId = "USDT";
@@ -4180,10 +4180,7 @@ public partial class bitget : Exchange
             {
                 settleId = bs;
             }
-            if ((settleId != null))
-            {
-                settle = this.safeCurrencyCode(settleId);
-            }
+            string? settle = this.safeCurrencyCode(settleId);
             string symbol = ((bs + "/") + quote);
             string? type = null;
             bool swap = false;
@@ -4229,8 +4226,9 @@ public partial class bitget : Exchange
                 } else if (symbolType == "delivery")
                 {
                     expiry = this.safeInteger(market, "deliveryTime");
-                    expiryDatetime = this.iso8601(expiry);
-                    List<object> expiryParts = expiryDatetime.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
+                    string expiryIso = ((string)this.iso8601(expiry));
+                    expiryDatetime = expiryIso;
+                    List<object> expiryParts = expiryIso.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
                     string? yearPart = this.safeString(expiryParts, 0, "");
                     string? dayPart = this.safeString(expiryParts, 2, "");
                     object year = ((yearPart == null) ? null : yearPart.Substring(Math.Min(2, yearPart.Length), Math.Min(4, yearPart.Length) - Math.Min(2, yearPart.Length)));
@@ -4650,7 +4648,7 @@ public partial class bitget : Exchange
         //
         List<object> tiers = new List<object>() {};
         object minNotional = 0;
-        for (int i = 0; i < getArrayLength(info); i++)
+        for (int i = 0; i < (((object)(info)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             object item = getValue(info, i);
             double? minimumNotional = this.safeNumber2(item, "startUnit", "minTierValue");
@@ -4714,8 +4712,12 @@ public partial class bitget : Exchange
             }
             return ccxt.BaseExchange.ToTransactionList(await this.fetchPaginatedCallCursor("fetchDeposits", null, since, limit, paramsPaginate, "idLessThan", "idLessThan", null, 100));
         }
-        object defaultWindow = ((uta is true)) ? 2592000000 : 7776000000; // uta allows a window of 30 days at most, else 90 days
-        object sinceResolved = ((since == null)) ? subtract(this.milliseconds(), defaultWindow) : since;
+        Int64 defaultWindow = 7776000000; // uta allows a window of 30 days at most, else 90 days
+        if ((uta is true))
+        {
+            defaultWindow = 2592000000;
+        }
+        Int64? sinceResolved = ((since == null)) ? (this.milliseconds() - defaultWindow) : since;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "startTime", sinceResolved },
             { "endTime", this.milliseconds() },
@@ -4942,8 +4944,12 @@ public partial class bitget : Exchange
         {
             currency = this.currency(code);
         }
-        object defaultWindow = ((uta is true)) ? 2592000000 : 7776000000; // uta allows a window of 30 days at most, else 90 days
-        object sinceResolved = ((since == null)) ? subtract(this.milliseconds(), defaultWindow) : since;
+        Int64 defaultWindow = 7776000000; // uta allows a window of 30 days at most, else 90 days
+        if ((uta is true))
+        {
+            defaultWindow = 2592000000;
+        }
+        Int64? sinceResolved = ((since == null)) ? (this.milliseconds() - defaultWindow) : since;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "startTime", sinceResolved },
             { "endTime", this.milliseconds() },
@@ -5803,7 +5809,7 @@ public partial class bitget : Exchange
             symbolsResolved = new List<object>() {};
             for (int i = 0; i < this.symbols.Count; i++)
             {
-                object symbol = getValue(this.symbols, i);
+                object symbol = (this.symbols != null && i < this.symbols.Count ? this.symbols[i] : null);
                 Dictionary<string, object> entry = this.market(symbol);
                 bool? isStockMarket = this.safeBool(entry, "stock", false);
                 if ((isStockMarket == true))
@@ -6700,8 +6706,6 @@ public partial class bitget : Exchange
         Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
         Int64? until = this.safeInteger(paramsStock, "until");
         bool limitDefined = (limit != null);
-        bool sinceDefined = (since != null);
-        bool untilDefined = (until != null);
         Dictionary<string, object> paramsOmitted = this.omit(paramsStock, new List<object>() {"until"});
         // retrievable periods listed here:
         // - https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
@@ -6713,66 +6717,72 @@ public partial class bitget : Exchange
         }
         IDictionary<string, object> ohlcOptions = this.safeDict((this.options.ContainsKey("fetchOHLCV") ? this.options["fetchOHLCV"] : null), key, new Dictionary<string, object>() {});
         IDictionary<string, object> maxLimitPerTimeframe = this.safeDict(ohlcOptions, "maxLimitPerTimeframe", new Dictionary<string, object>() {});
-        Int64? maxLimitForThisTimeframe = this.safeInteger(maxLimitPerTimeframe, timeframeVar, limit);
+        Int64? timeframeLimitValue = this.safeInteger(maxLimitPerTimeframe, timeframeVar);
+        // the per-timeframeVar cap only applies to a user-supplied limit
+        Int64? timeframeLimit = ((timeframeLimitValue == null)) ? maxLimitForRecentEndpoint : timeframeLimitValue;
+        Int64? requestedLimit = ((limit == null)) ? defaultLimit : limit;
+        Int64? limitCapped = ((requestedLimit > maxLimitForRecentEndpoint)) ? maxLimitForRecentEndpoint : requestedLimit;
+        // the per-timeframeVar cap only applies to a user-supplied limit
+        Int64? recentLimit = (((limit != null)) && ((limitCapped != null && (timeframeLimit == null || limitCapped > timeframeLimit)))) ? timeframeLimit : limitCapped;
+        object limitResolved = recentLimit;
+        Int64? recentDuration = (recentLimit * duration);
         IDictionary<string, object> recentEndpointDaysMap = this.safeDict((this.options.ContainsKey("fetchOHLCV") ? this.options["fetchOHLCV"] : null), "maxRecentDaysPerTimeframe", new Dictionary<string, object>() {});
         Int64? recentEndpointAvailableDays = this.safeInteger(recentEndpointDaysMap, timeframeVar);
-        object recentEndpointBoundaryTs = subtract(now, multiply((subtract(recentEndpointAvailableDays, 1)), msInDay));
-        object limitResolved = defaultLimit;
-        if (limitDefined)
-        {
-            object limitCapped = mathMin(limit, maxLimitForRecentEndpoint);
-            limitResolved = mathMin(limitCapped, maxLimitForThisTimeframe);
-        }
-        object limitMultipliedDuration = multiply(limitResolved, duration);
+        bool historicalEndpointNeeded = ((useHistoryEndpoint == true));
         // exchange aligns from endTime, so it's important, not startTime
         // startTime is supported only on "recent" endpoint, not on "historical" endpoint
         object calculatedStartTime = null;
         object calculatedEndTime = null;
-        if (sinceDefined)
+        if ((since != null))
         {
             calculatedStartTime = since;
             request["startTime"] = since;
-            if (!untilDefined)
+            if ((until == null))
             {
-                calculatedEndTime = this.sum(calculatedStartTime, limitMultipliedDuration);
-                if (isGreaterThan(calculatedEndTime, now))
+                calculatedEndTime = this.sum(since, recentDuration);
+                if ((since != null && ((now - recentDuration) == null || since > (now - recentDuration))))
                 {
                     calculatedEndTime = now;
                 }
                 request["endTime"] = calculatedEndTime;
             }
-        }
-        if (untilDefined)
-        {
-            calculatedEndTime = until;
-            if (isGreaterThan(calculatedEndTime, now))
+            if (((recentEndpointAvailableDays != null)) && ((since == null || since <= (now - (((recentEndpointAvailableDays - 1)) * msInDay)))))
             {
-                calculatedEndTime = now;
-            }
-            request["endTime"] = calculatedEndTime;
-            if (!sinceDefined)
-            {
-                calculatedStartTime = subtract(calculatedEndTime, limitMultipliedDuration);
+                historicalEndpointNeeded = true;
             }
         }
-        // if historical endpoint is needed, we should re-set the variables
-        bool historicalEndpointNeeded = false;
-        if ((!(calculatedStartTime == null) && isLessThanOrEqual(calculatedStartTime, recentEndpointBoundaryTs)) || (useHistoryEndpoint == true))
+        if ((until != null))
         {
-            historicalEndpointNeeded = true;
+            Int64? untilEndTime = ((until > now)) ? now : until;
+            calculatedEndTime = untilEndTime;
+            request["endTime"] = untilEndTime;
+            if ((since == null))
+            {
+                object untilStartTime = (untilEndTime - recentDuration);
+                calculatedStartTime = untilStartTime;
+                // we do not need to set "startTime" here
+                if (((recentEndpointAvailableDays != null)) && (((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } bool c32Int(object v) { Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } bool c32Eq(object x, object y) { if (x == null && y == null) return true; if (x == null || y == null) return false; try { if (x.GetType() != y.GetType() && (!Double.TryParse(x.ToString(), out _) || !Double.TryParse(y.ToString(), out _))) return false; if (c32Int(x) && c32Int(y)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(decimal) || y.GetType() == typeof(decimal)) return Convert.ToDecimal(x) == Convert.ToDecimal(y); if (x.GetType() == typeof(int)) return (int)x == (int)y; if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) == Convert.ToDouble(y); if (x.GetType() == typeof(Single) || y.GetType() == typeof(Single)) return Convert.ToSingle(x) == Convert.ToSingle(y); if (x.GetType() == typeof(string)) return ((string)x) == ((string)y); if (x.GetType() == typeof(bool)) return ((bool)x) == ((bool)y); return false; } catch { return false; } } return !c32Gt(c32a, c32b) || c32Eq(c32a, c32b); }))(untilStartTime, (now - (((recentEndpointAvailableDays - 1)) * msInDay)))))
+                {
+                    historicalEndpointNeeded = true;
+                }
+            }
+        }
+        if (historicalEndpointNeeded)
+        {
             // only for "historical-candles" - ensure we use correct max limit
-            limitResolved = mathMin(limitResolved, maxLimitForHistoryEndpoint);
-            limitMultipliedDuration = multiply(limitResolved, duration);
-            calculatedStartTime = subtract(calculatedEndTime, limitMultipliedDuration);
+            Int64? historicalLimit = ((recentLimit > maxLimitForHistoryEndpoint)) ? maxLimitForHistoryEndpoint : recentLimit;
+            limitResolved = historicalLimit;
+            Int64? historicalDuration = (historicalLimit * duration);
+            calculatedStartTime = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(calculatedEndTime, historicalDuration);
             request["startTime"] = calculatedStartTime;
             // for contract, maximum 90 days allowed between start-end times
             if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) != true))
             {
-                int maxDistanceDaysForContracts = 90;
-                // only correct if request is larger
-                if (isGreaterThan(subtract(calculatedEndTime, calculatedStartTime), multiply(maxDistanceDaysForContracts, msInDay)))
+                Int64 maxDistanceForContracts = (90L * msInDay);
+                // endTime - startTime is historicalDuration here; an undefined endTime never passed this check
+                if ((!(calculatedEndTime == null)) && ((historicalDuration > maxDistanceForContracts)))
                 {
-                    calculatedEndTime = this.sum(calculatedStartTime, multiply(maxDistanceDaysForContracts, msInDay));
+                    calculatedEndTime = this.sum(calculatedStartTime, maxDistanceForContracts);
                     request["endTime"] = calculatedEndTime;
                 }
             }
@@ -7084,7 +7094,7 @@ public partial class bitget : Exchange
         //         "balance": "0.01"
         //     }
         //
-        for (int i = 0; i < getArrayLength(balance); i++)
+        for (int i = 0; i < (((object)(balance)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             IDictionary<string, object> entry = this.safeDict(balance, i);
             Dictionary<string, object> account = this.account();
@@ -7154,7 +7164,7 @@ public partial class bitget : Exchange
         //           // "symbol": "BTCUSDT" // only for isolated margin
         //       }
         //
-        for (int i = 0; i < getArrayLength(balance); i++)
+        for (int i = 0; i < (((object)(balance)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             IDictionary<string, object> entry = this.safeDict(balance, i);
             Dictionary<string, object> account = this.account();
@@ -7993,7 +8003,7 @@ public partial class bitget : Exchange
         //     throw new ExchangeError (this.id + ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent');
         // }
         //
-        if (isGreaterThan(this.sum(isTriggerOrder, isStopLossTriggerOrder, isTakeProfitTriggerOrder, isTrailingPercentOrder), 1))
+        if ((isTriggerOrder && (isStopLossTriggerOrder || isTakeProfitTriggerOrder || isTrailingPercentOrder)) || (isStopLossTriggerOrder && (isTakeProfitTriggerOrder || isTrailingPercentOrder)) || (isTakeProfitTriggerOrder && isTrailingPercentOrder))
         {
             throw new ExchangeError ((this.id + " createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent")) ;
         }
@@ -8118,7 +8128,7 @@ public partial class bitget : Exchange
                 if (hasStopLoss)
                 {
                     double? slTriggerPrice = this.safeNumber2(stopLoss, "triggerPrice", "stopPrice");
-                    if (isEqual(slTriggerPrice, null))
+                    if ((slTriggerPrice == null))
                     {
                         throw new ArgumentsRequired ((this.id + " createOrder() requires a triggerPrice or a stopPrice inside the stopLoss parameter")) ;
                     }
@@ -8134,7 +8144,7 @@ public partial class bitget : Exchange
                 if (hasTakeProfit)
                 {
                     double? tpTriggerPrice = this.safeNumber2(takeProfit, "triggerPrice", "stopPrice");
-                    if (isEqual(tpTriggerPrice, null))
+                    if ((tpTriggerPrice == null))
                     {
                         throw new ArgumentsRequired ((this.id + " createOrder() requires a triggerPrice or a stopPrice inside the takeProfit parameter")) ;
                     }
@@ -8267,7 +8277,7 @@ public partial class bitget : Exchange
             await this.loadMarkets();
         }
         List<object> ordersRequests = new List<object>() {};
-        string? symbol = null;
+        string? symbol = this.safeString(this.safeDict(orders, 0), "symbol");
         string? marginMode = null;
         for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
@@ -8356,7 +8366,7 @@ public partial class bitget : Exchange
             return await this.CreateUtaOrders(orders, paramsUTA);
         }
         List<object> ordersRequests = new List<object>() {};
-        string? symbol = null;
+        string? symbol = this.safeString(this.safeDict(orders, 0), "symbol");
         string? marginMode = null;
         for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
@@ -8532,7 +8542,7 @@ public partial class bitget : Exchange
         // if (multipleTriggers) {
         //     throw new ExchangeError (this.id + ' editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent');
         // }
-        if (isGreaterThan(this.sum(isTriggerOrder, isStopLossOrder, isTakeProfitOrder, isTrailingPercentOrder), 1))
+        if ((isTriggerOrder && (isStopLossOrder || isTakeProfitOrder || isTrailingPercentOrder)) || (isStopLossOrder && (isTakeProfitOrder || isTrailingPercentOrder)) || (isTakeProfitOrder && isTrailingPercentOrder))
         {
             throw new ExchangeError ((this.id + " editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent")) ;
         }
@@ -11410,7 +11420,7 @@ public partial class bitget : Exchange
             string? marginCoin = this.safeString(paramsPaginate, "marginCoin", "USDT");
             if ((market != null))
             {
-                marginCoin = ((string)(market.ContainsKey("settleId") ? market["settleId"] : null));
+                marginCoin = this.safeString(market, "settleId");
             } else if (productType == "USDT-FUTURES")
             {
                 marginCoin = "USDT";
@@ -12336,7 +12346,7 @@ public partial class bitget : Exchange
     public virtual object parseFundingHistories(object contracts, IDictionary<string, object> market = null, Int64? since = null, Int64? limit = null)
     {
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(contracts); i++)
+        for (int i = 0; i < (((object)(contracts)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             IDictionary<string, object> contract = this.safeDict(contracts, i);
             // for non-uta, we've set bussinessType in request payload. Not sure why this existed.
@@ -14251,7 +14261,7 @@ public partial class bitget : Exchange
         {
             throw new ArgumentsRequired ((this.id + " createConvertTrade() requires a toAmount parameter")) ;
         }
-        object paramsOmitted = this.omit(parameters, new List<object>() {"price", "toAmount"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"price", "toAmount"}));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "traceId", id },
             { "fromCoin", fromCode },
@@ -14320,7 +14330,7 @@ public partial class bitget : Exchange
         {
             request["limit"] = limit;
         }
-        object paramsOmitted = this.omit(parameters, "until");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "until"));
         Dictionary<string, object> response = await this.privateConvertGetV2ConvertConvertRecord(this.extend(request, paramsOmitted));
         //
         //     {
@@ -14642,7 +14652,7 @@ public partial class bitget : Exchange
         api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        bool signed = isEqual(getValue(api, 0), "private");
+        bool signed = (getValue(api, 0) is "private");
         object endpoint = getValue(api, 1);
         string pathPart = "/api";
         string request = ("/" + this.implodeParams(path, parameters));
@@ -14673,7 +14683,7 @@ public partial class bitget : Exchange
             if ((method == "POST"))
             {
                 requestBody = this.json(parameters);
-                auth = add(auth, requestBody);
+                auth = (auth + (requestBody));
             } else
             {
                 if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
@@ -14690,7 +14700,7 @@ public partial class bitget : Exchange
                     // signature must use the decoded values (e.g. non-ascii market ids).
                     // sort explicitly (true) so the signed order matches the url order in Go,
                     // where map iteration is not ordered (keysort's order is otherwise lost)
-                    auth = add(auth, ("?" + this.rawencode(sortedParams, true)));
+                    auth = (auth + (("?" + this.rawencode(sortedParams, true))));
                 }
             }
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256, "base64");

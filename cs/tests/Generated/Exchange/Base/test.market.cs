@@ -81,7 +81,7 @@ public partial class testMainClass : BaseTest
         bool? inverse = ((bool?)getValue(market, "inverse"));
         bool? quanto = exchange.safeBool(market, "quanto"); // todo: unify
         bool isQuanto = ((quanto != null)) && (quanto == true);
-        bool isInactiveMarket = isEqual(getValue(market, "active"), false);
+        bool isInactiveMarket = (getValue(market, "active") is false);
         //
         List<object> emptyAllowedFor = new List<object>() {"margin"};
         if ((contract != true))
@@ -121,7 +121,7 @@ public partial class testMainClass : BaseTest
         }
         testSharedMethods.assertStructure(exchange, skippedProperties, method, market, format, emptyAllowedFor);
         // prediction market rows are keyed by `market`; `symbol` internally by setMarkets
-        if (!isEqual(getValue(market, "type"), "prediction"))
+        if (!(getValue(market, "type") is "prediction"))
         {
             testSharedMethods.assertSymbol(exchange, skippedProperties, method, market, "symbol");
         }
@@ -143,7 +143,7 @@ public partial class testMainClass : BaseTest
         for (int i = 0; i < (checkedTypes?.Count ?? 0); i++)
         {
             string? type = ((string)checkedTypes[i]);
-            if (isEqual(getValue(market, type), true))
+            if ((getValue(market, type) is true))
             {
                 assert(isEqual(type, getValue(market, "type")), ((((("market.type (" + (getValue(market, "type"))) + ") not equal to \"") + type) + "\"") + (logText)));
             }
@@ -155,7 +155,7 @@ public partial class testMainClass : BaseTest
             for (int i = 0; i < (checkedSubTypes?.Count ?? 0); i++)
             {
                 string? subType = ((string)checkedSubTypes[i]);
-                if (isEqual(getValue(market, subType), true))
+                if ((getValue(market, subType) is true))
                 {
                     assert(isEqual(subType, getValue(market, "subType")), ((((("market.subType (" + (getValue(market, "subType"))) + ") not equal to \"") + subType) + "\"") + (logText)));
                 }
@@ -172,7 +172,7 @@ public partial class testMainClass : BaseTest
             testSharedMethods.assertInArray(exchange, skippedProperties, method, market, "margin", new List<object>() {false, null});
         }
         // check mutually exclusive fields
-        bool isPrediction = (isEqual(getValue(market, "type"), "prediction"));
+        bool isPrediction = ((getValue(market, "type") is "prediction"));
         if (isPrediction)
         {
             // prediction markets trade outcome shares — neither spot nor a derivative contract
@@ -205,7 +205,7 @@ public partial class testMainClass : BaseTest
             // contract size should be above zero
             assert((inOp(skippedProperties, "contractSize")) || Precise.stringGt(contractSize, "0"), ("\"contractSize\" must be > 0 when \"contract\" is true" + (logText)));
             // settle should be defined
-            assert((inOp(skippedProperties, "settle")) || (!isEqual(getValue(market, "settle"), null) && !isEqual(getValue(market, "settleId"), null)), ("\"settle\" & \"settleId\" must be defined when \"contract\" is true" + (logText)));
+            assert((inOp(skippedProperties, "settle")) || (!(getValue(market, "settle") == null) && !(getValue(market, "settleId") == null)), ("\"settle\" & \"settleId\" must be defined when \"contract\" is true" + (logText)));
         } else if ((contract != true))
         {
             // linear & inverse needs to be undefined
@@ -213,16 +213,16 @@ public partial class testMainClass : BaseTest
             // contract size should be undefined
             assert((contractSize == null), ("\"contractSize\" must be undefined when \"contract\" is false" + (logText)));
             // settle should be undefined
-            assert((isEqual(getValue(market, "settle"), null)) && (isEqual(getValue(market, "settleId"), null)), ("\"settle\" must be undefined when \"contract\" is false" + (logText)));
+            assert(((getValue(market, "settle") == null)) && ((getValue(market, "settleId") == null)), ("\"settle\" must be undefined when \"contract\" is false" + (logText)));
         }
         // future, swap and option should be mutually exclusive
-        if (isEqual(getValue(market, "future"), true))
+        if ((getValue(market, "future") is true))
         {
-            assert((!isEqual(getValue(market, "swap"), true)) && (!isEqual(getValue(market, "option"), true)) && (!isIndex), ("market swap and option must be false when \"future\" is true" + (logText)));
-        } else if (isEqual(getValue(market, "swap"), true))
+            assert((!(getValue(market, "swap") is true)) && (!(getValue(market, "option") is true)) && (!isIndex), ("market swap and option must be false when \"future\" is true" + (logText)));
+        } else if ((getValue(market, "swap") is true))
         {
             assert(((future != true)) && ((option != true)), ("market future and option must be false when \"swap\" is true" + (logText)));
-        } else if (isEqual(getValue(market, "option"), true))
+        } else if ((getValue(market, "option") is true))
         {
             assert(((future != true)) && ((swap != true)), ("market future and swap must be false when \"option\" is true" + (logText)));
         }
@@ -230,8 +230,8 @@ public partial class testMainClass : BaseTest
         if (((option == true)) || ((future == true)))
         {
             // future or option markets need 'expiry' and 'expiryDatetime'
-            assert(!isEqual(getValue(market, "expiry"), null), ("\"expiry\" must be defined when \"future\" is true" + (logText)));
-            assert(!isEqual(getValue(market, "expiryDatetime"), null), ("\"expiryDatetime\" must be defined when \"future\" is true" + (logText)));
+            assert(!(getValue(market, "expiry") == null), ("\"expiry\" must be defined when \"future\" is true" + (logText)));
+            assert(!(getValue(market, "expiryDatetime") == null), ("\"expiryDatetime\" must be defined when \"future\" is true" + (logText)));
             // expiry datetime should be correct
             string? isoString = exchange.iso8601(getValue(market, "expiry"));
             assert(isEqual(getValue(market, "expiryDatetime"), isoString), ((((("expiryDatetime (\"" + (getValue(market, "expiryDatetime"))) + "\") must be equal to expiry in iso8601 format \"") + isoString) + "\"") + (logText)));
@@ -239,21 +239,21 @@ public partial class testMainClass : BaseTest
             if ((option == true))
             {
                 // strike should be defined
-                assert(((inOp(skippedProperties, "strike")) || !isEqual(getValue(market, "strike"), null)), ("\"strike\" must be defined when \"option\" is true" + (logText)));
+                assert(((inOp(skippedProperties, "strike")) || !(getValue(market, "strike") == null)), ("\"strike\" must be defined when \"option\" is true" + (logText)));
                 testSharedMethods.assertGreater(exchange, skippedProperties, method, market, "strike", "0");
                 // optionType should be defined
-                assert(((inOp(skippedProperties, "optionType")) || !isEqual(getValue(market, "optionType"), null)), ("\"optionType\" must be defined when \"option\" is true" + (logText)));
+                assert(((inOp(skippedProperties, "optionType")) || !(getValue(market, "optionType") == null)), ("\"optionType\" must be defined when \"option\" is true" + (logText)));
                 testSharedMethods.assertInArray(exchange, skippedProperties, method, market, "optionType", new List<object>() {"put", "call"});
             } else
             {
                 // if not option, then strike and optionType should be undefined
-                assert(isEqual(getValue(market, "strike"), null), ("\"strike\" must be undefined when \"option\" is false" + (logText)));
-                assert(isEqual(getValue(market, "optionType"), null), ("\"optionType\" must be undefined when \"option\" is false" + (logText)));
+                assert((getValue(market, "strike") == null), ("\"strike\" must be undefined when \"option\" is false" + (logText)));
+                assert((getValue(market, "optionType") == null), ("\"optionType\" must be undefined when \"option\" is false" + (logText)));
             }
         } else if ((spot == true))
         {
             // otherwise, expiry needs to be undefined
-            assert((isEqual(getValue(market, "expiry"), null)) && (isEqual(getValue(market, "expiryDatetime"), null)), ("\"expiry\" and \"expiryDatetime\" must be undefined when it is not future|option market" + (logText)));
+            assert(((getValue(market, "expiry") == null)) && ((getValue(market, "expiryDatetime") == null)), ("\"expiry\" and \"expiryDatetime\" must be undefined when it is not future|option market" + (logText)));
         }
         // check precisions
         List<object> precisionKeys = new List<object>(((IDictionary<string,object>)getValue(market, "precision")).Keys);
@@ -263,7 +263,7 @@ public partial class testMainClass : BaseTest
         {
             string? priceOrAmountKey = ((string)precisionKeys[i]);
             // only allow very high priced markets (wher coin costs around 100k) to have a 5$ price tickSize
-            bool isExclusivePair = isEqual(getValue(market, "baseId"), "BTC");
+            bool isExclusivePair = (getValue(market, "baseId") is "BTC");
             bool isNonSpot = (spot != true); // such high precision is only allowed in contract markets
             bool isPrice = priceOrAmountKey == "price";
             bool isTickSize5 = Precise.stringEq("5", exchange.safeString(getValue(market, "precision"), priceOrAmountKey));
