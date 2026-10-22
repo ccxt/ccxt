@@ -870,7 +870,7 @@ public class BaseExchange {
 
     public Object isDictionary(Object value)
     {
-        return ((!(((Object) (value)) == null)) && ((value instanceof java.util.Map))) && !(switch ((Object) (value)) { case null -> false; case java.util.List<?> hx4J44v0 -> true; case Object hx4J44v0 -> hx4J44v0.getClass().isArray(); });
+        return ((!(((Object) (value)) == null)) && ((value instanceof java.util.Map))) && !Helpers.isArray(value);
     }
 
     public String ethGetAddressFromPrivateKey(Object privateKey) {
