@@ -9009,6 +9009,7 @@ impl std::ops::DerefMut for ${coreName} {
                 // And `while (true)` → `loop {` (rustc's `while_true` lint is
                 // an error under the CI clippy lane's `-D warnings`).
                 rustContent = this.whileTrueToLoop(rustContent);
+                rustContent = this.x45Native(rustContent); // hx5 X45
                 rustContent = this.r28Truth(rustContent); // hx4 R28
                 rustContent = this.hx4R29InlineCollectionHelpers(rustContent);
                 rustContent = this.r31Str(rustContent); // hx4 R31
@@ -9737,6 +9738,7 @@ impl std::ops::DerefMut for ${coreName} {
         // And `while (true)` → `loop {` (rustc's `while_true` lint is an error
         // under the CI clippy lane's `-D warnings`).
         finalFile = this.whileTrueToLoop(finalFile);
+        finalFile = this.x45Native(finalFile); // hx5 X45
         finalFile = this.r28Truth(finalFile); // hx4 R28
         finalFile = this.hx4R29InlineCollectionHelpers(finalFile);
         finalFile = this.r31Str(finalFile); // hx4 R31
@@ -12764,6 +12766,166 @@ impl std::ops::DerefMut for ${coreName} {
         return true;
     }
 
+
+    // hx5 X45 — proven-variant `Value` locals. A `let x: Value` local whose every binding and every
+    // `x = ..` write is an always-Dict / always-Arr / always-Str source (never Null), and whose only
+    // `&mut x` uses are the variant-preserving runtime writers, is proven to hold that variant at every
+    // use. `x45Variant` is the marker the emission passes may consult; `x45Native` (run just before the
+    // hx4 R28..R32 tail) prints the plain native op on those locals so the tail never sees them:
+    //   get_array_length(&x)            Arr/Str -> Value::Int(x.len() as i64)   (Value::len == runtime fn)
+    //   in_op(&x, &Value::Str("k"..))   Dict    -> x.as_map().is_some_and(|__m| __m.contains_key("k"))
+    //   is_equal(&x, &Value::Str("k"..)) Str    -> (x.as_str() == Some("k"))   (either operand order)
+    //   is_equal(&x, &y)                both Str -> (x.as_str() == y.as_str())
+    //   to_string_val(&x)               Str     -> x.clone()
+    // Mixed or unproven writes keep the helper call.
+    x45Source(e: string): 'Dict' | 'Arr' | 'Str' | undefined {
+        e = e.trim();
+        while (e.startsWith('(') && this.closeParenAt(e, 0) === e.length - 1) e = e.slice(1, -1).trim();
+        const whole = (prefix: RegExp): boolean => {
+            const m = prefix.exec(e);
+            if (m === null) return false;
+            return this.closeParenAt(e, m[0].length - 1) === e.length - 1;
+        };
+        if (whole(/^Value::Map\(/) || whole(/^self\.extend\(/)) return 'Dict';
+        if (/^Value::(?:from|List|Array)\(vec!\[/.test(e) && this.closeParenAt(e, e.indexOf('(')) === e.length - 1) return 'Arr';
+        if (whole(/^self\.(?:to_array|array_concat)\(/) || whole(/^split\(/)) return 'Arr';
+        if (whole(/^Value::Str\(/)) return 'Str';
+        const sm = /^self\.safe_(dict|list|string)(?:_k|2)?\(/.exec(e);
+        if (sm !== null && this.closeParenAt(e, sm[0].length - 1) === e.length - 1) {
+            const args = this.splitTopLevelCommas(e.slice(sm[0].length, -1));
+            const last = args[args.length - 1].trim();
+            if (!last.startsWith('&[') || !last.endsWith(']')) return undefined;
+            const inner = this.splitTopLevelCommas(last.slice(2, -1));
+            if (inner.length !== 1) return undefined;
+            const want = sm[1] === 'dict' ? 'Dict' : sm[1] === 'list' ? 'Arr' : 'Str';
+            return this.x45Source(inner[0]) === want ? want : undefined;
+        }
+        return undefined;
+    }
+
+    x45StmtEnd(text: string, i: number): number {
+        let depth = 0;
+        for (; i < text.length; i++) {
+            const c = text[i];
+            if (c === '"') { i = this.endOfRustStringLiteral(text, i) - 1; continue; }
+            if (c === '(' || c === '[' || c === '{') depth++;
+            else if (c === ')' || c === ']' || c === '}') { depth--; if (depth < 0) return -1; }
+            else if (c === ';' && depth === 0) return i;
+        }
+        return -1;
+    }
+
+    x45Variant(content: string): (name: string, pos: number) => 'Dict' | 'Arr' | 'Str' | undefined {
+        const masked = this.maskStringsAndComments(content);
+        const headers: number[] = [0];
+        for (const hm of masked.matchAll(/\n[ \t]*(?:pub(?:\([a-z]+\))? )?(?:async )?fn /g)) headers.push((hm.index as number) + 1);
+        headers.push(content.length);
+        const memo = new Map<string, 'Dict' | 'Arr' | 'Str' | undefined>();
+        const okMut = /(?:(?<![A-Za-z0-9_:.])(?:add_element_to_object|set_value|append_to_array|remove)\(|if let Value::(?:Arr|Dict)\(__[a-z]+\) = )$/;
+        const readMethods = new Set([ 'clone', 'len', 'is_empty', 'as_map', 'as_array', 'as_str', 'as_i64', 'as_f64', 'as_bool', 'is_truthy', 'is_null', 'is_str', 'is_map', 'is_array', 'to_string', 'to_json' ]);
+        const prove = (name: string, from: number, to: number): 'Dict' | 'Arr' | 'Str' | undefined => {
+            const region = masked.slice(from, to);
+            const real = content.slice(from, to);
+            const header = region.slice(0, Math.max(0, region.indexOf('{')));
+            if (new RegExp(`\\b${name}\\s*:`).test(header)) return undefined;
+            const rebind = new RegExp(`(?<!\\|)\\|(?!\\|)[^|\\n]*\\b${name}\\b[^|\\n]*(?<!\\|)\\|(?!\\|)|\\bfor [^\\n]*\\b${name}\\b[^\\n]* in |[A-Za-z_:]\\((?:ref |mut )*${name}\\)|\\blet \\([^)]*\\b${name}\\b|\\b${name}\\s*@|\\b${name}\\b[^;\\n]*\\)\\s*=>|\\b${name}\\s*[-+*/%|&^]=`);
+            if (rebind.test(region) || new RegExp(`\\*\\s*${name}\\b\\s*=(?!=)`).test(region)) return undefined;
+            const variants = new Set<string>();
+            let lets = 0;
+            let allLit = true;
+            for (const m of region.matchAll(new RegExp(`(?<![A-Za-z0-9_.*])(let (?:mut )?)?${name}\\b(\\s*:\\s*([A-Za-z_][A-Za-z0-9_<>]*))?\\s*=(?!=)`, 'g'))) {
+                if (m[1] !== undefined) lets++;
+                else if (m[2] !== undefined) return undefined;
+                if (m[3] !== undefined && m[3] !== 'Value') return undefined;
+                const rs = (m.index as number) + m[0].length;
+                const end = this.x45StmtEnd(region, rs);
+                if (end < 0) return undefined;
+                const v = this.x45Source(real.slice(rs, end));
+                if (v === undefined) return undefined;
+                if (!/^\s*Value::Map\(/.test(real.slice(rs, end))) allLit = false;
+                variants.add(v);
+            }
+            if (lets === 0 || variants.size !== 1) return undefined;
+            for (const m of region.matchAll(new RegExp(`&mut ${name}\\b`, 'g'))) {
+                if (!okMut.test(region.slice(Math.max(0, (m.index as number) - 48), m.index as number))) return undefined;
+            }
+            for (const m of region.matchAll(new RegExp(`(?<![A-Za-z0-9_.])${name}\\.([A-Za-z_][A-Za-z0-9_]*)`, 'g'))) {
+                if (!readMethods.has(m[1])) return undefined;
+            }
+            const v0 = [...variants][0] as 'Dict' | 'Arr' | 'Str';
+            // A Dict built only from `Value::Map({..})` literals can never carry the ws-subscription tag keys
+            // `object_keys` filters out, so its plain key list equals the helper's.
+            return v0 === 'Dict' && allLit && !real.includes('__ws_sub') && !new RegExp(`&mut ${name}\\b`).test(region) ? 'DictLit' as any : v0;
+        };
+        const lookup = (name: string, pos: number) => {
+            if (!/^[a-z_][A-Za-z0-9_]*$/.test(name) || name === 'self') return undefined;
+            let lo = 0;
+            for (let h = 0; h + 1 < headers.length; h++) if (headers[h] <= pos) lo = h;
+            const key = `${lo}:${name}`;
+            if (!memo.has(key)) memo.set(key, prove(name, headers[lo], headers[lo + 1]));
+            const r = memo.get(key) as string | undefined;
+            if (r === 'DictLit') return 'Dict';
+            return r as 'Dict' | 'Arr' | 'Str' | undefined;
+        };
+        const fn = lookup as ((name: string, pos: number) => 'Dict' | 'Arr' | 'Str' | undefined) & { literal?: (name: string, pos: number) => boolean };
+        fn.literal = (name: string, pos: number) => {
+            if (lookup(name, pos) !== 'Dict') return false;
+            let lo = 0;
+            for (let h = 0; h + 1 < headers.length; h++) if (headers[h] <= pos) lo = h;
+            return memo.get(`${lo}:${name}`) === ('DictLit' as any);
+        };
+        return fn;
+    }
+
+    x45Native(content: string): string {
+        if (!/(?:get_array_length|in_op|is_equal|to_string_val|object_keys)\(&/.test(content)) return content;
+        const variant = this.x45Variant(content);
+        const masked = this.maskStringsAndComments(content);
+        const ident = /^&([a-z_][A-Za-z0-9_]*)$/;
+        const strLit = /^&Value::Str\(("(?:[^"\\]|\\.)*")\.(?:into|to_string)\(\)\)$/;
+        const rewrites: Array<{ start: number, end: number, text: string }> = [];
+        for (const m of masked.matchAll(/(?<![A-Za-z0-9_:.])(get_array_length|in_op|is_equal|to_string_val|object_keys)\(&/g)) {
+            const start = m.index as number;
+            const open = start + m[1].length;
+            const close = this.closeParenAt(content, open);
+            if (close < 0) continue;
+            const args = this.splitTopLevelCommas(content.slice(open + 1, close)).map(s => s.trim());
+            let text: string | undefined;
+            if ((m[1] === 'get_array_length' || m[1] === 'to_string_val') && args.length === 1) {
+                const x = ident.exec(args[0]);
+                const v = x === null ? undefined : variant(x[1], start);
+                if (m[1] === 'get_array_length' && (v === 'Arr' || v === 'Str')) text = `Value::Int(${x![1]}.len() as i64)`;
+                if (m[1] === 'to_string_val' && v === 'Str') text = `${x![1]}.clone()`;
+            } else if (m[1] === 'in_op' && args.length === 2) {
+                const x = ident.exec(args[0]); const k = strLit.exec(args[1]);
+                const kv = ident.exec(args[1]);
+                const v = x === null ? undefined : variant(x[1], start);
+                if (x !== null && k !== null && v === 'Dict') text = `${x[1]}.as_map().is_some_and(|__m| __m.contains_key(${k[1]}))`;
+                else if (x !== null && kv !== null && kv[1] !== x[1] && v === 'Dict') text = `${x[1]}.as_map().is_some_and(|__m| ${kv[1]}.as_str().is_some_and(|__k| __m.contains_key(__k)))`;
+            } else if (m[1] === 'object_keys' && args.length === 1) {
+                const x = ident.exec(args[0]);
+                if (x !== null && variant.literal!(x[1], start)) text = `Value::Array(${x[1]}.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default())`;
+            } else if (m[1] === 'is_equal' && args.length === 2) {
+                const [a, b] = args;
+                const xa = ident.exec(a); const xb = ident.exec(b);
+                const sa = xa !== null && variant(xa[1], start) === 'Str';
+                const sb = xb !== null && variant(xb[1], start) === 'Str';
+                const la = strLit.exec(a); const lb = strLit.exec(b);
+                if (sa && sb) text = `(${xa![1]}.as_str() == ${xb![1]}.as_str())`;
+                else if (sa && lb !== null) text = `(${xa![1]}.as_str() == Some(${lb[1]}))`;
+                else if (sb && la !== null) text = `(${xb![1]}.as_str() == Some(${la[1]}))`;
+            }
+            if (text !== undefined) rewrites.push({ start, end: close + 1, text });
+        }
+        if (rewrites.length === 0) return content;
+        let out = ''; let at = 0;
+        for (const r of rewrites) {
+            if (r.start < at) continue;
+            out += content.slice(at, r.start) + r.text;
+            at = r.end;
+        }
+        return out + content.slice(at);
+    }
 }
 
 // ── CLI entry point ───────────────────────────────────────────────────────────
