@@ -2702,6 +2702,7 @@ function formatGoSource (filePath: string, content: string): string {
     hx4G34TupleSlotNeverNil.file = undefined;  // hx4 G34
     content = g10kInopClientMaps (content);
     content = hx4G07FieldInOp (content);
+    content = hx5P28BaseFieldReads (content);  // hx5 P28
     content = h2kG13NativeKeysAndRemove (content);
     content = g10kTypepredIsArray (content);
     content = g10kArrNativeRemove (content);
@@ -8903,7 +8904,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ()).concat (hx4G35Check ()).concat (hx4G36Wired ()).concat (hx4G37Check ()).concat (hx4G38Check ()).concat (hx4G39Check ()).concat (hx4G40Check (hx4G36Aligner ())).concat (hx4G40Wired ()).concat (hx4G41Check ()).concat (hx4G42Check (hx4G36Aligner ())).concat (hx5X26Check ()).concat (hx4G43Wired ()).concat (hx5X27Check ()).concat (hx4G45Check (hx4G36Aligner ())).concat (hx4G45Wired ()).concat (hx5X29Check ()).concat (hx5X29Wired ()).concat (hx5X32StrParamSelfTest ());
+        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ()).concat (hx4G35Check ()).concat (hx4G36Wired ()).concat (hx4G37Check ()).concat (hx4G38Check ()).concat (hx4G39Check ()).concat (hx4G40Check (hx4G36Aligner ())).concat (hx4G40Wired ()).concat (hx4G41Check ()).concat (hx4G42Check (hx4G36Aligner ())).concat (hx5X26Check ()).concat (hx4G43Wired ()).concat (hx5X27Check ()).concat (hx4G45Check (hx4G36Aligner ())).concat (hx4G45Wired ()).concat (hx5X29Check ()).concat (hx5X29Wired ()).concat (hx5X32StrParamSelfTest ()).concat (hx5P28Check ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -13130,6 +13131,7 @@ function hx4G20BaseNativePasses (content: string): string {
     content = hx4G29Pass (content);  // hx4 G29
     hx4G34TupleSlotNeverNil.file = undefined;  // hx4 G34
     content = h2kG13NativeKeysAndRemove (hx4G07FieldInOp (g10kInopClientMaps (content)));
+    content = hx5P28BaseFieldReads (content);  // hx5 P28
     content = hx4G38Pass (hx4G33IsEqual (hx4G28IsEqualSafe (content)));  // hx4 G28, G33, G38
     return g10kLenNative (goNativeStringAdds (hx4G32Comparisons (hx4G31Divide (hx4G27Comparisons (hx4G23Comparisons (hx4G18NativeCompare (hx4G30Arith (content))))))));  // hx4 G27..G32
     return g10kLenNative (goNativeStringAdds (goNativeArithmetic (content)));
@@ -14388,6 +14390,107 @@ function hx5X27Check (): string[] {
     const hand = 'package ccxt\n\nfunc Join(slice any, sep any) string {\n\treturn Join(slice, sep)\n}\n';
     if (hx5X27StringHelpers (hand) !== hand) {
         problems.push ('hx5 X27: hand-written file rewritten');
+    }
+    return problems;
+}
+
+// hx5 P28
+// GetValue(this.<F>, k) -> this.<F>[k] for the base fields Go declares `map[string]any` and every writer keeps a
+// plain map of plain values (Has, Features, Timeframes, Urls; go/v4/exchange.go + exchange_options.go). Options and
+// MarketsById are *sync.Map and never match. A nil map indexes to nil like the helper; k must be a literal or a
+// single-declared `string` (GetValue answers nil for a nil key, which `m[k]` cannot express). A file that assigns the
+// whole field from anything but a map literal keeps the helper for that field.
+function hx5P28BaseFieldReads (content: string): string {
+    const fieldRx = /(?<![\w.])(?:ccxt\.)?GetValue\(this\.(?:Has|Features|Timeframes|Urls), /;
+    if (!fieldRx.test (content)) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const masked = goTextMaskLiteralsAndComments (content).split ('\n');
+    if (lines.length !== masked.length) {
+        return content;
+    }
+    const maskedAll = masked.join ('\n');
+    const fields = [ 'Has', 'Features', 'Timeframes', 'Urls' ].filter ((f) => {
+        const writes = [ ...maskedAll.matchAll (new RegExp ('(?<![\\w.])this\\.' + f + '\\s*=(?!=)\\s*([^\\n]*)', 'g')) ];
+        return writes.every ((w) => /^map\[string\]any\{/.test (w[1]));
+    });
+    if (fields.length === 0) {
+        return content;
+    }
+    const callRx = new RegExp ('(?<![\\w.])(?:ccxt\\.)?GetValue\\(this\\.(' + fields.join ('|') + '), (\\w+|"[^"\\\\\\n]*")\\)', 'g');
+    let start = -1;
+    let maskedFunc = '';
+    let offsets: number[] = [];
+    for (let k = 0; k < lines.length; k++) {
+        if (lines[k].startsWith ('func ')) {
+            start = lines[k].startsWith ('func (this *') ? k : -1;
+            let end = k;
+            while ((end < lines.length) && (lines[end] !== '}')) {
+                end++;
+            }
+            maskedFunc = masked.slice (k, end + 1).join ('\n');
+            offsets = [];
+            let o = 0;
+            for (let j = k; (j <= end) && (j < lines.length); j++) {
+                offsets.push (o);
+                o += masked[j].length + 1;
+            }
+            continue;
+        }
+        if (lines[k] === '}') {
+            start = -1;
+            continue;
+        }
+        if ((start < 0) || !masked[k].includes ('GetValue(this.')) {
+            continue;
+        }
+        const line = lines[k];
+        const mk = masked[k];
+        lines[k] = line.replace (callRx, ((m: string, field: string, key: string, off: number) => {
+            if (mk.slice (off, off + m.length).indexOf ('GetValue(this.') < 0) {
+                return m; // inside a string literal or comment
+            }
+            if (!key.startsWith ('"')) {
+                const decl = goAccessSingleDeclaration (maskedFunc, lines[start], key);
+                if ((decl === undefined) || (decl.type !== 'string') || ((decl.index !== undefined) && (decl.index >= offsets[k - start]))) {
+                    return m;
+                }
+            }
+            return 'this.' + field + '[' + key + ']';
+        }) as any);
+        masked[k] = goTextMaskLiteralsAndComments (lines[k]);
+    }
+    return lines.join ('\n');
+}
+
+function hx5P28Check (): string[] {
+    const problems: string[] = [];
+    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push ('hx5 P28: ' + message); } };
+    try {
+        const f = (sig: string, body: string, extra = '') => hx5P28BaseFieldReads ('package ccxt\n' + extra + 'func (this *X) H(' + sig + ') any {\n' + body + '\treturn nil\n}\n');
+        ok (f ('timeframe string', '\tvar r any = GetValue(this.Timeframes, timeframe)\n').includes ('\tvar r any = this.Timeframes[timeframe]\n'), 'string param key');
+        ok (f ('', '\turl := this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), "public"))\n').includes ('GetValue(this.Urls["api"], "public")'), 'literal key, outer GetValue kept');
+        ok (f ('', '\tvar m string = "spot"\n\tif IsEqual(ccxt.GetValue(this.Features, m), nil) {\n\t}\n').includes ('IsEqual(this.Features[m], nil)'), 'string local key, ccxt prefix');
+        ok (f ('', '\tvar a any = GetValue(this.Has, "x")\n', 'func (this *X) G() {\n\tthis.Features = map[string]any{}\n}\n').includes ('this.Has["x"]'), 'map-literal field write keeps proof');
+        for (const keep of [
+            f ('source any', '\tvar r any = GetValue(this.Has, source)\n'),
+            f ('m *string', '\tvar r any = GetValue(this.Features, m)\n'),
+            f ('', '\tvar r any = GetValue(this.Options, "x")\n'),
+            f ('', '\tvar r any = GetValue(this.MarketsById, "x")\n'),
+            f ('', '\tvar r any = GetValue(this.Balance, "x")\n'),
+            f ('', '\tvar r any = GetValue(this.Orderbooks, "x")\n'),
+            f ('', '\tvar r any = GetValue(this.Urls, s)\n\tvar s string = "a"\n'),
+            f ('', '\tvar r any = GetValue(this.Urls, "api")\n', 'func (this *X) G(u any) {\n\tthis.Urls = u.(map[string]any)\n}\n'),
+            f ('', '\tvar r string = "GetValue(this.Has, \\"x\\")"\n'),
+            hx5P28BaseFieldReads ('func H(this any) any {\n\treturn GetValue(this.Urls, "a")\n}\n'),
+        ]) {
+            ok (keep.includes ('GetValue('), 'keeps GetValue: ' + keep);
+        }
+        const once = f ('t string', '\tvar r any = GetValue(this.Timeframes, t)\n');
+        ok (hx5P28BaseFieldReads (once) === once, 'idempotent');
+    } catch (e) {
+        problems.push ('hx5 P28 threw: ' + e.message);
     }
     return problems;
 }
