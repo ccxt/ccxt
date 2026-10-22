@@ -9085,18 +9085,12 @@ function j35SelfTest (): string[] {
     return problems;
 }
 
-// hx4 J36: every remaining Helpers.multiply/subtract becomes a non-capturing inline lambda whose body is the
-// helper's own code (Integer->Long widening, null, Long/Double branches, toDouble parsing, IsInteger re-boxing),
-// applied once to the original operands so each operand is still evaluated exactly once, left to right.
-function j36InlineBody (name: string): string {
-    const norm = 'if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); ';
-    const toDouble = 'java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; ';
-    if (name === 'subtract') {
-        return norm + 'if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) - ((Long) j36b)); if (j36a instanceof Double || j36b instanceof Double) { ' + toDouble + 'return (Object) (j36d.applyAsDouble(j36a) - j36d.applyAsDouble(j36b)); } return null;';
-    }
-    return norm + 'if (j36a == null || j36b == null) return null; if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) * ((Long) j36b)); ' + toDouble + 'double j36r = j36d.applyAsDouble(j36a) * j36d.applyAsDouble(j36b); if (new java.math.BigDecimal(String.valueOf(j36r)).stripTrailingZeros().scale() <= 0) return (Object) ((long) j36r); return (Object) j36r;';
-}
-
+// hx5 X13: J36 no longer inlines the helper body. A Helpers.multiply/subtract call becomes a plain native
+// `(a * b)` / `(a - b)` only when both operands are proven non-null integral primitives (integer literal, a
+// primitive `long`/`int` local or parameter of the enclosing member, an int-returning `.length()`/`.size()`/
+// `this.precisionFromString(..)`/`this.parseTimeframe(..)`, or a product/difference this pass already proved).
+// Long x Long is exactly the helper's Long branch; int is widened to long like the helper's Integer->Long step.
+// Doubles stay on the helper (multiply re-boxes integral doubles to Long), as does every unproven operand.
 function j36SplitArgs (inner: string): string[] | undefined {
     const parts: string[] = [];
     let depth = 0, quote = '', start = 0;
@@ -9112,18 +9106,60 @@ function j36SplitArgs (inner: string): string[] | undefined {
     return (depth === 0 && !quote && parts.length === 2 && parts.every ((p) => p.length > 0)) ? parts : undefined;
 }
 
-function nativeJavaJ36MultiplySubtract (source: string): string {
+// hx5 X13
+function j36Balanced (s: string): boolean {
+    let depth = 0, quote = '';
+    for (let i = 0; i < s.length; i++) {
+        const ch = s[i];
+        if (quote) { if (ch === '\\') { i++; } else if (ch === quote) { quote = ''; } continue; }
+        if (ch === '"' || ch === '\'') { quote = ch; continue; }
+        if (ch === '(') depth++; else if (ch === ')') { depth--; if (depth < 0) return false; }
+    }
+    return depth === 0 && !quote;
+}
+
+// hx5 X13: 'long' (already long), 'int' (needs widening) or undefined (unproven -> helper call)
+function j36Integral (op: string, member: string, proven: Set<string>): 'long' | 'int' | undefined {
+    const o = op.trim ();
+    if (proven.has (o)) return 'long';
+    if (/^-?\d{1,18}L?$/.test (o)) return 'long';
+    const ident = /^[A-Za-z_]\w*$/.test (o) ? o : undefined;
+    if (ident !== undefined) {
+        const esc = ident.replace (/\$/g, '\\$');
+        const decls = [ ...member.matchAll (new RegExp ('(?<![\\w.<>,?])([A-Za-z_][\\w.<>,? ]*?)\\s+' + esc + '\\s*(?=[=;,)])', 'g')) ]
+            .map ((m) => m[1].trim ()).filter ((t) => !/^(?:return|new|case|throw|else)$/.test (t));
+        if (decls.length !== 1) return undefined;
+        if (decls[0] === 'long' || decls[0] === 'final long') return 'long';
+        if (decls[0] === 'int' || decls[0] === 'final int') return 'int';
+        return undefined;
+    }
+    const call = /^(?:[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*|\(\(String\)\s*[A-Za-z_]\w*\))\.(length|size)\(\)$/.exec (o);
+    if (call !== null) {
+        const recv = o.slice (0, o.length - call[1].length - 3).replace (/^\(\(String\)\s*|\)$/g, '');
+        if (recv.startsWith ('this.')) return undefined;
+        const esc = recv.replace (/\$/g, '\\$');
+        // receiver must be a non-null String/List local: a single declaration initialised from a literal/constructor
+        const ok = new RegExp ('(?:String|List<[^>]*>|ArrayList<[^>]*>)\\s+' + esc + '\\s*=\\s*(?:"|new\\s|\\()').test (member)
+            && !new RegExp ('(?<![\\w.])' + esc + '\\s*=\\s*null\\b').test (member);
+        return ok ? 'int' : undefined;
+    }
+    const m = /^this\.(precisionFromString|parseTimeframe)\(([\s\S]*)\)$/.exec (o);
+    if (m !== null && j36Balanced (m[2])) return 'int';
+    return undefined;
+}
+
+function j36Member (member: string): string {
     const re = /(?<![\w.])Helpers\.(multiply|subtract)\(/g;
-    let out = source;
-    // rightmost first: a later occurrence can never sit inside an earlier one's lambda body, only in its operands
-    const starts = (s: string) => [ ...s.matchAll (re) ].map ((m) => ({ index: m.index as number, name: m[1], len: m[0].length }));
+    const proven = new Set<string> ();
+    let out = member;
     let skipFrom = Infinity;
     for (;;) {
-        const all = starts (out).filter ((m) => m.index < skipFrom);
+        const all = [ ...out.matchAll (re) ].filter ((m) => (m.index as number) < skipFrom);
         if (all.length === 0) break;
         const m = all[all.length - 1];
-        skipFrom = m.index;
-        let depth = 1, quote = '', j = m.index + m.len;
+        const at = m.index as number;
+        skipFrom = at;
+        let depth = 1, quote = '', j = at + m[0].length;
         for (; j < out.length && depth > 0; j++) {
             const ch = out[j];
             if (quote) { if (ch === '\\') { j++; } else if (ch === quote) { quote = ''; } continue; }
@@ -9131,25 +9167,52 @@ function nativeJavaJ36MultiplySubtract (source: string): string {
             if (ch === '(') depth++; else if (ch === ')') depth--;
         }
         if (depth !== 0) continue;
-        const args = j36SplitArgs (out.slice (m.index + m.len, j - 1));
+        const args = j36SplitArgs (out.slice (at + m[0].length, j - 1));
         if (args === undefined) continue;
-        const lambda = `((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { ${j36InlineBody (m.name)} }).apply(${args[0]}, ${args[1]})`;
-        out = out.slice (0, m.index) + lambda + out.slice (j);
+        const ta = j36Integral (args[0], out, proven), tb = j36Integral (args[1], out, proven);
+        if (ta === undefined || tb === undefined) continue;
+        const lit = (x: string) => /^-?\d+$/.test (x) ? x + 'L' : x;
+        const a = ta === 'int' ? `((long) ${args[0]})` : lit (args[0]);
+        const b = tb === 'int' && ta === 'int' ? `((long) ${args[1]})` : lit (args[1]);
+        const b2 = /^-/.test (b) ? `(${b})` : b;
+        const native = `(${a} ${m[1] === 'multiply' ? '*' : '-'} ${b2})`;
+        proven.add (native);
+        out = out.slice (0, at) + native + out.slice (j);
     }
     return out;
 }
 
-// hx4 J36: snippet checks (`--audit-string-types --self-test`)
+function nativeJavaJ36MultiplySubtract (source: string): string {
+    if (!/(?<![\w.])Helpers\.(?:multiply|subtract)\(/.test (source)) return source;
+    const lines = source.split ('\n');
+    const starts: number[] = [];
+    for (let i = 0; i < lines.length; i++) if (/^    (?:public|private|protected)\b/.test (lines[i])) starts.push (i);
+    if (starts.length === 0) return j36Member (source);
+    starts.push (lines.length);
+    const parts: string[] = [ lines.slice (0, starts[0]).join ('\n') ];
+    for (let s = 0; s + 1 < starts.length; s++) parts.push (j36Member (lines.slice (starts[s], starts[s + 1]).join ('\n')));
+    return parts.join ('\n');
+}
+
+// hx5 X13: snippet checks (`--audit-string-types --self-test`)
 function j36SelfTest (): string[] {
     const problems: string[] = [];
     const cases: [string, string, (o: string) => boolean][] = [
-        [ 'nested', 'Object x = Helpers.subtract(Helpers.multiply(a, (b + 1)), 1);', (o) => !o.includes ('Helpers.') && o.split ('.apply(').length === 3 && o.includes ('.apply(((java.util.function.BinaryOperator<Object>)') ],
-        [ 'string arg comma', 'Object x = Helpers.multiply(f(\"a,b)\"), 2);', (o) => !o.includes ('Helpers.') && o.includes ('.apply(f(\"a,b)\"), 2)') ],
+        [ 'long local minus int call', 'long maxDecimals = 6; Object v = Helpers.subtract(maxDecimals, this.precisionFromString(this.safeString(m, "a")));', (o) => o.includes ('Object v = (maxDecimals - this.precisionFromString(this.safeString(m, "a")));') ],
+        [ 'nested proven', 'int d = this.parseTimeframe(t); Object x = Helpers.subtract(Helpers.multiply(d, 1000), 1);', (o) => o.includes ('Object x = ((((long) d) * 1000L) - 1L);') ],
+        [ 'negative literal', 'long s = 8; Object x = Helpers.multiply(s, -1);', (o) => o.includes ('(s * (-1L))') ],
+        [ 'unproven nested', 'Object x = Helpers.subtract(Helpers.multiply(a, (b + 1)), 1);', (o) => o === 'Object x = Helpers.subtract(Helpers.multiply(a, (b + 1)), 1);' ],
+        [ 'string arg comma', 'Object x = Helpers.multiply(f("a,b)"), 2);', (o) => o === 'Object x = Helpers.multiply(f("a,b)"), 2);' ],
+        [ 'Long box stays helper', 'Long v = this.safeInteger(x, "k"); Object p = Helpers.subtract(v, 1);', (o) => o.includes ('Helpers.subtract(v, 1)') ],
+        [ 'double stays helper', 'double d = 1.5; Object p = Helpers.multiply(d, 2);', (o) => o.includes ('Helpers.multiply(d, 2)') ],
+        [ 'redeclared stays helper', 'long n = 1; Object n2 = null; Object p = Helpers.multiply(n, 2); Object n = 3;', (o) => o.includes ('Helpers.multiply(n, 2)') ],
         [ 'other helper kept', 'Object x = Helpers.add(a, b); Object y = MyHelpers.multiply(a, b);', (o) => o === 'Object x = Helpers.add(a, b); Object y = MyHelpers.multiply(a, b);' ],
+        [ 'no lambda ever', 'Object x = Helpers.multiply(p, q);', (o) => !o.includes ('j36') && o === 'Object x = Helpers.multiply(p, q);' ],
     ];
     for (const [ name, src, ok ] of cases) {
         const out = nativeJavaJ36MultiplySubtract (src);
-        if (!ok (out)) problems.push (`hx4 J36: ${name}\n${out}`);
+        if (!ok (out)) problems.push (`hx5 X13 J36: ${name}\n${out}`);
+        if (nativeJavaJ36MultiplySubtract (out) !== out) problems.push (`hx5 X13 J36: ${name} not idempotent`);
     }
     return problems;
 }
