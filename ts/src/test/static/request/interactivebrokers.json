@@ -3,6 +3,31 @@
     "skipKeys": ["acctIds"],
     "options": {},
     "methods": {
+        "fetchTicker": [
+            {
+                "description": "crypto spot",
+                "method": "fetchTicker",
+                "url": "https://api.ibkr.com/v1/api/iserver/marketdata/snapshot?conids=495759171&fields=31%2C55%2C70%2C71%2C82%2C83%2C84%2C85%2C86%2C88%2C6457%2C6509%2C7058%2C7295%2C7296%2C7635%2C7741%2C7762",
+                "input": [
+                    "ETH/USD"
+                ],
+                "output": null
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "crypto spot",
+                "method": "fetchTickers",
+                "url": "https://api.ibkr.com/v1/api/iserver/marketdata/snapshot?conids=479624278%2C495759171&fields=31%2C55%2C70%2C71%2C82%2C83%2C84%2C85%2C86%2C88%2C6457%2C6509%2C7058%2C7295%2C7296%2C7635%2C7741%2C7762",
+                "input": [
+                    [
+                        "BTC/USD",
+                        "ETH/USD"
+                    ]
+                ],
+                "output": null
+            }
+        ],
         "fetchMyTrades": [
             {
                 "description": "spot crypto",
