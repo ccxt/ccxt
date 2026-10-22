@@ -244,12 +244,12 @@ func (this *Coinbaseinternational) subscribeBody(ch chan ccxt.AsyncResult[any], 
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {boolean} true when unsubscription has been requested
  */
-func (this *Coinbaseinternational) UnSubscribeAsync(channels any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Coinbaseinternational) UnSubscribeAsync(channels any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unSubscribeBody(ch, channels, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) unSubscribeBody(ch chan ccxt.AsyncResult[any], channels any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) unSubscribeBody(ch chan ccxt.AsyncResult[bool], channels any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var isPrivate bool = ccxt.GetArgBool(optionalArgs, 0, false)
@@ -292,7 +292,7 @@ func (this *Coinbaseinternational) unSubscribeBody(ch chan ccxt.AsyncResult[any]
 		}())
 	}
 
-	ch <- ccxt.AsyncResult[any]{Value: true}
+	ch <- ccxt.AsyncResult[bool]{Value: true}
 	return nil
 }
 
@@ -307,12 +307,12 @@ func (this *Coinbaseinternational) unSubscribeBody(ch chan ccxt.AsyncResult[any]
  * @param {string} [params.currency] currency code to watch, default is any
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
  */
-func (this *Coinbaseinternational) WatchBalanceAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
-	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
+func (this *Coinbaseinternational) WatchBalanceAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.Balances] {
+	ch := make(chan ccxt.AsyncResult[ccxt.Balances], 1)
 	go this.watchBalanceBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) watchBalanceBody(ch chan ccxt.AsyncResult[map[string]any], optionalArgs ...any) any {
+func (this *Coinbaseinternational) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -337,7 +337,7 @@ func (this *Coinbaseinternational) watchBalanceBody(ch chan ccxt.AsyncResult[map
 	default:
 		panic(ccxt.ExchangeError("resolved value is not map[string]any"))
 	}
-	ch <- ccxt.AsyncResult[map[string]any]{Value: resolved}
+	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(resolved)}
 	return nil
 }
 func (this *Coinbaseinternational) HandleBalance(client any, message any) {
@@ -362,12 +362,12 @@ func (this *Coinbaseinternational) HandleBalance(client any, message any) {
  * @param {string} [params.interval] notification interval, default raw
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
  */
-func (this *Coinbaseinternational) WatchMyTradesAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
-	ch := make(chan ccxt.AsyncResult[[]any], 1)
+func (this *Coinbaseinternational) WatchMyTradesAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchMyTradesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) watchMyTradesBody(ch chan ccxt.AsyncResult[[]any], optionalArgs ...any) any {
+func (this *Coinbaseinternational) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -403,7 +403,7 @@ func (this *Coinbaseinternational) watchMyTradesBody(ch chan ccxt.AsyncResult[[]
 	}
 	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
 
-	ch <- ccxt.AsyncResult[[]any]{Value: this.FilterBySymbolSinceLimit(trades, symbolResolved, since, limit, true)}
+	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySymbolSinceLimit(trades, symbolResolved, since, limit, true))}
 	return nil
 }
 
@@ -418,12 +418,12 @@ func (this *Coinbaseinternational) watchMyTradesBody(ch chan ccxt.AsyncResult[[]
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object} the exchange response
  */
-func (this *Coinbaseinternational) UnWatchMyTradesAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Coinbaseinternational) UnWatchMyTradesAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unWatchMyTradesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) unWatchMyTradesBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
+func (this *Coinbaseinternational) unWatchMyTradesBody(ch chan ccxt.AsyncResult[bool], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -450,7 +450,7 @@ func (this *Coinbaseinternational) unWatchMyTradesBody(ch chan ccxt.AsyncResult[
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
+	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
 	return nil
 }
 func (this *Coinbaseinternational) HandleMyTrades(client any, message any) {
@@ -483,12 +483,12 @@ func (this *Coinbaseinternational) HandleMyTrades(client any, message any) {
  * @param {string} [params.interval] notification interval, default raw
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
-func (this *Coinbaseinternational) WatchOrdersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
-	ch := make(chan ccxt.AsyncResult[[]any], 1)
+func (this *Coinbaseinternational) WatchOrdersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Order] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.Order], 1)
 	go this.watchOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) watchOrdersBody(ch chan ccxt.AsyncResult[[]any], optionalArgs ...any) any {
+func (this *Coinbaseinternational) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -528,7 +528,7 @@ func (this *Coinbaseinternational) watchOrdersBody(ch chan ccxt.AsyncResult[[]an
 		limitResolved = ccxt.ToGetsLimit(orders).GetLimit(symbolResolved, limit)
 	}
 
-	ch <- ccxt.AsyncResult[[]any]{Value: this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true)}
+	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true))}
 	return nil
 }
 
@@ -545,12 +545,12 @@ func (this *Coinbaseinternational) watchOrdersBody(ch chan ccxt.AsyncResult[[]an
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
-func (this *Coinbaseinternational) WatchOrdersForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
-	ch := make(chan ccxt.AsyncResult[[]any], 1)
+func (this *Coinbaseinternational) WatchOrdersForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Order] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.Order], 1)
 	go this.watchOrdersForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) watchOrdersForSymbolsBody(ch chan ccxt.AsyncResult[[]any], symbols any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) watchOrdersForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], symbols any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -588,7 +588,7 @@ func (this *Coinbaseinternational) watchOrdersForSymbolsBody(ch chan ccxt.AsyncR
 	}
 	var ordersForSymbols any = this.FilterByArray(orders, "symbol", symbolsResolved, false)
 
-	ch <- ccxt.AsyncResult[[]any]{Value: this.FilterBySinceLimit(ordersForSymbols, since, limitResolved, "timestamp", true)}
+	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.FilterBySinceLimit(ordersForSymbols, since, limitResolved, "timestamp", true))}
 	return nil
 }
 
@@ -603,12 +603,12 @@ func (this *Coinbaseinternational) watchOrdersForSymbolsBody(ch chan ccxt.AsyncR
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object} the exchange response
  */
-func (this *Coinbaseinternational) UnWatchOrdersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Coinbaseinternational) UnWatchOrdersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unWatchOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) unWatchOrdersBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
+func (this *Coinbaseinternational) unWatchOrdersBody(ch chan ccxt.AsyncResult[bool], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -635,7 +635,7 @@ func (this *Coinbaseinternational) unWatchOrdersBody(ch chan ccxt.AsyncResult[an
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
+	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
 	return nil
 }
 func (this *Coinbaseinternational) HandleOrders(client any, message any) {
@@ -673,12 +673,12 @@ func (this *Coinbaseinternational) HandleOrders(client any, message any) {
  * @param {string} [params.interval] notification interval, default raw
  * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
  */
-func (this *Coinbaseinternational) WatchPositionsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
-	ch := make(chan ccxt.AsyncResult[[]any], 1)
+func (this *Coinbaseinternational) WatchPositionsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Position] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.Position], 1)
 	go this.watchPositionsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) watchPositionsBody(ch chan ccxt.AsyncResult[[]any], optionalArgs ...any) any {
+func (this *Coinbaseinternational) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
@@ -736,11 +736,11 @@ func (this *Coinbaseinternational) watchPositionsBody(ch chan ccxt.AsyncResult[[
 		default:
 			panic(ccxt.ExchangeError("resolved value is not []any"))
 		}
-		ch <- ccxt.AsyncResult[[]any]{Value: resolved}
+		ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(resolved)}
 		return nil
 	}
 
-	ch <- ccxt.AsyncResult[[]any]{Value: this.FilterBySymbolsSinceLimit(this.Positions, symbolsResolved, since, limit, true)}
+	ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterBySymbolsSinceLimit(this.Positions, symbolsResolved, since, limit, true))}
 	return nil
 }
 
@@ -755,12 +755,12 @@ func (this *Coinbaseinternational) watchPositionsBody(ch chan ccxt.AsyncResult[[
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object} the exchange response
  */
-func (this *Coinbaseinternational) UnWatchPositionsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Coinbaseinternational) UnWatchPositionsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unWatchPositionsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) unWatchPositionsBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
+func (this *Coinbaseinternational) unWatchPositionsBody(ch chan ccxt.AsyncResult[bool], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
@@ -801,7 +801,7 @@ func (this *Coinbaseinternational) unWatchPositionsBody(ch chan ccxt.AsyncResult
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
+	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
 	return nil
 }
 func (this *Coinbaseinternational) HandlePositions(client any, message any) {
@@ -831,12 +831,12 @@ func (this *Coinbaseinternational) HandlePositions(client any, message any) {
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Coinbaseinternational) WatchFundingRateAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Coinbaseinternational) WatchFundingRateAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.FundingRate] {
+	ch := make(chan ccxt.AsyncResult[ccxt.FundingRate], 1)
 	go this.watchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) watchFundingRateBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Coinbaseinternational) watchFundingRateBody(ch chan ccxt.AsyncResult[ccxt.FundingRate], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -847,9 +847,9 @@ func (this *Coinbaseinternational) watchFundingRateBody(ch chan ccxt.AsyncResult
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var ticker map[string]any = r.Value
+	var ticker map[string]any = ccxt.StructResultMap(r.Value, ccxt.TickerToMap)
 
-	ch <- ccxt.AsyncResult[any]{Value: this.ParseFundingRate(ccxt.GetValue(ticker, "info"), this.Market(symbol))}
+	ch <- ccxt.AsyncResult[ccxt.FundingRate]{Value: this.ParseFundingRate(ccxt.GetValue(ticker, "info"), this.Market(symbol))}
 	return nil
 }
 
@@ -864,12 +864,12 @@ func (this *Coinbaseinternational) watchFundingRateBody(ch chan ccxt.AsyncResult
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexe by market symbols
  */
-func (this *Coinbaseinternational) WatchFundingRatesAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Coinbaseinternational) WatchFundingRatesAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]ccxt.FundingRate] {
+	ch := make(chan ccxt.AsyncResult[map[string]ccxt.FundingRate], 1)
 	go this.watchFundingRatesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) watchFundingRatesBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
+func (this *Coinbaseinternational) watchFundingRatesBody(ch chan ccxt.AsyncResult[map[string]ccxt.FundingRate], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
@@ -893,8 +893,8 @@ func (this *Coinbaseinternational) watchFundingRatesBody(ch chan ccxt.AsyncResul
 		panic(r1.Err)
 	}
 	var tickers any = nil
-	if r1.Value != nil {
-		tickers = r1.Value
+	if !ccxt.StructAbsent(r1.Value) {
+		tickers = ccxt.StructBox(r1.Value, ccxt.TickerMapToMap)
 	}
 	var result map[string]any = map[string]any{}
 	var tickerSymbols []string = ccxt.ObjectKeys(tickers)
@@ -902,10 +902,10 @@ func (this *Coinbaseinternational) watchFundingRatesBody(ch chan ccxt.AsyncResul
 	for i := 0; i < tickerSymbolsLength; i++ {
 		var symbol *string = ccxt.SafeStringPtr(tickerSymbols[i])
 		var ticker map[string]any = ccxt.MapTyped(ccxt.GetValue(tickers, symbol))
-		ccxt.AddElementToObject(result, symbol, this.ParseFundingRate(ticker["info"], this.Market(symbol)))
+		ccxt.AddElementToObject(result, symbol, ccxt.FundingRateToMap(this.ParseFundingRate(ticker["info"], this.Market(symbol))))
 	}
 
-	ch <- ccxt.AsyncResult[any]{Value: result}
+	ch <- ccxt.AsyncResult[map[string]ccxt.FundingRate]{Value: ccxt.FundingRateMapFromMap(result)}
 	return nil
 }
 
@@ -920,12 +920,12 @@ func (this *Coinbaseinternational) watchFundingRatesBody(ch chan ccxt.AsyncResul
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object} the exchange response
  */
-func (this *Coinbaseinternational) UnWatchFundingRateAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Coinbaseinternational) UnWatchFundingRateAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unWatchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) unWatchFundingRateBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Coinbaseinternational) unWatchFundingRateBody(ch chan ccxt.AsyncResult[bool], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -936,7 +936,7 @@ func (this *Coinbaseinternational) unWatchFundingRateBody(ch chan ccxt.AsyncResu
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ch <- ccxt.AsyncResult[any]{Value: r.Value}
+	ch <- ccxt.AsyncResult[bool]{Value: r.Value}
 	return nil
 }
 
@@ -951,12 +951,12 @@ func (this *Coinbaseinternational) unWatchFundingRateBody(ch chan ccxt.AsyncResu
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object} the exchange response
  */
-func (this *Coinbaseinternational) UnWatchFundingRatesAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Coinbaseinternational) UnWatchFundingRatesAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unWatchFundingRatesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) unWatchFundingRatesBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
+func (this *Coinbaseinternational) unWatchFundingRatesBody(ch chan ccxt.AsyncResult[bool], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
@@ -969,7 +969,7 @@ func (this *Coinbaseinternational) unWatchFundingRatesBody(ch chan ccxt.AsyncRes
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ch <- ccxt.AsyncResult[any]{Value: r.Value}
+	ch <- ccxt.AsyncResult[bool]{Value: r.Value}
 	return nil
 }
 
@@ -985,12 +985,12 @@ func (this *Coinbaseinternational) unWatchFundingRatesBody(ch chan ccxt.AsyncRes
  * @param {string} [params.interval] notification interval, default 100ms
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Coinbaseinternational) WatchTickerAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
-	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
+func (this *Coinbaseinternational) WatchTickerAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.Ticker] {
+	ch := make(chan ccxt.AsyncResult[ccxt.Ticker], 1)
 	go this.watchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) watchTickerBody(ch chan ccxt.AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
+func (this *Coinbaseinternational) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1024,7 +1024,7 @@ func (this *Coinbaseinternational) watchTickerBody(ch chan ccxt.AsyncResult[map[
 	default:
 		panic(ccxt.ExchangeError("resolved value is not map[string]any"))
 	}
-	ch <- ccxt.AsyncResult[map[string]any]{Value: resolved}
+	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: ccxt.TickerFromMap(resolved)}
 	return nil
 }
 
@@ -1039,12 +1039,12 @@ func (this *Coinbaseinternational) watchTickerBody(ch chan ccxt.AsyncResult[map[
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object} the exchange response
  */
-func (this *Coinbaseinternational) UnWatchTickerAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Coinbaseinternational) UnWatchTickerAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unWatchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) unWatchTickerBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Coinbaseinternational) unWatchTickerBody(ch chan ccxt.AsyncResult[bool], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1055,7 +1055,7 @@ func (this *Coinbaseinternational) unWatchTickerBody(ch chan ccxt.AsyncResult[an
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ch <- ccxt.AsyncResult[any]{Value: r.Value}
+	ch <- ccxt.AsyncResult[bool]{Value: r.Value}
 	return nil
 }
 
@@ -1071,12 +1071,12 @@ func (this *Coinbaseinternational) unWatchTickerBody(ch chan ccxt.AsyncResult[an
  * @param {string} [params.interval] notification interval, default 100ms
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Coinbaseinternational) WatchTickersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
-	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
+func (this *Coinbaseinternational) WatchTickersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]ccxt.Ticker] {
+	ch := make(chan ccxt.AsyncResult[map[string]ccxt.Ticker], 1)
 	go this.watchTickersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) watchTickersBody(ch chan ccxt.AsyncResult[map[string]any], optionalArgs ...any) any {
+func (this *Coinbaseinternational) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ticker], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
@@ -1115,7 +1115,7 @@ func (this *Coinbaseinternational) watchTickersBody(ch chan ccxt.AsyncResult[map
 			ccxt.AddElementToObject(result, tickerSymbol, ticker)
 		}
 
-		ch <- ccxt.AsyncResult[map[string]any]{Value: result}
+		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(result)}
 		return nil
 	}
 
@@ -1129,7 +1129,7 @@ func (this *Coinbaseinternational) watchTickersBody(ch chan ccxt.AsyncResult[map
 	default:
 		panic(ccxt.ExchangeError("resolved value is not map[string]any"))
 	}
-	ch <- ccxt.AsyncResult[map[string]any]{Value: resolved}
+	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(resolved)}
 	return nil
 }
 
@@ -1144,12 +1144,12 @@ func (this *Coinbaseinternational) watchTickersBody(ch chan ccxt.AsyncResult[map
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object} the exchange response
  */
-func (this *Coinbaseinternational) UnWatchTickersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Coinbaseinternational) UnWatchTickersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unWatchTickersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) unWatchTickersBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
+func (this *Coinbaseinternational) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
@@ -1178,7 +1178,7 @@ func (this *Coinbaseinternational) unWatchTickersBody(ch chan ccxt.AsyncResult[a
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
+	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
 	return nil
 }
 
@@ -1194,12 +1194,12 @@ func (this *Coinbaseinternational) unWatchTickersBody(ch chan ccxt.AsyncResult[a
  * @param {string} [params.interval] notification interval, default 100ms
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Coinbaseinternational) WatchMarkPriceAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Coinbaseinternational) WatchMarkPriceAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.Ticker] {
+	ch := make(chan ccxt.AsyncResult[ccxt.Ticker], 1)
 	go this.watchMarkPriceBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) watchMarkPriceBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Coinbaseinternational) watchMarkPriceBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1210,11 +1210,7 @@ func (this *Coinbaseinternational) watchMarkPriceBody(ch chan ccxt.AsyncResult[a
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	if r.Value == nil {
-		ch <- ccxt.AsyncResult[any]{Value: nil}
-	} else {
-		ch <- ccxt.AsyncResult[any]{Value: r.Value}
-	}
+	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: r.Value}
 	return nil
 }
 
@@ -1230,12 +1226,12 @@ func (this *Coinbaseinternational) watchMarkPriceBody(ch chan ccxt.AsyncResult[a
  * @param {string} [params.interval] notification interval, default 100ms
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
  */
-func (this *Coinbaseinternational) WatchMarkPricesAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Coinbaseinternational) WatchMarkPricesAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]ccxt.Ticker] {
+	ch := make(chan ccxt.AsyncResult[map[string]ccxt.Ticker], 1)
 	go this.watchMarkPricesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) watchMarkPricesBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
+func (this *Coinbaseinternational) watchMarkPricesBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ticker], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
@@ -1248,11 +1244,7 @@ func (this *Coinbaseinternational) watchMarkPricesBody(ch chan ccxt.AsyncResult[
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	if r.Value == nil {
-		ch <- ccxt.AsyncResult[any]{Value: nil}
-	} else {
-		ch <- ccxt.AsyncResult[any]{Value: r.Value}
-	}
+	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: r.Value}
 	return nil
 }
 
@@ -1267,12 +1259,12 @@ func (this *Coinbaseinternational) watchMarkPricesBody(ch chan ccxt.AsyncResult[
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object} the exchange response
  */
-func (this *Coinbaseinternational) UnWatchMarkPriceAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Coinbaseinternational) UnWatchMarkPriceAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unWatchMarkPriceBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) unWatchMarkPriceBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Coinbaseinternational) unWatchMarkPriceBody(ch chan ccxt.AsyncResult[bool], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1283,7 +1275,7 @@ func (this *Coinbaseinternational) unWatchMarkPriceBody(ch chan ccxt.AsyncResult
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ch <- ccxt.AsyncResult[any]{Value: r.Value}
+	ch <- ccxt.AsyncResult[bool]{Value: r.Value}
 	return nil
 }
 
@@ -1298,12 +1290,12 @@ func (this *Coinbaseinternational) unWatchMarkPriceBody(ch chan ccxt.AsyncResult
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object} the exchange response
  */
-func (this *Coinbaseinternational) UnWatchMarkPricesAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Coinbaseinternational) UnWatchMarkPricesAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unWatchMarkPricesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) unWatchMarkPricesBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
+func (this *Coinbaseinternational) unWatchMarkPricesBody(ch chan ccxt.AsyncResult[bool], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
@@ -1316,7 +1308,7 @@ func (this *Coinbaseinternational) unWatchMarkPricesBody(ch chan ccxt.AsyncResul
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ch <- ccxt.AsyncResult[any]{Value: r.Value}
+	ch <- ccxt.AsyncResult[bool]{Value: r.Value}
 	return nil
 }
 
@@ -1331,12 +1323,12 @@ func (this *Coinbaseinternational) unWatchMarkPricesBody(ch chan ccxt.AsyncResul
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
  */
-func (this *Coinbaseinternational) WatchBidsAsksAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
-	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
+func (this *Coinbaseinternational) WatchBidsAsksAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]ccxt.Ticker] {
+	ch := make(chan ccxt.AsyncResult[map[string]ccxt.Ticker], 1)
 	go this.watchBidsAsksBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]any], optionalArgs ...any) any {
+func (this *Coinbaseinternational) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ticker], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
@@ -1368,7 +1360,7 @@ func (this *Coinbaseinternational) watchBidsAsksBody(ch chan ccxt.AsyncResult[ma
 		var result map[string]any = map[string]any{}
 		ccxt.AddElementToObject(result, ccxt.GetValue(ticker, "symbol"), ticker)
 
-		ch <- ccxt.AsyncResult[map[string]any]{Value: result}
+		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(result)}
 		return nil
 	}
 
@@ -1382,7 +1374,7 @@ func (this *Coinbaseinternational) watchBidsAsksBody(ch chan ccxt.AsyncResult[ma
 	default:
 		panic(ccxt.ExchangeError("resolved value is not map[string]any"))
 	}
-	ch <- ccxt.AsyncResult[map[string]any]{Value: resolved}
+	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(resolved)}
 	return nil
 }
 
@@ -1397,12 +1389,12 @@ func (this *Coinbaseinternational) watchBidsAsksBody(ch chan ccxt.AsyncResult[ma
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object} the exchange response
  */
-func (this *Coinbaseinternational) UnWatchBidsAsksAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Coinbaseinternational) UnWatchBidsAsksAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unWatchBidsAsksBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) unWatchBidsAsksBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
+func (this *Coinbaseinternational) unWatchBidsAsksBody(ch chan ccxt.AsyncResult[bool], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
@@ -1428,7 +1420,7 @@ func (this *Coinbaseinternational) unWatchBidsAsksBody(ch chan ccxt.AsyncResult[
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
+	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
 	return nil
 }
 func (this *Coinbaseinternational) HandleTicker(client any, message any) {
@@ -1481,12 +1473,12 @@ func (this *Coinbaseinternational) ParseWsBidAsk(ticker any, optionalArgs ...any
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Coinbaseinternational) WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
-	ch := make(chan ccxt.AsyncResult[[]any], 1)
+func (this *Coinbaseinternational) WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.OHLCV] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.OHLCV], 1)
 	go this.watchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) watchOHLCVBody(ch chan ccxt.AsyncResult[[]any], symbol string, optionalArgs ...any) any {
+func (this *Coinbaseinternational) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
@@ -1511,7 +1503,7 @@ func (this *Coinbaseinternational) watchOHLCVBody(ch chan ccxt.AsyncResult[[]any
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var ohlcvs map[string]any = ccxt.MapTyped(r1.Value)
+	var ohlcvs map[string]any = ccxt.StructResultMap(r1.Value, ccxt.OHLCVForSymbolsMapToMap)
 
 	var resolved []any
 	switch resolvedBox := ccxt.GetValue(ccxt.GetValue(ohlcvs, symbolResolved), timeframe).(type) {
@@ -1523,7 +1515,7 @@ func (this *Coinbaseinternational) watchOHLCVBody(ch chan ccxt.AsyncResult[[]any
 	default:
 		panic(ccxt.ExchangeError("resolved value is not []any"))
 	}
-	ch <- ccxt.AsyncResult[[]any]{Value: resolved}
+	ch <- ccxt.AsyncResult[[]ccxt.OHLCV]{Value: ccxt.OHLCVsFromList(resolved)}
 	return nil
 }
 
@@ -1540,12 +1532,12 @@ func (this *Coinbaseinternational) watchOHLCVBody(ch chan ccxt.AsyncResult[[]any
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object} a dictionary of ccxt.OHLCV arrays indexed by symbol and timeframe
  */
-func (this *Coinbaseinternational) WatchOHLCVForSymbolsAsync(symbolsAndTimeframes any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Coinbaseinternational) WatchOHLCVForSymbolsAsync(symbolsAndTimeframes any, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]map[string][]ccxt.OHLCV] {
+	ch := make(chan ccxt.AsyncResult[map[string]map[string][]ccxt.OHLCV], 1)
 	go this.watchOHLCVForSymbolsBody(ch, symbolsAndTimeframes, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[any], symbolsAndTimeframes any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]map[string][]ccxt.OHLCV], symbolsAndTimeframes any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1599,7 +1591,17 @@ func (this *Coinbaseinternational) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncRe
 	}
 	var filtered any = this.FilterBySinceLimit(ohlcv, since, limitResolved, 0, true)
 
-	ch <- ccxt.AsyncResult[any]{Value: this.CreateOHLCVObject(symbol, timeframe, filtered)}
+	var resolved1 map[string]any
+	switch resolved1Box := this.CreateOHLCVObject(symbol, timeframe, filtered).(type) {
+	case map[string]any:
+		resolved1 = resolved1Box
+	case *sync.Map:
+		resolved1 = ccxt.SafeMapToMap(resolved1Box)
+	case nil:
+	default:
+		panic(ccxt.ExchangeError("resolved value is not map[string]any"))
+	}
+	ch <- ccxt.AsyncResult[map[string]map[string][]ccxt.OHLCV]{Value: ccxt.OHLCVForSymbolsMapFromMap(resolved1)}
 	return nil
 }
 
@@ -1615,12 +1617,12 @@ func (this *Coinbaseinternational) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncRe
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object} the exchange response
  */
-func (this *Coinbaseinternational) UnWatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Coinbaseinternational) UnWatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unWatchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) unWatchOHLCVBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Coinbaseinternational) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
@@ -1633,7 +1635,7 @@ func (this *Coinbaseinternational) unWatchOHLCVBody(ch chan ccxt.AsyncResult[any
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ch <- ccxt.AsyncResult[any]{Value: r.Value}
+	ch <- ccxt.AsyncResult[bool]{Value: r.Value}
 	return nil
 }
 
@@ -1648,12 +1650,12 @@ func (this *Coinbaseinternational) unWatchOHLCVBody(ch chan ccxt.AsyncResult[any
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object} the exchange response
  */
-func (this *Coinbaseinternational) UnWatchOHLCVForSymbolsAsync(symbolsAndTimeframes any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Coinbaseinternational) UnWatchOHLCVForSymbolsAsync(symbolsAndTimeframes any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unWatchOHLCVForSymbolsBody(ch, symbolsAndTimeframes, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[any], symbolsAndTimeframes any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], symbolsAndTimeframes any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1690,7 +1692,7 @@ func (this *Coinbaseinternational) unWatchOHLCVForSymbolsBody(ch chan ccxt.Async
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
+	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
 	return nil
 }
 func (this *Coinbaseinternational) HandleOHLCV(client any, message any) {
@@ -1735,12 +1737,12 @@ func (this *Coinbaseinternational) ParseWsOHLCV(ohlcv any, optionalArgs ...any) 
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
  */
-func (this *Coinbaseinternational) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
-	ch := make(chan ccxt.AsyncResult[[]any], 1)
+func (this *Coinbaseinternational) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) watchTradesBody(ch chan ccxt.AsyncResult[[]any], symbol any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1755,7 +1757,7 @@ func (this *Coinbaseinternational) watchTradesBody(ch chan ccxt.AsyncResult[[]an
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ch <- ccxt.AsyncResult[[]any]{Value: r.Value}
+	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: r.Value}
 	return nil
 }
 
@@ -1772,12 +1774,12 @@ func (this *Coinbaseinternational) watchTradesBody(ch chan ccxt.AsyncResult[[]an
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
  */
-func (this *Coinbaseinternational) WatchTradesForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
-	ch := make(chan ccxt.AsyncResult[[]any], 1)
+func (this *Coinbaseinternational) WatchTradesForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]any], symbols any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbols any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1818,7 +1820,7 @@ func (this *Coinbaseinternational) watchTradesForSymbolsBody(ch chan ccxt.AsyncR
 		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
 	}
 
-	ch <- ccxt.AsyncResult[[]any]{Value: this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true)}
+	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true))}
 	return nil
 }
 
@@ -1833,12 +1835,12 @@ func (this *Coinbaseinternational) watchTradesForSymbolsBody(ch chan ccxt.AsyncR
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object} the exchange response
  */
-func (this *Coinbaseinternational) UnWatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Coinbaseinternational) UnWatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unWatchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) unWatchTradesBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Coinbaseinternational) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1849,7 +1851,7 @@ func (this *Coinbaseinternational) unWatchTradesBody(ch chan ccxt.AsyncResult[an
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ch <- ccxt.AsyncResult[any]{Value: r.Value}
+	ch <- ccxt.AsyncResult[bool]{Value: r.Value}
 	return nil
 }
 
@@ -1864,12 +1866,12 @@ func (this *Coinbaseinternational) unWatchTradesBody(ch chan ccxt.AsyncResult[an
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object} the exchange response
  */
-func (this *Coinbaseinternational) UnWatchTradesForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Coinbaseinternational) UnWatchTradesForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unWatchTradesForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[any], symbols any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool], symbols any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1896,7 +1898,7 @@ func (this *Coinbaseinternational) unWatchTradesForSymbolsBody(ch chan ccxt.Asyn
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
+	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
 	return nil
 }
 func (this *Coinbaseinternational) HandleTrades(client any, message any) any {
@@ -2043,12 +2045,12 @@ func (this *Coinbaseinternational) watchOrderBookForSymbolsBody(ch chan ccxt.Asy
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object} the exchange response
  */
-func (this *Coinbaseinternational) UnWatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Coinbaseinternational) UnWatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unWatchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) unWatchOrderBookBody(ch chan ccxt.AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Coinbaseinternational) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2059,7 +2061,7 @@ func (this *Coinbaseinternational) unWatchOrderBookBody(ch chan ccxt.AsyncResult
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ch <- ccxt.AsyncResult[any]{Value: r.Value}
+	ch <- ccxt.AsyncResult[bool]{Value: r.Value}
 	return nil
 }
 
@@ -2074,12 +2076,12 @@ func (this *Coinbaseinternational) unWatchOrderBookBody(ch chan ccxt.AsyncResult
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object} the exchange response
  */
-func (this *Coinbaseinternational) UnWatchOrderBookForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Coinbaseinternational) UnWatchOrderBookForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unWatchOrderBookForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[any], symbols any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[bool], symbols any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2120,7 +2122,7 @@ func (this *Coinbaseinternational) unWatchOrderBookForSymbolsBody(ch chan ccxt.A
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
+	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
 	return nil
 }
 func (this *Coinbaseinternational) HandleOrderBook(client any, message any) {
@@ -2397,12 +2399,12 @@ func (this *Coinbaseinternational) HandleAuthenticationMessage(client any, messa
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object} the authentication response
  */
-func (this *Coinbaseinternational) AuthenticateAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Coinbaseinternational) AuthenticateAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[*string] {
+	ch := make(chan ccxt.AsyncResult[*string], 1)
 	go this.authenticateBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) authenticateBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
+func (this *Coinbaseinternational) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2449,7 +2451,16 @@ func (this *Coinbaseinternational) authenticateBody(ch chan ccxt.AsyncResult[any
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ch <- ccxt.AsyncResult[any]{Value: r.Value}
+	var resolved *string
+	switch resolvedBox := r.Value.(type) {
+	case *string:
+		resolved = resolvedBox
+	case string:
+		resolved = &resolvedBox
+	default:
+		_ = resolvedBox
+	}
+	ch <- ccxt.AsyncResult[*string]{Value: resolved}
 	return nil
 }
 
@@ -2519,12 +2530,12 @@ func (this *Coinbaseinternational) requestWsBody(ch chan ccxt.AsyncResult[any], 
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
-func (this *Coinbaseinternational) CreateOrderWsAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
-	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
+func (this *Coinbaseinternational) CreateOrderWsAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.Order] {
+	ch := make(chan ccxt.AsyncResult[ccxt.Order], 1)
 	go this.createOrderWsBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) createOrderWsBody(ch chan ccxt.AsyncResult[map[string]any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2604,7 +2615,7 @@ func (this *Coinbaseinternational) createOrderWsBody(ch chan ccxt.AsyncResult[ma
 	var order any = this.SafeDict(result, "order", map[string]any{})
 	ccxt.AddElementToObject(order, "trades", this.SafeList(result, "trades", []any{}))
 
-	ch <- ccxt.AsyncResult[map[string]any]{Value: ccxt.OrderToMap(this.ParseOrder(order, market))}
+	ch <- ccxt.AsyncResult[ccxt.Order]{Value: this.ParseOrder(order, market)}
 	return nil
 }
 
@@ -2624,12 +2635,12 @@ func (this *Coinbaseinternational) createOrderWsBody(ch chan ccxt.AsyncResult[ma
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
-func (this *Coinbaseinternational) EditOrderWsAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
-	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
+func (this *Coinbaseinternational) EditOrderWsAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.Order] {
+	ch := make(chan ccxt.AsyncResult[ccxt.Order], 1)
 	go this.editOrderWsBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) editOrderWsBody(ch chan ccxt.AsyncResult[map[string]any], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
+func (this *Coinbaseinternational) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	amount := ccxt.GetArg(optionalArgs, 0, nil)
@@ -2670,7 +2681,7 @@ func (this *Coinbaseinternational) editOrderWsBody(ch chan ccxt.AsyncResult[map[
 	var order any = this.SafeDict(result, "order", map[string]any{})
 	ccxt.AddElementToObject(order, "trades", this.SafeList(result, "trades", []any{}))
 
-	ch <- ccxt.AsyncResult[map[string]any]{Value: ccxt.OrderToMap(this.ParseOrder(order, market))}
+	ch <- ccxt.AsyncResult[ccxt.Order]{Value: this.ParseOrder(order, market)}
 	return nil
 }
 
@@ -2686,12 +2697,12 @@ func (this *Coinbaseinternational) editOrderWsBody(ch chan ccxt.AsyncResult[map[
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
-func (this *Coinbaseinternational) CancelOrderWsAsync(id string, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
-	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
+func (this *Coinbaseinternational) CancelOrderWsAsync(id string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.Order] {
+	ch := make(chan ccxt.AsyncResult[ccxt.Order], 1)
 	go this.cancelOrderWsBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) cancelOrderWsBody(ch chan ccxt.AsyncResult[map[string]any], id string, optionalArgs ...any) any {
+func (this *Coinbaseinternational) cancelOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -2719,7 +2730,7 @@ func (this *Coinbaseinternational) cancelOrderWsBody(ch chan ccxt.AsyncResult[ma
 	}
 	result := r1.Value
 
-	ch <- ccxt.AsyncResult[map[string]any]{Value: ccxt.OrderToMap(this.ParseOrder(result, market))}
+	ch <- ccxt.AsyncResult[ccxt.Order]{Value: this.ParseOrder(result, market)}
 	return nil
 }
 
@@ -2736,12 +2747,12 @@ func (this *Coinbaseinternational) cancelOrderWsBody(ch chan ccxt.AsyncResult[ma
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
-func (this *Coinbaseinternational) CancelAllOrdersWsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
-	ch := make(chan ccxt.AsyncResult[[]any], 1)
+func (this *Coinbaseinternational) CancelAllOrdersWsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Order] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.Order], 1)
 	go this.cancelAllOrdersWsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[[]any], optionalArgs ...any) any {
+func (this *Coinbaseinternational) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -2772,9 +2783,9 @@ func (this *Coinbaseinternational) cancelAllOrdersWsBody(ch chan ccxt.AsyncResul
 	}
 	result := r1.Value
 
-	ch <- ccxt.AsyncResult[[]any]{Value: []any{ccxt.OrderToMap(this.SafeOrder(map[string]any{
+	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList([]any{ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"info": result,
-	}))}}
+	}))})}
 	return nil
 }
 
@@ -2790,12 +2801,12 @@ func (this *Coinbaseinternational) cancelAllOrdersWsBody(ch chan ccxt.AsyncResul
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
-func (this *Coinbaseinternational) FetchOrderWsAsync(id string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Coinbaseinternational) FetchOrderWsAsync(id string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.Order] {
+	ch := make(chan ccxt.AsyncResult[ccxt.Order], 1)
 	go this.fetchOrderWsBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) fetchOrderWsBody(ch chan ccxt.AsyncResult[any], id string, optionalArgs ...any) any {
+func (this *Coinbaseinternational) fetchOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -2823,7 +2834,7 @@ func (this *Coinbaseinternational) fetchOrderWsBody(ch chan ccxt.AsyncResult[any
 	}
 	result := r1.Value
 
-	ch <- ccxt.AsyncResult[any]{Value: ccxt.OrderToMap(this.ParseOrder(result, market))}
+	ch <- ccxt.AsyncResult[ccxt.Order]{Value: this.ParseOrder(result, market)}
 	return nil
 }
 
@@ -2840,12 +2851,12 @@ func (this *Coinbaseinternational) fetchOrderWsBody(ch chan ccxt.AsyncResult[any
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
-func (this *Coinbaseinternational) FetchOpenOrdersWsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Coinbaseinternational) FetchOpenOrdersWsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Order] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.Order], 1)
 	go this.fetchOpenOrdersWsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) fetchOpenOrdersWsBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
+func (this *Coinbaseinternational) fetchOpenOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -2881,7 +2892,7 @@ func (this *Coinbaseinternational) fetchOpenOrdersWsBody(ch chan ccxt.AsyncResul
 	}
 	result := r1.Value
 
-	ch <- ccxt.AsyncResult[any]{Value: this.ParseOrders(result, market, since, limit)}
+	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.ParseOrders(result, market, since, limit))}
 	return nil
 }
 
@@ -2898,12 +2909,12 @@ func (this *Coinbaseinternational) fetchOpenOrdersWsBody(ch chan ccxt.AsyncResul
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
-func (this *Coinbaseinternational) FetchOrdersWsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
-	ch := make(chan ccxt.AsyncResult[[]any], 1)
+func (this *Coinbaseinternational) FetchOrdersWsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Order] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.Order], 1)
 	go this.fetchOrdersWsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) fetchOrdersWsBody(ch chan ccxt.AsyncResult[[]any], optionalArgs ...any) any {
+func (this *Coinbaseinternational) fetchOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -2940,7 +2951,7 @@ func (this *Coinbaseinternational) fetchOrdersWsBody(ch chan ccxt.AsyncResult[[]
 	result := r1.Value
 	var orders any = this.SafeList(result, "orders", result)
 
-	ch <- ccxt.AsyncResult[[]any]{Value: this.ParseOrders(orders, market, since, limit)}
+	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.ParseOrders(orders, market, since, limit))}
 	return nil
 }
 
@@ -2955,12 +2966,12 @@ func (this *Coinbaseinternational) fetchOrdersWsBody(ch chan ccxt.AsyncResult[[]
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
  */
-func (this *Coinbaseinternational) FetchBalanceWsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Coinbaseinternational) FetchBalanceWsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.Balances] {
+	ch := make(chan ccxt.AsyncResult[ccxt.Balances], 1)
 	go this.fetchBalanceWsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) fetchBalanceWsBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
+func (this *Coinbaseinternational) fetchBalanceWsBody(ch chan ccxt.AsyncResult[ccxt.Balances], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2986,7 +2997,17 @@ func (this *Coinbaseinternational) fetchBalanceWsBody(ch chan ccxt.AsyncResult[a
 		}()))
 	}
 
-	ch <- ccxt.AsyncResult[any]{Value: this.SafeBalance(balance)}
+	var resolved map[string]any
+	switch resolvedBox := this.SafeBalance(balance).(type) {
+	case map[string]any:
+		resolved = resolvedBox
+	case *sync.Map:
+		resolved = ccxt.SafeMapToMap(resolvedBox)
+	case nil:
+	default:
+		panic(ccxt.ExchangeError("resolved value is not map[string]any"))
+	}
+	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(resolved)}
 	return nil
 }
 
@@ -3004,12 +3025,12 @@ func (this *Coinbaseinternational) fetchBalanceWsBody(ch chan ccxt.AsyncResult[a
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
  */
-func (this *Coinbaseinternational) FetchMyTradesWsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
-	ch := make(chan ccxt.AsyncResult[[]any], 1)
+func (this *Coinbaseinternational) FetchMyTradesWsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.fetchMyTradesWsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) fetchMyTradesWsBody(ch chan ccxt.AsyncResult[[]any], optionalArgs ...any) any {
+func (this *Coinbaseinternational) fetchMyTradesWsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -3047,7 +3068,7 @@ func (this *Coinbaseinternational) fetchMyTradesWsBody(ch chan ccxt.AsyncResult[
 	result := r1.Value
 	var trades any = this.SafeList(result, "trades", []any{})
 
-	ch <- ccxt.AsyncResult[[]any]{Value: this.ParseTrades(trades, market, since, limit)}
+	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.ParseTrades(trades, market, since, limit))}
 	return nil
 }
 
@@ -3062,12 +3083,12 @@ func (this *Coinbaseinternational) fetchMyTradesWsBody(ch chan ccxt.AsyncResult[
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
  */
-func (this *Coinbaseinternational) FetchPositionsWsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
-	ch := make(chan ccxt.AsyncResult[[]any], 1)
+func (this *Coinbaseinternational) FetchPositionsWsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Position] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.Position], 1)
 	go this.fetchPositionsWsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) fetchPositionsWsBody(ch chan ccxt.AsyncResult[[]any], optionalArgs ...any) any {
+func (this *Coinbaseinternational) fetchPositionsWsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
@@ -3091,7 +3112,7 @@ func (this *Coinbaseinternational) fetchPositionsWsBody(ch chan ccxt.AsyncResult
 	result := r1.Value
 	var positions any = this.ParsePositions(result)
 
-	ch <- ccxt.AsyncResult[[]any]{Value: this.FilterByArrayPositions(positions, "symbol", symbolsResolved)}
+	ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterByArrayPositions(positions, "symbol", symbolsResolved))}
 	return nil
 }
 
@@ -3353,7 +3374,7 @@ func (this *Coinbaseinternational) WatchBalance(params ...any) (ccxt.Balances, e
 	if r.Err != nil {
 		return ccxt.Balances{}, r.Err
 	}
-	var res ccxt.Balances = ccxt.NewBalances(r.Value)
+	var res ccxt.Balances = r.Value
 	return res, nil
 }
 
@@ -3382,7 +3403,7 @@ func (this *Coinbaseinternational) WatchMyTrades(options ...ccxt.WatchMyTradesOp
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.Trade = ccxt.NewTradeArray(r.Value)
+	var res []ccxt.Trade = r.Value
 	return res, nil
 }
 
@@ -3436,7 +3457,7 @@ func (this *Coinbaseinternational) WatchOrders(options ...ccxt.WatchOrdersOption
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.Order = ccxt.NewOrderArray(r.Value)
+	var res []ccxt.Order = r.Value
 	return res, nil
 }
 
@@ -3464,7 +3485,7 @@ func (this *Coinbaseinternational) WatchOrdersForSymbols(symbols []string, optio
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.Order = ccxt.NewOrderArray(r.Value)
+	var res []ccxt.Order = r.Value
 	return res, nil
 }
 
@@ -3518,7 +3539,7 @@ func (this *Coinbaseinternational) WatchPositions(options ...ccxt.WatchPositions
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.Position = ccxt.NewPositionArray(r.Value)
+	var res []ccxt.Position = r.Value
 	return res, nil
 }
 
@@ -3569,7 +3590,7 @@ func (this *Coinbaseinternational) WatchFundingRate(symbol string, options ...cc
 	if r.Err != nil {
 		return ccxt.FundingRate{}, r.Err
 	}
-	var res ccxt.FundingRate = ccxt.NewFundingRate(r.Value)
+	var res ccxt.FundingRate = r.Value
 	return res, nil
 }
 
@@ -3595,7 +3616,7 @@ func (this *Coinbaseinternational) WatchFundingRates(options ...ccxt.WatchFundin
 	if r.Err != nil {
 		return ccxt.FundingRates{}, r.Err
 	}
-	var res ccxt.FundingRates = ccxt.NewFundingRates(r.Value)
+	var res ccxt.FundingRates = ccxt.FundingRates{FundingRates: r.Value}
 	return res, nil
 }
 
@@ -3672,7 +3693,7 @@ func (this *Coinbaseinternational) WatchTicker(symbol string, options ...ccxt.Wa
 	if r.Err != nil {
 		return ccxt.Ticker{}, r.Err
 	}
-	var res ccxt.Ticker = ccxt.NewTicker(r.Value)
+	var res ccxt.Ticker = r.Value
 	return res, nil
 }
 
@@ -3724,7 +3745,7 @@ func (this *Coinbaseinternational) WatchTickers(options ...ccxt.WatchTickersOpti
 	if r.Err != nil {
 		return ccxt.Tickers{}, r.Err
 	}
-	var res ccxt.Tickers = ccxt.NewTickers(r.Value)
+	var res ccxt.Tickers = ccxt.Tickers{Tickers: r.Value}
 	return res, nil
 }
 
@@ -3776,7 +3797,7 @@ func (this *Coinbaseinternational) WatchMarkPrice(symbol string, options ...ccxt
 	if r.Err != nil {
 		return ccxt.Ticker{}, r.Err
 	}
-	var res ccxt.Ticker = ccxt.NewTicker(r.Value)
+	var res ccxt.Ticker = r.Value
 	return res, nil
 }
 
@@ -3803,7 +3824,7 @@ func (this *Coinbaseinternational) WatchMarkPrices(options ...ccxt.WatchMarkPric
 	if r.Err != nil {
 		return ccxt.Tickers{}, r.Err
 	}
-	var res ccxt.Tickers = ccxt.NewTickers(r.Value)
+	var res ccxt.Tickers = ccxt.Tickers{Tickers: r.Value}
 	return res, nil
 }
 
@@ -3879,7 +3900,7 @@ func (this *Coinbaseinternational) WatchBidsAsks(options ...ccxt.WatchBidsAsksOp
 	if r.Err != nil {
 		return ccxt.Tickers{}, r.Err
 	}
-	var res ccxt.Tickers = ccxt.NewTickers(r.Value)
+	var res ccxt.Tickers = ccxt.Tickers{Tickers: r.Value}
 	return res, nil
 }
 
@@ -3933,7 +3954,7 @@ func (this *Coinbaseinternational) WatchOHLCV(symbol string, options ...ccxt.Wat
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.OHLCV = ccxt.NewOHLCVArray(r.Value)
+	var res []ccxt.OHLCV = r.Value
 	return res, nil
 }
 
@@ -3961,7 +3982,7 @@ func (this *Coinbaseinternational) WatchOHLCVForSymbols(symbolsAndTimeframes [][
 	if r.Err != nil {
 		return map[string]map[string][]ccxt.OHLCV{}, r.Err
 	}
-	var res map[string]map[string][]ccxt.OHLCV = r.Value.(map[string]map[string][]ccxt.OHLCV)
+	var res map[string]map[string][]ccxt.OHLCV = r.Value
 	return res, nil
 }
 
@@ -4040,7 +4061,7 @@ func (this *Coinbaseinternational) WatchTrades(symbol string, options ...ccxt.Wa
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.Trade = ccxt.NewTradeArray(r.Value)
+	var res []ccxt.Trade = r.Value
 	return res, nil
 }
 
@@ -4068,7 +4089,7 @@ func (this *Coinbaseinternational) WatchTradesForSymbols(symbols []string, optio
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.Trade = ccxt.NewTradeArray(r.Value)
+	var res []ccxt.Trade = r.Value
 	return res, nil
 }
 
@@ -4256,7 +4277,7 @@ func (this *Coinbaseinternational) CreateOrderWs(symbol string, typeVar string, 
 	if r.Err != nil {
 		return ccxt.Order{}, r.Err
 	}
-	var res ccxt.Order = ccxt.NewOrder(r.Value)
+	var res ccxt.Order = r.Value
 	return res, nil
 }
 
@@ -4287,7 +4308,7 @@ func (this *Coinbaseinternational) EditOrderWs(id string, symbol string, typeVar
 	if r.Err != nil {
 		return ccxt.Order{}, r.Err
 	}
-	var res ccxt.Order = ccxt.NewOrder(r.Value)
+	var res ccxt.Order = r.Value
 	return res, nil
 }
 
@@ -4314,7 +4335,7 @@ func (this *Coinbaseinternational) CancelOrderWs(id string, options ...ccxt.Canc
 	if r.Err != nil {
 		return ccxt.Order{}, r.Err
 	}
-	var res ccxt.Order = ccxt.NewOrder(r.Value)
+	var res ccxt.Order = r.Value
 	return res, nil
 }
 
@@ -4342,7 +4363,7 @@ func (this *Coinbaseinternational) CancelAllOrdersWs(options ...ccxt.CancelAllOr
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.Order = ccxt.NewOrderArray(r.Value)
+	var res []ccxt.Order = r.Value
 	return res, nil
 }
 
@@ -4369,7 +4390,7 @@ func (this *Coinbaseinternational) FetchOrderWs(id string, options ...ccxt.Fetch
 	if r.Err != nil {
 		return ccxt.Order{}, r.Err
 	}
-	var res ccxt.Order = ccxt.NewOrder(r.Value)
+	var res ccxt.Order = r.Value
 	return res, nil
 }
 
@@ -4397,7 +4418,7 @@ func (this *Coinbaseinternational) FetchOpenOrdersWs(options ...ccxt.FetchOpenOr
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.Order = ccxt.NewOrderArray(r.Value)
+	var res []ccxt.Order = r.Value
 	return res, nil
 }
 
@@ -4425,7 +4446,7 @@ func (this *Coinbaseinternational) FetchOrdersWs(options ...ccxt.FetchOrdersWsOp
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.Order = ccxt.NewOrderArray(r.Value)
+	var res []ccxt.Order = r.Value
 	return res, nil
 }
 
@@ -4445,7 +4466,7 @@ func (this *Coinbaseinternational) FetchBalanceWs(params ...any) (ccxt.Balances,
 	if r.Err != nil {
 		return ccxt.Balances{}, r.Err
 	}
-	var res ccxt.Balances = ccxt.NewBalances(r.Value)
+	var res ccxt.Balances = r.Value
 	return res, nil
 }
 
@@ -4474,7 +4495,7 @@ func (this *Coinbaseinternational) FetchMyTradesWs(options ...ccxt.FetchMyTrades
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.Trade = ccxt.NewTradeArray(r.Value)
+	var res []ccxt.Trade = r.Value
 	return res, nil
 }
 
@@ -4500,6 +4521,6 @@ func (this *Coinbaseinternational) FetchPositionsWs(options ...ccxt.FetchPositio
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.Position = ccxt.NewPositionArray(r.Value)
+	var res []ccxt.Position = r.Value
 	return res, nil
 }

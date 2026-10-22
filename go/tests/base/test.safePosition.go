@@ -27,7 +27,7 @@ func TestSafePosition() {
 		"collateral":       100,
 		"initialMargin":    100,
 	}
-	var res1 any = exchange.SafePosition(pos1)
+	var res1 any = ccxt.PositionToMap(exchange.SafePosition(pos1))
 	Assert(PreciseEqualPositionStr(exchange, res1, "maintenanceMargin", "10"))
 	// CASE 2 - isolated linear short: derive liquidationPrice
 	// entryMargin = 100, maintenanceMargin = 10, entryPrice = 1000, contracts = 2, contractSize = 0.5
@@ -42,7 +42,7 @@ func TestSafePosition() {
 		"initialMargin":     100,
 		"maintenanceMargin": 10,
 	}
-	var res2 any = exchange.SafePosition(pos2)
+	var res2 any = ccxt.PositionToMap(exchange.SafePosition(pos2))
 	Assert(PreciseEqualPositionStr(exchange, res2, "liquidationPrice", "1090"))
 	// CASE 3 - isolated linear long: derive entryPrice
 	var pos3 map[string]any = map[string]any{
@@ -55,7 +55,7 @@ func TestSafePosition() {
 		"initialMargin":     100,
 		"maintenanceMargin": 10,
 	}
-	var res3 any = exchange.SafePosition(pos3)
+	var res3 any = ccxt.PositionToMap(exchange.SafePosition(pos3))
 	Assert(PreciseEqualPositionStr(exchange, res3, "entryPrice", "1000"))
 	// CASE 4 - isolated linear long: derive contracts
 	var pos4 map[string]any = map[string]any{
@@ -68,7 +68,7 @@ func TestSafePosition() {
 		"initialMargin":     100,
 		"maintenanceMargin": 10,
 	}
-	var res4 any = exchange.SafePosition(pos4)
+	var res4 any = ccxt.PositionToMap(exchange.SafePosition(pos4))
 	Assert(PreciseEqualPositionStr(exchange, res4, "contracts", "2"))
 	// CASE 5 - isolated linear long: derive contractSize
 	var pos5 map[string]any = map[string]any{
@@ -81,7 +81,7 @@ func TestSafePosition() {
 		"initialMargin":     100,
 		"maintenanceMargin": 10,
 	}
-	var res5 any = exchange.SafePosition(pos5)
+	var res5 any = ccxt.PositionToMap(exchange.SafePosition(pos5))
 	Assert(PreciseEqualPositionStr(exchange, res5, "contractSize", "0.5"))
 	// CASE 6 - isolated linear long: derive collateral and initialMargin
 	var pos6 map[string]any = map[string]any{
@@ -93,7 +93,7 @@ func TestSafePosition() {
 		"contractSize":      0.5,
 		"maintenanceMargin": 10,
 	}
-	var res6 any = exchange.SafePosition(pos6)
+	var res6 any = ccxt.PositionToMap(exchange.SafePosition(pos6))
 	Assert(PreciseEqualPositionStr(exchange, res6, "initialMargin", "100"))
 	Assert(PreciseEqualPositionStr(exchange, res6, "collateral", "100"))
 	// CASE 7 - isolated linear with unrealizedPnl included in collateral
@@ -108,7 +108,7 @@ func TestSafePosition() {
 		"collateral":       115,
 		"unrealizedPnl":    15,
 	}
-	var res7 any = exchange.SafePosition(pos7)
+	var res7 any = ccxt.PositionToMap(exchange.SafePosition(pos7))
 	Assert(PreciseEqualPositionStr(exchange, res7, "maintenanceMargin", "10"))
 	// CASE 8 - cross margin position must not derive isolated maintenanceMargin
 	var pos8 map[string]any = map[string]any{
@@ -121,7 +121,7 @@ func TestSafePosition() {
 		"collateral":       100,
 		"initialMargin":    100,
 	}
-	var res8 any = exchange.SafePosition(pos8)
+	var res8 any = ccxt.PositionToMap(exchange.SafePosition(pos8))
 	Assert(ccxt.IsEqual(exchange.SafeValue(res8, "maintenanceMargin"), nil))
 	// CASE 9 - cross margin linear position derives notional, unrealizedPnl, initialMarginPercentage, initialMargin, maintenanceMargin, marginRatio, percentage
 	var pos9 map[string]any = map[string]any{
@@ -135,7 +135,7 @@ func TestSafePosition() {
 		"maintenanceMarginPercentage": 0.01,
 		"collateral":                  210,
 	}
-	var res9 any = exchange.SafePosition(pos9)
+	var res9 any = ccxt.PositionToMap(exchange.SafePosition(pos9))
 	Assert(PreciseEqualPositionStr(exchange, res9, "notional", "1050"))
 	Assert(PreciseEqualPositionStr(exchange, res9, "unrealizedPnl", "50"))
 	Assert(PreciseEqualPositionStr(exchange, res9, "initialMarginPercentage", "0.1"))
@@ -153,7 +153,7 @@ func TestSafePosition() {
 		"initialMarginPercentage": 0.05,
 		"maintenanceMargin":       20,
 	}
-	var res10 any = exchange.SafePosition(pos10)
+	var res10 any = ccxt.PositionToMap(exchange.SafePosition(pos10))
 	Assert(PreciseEqualPositionStr(exchange, res10, "markPrice", "1000"))
 	Assert(PreciseEqualPositionStr(exchange, res10, "leverage", "20"))
 	Assert(PreciseEqualPositionStr(exchange, res10, "initialMargin", "100"))
@@ -172,7 +172,7 @@ func TestSafePosition() {
 		"collateral":       -3.967,
 		"unrealizedPnl":    0.008,
 	}
-	var res11 any = exchange.SafePosition(pos11)
+	var res11 any = ccxt.PositionToMap(exchange.SafePosition(pos11))
 	Assert(ccxt.IsEqual(exchange.SafeValue(res11, "initialMargin"), nil))
 	Assert(ccxt.IsEqual(exchange.SafeValue(res11, "maintenanceMargin"), nil))
 	Assert(ccxt.IsEqual(exchange.SafeValue(res11, "positionMargin"), nil))
@@ -187,7 +187,7 @@ func TestSafePosition() {
 		"positionMargin":   10,
 		"unrealizedPnl":    2,
 	}
-	var res12 any = exchange.SafePosition(pos12)
+	var res12 any = ccxt.PositionToMap(exchange.SafePosition(pos12))
 	Assert(PreciseEqualPositionStr(exchange, res12, "collateral", "12"))
 	Assert(PreciseEqualPositionStr(exchange, res12, "maintenanceMargin", "0.5"))
 	// CASE 13 - isolated collateral given without margin: margin = collateral - unrealizedPnl
@@ -201,6 +201,6 @@ func TestSafePosition() {
 		"collateral":    17,
 		"unrealizedPnl": int64(-3),
 	}
-	var res13 any = exchange.SafePosition(pos13)
+	var res13 any = ccxt.PositionToMap(exchange.SafePosition(pos13))
 	Assert(PreciseEqualPositionStr(exchange, res13, "positionMargin", "20"))
 }

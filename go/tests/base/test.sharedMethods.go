@@ -477,13 +477,13 @@ func fetchBestBidAskBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExcha
 	if (!IsEqual(GetValue(exchange.GetHas(), "fetchOrderBook"), nil)) && (!IsEqual(GetValue(exchange.GetHas(), "fetchOrderBook"), false)) {
 		usedMethod = SafeStringPtr("fetchOrderBook")
 
-		r := <-exchange.FetchOrderBookAsync(StringArg(symbol))
+		r := <-exchange.(ccxt.IFetchOrderBook).FetchOrderBookAsync(StringArg(symbol))
 		if r.Err != nil {
 			panic(r.Err)
 		}
 		var orderbook any = nil
-		if r.Value != nil {
-			orderbook = r.Value
+		if !ccxt.StructAbsent(r.Value) {
+			orderbook = ccxt.StructBox(r.Value, ccxt.OrderBookToMap)
 		}
 		var bids any = exchange.SafeList(orderbook, "bids")
 		var asks any = exchange.SafeList(orderbook, "asks")
@@ -498,7 +498,10 @@ func fetchBestBidAskBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExcha
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		tickers := r1.Value
+		var tickers any = nil
+		if !ccxt.StructAbsent(r1.Value) {
+			tickers = ccxt.StructBox(r1.Value, ccxt.TickerMapToMap)
+		}
 		var ticker any = exchange.SafeDict(tickers, symbol)
 		bestBid = exchange.SafeNumber(ticker, "bid")
 		bestAsk = exchange.SafeNumber(ticker, "ask")
@@ -510,8 +513,8 @@ func fetchBestBidAskBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExcha
 			panic(r2.Err)
 		}
 		var ticker any = nil
-		if r2.Value != nil {
-			ticker = r2.Value
+		if !ccxt.StructAbsent(r2.Value) {
+			ticker = ccxt.StructBox(r2.Value, ccxt.TickerToMap)
 		}
 		bestBid = exchange.SafeNumber(ticker, "bid")
 		bestAsk = exchange.SafeNumber(ticker, "ask")
@@ -522,7 +525,10 @@ func fetchBestBidAskBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExcha
 		if r3.Err != nil {
 			panic(r3.Err)
 		}
-		tickers := r3.Value
+		var tickers any = nil
+		if !ccxt.StructAbsent(r3.Value) {
+			tickers = ccxt.StructBox(r3.Value, ccxt.TickerMapToMap)
+		}
 		var ticker any = exchange.SafeDict(tickers, symbol)
 		bestBid = exchange.SafeNumber(ticker, "bid")
 		bestAsk = exchange.SafeNumber(ticker, "ask")

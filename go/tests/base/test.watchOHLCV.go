@@ -57,16 +57,15 @@ func testWatchOHLCVBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExchan
 				}()
 				// try block:
 
-				r := <-exchange.WatchOHLCVAsync(StringArg(symbol), chosenTimeframeKey, since, limit)
+				r := <-exchange.(ccxt.IWatchOHLCV).WatchOHLCVAsync(StringArg(symbol), chosenTimeframeKey, since, limit)
 				if r.Err != nil {
 					panic(r.Err)
 				}
-				var rValueBox any = nil
-				if r.Value != nil {
-					rValueBox = r.Value
+				if r.Value == nil {
+					response = nil
+				} else {
+					response = ccxt.OHLCVsToList(r.Value)
 				}
-				response = (UnWrapType(rValueBox))
-				PanicOnError(response)
 				if IsEqual(response, nil) {
 					panic(Error(Add(exchange.GetId(), " watch returned undefined response")))
 				}

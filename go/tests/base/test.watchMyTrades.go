@@ -41,16 +41,15 @@ func testWatchMyTradesBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExc
 				}()
 				// try block:
 
-				r := <-exchange.WatchMyTradesAsync(symbol)
+				r := <-exchange.(ccxt.IWatchMyTrades).WatchMyTradesAsync(symbol)
 				if r.Err != nil {
 					panic(r.Err)
 				}
-				var rValueBox any = nil
-				if r.Value != nil {
-					rValueBox = r.Value
+				if r.Value == nil {
+					response = nil
+				} else {
+					response = ccxt.TradesToList(r.Value)
 				}
-				response = (UnWrapType(rValueBox))
-				PanicOnError(response)
 				return nil
 			}()
 

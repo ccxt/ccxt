@@ -73,10 +73,10 @@ func testWatchBidsAsksHelperBody(ch chan ccxt.AsyncResult[any], exchange ccxt.IC
 				if r.Err != nil {
 					panic(r.Err)
 				}
-				if r.Value == nil {
+				if ccxt.StructAbsent(r.Value) {
 					response = nil
 				} else {
-					response = r.Value
+					response = ccxt.StructBox(r.Value, ccxt.TickerMapToMap)
 				}
 				return nil
 			}()

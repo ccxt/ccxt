@@ -2484,6 +2484,25 @@ func WithUnWatchBidsAsksParams(params map[string]any) UnWatchBidsAsksOptions {
 	}
 }
 
+type ClosePositionOptionsStruct struct {
+	Side   *string
+	Params *map[string]any
+}
+
+type ClosePositionOptions func(opts *ClosePositionOptionsStruct)
+
+func WithClosePositionSide(side string) ClosePositionOptions {
+	return func(opts *ClosePositionOptionsStruct) {
+		opts.Side = &side
+	}
+}
+
+func WithClosePositionParams(params map[string]any) ClosePositionOptions {
+	return func(opts *ClosePositionOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
 type EditOrdersOptionsStruct struct {
 	Params *map[string]any
 }

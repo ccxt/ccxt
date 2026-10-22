@@ -61,7 +61,11 @@ func testWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[any], exchange ccxt.I
 				if r.Err != nil {
 					panic(r.Err)
 				}
-				response = (UnWrapType(r.Value))
+				var rValueBox any = nil
+				if !ccxt.StructAbsent(r.Value) {
+					rValueBox = ccxt.StructBox(r.Value, ccxt.OHLCVForSymbolsMapToMap)
+				}
+				response = (UnWrapType(rValueBox))
 				PanicOnError(response)
 				if IsEqual(response, nil) {
 					panic(Error(Add(exchange.GetId(), " watch returned undefined response")))

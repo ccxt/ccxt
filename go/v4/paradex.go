@@ -745,14 +745,14 @@ func (this *Paradex) fetchTimeBody(ch chan AsyncResult[*int64], optionalArgs ...
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-func (this *Paradex) FetchStatusAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
-	ch := make(chan EndpointResult[map[string]any], 1)
+func (this *Paradex) FetchStatusAsync(optionalArgs ...any) <-chan AsyncResult[Status] {
+	ch := make(chan AsyncResult[Status], 1)
 	go this.fetchStatusBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Paradex) fetchStatusBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
+func (this *Paradex) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicErrorT(ch)
+	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
@@ -768,7 +768,7 @@ func (this *Paradex) fetchStatusBody(ch chan EndpointResult[map[string]any], opt
 	//
 	var status *string = this.SafeString(response, "status")
 
-	chValue := map[string]any{
+	ch <- AsyncResult[Status]{Value: StatusFromMap(map[string]any{
 		"status": func() string {
 			if status != nil && *status == "ok" {
 				return "ok"
@@ -779,8 +779,7 @@ func (this *Paradex) fetchStatusBody(ch chan EndpointResult[map[string]any], opt
 		"eta":     nil,
 		"url":     nil,
 		"info":    response,
-	}
-	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
+	})}
 	return nil
 }
 
@@ -792,12 +791,12 @@ func (this *Paradex) fetchStatusBody(ch chan EndpointResult[map[string]any], opt
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *Paradex) FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Paradex) FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]MarketInterface] {
+	ch := make(chan AsyncResult[[]MarketInterface], 1)
 	go this.fetchMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Paradex) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Paradex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -843,7 +842,7 @@ func (this *Paradex) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...
 	//
 	var data []any = SafeListTyped(response, "results")
 
-	ch <- AsyncResult[any]{Value: this.ParseMarkets(data)}
+	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(data))}
 	return nil
 }
 func (this *Paradex) ParseMarket(market any) any {
@@ -1027,7 +1026,7 @@ func (this *Paradex) ParseMarket(market any) any {
 		"info":    market,
 	})
 }
-func (this *Paradex) ParseTradingFee(fee any, optionalArgs ...any) map[string]any {
+func (this *Paradex) ParseTradingFee(fee any, optionalArgs ...any) TradingFeeInterface {
 	//
 	//     {
 	//         "symbol": "BTC-USD-PERP",
@@ -1055,14 +1054,14 @@ func (this *Paradex) ParseTradingFee(fee any, optionalArgs ...any) map[string]an
 	var apiFee map[string]any = SafeMapTyped(feeConfig, "api_fee")
 	var makerFee map[string]any = SafeMapTyped(apiFee, "maker_fee")
 	var takerFee map[string]any = SafeMapTyped(apiFee, "taker_fee")
-	return map[string]any{
+	return TradingFeeInterfaceFromMap(map[string]any{
 		"info":       fee,
 		"symbol":     marketResolved["symbol"],
 		"maker":      this.SafeNumber(makerFee, "fee", this.SafeNumber(marketResolved, "maker")),
 		"taker":      this.SafeNumber(takerFee, "fee", this.SafeNumber(marketResolved, "taker")),
 		"percentage": true,
 		"tierBased":  false,
-	}
+	})
 }
 
 /**
@@ -1074,12 +1073,12 @@ func (this *Paradex) ParseTradingFee(fee any, optionalArgs ...any) map[string]an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *Paradex) FetchTradingFeeAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Paradex) FetchTradingFeeAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[TradingFeeInterface] {
+	ch := make(chan AsyncResult[TradingFeeInterface], 1)
 	go this.fetchTradingFeeBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Paradex) fetchTradingFeeBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Paradex) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1126,7 +1125,7 @@ func (this *Paradex) fetchTradingFeeBody(ch chan AsyncResult[any], symbol string
 	var data []any = SafeListTyped(response, "results")
 	var first map[string]any = this.SafeDictMap(data, 0, map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseTradingFee(first, market)}
+	ch <- AsyncResult[TradingFeeInterface]{Value: this.ParseTradingFee(first, market)}
 	return nil
 }
 
@@ -1138,12 +1137,12 @@ func (this *Paradex) fetchTradingFeeBody(ch chan AsyncResult[any], symbol string
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
-func (this *Paradex) FetchTradingFeesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Paradex) FetchTradingFeesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]TradingFeeInterface] {
+	ch := make(chan AsyncResult[map[string]TradingFeeInterface], 1)
 	go this.fetchTradingFeesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Paradex) fetchTradingFeesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Paradex) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingFeeInterface], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1183,17 +1182,17 @@ func (this *Paradex) fetchTradingFeesBody(ch chan AsyncResult[any], optionalArgs
 	var fees []any = SafeListTyped(response, "results")
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(fees); i++ {
-		var fee map[string]any = this.ParseTradingFee(func() any {
+		var fee map[string]any = TradingFeeInterfaceToMap(this.ParseTradingFee(func() any {
 			if i >= 0 && i < len(fees) {
 				return DerefScalar(fees[i])
 			}
 			return nil
-		}())
+		}()))
 		var symbol *string = SafeStringPtr(fee["symbol"])
 		AddElementToObject(result, symbol, fee)
 	}
 
-	ch <- AsyncResult[any]{Value: result}
+	ch <- AsyncResult[map[string]TradingFeeInterface]{Value: TradingFeeInterfaceMapFromMap(result)}
 	return nil
 }
 
@@ -1211,12 +1210,12 @@ func (this *Paradex) fetchTradingFeesBody(ch chan AsyncResult[any], optionalArgs
  * @param {string} [params.price] "last", "mark", "index", default is "last"
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Paradex) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Paradex) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]OHLCV] {
+	ch := make(chan AsyncResult[[]OHLCV], 1)
 	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Paradex) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Paradex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
@@ -1287,7 +1286,7 @@ func (this *Paradex) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, opt
 	//
 	var data []any = SafeListTypedDefault(response, "results", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(data, market, timeframe, since, limit)}
+	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(data, market, timeframe, since, limit))}
 	return nil
 }
 func (this *Paradex) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
@@ -1315,12 +1314,12 @@ func (this *Paradex) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Paradex) FetchTickersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Paradex) FetchTickersAsync(optionalArgs ...any) <-chan AsyncResult[map[string]Ticker] {
+	ch := make(chan AsyncResult[map[string]Ticker], 1)
 	go this.fetchTickersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Paradex) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Paradex) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -1367,7 +1366,7 @@ func (this *Paradex) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...
 	//
 	var data []any = SafeListTypedDefault(response, "results", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseTickers(data, symbolsNormalized)}
+	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(data, symbolsNormalized))}
 	return nil
 }
 
@@ -1380,12 +1379,12 @@ func (this *Paradex) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Paradex) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Paradex) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Ticker] {
+	ch := make(chan AsyncResult[Ticker], 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Paradex) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
+func (this *Paradex) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1431,7 +1430,7 @@ func (this *Paradex) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol
 	var data []any = SafeListTyped(response, "results")
 	var ticker map[string]any = this.SafeDictMap(data, 0, map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(ticker, market))}
+	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(ticker, market)}
 	return nil
 }
 func (this *Paradex) ParseTicker(ticker any, optionalArgs ...any) Ticker {
@@ -1497,12 +1496,12 @@ func (this *Paradex) ParseTicker(ticker any, optionalArgs ...any) Ticker {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Paradex) FetchFundingRatesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Paradex) FetchFundingRatesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]FundingRate] {
+	ch := make(chan AsyncResult[map[string]FundingRate], 1)
 	go this.fetchFundingRatesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Paradex) fetchFundingRatesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Paradex) fetchFundingRatesBody(ch chan AsyncResult[map[string]FundingRate], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -1543,7 +1542,7 @@ func (this *Paradex) fetchFundingRatesBody(ch chan AsyncResult[any], optionalArg
 	var response map[string]any = r1.Value
 	var data []any = SafeListTypedDefault(response, "results", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseFundingRates(data, symbolsNormalized)}
+	ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.ParseFundingRates(data, symbolsNormalized))}
 	return nil
 }
 
@@ -1556,12 +1555,12 @@ func (this *Paradex) fetchFundingRatesBody(ch chan AsyncResult[any], optionalArg
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Paradex) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Paradex) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[FundingRate] {
+	ch := make(chan AsyncResult[FundingRate], 1)
 	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Paradex) fetchFundingRateBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
+func (this *Paradex) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1579,16 +1578,16 @@ func (this *Paradex) fetchFundingRateBody(ch chan AsyncResult[map[string]any], s
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var rates map[string]any = MapTyped(r1.Value)
+	var rates map[string]any = StructResultMap(r1.Value, FundingRateMapToMap)
 	var rate map[string]any = SafeMapTyped(rates, market["symbol"])
 	if rate == nil {
 		panic(BadSymbol(this.Id + " fetchFundingRate() could not find a funding rate for " + symbol))
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: rate}
+	ch <- AsyncResult[FundingRate]{Value: FundingRateFromMap(rate)}
 	return nil
 }
-func (this *Paradex) ParseFundingRate(contract any, optionalArgs ...any) map[string]any {
+func (this *Paradex) ParseFundingRate(contract any, optionalArgs ...any) FundingRate {
 	//
 	//     {
 	//         "symbol": "BTC-USD-PERP",
@@ -1625,7 +1624,7 @@ func (this *Paradex) ParseFundingRate(contract any, optionalArgs ...any) map[str
 	if (hours != nil) && Precise.StringGt(hours, "0") {
 		interval = SafeStringPtr(*hours + "h")
 	}
-	return map[string]any{
+	return FundingRateFromMap(map[string]any{
 		"info": contract,
 		"symbol": func() any {
 			if funds {
@@ -1649,7 +1648,7 @@ func (this *Paradex) ParseFundingRate(contract any, optionalArgs ...any) map[str
 		"previousFundingTimestamp": nil,
 		"previousFundingDatetime":  nil,
 		"interval":                 interval,
-	}
+	})
 }
 
 /**
@@ -1662,12 +1661,12 @@ func (this *Paradex) ParseFundingRate(contract any, optionalArgs ...any) map[str
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Paradex) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Paradex) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[OrderBook] {
+	ch := make(chan AsyncResult[OrderBook], 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Paradex) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
+func (this *Paradex) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1717,7 +1716,7 @@ func (this *Paradex) fetchOrderBookBody(ch chan AsyncResult[map[string]any], sym
 	var orderbook map[string]any = this.ParseOrderBook(response, market["symbol"], timestamp)
 	orderbook["nonce"] = this.SafeInteger(response, "seq_no")
 
-	ch <- AsyncResult[map[string]any]{Value: orderbook}
+	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(orderbook)}
 	return nil
 }
 
@@ -1734,12 +1733,12 @@ func (this *Paradex) fetchOrderBookBody(ch chan AsyncResult[map[string]any], sym
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Paradex) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Paradex) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Paradex) fetchTradesBody(ch chan AsyncResult[any], symbol any, optionalArgs ...any) any {
+func (this *Paradex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1762,11 +1761,11 @@ func (this *Paradex) fetchTradesBody(ch chan AsyncResult[any], symbol any, optio
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes123119 []any = ListTyped(r1.Value)
+		var retRes123119 []any = r1.Value
 		if retRes123119 == nil {
-			ch <- AsyncResult[any]{Value: nil}
+			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes123119}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes123119)}
 		}
 		return nil
 	}
@@ -1809,7 +1808,7 @@ func (this *Paradex) fetchTradesBody(ch chan AsyncResult[any], symbol any, optio
 		AddElementToObject(GetValue(trades, i), "next", this.SafeString(response, "next"))
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseTrades(trades, market, since, limit)}
+	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
 	return nil
 }
 func (this *Paradex) ParseTrade(trade any, optionalArgs ...any) Trade {
@@ -1891,12 +1890,12 @@ func (this *Paradex) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {object} [params] exchange specific parameters
  * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
-func (this *Paradex) FetchOpenInterestAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Paradex) FetchOpenInterestAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[OpenInterest] {
+	ch := make(chan AsyncResult[OpenInterest], 1)
 	go this.fetchOpenInterestBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Paradex) fetchOpenInterestBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
+func (this *Paradex) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1945,10 +1944,10 @@ func (this *Paradex) fetchOpenInterestBody(ch chan AsyncResult[map[string]any], 
 	var data []any = SafeListTyped(response, "results")
 	var interest map[string]any = this.SafeDictMap(data, 0, map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOpenInterest(interest, market)}
+	ch <- AsyncResult[OpenInterest]{Value: this.ParseOpenInterest(interest, market)}
 	return nil
 }
-func (this *Paradex) ParseOpenInterest(interest any, optionalArgs ...any) map[string]any {
+func (this *Paradex) ParseOpenInterest(interest any, optionalArgs ...any) OpenInterest {
 	//
 	//     {
 	//         "symbol": "BTC-USD-PERP",
@@ -1995,67 +1994,35 @@ func (this *Paradex) SignHash(hash any, privateKey string) string {
 func (this *Paradex) SignMessage(message any, privateKey any) string {
 	return this.SignHash(this.HashMessage(message), Slice(privateKey, int64(-64), nil))
 }
-func (this *Paradex) GetSystemConfigAsync() <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Paradex) GetSystemConfigAsync() <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.getSystemConfigBody(ch)
 	return ch
 }
-func (this *Paradex) getSystemConfigBody(ch chan AsyncResult[any]) any {
+func (this *Paradex) getSystemConfigBody(ch chan AsyncResult[map[string]any]) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var cachedConfig any = this.SafeDict(this.Options, "systemConfig")
-	if cachedConfig != nil {
+	if IsEqual(this.SafeDict(this.Options, "systemConfig"), nil) {
 
-		ch <- AsyncResult[any]{Value: cachedConfig}
-		return nil
+		r := <-this.PublicGetSystemConfig()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+		response := r.Raw
+		this.Options.Store("systemConfig", response)
 	}
 
-	r := <-this.PublicGetSystemConfig()
-	if r.Err != nil {
-		panic(r.Err)
-	}
-	response := r.Raw
-	//
-	// {
-	//     "starknet_gateway_url": "https://potc-testnet-sepolia.starknet.io",
-	//     "starknet_fullnode_rpc_url": "https://pathfinder.api.testnet.paradex.trade/rpc/v0_7",
-	//     "starknet_chain_id": "PRIVATE_SN_POTC_SEPOLIA",
-	//     "block_explorer_url": "https://voyager.testnet.paradex.trade/",
-	//     "paraclear_address": "0x286003f7c7bfc3f94e8f0af48b48302e7aee2fb13c23b141479ba00832ef2c6",
-	//     "paraclear_decimals": 8,
-	//     "paraclear_account_proxy_hash": "0x3530cc4759d78042f1b543bf797f5f3d647cde0388c33734cf91b7f7b9314a9",
-	//     "paraclear_account_hash": "0x41cb0280ebadaa75f996d8d92c6f265f6d040bb3ba442e5f86a554f1765244e",
-	//     "oracle_address": "0x2c6a867917ef858d6b193a0ff9e62b46d0dc760366920d631715d58baeaca1f",
-	//     "bridged_tokens": [
-	//         {
-	//             "name": "TEST USDC",
-	//             "symbol": "USDC",
-	//             "decimals": 6,
-	//             "l1_token_address": "0x29A873159D5e14AcBd63913D4A7E2df04570c666",
-	//             "l1_bridge_address": "0x8586e05adc0C35aa11609023d4Ae6075Cb813b4C",
-	//             "l2_token_address": "0x6f373b346561036d98ea10fb3e60d2f459c872b1933b50b21fe6ef4fda3b75e",
-	//             "l2_bridge_address": "0x46e9237f5408b5f899e72125dd69bd55485a287aaf24663d3ebe00d237fc7ef"
-	//         }
-	//     ],
-	//     "l1_core_contract_address": "0x582CC5d9b509391232cd544cDF9da036e55833Af",
-	//     "l1_operator_address": "0x11bACdFbBcd3Febe5e8CEAa75E0Ef6444d9B45FB",
-	//     "l1_chain_id": "11155111",
-	//     "liquidation_fee": "0.2"
-	// }
-	//
-	this.Options.Store("systemConfig", response)
-
-	ch <- AsyncResult[any]{Value: this.SafeDict(this.Options, "systemConfig", map[string]any{})}
+	ch <- AsyncResult[map[string]any]{Value: this.SafeDictMap(this.Options, "systemConfig", map[string]any{})}
 	return nil
 }
-func (this *Paradex) PrepareParadexDomainAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
-	ch := make(chan EndpointResult[map[string]any], 1)
+func (this *Paradex) PrepareParadexDomainAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.prepareParadexDomainBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Paradex) prepareParadexDomainBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
+func (this *Paradex) prepareParadexDomainBody(ch chan AsyncResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicErrorT(ch)
+	defer ReturnPanicError(ch)
 	var l1 bool = GetArgBool(optionalArgs, 0, false)
 	_ = l1
 
@@ -2063,7 +2030,10 @@ func (this *Paradex) prepareParadexDomainBody(ch chan EndpointResult[map[string]
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	systemConfig := r.Value
+	var systemConfig any = nil
+	if r.Value != nil {
+		systemConfig = r.Value
+	}
 	if l1 == true {
 		var l1D map[string]any = map[string]any{
 			"name":    "Paradex",
@@ -2071,7 +2041,7 @@ func (this *Paradex) prepareParadexDomainBody(ch chan EndpointResult[map[string]
 			"version": "1",
 		}
 
-		ch <- EndpointResult[map[string]any]{Value: l1D, Raw: l1D}
+		ch <- AsyncResult[map[string]any]{Value: l1D}
 		return nil
 	}
 	var domain map[string]any = map[string]any{
@@ -2080,59 +2050,61 @@ func (this *Paradex) prepareParadexDomainBody(ch chan EndpointResult[map[string]
 		"version": 1,
 	}
 
-	ch <- EndpointResult[map[string]any]{Value: domain, Raw: domain}
+	ch <- AsyncResult[map[string]any]{Value: domain}
 	return nil
 }
-func (this *Paradex) RetrieveAccountAsync() <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Paradex) RetrieveAccountAsync() <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.retrieveAccountBody(ch)
 	return ch
 }
-func (this *Paradex) retrieveAccountBody(ch chan AsyncResult[any]) any {
+func (this *Paradex) retrieveAccountBody(ch chan AsyncResult[map[string]any]) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var cachedAccount any = this.SafeDict(this.Options, "paradexAccount")
-	if cachedAccount != nil {
+	if IsEqual(this.SafeDict(this.Options, "paradexAccount"), nil) {
+		this.CheckRequiredCredentials()
 
-		ch <- AsyncResult[any]{Value: cachedAccount}
-		return nil
-	}
-	this.CheckRequiredCredentials()
+		r := <-this.GetSystemConfigAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+		var systemConfig any = nil
+		if r.Value != nil {
+			systemConfig = r.Value
+		}
 
-	r := <-this.GetSystemConfigAsync()
-	if r.Err != nil {
-		panic(r.Err)
+		r1 := <-this.PrepareParadexDomainAsync(true)
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		var domain any = nil
+		if r1.Value != nil {
+			domain = r1.Value
+		}
+		var messageTypes map[string]any = map[string]any{
+			"Constant": []any{map[string]any{
+				"name": "action",
+				"type": "string",
+			}},
+		}
+		var message map[string]any = map[string]any{
+			"action": "STARK Key",
+		}
+		var msg any = this.EthEncodeStructuredData(domain, messageTypes, message)
+		var signature string = this.SignMessage(msg, this.PrivateKey)
+		var account any = this.RetrieveStarkAccount(signature, GetValue(systemConfig, "paraclear_account_hash"), GetValue(systemConfig, "paraclear_account_proxy_hash"))
+		this.Options.Store("paradexAccount", account)
 	}
-	systemConfig := r.Value
 
-	r1 := <-this.PrepareParadexDomainAsync(true)
-	if r1.Err != nil {
-		panic(r1.Err)
-	}
-	domain := r1.Raw
-	var messageTypes map[string]any = map[string]any{
-		"Constant": []any{map[string]any{
-			"name": "action",
-			"type": "string",
-		}},
-	}
-	var message map[string]any = map[string]any{
-		"action": "STARK Key",
-	}
-	var msg any = this.EthEncodeStructuredData(domain, messageTypes, message)
-	var signature string = this.SignMessage(msg, this.PrivateKey)
-	var account any = this.RetrieveStarkAccount(signature, GetValue(systemConfig, "paraclear_account_hash"), GetValue(systemConfig, "paraclear_account_proxy_hash"))
-	this.Options.Store("paradexAccount", account)
-
-	ch <- AsyncResult[any]{Value: account}
+	ch <- AsyncResult[map[string]any]{Value: this.SafeDictMap(this.Options, "paradexAccount", map[string]any{})}
 	return nil
 }
-func (this *Paradex) OnboardingAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Paradex) OnboardingAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.onboardingBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Paradex) onboardingBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Paradex) onboardingBody(ch chan AsyncResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2142,7 +2114,10 @@ func (this *Paradex) onboardingBody(ch chan AsyncResult[any], optionalArgs ...an
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	account := r.Value
+	var account any = nil
+	if r.Value != nil {
+		account = r.Value
+	}
 	var req map[string]any = map[string]any{
 		"action": "Onboarding",
 	}
@@ -2151,7 +2126,10 @@ func (this *Paradex) onboardingBody(ch chan AsyncResult[any], optionalArgs ...an
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	domain := r1.Raw
+	var domain any = nil
+	if r1.Value != nil {
+		domain = r1.Value
+	}
 	var messageTypes map[string]any = map[string]any{
 		"Constant": []any{map[string]any{
 			"name": "action",
@@ -2168,19 +2146,19 @@ func (this *Paradex) onboardingBody(ch chan AsyncResult[any], optionalArgs ...an
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	response := r2.Raw
+	response := r2.Value
 
-	ch <- AsyncResult[any]{Value: response}
+	ch <- AsyncResult[map[string]any]{Value: response}
 	return nil
 }
-func (this *Paradex) AuthenticateRestAsync(optionalArgs ...any) <-chan EndpointResult[*string] {
-	ch := make(chan EndpointResult[*string], 1)
+func (this *Paradex) AuthenticateRestAsync(optionalArgs ...any) <-chan AsyncResult[*string] {
+	ch := make(chan AsyncResult[*string], 1)
 	go this.authenticateRestBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Paradex) authenticateRestBody(ch chan EndpointResult[*string], optionalArgs ...any) any {
+func (this *Paradex) authenticateRestBody(ch chan AsyncResult[*string], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicErrorT(ch)
+	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var cachedToken *string = this.SafeString(this.Options, "authToken")
@@ -2192,7 +2170,7 @@ func (this *Paradex) authenticateRestBody(ch chan EndpointResult[*string], optio
 		}
 		if IsLessThan(now, cachedExpires) {
 
-			ch <- EndpointResult[*string]{Value: cachedToken, Raw: cachedToken}
+			ch <- AsyncResult[*string]{Value: cachedToken}
 			return nil
 		}
 	}
@@ -2201,7 +2179,10 @@ func (this *Paradex) authenticateRestBody(ch chan EndpointResult[*string], optio
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	account := r.Value
+	var account any = nil
+	if r.Value != nil {
+		account = r.Value
+	}
 	// https://docs.paradex.trade/api-reference/general-information/authentication
 	var expires any = Add(now, 180)
 	var req map[string]any = map[string]any{
@@ -2216,7 +2197,10 @@ func (this *Paradex) authenticateRestBody(ch chan EndpointResult[*string], optio
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	domain := r1.Raw
+	var domain any = nil
+	if r1.Value != nil {
+		domain = r1.Value
+	}
 	var messageTypes map[string]any = map[string]any{
 		"Request": []any{map[string]any{
 			"name": "method",
@@ -2256,7 +2240,7 @@ func (this *Paradex) authenticateRestBody(ch chan EndpointResult[*string], optio
 	this.Options.Store("authToken", token)
 	this.Options.Store("expires", expires)
 
-	ch <- EndpointResult[*string]{Value: token, Raw: token}
+	ch <- AsyncResult[*string]{Value: token}
 	return nil
 }
 func (this *Paradex) ParseOrder(order any, optionalArgs ...any) Order {
@@ -2487,12 +2471,12 @@ func (this *Paradex) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"})
 	return this.Extend(request, paramsOmitted)
 }
-func (this *Paradex) SignOrderRequestAsync(request any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Paradex) SignOrderRequestAsync(request any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.signOrderRequestBody(ch, request, optionalArgs...)
 	return ch
 }
-func (this *Paradex) signOrderRequestBody(ch chan AsyncResult[any], request any, optionalArgs ...any) any {
+func (this *Paradex) signOrderRequestBody(ch chan AsyncResult[map[string]any], request any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var modify bool = GetArgBool(optionalArgs, 0, false)
@@ -2502,7 +2486,10 @@ func (this *Paradex) signOrderRequestBody(ch chan AsyncResult[any], request any,
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	account := r.Value
+	var account any = nil
+	if r.Value != nil {
+		account = r.Value
+	}
 	var now any = this.Nonce()
 	var orderType *string = this.SafeString(request, "type")
 	if orderType == nil {
@@ -2571,13 +2558,18 @@ func (this *Paradex) signOrderRequestBody(ch chan AsyncResult[any], request any,
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	domain := r1.Raw
+	var domain any = nil
+	if r1.Value != nil {
+		domain = r1.Value
+	}
 	var msg any = this.StarknetEncodeStructuredData(domain, messageTypes, orderReq, GetValue(account, "address"))
 	var signature any = this.StarknetSign(msg, GetValue(account, "privateKey"))
-	AddElementToObject(request, "signature", signature)
-	AddElementToObject(request, "signature_timestamp", orderReq["timestamp"])
+	var signedRequest map[string]any = this.Extend(request, map[string]any{
+		"signature":           signature,
+		"signature_timestamp": orderReq["timestamp"],
+	})
 
-	ch <- AsyncResult[any]{Value: request}
+	ch <- AsyncResult[map[string]any]{Value: signedRequest}
 	return nil
 }
 
@@ -2602,12 +2594,12 @@ func (this *Paradex) signOrderRequestBody(ch chan AsyncResult[any], request any,
  * @param {string} [params.clientOrderId] a unique id for the order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Paradex) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Paradex) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Paradex) createOrderBody(ch chan AsyncResult[map[string]any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Paradex) createOrderBody(ch chan AsyncResult[Order], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2633,7 +2625,11 @@ func (this *Paradex) createOrderBody(ch chan AsyncResult[map[string]any], symbol
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	request = r2.Value
+	if r2.Value == nil {
+		request = nil
+	} else {
+		request = r2.Value
+	}
 
 	r3 := <-this.PrivatePostOrders(request)
 	if r3.Err != nil {
@@ -2670,7 +2666,7 @@ func (this *Paradex) createOrderBody(ch chan AsyncResult[map[string]any], symbol
 	//
 	var order map[string]any = OrderToMap(this.ParseOrder(response, market))
 
-	ch <- AsyncResult[map[string]any]{Value: order}
+	ch <- AsyncResult[Order]{Value: OrderFromMap(order)}
 	return nil
 }
 
@@ -2690,12 +2686,12 @@ func (this *Paradex) createOrderBody(ch chan AsyncResult[map[string]any], symbol
  * @param {float} [params.triggerPrice] The price a trigger order is triggered at
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Paradex) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Paradex) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Paradex) editOrderBody(ch chan AsyncResult[map[string]any], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Paradex) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2732,7 +2728,11 @@ func (this *Paradex) editOrderBody(ch chan AsyncResult[map[string]any], id strin
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	request = r2.Value
+	if r2.Value == nil {
+		request = nil
+	} else {
+		request = r2.Value
+	}
 
 	r3 := <-this.PrivatePutOrdersOrderId(request)
 	if r3.Err != nil {
@@ -2774,7 +2774,7 @@ func (this *Paradex) editOrderBody(ch chan AsyncResult[map[string]any], id strin
 	//         "type": "MARKET"
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
 	return nil
 }
 
@@ -2787,12 +2787,12 @@ func (this *Paradex) editOrderBody(ch chan AsyncResult[map[string]any], id strin
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Paradex) CreateOrdersAsync(orders any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Paradex) CreateOrdersAsync(orders any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.createOrdersBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Paradex) createOrdersBody(ch chan AsyncResult[any], orders any, optionalArgs ...any) any {
+func (this *Paradex) createOrdersBody(ch chan AsyncResult[[]Order], orders any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2825,7 +2825,11 @@ func (this *Paradex) createOrdersBody(ch chan AsyncResult[any], orders any, opti
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		orderRequest = r2.Value
+		if r2.Value == nil {
+			orderRequest = nil
+		} else {
+			orderRequest = r2.Value
+		}
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
 
@@ -2858,6 +2862,7 @@ func (this *Paradex) createOrdersBody(ch chan AsyncResult[any], orders any, opti
 	var responseOrders []any = SafeListTypedDefault(response, "orders", []any{})
 	var parsedOrders any = this.ParseOrders(responseOrders)
 	var errors []any = SafeListTyped(response, "errors")
+	var rejected []any = []any{}
 	for i := 0; i < len(errors); i++ {
 		var error any = func() any {
 			if i >= 0 && i < len(errors) {
@@ -2865,13 +2870,13 @@ func (this *Paradex) createOrdersBody(ch chan AsyncResult[any], orders any, opti
 			}
 			return nil
 		}()
-		AppendToArray(&parsedOrders, OrderToMap(this.SafeOrder(map[string]any{
+		rejected = append(rejected, OrderToMap(this.SafeOrder(map[string]any{
 			"info":   error,
 			"status": "rejected",
 		})))
 	}
 
-	ch <- AsyncResult[any]{Value: parsedOrders}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ArrayConcat(parsedOrders, rejected))}
 	return nil
 }
 
@@ -2887,12 +2892,12 @@ func (this *Paradex) createOrdersBody(ch chan AsyncResult[any], orders any, opti
  * @param {string} [params.clientOrderId] a unique id for the order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Paradex) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Paradex) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Paradex) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
+func (this *Paradex) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2935,7 +2940,7 @@ func (this *Paradex) cancelOrderBody(ch chan AsyncResult[map[string]any], id any
 	//
 	// if success, no response...
 	//
-	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response))}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(response)}
 	return nil
 }
 
@@ -2950,12 +2955,12 @@ func (this *Paradex) cancelOrderBody(ch chan AsyncResult[map[string]any], id any
  * @param {string[]} [params.clientOrderIds] client order ids
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Paradex) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Paradex) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Paradex) cancelOrdersBody(ch chan AsyncResult[any], ids any, optionalArgs ...any) any {
+func (this *Paradex) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3047,7 +3052,7 @@ func (this *Paradex) cancelOrdersBody(ch chan AsyncResult[any], ids any, optiona
 		}, market)))
 	}
 
-	ch <- AsyncResult[any]{Value: orders}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(orders)}
 	return nil
 }
 
@@ -3060,12 +3065,12 @@ func (this *Paradex) cancelOrdersBody(ch chan AsyncResult[any], ids any, optiona
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Paradex) CancelAllOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Paradex) CancelAllOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelAllOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Paradex) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Paradex) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3101,9 +3106,9 @@ func (this *Paradex) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs 
 	//
 	// if success, no response...
 	//
-	ch <- AsyncResult[any]{Value: []any{OrderToMap(this.SafeOrder(map[string]any{
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList([]any{OrderToMap(this.SafeOrder(map[string]any{
 		"info": response,
-	}))}}
+	}))})}
 	return nil
 }
 
@@ -3119,12 +3124,12 @@ func (this *Paradex) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs 
  * @param {string} [params.clientOrderId] a unique id for the order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Paradex) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Paradex) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Paradex) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
+func (this *Paradex) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3191,7 +3196,7 @@ func (this *Paradex) fetchOrderBody(ch chan AsyncResult[map[string]any], id any,
 	//         "trigger_price": "0"
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response))}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(response)}
 	return nil
 }
 
@@ -3209,12 +3214,12 @@ func (this *Paradex) fetchOrderBody(ch chan AsyncResult[map[string]any], id any,
  * @param {int} params.until timestamp in ms of the latest order to fetch
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Paradex) FetchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Paradex) FetchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Paradex) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Paradex) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3244,11 +3249,11 @@ func (this *Paradex) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...a
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes226419 []any = ListTyped(r2.Value)
-		if retRes226419 == nil {
-			ch <- AsyncResult[any]{Value: nil}
+		var retRes223519 []any = r2.Value
+		if retRes223519 == nil {
+			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes226419}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes223519)}
 		}
 		return nil
 	}
@@ -3314,7 +3319,7 @@ func (this *Paradex) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...a
 		AddElementToObject(orders, 0, first)
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseOrders(orders, market, since, limit)}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market, since, limit))}
 	return nil
 }
 
@@ -3329,12 +3334,12 @@ func (this *Paradex) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Paradex) FetchOpenOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Paradex) FetchOpenOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchOpenOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Paradex) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Paradex) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3403,7 +3408,7 @@ func (this *Paradex) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs 
 	//
 	var orders []any = SafeListTypedDefault(response, "results", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseOrders(orders, market, since, limit)}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market, since, limit))}
 	return nil
 }
 
@@ -3415,12 +3420,12 @@ func (this *Paradex) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Paradex) FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Paradex) FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[Balances] {
+	ch := make(chan AsyncResult[Balances], 1)
 	go this.fetchBalanceBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Paradex) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Paradex) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3456,7 +3461,7 @@ func (this *Paradex) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...
 	//
 	var data []any = SafeListTypedDefault(response, "results", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseBalance(data)}
+	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(data))}
 	return nil
 }
 func (this *Paradex) ParseBalance(response any) map[string]any {
@@ -3489,12 +3494,12 @@ func (this *Paradex) ParseBalance(response any) map[string]any {
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Paradex) FetchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Paradex) FetchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchMyTradesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Paradex) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Paradex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3524,11 +3529,11 @@ func (this *Paradex) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ..
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes244819 []any = ListTyped(r2.Value)
-		if retRes244819 == nil {
-			ch <- AsyncResult[any]{Value: nil}
+		var retRes241919 []any = r2.Value
+		if retRes241919 == nil {
+			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes244819}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes241919)}
 		}
 		return nil
 	}
@@ -3579,7 +3584,7 @@ func (this *Paradex) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ..
 		AddElementToObject(GetValue(trades, i), "next", this.SafeString(response, "next"))
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseTrades(trades, market, since, limit)}
+	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
 	return nil
 }
 
@@ -3592,12 +3597,12 @@ func (this *Paradex) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ..
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *Paradex) FetchPositionAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Paradex) FetchPositionAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[Position] {
+	ch := make(chan AsyncResult[Position], 1)
 	go this.fetchPositionBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Paradex) fetchPositionBody(ch chan AsyncResult[any], symbol any, optionalArgs ...any) any {
+func (this *Paradex) fetchPositionBody(ch chan AsyncResult[Position], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3620,9 +3625,9 @@ func (this *Paradex) fetchPositionBody(ch chan AsyncResult[any], symbol any, opt
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var positions []any = ListTyped(r2.Value)
+	var positions []any = PositionsToList(r2.Value)
 
-	ch <- AsyncResult[any]{Value: this.SafeDict(positions, 0, map[string]any{})}
+	ch <- AsyncResult[Position]{Value: PositionFromMap(this.SafeDictMap(positions, 0, map[string]any{}))}
 	return nil
 }
 
@@ -3635,12 +3640,12 @@ func (this *Paradex) fetchPositionBody(ch chan AsyncResult[any], symbol any, opt
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *Paradex) FetchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Paradex) FetchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[[]Position] {
+	ch := make(chan AsyncResult[[]Position], 1)
 	go this.fetchPositionsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Paradex) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Paradex) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -3695,10 +3700,10 @@ func (this *Paradex) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs .
 	//
 	var data []any = SafeListTypedDefault(response, "results", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParsePositions(data, symbolsNormalized)}
+	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(data, symbolsNormalized))}
 	return nil
 }
-func (this *Paradex) ParsePosition(position any, optionalArgs ...any) any {
+func (this *Paradex) ParsePosition(position any, optionalArgs ...any) Position {
 	//
 	//     {
 	//         "id": "0x49ddd7a564c978f6e4089ff8355b56a42b7e2d48ba282cb5aad60f04bea0ec3-BTC-USD-PERP",
@@ -3777,12 +3782,12 @@ func (this *Paradex) ParsePosition(position any, optionalArgs ...any) any {
  * @param {int} [params.until] timestamp in ms of the latest liquidation
  * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
  */
-func (this *Paradex) FetchMyLiquidationsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Paradex) FetchMyLiquidationsAsync(optionalArgs ...any) <-chan AsyncResult[[]Liquidation] {
+	ch := make(chan AsyncResult[[]Liquidation], 1)
 	go this.fetchMyLiquidationsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Paradex) fetchMyLiquidationsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Paradex) fetchMyLiquidationsBody(ch chan AsyncResult[[]Liquidation], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3834,7 +3839,7 @@ func (this *Paradex) fetchMyLiquidationsBody(ch chan AsyncResult[any], optionalA
 	//
 	var data []any = SafeListTypedDefault(response, "results", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseLiquidations(data, market, since, limit)}
+	ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(this.ParseLiquidations(data, market, since, limit))}
 	return nil
 }
 func (this *Paradex) ParseLiquidation(liquidation any, optionalArgs ...any) any {
@@ -3874,12 +3879,12 @@ func (this *Paradex) ParseLiquidation(liquidation any, optionalArgs ...any) any 
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Paradex) FetchDepositsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Paradex) FetchDepositsAsync(optionalArgs ...any) <-chan AsyncResult[[]Transaction] {
+	ch := make(chan AsyncResult[[]Transaction], 1)
 	go this.fetchDepositsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Paradex) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Paradex) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3909,11 +3914,11 @@ func (this *Paradex) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ..
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes270719 []any = ListTyped(r2.Value)
-		if retRes270719 == nil {
-			ch <- AsyncResult[any]{Value: nil}
+		var retRes267819 []any = r2.Value
+		if retRes267819 == nil {
+			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes270719}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes267819)}
 		}
 		return nil
 	}
@@ -3966,7 +3971,7 @@ func (this *Paradex) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ..
 		}
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseTransactions(deposits, nil, since, limit)}
+	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(deposits, nil, since, limit))}
 	return nil
 }
 
@@ -3983,12 +3988,12 @@ func (this *Paradex) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ..
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Paradex) FetchWithdrawalsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Paradex) FetchWithdrawalsAsync(optionalArgs ...any) <-chan AsyncResult[[]Transaction] {
+	ch := make(chan AsyncResult[[]Transaction], 1)
 	go this.fetchWithdrawalsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Paradex) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Paradex) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4018,11 +4023,11 @@ func (this *Paradex) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes277019 []any = ListTyped(r2.Value)
-		if retRes277019 == nil {
-			ch <- AsyncResult[any]{Value: nil}
+		var retRes274119 []any = r2.Value
+		if retRes274119 == nil {
+			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes277019}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes274119)}
 		}
 		return nil
 	}
@@ -4075,7 +4080,7 @@ func (this *Paradex) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs
 		}
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseTransactions(deposits, nil, since, limit)}
+	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(deposits, nil, since, limit))}
 	return nil
 }
 
@@ -4092,12 +4097,12 @@ func (this *Paradex) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Paradex) FetchTransfersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Paradex) FetchTransfersAsync(optionalArgs ...any) <-chan AsyncResult[[]TransferEntry] {
+	ch := make(chan AsyncResult[[]TransferEntry], 1)
 	go this.fetchTransfersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Paradex) fetchTransfersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Paradex) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4127,11 +4132,11 @@ func (this *Paradex) fetchTransfersBody(ch chan AsyncResult[any], optionalArgs .
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes283319 []any = ListTyped(r2.Value)
-		if retRes283319 == nil {
-			ch <- AsyncResult[any]{Value: nil}
+		var retRes280419 []any = r2.Value
+		if retRes280419 == nil {
+			ch <- AsyncResult[[]TransferEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes283319}
+			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes280419)}
 		}
 		return nil
 	}
@@ -4176,10 +4181,10 @@ func (this *Paradex) fetchTransfersBody(ch chan AsyncResult[any], optionalArgs .
 	//
 	var rows []any = SafeListTypedDefault(response, "results", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseTransfers(rows, currency, since, limit)}
+	ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(this.ParseTransfers(rows, currency, since, limit))}
 	return nil
 }
-func (this *Paradex) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
+func (this *Paradex) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {
 	//
 	//     {
 	//         "id": "1718940471200201703989430000",
@@ -4210,7 +4215,7 @@ func (this *Paradex) ParseTransfer(transfer any, optionalArgs ...any) map[string
 		fromAccount = SafeStringPtr("account")
 		toAccount = SafeStringPtr("external")
 	}
-	return map[string]any{
+	return TransferEntryFromMap(map[string]any{
 		"info":        transfer,
 		"id":          this.SafeString(transfer, "id"),
 		"timestamp":   timestamp,
@@ -4220,9 +4225,9 @@ func (this *Paradex) ParseTransfer(transfer any, optionalArgs ...any) map[string
 		"fromAccount": fromAccount,
 		"toAccount":   toAccount,
 		"status":      this.ParseTransactionStatus(this.SafeString(transfer, "status")),
-	}
+	})
 }
-func (this *Paradex) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
+func (this *Paradex) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
 	//
 	// fetchDeposits & fetchWithdrawals
 	//
@@ -4258,7 +4263,7 @@ func (this *Paradex) ParseTransaction(transaction any, optionalArgs ...any) map[
 	}())
 	var status *string = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
 	var amount *float64 = this.SafeNumber(transaction, "amount")
-	return map[string]any{
+	return TransactionFromMap(map[string]any{
 		"info":        transaction,
 		"id":          id,
 		"txid":        txid,
@@ -4279,7 +4284,7 @@ func (this *Paradex) ParseTransaction(transaction any, optionalArgs ...any) map[
 		"internal":    nil,
 		"comment":     nil,
 		"fee":         nil,
-	}
+	})
 }
 func (this *Paradex) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
@@ -4300,12 +4305,12 @@ func (this *Paradex) ParseTransactionStatus(status *string) *string {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
  */
-func (this *Paradex) FetchMarginModeAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Paradex) FetchMarginModeAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[MarginMode] {
+	ch := make(chan AsyncResult[MarginMode], 1)
 	go this.fetchMarginModeBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Paradex) fetchMarginModeBody(ch chan AsyncResult[any], symbol any, optionalArgs ...any) any {
+func (this *Paradex) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4346,20 +4351,20 @@ func (this *Paradex) fetchMarginModeBody(ch chan AsyncResult[any], symbol any, o
 	//
 	var configs []any = SafeListTyped(response, "configs")
 
-	ch <- AsyncResult[any]{Value: this.ParseMarginMode(this.SafeDict(configs, 0), market)}
+	ch <- AsyncResult[MarginMode]{Value: this.ParseMarginMode(this.SafeDict(configs, 0), market)}
 	return nil
 }
-func (this *Paradex) ParseMarginMode(rawMarginMode any, optionalArgs ...any) map[string]any {
+func (this *Paradex) ParseMarginMode(rawMarginMode any, optionalArgs ...any) MarginMode {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(rawMarginMode, "market")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var marginMode *string = this.SafeStringLower(rawMarginMode, "margin_type")
-	return map[string]any{
+	return MarginModeFromMap(map[string]any{
 		"info":       rawMarginMode,
 		"symbol":     this.SafeString(marketResolved, "symbol"),
 		"marginMode": marginMode,
-	}
+	})
 }
 
 /**
@@ -4373,12 +4378,12 @@ func (this *Paradex) ParseMarginMode(rawMarginMode any, optionalArgs ...any) map
  * @param {float} [params.leverage] the rate of leverage
  * @returns {object} response from the exchange
  */
-func (this *Paradex) SetMarginModeAsync(marginMode string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Paradex) SetMarginModeAsync(marginMode string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.setMarginModeBody(ch, marginMode, optionalArgs...)
 	return ch
 }
-func (this *Paradex) setMarginModeBody(ch chan AsyncResult[any], marginMode string, optionalArgs ...any) any {
+func (this *Paradex) setMarginModeBody(ch chan AsyncResult[map[string]any], marginMode string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4413,7 +4418,7 @@ func (this *Paradex) setMarginModeBody(ch chan AsyncResult[any], marginMode stri
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	ch <- AsyncResult[any]{Value: r2.Raw}
+	ch <- AsyncResult[map[string]any]{Value: r2.Value}
 	return nil
 }
 
@@ -4426,12 +4431,12 @@ func (this *Paradex) setMarginModeBody(ch chan AsyncResult[any], marginMode stri
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func (this *Paradex) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Paradex) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[Leverage] {
+	ch := make(chan AsyncResult[Leverage], 1)
 	go this.fetchLeverageBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Paradex) fetchLeverageBody(ch chan AsyncResult[map[string]any], symbol any, optionalArgs ...any) any {
+func (this *Paradex) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4472,22 +4477,22 @@ func (this *Paradex) fetchLeverageBody(ch chan AsyncResult[map[string]any], symb
 	//
 	var configs []any = SafeListTyped(response, "configs")
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseLeverage(this.SafeDict(configs, 0), market)}
+	ch <- AsyncResult[Leverage]{Value: this.ParseLeverage(this.SafeDict(configs, 0), market)}
 	return nil
 }
-func (this *Paradex) ParseLeverage(leverage any, optionalArgs ...any) map[string]any {
+func (this *Paradex) ParseLeverage(leverage any, optionalArgs ...any) Leverage {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(leverage, "market")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var marginMode *string = this.SafeStringLower(leverage, "margin_type")
-	return map[string]any{
+	return LeverageFromMap(map[string]any{
 		"info":          leverage,
 		"symbol":        this.SafeSymbol(marketId, marketResolved),
 		"marginMode":    marginMode,
 		"longLeverage":  this.SafeInteger(leverage, "leverage"),
 		"shortLeverage": this.SafeInteger(leverage, "leverage"),
-	}
+	})
 }
 func (this *Paradex) EncodeMarginMode(mode any) any {
 	var modes map[string]any = map[string]any{
@@ -4508,12 +4513,12 @@ func (this *Paradex) EncodeMarginMode(mode any) any {
  * @param {string} [params.marginMode] 'cross' or 'isolated'
  * @returns {object} response from the exchange
  */
-func (this *Paradex) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Paradex) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Paradex) setLeverageBody(ch chan AsyncResult[any], leverage int64, optionalArgs ...any) any {
+func (this *Paradex) setLeverageBody(ch chan AsyncResult[map[string]any], leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4545,7 +4550,7 @@ func (this *Paradex) setLeverageBody(ch chan AsyncResult[any], leverage int64, o
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	ch <- AsyncResult[any]{Value: r2.Raw}
+	ch <- AsyncResult[map[string]any]{Value: r2.Value}
 	return nil
 }
 
@@ -4558,12 +4563,12 @@ func (this *Paradex) setLeverageBody(ch chan AsyncResult[any], leverage int64, o
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
  */
-func (this *Paradex) FetchGreeksAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Paradex) FetchGreeksAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Greeks] {
+	ch := make(chan AsyncResult[Greeks], 1)
 	go this.fetchGreeksBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Paradex) fetchGreeksBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
+func (this *Paradex) fetchGreeksBody(ch chan AsyncResult[Greeks], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4622,7 +4627,7 @@ func (this *Paradex) fetchGreeksBody(ch chan AsyncResult[map[string]any], symbol
 	var data []any = SafeListTyped(response, "results")
 	var greeks map[string]any = this.SafeDictMap(data, 0, map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseGreeks(greeks, market)}
+	ch <- AsyncResult[Greeks]{Value: this.ParseGreeks(greeks, market)}
 	return nil
 }
 
@@ -4635,12 +4640,12 @@ func (this *Paradex) fetchGreeksBody(ch chan AsyncResult[map[string]any], symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [greeks structures]{@link https://docs.ccxt.com/?id=greeks-structure} indexed by market symbol
  */
-func (this *Paradex) FetchAllGreeksAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Paradex) FetchAllGreeksAsync(optionalArgs ...any) <-chan AsyncResult[map[string]Greeks] {
+	ch := make(chan AsyncResult[map[string]Greeks], 1)
 	go this.fetchAllGreeksBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Paradex) fetchAllGreeksBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Paradex) fetchAllGreeksBody(ch chan AsyncResult[map[string]Greeks], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -4700,10 +4705,10 @@ func (this *Paradex) fetchAllGreeksBody(ch chan AsyncResult[any], optionalArgs .
 	//
 	var results []any = SafeListTypedDefault(response, "results", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseAllGreeks(results, symbolsNormalized)}
+	ch <- AsyncResult[map[string]Greeks]{Value: GreeksMapFromMap(this.ParseAllGreeks(results, symbolsNormalized))}
 	return nil
 }
-func (this *Paradex) ParseGreeks(greeks any, optionalArgs ...any) map[string]any {
+func (this *Paradex) ParseGreeks(greeks any, optionalArgs ...any) Greeks {
 	//
 	//     {
 	//         "symbol": "BTC-USD-114000-P",
@@ -4741,7 +4746,7 @@ func (this *Paradex) ParseGreeks(greeks any, optionalArgs ...any) map[string]any
 	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	var timestamp *int64 = this.SafeInteger(greeks, "created_at")
 	var greeksData map[string]any = SafeMapTyped(greeks, "greeks")
-	return map[string]any{
+	return GreeksFromMap(map[string]any{
 		"symbol":                symbol,
 		"timestamp":             timestamp,
 		"datetime":              this.Iso8601(timestamp),
@@ -4763,7 +4768,7 @@ func (this *Paradex) ParseGreeks(greeks any, optionalArgs ...any) map[string]any
 		"lastPrice":             this.SafeNumber(greeks, "last_traded_price"),
 		"underlyingPrice":       this.SafeNumber(greeks, "underlying_price"),
 		"info":                  greeks,
-	}
+	})
 }
 
 /**
@@ -4780,12 +4785,12 @@ func (this *Paradex) ParseGreeks(greeks any, optionalArgs ...any) map[string]any
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
-func (this *Paradex) FetchFundingHistoryAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Paradex) FetchFundingHistoryAsync(optionalArgs ...any) <-chan AsyncResult[[]FundingHistory] {
+	ch := make(chan AsyncResult[[]FundingHistory], 1)
 	go this.fetchFundingHistoryBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Paradex) fetchFundingHistoryBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Paradex) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4818,11 +4823,11 @@ func (this *Paradex) fetchFundingHistoryBody(ch chan AsyncResult[any], optionalA
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes333319 []any = ListTyped(r2.Value)
-		if retRes333319 == nil {
-			ch <- AsyncResult[any]{Value: nil}
+		var retRes330419 []any = r2.Value
+		if retRes330419 == nil {
+			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes333319}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes330419)}
 		}
 		return nil
 	}
@@ -4864,7 +4869,7 @@ func (this *Paradex) fetchFundingHistoryBody(ch chan AsyncResult[any], optionalA
 	//
 	var results []any = SafeListTypedDefault(response, "results", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseIncomes(results, market, since, limit)}
+	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseIncomes(results, market, since, limit))}
 	return nil
 }
 func (this *Paradex) ParseIncome(income any, optionalArgs ...any) any {
@@ -4907,12 +4912,12 @@ func (this *Paradex) ParseIncome(income any, optionalArgs ...any) any {
  * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
-func (this *Paradex) FetchFundingRateHistoryAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Paradex) FetchFundingRateHistoryAsync(optionalArgs ...any) <-chan AsyncResult[[]FundingRateHistory] {
+	ch := make(chan AsyncResult[[]FundingRateHistory], 1)
 	go this.fetchFundingRateHistoryBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Paradex) fetchFundingRateHistoryBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Paradex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateHistory], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -5002,7 +5007,7 @@ func (this *Paradex) fetchFundingRateHistoryBody(ch chan AsyncResult[any], optio
 	}
 	var sorted []any = this.SortBy(rates, "timestamp")
 
-	ch <- AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit)}
+	ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit))}
 	return nil
 }
 func (this *Paradex) Sign(path string, optionalArgs ...any) any {
@@ -5158,7 +5163,7 @@ func (this *Paradex) FetchStatus(params ...any) (Status, error) {
 	if r.Err != nil {
 		return Status{}, r.Err
 	}
-	var res Status = NewStatus(r.Raw)
+	var res Status = r.Value
 	return res, nil
 }
 
@@ -5175,7 +5180,7 @@ func (this *Paradex) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []MarketInterface = NewMarketInterfaceArray(r.Value)
+	var res []MarketInterface = r.Value
 	return res, nil
 }
 
@@ -5199,7 +5204,7 @@ func (this *Paradex) FetchTradingFee(symbol string, options ...FetchTradingFeeOp
 	if r.Err != nil {
 		return TradingFeeInterface{}, r.Err
 	}
-	var res TradingFeeInterface = NewTradingFeeInterface(r.Value)
+	var res TradingFeeInterface = r.Value
 	return res, nil
 }
 
@@ -5216,7 +5221,7 @@ func (this *Paradex) FetchTradingFees(params ...any) (TradingFees, error) {
 	if r.Err != nil {
 		return TradingFees{}, r.Err
 	}
-	var res TradingFees = NewTradingFees(r.Value)
+	var res TradingFees = TradingFees{TradingFees: r.Value}
 	return res, nil
 }
 
@@ -5245,7 +5250,7 @@ func (this *Paradex) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []OHLCV = NewOHLCVArray(r.Value)
+	var res []OHLCV = r.Value
 	return res, nil
 }
 
@@ -5269,7 +5274,7 @@ func (this *Paradex) FetchTickers(options ...FetchTickersOptions) (Tickers, erro
 	if r.Err != nil {
 		return Tickers{}, r.Err
 	}
-	var res Tickers = NewTickers(r.Value)
+	var res Tickers = Tickers{Tickers: r.Value}
 	return res, nil
 }
 
@@ -5293,7 +5298,7 @@ func (this *Paradex) FetchTicker(symbol string, options ...FetchTickerOptions) (
 	if r.Err != nil {
 		return Ticker{}, r.Err
 	}
-	var res Ticker = NewTicker(r.Value)
+	var res Ticker = r.Value
 	return res, nil
 }
 
@@ -5317,7 +5322,7 @@ func (this *Paradex) FetchFundingRates(options ...FetchFundingRatesOptions) (Fun
 	if r.Err != nil {
 		return FundingRates{}, r.Err
 	}
-	var res FundingRates = NewFundingRates(r.Value)
+	var res FundingRates = FundingRates{FundingRates: r.Value}
 	return res, nil
 }
 
@@ -5341,7 +5346,7 @@ func (this *Paradex) FetchFundingRate(symbol string, options ...FetchFundingRate
 	if r.Err != nil {
 		return FundingRate{}, r.Err
 	}
-	var res FundingRate = NewFundingRate(r.Value)
+	var res FundingRate = r.Value
 	return res, nil
 }
 
@@ -5366,7 +5371,7 @@ func (this *Paradex) FetchOrderBook(symbol string, options ...FetchOrderBookOpti
 	if r.Err != nil {
 		return OrderBook{}, r.Err
 	}
-	var res OrderBook = NewOrderBook(r.Value)
+	var res OrderBook = r.Value
 	return res, nil
 }
 
@@ -5394,7 +5399,7 @@ func (this *Paradex) FetchTrades(symbol string, options ...FetchTradesOptions) (
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(r.Value)
+	var res []Trade = r.Value
 	return res, nil
 }
 
@@ -5418,7 +5423,7 @@ func (this *Paradex) FetchOpenInterest(symbol string, options ...FetchOpenIntere
 	if r.Err != nil {
 		return OpenInterest{}, r.Err
 	}
-	var res OpenInterest = NewOpenInterest(r.Value)
+	var res OpenInterest = r.Value
 	return res, nil
 }
 
@@ -5454,7 +5459,7 @@ func (this *Paradex) CreateOrder(symbol string, typeVar string, side string, amo
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -5485,7 +5490,7 @@ func (this *Paradex) EditOrder(id string, symbol string, typeVar string, side st
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -5509,7 +5514,7 @@ func (this *Paradex) CreateOrders(orders []OrderRequest, options ...CreateOrders
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -5536,7 +5541,7 @@ func (this *Paradex) CancelOrder(id string, options ...CancelOrderOptions) (Orde
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -5562,7 +5567,7 @@ func (this *Paradex) CancelOrders(ids []string, options ...CancelOrdersOptions) 
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -5586,7 +5591,7 @@ func (this *Paradex) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -5613,7 +5618,7 @@ func (this *Paradex) FetchOrder(id string, options ...FetchOrderOptions) (Order,
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -5642,7 +5647,7 @@ func (this *Paradex) FetchOrders(options ...FetchOrdersOptions) ([]Order, error)
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -5668,7 +5673,7 @@ func (this *Paradex) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -5685,7 +5690,7 @@ func (this *Paradex) FetchBalance(params ...any) (Balances, error) {
 	if r.Err != nil {
 		return Balances{}, r.Err
 	}
-	var res Balances = NewBalances(r.Value)
+	var res Balances = r.Value
 	return res, nil
 }
 
@@ -5713,7 +5718,7 @@ func (this *Paradex) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, er
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(r.Value)
+	var res []Trade = r.Value
 	return res, nil
 }
 
@@ -5737,7 +5742,7 @@ func (this *Paradex) FetchPosition(symbol string, options ...FetchPositionOption
 	if r.Err != nil {
 		return Position{}, r.Err
 	}
-	var res Position = NewPosition(r.Value)
+	var res Position = r.Value
 	return res, nil
 }
 
@@ -5761,7 +5766,7 @@ func (this *Paradex) FetchPositions(options ...FetchPositionsOptions) ([]Positio
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Position = NewPositionArray(r.Value)
+	var res []Position = r.Value
 	return res, nil
 }
 
@@ -5788,7 +5793,7 @@ func (this *Paradex) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) 
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Liquidation = NewLiquidationArray(r.Value)
+	var res []Liquidation = r.Value
 	return res, nil
 }
 
@@ -5816,7 +5821,7 @@ func (this *Paradex) FetchDeposits(options ...FetchDepositsOptions) ([]Transacti
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Transaction = NewTransactionArray(r.Value)
+	var res []Transaction = r.Value
 	return res, nil
 }
 
@@ -5844,7 +5849,7 @@ func (this *Paradex) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tra
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Transaction = NewTransactionArray(r.Value)
+	var res []Transaction = r.Value
 	return res, nil
 }
 
@@ -5872,7 +5877,7 @@ func (this *Paradex) FetchTransfers(options ...FetchTransfersOptions) ([]Transfe
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []TransferEntry = NewTransferEntryArray(r.Value)
+	var res []TransferEntry = r.Value
 	return res, nil
 }
 
@@ -5896,7 +5901,7 @@ func (this *Paradex) FetchMarginMode(symbol string, options ...FetchMarginModeOp
 	if r.Err != nil {
 		return MarginMode{}, r.Err
 	}
-	var res MarginMode = NewMarginMode(r.Value)
+	var res MarginMode = r.Value
 	return res, nil
 }
 
@@ -5922,7 +5927,7 @@ func (this *Paradex) SetMarginMode(marginMode string, options ...SetMarginModeOp
 	if r.Err != nil {
 		return map[string]any{}, r.Err
 	}
-	var res map[string]any = r.Value.(map[string]any)
+	var res map[string]any = r.Value
 	return res, nil
 }
 
@@ -5946,7 +5951,7 @@ func (this *Paradex) FetchLeverage(symbol string, options ...FetchLeverageOption
 	if r.Err != nil {
 		return Leverage{}, r.Err
 	}
-	var res Leverage = NewLeverage(r.Value)
+	var res Leverage = r.Value
 	return res, nil
 }
 
@@ -5972,7 +5977,7 @@ func (this *Paradex) SetLeverage(leverage int64, options ...SetLeverageOptions) 
 	if r.Err != nil {
 		return map[string]any{}, r.Err
 	}
-	var res map[string]any = r.Value.(map[string]any)
+	var res map[string]any = r.Value
 	return res, nil
 }
 
@@ -5996,7 +6001,7 @@ func (this *Paradex) FetchGreeks(symbol string, options ...FetchGreeksOptions) (
 	if r.Err != nil {
 		return Greeks{}, r.Err
 	}
-	var res Greeks = NewGreeks(r.Value)
+	var res Greeks = r.Value
 	return res, nil
 }
 
@@ -6020,7 +6025,7 @@ func (this *Paradex) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks
 	if r.Err != nil {
 		return AllGreeks{}, r.Err
 	}
-	var res AllGreeks = NewAllGreeks(r.Value)
+	var res AllGreeks = AllGreeks{Greeks: r.Value}
 	return res, nil
 }
 
@@ -6049,7 +6054,7 @@ func (this *Paradex) FetchFundingHistory(options ...FetchFundingHistoryOptions) 
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []FundingHistory = NewFundingHistoryArray(r.Value)
+	var res []FundingHistory = r.Value
 	return res, nil
 }
 
@@ -6076,7 +6081,7 @@ func (this *Paradex) FetchFundingRateHistory(options ...FetchFundingRateHistoryO
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []FundingRateHistory = NewFundingRateHistoryArray(r.Value)
+	var res []FundingRateHistory = r.Value
 	return res, nil
 }
 
@@ -6096,6 +6101,9 @@ func (this *Paradex) CancelOrderWithClientOrderId(clientOrderId string, options 
 }
 func (this *Paradex) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)
+}
+func (this *Paradex) ClosePosition(symbol string, options ...ClosePositionOptions) (Order, error) {
+	return this.exchangeTyped.ClosePosition(symbol, options...)
 }
 func (this *Paradex) CreateConvertTrade(id string, fromCode string, toCode string, options ...CreateConvertTradeOptions) (Conversion, error) {
 	return this.exchangeTyped.CreateConvertTrade(id, fromCode, toCode, options...)

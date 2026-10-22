@@ -75,10 +75,10 @@ func testWatchTickersHelperBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICo
 				if r.Err != nil {
 					panic(r.Err)
 				}
-				if r.Value == nil {
+				if ccxt.StructAbsent(r.Value) {
 					response = nil
 				} else {
-					response = r.Value
+					response = ccxt.StructBox(r.Value, ccxt.TickerMapToMap)
 				}
 				return nil
 			}()
@@ -119,11 +119,15 @@ func testWatchTickersHelperBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICo
 									var tickerSymbol *string = SafeStringPtr(GetValue(ticker, "symbol"))
 									if (tickerSymbol != nil) && EvalTruthy(TickerExceptionNeedsOhlcv(ex, exchange, ticker)) {
 
-										r1 := <-exchange.FetchOHLCVAsync(*tickerSymbol, "1d", nil, 5)
+										r1 := <-exchange.(ccxt.IFetchOHLCV).FetchOHLCVAsync(*tickerSymbol, "1d", nil, 5)
 										if r1.Err != nil {
 											panic(r1.Err)
 										}
-										ohlcv = r1.Value
+										if r1.Value == nil {
+											ohlcv = nil
+										} else {
+											ohlcv = ccxt.OHLCVsToList(r1.Value)
+										}
 									}
 									ValidateTickerExceptionForPercentage(ex, exchange, ticker, ohlcv)
 									return nil

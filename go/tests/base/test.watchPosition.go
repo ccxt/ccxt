@@ -45,7 +45,11 @@ func testWatchPositionBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExc
 				if r.Err != nil {
 					panic(r.Err)
 				}
-				response = r.Value
+				if ccxt.StructAbsent(r.Value) {
+					response = nil
+				} else {
+					response = ccxt.StructBox(r.Value, ccxt.PositionToMap)
+				}
 				return nil
 			}()
 

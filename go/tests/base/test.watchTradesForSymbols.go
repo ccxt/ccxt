@@ -53,7 +53,7 @@ func testWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[any], exchange ccxt.
 				if r.Value == nil {
 					response = nil
 				} else {
-					response = r.Value
+					response = ccxt.TradesToList(r.Value)
 				}
 				return nil
 			}()

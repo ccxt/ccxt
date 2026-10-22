@@ -1905,8 +1905,8 @@ func (this *testMainClass) testReturnResponseHeadersBody(ch chan ccxt.AsyncResul
 		panic(r.Err)
 	}
 	var ticker any = nil
-	if r.Value != nil {
-		ticker = r.Value
+	if !ccxt.StructAbsent(r.Value) {
+		ticker = ccxt.StructBox(r.Value, ccxt.TickerToMap)
 	}
 	var info map[string]any = MapTyped(GetValue(ticker, "info"))
 	var headers any = info["responseHeaders"]
@@ -3722,7 +3722,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r := <-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -3750,7 +3750,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r1 := <-exchange.CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000)
+			r1 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000)
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
@@ -3776,7 +3776,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r2 := <-exchange.CreateOrderAsync("BTC/USD:BTC", "limit", "buy", 1, 20000)
+			r2 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USD:BTC", "limit", "buy", 1, 20000)
 			if r2.Err != nil {
 				panic(r2.Err)
 			}
@@ -3812,7 +3812,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r3 := <-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
+			r3 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
 			if r3.Err != nil {
 				panic(r3.Err)
 			}
@@ -3843,7 +3843,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r4 := <-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
+			r4 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
 			if r4.Err != nil {
 				panic(r4.Err)
 			}
@@ -3874,7 +3874,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r5 := <-exchange.CreateOrderAsync("BTC/USD", "limit", "buy", 1, 20000)
+			r5 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USD", "limit", "buy", 1, 20000)
 			if r5.Err != nil {
 				panic(r5.Err)
 			}
@@ -3909,7 +3909,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r6 := <-exchange.CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 0.002, 102000, map[string]any{
+			r6 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 0.002, 102000, map[string]any{
 				"triggerPrice": 101000,
 			})
 			if r6.Err != nil {
@@ -3941,7 +3941,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r7 := <-exchange.CreateOrderAsync("BTC/USD:BTC", "limit", "buy", 1, 20000, map[string]any{
+			r7 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USD:BTC", "limit", "buy", 1, 20000, map[string]any{
 				"triggerPrice": 21000,
 			})
 			if r7.Err != nil {
@@ -3984,7 +3984,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 				"amount": 1,
 			}}
 
-			r8 := <-exchange.CreateOrdersAsync(orders)
+			r8 := <-exchange.(ccxt.ICreateOrders).CreateOrdersAsync(orders)
 			if r8.Err != nil {
 				panic(r8.Err)
 			}
@@ -4027,7 +4027,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 				},
 			}}
 
-			r9 := <-exchange.CreateOrdersAsync(linearConditionalOrders)
+			r9 := <-exchange.(ccxt.ICreateOrders).CreateOrdersAsync(linearConditionalOrders)
 			if r9.Err != nil {
 				panic(r9.Err)
 			}
@@ -4067,7 +4067,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 				},
 			}}
 
-			r10 := <-exchange.CreateOrdersAsync(inverseConditionalOrders)
+			r10 := <-exchange.(ccxt.ICreateOrders).CreateOrdersAsync(inverseConditionalOrders)
 			if r10.Err != nil {
 				panic(r10.Err)
 			}
@@ -4100,7 +4100,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r11 := <-exchange.CreateOrderAsync("ETH/USDT:USDT-261225", "limit", "buy", 1, 2000)
+			r11 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("ETH/USDT:USDT-261225", "limit", "buy", 1, 2000)
 			if r11.Err != nil {
 				panic(r11.Err)
 			}
@@ -4128,7 +4128,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r12 := <-exchange.CreateOrderAsync("ETH/USD:ETH-261225", "limit", "buy", 1, 2000)
+			r12 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("ETH/USD:ETH-261225", "limit", "buy", 1, 2000)
 			if r12.Err != nil {
 				panic(r12.Err)
 			}
@@ -4157,7 +4157,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r13 := <-exchange.CreateOrderAsync("ETH/USDT:USDT-231229-800-C", "limit", "buy", 1, 100)
+			r13 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("ETH/USDT:USDT-231229-800-C", "limit", "buy", 1, 100)
 			if r13.Err != nil {
 				panic(r13.Err)
 			}
@@ -5058,7 +5058,7 @@ func (this *testMainClass) testOkxBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r := <-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -5089,7 +5089,7 @@ func (this *testMainClass) testOkxBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r1 := <-exchange.CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000)
+			r1 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000)
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
@@ -5142,7 +5142,7 @@ func (this *testMainClass) testCryptocomBody(ch chan ccxt.AsyncResult[any]) any 
 			}()
 			// try block:
 
-			r1 := <-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
+			r1 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
@@ -5195,7 +5195,7 @@ func (this *testMainClass) testBybitBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r := <-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -5247,7 +5247,7 @@ func (this *testMainClass) testBithumbBody(ch chan ccxt.AsyncResult[any]) any {
 			// try block:
 			// default path: generation 2, the versioned (jwt-signed) endpoints
 
-			r := <-exchange.CreateOrderAsync("BTC/KRW", "limit", "buy", 1, 20000)
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/KRW", "limit", "buy", 1, 20000)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -5280,7 +5280,7 @@ func (this *testMainClass) testBithumbBody(ch chan ccxt.AsyncResult[any]) any {
 			// try block:
 			// legacy path: generation 1, the hmac-signed endpoints
 
-			r1 := <-exchange.CreateOrderAsync("BTC/KRW", "limit", "buy", 1, 20000, map[string]any{
+			r1 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/KRW", "limit", "buy", 1, 20000, map[string]any{
 				"generation": 1,
 			})
 			if r1.Err != nil {
@@ -5375,7 +5375,7 @@ func (this *testMainClass) testExtendedBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r := <-exchange.CreateOrderAsync("BTC/USDC:USDC", "limit", "buy", 1, 20000)
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDC:USDC", "limit", "buy", 1, 20000)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -5405,7 +5405,7 @@ func (this *testMainClass) testExtendedBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r1 := <-exchange.CreateOrderAsync("BTC/USDC:USDC", "limit", "buy", 1, 20000, map[string]any{
+			r1 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDC:USDC", "limit", "buy", 1, 20000, map[string]any{
 				"builderFeeRate": "0.0002",
 			})
 			if r1.Err != nil {
@@ -5438,7 +5438,7 @@ func (this *testMainClass) testExtendedBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r2 := <-exchange.CreateOrderAsync("BTC/USDC:USDC", "limit", "buy", 1, 20000)
+			r2 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDC:USDC", "limit", "buy", 1, 20000)
 			if r2.Err != nil {
 				panic(r2.Err)
 			}
@@ -5465,7 +5465,7 @@ func (this *testMainClass) testExtendedBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r3 := <-exchange.CreateOrderAsync("BTC/USDC:USDC", "limit", "buy", 1, 20000, map[string]any{
+			r3 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDC:USDC", "limit", "buy", 1, 20000, map[string]any{
 				"builderId":      "999",
 				"builderFeeRate": "0.0003",
 			})
@@ -5528,7 +5528,7 @@ func (this *testMainClass) testKucoinBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r := <-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -5560,7 +5560,7 @@ func (this *testMainClass) testKucoinBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r1 := <-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000, map[string]any{
+			r1 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000, map[string]any{
 				"uta": true,
 			})
 			if r1.Err != nil {
@@ -5594,7 +5594,7 @@ func (this *testMainClass) testKucoinBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r2 := <-exchange.CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000)
+			r2 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000)
 			if r2.Err != nil {
 				panic(r2.Err)
 			}
@@ -5625,7 +5625,7 @@ func (this *testMainClass) testKucoinBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r3 := <-exchange.CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000, map[string]any{
+			r3 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000, map[string]any{
 				"uta": true,
 			})
 			if r3.Err != nil {
@@ -5682,7 +5682,7 @@ func (this *testMainClass) testKucoinfuturesBody(ch chan ccxt.AsyncResult[any]) 
 			// try block:
 			AddElementToObject(exchange.GetOptions(), "uta", false)
 
-			r := <-exchange.CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000)
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -5714,7 +5714,7 @@ func (this *testMainClass) testKucoinfuturesBody(ch chan ccxt.AsyncResult[any]) 
 			// try block:
 			AddElementToObject(exchange.GetOptions(), "uta", true)
 
-			r1 := <-exchange.CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000)
+			r1 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000)
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
@@ -5765,7 +5765,7 @@ func (this *testMainClass) testBitgetBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r := <-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -5821,7 +5821,7 @@ func (this *testMainClass) testMexcBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r1 := <-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
+			r1 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
@@ -5867,7 +5867,7 @@ func (this *testMainClass) testHtxBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r := <-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -5897,7 +5897,7 @@ func (this *testMainClass) testHtxBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r1 := <-exchange.CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000)
+			r1 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000)
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
@@ -5923,7 +5923,7 @@ func (this *testMainClass) testHtxBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r2 := <-exchange.CreateOrderAsync("BTC/USD:BTC", "limit", "buy", 1, 20000)
+			r2 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USD:BTC", "limit", "buy", 1, 20000)
 			if r2.Err != nil {
 				panic(r2.Err)
 			}
@@ -5972,7 +5972,7 @@ func (this *testMainClass) testWooBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r := <-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -6002,7 +6002,7 @@ func (this *testMainClass) testWooBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r1 := <-exchange.CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000, map[string]any{
+			r1 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000, map[string]any{
 				"stopPrice": 30000,
 			})
 			if r1.Err != nil {
@@ -6057,7 +6057,7 @@ func (this *testMainClass) testBingxBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r := <-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -6102,7 +6102,7 @@ func (this *testMainClass) testPhemexBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r := <-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -6149,7 +6149,7 @@ func (this *testMainClass) testBlofinBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r := <-exchange.CreateOrderAsync("LTC/USDT:USDT", "market", "buy", 1)
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("LTC/USDT:USDT", "market", "buy", 1)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -6233,7 +6233,7 @@ func (this *testMainClass) testCoinbaseinternationalBody(ch chan ccxt.AsyncResul
 			}()
 			// try block:
 
-			r := <-exchange.CreateOrderAsync("BTC/USDC:USDC", "limit", "buy", 1, 20000)
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDC:USDC", "limit", "buy", 1, 20000)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -6279,7 +6279,7 @@ func (this *testMainClass) testCoinbaseAdvancedBody(ch chan ccxt.AsyncResult[any
 			}()
 			// try block:
 
-			r := <-exchange.CreateOrderAsync("BTC/USDC", "limit", "buy", 1, 20000)
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDC", "limit", "buy", 1, 20000)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -6336,7 +6336,7 @@ func (this *testMainClass) testWoofiProBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r1 := <-exchange.CreateOrderAsync("BTC/USDC:USDC", "limit", "buy", 1, 20000)
+			r1 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDC:USDC", "limit", "buy", 1, 20000)
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
@@ -6382,7 +6382,7 @@ func (this *testMainClass) testXTBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r := <-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -6410,7 +6410,7 @@ func (this *testMainClass) testXTBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r1 := <-exchange.CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000)
+			r1 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000)
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
@@ -6499,7 +6499,7 @@ func (this *testMainClass) testParadexBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r1 := <-exchange.CreateOrderAsync("BTC/USD:USDC", "limit", "buy", 1, 20000)
+			r1 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USD:USDC", "limit", "buy", 1, 20000)
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
@@ -6550,7 +6550,7 @@ func (this *testMainClass) testHashkeyBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r := <-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -6594,7 +6594,7 @@ func (this *testMainClass) testCryptomusBody(ch chan ccxt.AsyncResult[any]) any 
 			}()
 			// try block:
 
-			r := <-exchange.CreateOrderAsync("BTC/USDT", "limit", "sell", 1, 20000)
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT", "limit", "sell", 1, 20000)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -6653,7 +6653,7 @@ func (this *testMainClass) testDeriveBody(ch chan ccxt.AsyncResult[any]) any {
 			exchange.SetWalletAddress("0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749")
 			exchange.SetPrivateKey("0x7b77bb7b20e92bbb85f2a22b330b896959229a5790e35f2f290922de3fb22ad5")
 
-			r := <-exchange.CreateOrderAsync("LBTC/USDC", "limit", "sell", 0.01, 3000, params)
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("LBTC/USDC", "limit", "sell", 0.01, 3000, params)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -6709,7 +6709,7 @@ func (this *testMainClass) testModeTradeBody(ch chan ccxt.AsyncResult[any]) any 
 			}()
 			// try block:
 
-			r1 := <-exchange.CreateOrderAsync("BTC/USDC:USDC", "limit", "buy", 1, 20000)
+			r1 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDC:USDC", "limit", "buy", 1, 20000)
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
@@ -6763,7 +6763,7 @@ func (this *testMainClass) testBackpackBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r := <-exchange.CreateOrderAsync("ETH/USDC", "limit", "buy", 1, 5000)
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("ETH/USDC", "limit", "buy", 1, 5000)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -6814,7 +6814,7 @@ func (this *testMainClass) testToobitBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r := <-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -6860,7 +6860,7 @@ func (this *testMainClass) testWeexBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r := <-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -6887,7 +6887,7 @@ func (this *testMainClass) testWeexBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r1 := <-exchange.CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000)
+			r1 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000)
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
@@ -6933,7 +6933,7 @@ func (this *testMainClass) testFoxbitBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r := <-exchange.CreateOrderAsync("BTC/BRL", "limit", "buy", 1, 20000)
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/BRL", "limit", "buy", 1, 20000)
 			if r.Err != nil {
 				panic(r.Err)
 			}
