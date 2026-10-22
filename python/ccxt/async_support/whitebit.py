@@ -1091,7 +1091,7 @@ class whitebit(Exchange, ImplicitAPI):
             hasAmountLimits = (amountLimits is not None) and (amountLimits is not None) and self.safe_number(amountLimits, 'min') is not None and self.safe_number(amountLimits, 'max') is not None
             hasPriceLimits = (priceLimits is not None) and (priceLimits is not None) and self.safe_number(priceLimits, 'min') is not None and self.safe_number(priceLimits, 'max') is not None
             hasCostLimits = (costLimits is not None) and (costLimits is not None) and self.safe_number(costLimits, 'min') is not None and self.safe_number(costLimits, 'max') is not None
-            if (hasAmountLimits is True) and (hasPriceLimits is True) and (hasCostLimits is True):
+            if (hasAmountLimits) and (hasPriceLimits) and (hasCostLimits):
                 result[symbol] = {
                     'info': market,
                     'limits': {
@@ -1432,7 +1432,7 @@ class whitebit(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['market'] = market['id']
         # Try active orders first (if enabled)
-        if checkActive is True:
+        if checkActive:
             try:
                 response = await self.v4PrivatePostOrders(self.extend(request, paramsOmitted))
                 # Search for order in active orders response (array format)
@@ -1448,7 +1448,7 @@ class whitebit(Exchange, ImplicitAPI):
                 if not (isinstance(error, OrderNotFound)):
                     raise error
         # Try executed orders (if enabled)
-        if checkExecuted is True:
+        if checkExecuted:
             try:
                 response = await self.v4PrivatePostTradeAccountOrderHistory(self.extend(request, paramsOmitted))
                 # Search for order in executed orders response (object format)
@@ -4082,7 +4082,7 @@ class whitebit(Exchange, ImplicitAPI):
                 raise ExchangeError(feedback)
             # {"success":false,"message":{"limit":["limit must be less than or equal to 100"]},"result":null}
             success = self.safe_bool(response, 'success', True)
-            if success is not True:
+            if not success:
                 errMsg = self.safe_dict(response, 'message', {})
                 errKeys = list(errMsg.keys())
                 errKeysLength = len(errKeys)

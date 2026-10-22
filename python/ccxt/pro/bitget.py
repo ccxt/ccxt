@@ -2419,12 +2419,12 @@ class bitget(ccxt.async_support.bitget):
         client.resolve(self.balance, messageHash)
 
     async def watch_public(self, uta: bool, messageHash: str, args: dict, params: dict = {}):
-        url = self.urls['api']['ws']['utaPublic'] if (uta is True) else self.urls['api']['ws']['public']
+        url = self.urls['api']['ws']['utaPublic'] if (uta) else self.urls['api']['ws']['public']
         sandboxMode = self.safe_bool_2(self.options, 'sandboxMode', 'sandbox', False)
-        if sandboxMode is True:
+        if sandboxMode:
             instType = self.safe_string(args, 'instType')
             if (instType != 'SCOIN-FUTURES') and (instType != 'SUSDT-FUTURES') and (instType != 'SUSDC-FUTURES'):
-                if uta is True:
+                if uta:
                     url = self.urls['api']['demo']['utaPublic']
                 else:
                     url = self.urls['api']['demo']['public']
@@ -2436,12 +2436,12 @@ class bitget(ccxt.async_support.bitget):
         return await self.watch(url, messageHash, message, messageHash)
 
     async def un_watch_public(self, uta: bool, messageHash: str, args: dict, params: dict = {}):
-        url = self.urls['api']['ws']['utaPublic'] if (uta is True) else self.urls['api']['ws']['public']
+        url = self.urls['api']['ws']['utaPublic'] if (uta) else self.urls['api']['ws']['public']
         sandboxMode = self.safe_bool_2(self.options, 'sandboxMode', 'sandbox', False)
-        if sandboxMode is True:
+        if sandboxMode:
             instType = self.safe_string(args, 'instType')
             if (instType != 'SCOIN-FUTURES') and (instType != 'SUSDT-FUTURES') and (instType != 'SUSDC-FUTURES'):
-                if uta is True:
+                if uta:
                     url = self.urls['api']['demo']['utaPublic']
                 else:
                     url = self.urls['api']['demo']['public']
@@ -2472,13 +2472,13 @@ class bitget(ccxt.async_support.bitget):
         return await self.watch(url, messageHash, message, messageHash)
 
     async def watch_public_multiple(self, uta: bool, messageHashes: list[str], argsArray: list[object], params: dict = {}):
-        url = self.urls['api']['ws']['utaPublic'] if (uta is True) else self.urls['api']['ws']['public']
+        url = self.urls['api']['ws']['utaPublic'] if (uta) else self.urls['api']['ws']['public']
         sandboxMode = self.safe_bool_2(self.options, 'sandboxMode', 'sandbox', False)
-        if sandboxMode is True:
+        if sandboxMode:
             argsArrayFirst = self.safe_dict(argsArray, 0, {})
             instType = self.safe_string(argsArrayFirst, 'instType')
             if (instType != 'SCOIN-FUTURES') and (instType != 'SUSDT-FUTURES') and (instType != 'SUSDC-FUTURES'):
-                url = self.urls['api']['demo']['utaPublic'] if (uta is True) else self.urls['api']['demo']['public']
+                url = self.urls['api']['demo']['utaPublic'] if (uta) else self.urls['api']['demo']['public']
         request = {
             'op': 'subscribe',
             'args': argsArray,
@@ -2514,12 +2514,12 @@ class bitget(ccxt.async_support.bitget):
         return await future
 
     async def watch_private(self, uta: bool, messageHash: str, subscriptionHash: str, args: dict, params: dict = {}):
-        url = self.urls['api']['ws']['utaPrivate'] if (uta is True) else self.urls['api']['ws']['private']
+        url = self.urls['api']['ws']['utaPrivate'] if (uta) else self.urls['api']['ws']['private']
         sandboxMode = self.safe_bool_2(self.options, 'sandboxMode', 'sandbox', False)
-        if sandboxMode is True:
+        if sandboxMode:
             instType = self.safe_string(args, 'instType')
             if (instType != 'SCOIN-FUTURES') and (instType != 'SUSDT-FUTURES') and (instType != 'SUSDC-FUTURES'):
-                if uta is True:
+                if uta:
                     url = self.urls['api']['demo']['utaPrivate']
                 else:
                     url = self.urls['api']['demo']['private']

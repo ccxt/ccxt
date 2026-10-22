@@ -605,10 +605,10 @@ class lighter(Exchange, ImplicitAPI):
 
     async def handle_builder_fee_approval(self, accountIndex: float, apiKeyIndex: float) -> bool:
         buildFee = self.safe_bool(self.options, 'builderFee', True)
-        if buildFee is not True:
+        if not buildFee:
             return False
         approvedBuilderFee = self.safe_bool(self.options, 'approvedBuilderFee', False)
-        if approvedBuilderFee is True:
+        if approvedBuilderFee:
             return True
         standardTier = False
         try:
@@ -813,7 +813,7 @@ class lighter(Exchange, ImplicitAPI):
         request['order_expiry'] = orderExpiry
         request['order_type'] = orderTypeNum
         request['time_in_force'] = timeInForceNum
-        request['reduce_only'] = 1 if (reduceOnly is True) else 0
+        request['reduce_only'] = 1 if (reduceOnly) else 0
         request['client_order_index'] = clientOrderId
         request['base_amount'] = self.parse_to_int(Precise.string_mul(amountStr, amountScale))
         request['avg_execution_price'] = self.parse_to_int(Precise.string_mul(priceStr, priceScale))
@@ -2905,7 +2905,7 @@ class lighter(Exchange, ImplicitAPI):
                 orderId = self.safe_string(trade, 'bid_id')
         # public trades use Lighter's taker-side convention
         if (side is None) and (isMakerAsk is not None):
-            side = 'buy' if (isMakerAsk is True) else 'sell'
+            side = 'buy' if (isMakerAsk) else 'sell'
         takerOrMaker = None
         if side is not None and isMakerAsk is not None:
             isMaker = isMakerAsk if (side == 'sell') else not isMakerAsk

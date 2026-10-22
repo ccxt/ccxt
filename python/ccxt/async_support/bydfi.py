@@ -700,7 +700,7 @@ class bydfi(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = self.safe_bool(params, 'paginate', False)
-        if paginate is True:
+        if paginate:
             maxLimit = 500
             paramsPaginate = self.extend(self.omit(params, 'paginate'), {'paginationDirection': 'backward'})
             paginatedResponse = await self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, paramsPaginate, maxLimit, True)
@@ -1280,11 +1280,11 @@ class bydfi(Exchange, ImplicitAPI):
         if hedged:
             query = self.omit(query, 'reduceOnly')
             if side == 'buy':
-                request['positionSide'] = 'SHORT' if (reduceOnly is True) else 'LONG'
+                request['positionSide'] = 'SHORT' if (reduceOnly) else 'LONG'
             elif side == 'sell':
-                request['positionSide'] = 'LONG' if (reduceOnly is True) else 'SHORT'
+                request['positionSide'] = 'LONG' if (reduceOnly) else 'SHORT'
         closePosition = self.safe_bool(query, 'closePosition', False)
-        if closePosition is not True:
+        if not closePosition:
             query = self.omit(query, 'closePosition')
             request['quantity'] = self.amount_to_precision(symbol, amount)
         elif (typeValue != 'STOP_MARKET') and (typeValue != 'TAKE_PROFIT_MARKET'):
@@ -1618,7 +1618,7 @@ class bydfi(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = self.safe_bool(params, 'paginate', False)
-        if paginate is True:
+        if paginate:
             maxLimit = 500
             paramsPaginate = self.extend(self.omit(params, 'paginate'), {'paginationDirection': 'backward'})
             paginatedResponse = await self.fetch_paginated_call_dynamic('fetchCanceledAndClosedOrders', symbol, since, limit, paramsPaginate, maxLimit, True)
@@ -2526,7 +2526,7 @@ class bydfi(Exchange, ImplicitAPI):
         transfer = self.parse_transfer(response, currency)
         transferOptions = self.safe_dict(self.options, 'transfer', {})
         fillResponseFromRequest = self.safe_bool(transferOptions, 'fillResponseFromRequest', True)
-        if fillResponseFromRequest is True:
+        if fillResponseFromRequest:
             transfer['currency'] = code
             transfer['fromAccount'] = fromAccount
             transfer['toAccount'] = toAccount
@@ -2552,7 +2552,7 @@ class bydfi(Exchange, ImplicitAPI):
             await self.load_markets()
         currency = self.currency(code)
         paginate = self.safe_bool(params, 'paginate', False)
-        if paginate is True:
+        if paginate:
             maxLimit = 50
             paramsPaginate = self.extend(self.omit(params, 'paginate'), {'paginationDirection': 'backward'})
             paginatedResponse = await self.fetch_paginated_call_dynamic('fetchTransfers', self.safe_string(currency, 'code'), since, limit, paramsPaginate, maxLimit, True)
@@ -2677,7 +2677,7 @@ class bydfi(Exchange, ImplicitAPI):
             await self.load_markets()
         currency = self.currency(code)
         paginate = self.safe_bool(params, 'paginate', False)
-        if paginate is True:
+        if paginate:
             maxLimit = 50
             paramsPaginate = self.extend(self.omit(params, 'paginate'), {'paginationDirection': 'backward'})
             paginatedResponse = await self.fetch_paginated_call_dynamic(methodName, self.safe_string(currency, 'code'), since, limit, paramsPaginate, maxLimit, True)

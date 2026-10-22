@@ -1560,7 +1560,7 @@ class bigone(Exchange, ImplicitAPI):
         exchangeSpecificParam = self.safe_bool(params, 'post_only', False)
         postOnly = None
         query = None
-        postOnly, query = self.handle_post_only(uppercaseType == 'MARKET', exchangeSpecificParam is True, params)
+        postOnly, query = self.handle_post_only(uppercaseType == 'MARKET', exchangeSpecificParam, params)
         triggerPrice = self.safe_string_n(query, ['triggerPrice', 'stopPrice', 'stop_price'])
         request = {
             'asset_pair_name': market['id'],  # asset pair name BTC-USDT, required
@@ -1577,7 +1577,7 @@ class bigone(Exchange, ImplicitAPI):
                 timeInForce = self.safe_string(query, 'timeInForce')
                 if timeInForce == 'IOC':
                     request['immediate_or_cancel'] = True
-                if postOnly is True:
+                if postOnly:
                     request['post_only'] = True
             request['amount'] = self.amount_to_precision(symbol, amount)
         else:
@@ -2211,7 +2211,7 @@ class bigone(Exchange, ImplicitAPI):
         transfer = self.parse_transfer(response, currency)
         transferOptions = self.safe_dict(self.options, 'transfer', {})
         fillResponseFromRequest = self.safe_bool(transferOptions, 'fillResponseFromRequest', True)
-        if fillResponseFromRequest is True:
+        if fillResponseFromRequest:
             transfer['fromAccount'] = fromAccount
             transfer['toAccount'] = toAccount
             transfer['amount'] = amount

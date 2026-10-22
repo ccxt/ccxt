@@ -1768,7 +1768,7 @@ class bingx(ccxt.async_support.bingx):
         subscriptionsById = self.index_by(client.subscriptions, 'id')
         subscription = self.safe_dict(subscriptionsById, id, {})
         isUnSubMessage = self.safe_bool(subscription, 'unsubscribe', False)
-        if isUnSubMessage is True:
+        if isUnSubMessage:
             self.handle_un_subscription(client, subscription)
         return message
 

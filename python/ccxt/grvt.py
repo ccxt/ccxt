@@ -577,10 +577,10 @@ class grvt(Exchange, ImplicitAPI):
 
     def initialize_client(self, params: dict = {}) -> Bool:
         builderFee = self.safe_bool(params, 'builderFee', self.safe_bool(self.options, 'builderFee', True))  # we shouldn't omit here
-        if builderFee is not True:
+        if not builderFee:
             return False  # skip if builder fee is not enabled
         approvedBuilderFee = self.safe_bool(self.options, 'approvedBuilderFee', False)
-        if approvedBuilderFee is True:
+        if approvedBuilderFee:
             return True  # skip if builder fee is already approved
         results = [self.privateTradingPostFullV1GetAuthorizedBuilders(), self.load_account_infos()]
         #
@@ -1400,7 +1400,7 @@ class grvt(Exchange, ImplicitAPI):
         if since is not None:
             requestUntilOptionString['start_time'] = self.number_to_string(since * 1000000)
         useTransfersEndpoint = self.safe_bool(self.options, 'useTransfersEndpointForDepositsWithdrawals', True)
-        if useTransfersEndpoint is True:
+        if useTransfersEndpoint:
             transfers = self.internal_fetch_transfers(self.extend(requestUntilOptionString, paramsUntilOptionString), currency, since, limit)
             filteredResults = self.filter_transfers_by_type(transfers, 'deposit', True)
             transactions = self.get_list_from_object_values(filteredResults[0], 'info')
@@ -1452,7 +1452,7 @@ class grvt(Exchange, ImplicitAPI):
         if since is not None:
             requestUntilOptionString['start_time'] = self.number_to_string(since * 1000000)
         useTransfersEndpoint = self.safe_bool(self.options, 'useTransfersEndpointForDepositsWithdrawals', True)
-        if useTransfersEndpoint is True:
+        if useTransfersEndpoint:
             transfers = self.internal_fetch_transfers(self.extend(requestUntilOptionString, paramsUntilOptionString), currency, since, limit)
             filteredResults = self.filter_transfers_by_type(transfers, 'withdrawal', True)
             transactions = self.get_list_from_object_values(filteredResults[0], 'info')
@@ -2031,7 +2031,7 @@ class grvt(Exchange, ImplicitAPI):
             paramsTrigger = self.omit(paramsTriggerPrices, ['triggerDirection', 'triggerPriceType', 'closePosition'])
         eipType = 'EIP712_ORDER_TYPE'
         builderFee = self.safe_bool(paramsTrigger, 'builderFee', self.safe_bool(self.options, 'builderFee', True))
-        if builderFee is True:
+        if builderFee:
             eipType = 'EIP712_ORDER_WITH_BUILDER_TYPE'
             orderRequest['builder'] = self.safe_string(self.options, 'builder')
             orderRequest['builder_fee'] = self.safe_string(self.options, 'builderRate')
@@ -3177,7 +3177,7 @@ class grvt(Exchange, ImplicitAPI):
             else:
                 requestBody = self.json(params)
         isPrivate = apiName.startswith('private')
-        if isPrivate is True:
+        if isPrivate:
             self.check_required_credentials()
             if queryString != '':
                 requestPath = requestPath + '?' + queryString

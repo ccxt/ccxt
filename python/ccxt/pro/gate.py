@@ -562,7 +562,7 @@ class gate(ccxt.async_support.gate):
         if self.safe_value(self.orderbooks, symbol) is None:
             self.orderbooks[symbol] = self.order_book({}, 1000)
         orderbook = self.orderbooks[symbol]
-        if full is True:
+        if full:
             snapshopt = self.parse_order_book(result, symbol, None, 'b', 'a')
             snapshopt['nonce'] = self.safe_integer(result, 'u')
             snapshopt['timestamp'] = self.safe_integer(result, 't')

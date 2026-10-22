@@ -2114,7 +2114,7 @@ class hashkey(Exchange, ImplicitAPI):
         status = self.safe_string(transaction, 'status')  # for fetchDeposits
         if status is None:
             success = self.safe_bool(transaction, 'success', False)  # for withdraw
-            if success is True:
+            if success:
                 status = 'ok'
             else:
                 addressUrl = self.safe_string(transaction, 'addressUrl')  # for fetchWithdrawals
@@ -2212,7 +2212,7 @@ class hashkey(Exchange, ImplicitAPI):
         currencyId = self.safe_string(currency, 'id')
         status = None
         success = self.safe_bool(transfer, 'success', False)
-        if success is True:
+        if success:
             status = 'ok'
         return {
             'id': self.safe_string(transfer, 'orderId'),

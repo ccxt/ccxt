@@ -702,12 +702,12 @@ class htx(ccxt.async_support.htx):
                 raise ChecksumError(self.id + ' ' + self.orderbook_checksum_message(symbol))
         spotConditon = (market['spot'] is True) and (prevSeqNum == orderbook['nonce'])
         nonSpotCondition = (market['contract'] is True) and (version is not None) and (version - 1 == orderbook['nonce'])
-        if (spotConditon is True) or (nonSpotCondition is True):
+        if (spotConditon) or (nonSpotCondition):
             asks = self.safe_list(tick, 'asks', [])
             bids = self.safe_list(tick, 'bids', [])
             self.handle_deltas(orderbook['asks'], asks)
             self.handle_deltas(orderbook['bids'], bids)
-            orderbook['nonce'] = seqNum if (spotConditon is True) else version
+            orderbook['nonce'] = seqNum if (spotConditon) else version
             orderbook['timestamp'] = timestamp
             orderbook['datetime'] = self.iso8601(timestamp)
 
@@ -1483,7 +1483,7 @@ class htx(ccxt.async_support.htx):
         aggressor = self.safe_bool(trade, 'aggressor')
         takerOrMaker = None
         if aggressor is not None:
-            takerOrMaker = 'taker' if (aggressor is True) else 'maker'
+            takerOrMaker = 'taker' if (aggressor) else 'maker'
         return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
@@ -1736,7 +1736,7 @@ class htx(ccxt.async_support.htx):
             prefix = 'accounts'
             messageHash = prefix
             if subType == 'linear':
-                if isUnifiedAccount is True:
+                if isUnifiedAccount:
                     # usdt contracts account
                     prefix = 'accounts_unify'
                     messageHash = prefix
@@ -2601,7 +2601,7 @@ class htx(ccxt.async_support.htx):
         aggressor = self.safe_bool(trade, 'aggressor')
         takerOrMaker = None
         if aggressor is not None:
-            takerOrMaker = 'taker' if (aggressor is True) else 'maker'
+            takerOrMaker = 'taker' if (aggressor) else 'maker'
         else:
             takerOrMaker = self.safe_string_lower(trade, 'role')
         type = None

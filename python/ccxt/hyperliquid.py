@@ -1099,7 +1099,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         dex = self.safe_string(paramsValue, 'dex')
         isSpot = ((type == 'spot') or (isUnifiedEnabled is True)) and (dex is None)
         request = {
-            'type': 'spotClearinghouseState' if (isSpot is True) else 'clearinghouseState',
+            'type': 'spotClearinghouseState' if (isSpot) else 'clearinghouseState',
             'user': userAddress,
         }
         response = self.publicPostInfo(self.extend(request, paramsValue))
@@ -1144,7 +1144,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             for i in range(0, len(balances)):
                 balance = self.safe_dict(balances, i)
                 unifiedCode = self.safe_currency_code(self.safe_string(balance, 'coin'))
-                code = self.update_spot_currency_code(unifiedCode) if (isSpot is True) else unifiedCode
+                code = self.update_spot_currency_code(unifiedCode) if (isSpot) else unifiedCode
                 account = self.account()
                 total = self.safe_string(balance, 'total')
                 used = self.safe_string(balance, 'hold')
@@ -1799,7 +1799,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         nonce = self.incrementing_nonce()
         isSandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         payload = {
-            'hyperliquidChain': 'Testnet' if (isSandboxMode is True) else 'Mainnet',
+            'hyperliquidChain': 'Testnet' if (isSandboxMode) else 'Mainnet',
             'maxFeeRate': maxFeeRate,
             'builder': builder,
             'nonce': nonce,
@@ -1839,14 +1839,14 @@ class hyperliquid(Exchange, ImplicitAPI):
     def handle_builder_fee_approval(self) -> bool:
         buildFee = self.safe_bool(self.options, 'builderFee', True)
         approvedBuilderFee = self.safe_bool(self.options, 'approvedBuilderFee', False)
-        if approvedBuilderFee is True:
+        if approvedBuilderFee:
             return True  # skip if builder fee is already approved
         try:
             builder = self.safe_string(self.options, 'builder', '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6')
             # when the user disables the builder fee (builderFee = false) we still approve and attach the builder,
             # but with a 0% fee rate, so orders remain attributed to the builder for statistics purposes only and the user is not charged
             maxFeeRate = self.safe_string(self.options, 'feeRate', '0.01%')
-            if buildFee is not True:
+            if not buildFee:
                 maxFeeRate = '0%'
             self.approve_builder_fee(builder, maxFeeRate)
             self.options['approvedBuilderFee'] = True
@@ -1917,7 +1917,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         isSandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         type = self.safe_string(paramsPublicAddress, 'type', 'userSetAbstraction')
         payload = {
-            'hyperliquidChain': 'Testnet' if (isSandboxMode is True) else 'Mainnet',
+            'hyperliquidChain': 'Testnet' if (isSandboxMode) else 'Mainnet',
             'user': userAddress,
             'abstraction': abstraction,
             'nonce': nonce,
@@ -1960,7 +1960,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         isSandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         type = self.safe_string(paramsPublicAddress, 'type', 'userDexAbstraction')
         payload = {
-            'hyperliquidChain': 'Testnet' if (isSandboxMode is True) else 'Mainnet',
+            'hyperliquidChain': 'Testnet' if (isSandboxMode) else 'Mainnet',
             'user': userAddress,
             'enabled': enabled,
             'nonce': nonce,
@@ -2170,7 +2170,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         if isMarket:
             defaultTimeInForce = 'ioc'
         postOnly = self.safe_bool(params, 'postOnly', False)
-        if postOnly is True:
+        if postOnly:
             defaultTimeInForce = 'alo'
         timeInForce = self.safe_string_lower(params, 'timeInForce', defaultTimeInForce)
         timeInForce = self.capitalize(timeInForce)
@@ -2663,7 +2663,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             if isMarket:
                 defaultTimeInForce = 'ioc'
             postOnly = self.safe_bool(orderParams, 'postOnly', False)
-            if postOnly is True:
+            if postOnly:
                 defaultTimeInForce = 'alo'
             timeInForce = self.safe_string_lower(orderParams, 'timeInForce', defaultTimeInForce)
             timeInForce = self.capitalize(timeInForce)
@@ -4193,7 +4193,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         else:
             isSandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
             payload = {
-                'hyperliquidChain': 'Testnet' if (isSandboxMode is True) else 'Mainnet',
+                'hyperliquidChain': 'Testnet' if (isSandboxMode) else 'Mainnet',
                 'destination': address,
                 'amount': str(amount),
                 'time': nonce,

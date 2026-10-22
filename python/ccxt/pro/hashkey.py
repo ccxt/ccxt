@@ -712,7 +712,7 @@ class hashkey(ccxt.async_support.hashkey):
             return
         options = self.safe_dict(self.options, 'watchBalance')
         snapshot = self.safe_bool(options, 'fetchBalanceSnapshot', True)
-        if snapshot is True:
+        if snapshot:
             messageHash = type + ':' + 'fetchBalanceSnapshot'
             if not (messageHash in client.futures):
                 client.future(messageHash)

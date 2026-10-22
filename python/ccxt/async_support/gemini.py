@@ -1621,7 +1621,7 @@ class gemini(Exchange, ImplicitAPI):
                 elif timeInForce == 'PO':
                     request['options'] = ['maker-or-cancel']
             postOnly = self.safe_bool(params, 'postOnly', False)
-            if postOnly is True:
+            if postOnly:
                 request['options'] = ['maker-or-cancel']
             # allowing override for auction-only and indication-of-interest order options
             options = self.safe_string(params, 'options')

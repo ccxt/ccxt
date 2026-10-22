@@ -1780,11 +1780,11 @@ class mexc(Exchange, ImplicitAPI):
                 isMaker = self.safe_bool(trade, 'isMaker')
                 buyerMaker = self.safe_bool_2(trade, 'isBuyerMaker', 'm')
                 if isMaker is not None:
-                    takerOrMaker = 'maker' if (isMaker is True) else 'taker'
+                    takerOrMaker = 'maker' if (isMaker) else 'taker'
                 if isBuyer is not None:
-                    side = 'buy' if (isBuyer is True) else 'sell'
+                    side = 'buy' if (isBuyer) else 'sell'
                 if buyerMaker is not None:
-                    side = 'sell' if (buyerMaker is True) else 'buy'
+                    side = 'sell' if (buyerMaker) else 'buy'
                     takerOrMaker = 'taker'
                 feeAsset = self.safe_string(trade, 'commissionAsset')
                 if feeAsset is not None:
@@ -2367,7 +2367,7 @@ class mexc(Exchange, ImplicitAPI):
             if marginMode != 'isolated':
                 raise BadRequest(self.id + ' createOrder() does not support marginMode ' + marginMode + ' for spot-margin trading')
         postOnly, paramsPostOnly = self.handle_post_only(type == 'market', type == 'LIMIT_MAKER', paramsWithoutClientOrderId)
-        if postOnly is True:
+        if postOnly:
             request['type'] = 'LIMIT_MAKER'
         tif = self.safe_string(paramsPostOnly, 'timeInForce')
         paramsWithoutTif = self.omit(paramsPostOnly, 'timeInForce') if (tif is not None) else paramsPostOnly
@@ -2401,7 +2401,7 @@ class mexc(Exchange, ImplicitAPI):
         paramsOmitted = self.omit(params, 'test')
         request = self.create_spot_order_request(market, type, side, amount, price, marginMode, paramsOmitted)
         response: dict
-        if test is True:
+        if test:
             response = self.spotPrivatePostOrderTest(request)
         else:
             response = self.spotPrivatePostOrder(request)
@@ -2477,7 +2477,7 @@ class mexc(Exchange, ImplicitAPI):
             raise InvalidOrder(self.id + ' createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price')
         postOnly, paramsPostOnly = self.handle_post_only(type == 'market', type == 2, params)
         orderType = None
-        if postOnly is True:
+        if postOnly:
             orderType = 2
         elif type == 'limit':
             orderType = 1
@@ -2517,19 +2517,19 @@ class mexc(Exchange, ImplicitAPI):
         reduceOnly = self.safe_bool(paramsPostOnly, 'reduceOnly', False)
         hedged = self.safe_bool(paramsPostOnly, 'hedged', False)
         sideInteger = None
-        if hedged is True:
-            if reduceOnly is True:
+        if hedged:
+            if reduceOnly:
                 sideInteger = 4 if (side == 'buy') else 2  # close short, close long
             else:
                 sideInteger = 1 if (side == 'buy') else 3
             request['positionMode'] = 1
         else:
-            if reduceOnly is True:
+            if reduceOnly:
                 sideInteger = 2 if (side == 'buy') else 4
             else:
                 sideInteger = 1 if (side == 'buy') else 3
         request['side'] = sideInteger
-        paramsReduceOnly = self.omit(paramsPostOnly, 'reduceOnly') if (reduceOnly is True) else paramsPostOnly  # hedged mode does not accept this parameter
+        paramsReduceOnly = self.omit(paramsPostOnly, 'reduceOnly') if (reduceOnly) else paramsPostOnly  # hedged mode does not accept this parameter
         clientOrderId = self.safe_string_2(paramsReduceOnly, 'clientOrderId', 'externalOid')
         if clientOrderId is not None:
             request['externalOid'] = clientOrderId
@@ -3888,7 +3888,7 @@ class mexc(Exchange, ImplicitAPI):
         isMargin = self.safe_bool(paramsMarketType, 'margin', False)
         paramsOmitted2 = self.omit(paramsMarketType, ['margin', 'marginMode'])
         response: dict
-        if (marginMode is not None) or (isMargin is True) or (marketType == 'margin'):
+        if (marginMode is not None) or (isMargin) or (marketType == 'margin'):
             parsedSymbols = None
             symbol = self.safe_string(paramsOmitted2, 'symbol')
             if symbol is None:
@@ -5520,7 +5520,7 @@ class mexc(Exchange, ImplicitAPI):
         currency = self.currency(code)
         tagResolved, paramsWithdrawTag = self.handle_param_string(params, 'tag')
         internal = self.safe_bool(paramsWithdrawTag, 'internal', False)
-        if internal is True:
+        if internal:
             paramsInternal = self.omit(paramsWithdrawTag, 'internal')
             requestForInternal = {
                 'asset': currency['id'],
@@ -5875,7 +5875,7 @@ class mexc(Exchange, ImplicitAPI):
         defaultType = self.safe_string(self.options, 'defaultType')
         isMargin = self.safe_bool(params, 'margin', False)
         marginMode, paramsMarginMode = super(mexc, self).handle_margin_mode_and_params(methodName, params, defaultValue)
-        if (defaultType == 'margin') or (isMargin is True):
+        if (defaultType == 'margin') or (isMargin):
             return ['isolated', paramsMarginMode]
         return [marginMode, paramsMarginMode]
 
@@ -6084,7 +6084,7 @@ class mexc(Exchange, ImplicitAPI):
         #     {"success":true, "code":0, "data":1634095541710}
         #
         success = self.safe_bool(response, 'success', False)  # v1
-        if success is True:
+        if success:
             return None
         responseCode = self.safe_string(response, 'code')
         if (responseCode is not None) and (responseCode != '200') and (responseCode != '0'):

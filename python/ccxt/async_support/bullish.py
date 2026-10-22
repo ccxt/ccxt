@@ -1472,7 +1472,7 @@ class bullish(Exchange, ImplicitAPI):
         await asyncio.gather(*[self.load_markets(), self.handle_token()])
         tradingAccountId = await self.load_account(params)
         paginate = self.safe_bool(params, 'paginate', False)
-        if paginate is True:
+        if paginate:
             paramsPagination = self.handle_pagination_params('fetchOrders', since, params)
             return await self.fetch_paginated_call_dynamic('fetchOrders', symbol, since, limit, paramsPagination, 100)
         market = None
@@ -1787,13 +1787,13 @@ class bullish(Exchange, ImplicitAPI):
         if type is not None:
             request['type'] = type.upper()
         postOnly = self.safe_bool(params, 'postOnly', False)
-        if postOnly is True:
+        if postOnly:
             request['type'] = 'POST_ONLY'
         if amount is not None:
             request['quantity'] = self.amount_to_precision(symbol, amount)
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
-        paramsOmitted = self.omit(params, 'postOnly') if (postOnly is True) else params
+        paramsOmitted = self.omit(params, 'postOnly') if (postOnly) else params
         response = await self.privatePostV2Command(self.extend(request, paramsOmitted))
         return self.parse_order(response, market)
 
@@ -2615,7 +2615,7 @@ class bullish(Exchange, ImplicitAPI):
         transferOptions = self.safe_dict(self.options, 'transfer', {})
         fillResponseFromRequest = self.safe_bool(transferOptions, 'fillResponseFromRequest', True)
         transfer = self.parse_transfer(response, currency)
-        if fillResponseFromRequest is True:
+        if fillResponseFromRequest:
             transfer['fromAccount'] = fromAccount
             transfer['toAccount'] = toAccount
             transfer['amount'] = amount

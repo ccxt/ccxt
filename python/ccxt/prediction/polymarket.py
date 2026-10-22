@@ -676,7 +676,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             active = self.safe_bool(market, 'active', False)
             closed = self.safe_bool(market, 'closed', False)
             # resolution: a closed/uma-resolved market settles each outcome price to 0 or 1
-            marketResolved = (closed is True) or (self.safe_string_lower(market, 'umaResolutionStatus') == 'resolved')
+            marketResolved = (closed) or (self.safe_string_lower(market, 'umaResolutionStatus') == 'resolved')
             resolvedOutcome = None
             # gamma exposes the order-book tick as orderPriceMinTickSize; minimumTickSize is the clob alias
             tickSize = self.safe_number_2(market, 'orderPriceMinTickSize', 'minimumTickSize', 0.01)
@@ -746,7 +746,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
                     'market': marketSymbol,
                     'label': outcomeLabel,
                     'price': outcomePrice,
-                    'active': (active is True) and (closed is not True),
+                    'active': (active) and (not closed),
                     'winner': winner,
                     'settleFraction': settleFraction,
                     # carry the order precision so createOrder needs no extra request
@@ -780,7 +780,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 'future': False,
                 'option': False,
                 'prediction': True,
-                'active': (active is True) and (closed is not True),
+                'active': (active) and (not closed),
                 'resolved': marketResolved,
                 'resolvedOutcome': marketResolvedOutcome,
                 'contract': False,
@@ -1946,7 +1946,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             if len(builderHex) <= 40:
                 builderFeeEnabled = self.safe_bool(self.options, 'builderFee', True)
                 feeRate = 0
-                if builderFeeEnabled is True:
+                if builderFeeEnabled:
                     feeRate = self.safe_integer(self.options, 'feeRate', 0)
                 feeHex = self.int_to_base16(feeRate)
                 feeHex = feeHex.rjust(24, '0')
@@ -1979,7 +1979,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         exchangeV2 = self.safe_string(self.options, 'exchangeAddress', '0xE111180000d2663C0091e4f400237545B87B996B')
         negRiskExchangeV2 = self.safe_string(self.options, 'negRiskExchangeAddress', '0xe2222d279d744050d28e00520010520000310F59')
         exchangeAddress = exchangeV2
-        if negRisk is True:
+        if negRisk:
             exchangeAddress = negRiskExchangeV2
         domainVersion = self.safe_string(self.options, 'ctfExchangeVersion', '2')
         signature = self.sign_clob_order(message, exchangeAddress, domainVersion, signatureType)
@@ -2418,7 +2418,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         closed = self.safe_bool(rawEvent, 'closed', False)
         active = None
         if rawActive is not None:
-            active = (rawActive is True) and (closed is not True)
+            active = (rawActive) and (not closed)
         # surface gamma's tag objects as a top-level string[] so the unified `tags` filter
         # — filterEventsByTags reads event['tags'], not event.info.tags — can actually match.
         # prefer the human-readable label ("Fed Rates") over the slug — matching is

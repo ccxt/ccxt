@@ -1922,7 +1922,7 @@ class modetrade(Exchange, ImplicitAPI):
         """
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
         paramsOmitted = self.omit(params, ['stop', 'trigger'])
-        if (trigger is not True) and (symbol is None):
+        if (not trigger) and (symbol is None):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         if self.markets is None:
             self.load_markets()
@@ -1937,7 +1937,7 @@ class modetrade(Exchange, ImplicitAPI):
         isByClientOrder = clientOrderIdExchangeSpecific is not None
         paramsClientOrder = self.omit(paramsOmitted, ['clOrdID', 'clientOrderId', 'client_order_id'])
         response: dict
-        if trigger is True:
+        if trigger:
             if isByClientOrder:
                 request['client_order_id'] = clientOrderIdExchangeSpecific
                 response = self.v1PrivateDeleteAlgoClientOrder(self.extend(request, paramsClientOrder))
@@ -1971,7 +1971,7 @@ class modetrade(Exchange, ImplicitAPI):
             extendParams['client_order_id'] = clientOrderIdExchangeSpecific
         else:
             extendParams['id'] = id
-        if trigger is True:
+        if trigger:
             return self.extend(self.parse_order(response), extendParams)
         data = self.safe_dict(response, 'data', {})
         return self.extend(self.parse_order(data), extendParams)
@@ -2086,7 +2086,7 @@ class modetrade(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string_n(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
         paramsOmitted = self.omit(params, ['stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id'])
         response: dict
-        if trigger is True:
+        if trigger:
             if clientOrderId is not None and clientOrderId != '':
                 request['client_order_id'] = clientOrderId
                 response = self.v1PrivateGetAlgoClientOrderClientOrderId(self.extend(request, paramsOmitted))
@@ -2151,7 +2151,7 @@ class modetrade(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         isTrigger = self.safe_bool_2(params, 'stop', 'trigger', False)
-        maxLimit = 100 if (isTrigger is True) else 500
+        maxLimit = 100 if (isTrigger) else 500
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOrders', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_incremental('fetchOrders', symbol, since, limit, paramsPaginate, 'page', maxLimit)
@@ -2167,11 +2167,11 @@ class modetrade(Exchange, ImplicitAPI):
             request['size'] = min(limit, maxLimit)
         else:
             request['size'] = maxLimit
-        if isTrigger is True:
+        if isTrigger:
             request['algo_type'] = 'STOP'
         requestUntil, paramsUntil = self.handle_until_option('end_t', request, paramsOmitted)
         response: dict
-        if isTrigger is True:
+        if isTrigger:
             response = self.v1PrivateGetAlgoOrders(self.extend(requestUntil, paramsUntil))
         else:
             response = self.v1PrivateGetOrders(self.extend(requestUntil, paramsUntil))
@@ -3036,7 +3036,7 @@ class modetrade(Exchange, ImplicitAPI):
             isOrder = path == 'algo/order' or path == 'order' or path == 'batch-order'
             if isPostOrPut and isOrder:
                 isSandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
-                if isSandboxMode is not True:
+                if not isSandboxMode:
                     brokerId = self.safe_string(self.options, 'brokerId', 'CCXTMODE')
                     if path == 'batch-order':
                         ordersList = self.safe_list(paramsSorted, 'orders', [])

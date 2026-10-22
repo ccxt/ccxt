@@ -142,7 +142,7 @@ class kraken(ccxt.async_support.kraken):
             request['params']['limit_price'] = self.parse_to_numeric(self.price_to_precision(symbol, price))
         isMarket = (type == 'market')
         postOnly, paramsPostOnly = self.handle_post_only(isMarket, False, params)
-        if postOnly is True:
+        if postOnly:
             request['params']['post_only'] = True
         clientOrderId = self.safe_string(paramsPostOnly, 'clientOrderId')
         if clientOrderId is not None:

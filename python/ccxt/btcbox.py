@@ -812,7 +812,7 @@ class btcbox(Exchange, ImplicitAPI):
         if httpCode >= 400:
             return None  # resort to defaultErrorHandler
         result = self.safe_bool(response, 'result')
-        if result is None or result is True:
+        if result is None or result:
             return None  # either public API (no error codes expected) or success
         code = self.safe_string(response, 'code')
         feedback = self.id + ' ' + body
