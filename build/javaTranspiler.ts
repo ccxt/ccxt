@@ -5772,7 +5772,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), h2kJ02SelfTest(), j10CounterSelfTest(), j11MapLocalsSelfTest(), j04ArithmeticSelfTest(), j12ParamTypesSelfTest(), j13ListLocalsSelfTest(), j14ScalarLocalsSelfTest(), j15SelfTest(), j17ReturnsSelfTest(), j19CompareSelfTest(), j20ParamCompareSelfTest(), j22CoreArgsSelfTest(), j23ArithmeticSelfTest(), j24ArithmeticSelfTest(), j25CompareSelfTest(), j26MapLocalsSelfTest(), j27ArithmeticSelfTest(), j28CompareSelfTest(), j29ContainersSelfTest(), j30SelfTest(), j31ArithmeticSelfTest(), j36SelfTest(), j32DivModNegSelfTest(), j37SelfTest(), j38SelfTest(), j39SelfTest(), j40SelfTest(), j41SelfTest(), j42SelfTest(), j43SelfTest(), j44SelfTest());
+    return problems.concat(mapLocalsSelfTest(), h2kJ02SelfTest(), j10CounterSelfTest(), j11MapLocalsSelfTest(), j04ArithmeticSelfTest(), j12ParamTypesSelfTest(), j13ListLocalsSelfTest(), j14ScalarLocalsSelfTest(), j15SelfTest(), j17ReturnsSelfTest(), j19CompareSelfTest(), j20ParamCompareSelfTest(), j22CoreArgsSelfTest(), j23ArithmeticSelfTest(), j24ArithmeticSelfTest(), j25CompareSelfTest(), j26MapLocalsSelfTest(), j27ArithmeticSelfTest(), j28CompareSelfTest(), j29ContainersSelfTest(), j30SelfTest(), j31ArithmeticSelfTest(), j36SelfTest(), j32DivModNegSelfTest(), j37SelfTest(), j38SelfTest(), j39SelfTest(), j40SelfTest(), j41SelfTest(), j42SelfTest(), j43SelfTest(), j44SelfTest(), x21SelfTest());
 }
 
 // section 50 is fail-closed: a nested, closure or Object-returning (safeDict / safeValue) write keeps `Object`
@@ -9860,6 +9860,45 @@ function j44SelfTest (): string[] {
         const out = nativeJavaJ44 (cls (body));
         const ok = expect === undefined ? out === cls (body) : out.includes (expect) && !/Helpers\.(?:isInstance|isArray|inOp|isEqual|isTrue)\(/.test (out);
         if (!ok) problems.push (`hx4 J44: ${name}\n${out}`);
+    }
+    return problems;
+}
+
+// hx5 X21: Object locals proven String (base `: Str` producers) / Map (venue `: Dict` omit/fresh-map
+// callees) print their concrete type; any unproven write or producer keeps Object
+function x21SelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzx21selftest${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        "import type { Dict } from './base/types.js';",
+        'export default class zzx21selftest extends Exchange {',
+        "    zzxClean (params: Dict = {}): Dict { const zzo: Dict = this.omit (params, [ 'type', 'settle' ]); return zzo; }",
+        "    zzxRoute (methodName: string, params: Dict): Dict { const [ route, paramsResolved ] = this.handleOptionAndParams (params, methodName, 'route', 'auto'); return this.omit (paramsResolved, [ 'route' ]); }",
+        "    zzxLoose (params: Dict = {}): Dict { return params; }",
+        "    ctp (code: string, fee: any) { let a = this.currencyToPrecision (code, fee); if (a === undefined) { a = '0'; } return { 'a': a }; }",
+        "    pp (p: any) { const b = this.parsePrecision (this.safeString (p, 'x')); return [ b ]; }",
+        "    mixed (code: string, fee: any, p: any) { let c = this.currencyToPrecision (code, fee); c = this.safeValue (p, 'x'); return [ c ]; }",
+        "    cl () { const q = {}; const d = this.zzxClean (q); return this.extend (d, {}); }",
+        "    rt () { const q = {}; const e = this.zzxRoute ('fetchX', q); return this.extend (e, {}); }",
+        "    lo () { const q = {}; const f = this.zzxLoose (q); return this.extend (f, {}); }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/String a = \(String\) this\.currencyToPrecision\(/.test(out)) problems.push("x21: 'a' (currencyToPrecision + literal write) must print String with a checkcast");
+        if (!/String b = \(String\) this\.parsePrecision\(/.test(out)) problems.push("x21: 'b' (parsePrecision) must print String");
+        if (!/Map<String, Object> d = /.test(out)) problems.push("x21: 'd' (venue omit-of-Map-param callee) must print Map");
+        if (!/Map<String, Object> e = /.test(out)) problems.push("x21: 'e' (venue omit-of-handle-element-1 callee) must print Map");
+        for (const name of [ 'c', 'f' ]) {
+            if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`x21: '${name}' has an unproven write/producer and must stay Object`);
+        }
+        if (problems.length) problems.push('x21 output:\n' + out);
+    } catch (e: any) {
+        problems.push(`x21 self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
     }
     return problems;
 }
