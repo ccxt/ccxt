@@ -5772,7 +5772,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), h2kJ02SelfTest(), j10CounterSelfTest(), j11MapLocalsSelfTest(), j04ArithmeticSelfTest(), j12ParamTypesSelfTest(), j13ListLocalsSelfTest(), j14ScalarLocalsSelfTest(), j15SelfTest(), j17ReturnsSelfTest(), j19CompareSelfTest(), j20ParamCompareSelfTest(), j22CoreArgsSelfTest(), j23ArithmeticSelfTest(), j24ArithmeticSelfTest(), j25CompareSelfTest(), j26MapLocalsSelfTest(), j27ArithmeticSelfTest(), j28CompareSelfTest(), j29ContainersSelfTest(), j30SelfTest(), j31ArithmeticSelfTest(), j36SelfTest(), j32DivModNegSelfTest(), j37SelfTest(), j38SelfTest(), j39SelfTest(), j40SelfTest(), j40X15SelfTest(), j41SelfTest(), j42SelfTest(), j43SelfTest(), j44SelfTest());
+    return problems.concat(mapLocalsSelfTest(), h2kJ02SelfTest(), j10CounterSelfTest(), j11MapLocalsSelfTest(), j04ArithmeticSelfTest(), j12ParamTypesSelfTest(), j13ListLocalsSelfTest(), j14ScalarLocalsSelfTest(), j15SelfTest(), j17ReturnsSelfTest(), j19CompareSelfTest(), j20ParamCompareSelfTest(), j22CoreArgsSelfTest(), j23ArithmeticSelfTest(), j24ArithmeticSelfTest(), j25CompareSelfTest(), j26MapLocalsSelfTest(), j27ArithmeticSelfTest(), j28CompareSelfTest(), j29ContainersSelfTest(), j30SelfTest(), j31ArithmeticSelfTest(), j36SelfTest(), j32DivModNegSelfTest(), j37SelfTest(), j38SelfTest(), j39SelfTest(), j40SelfTest(), j40X15SelfTest(), j41SelfTest(), j42SelfTest(), j43SelfTest(), j44SelfTest(), x21SelfTest(), x22SelfTest());
 }
 
 // section 50 is fail-closed: a nested, closure or Object-returning (safeDict / safeValue) write keeps `Object`
@@ -9382,15 +9382,6 @@ function j39Member (member: string, fresh: () => string): string {
         const cast = /^\(([\w.]+(?:<[\w.<>, ?]*>)?)\)\s*(.+)$/s.exec (e);
         return cast !== null && j39Close (e, 0) === cast[1].length + 1 && pure (cast[2]);
     };
-    const MAP = /^(?:java\.util\.)?(?:Map|HashMap|LinkedHashMap)<String, Object>$/;
-    const LIST = /^(?:java\.util\.)?(?:List|ArrayList)<Object>$/;
-    const declaredAs = (e: string, re: RegExp): boolean => {
-        e = j39Unparen (e);
-        if (ident (e)) return re.test (declaredType (e) ?? '');
-        if (re === MAP && /^this\.[A-Za-z_]\w*$/.test (e)) return j39MapFields ().has (e.slice (5));
-        const cast = /^\(([\w.]+(?:<[\w.<>, ?]*>)?)\)\s*(.+)$/s.exec (e);
-        return cast !== null && j39Close (e, 0) === cast[1].length + 1 && re.test (cast[1]);
-    };
     const asObject = (e: string) => (strLit (e) ? e : `((Object)(${e}))`);
     const rewrite = (helper: string, args: string[], statement: boolean, indent: string): string | undefined => {
         if (helper === 'getArrayLength' && args.length === 1) {
@@ -9417,26 +9408,8 @@ function j39Member (member: string, fresh: () => string): string {
             const sep = args.some ((a) => a.includes ('\n')) || args.length > 2 ? `\n${indent}    ` : ' ';
             return `(switch (0) { default -> { java.util.HashMap<String, Object> ${n} = new java.util.HashMap<String, Object>();${sep}${puts.join (sep)}${sep}yield ${n}; } })`;
         }
-        if (helper === 'GetValue' && args.length === 2 && !statement && pure (args[1])) {
-            const [ t, k ] = args;
-            const g = fresh ();
-            if (declaredAs (t, MAP)) {
-                const keyTest = strLit (k) ? '' : `${asObject (k)} instanceof String && `;
-                return `((Object)(${t}) instanceof java.util.Map<?, ?> ${g} && ${keyTest}${g}.containsKey(${k}) ? ${g}.get(${k}) : null)`;
-            }
-            if (declaredAs (t, LIST) && numLit (k)) {
-                const n = k.replace (/L$/, '');
-                return `((Object)(${t}) instanceof java.util.List<?> ${g} && ${n} < ${g}.size() ? ${g}.get(${n}) : null)`;
-            }
-            return undefined;
-        }
-        if (helper === 'addElementToObject' && args.length === 3 && statement && declaredAs (args[0], MAP)) {
-            const [ t, k, v ] = args;
-            const m = fresh (), kk = fresh (), vv = fresh ();
-            return `{ java.util.Map<Object, Object> ${m} = (java.util.Map<Object, Object>) (java.util.Map<?, ?>) (${t}); Object ${kk} = ${k}; Object ${vv} = ${v};`
-                + ` if (${m} == null) { if (${kk} instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); }`
-                + ` synchronized (${m}) { if (${vv} == null && ${m} instanceof java.util.concurrent.ConcurrentHashMap) { ${m}.remove(${kk}); } else { ${m}.put(${kk}, ${vv}); } } }`;
-        }
+        // hx5 X22: GetValue / addElementToObject -> plain native op on a proven receiver + key, else the helper call
+        if (helper === 'GetValue' || helper === 'addElementToObject') return x22MapRewrite (helper, args, statement, declaredType, member);
         return undefined;
     };
     // code positions of every helper call, rewritten right-to-left so inner calls go first
@@ -9489,9 +9462,6 @@ function j39SelfTest (): string[] {
         [ 'inOp lit', '        return Helpers.inOp(o, "a");', 'j39v2.contains("a"); case java.util.Map<?, ?> j39v1 -> j39v1.containsKey("a")' ],
         [ 'inOp id', '        return Helpers.inOp(o, s);', '((Object)(s)) instanceof String && j39v1.containsKey(s)' ],
         [ 'newMap', '        return this.f(Helpers.newMap("a", o));', 'switch (0) { default -> { java.util.HashMap<String, Object> j39v1 = new java.util.HashMap<String, Object>(); j39v1.put("a", o); yield j39v1; } }' ],
-        [ 'get map param', '        return Helpers.GetValue(p, "a");', '((Object)(p) instanceof java.util.Map<?, ?> j39v1 && j39v1.containsKey("a") ? j39v1.get("a") : null)' ],
-        [ 'get list', '        return Helpers.GetValue(l, 0);', '((Object)(l) instanceof java.util.List<?> j39v1 && 0 < j39v1.size() ? j39v1.get(0) : null)' ],
-        [ 'put field', '        Helpers.addElementToObject(this.options, s, null);', 'j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); }' ],
         [ 'nested', '        return Helpers.inOp(Helpers.newMap("a", Helpers.getArrayLength(o)), "a");', 'j39v4.put("a", (switch ((Object)(o))' ],
         // negatives: Object receiver put/get, impure inOp key, odd newMap, string-literal content, expression GetValue
         [ 'put Object', '        Helpers.addElementToObject(o, "a", 1);', undefined ],
@@ -9845,33 +9815,90 @@ function j43SelfTest (): string[] {
     return problems;
 }
 
-// hx4 J44: isInstance / isArray / inOp / isEqual / isTrue as inline pattern switches or lambdas that
-// replay Helpers.java exactly (isInstance unwraps CompletionException/ExecutionException causes).
-function j44Rewrite (name: string, args: string[], n: number): string | undefined {
-    const v = 'hx4J44v' + n;
-    if (name === 'isInstance') {
-        const t = args.length === 2 ? args[1].trim() : '';
-        if (!/^[A-Za-z_][\w.]*\.class$/.test(t)) { return undefined; }
-        return `(switch ((Object) (${args[0].trim()})) { case null -> false; case Throwable ${v} -> { Throwable ${v}u = ${v}; while ((${v}u instanceof java.util.concurrent.CompletionException || ${v}u instanceof java.util.concurrent.ExecutionException) && ${v}u.getCause() != null) { ${v}u = ${v}u.getCause(); } yield ${t}.isInstance(${v}u); } case Object ${v} -> ${t}.isInstance(${v}); })`;
+// hx5 X19: Helpers.isInstance / inOp / isArray become a plain native op only on a proven
+// operand; every other site keeps the master helper call (no inlined switch or lambda).
+// isEqual / isTrue are not rewritten here: J40 (X14/X15) already runs before this pass.
+
+// innermost member window (from the last `public|private|protected` line) before `pos`
+function x19Member (masked: string, pos: number): string | undefined {
+    const before = masked.slice(0, pos);
+    const breaks = [ ...before.matchAll(/^[ \t]*(?:public|private|protected)[ \t]/gm) ];
+    return breaks.length === 0 ? undefined : before.slice(breaks[breaks.length - 1].index);
+}
+
+// `e` is the parameter of the innermost enclosing `catch(Exception e)` whose try body makes only
+// synchronous, non-wrapping calls, so `e` can never be a CompletionException/ExecutionException
+// and `e instanceof X` equals Helpers.isInstance(e, X.class)
+function x19CatchSync (masked: string, name: string, pos: number): boolean {
+    const member = x19Member(masked, pos);
+    if (member === undefined) { return false; }
+    const base = pos - member.length;
+    const re = new RegExp(`\\}\\s*catch\\s*\\(\\s*Exception\\s+${name}\\s*\\)\\s*\\{`, 'g');
+    let hit: RegExpExecArray | null = null; let mm;
+    while ((mm = re.exec(member)) !== null) { hit = mm; }
+    if (hit === null) { return false; }
+    const catchOpen = base + hit.index + hit[0].length - 1;
+    const catchEnd = j05Close(masked, catchOpen);
+    if (catchEnd === -1 || catchEnd < pos) { return false; }
+    // `name` must not be reassigned inside the catch body before the site
+    if (new RegExp(`(?<![\\w.])${name}\\s*=(?!=)`).test(masked.slice(catchOpen, pos))) { return false; }
+    // the matching try block: walk back from the `}` that closes it
+    const tryClose = base + hit.index;
+    let depth = 0; let tryOpen = -1;
+    for (let i = tryClose; i >= 0; i--) {
+        const c = masked[i];
+        if (c === '}' || c === ')' || c === ']') { depth++; }
+        else if (c === '{' || c === '(' || c === '[') { depth--; if (depth === 0) { tryOpen = i; break; } }
     }
-    if (name === 'isArray') {
-        if (args.length !== 1) { return undefined; }
-        return `(switch ((Object) (${args[0].trim()})) { case null -> false; case java.util.List<?> ${v} -> true; case Object ${v} -> ${v}.getClass().isArray(); })`;
+    if (tryOpen === -1 || !/\btry\s*$/.test(masked.slice(Math.max(0, tryOpen - 20), tryOpen))) { return false; }
+    const body = masked.slice(tryOpen + 1, tryClose);
+    // every call in the try body must be one of these synchronous helpers (no join/get/async methods)
+    const SYNC = new Set([ 'this.throwExactlyMatchedException', 'this.throwBroadlyMatchedException', 'this.json', 'this.exceptions.get', 'this.safeString', 'this.safeInteger', 'this.safeValue', 'this.safeDict', 'this.safeList', 'java.util.Objects.equals', 'Helpers.GetValue', 'String.valueOf' ]);
+    for (const c of body.matchAll(/([A-Za-z_][\w.]*)\s*\(/g)) {
+        const callee = c[1];
+        if (/^(?:if|while|for|switch|return|throw|new)$/.test(callee)) { continue; }
+        if (/\bnew\s*$/.test(body.slice(Math.max(0, c.index - 8), c.index))) { continue; }
+        if (!SYNC.has(callee)) { return false; }
     }
-    if (name === 'inOp') {
-        if (args.length !== 2) { return undefined; }
-        return `((java.util.function.BiPredicate<Object, Object>) (${v}A, ${v}B) -> { if (${v}A == null || ${v}B == null) { return false; } if (${v}A instanceof java.util.List<?> ${v}l) { return ${v}l.contains(${v}B); } if (${v}A instanceof java.util.Map<?, ?> ${v}m) { return ${v}B instanceof String && ${v}m.containsKey(${v}B); } return false; }).test(${args[0].trim()}, ${args[1].trim()})`;
+    return !/->|\bnew\s+\w+\s*\([^)]*\)\s*\{/.test(body);
+}
+
+// `name` is a member local whose only assignment is its declaration `= new HashMap/ArrayList(...)`
+function x19FreshLocal (masked: string, name: string, pos: number, kind: 'map' | 'list'): boolean {
+    const member = x19Member(masked, pos);
+    if (member === undefined) { return false; }
+    const ty = kind === 'map' ? '(?:java\\.util\\.)?(?:Hash)?Map<String,\\s*Object>' : '(?:java\\.util\\.)?(?:Array)?List<Object>';
+    const ctor = kind === 'map' ? '(?:java\\.util\\.)?HashMap' : '(?:java\\.util\\.)?ArrayList';
+    const decls = [ ...member.matchAll(new RegExp(`(?<![\\w.])${ty}\\s+${name}\\s*=\\s*new\\s+${ctor}<[^>]*>\\s*\\(`, 'g')) ];
+    const assigns = [ ...member.matchAll(new RegExp(`(?<![\\w.])${name}\\s*=(?!=)`, 'g')) ];
+    return decls.length === 1 && assigns.length === 1;
+}
+
+function x19Rewrite (name: string, args: string[], masked: string, at: number): string | undefined {
+    const x = args.map((s) => s.trim());
+    if (name === 'isInstance' && x.length === 2) {
+        const t = /^([A-Za-z_][\w.]*)\.class$/.exec(x[1]);
+        if (t === null || !/^[A-Za-z_]\w*$/.test(x[0]) || !x19CatchSync(masked, x[0], at)) { return undefined; }
+        return `(${x[0]} instanceof ${t[1]})`;
+    }
+    if (name === 'inOp' && x.length === 2) {
+        // key must be a non-null String literal; the receiver a fresh, never-reassigned local
+        if (!/^"(?:[^"\\]|\\.)*"$/.test(x[1]) || !/^[A-Za-z_]\w*$/.test(x[0])) { return undefined; }
+        if (x19FreshLocal(masked, x[0], at, 'map')) { return `${x[0]}.containsKey(${x[1]})`; }
+        if (x19FreshLocal(masked, x[0], at, 'list')) { return `${x[0]}.contains(${x[1]})`; }
+        return undefined;
+    }
+    if (name === 'isArray' && x.length === 1) {
+        // a fresh List local is always a non-null List (real arrays never reach this shape)
+        return /^[A-Za-z_]\w*$/.test(x[0]) && x19FreshLocal(masked, x[0], at, 'list') ? 'true' : undefined;
     }
     return undefined;
 }
 
 export function nativeJavaJ44 (content: string): string {
-    // isEqual / isTrue go through J40's exact replicas first
-    if (/Helpers\.(?:isEqual|isTrue)\(/.test(content)) { content = nativeJavaJ40(content); }
     if (!/Helpers\.(?:isInstance|isArray|inOp)\(/.test(content)) { return content; }
     let masked = j05Mask(content);
     let from = masked.length;
-    let n = 1 + Math.max(-1, ...[ ...content.matchAll(/hx4J44v(\d+)/g) ].map((m) => Number(m[1])));
     for (;;) {
         const at = masked.lastIndexOf('Helpers.', from);
         if (at === -1) { break; }
@@ -9886,7 +9913,7 @@ export function nativeJavaJ44 (content: string): string {
         const argsM = splitTopLevelArgs(masked.slice(open + 1, end - 1));
         const args: string[] = []; let p = open + 1;
         for (const m of argsM) { args.push(content.slice(p, p + m.length)); p += m.length + 1; }
-        const repl = j44Rewrite(head[1], args, n++);
+        const repl = x19Rewrite(head[1], args, masked, at);
         if (repl === undefined) { continue; }
         content = content.slice(0, at) + repl + content.slice(end);
         masked = j05Mask(content);
@@ -9894,21 +9921,29 @@ export function nativeJavaJ44 (content: string): string {
     return content;
 }
 
-// hx4 J44: snippet checks (`--audit-string-types --self-test`)
+// hx5 X19: snippet checks (`--audit-string-types --self-test`)
 function j44SelfTest (): string[] {
     const problems: string[] = [];
     const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Object p, Object q)\n    {\n${body}\n    }\n}`;
     const cases: [string, string, string | undefined][] = [
-        [ 'isInstance', '        try {} catch(Exception e) { if (Helpers.isInstance(e, AuthenticationError.class)) {} }', 'yield AuthenticationError.class.isInstance(hx4J44v0u);' ],
-        [ 'isArray', '        if (Helpers.isArray(p)) {}', 'case java.util.List<?> hx4J44v0 -> true;' ],
-        [ 'inOp nested', '        if (Helpers.inOp(p, Helpers.GetValue(q, "id"))) {}', '.test(p, Helpers.GetValue(q, "id"))' ],
+        [ 'isInstance sync try', '        try\n        {\n            if (!java.util.Objects.equals(p, null))\n            {\n                this.throwExactlyMatchedException(this.exceptions.get("exact"), p, this.json(q));\n            }\n        } catch(Exception e)\n        {\n            if (Helpers.isInstance(e, AuthenticationError.class)) {}\n        }', 'if ((e instanceof AuthenticationError)) {}' ],
+        [ 'isInstance async try', '        try\n        {\n            q = (this.fetchX(p)).join();\n        } catch(Exception e)\n        {\n            if (Helpers.isInstance(e, AuthenticationError.class)) {}\n        }', undefined ],
+        [ 'isInstance outside catch', '        if (Helpers.isInstance(p, AuthenticationError.class)) {}', undefined ],
+        [ 'inOp fresh map', '        Map<String, Object> r = new HashMap<String, Object>() {{ }};\n        if (Helpers.inOp(r, "id")) {}', 'if (r.containsKey("id")) {}' ],
+        [ 'inOp reassigned map', '        Map<String, Object> r = new HashMap<String, Object>() {{ }};\n        r = (Map<String, Object>) q;\n        if (Helpers.inOp(r, "id")) {}', undefined ],
+        [ 'inOp non-literal key', '        Map<String, Object> r = new HashMap<String, Object>() {{ }};\n        if (Helpers.inOp(r, q)) {}', undefined ],
+        [ 'inOp Object receiver', '        if (Helpers.inOp(p, Helpers.GetValue(q, "id"))) {}', undefined ],
+        [ 'isArray Object', '        if (Helpers.isArray(p)) {}', undefined ],
+        [ 'isArray fresh list', '        List<Object> r = new ArrayList<Object>(java.util.Arrays.asList());\n        if (Helpers.isArray(r)) {}', 'if (true) {}' ],
         [ 'isTrue Object', '        if (Helpers.isTrue(p)) {}', undefined ], // hx5 X14: helper left alone
         [ 'statement', '        Helpers.isArray(p);', undefined ],
     ];
     for (const [ name, body, expect ] of cases) {
         const out = nativeJavaJ44 (cls (body));
-        const ok = expect === undefined ? out === cls (body) : out.includes (expect) && !/Helpers\.(?:isInstance|isArray|inOp|isEqual|isTrue)\(/.test (out);
-        if (!ok) problems.push (`hx4 J44: ${name}\n${out}`);
+        const ok = expect === undefined ? out === cls (body) : out.includes (expect) && !/Helpers\.(?:isInstance|isArray|inOp)\(/.test (out);
+        if (!ok) problems.push (`hx5 X19: ${name}\n${out}`);
+        if (nativeJavaJ44 (out) !== out) problems.push (`hx5 X19: not idempotent: ${name}`);
+        if (/hx4J44|switch|BiPredicate/.test (out)) problems.push (`hx5 X19: inlined body: ${name}`);
     }
     return problems;
 }
@@ -10188,4 +10223,133 @@ function x17J42DeclaredType (content: string, at: number, name: string): string 
         }
     }
     return undefined;
+}
+
+// hx5 X21: Object locals proven String (base `: Str` producers) / Map (venue `: Dict` omit/fresh-map
+// callees) print their concrete type; any unproven write or producer keeps Object
+function x21SelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzx21selftest${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        "import type { Dict } from './base/types.js';",
+        'export default class zzx21selftest extends Exchange {',
+        "    zzxClean (params: Dict = {}): Dict { const zzo: Dict = this.omit (params, [ 'type', 'settle' ]); return zzo; }",
+        "    zzxRoute (methodName: string, params: Dict): Dict { const [ route, paramsResolved ] = this.handleOptionAndParams (params, methodName, 'route', 'auto'); return this.omit (paramsResolved, [ 'route' ]); }",
+        "    zzxLoose (params: Dict = {}): Dict { return params; }",
+        "    ctp (code: string, fee: any) { let a = this.currencyToPrecision (code, fee); if (a === undefined) { a = '0'; } return { 'a': a }; }",
+        "    pp (p: any) { const b = this.parsePrecision (this.safeString (p, 'x')); return [ b ]; }",
+        "    mixed (code: string, fee: any, p: any) { let c = this.currencyToPrecision (code, fee); c = this.safeValue (p, 'x'); return [ c ]; }",
+        "    cl () { const q = {}; const d = this.zzxClean (q); return this.extend (d, {}); }",
+        "    rt () { const q = {}; const e = this.zzxRoute ('fetchX', q); return this.extend (e, {}); }",
+        "    lo () { const q = {}; const f = this.zzxLoose (q); return this.extend (f, {}); }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/String a = \(String\) this\.currencyToPrecision\(/.test(out)) problems.push("x21: 'a' (currencyToPrecision + literal write) must print String with a checkcast");
+        if (!/String b = \(String\) this\.parsePrecision\(/.test(out)) problems.push("x21: 'b' (parsePrecision) must print String");
+        if (!/Map<String, Object> d = /.test(out)) problems.push("x21: 'd' (venue omit-of-Map-param callee) must print Map");
+        if (!/Map<String, Object> e = /.test(out)) problems.push("x21: 'e' (venue omit-of-handle-element-1 callee) must print Map");
+        for (const name of [ 'c', 'f' ]) {
+            if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`x21: '${name}' has an unproven write/producer and must stay Object`);
+        }
+        if (problems.length) problems.push('x21 output:\n' + out);
+    } catch (e: any) {
+        problems.push(`x21 self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// hx5 X22
+// Helpers.GetValue / Helpers.addElementToObject inside nativeJavaJ39Containers. Exactly two outcomes per site:
+//   * receiver + key proven -> the plain Map/List op (`m.get(k)`, `m.put(k, v);`, `l.get(N)`), with only the null
+//     guard the helper's own contract needs (GetValue answers null for a null receiver / key / out-of-range index);
+//   * anything else -> the helper call, untouched. The hx4 J39 inline blobs (pattern-match + synchronized
+//     ConcurrentHashMap null-remove replay) are gone.
+// put is native only on a FRESH local (every write is `new [Linked]HashMap<String, Object>(...)`, not a parameter):
+// such a map is never a ConcurrentHashMap (put(k, null) would throw where the helper removes), never null, and
+// unshared, so the helper's `synchronized (m)` pairing with objectKeys has no reader. Fields (this.options is a
+// ConcurrentHashMap; this.urls / this.has are read by other threads) always keep the put helper.
+function x22MapRewrite (helper: string, args: string[], statement: boolean, declaredType: (name: string) => string | undefined, member: string): string | undefined {
+    const ident = (e: string) => /^[A-Za-z_]\w*$/.test (e) && !/^(?:this|null|true|false|new)$/.test (e);
+    const strLit = (e: string) => /^"(?:[^"\\]|\\.)*"$/.test (e);
+    const isMap = (t: string | undefined) => /^(?:java\.util\.)?(?:Map|HashMap|LinkedHashMap)<String, Object>$/.test (t ?? '');
+    const isList = (t: string | undefined) => /^(?:java\.util\.)?(?:List|ArrayList)<Object>$/.test (t ?? '');
+    const stringKey = (k: string) => strLit (k) || (ident (k) && declaredType (k) === 'String');
+    const sig = member.slice (0, member.indexOf ('\n') === -1 ? member.length : member.indexOf ('\n')).replace (/\{.*$/, '');
+    const fresh = (n: string): boolean => {
+        if (new RegExp (`[(,]\\s*(?:final )?[\\w.]+(?:<[\\w.<>, ?]*>)? ${n}\\s*[,)]`).test (sig)) return false;
+        // any lambda / anonymous class mentioning it, or a compound write, vetoes
+        let writes = 0;
+        for (const m of member.matchAll (new RegExp (`(?<![\\w.])${n}\\s*(=(?!=)|\\+=|\\+\\+|--)`, 'g'))) {
+            if (m[1] !== '=') return false;
+            const rhs = member.slice (m.index! + m[0].length).trimStart ();
+            if (!/^new (?:java\.util\.)?(?:Linked)?HashMap<(?:String, Object)?>\(/.test (rhs)) return false;
+            writes++;
+        }
+        return writes > 0;
+    };
+    if (helper === 'GetValue' && args.length === 2 && !statement) {
+        const [ t, k ] = args;
+        const fieldMap = /^this\.([A-Za-z_]\w*)$/.exec (t);
+        // GetValue does not synchronize: a plain get on a declared-Map base field is the same read
+        // markets_by_id is volatile and reset to null by other threads: the guard's double read could NPE, keep the helper
+        const mapRecv = (ident (t) && isMap (declaredType (t))) || (fieldMap !== null && fieldMap[1] !== 'markets_by_id' && j39MapFields ().has (fieldMap[1]));
+        if (mapRecv && stringKey (k)) {
+            const recvNonNull = ident (t) && fresh (t);
+            // HashMap.get(null) answers null; a possibly-concurrent map throws, so guard an identifier key
+            const keyNull = strLit (k) || recvNonNull ? '' : `${k} == null`;
+            const recvNull = recvNonNull ? '' : `${t} == null`;
+            const guard = [ recvNull, keyNull ].filter ((g) => g !== '').join (' || ');
+            return guard === '' ? `${t}.get(${k})` : `(${guard} ? null : ${t}.get(${k}))`;
+        }
+        if (ident (t) && isList (declaredType (t)) && /^\d+L?$/.test (k)) {
+            const n = k.replace (/L$/, '');
+            return `(${t} == null || ${n} >= ${t}.size() ? null : ${t}.get(${n}))`;
+        }
+        return undefined;
+    }
+    if (helper === 'addElementToObject' && args.length === 3 && statement) {
+        const [ t, k, v ] = args;
+        if (ident (t) && isMap (declaredType (t)) && stringKey (k) && fresh (t)) return `${t}.put(${k}, ${v});`;
+        return undefined;
+    }
+    return undefined;
+}
+
+// hx5 X22: snippet checks (`--audit-string-types --self-test`)
+function x22SelfTest (): string[] {
+    const problems: string[] = [];
+    const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Map<String, Object> p, Object o, String s, List<Object> l)\n    {\n${body}\n    }\n}`;
+    const cases: [string, string, string | undefined][] = [
+        // native: plain op on a proven receiver + key
+        [ 'get map param lit', '        return Helpers.GetValue(p, "a");', '        return (p == null ? null : p.get("a"));' ],
+        [ 'get map param String key', '        return Helpers.GetValue(p, s);', '        return (p == null || s == null ? null : p.get(s));' ],
+        [ 'get fresh local', '        Map<String, Object> r = new HashMap<String, Object>() {{}};\n        return Helpers.GetValue(r, s);', '        return r.get(s);' ],
+        [ 'get field', '        return Helpers.GetValue(this.urls, "api");', '        return (this.urls == null ? null : this.urls.get("api"));' ],
+        [ 'get list', '        return Helpers.GetValue(l, 0);', '        return (l == null || 0 >= l.size() ? null : l.get(0));' ],
+        [ 'put fresh local nullable', '        Map<String, Object> r = new HashMap<String, Object>() {{}};\n        Helpers.addElementToObject(r, s, o);', '        r.put(s, o);' ],
+        // helper kept: ConcurrentHashMap / shared field puts, unproven receiver, Object key, non-fresh map, list put
+        [ 'put options field', '        Helpers.addElementToObject(this.options, s, null);', undefined ],
+        [ 'put urls field', '        Helpers.addElementToObject(this.urls, "a", o);', undefined ],
+        [ 'put param map', '        Helpers.addElementToObject(p, "a", o);', undefined ],
+        [ 'put safeDict local', '        Map<String, Object> r = (Map<String, Object>) this.safeDict(o, "x");\n        Helpers.addElementToObject(r, "a", o);', undefined ],
+        [ 'put reassigned local', '        Map<String, Object> r = new HashMap<String, Object>() {{}};\n        r = this.extend(r, o);\n        Helpers.addElementToObject(r, "a", o);', undefined ],
+        [ 'put Object key', '        Map<String, Object> r = new HashMap<String, Object>() {{}};\n        Helpers.addElementToObject(r, o, o);', undefined ],
+        [ 'get Object receiver', '        return Helpers.GetValue(o, "a");', undefined ],
+        [ 'get Object key', '        return Helpers.GetValue(p, o);', undefined ],
+        [ 'get list var index', '        return Helpers.GetValue(l, s);', undefined ],
+        [ 'get options id key', '        return Helpers.GetValue(this.options, o);', undefined ],
+    ];
+    for (const [ name, body, expect ] of cases) {
+        const out = nativeJavaJ39Containers (cls (body));
+        const ok = expect === undefined ? out === cls (body) : out.includes (expect) && !/j39|switch|synchronized/.test (out);
+        if (!ok) problems.push (`hx5 X22: ${name}\n${out}`);
+        if (nativeJavaJ39Containers (out) !== out) problems.push (`hx5 X22: ${name} not idempotent`);
+    }
+    return problems;
 }

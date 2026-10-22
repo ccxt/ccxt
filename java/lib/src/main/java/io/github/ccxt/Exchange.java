@@ -55,7 +55,7 @@ public class Exchange extends BaseExchange implements TypedSurface {
     @SuppressWarnings("unchecked")
     public void loadOrderBook(Client client, Object messageHash, Object symbol, Object limit, Object params) {
         try {
-            if (!((java.util.function.BiPredicate<Object, Object>) (hx4J44v0A, hx4J44v0B) -> { if (hx4J44v0A == null || hx4J44v0B == null) { return false; } if (hx4J44v0A instanceof java.util.List<?> hx4J44v0l) { return hx4J44v0l.contains(hx4J44v0B); } if (hx4J44v0A instanceof java.util.Map<?, ?> hx4J44v0m) { return hx4J44v0B instanceof String && hx4J44v0m.containsKey(hx4J44v0B); } return false; }).test(this.orderbooks, symbol)) {
+            if (!Helpers.inOp(this.orderbooks, symbol)) {
                 client.reject(new ExchangeError(this.id + " loadOrderBook() orderbook is not initiated"), messageHash);
                 return;
             }
